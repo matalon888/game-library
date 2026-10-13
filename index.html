@@ -128,9 +128,10 @@ const LOGOS = { claude: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4
 const HOSTS = {
   claude: { name: 'Claude', add: 'https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=' + encodeURIComponent('🎮 RIFFCADE') + '&connectorUrl=' + encodeURIComponent(MCP),
     play: 'https://claude.ai/new?q=' + ASK, addLabel: 'Add to Claude', steps: ['Claude opens. Tap <b>Add</b>. That\'s it.'] },
-  chatgpt: { name: 'ChatGPT', copy: true, add: 'https://chatgpt.com/plugins', play: 'https://chatgpt.com/?q=' + ASK, addLabel: '1. Copy link & open ChatGPT',
-    // /plugins is in the ChatGPT app's apple-app-site-association / assetlinks, so phones open the app; the web fallback opts out
-    webAdd: 'https://chatgpt.com/plugins?no_universal_links=1',
+  chatgpt: { name: 'ChatGPT', copy: true, add: 'https://chatgpt.com/plugins?no_universal_links=1', play: 'https://chatgpt.com/?q=' + ASK, addLabel: '1. Copy link & open chatgpt.com',
+    // the ChatGPT app's Plugins screen has no Add button (tested on iPhone), so adding must happen on the website:
+    // no_universal_links=1 is ChatGPT's own opt-out in its apple-app-site-association, so the app doesn't grab the link
+    note: 'Adding only works on the website (the app has no Add button). Once added, it\'s in your ChatGPT app too.',
     steps: ['2. Tap <b>Add</b> (top right) → <b>Add custom MCP server</b>', '3. Name: <b>RIFFCADE</b>. Paste the link into <b>Server URL</b>', '4. Authentication: <b>No authentication</b>', '5. Tick <b>I understand</b> → <b>Create as a plugin</b>'] },
   grok: { name: 'Grok', copy: true, add: 'https://grok.com/connectors', play: 'https://grok.com/?q=' + ASK, addLabel: 'Copy link & open Grok',
     note: 'If grok.com opens in the browser, add it there. It shows up in your Grok app too.',
@@ -144,7 +145,6 @@ function open(k) {
     <a class="btn" id="add" href="${phone && h.appAdd ? h.appAdd : h.add}" target="_blank" rel="noopener">${h.addLabel}</a>
     ${h.steps.map(s => `<p class="step">${s}</p>`).join('')}
     ${h.note && phone ? `<p class="step note">${h.note}</p>` : ''}
-    ${phone && h.webAdd ? `<p class="step note">No <b>Add</b> button in the app? <a href="${h.webAdd}" target="_blank" rel="noopener">Do it on chatgpt.com</a>, then it's in your app too.</p>` : ''}
     <a class="btn dark" href="${h.play}" target="_blank" rel="noopener">${device !== 'desktop' ? 'Start playing in the ' + h.name + ' app' : 'Start playing'}</a>`;
   if (h.copy) $('#add').addEventListener('click', () => navigator.clipboard.writeText(MCP).then(() => toast('Link copied'), () => toast(MCP)));
   $('#x').onclick = close;
