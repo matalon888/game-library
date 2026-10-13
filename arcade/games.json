@@ -17,6 +17,7 @@
   "stars": 6442,
   "flag": null,
   "review": null,
+  "made": "2025-11-21",
   "public": {
    "github": {
     "forks": 711,
@@ -47,6 +48,7 @@
   "stars": 1749,
   "flag": "20 MB download; plays in landscape.",
   "review": null,
+  "made": "2012-10-05",
   "public": {
    "github": {
     "forks": 892,
@@ -96,6 +98,7 @@
    "ai_built": "yes",
    "pitch": "Play Werewolf solo against LLM-driven players who accuse, bluff, and vote in unpredictable, personality-rich 8–12 seat games."
   },
+  "made": "2026-01-07",
   "public": {
    "github": {
     "forks": 66,
@@ -126,6 +129,7 @@
   "stars": 551,
   "flag": null,
   "review": null,
+  "made": "2012-12-25",
   "public": {
    "github": {
     "forks": 143,
@@ -175,6 +179,7 @@
    "ai_built": "no",
    "pitch": "Breed koi with procedurally generated patterns and genetics, building a pond of unique fish in a serene, polished setting."
   },
+  "made": "2020-04-11",
   "public": {
    "github": {
     "forks": 61,
@@ -205,6 +210,7 @@
   "stars": 315,
   "flag": "Credits third-party music in-game; confirm the music licence before monetising.",
   "review": null,
+  "made": "2019-10-05",
   "public": {
    "github": {
     "forks": 46,
@@ -246,6 +252,7 @@
    "ai_built": "likely",
    "pitch": "Run a chaotic scam call center with friends, talk to AI callers over voice chat, hit daily quotas, and survive your boss's review."
   },
+  "made": "2026-10-09",
   "public": {
    "github": {
     "forks": 19,
@@ -276,6 +283,7 @@
   "stars": 184,
   "flag": null,
   "review": null,
+  "made": "2023-11-09",
   "public": {
    "github": {
     "forks": 75,
@@ -312,6 +320,7 @@
    "ai_built": "no",
    "pitch": "Blast through endless waves of enemies, swap and upgrade four weapons, and survive multi-phase bullet-hell boss fights."
   },
+  "made": "2025-11-28",
   "public": {
    "github": {
     "forks": 2,
@@ -342,6 +351,7 @@
   "stars": 85,
   "flag": "Fixed-size board; small on narrow phones.",
   "review": null,
+  "made": "2018-09-03",
   "public": {
    "github": {
     "forks": 28,
@@ -378,6 +388,7 @@
    "ai_built": "yes",
    "pitch": "Explore Daggerfall's vast open world in your browser with a new WebGL2 renderer, character creation, and multiplayer."
   },
+  "made": "2026-08-27",
   "public": {
    "github": {
     "forks": 19,
@@ -414,6 +425,7 @@
    "ai_built": "no",
    "pitch": "Play Sudoku across nine modes with smart hints, an AI solver, daily challenges, and lessons on X-Wing and Swordfish techniques."
   },
+  "made": "2026-05-03",
   "public": {
    "github": {
     "forks": 0,
@@ -450,6 +462,7 @@
    "ai_built": "yes",
    "pitch": "Build a startup from a bedroom to your own building, managing team morale and cash before you go bankrupt."
   },
+  "made": "2026-03-26",
   "public": {
    "github": {
     "forks": 6,
@@ -486,6 +499,7 @@
    "ai_built": "yes",
    "pitch": "Watch five AI personalities debate, betray, and vote each other out while you intervene as Game Master with any command."
   },
+  "made": "2026-02-27",
   "public": {
    "github": {
     "forks": 14,
@@ -516,6 +530,7 @@
   "stars": 29,
   "flag": null,
   "review": null,
+  "made": "2017-08-06",
   "public": {
    "github": {
     "forks": 8,
@@ -552,6 +567,7 @@
    "ai_built": "yes",
    "pitch": "Survive a surreal bureaucratic nightmare to renew your passport, facing caricatured world leaders and tech billionaires in arcade-style fights."
   },
+  "made": "2026-03-23",
   "public": {
    "github": {
     "forks": 4,
@@ -588,6 +604,7 @@
    "ai_built": "yes",
    "pitch": "Challenge humans or AI agents to real-time ranked chess on a 3D board, with Elo ratings and leaderboards."
   },
+  "made": "2026-02-09",
   "public": {
    "github": {
     "forks": 3,
@@ -618,6 +635,7 @@
   "stars": 20,
   "flag": null,
   "review": null,
+  "made": "2016-10-27",
   "public": {
    "github": {
     "forks": 7,
@@ -648,6 +666,7 @@
   "stars": 20,
   "flag": "UI text is in Chinese.",
   "review": null,
+  "made": "2026-06-02",
   "public": {
    "github": {
     "forks": 6,
@@ -684,6 +703,7 @@
    "ai_built": "no",
    "pitch": "Journey through all 55 Tōkaidō stations, hunting hidden details in pixelated Hiroshige prints to unlock the original museum scans."
   },
+  "made": "2026-07-10",
   "public": {
    "github": {
     "forks": 1,
@@ -714,6 +734,7 @@
   "stars": 18,
   "flag": null,
   "review": null,
+  "made": "2014-09-20",
   "public": {
    "github": {
     "forks": 7,
@@ -750,6 +771,7 @@
    "ai_built": "yes",
    "pitch": "Climb ten poker tournaments against a cast of quirky AI regulars, with daily shared shuffles, streaks, and a chip shop."
   },
+  "made": "2026-07-14",
   "public": {
    "github": {
     "forks": 10,
@@ -786,6 +808,7 @@
    "ai_built": "yes",
    "pitch": "Play full Settlers of Catan online with 2-6 friends: trade, build, and race to 10 victory points."
   },
+  "made": "2025-11-28",
   "public": {
    "github": {
     "forks": 11,
@@ -822,6 +845,7 @@
    "ai_built": "yes",
    "pitch": "Wordle with 13 themes, 4-7 letter words, daily and timed modes, custom word lists, achievements, and per-theme stats."
   },
+  "made": "2026-06-19",
   "public": {
    "github": {
     "forks": 0,
@@ -858,6 +882,7 @@
    "ai_built": "no",
    "pitch": "Mix cocktails for quirky, increasingly drunk customers, then customize your bar's lighting and wallpaper, shake with your phone or hand gestures."
   },
+  "made": "2025-09-08",
   "public": {
    "github": {
     "forks": 2,
@@ -894,6 +919,7 @@
    "ai_built": "yes",
    "pitch": "Pilot a Star Fox-style fighter through sunset seas, canyons and neon fortresses, then battle a giant mechanical sea serpent boss."
   },
+  "made": "2026-09-23",
   "public": {
    "github": {
     "forks": 2,
@@ -930,6 +956,7 @@
    "ai_built": "yes",
    "pitch": "Pilot a cookie-sized drone through a giant moonlit apartment, delivering tiny parcels without waking the cat."
   },
+  "made": "2026-09-15",
   "public": {
    "github": {
     "forks": 0,
@@ -966,6 +993,7 @@
    "ai_built": "likely",
    "pitch": "Pick a story, make a choice every turn, and chase one of many endings across ten scenarios."
   },
+  "made": "2026-06-17",
   "public": {
    "github": {
     "forks": 2,
@@ -1002,6 +1030,7 @@
    "ai_built": "likely",
    "pitch": "Code your way across 25 pixel-art islands with Ferris the crab, using a real Rust compiler to beat bosses."
   },
+  "made": "2026-10-05",
   "public": {
    "github": {
     "forks": 0,
@@ -1038,6 +1067,7 @@
    "ai_built": "yes",
    "pitch": "Drift around a dinner-table circuit in tiny karts, grab items, and race friends online in 3D."
   },
+  "made": "2026-08-29",
   "public": {
    "github": {
     "forks": 0,
@@ -1074,6 +1104,7 @@
    "ai_built": "yes",
    "pitch": "Race recorded opponents and daily challenges in a themed typing game with quotes, code, and adaptive drills."
   },
+  "made": "2026-08-28",
   "public": {
    "github": {
     "forks": 0,
@@ -1110,6 +1141,7 @@
    "ai_built": "yes",
    "pitch": "Buy, develop and trade properties on a live world map, with stocks, banking and company co-ops against other players."
   },
+  "made": "2026-07-08",
   "public": {
    "github": {
     "forks": 0,
@@ -1146,6 +1178,7 @@
    "ai_built": "likely",
    "pitch": "Blast blocky Clawds into orange Anthropic-logo splats as you fight through procedurally generated labs to a final swarm showdown."
   },
+  "made": "2026-07-26",
   "public": {
    "github": {
     "forks": 0,
@@ -1182,6 +1215,7 @@
    "ai_built": "yes",
    "pitch": "Carve down a procedural mountain as a snowman, dodging trees and rocks while outrunning a chasing avalanche."
   },
+  "made": "2025-03-09",
   "public": {
    "github": {
     "forks": 3,
@@ -1218,6 +1252,7 @@
    "ai_built": "yes",
    "pitch": "Wander a 3D island garden and pick from 74 games, from roguelikes and tower defense to RPGs and city builders."
   },
+  "made": "2026-02-04",
   "public": {
    "github": {
     "forks": 0,
@@ -1254,6 +1289,7 @@
    "ai_built": "yes",
    "pitch": "Rebuild civilization across ten eras, uncovering ruins of those who came before, and let the cycle turn to start again."
   },
+  "made": "2026-03-21",
   "public": {
    "github": {
     "forks": 0,
@@ -1290,6 +1326,7 @@
    "ai_built": "likely",
    "pitch": "Pilot a fighter jet through five levels of drone swarms and homing-missile jets, using barrel rolls to dodge incoming fire."
   },
+  "made": "2026-03-28",
   "public": {
    "github": {
     "forks": 0,
@@ -1326,6 +1363,7 @@
    "ai_built": "likely",
    "pitch": "Outbid and outwit opponents in a no-luck card duel, solo against AI or in peer-to-peer multiplayer with voice chat."
   },
+  "made": "2026-05-25",
   "public": {
    "github": {
     "forks": 0,
@@ -1362,6 +1400,7 @@
    "ai_built": "yes",
    "pitch": "Command numbered pieces in a real-time neon arcade duel against five CPU tiers, frontier LLMs, or online friends."
   },
+  "made": "2026-06-10",
   "public": {
    "github": {
     "forks": 0,
@@ -1398,6 +1437,7 @@
    "ai_built": "yes",
    "pitch": "Command light-cycle armies on a glowing 3D hex grid against the MCP or friends online."
   },
+  "made": "2026-06-18",
   "public": {
    "github": {
     "forks": 2,
@@ -1434,6 +1474,7 @@
    "ai_built": "likely",
    "pitch": "Tilt your phone to roll a round cat through 10 stages, flicking upward to jump toward the goal."
   },
+  "made": "2026-07-05",
   "public": {
    "github": {
     "forks": 0,
@@ -1470,6 +1511,7 @@
    "ai_built": "yes",
    "pitch": "Fling, firework and flatten a ragdoll stickman, earn coins, unlock toys and hats, and keep a daily streak going."
   },
+  "made": "2026-07-31",
   "public": {
    "github": {
     "forks": 0,
@@ -1506,6 +1548,7 @@
    "ai_built": "yes",
    "pitch": "Blast through story chapters, boss rushes, and daily challenges with 3 ships, 5 weapons, and online co-op."
   },
+  "made": "2026-07-07",
   "public": {
    "github": {
     "forks": 0,
@@ -1542,6 +1585,7 @@
    "ai_built": "yes",
    "pitch": "Type code from seven programming languages to blow up enemy ships, defeat bosses, and survive escalating waves in 3D space."
   },
+  "made": "2025-09-18",
   "public": {
    "github": {
     "forks": 0,
@@ -1578,6 +1622,7 @@
    "ai_built": "yes",
    "pitch": "Sneak through a foggy night forest, hide from hunting wolves, bears and lions, and carry a glowing lost child home."
   },
+  "made": "2026-08-14",
   "public": {
    "github": {
     "forks": 0,
@@ -1614,6 +1659,7 @@
    "ai_built": "yes",
    "pitch": "Play Yahtzee, Ludo, Checkers, Sketch & Guess and more with friends in real-time lobbies, no downloads or accounts."
   },
+  "made": "2025-10-17",
   "public": {
    "github": {
     "forks": 0,
@@ -1650,6 +1696,7 @@
    "ai_built": "yes",
    "pitch": "Lead your tribe against a rival on a procedurally generated map, fighting over the one scarce resource while raids and wildlife threaten."
   },
+  "made": "2026-07-03",
   "public": {
    "github": {
     "forks": 2,
@@ -1686,6 +1733,7 @@
    "ai_built": "yes",
    "pitch": "An AI Game Master running entirely in your browser improvises any choose-your-own-adventure story, no server or API key needed."
   },
+  "made": "2026-04-11",
   "public": {
    "github": {
     "forks": 0,
@@ -1722,6 +1770,7 @@
    "ai_built": "yes",
    "pitch": "Wander a watercolor mushroom forest with your companion Cosmo, then visit worlds built by other players."
   },
+  "made": "2026-05-01",
   "public": {
    "github": {
     "forks": 0,
@@ -1758,6 +1807,7 @@
    "ai_built": "yes",
    "pitch": "Survive endless concurrent waves by upgrading four tower types against escalating enemies, then compete for a spot on the global leaderboard."
   },
+  "made": "2026-01-03",
   "public": {
    "github": {
     "forks": 0,
@@ -1794,6 +1844,7 @@
    "ai_built": "yes",
    "pitch": "Choose your destiny in the ancient Mediterranean, defying or obeying the gods across 111 illustrated, branching scenes."
   },
+  "made": "2026-03-26",
   "public": {
    "github": {
     "forks": 0,
@@ -1830,6 +1881,7 @@
    "ai_built": "yes",
    "pitch": "Interrogate AI-powered suspects with your own voice, uncover hidden clues, and accuse the real killer before the judge."
   },
+  "made": "2026-08-15",
   "public": {
    "github": {
     "forks": 0,
@@ -1866,6 +1918,7 @@
    "ai_built": "likely",
    "pitch": "Shift between Present and Echo across four chapters and thirteen puzzles to recover a minute that never ended."
   },
+  "made": "2026-09-08",
   "public": {
    "github": {
     "forks": 3,
@@ -1902,6 +1955,7 @@
    "ai_built": "likely",
    "pitch": "Cook meals for Nahida, send her traveling, and collect postcards from her journeys in a living, animated home."
   },
+  "made": "2026-09-13",
   "public": {
    "github": {
     "forks": 1,
@@ -1938,6 +1992,7 @@
    "ai_built": "yes",
    "pitch": "Type the words of zombie bugs marching on your PROD server, then take down THE FURIOUS CIO in a final boss fight."
   },
+  "made": "2026-06-12",
   "public": {
    "github": {
     "forks": 0,
@@ -1974,6 +2029,7 @@
    "ai_built": "yes",
    "pitch": "Hand-fly a falling booster through gusty winds and time one perfect hoverslam burn onto a floating drone-ship pad."
   },
+  "made": "2026-10-10",
   "public": {
    "github": {
     "forks": 0,
@@ -2010,6 +2066,7 @@
    "ai_built": "yes",
    "pitch": "Edit the laws of a tiny universe, combine them to discover named wonders, and watch the swarm come alive."
   },
+  "made": "2026-06-03",
   "public": {
    "github": {
     "forks": 0,
@@ -2046,6 +2103,7 @@
    "ai_built": "yes",
    "pitch": "Snake reimagined as a dojo: hunt mice, frogs, lizards and rival snakes, earn belts, and challenge friends on live rankings."
   },
+  "made": "2026-09-07",
   "public": {
    "github": {
     "forks": 0,
@@ -2082,6 +2140,7 @@
    "ai_built": "likely",
    "pitch": "Explore 3D islands as Little Psi, solving quantum puzzles and decoding equation glyphs across multiple themed worlds and visual styles."
   },
+  "made": "2026-10-08",
   "public": {
    "github": {
     "forks": 0,
@@ -2118,6 +2177,7 @@
    "ai_built": "likely",
    "pitch": "Name the anime from a single screenshot, racing a 10-second timer across 50 questions to climb the daily leaderboard."
   },
+  "made": "2026-08-03",
   "public": {
    "github": {
     "forks": 0,
@@ -2154,6 +2214,7 @@
    "ai_built": "likely",
    "pitch": "Fight through five glitchy software-themed realms as Buddy, building boons and defeating bosses in a Hades II-inspired roguelite."
   },
+  "made": "2026-09-25",
   "public": {
    "github": {
     "forks": 1,
@@ -2190,6 +2251,7 @@
    "ai_built": "yes",
    "pitch": "Slingshot a tiny astronaut around planetary gravity wells, link relay worlds, and outrun the Warden in three boss-ending sectors."
   },
+  "made": "2026-08-14",
   "public": {
    "github": {
     "forks": 0,
@@ -2226,6 +2288,7 @@
    "ai_built": "likely",
    "pitch": "Pass one phone around, bluff your way through secret words as an impostor or Mr. White, and outwit your friends."
   },
+  "made": "2026-05-14",
   "public": {
    "github": {
     "forks": 0,
@@ -2262,6 +2325,7 @@
    "ai_built": "likely",
    "pitch": "Stuff the box with fashionable features, watch sales collapse while investors keep wiring cash, then survive the inevitable crash."
   },
+  "made": "2026-08-25",
   "public": {
    "github": {
     "forks": 0,
@@ -2298,6 +2362,7 @@
    "ai_built": "yes",
    "pitch": "Descend into a haunted Tamil temple, blast asuras with divine weapons, and face Mahishasura in his inner sanctum."
   },
+  "made": "2026-03-17",
   "public": {
    "github": {
     "forks": 1,
@@ -2334,6 +2399,7 @@
    "ai_built": "yes",
    "pitch": "Descend 100 floors of a roguelike, deciding when to push deeper or retreat while shaping your build."
   },
+  "made": "2026-08-25",
   "public": {
    "github": {
     "forks": 0,
@@ -2370,6 +2436,7 @@
    "ai_built": "yes",
    "pitch": "Wake as a recovered AI in a salvaged robot body and explore an endless procedural desert of buried megacities."
   },
+  "made": "2026-06-13",
   "public": {
    "github": {
     "forks": 0,
@@ -2406,6 +2473,7 @@
    "ai_built": "likely",
    "pitch": "Cycle through a living painterly village across four seasons, chatting with neighbors, riding rivers' edges, and chasing golden-hour light."
   },
+  "made": "2026-10-02",
   "public": {
    "github": {
     "forks": 3,
@@ -2442,6 +2510,7 @@
    "ai_built": "yes",
    "pitch": "Survive seven waves of mutant Zods, upgrade your weapons in the shop, and defeat the final boss Hans Volter."
   },
+  "made": "2026-09-12",
   "public": {
    "github": {
     "forks": 1,
@@ -2478,6 +2547,7 @@
    "ai_built": "yes",
    "pitch": "Steer through a swarm while your weapons auto-fire, stack Mk 5 loadouts, and extract in ten minutes before four bosses stack."
   },
+  "made": "2026-08-29",
   "public": {
    "github": {
     "forks": 1,
@@ -2514,6 +2584,7 @@
    "ai_built": "yes",
    "pitch": "Dozens of free games, from 2048 to chess, with coins and stars to decorate your own room."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 1,
@@ -2550,6 +2621,7 @@
    "ai_built": "yes",
    "pitch": "Become a giant kaiju and smash, stomp, and breathe magma on a collapsing city while fighting off tanks and helicopters."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 1,
@@ -2586,6 +2658,7 @@
    "ai_built": "likely",
    "pitch": "Climb from 'leek sprout' to legendary trader through 50 Duolingo-style levels, labs, card collecting, and a stock World Cup."
   },
+  "made": "2026-07-21",
   "public": {
    "github": {
     "forks": 1,
@@ -2622,6 +2695,7 @@
    "ai_built": "yes",
    "pitch": "Build and manage your own isometric city with Blender-rendered landmarks, power, transport and rewards, saved offline in your browser."
   },
+  "made": "2026-09-06",
   "public": {
    "github": {
     "forks": 0,
@@ -2658,6 +2732,7 @@
    "ai_built": "yes",
    "pitch": "Blast through eight rooms of a bomb-grid arcade, switching between classic 2D, pixel, and real 3D, with daily boards and ghost replays."
   },
+  "made": "2026-09-01",
   "public": {
    "github": {
     "forks": 0,
@@ -2694,6 +2769,7 @@
    "ai_built": "yes",
    "pitch": "Shop for absurd DDR5 RAM kits that never ship, while a hidden idle game quietly makes you rich."
   },
+  "made": "2026-09-13",
   "public": {
    "github": {
     "forks": 0,
@@ -2730,6 +2806,7 @@
    "ai_built": "likely",
    "pitch": "Race mountain passes, Accra streets, or a neon orbital highway, then challenge friends to beat your time within 24 hours."
   },
+  "made": "2026-06-10",
   "public": {
    "github": {
     "forks": 0,
@@ -2766,6 +2843,7 @@
    "ai_built": "yes",
    "pitch": "Battle other players as unique hero characters in a Three.js 3D shooter, with seasonal themes, special abilities, and trophy progression."
   },
+  "made": "2026-06-17",
   "public": {
    "github": {
     "forks": 0,
@@ -2802,6 +2880,7 @@
    "ai_built": "yes",
    "pitch": "Place hex tiles to grow a living low-poly realm, run its economy, research tech, and conquer enemy borders."
   },
+  "made": "2026-07-03",
   "public": {
    "github": {
     "forks": 0,
@@ -2838,6 +2917,7 @@
    "ai_built": "yes",
    "pitch": "Drive rocket-powered cars up walls and ceilings in 3v3 online matches, smashing a ball into the opposing goal."
   },
+  "made": "2026-08-16",
   "public": {
    "github": {
     "forks": 0,
@@ -2874,6 +2954,7 @@
    "ai_built": "yes",
    "pitch": "Survive endless drone swarms, then take down the shielded NEXUS TITAN-X boss in a fully procedural 3D sci-fi arena."
   },
+  "made": "2026-09-10",
   "public": {
    "github": {
     "forks": 0,
@@ -2910,6 +2991,7 @@
    "ai_built": "likely",
    "pitch": "Build poker hands from real, live token launches, beat escalating blinds and bosses, and challenge friends with a shared seed."
   },
+  "made": "2026-10-07",
   "public": {
    "github": {
     "forks": 0,
@@ -2946,6 +3028,7 @@
    "ai_built": "yes",
    "pitch": "Escape a sinking, pitch-dark submarine with friends before the oxygen runs out, deciding who gets saved and who gets sacrificed."
   },
+  "made": "2026-10-02",
   "public": {
    "github": {
     "forks": 0,
@@ -2982,6 +3065,7 @@
    "ai_built": "yes",
    "pitch": "Explore 1835 Floreana as young Darwin, collecting specimens, meeting islanders, and even playing as a finch or tortoise."
   },
+  "made": "2025-03-06",
   "public": {
    "github": {
     "forks": 0,
@@ -3018,6 +3102,7 @@
    "ai_built": "likely",
    "pitch": "Solve seven mystical prophecy puzzles, from glyph tracing to orbital alignment, to unbind the final celestial seal."
   },
+  "made": "2026-01-17",
   "public": {
    "github": {
     "forks": 0,
@@ -3054,6 +3139,7 @@
    "ai_built": "yes",
    "pitch": "Sculpt your own voxel disguise mid-chase and hide in plain sight from bot hunters in a two-story house."
   },
+  "made": "2026-10-01",
   "public": {
    "github": {
     "forks": 0,
@@ -3090,6 +3176,7 @@
    "ai_built": "yes",
    "pitch": "Give your villagers an objective, watch them gather, build and recruit, then read why each one chose its job."
   },
+  "made": "2026-09-17",
   "public": {
    "github": {
     "forks": 0,
@@ -3126,6 +3213,7 @@
    "ai_built": "yes",
    "pitch": "Pilot a magic carpet through an endless procedural world, racing 12-gate time trials against your own ghost or AI agents."
   },
+  "made": "2025-03-22",
   "public": {
    "github": {
     "forks": 0,
@@ -3162,6 +3250,7 @@
    "ai_built": "yes",
    "pitch": "Blast through 10 escalating waves of enemies with AK47, pistol, knife and grenades in a Dust2-style 3D arena."
   },
+  "made": "2026-06-24",
   "public": {
    "github": {
     "forks": 0,
@@ -3198,6 +3287,7 @@
    "ai_built": "yes",
    "pitch": "Drag capitals, countries, or flags onto the right spot of the world map across 23 regions and 195 countries."
   },
+  "made": "2026-08-21",
   "public": {
    "github": {
     "forks": 0,
@@ -3234,6 +3324,7 @@
    "ai_built": "yes",
    "pitch": "Pick from eleven champions and fight a full 5v5 across three lanes, jungle camps, and fog of war, free in your browser."
   },
+  "made": "2026-08-26",
   "public": {
    "github": {
     "forks": 1,
@@ -3270,6 +3361,7 @@
    "ai_built": "likely",
    "pitch": "Explore, mine and craft in a 3D voxel world where you only see one 2D slice, rotating it to reveal hidden caves."
   },
+  "made": "2026-10-09",
   "public": {
    "github": {
     "forks": 0,
@@ -3306,6 +3398,7 @@
    "ai_built": "yes",
    "pitch": "Hold a dark med-bay against endless teleporting replikas with ragdoll physics, headshots, kicks, and spatial audio, switching to first-person anytime."
   },
+  "made": "2026-06-02",
   "public": {
    "github": {
     "forks": 0,
@@ -3342,6 +3435,7 @@
    "ai_built": "yes",
    "pitch": "Infiltrate a blacksite in a story-driven tactical FPS with four operations, survival, extraction, and team battle modes."
   },
+  "made": "2026-09-25",
   "public": {
    "github": {
     "forks": 0,
@@ -3378,6 +3472,7 @@
    "ai_built": "likely",
    "pitch": "Climb five Italian casino tiers by playing Texas Hold'em, Blackjack, and Roulette against smarter AI bots or friends."
   },
+  "made": "2026-07-13",
   "public": {
    "github": {
     "forks": 0,
@@ -3414,6 +3509,7 @@
    "ai_built": "likely",
    "pitch": "Race up to 50 friends to photograph everyday objects before time runs out, with AI verifying every snap."
   },
+  "made": "2026-03-30",
   "public": {
    "github": {
     "forks": 0,
@@ -3450,6 +3546,7 @@
    "ai_built": "yes",
    "pitch": "Roll a hero, dive an endless procedural dungeon, hunt loot, and slay telegraphed bosses in a Diablo-style browser ARPG."
   },
+  "made": "2026-06-15",
   "public": {
    "github": {
     "forks": 0,
@@ -3486,6 +3583,7 @@
    "ai_built": "yes",
    "pitch": "Lead a squad of operators through story missions against adaptive enemies that learn from your tactics, then build your own levels."
   },
+  "made": "2026-05-12",
   "public": {
    "github": {
     "forks": 0,
@@ -3522,6 +3620,7 @@
    "ai_built": "yes",
    "pitch": "Play as Lúmen, the last spark of light, dashing through handcrafted 3D Cycles, dodging Shadows and collecting Star Fragments."
   },
+  "made": "2026-08-25",
   "public": {
    "github": {
     "forks": 0,
@@ -3558,6 +3657,7 @@
    "ai_built": "yes",
    "pitch": "Pick a hero, fight the Bell Keeper's host, and seal the rift in a quest-driven action RPG."
   },
+  "made": "2026-08-23",
   "public": {
    "github": {
     "forks": 0,
@@ -3594,6 +3694,7 @@
    "ai_built": "yes",
    "pitch": "Gather friends in Telegram for Durak, Bunker, Spyfall, Backgammon and more, with bots, public rooms, and shareable results."
   },
+  "made": "2026-01-28",
   "public": {
    "github": {
     "forks": 1,
@@ -3630,6 +3731,7 @@
    "ai_built": "likely",
    "pitch": "Hit A-S-D-J-K-L as blocks fall, chain combos, and climb a ten-tier rank ladder from Bronze to Diamond."
   },
+  "made": "2025-02-22",
   "public": {
    "github": {
     "forks": 0,
@@ -3666,6 +3768,7 @@
    "ai_built": "likely",
    "pitch": "Snake where you must eat colours in rainbow order, lure zombies into your trail, and ride rainbow bridges through seven worlds."
   },
+  "made": "2026-09-02",
   "public": {
    "github": {
     "forks": 1,
@@ -3702,6 +3805,7 @@
    "ai_built": "no",
    "pitch": "Push deeper into the void, defend colored beacons through waves, pick upgrade cards, and take down bosses in desktop, mobile, or VR."
   },
+  "made": "2026-08-29",
   "public": {
    "github": {
     "forks": 1,
@@ -3738,6 +3842,7 @@
    "ai_built": "yes",
    "pitch": "Place unicorns, steal stars, and cut the monster's line across eight distinct boards to save a child's dream."
   },
+  "made": "2026-09-04",
   "public": {
    "github": {
     "forks": 1,
@@ -3774,6 +3879,7 @@
    "ai_built": "yes",
    "pitch": "Build a squad of superpowered balls, aim, dash and unleash supers while climbing the trophy road across themed arenas."
   },
+  "made": "2026-10-08",
   "public": {
    "github": {
     "forks": 0,
@@ -3810,6 +3916,7 @@
    "ai_built": "yes",
    "pitch": "Fight through neon-lit maps with a big arsenal, enemy waves and boss fights, solo or in LAN PvP multiplayer."
   },
+  "made": "2026-08-25",
   "public": {
    "github": {
     "forks": 0,
@@ -3846,6 +3953,7 @@
    "ai_built": "likely",
    "pitch": "Build a maze out of towers to stall endless zombie waves through a single, never-changing spawn point."
   },
+  "made": "2026-08-11",
   "public": {
    "github": {
     "forks": 0,
@@ -3882,6 +3990,7 @@
    "ai_built": "likely",
    "pitch": "Break your opponent's balance, throw for ippon, or pin them on the mat in a judo duel refereed in Japanese."
   },
+  "made": "2026-10-11",
   "public": {
    "github": {
     "forks": 0,
@@ -3918,6 +4027,7 @@
    "ai_built": "likely",
    "pitch": "Blast through 10 neon levels, 14 enemy types and 3 bosses, upgrading weapons up to the rainbow Prism Overdrive."
   },
+  "made": "2026-07-31",
   "public": {
    "github": {
     "forks": 0,
@@ -3954,6 +4064,7 @@
    "ai_built": "yes",
    "pitch": "Play full Hong Kong Mahjong against three computer opponents, with Fan breakdowns, hints, chiptune music and spoken Chow, Pong and Kong calls."
   },
+  "made": "2026-09-27",
   "public": {
    "github": {
     "forks": 0,
@@ -3990,6 +4101,7 @@
    "ai_built": "likely",
    "pitch": "Race AI drivers or friends around a real Cornish karting circuit rebuilt from OpenStreetMap data, with ghost laps and realistic tyre physics."
   },
+  "made": "2026-10-05",
   "public": {
    "github": {
     "forks": 0,
@@ -4026,6 +4138,7 @@
    "ai_built": "yes",
    "pitch": "Descend procedurally generated dungeons, battle bosses every five floors, uncover lore from ancient books, and compete on online leaderboards."
   },
+  "made": "2026-06-01",
   "public": {
    "github": {
     "forks": 0,
@@ -4062,6 +4175,7 @@
    "ai_built": "yes",
    "pitch": "Play full Riichi Mahjong against smart bots, with real scoring, calls, riichi sticks, dora indicators, and Hanchan matches that save automatically."
   },
+  "made": "2026-06-04",
   "public": {
    "github": {
     "forks": 0,
@@ -4098,6 +4212,7 @@
    "ai_built": "yes",
    "pitch": "Play real chess with monster creatures, get hints and take-backs, and earn trainer badges as you learn."
   },
+  "made": "2026-08-24",
   "public": {
    "github": {
     "forks": 0,
@@ -4134,6 +4249,7 @@
    "ai_built": "likely",
    "pitch": "Climb a ragdoll up a brutal wall your friends keep redesigning with greased holds, ropes, and wind machines."
   },
+  "made": "2026-08-19",
   "public": {
    "github": {
     "forks": 0,
@@ -4170,6 +4286,7 @@
    "ai_built": "likely",
    "pitch": "Defend the pass across 20 waves of grunts, flyers and warlords with four upgradeable towers, then survive endless mode."
   },
+  "made": "2026-09-12",
   "public": {
    "github": {
     "forks": 0,
@@ -4206,6 +4323,7 @@
    "ai_built": "yes",
    "pitch": "Master 90s-style arcade football with aftertouch bending, sliding tackles, overhead kicks, set pieces and penalties, playable instantly in your browser."
   },
+  "made": "2026-09-25",
   "public": {
    "github": {
     "forks": 0,
@@ -4242,6 +4360,7 @@
    "ai_built": "likely",
    "pitch": "Whack moles, bombs and a 5-HP boss in frenzy waves, chaining combos for S-rank scores in daily challenges."
   },
+  "made": "2026-09-23",
   "public": {
    "github": {
     "forks": 0,
@@ -4278,6 +4397,7 @@
    "ai_built": "likely",
    "pitch": "Classic falling-block puzzle with four modes, hold, T-spins, combos and perfect clears, plus achievements and gamepad support, all in one page."
   },
+  "made": "2026-10-03",
   "public": {
    "github": {
     "forks": 0,
@@ -4314,6 +4434,7 @@
    "ai_built": "likely",
    "pitch": "Stomp bugs and bees through eight levels across two worlds, then take down the Bug King and the Stone Golem."
   },
+  "made": "2026-10-03",
   "public": {
    "github": {
     "forks": 0,
@@ -4350,6 +4471,7 @@
    "ai_built": "likely",
    "pitch": "Pick one of six wizards, time your shield perfectly to reflect bolts, and unleash a unique super spell."
   },
+  "made": "2026-10-11",
   "public": {
    "github": {
     "forks": 0,
@@ -4386,6 +4508,7 @@
    "ai_built": "yes",
    "pitch": "Run dodgy shops across eight wild settings, from haunted malls to pirate ships, with unique stories, currencies and episodes."
   },
+  "made": "2026-09-29",
   "public": {
    "github": {
     "forks": 0,
@@ -4422,6 +4545,7 @@
    "ai_built": "likely",
    "pitch": "Race giant-wheeled trucks against three rivals through forest, volcano, crystal cave and sky tracks, grabbing boosts, jumps and mystery power-ups."
   },
+  "made": "2026-09-19",
   "public": {
    "github": {
     "forks": 0,
@@ -4458,6 +4582,7 @@
    "ai_built": "yes",
    "pitch": "Survive 10 minutes of neon cyber-hordes, level up, stack six upgradable weapons, and defeat the Mega Mainframe boss."
   },
+  "made": "2025-12-27",
   "public": {
    "github": {
     "forks": 0,
@@ -4494,6 +4619,7 @@
    "ai_built": "yes",
    "pitch": "Drag routes for buses, cars and trucks to their drop-off zones, dodging pile-ups before three crashes end your school day."
   },
+  "made": "2026-06-04",
   "public": {
    "github": {
     "forks": 0,
@@ -4530,6 +4656,7 @@
    "ai_built": "yes",
    "pitch": "Fly a realistic glider cross-country, hunting thermals and deciding when to circle, speed up, or land in a field."
   },
+  "made": "2026-07-13",
   "public": {
    "github": {
     "forks": 0,
@@ -4566,6 +4693,7 @@
    "ai_built": "yes",
    "pitch": "Type fast to squash marching zombie requirements before they burn your project, then survive the furious COMEX boss."
   },
+  "made": "2026-06-29",
   "public": {
    "github": {
     "forks": 0,
@@ -4602,6 +4730,7 @@
    "ai_built": "yes",
    "pitch": "Hop a cute robot up through the sky, race Byte the AI, or battle friends from your phones."
   },
+  "made": "2026-09-25",
   "public": {
    "github": {
     "forks": 0,
@@ -4638,6 +4767,7 @@
    "ai_built": "likely",
    "pitch": "Dash into wobbly flan friends to slam them off a shrinking, collapsing island full of shovels, wind and seaweed slicks."
   },
+  "made": "2026-10-09",
   "public": {
    "github": {
     "forks": 0,
@@ -4674,6 +4804,7 @@
    "ai_built": "likely",
    "pitch": "Drag blocks onto a 9x9 grid, chain combos, and use power cards like Freeze and Lightning across four modes."
   },
+  "made": "2026-08-13",
   "public": {
    "github": {
     "forks": 0,
@@ -4710,6 +4841,7 @@
    "ai_built": "likely",
    "pitch": "Dribble, slide-tackle and out-shoot a keeper in 1v1 football, with a referee, red cards and penalty shoot-outs."
   },
+  "made": "2026-10-11",
   "public": {
    "github": {
     "forks": 0,
@@ -4746,6 +4878,7 @@
    "ai_built": "likely",
    "pitch": "Grow a giant glowing snake, boost past rivals, and hunt smaller snakes in a huge arena with AI bots."
   },
+  "made": "2025-10-17",
   "public": {
    "github": {
     "forks": 0,
@@ -4782,6 +4915,7 @@
    "ai_built": "likely",
    "pitch": "Play All Fives dominoes against trash-talking AI rivals with distinct personalities, 3D tiles, fireworks finales, and a domino-toppling victory cascade."
   },
+  "made": "2026-03-26",
   "public": {
    "github": {
     "forks": 1,
@@ -4818,6 +4952,7 @@
    "ai_built": "yes",
    "pitch": "Fight off enemy armies as a knight, choose upgrades, ride a horse, fire catapults and lead a caravan of allies."
   },
+  "made": "2026-06-21",
   "public": {
    "github": {
     "forks": 1,
@@ -4854,6 +4989,7 @@
    "ai_built": "likely",
    "pitch": "Fight through a branching dark-fantasy dungeon as one of six heroes, building your deck and facing unique class bosses."
   },
+  "made": "2025-10-25",
   "public": {
    "github": {
     "forks": 0,
@@ -4890,6 +5026,7 @@
    "ai_built": "yes",
    "pitch": "Wire up a pixel-art town's power grid across 12 worlds, beat Captain Short Circuit, and grow your own city."
   },
+  "made": "2025-12-29",
   "public": {
    "github": {
     "forks": 0,
@@ -4926,6 +5063,7 @@
    "ai_built": "yes",
    "pitch": "Brawl as your coworkers in a neon office platform fighter with eight fighters, ledge grabs, tournaments and local versus."
   },
+  "made": "2026-06-09",
   "public": {
    "github": {
     "forks": 0,
@@ -4962,6 +5100,7 @@
    "ai_built": "yes",
    "pitch": "Steal cars, rob shops and outrun the police across a neon-lit Seoul, with Busan and Jeju also on the map."
   },
+  "made": "2026-08-03",
   "public": {
    "github": {
     "forks": 0,
@@ -4998,6 +5137,7 @@
    "ai_built": "likely",
    "pitch": "Roll, parry and relic-build through procedurally generated dungeons to beat fog-gate bosses in a souls-like that runs entirely in your browser."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -5034,6 +5174,7 @@
    "ai_built": "likely",
    "pitch": "Pilot a teapot through space in a classic arcade shooter with online co-op, duel and melee modes."
   },
+  "made": "2026-10-13",
   "public": {
    "github": {
     "forks": 0,
@@ -5070,6 +5211,7 @@
    "ai_built": "yes",
    "pitch": "Be born anywhere from 10,000 BC to the far future and live out a dynasty one year at a time."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -5106,6 +5248,7 @@
    "ai_built": "yes",
    "pitch": "Slice flying 3D trash with your hand, phone, or mouse, and learn which items Hong Kong actually recycles."
   },
+  "made": "2026-07-27",
   "public": {
    "github": {
     "forks": 0,
@@ -5142,6 +5285,7 @@
    "ai_built": "yes",
    "pitch": "Sneak past watchful Shadows, light street lamps to carve safe paths, and relight the lighthouse across evolving chapters."
   },
+  "made": "2026-10-07",
   "public": {
    "github": {
     "forks": 0,
@@ -5178,6 +5322,7 @@
    "ai_built": "likely",
    "pitch": "Flap through parody worlds like Claude Code, Grok and pump.fun as meme birds with unique perks, FEVER mode and a leaderboard."
   },
+  "made": "2026-10-08",
   "public": {
    "github": {
     "forks": 0,
@@ -5214,6 +5359,7 @@
    "ai_built": "likely",
    "pitch": "Dodge closing walls in a hypnotic 3D Super Hexagon-style arcade with a procedural darksynth soundtrack that speeds up as you survive."
   },
+  "made": "2026-07-31",
   "public": {
    "github": {
     "forks": 0,
@@ -5250,6 +5396,7 @@
    "ai_built": "likely",
    "pitch": "Hide from an AI hunter that rewrites its own pursuit code mid-chase, using decoys, walls, and noise."
   },
+  "made": "2026-09-03",
   "public": {
    "github": {
     "forks": 0,
@@ -5286,6 +5433,7 @@
    "ai_built": "yes",
    "pitch": "Drive toy tanks with up to 8 friends, splatting paint across the floor and growing bigger as you go."
   },
+  "made": "2026-10-04",
   "public": {
    "github": {
     "forks": 0,
@@ -5322,6 +5470,7 @@
    "ai_built": "yes",
    "pitch": "Defend your 3D kingdom through six waves, survive deep-sea horrors, or fight zombie hordes with six weapons and perks."
   },
+  "made": "2026-08-22",
   "public": {
    "github": {
     "forks": 0,
@@ -5358,6 +5507,7 @@
    "ai_built": "yes",
    "pitch": "Steal cars, evade a 5-star police response, and complete heists across a day/night 3D island city with real vehicle physics."
   },
+  "made": "2026-09-02",
   "public": {
    "github": {
     "forks": 2,
@@ -5394,6 +5544,7 @@
    "ai_built": "likely",
    "pitch": "Play full Spades against personality-driven AI opponents with Nil bids, slam-down trump effects, and partnership or cutthroat modes."
   },
+  "made": "2026-03-28",
   "public": {
    "github": {
     "forks": 0,
@@ -5430,6 +5581,7 @@
    "ai_built": "yes",
    "pitch": "Counter-Strike-style rounds with bots, bunny hopping, 5 weapons and P2P multiplayer on a Rio favela futsal-court map."
   },
+  "made": "2026-06-11",
   "public": {
    "github": {
     "forks": 0,
@@ -5466,6 +5618,7 @@
    "ai_built": "likely",
    "pitch": "Dive 1,600m into the abyss, mine rare ores, upgrade your sub, and sneak past a colossal Leviathan in silent running."
   },
+  "made": "2026-09-16",
   "public": {
    "github": {
     "forks": 0,
@@ -5502,6 +5655,7 @@
    "ai_built": "yes",
    "pitch": "Defend a detailed subway platform with carbine, shotgun and pistol as trains unload escalating zombie hordes, all in your browser."
   },
+  "made": "2026-09-24",
   "public": {
    "github": {
     "forks": 0,
@@ -5538,6 +5692,7 @@
    "ai_built": "likely",
    "pitch": "Sprint barefoot across scorching sand, hop between towels and driftwood, and dodge shadow-telegraphed seagull dives to reach the ice cream truck."
   },
+  "made": "2026-08-04",
   "public": {
    "github": {
     "forks": 0,
@@ -5574,6 +5729,7 @@
    "ai_built": "likely",
    "pitch": "Live a whole Indian financial life from first salary to retirement in 15 minutes, with an AI money mentor."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -5610,6 +5766,7 @@
    "ai_built": "yes",
    "pitch": "Race the clock to pinpoint world cities on a map, clearing 12 levels of rising difficulty and competing on a global leaderboard."
   },
+  "made": "2026-03-04",
   "public": {
    "github": {
     "forks": 0,
@@ -5646,6 +5803,7 @@
    "ai_built": "yes",
    "pitch": "Build a rocket from real NASA engine data, then launch it to reach orbit, the Moon, or Mars."
   },
+  "made": "2026-09-22",
   "public": {
    "github": {
     "forks": 0,
@@ -5682,6 +5840,7 @@
    "ai_built": "yes",
    "pitch": "Race seven AI rivals through 41 glowing rings over tropical islands and a reflective ocean, boosting through every ring."
   },
+  "made": "2026-09-25",
   "public": {
    "github": {
     "forks": 0,
@@ -5718,6 +5877,7 @@
    "ai_built": "yes",
    "pitch": "Race a 20-car F1 grid in 3D with DRS, ERS, start lights, smart AI rivals and onboard camera."
   },
+  "made": "2026-09-25",
   "public": {
    "github": {
     "forks": 0,
@@ -5754,6 +5914,7 @@
    "ai_built": "likely",
    "pitch": "Figure out a hidden rule from green and red feedback, then adapt when it silently changes, and duel friends on identical seeded boards."
   },
+  "made": "2026-09-04",
   "public": {
    "github": {
     "forks": 0,
@@ -5790,6 +5951,7 @@
    "ai_built": "yes",
    "pitch": "Neutral is not a brake: guide heavy ships to dock across 84 stages in seas, vacuum, and hamster balls."
   },
+  "made": "2026-09-12",
   "public": {
    "github": {
     "forks": 0,
@@ -5826,6 +5988,7 @@
    "ai_built": "yes",
    "pitch": "Lead knight Ardan through a 12-mission campaign or battle up to four sides with 13 unique units, in browser or on phone."
   },
+  "made": "2026-10-10",
   "public": {
    "github": {
     "forks": 0,
@@ -5862,6 +6025,7 @@
    "ai_built": "likely",
    "pitch": "Graze enemy bullets to trigger bullet-time, draft roguelite upgrades, and battle bosses across four levels to face the Void Titan."
   },
+  "made": "2026-07-27",
   "public": {
    "github": {
     "forks": 0,
@@ -5898,6 +6062,7 @@
    "ai_built": "yes",
    "pitch": "Defend your Y2K-era mainframe across 50 levels with twelve upgradeable modules, live counter-measures, routing switches, and boss fights."
   },
+  "made": "2026-09-10",
   "public": {
    "github": {
     "forks": 0,
@@ -5934,6 +6099,7 @@
    "ai_built": "likely",
    "pitch": "Race a 60-minute countdown in a 1947 magician's vanishing-act studio, solving 26 puzzles across three storylines toward two endings."
   },
+  "made": "2026-09-03",
   "public": {
    "github": {
     "forks": 0,
@@ -5970,6 +6136,7 @@
    "ai_built": "yes",
    "pitch": "Descend a dead forge in a deckbuilder where overheating is a gamble: play any card, but burn for exceeding Heat."
   },
+  "made": "2026-06-11",
   "public": {
    "github": {
     "forks": 0,
@@ -6006,6 +6173,7 @@
    "ai_built": "likely",
    "pitch": "Play full-rules chess on a hand-built 3D WebGL board against four AI strengths, or challenge a friend locally."
   },
+  "made": "2026-09-07",
   "public": {
    "github": {
     "forks": 0,
@@ -6042,6 +6210,7 @@
    "ai_built": "yes",
    "pitch": "Race 3D karts with 19 items on three big maps, playing solo against bots or online with friends."
   },
+  "made": "2026-10-05",
   "public": {
    "github": {
     "forks": 0,
@@ -6078,6 +6247,7 @@
    "ai_built": "yes",
    "pitch": "Steer a living coil through colored rain, match three or more colors to burst them, and survive a three-minute storm."
   },
+  "made": "2026-09-08",
   "public": {
    "github": {
     "forks": 0,
@@ -6114,6 +6284,7 @@
    "ai_built": "likely",
    "pitch": "Dodge two giant ceiling-mounted robot arms as a tiny robot stealing cheese, or take control of the arms and hunt it."
   },
+  "made": "2026-09-27",
   "public": {
    "github": {
     "forks": 0,
@@ -6150,6 +6321,7 @@
    "ai_built": "likely",
    "pitch": "Blast rogue household robots with an EMP water gun, grab breaker keys, and shut down the murderous SmartHub."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -6186,6 +6358,7 @@
    "ai_built": "likely",
    "pitch": "Play chess, Rommé, Ludo, Connect Four and more with bots or friends in real-time multiplayer rooms."
   },
+  "made": "2026-10-08",
   "public": {
    "github": {
     "forks": 0,
@@ -6222,6 +6395,7 @@
    "ai_built": "yes",
    "pitch": "Rescue the world from zombies across 12 countries, solo or in 4-player online co-op, with dinosaurs and storm modes."
   },
+  "made": "2026-06-11",
   "public": {
    "github": {
     "forks": 0,
@@ -6258,6 +6432,7 @@
    "ai_built": "yes",
    "pitch": "Hunt glowing pages through an endless, flickering Backrooms maze while three distinct monsters stalk you and your sanity drains away."
   },
+  "made": "2026-06-03",
   "public": {
    "github": {
     "forks": 0,
@@ -6294,6 +6469,7 @@
    "ai_built": "yes",
    "pitch": "Race friends on your phones to name a flag as it sharpens tile by tile on the big screen."
   },
+  "made": "2026-08-23",
   "public": {
    "github": {
     "forks": 0,
@@ -6330,6 +6506,7 @@
    "ai_built": "yes",
    "pitch": "Roll 3D color dice, stack win streaks, spin the bonus wheel, and prestige your way up in a perya-style incremental game."
   },
+  "made": "2026-07-25",
   "public": {
    "github": {
     "forks": 0,
@@ -6366,6 +6543,7 @@
    "ai_built": "yes",
    "pitch": "Take on raid bosses and battlegrounds alone as one of seventeen specs, with AI party members who act like real people."
   },
+  "made": "2026-06-20",
   "public": {
    "github": {
     "forks": 0,
@@ -6402,6 +6580,7 @@
    "ai_built": "yes",
    "pitch": "Improvise bebop solos over a live rhythm section and get scored in real time on your jazz vocabulary."
   },
+  "made": "2026-07-18",
   "public": {
    "github": {
     "forks": 0,
@@ -6438,6 +6617,7 @@
    "ai_built": "yes",
    "pitch": "Play Ludo with chaos tiles that boost, trap, teleport or swap your tokens, solo against AI or online with friends."
   },
+  "made": "2026-06-22",
   "public": {
    "github": {
     "forks": 0,
@@ -6474,6 +6654,7 @@
    "ai_built": "yes",
    "pitch": "Weave through traffic in 3D, collect coins, buy and upgrade cars, and unlock Alpine Pass and Neon Harbour maps."
   },
+  "made": "2026-09-17",
   "public": {
    "github": {
     "forks": 0,
@@ -6510,6 +6691,7 @@
    "ai_built": "likely",
    "pitch": "Dig through voxel layers at five real Indian heritage sites, using clues alone to uncover thirty real historical finds."
   },
+  "made": "2026-09-06",
   "public": {
    "github": {
     "forks": 0,
@@ -6546,6 +6728,7 @@
    "ai_built": "yes",
    "pitch": "Pour, mix, and burn 34 pixel elements, discovering 40 reactions toward a four-step Magnum Opus, with generative ambient audio."
   },
+  "made": "2026-06-11",
   "public": {
    "github": {
     "forks": 1,
@@ -6582,6 +6765,7 @@
    "ai_built": "yes",
    "pitch": "Swallow everything as a growing hole in an endless fractal emoji world that keeps scaling up forever."
   },
+  "made": "2026-07-03",
   "public": {
    "github": {
     "forks": 1,
@@ -6618,6 +6802,7 @@
    "ai_built": "yes",
    "pitch": "Play thirty-two original chinchilla games in your browser, from a fighter and roguelites to a metroidvania, card battler and city builder."
   },
+  "made": "2026-09-10",
   "public": {
    "github": {
     "forks": 1,
@@ -6654,6 +6839,7 @@
    "ai_built": "yes",
    "pitch": "Build an empire, research techs, and outscore two AI rivals in a complete Civilization-style game that fits a lunch break."
   },
+  "made": "2026-10-07",
   "public": {
    "github": {
     "forks": 1,
@@ -6690,6 +6876,7 @@
    "ai_built": "yes",
    "pitch": "Play as an AI slipping past patrolling researchers, cameras, drones and laser gates, with fallen predecessors' logs guiding each retry."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 1,
@@ -6726,6 +6913,7 @@
    "ai_built": "yes",
    "pitch": "Steer a rapid-fire CIWS gun against waves of MIRVs, nukes and bombers, with autonomous interceptors, lasers, F-16 strikes and a shop."
   },
+  "made": "2026-06-09",
   "public": {
    "github": {
     "forks": 1,
@@ -6762,6 +6950,7 @@
    "ai_built": "yes",
    "pitch": "Load any song and it auto-generates DDR-style step charts, then dance on keyboard or pad solo or versus."
   },
+  "made": "2026-07-01",
   "public": {
    "github": {
     "forks": 1,
@@ -6798,6 +6987,7 @@
    "ai_built": "yes",
    "pitch": "Rocket League-style 3D car soccer in your browser: flip, air roll, drive up walls and beat the bot."
   },
+  "made": "2026-09-12",
   "public": {
    "github": {
     "forks": 1,
@@ -6834,6 +7024,7 @@
    "ai_built": "yes",
    "pitch": "Build roads, zones and infrastructure, then watch your city grow while managing power, water, disasters and budgets."
   },
+  "made": "2026-01-28",
   "public": {
    "github": {
     "forks": 1,
@@ -6870,6 +7061,7 @@
    "ai_built": "yes",
    "pitch": "Sneak past vision-cone enemies through endless procedural dungeons, hack terminals, and manage heat before overheating drains your life."
   },
+  "made": "2026-05-12",
   "public": {
    "github": {
     "forks": 0,
@@ -6906,6 +7098,7 @@
    "ai_built": "yes",
    "pitch": "Turn a photo of yourself or your pet into a pixel-art hero and run through Mario-style worlds."
   },
+  "made": "2025-08-13",
   "public": {
    "github": {
     "forks": 0,
@@ -6942,6 +7135,7 @@
    "ai_built": "yes",
    "pitch": "Work a pointing dog through the wind, find the birds, then take the shot in arcade-style flushes."
   },
+  "made": "2026-10-07",
   "public": {
    "github": {
     "forks": 0,
@@ -6978,6 +7172,7 @@
    "ai_built": "yes",
    "pitch": "Collect 20 elemental heroes, mix them as Swappers, capture villains and battle three-phase bosses across four worlds, right in your browser."
   },
+  "made": "2026-09-24",
   "public": {
    "github": {
     "forks": 0,
@@ -7014,6 +7209,7 @@
    "ai_built": "yes",
    "pitch": "Race twelve unique boats through 14 courses with shortcuts, cups, split-screen multiplayer, and Hydro Thunder-style big air and boosts."
   },
+  "made": "2026-09-22",
   "public": {
    "github": {
     "forks": 0,
@@ -7050,6 +7246,7 @@
    "ai_built": "yes",
    "pitch": "Sail, drive, and fly a seaplane across a real-scale California coast, spotting wildlife and uncovering a six-letter mystery."
   },
+  "made": "2026-09-24",
   "public": {
    "github": {
     "forks": 0,
@@ -7086,6 +7283,7 @@
    "ai_built": "likely",
    "pitch": "Climb a branching product roadmap, recruit real podcast guests as cards, and battle the Stakeholder Hydra and The HiPPO."
   },
+  "made": "2026-03-21",
   "public": {
    "github": {
     "forks": 0,
@@ -7122,6 +7320,7 @@
    "ai_built": "yes",
    "pitch": "Fly a river-raid-style shooter in pixel-art 2D or full 3D, managing fuel and blasting jets toward 1,000,000 points."
   },
+  "made": "2026-07-10",
   "public": {
    "github": {
     "forks": 0,
@@ -7158,6 +7357,7 @@
    "ai_built": "yes",
    "pitch": "Race neon highways across two tiers of expressway, or fly a pulse drive through a ten-body star system."
   },
+  "made": "2026-09-07",
   "public": {
    "github": {
     "forks": 0,
@@ -7194,6 +7394,7 @@
    "ai_built": "yes",
    "pitch": "Battle City-style team tank fights with destructible terrain, power-ups, bots and P2P rooms, plus a level editor for custom arenas."
   },
+  "made": "2026-09-03",
   "public": {
    "github": {
     "forks": 0,
@@ -7230,6 +7431,7 @@
    "ai_built": "yes",
    "pitch": "Six free, ad-free games including 3D kart racing, a farming sim, and tower defense, each playable offline from one file."
   },
+  "made": "2026-10-11",
   "public": {
    "github": {
     "forks": 0,
@@ -7266,6 +7468,7 @@
    "ai_built": "yes",
    "pitch": "Turn your favorite country's flag into a glossy 3D marble and defend it with seven upgradeable towers."
   },
+  "made": "2026-08-04",
   "public": {
    "github": {
     "forks": 0,
@@ -7302,6 +7505,7 @@
    "ai_built": "yes",
    "pitch": "Dig through realistic case files, crack ciphers and safes, grill suspects, and name the killer solo or with friends."
   },
+  "made": "2026-08-02",
   "public": {
    "github": {
     "forks": 0,
@@ -7338,6 +7542,7 @@
    "ai_built": "yes",
    "pitch": "Explore a 58-room cave hunting 12 treasures, dodging a stalker and a thief, with a narrator who isn't on your side."
   },
+  "made": "2026-07-18",
   "public": {
    "github": {
     "forks": 0,
@@ -7374,6 +7579,7 @@
    "ai_built": "yes",
    "pitch": "Face 48 chess-playing animals and monsters, each with its own strange play style, from random Donkey to unbeatable Dragon."
   },
+  "made": "2026-08-25",
   "public": {
    "github": {
     "forks": 0,
@@ -7410,6 +7616,7 @@
    "ai_built": "yes",
    "pitch": "Guide a fixed-length worm through 110 handmade garden puzzles, using peaches, keys, rain and bridges to reach the burrow."
   },
+  "made": "2026-10-11",
   "public": {
    "github": {
     "forks": 0,
@@ -7446,6 +7653,7 @@
    "ai_built": "yes",
    "pitch": "Swing your phone like a racket, bowl, slash and shoot arrows, while the world shatters into new art styles mid-game."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -7482,6 +7690,7 @@
    "ai_built": "yes",
    "pitch": "Decode vague citizen orders, mix mysterious liquids into 'style-of' dishes, and serve them or MEAL-7 gets scrapped."
   },
+  "made": "2026-09-27",
   "public": {
    "github": {
     "forks": 0,
@@ -7518,6 +7727,7 @@
    "ai_built": "yes",
    "pitch": "Play 32 retro arcade games, including a DOOM-style FPS, OutRun racing, and a boss-filled shooter, with live chiptune music and a worldwide leaderboard."
   },
+  "made": "2026-09-08",
   "public": {
    "github": {
     "forks": 0,
@@ -7554,6 +7764,7 @@
    "ai_built": "yes",
    "pitch": "Seven offline single-file games: defend Brazil's folklore lands, capture flags, escape alien fortresses, ski from the Abominable, or run a 219-species zoo."
   },
+  "made": "2026-08-10",
   "public": {
    "github": {
     "forks": 0,
@@ -7590,6 +7801,7 @@
    "ai_built": "likely",
    "pitch": "Pit the world's famous monuments against each other in 8-bit fistfights, then tour the globe to become champion."
   },
+  "made": "2026-08-05",
   "public": {
    "github": {
     "forks": 0,
@@ -7626,6 +7838,7 @@
    "ai_built": "likely",
    "pitch": "Eat, grow and chain combos as a shark, unlock seven sharks and pets, and battle apex bosses across three ocean zones."
   },
+  "made": "2026-07-17",
   "public": {
    "github": {
     "forks": 0,
@@ -7662,6 +7875,7 @@
    "ai_built": "yes",
    "pitch": "Pick spell cards as a wall archmage, fuse skills into hidden combos, and team up with your hero to hold 100 floors."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -7698,6 +7912,7 @@
    "ai_built": "yes",
    "pitch": "Defend Aotearoa with Maori-themed guardians in a CSS-only 3D isometric world, with daily challenges, leaderboards, and cloud saves."
   },
+  "made": "2026-02-02",
   "public": {
    "github": {
     "forks": 0,
@@ -7734,6 +7949,7 @@
    "ai_built": "likely",
    "pitch": "Fly as a honeybee through a procedural 3D meadow, decode the waggle dance, dodge predators, and see in ultraviolet."
   },
+  "made": "2026-10-01",
   "public": {
    "github": {
     "forks": 0,
@@ -7770,6 +7986,7 @@
    "ai_built": "likely",
    "pitch": "Your personal best stands on the track as a gate you must run through, and beating it moves the gate."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -7806,6 +8023,7 @@
    "ai_built": "likely",
    "pitch": "Leap through procedurally generated platforms as the Dlicom mascot, shooting glitch bugs, grabbing coin magnets, and unlocking skins while climbing a live leaderboard."
   },
+  "made": "2026-09-23",
   "public": {
    "github": {
     "forks": 0,
@@ -7842,6 +8060,7 @@
    "ai_built": "likely",
    "pitch": "Type in any website and blast it apart with rockets, lasers, a mini nuke and an airstrike."
   },
+  "made": "2026-10-07",
   "public": {
    "github": {
     "forks": 0,
@@ -7878,6 +8097,7 @@
    "ai_built": "yes",
    "pitch": "Hire bizarre cyberpunk gangs, seize city sectors, stir unrest, and crush rival crime lords in a card-combat war."
   },
+  "made": "2026-07-13",
   "public": {
    "github": {
     "forks": 0,
@@ -7914,6 +8134,7 @@
    "ai_built": "yes",
    "pitch": "Play a deep-sea Skyjo-style card game with friends or bots, where pearls help, anglerfish hurt, and columns vanish."
   },
+  "made": "2026-09-29",
   "public": {
    "github": {
     "forks": 0,
@@ -7950,6 +8171,7 @@
    "ai_built": "yes",
    "pitch": "Train through nine astronaut courses, from robotic arm captures to spacewalk buoyancy and mission control, earning your own certificate."
   },
+  "made": "2026-09-27",
   "public": {
    "github": {
     "forks": 0,
@@ -7986,6 +8208,7 @@
    "ai_built": "yes",
    "pitch": "Test 26 over-the-top tools on a wobbly ragdoll penguin, earn coins to unlock more, and watch him give a teary thumbs-up."
   },
+  "made": "2026-10-07",
   "public": {
    "github": {
     "forks": 0,
@@ -8022,6 +8245,7 @@
    "ai_built": "yes",
    "pitch": "Race the clock to name, click, or identify every country on a zoomable world map and climb 63 leaderboards."
   },
+  "made": "2026-10-06",
   "public": {
    "github": {
     "forks": 0,
@@ -8058,6 +8282,7 @@
    "ai_built": "likely",
    "pitch": "Pick one of two samurai and slash through endless rain-soaked hordes in a monochrome isometric pixel-art battlefield."
   },
+  "made": "2026-10-01",
   "public": {
    "github": {
     "forks": 0,
@@ -8094,6 +8319,7 @@
    "ai_built": "yes",
    "pitch": "Soar on a mythic dragon over a living 48 km Istanbul, from Hagia Sophia to Bosphorus bridges at night."
   },
+  "made": "2026-09-23",
   "public": {
    "github": {
     "forks": 0,
@@ -8130,6 +8356,7 @@
    "ai_built": "yes",
    "pitch": "Blast through three sectors, pick from four ships, upgrade your weapons, and defeat massive bosses to save Earth."
   },
+  "made": "2026-04-04",
   "public": {
    "github": {
     "forks": 0,
@@ -8166,6 +8393,7 @@
    "ai_built": "yes",
    "pitch": "Modern falling-block action with nine modes, daily challenges, staged levels, tunable controls, and an AI assist that plays alongside you."
   },
+  "made": "2026-05-10",
   "public": {
    "github": {
     "forks": 0,
@@ -8202,6 +8430,7 @@
    "ai_built": "likely",
    "pitch": "Break your rival's five shields in this original card duel with deck building, CPU opponents, and hot-seat play."
   },
+  "made": "2026-09-01",
   "public": {
    "github": {
     "forks": 0,
@@ -8238,6 +8467,7 @@
    "ai_built": "yes",
    "pitch": "Roam a 3D city, hijack cars and helicopters, and dodge police with water balloons and rainbow paint, with no violence."
   },
+  "made": "2026-08-16",
   "public": {
    "github": {
     "forks": 0,
@@ -8274,6 +8504,7 @@
    "ai_built": "yes",
    "pitch": "Wire chips and write assembly, survive a shifting haunted mansion, decipher a dead language, or stop a reactor meltdown."
   },
+  "made": "2026-07-28",
   "public": {
    "github": {
     "forks": 0,
@@ -8310,6 +8541,7 @@
    "ai_built": "yes",
    "pitch": "Guide Patch through a 60-mission heist across twelve districts, teaching your AI partner Echo to learn and run real policies."
   },
+  "made": "2026-09-27",
   "public": {
    "github": {
     "forks": 0,
@@ -8346,6 +8578,7 @@
    "ai_built": "likely",
    "pitch": "Dive from sunlit beaches to the glowing abyss, exploring seeded biomes full of jellyfish, turtles, and whales."
   },
+  "made": "2026-09-29",
   "public": {
    "github": {
     "forks": 0,
@@ -8382,6 +8615,7 @@
    "ai_built": "yes",
    "pitch": "Drop bombs, trigger chain reactions, and outlast up to three rivals in online Bomberman battles while sudden death walls close in."
   },
+  "made": "2026-09-30",
   "public": {
    "github": {
     "forks": 0,
@@ -8418,6 +8652,7 @@
    "ai_built": "yes",
    "pitch": "Play Texas Hold'em against smart bots or friends, each joining from their own phone via QR code."
   },
+  "made": "2026-04-11",
   "public": {
    "github": {
     "forks": 0,
@@ -8454,6 +8689,7 @@
    "ai_built": "likely",
    "pitch": "Drop and merge blobs from pebble to planet across 10 twisted stages, with power-ups, quests, and global leaderboards."
   },
+  "made": "2026-05-07",
   "public": {
    "github": {
     "forks": 0,
@@ -8490,6 +8726,7 @@
    "ai_built": "yes",
    "pitch": "Command a programmable ship swarm as a waking AI, devouring planets and suns while uncovering a lost human story."
   },
+  "made": "2026-09-18",
   "public": {
    "github": {
     "forks": 0,
@@ -8526,6 +8763,7 @@
    "ai_built": "yes",
    "pitch": "Bet your life cards to strike the boss, but keep enough Ready to guard before its Rage round doubles damage."
   },
+  "made": "2026-08-28",
   "public": {
    "github": {
     "forks": 0,
@@ -8562,6 +8800,7 @@
    "ai_built": "yes",
    "pitch": "Command Vietnam War squads across three lanes using cover, veterancy, vehicles and night ops, with morale deciding the winner."
   },
+  "made": "2026-08-12",
   "public": {
    "github": {
     "forks": 0,
@@ -8598,6 +8837,7 @@
    "ai_built": "likely",
    "pitch": "Minesweeper with no-guess boards, daily challenges, a hint solver, replays, speedrun stats, and themes, playable on mobile or offline."
   },
+  "made": "2026-06-08",
   "public": {
    "github": {
     "forks": 0,
@@ -8634,6 +8874,7 @@
    "ai_built": "yes",
    "pitch": "Race across five themed worlds, answer quiz questions, and beat arcade minigames like Dino Runner and Dragon Defense, solo or versus a bot."
   },
+  "made": "2026-07-02",
   "public": {
    "github": {
     "forks": 0,
@@ -8670,6 +8911,7 @@
    "ai_built": "yes",
    "pitch": "Draw with a sumi-e ink brush and watch an AI narrator weave your sketches into a unique scroll tale."
   },
+  "made": "2026-07-26",
   "public": {
    "github": {
     "forks": 0,
@@ -8706,6 +8948,7 @@
    "ai_built": "likely",
    "pitch": "Pass notes in class, wander a pixel-art campus, meet classmates, and unlock multiple endings in one offline-playable file."
   },
+  "made": "2026-10-03",
   "public": {
    "github": {
     "forks": 0,
@@ -8742,6 +8985,7 @@
    "ai_built": "yes",
    "pitch": "Fly a cockpit-view plane, pop balloons, or grow from plankton to Sea King, all free in your browser."
   },
+  "made": "2026-09-04",
   "public": {
    "github": {
     "forks": 0,
@@ -8778,6 +9022,7 @@
    "ai_built": "yes",
    "pitch": "Command macrophages and other immune cells to stop infections without destroying the tissue you're defending."
   },
+  "made": "2026-08-07",
   "public": {
    "github": {
     "forks": 0,
@@ -8814,6 +9059,7 @@
    "ai_built": "likely",
    "pitch": "Move your head to aim, blink to fire, and defend your backyard from 275 incoming water balloons."
   },
+  "made": "2026-07-16",
   "public": {
    "github": {
     "forks": 0,
@@ -8850,6 +9096,7 @@
    "ai_built": "yes",
    "pitch": "Mine resources on a remote world, wire up conveyor belts and power, and automate production until you craft Engines."
   },
+  "made": "2026-09-01",
   "public": {
    "github": {
     "forks": 0,
@@ -8886,6 +9133,7 @@
    "ai_built": "yes",
    "pitch": "Watch life spread across a 3D cellular planet, then turn each extinction into Echoes that strengthen the next world."
   },
+  "made": "2026-08-02",
   "public": {
    "github": {
     "forks": 0,
@@ -8922,6 +9170,7 @@
    "ai_built": "yes",
    "pitch": "Descend 50 procedurally generated floors as your light fades, dodging stalking ghouls and using mystical orbs to reach the legendary Pearl."
   },
+  "made": "2025-06-24",
   "public": {
    "github": {
     "forks": 0,
@@ -8958,6 +9207,7 @@
    "ai_built": "yes",
    "pitch": "Bluff your way through pointed questions as the secret Spy, or unmask the impostor among your friends."
   },
+  "made": "2026-05-11",
   "public": {
    "github": {
     "forks": 0,
@@ -8994,6 +9244,7 @@
    "ai_built": "likely",
    "pitch": "Guess iconic places in your Indonesian city from AI-written clues, by map click, multiple choice, or typing."
   },
+  "made": "2026-05-13",
   "public": {
    "github": {
     "forks": 0,
@@ -9030,6 +9281,7 @@
    "ai_built": "yes",
    "pitch": "Pass the phone, bluff your friends with secret answers, and buy letter reveals to guess their choices Tinder-style."
   },
+  "made": "2026-06-01",
   "public": {
    "github": {
     "forks": 0,
@@ -9066,6 +9318,7 @@
    "ai_built": "yes",
    "pitch": "Drive a beat-up SUV from LA to San Salvador, managing crew and gas while Bitcoin soars and cash melts."
   },
+  "made": "2026-06-08",
   "public": {
    "github": {
     "forks": 0,
@@ -9102,6 +9355,7 @@
    "ai_built": "yes",
    "pitch": "Wake with no memory in a dead city, texting a mysterious contact while following a radio signal toward Haven."
   },
+  "made": "2026-06-06",
   "public": {
    "github": {
     "forks": 0,
@@ -9138,6 +9392,7 @@
    "ai_built": "yes",
    "pitch": "Turn your living room into a spelling bee game show with phones as buzzers, wagers, and dramatic awards."
   },
+  "made": "2026-07-13",
   "public": {
    "github": {
     "forks": 0,
@@ -9174,6 +9429,7 @@
    "ai_built": "yes",
    "pitch": "Flip Pac-Man around: freeze time, draw routes for four ghosts, and corner a clever AI prey that fights back."
   },
+  "made": "2026-09-25",
   "public": {
    "github": {
     "forks": 0,
@@ -9210,6 +9466,7 @@
    "ai_built": "likely",
    "pitch": "Drag two retro cartridges into a 3D console and an AI fuses them into a brand-new playable game."
   },
+  "made": "2026-10-04",
   "public": {
    "github": {
     "forks": 0,
@@ -9246,6 +9503,7 @@
    "ai_built": "yes",
    "pitch": "Drag pieces onto an 8x8 grid, clear lines in endless, timed Blitz, or 50-level Adventure modes with gems and locks."
   },
+  "made": "2026-10-03",
   "public": {
    "github": {
     "forks": 0,
@@ -9282,6 +9540,7 @@
    "ai_built": "yes",
    "pitch": "Record your own moves as echoes, then team up with your past selves to solve laser and plate puzzles."
   },
+  "made": "2026-05-08",
   "public": {
    "github": {
     "forks": 0,
@@ -9318,6 +9577,7 @@
    "ai_built": "yes",
    "pitch": "Design your own AI-generated beach cat and battle through nine different game genres, complete with boss fights and power-ups."
   },
+  "made": "2025-12-21",
   "public": {
    "github": {
     "forks": 0,
@@ -9354,6 +9614,7 @@
    "ai_built": "likely",
    "pitch": "Bind powers to individual keys, fight glyph-monsters across three acts, and get faster as the game targets your slowest letters."
   },
+  "made": "2026-09-28",
   "public": {
    "github": {
     "forks": 0,
@@ -9390,6 +9651,7 @@
    "ai_built": "likely",
    "pitch": "Race up to 10 friends to spot the pattern and pick what comes next, with daily challenges and leaderboards."
   },
+  "made": "2026-03-25",
   "public": {
    "github": {
     "forks": 0,
@@ -9426,6 +9688,7 @@
    "ai_built": "yes",
    "pitch": "Drop pins on a street-level world map with friends, phones plus TV, and the closest team wins and hosts next."
   },
+  "made": "2026-08-19",
   "public": {
    "github": {
     "forks": 0,
@@ -9462,6 +9725,7 @@
    "ai_built": "yes",
    "pitch": "Smash through 76 hand-designed levels across four worlds, fight bosses, and unleash rockets, lasers, and multi-ball power-ups."
   },
+  "made": "2025-09-20",
   "public": {
    "github": {
     "forks": 0,
@@ -9498,6 +9762,7 @@
    "ai_built": "yes",
    "pitch": "Plan inertia-sliding card tactics on a wrapping space grid, then gamble: leap deeper for glory or keep your salvage."
   },
+  "made": "2026-06-12",
   "public": {
    "github": {
     "forks": 0,
@@ -9534,6 +9799,7 @@
    "ai_built": "yes",
    "pitch": "Bat and pitch through a full night game with physics-based hits, smart CPU opponents, home-run fireworks and extra innings."
   },
+  "made": "2026-10-05",
   "public": {
    "github": {
     "forks": 0,
@@ -9570,6 +9836,7 @@
    "ai_built": "yes",
    "pitch": "Grow ten colored orbits through rebuilds, prestige, and infinity resets, chasing numbers beyond 1e100000 with deep automation."
   },
+  "made": "2026-10-03",
   "public": {
    "github": {
     "forks": 0,
@@ -9606,6 +9873,7 @@
    "ai_built": "yes",
    "pitch": "Descend ten procedurally generated forbidden archives, fight 42 monsters, make consequential choices, and risk permadeath to recover the First Word."
   },
+  "made": "2026-08-18",
   "public": {
    "github": {
     "forks": 0,
@@ -9642,6 +9910,7 @@
    "ai_built": "yes",
    "pitch": "Play Texas Hold'em, blackjack, crash, plinko and 15 more casino and party games with friends in Telegram, using free play-money chips."
   },
+  "made": "2026-10-11",
   "public": {
    "github": {
     "forks": 0,
@@ -9678,6 +9947,7 @@
    "ai_built": "yes",
    "pitch": "Possess hostile machines, win circuit duels, and fight down twenty decks to confront the ship's controlling AI."
   },
+  "made": "2026-07-10",
   "public": {
    "github": {
     "forks": 0,
@@ -9714,6 +9984,7 @@
    "ai_built": "likely",
    "pitch": "Race through 132 shifting microgames in 60 seconds where the obvious button is often bait and doing nothing can win."
   },
+  "made": "2026-09-22",
   "public": {
    "github": {
     "forks": 0,
@@ -9750,6 +10021,7 @@
    "ai_built": "likely",
    "pitch": "Decode 206 emoji-clued words in quest mode, or blast falling emoji capsules in a neon arcade survival blitz."
   },
+  "made": "2026-10-01",
   "public": {
    "github": {
     "forks": 0,
@@ -9786,6 +10058,7 @@
    "ai_built": "yes",
    "pitch": "Build a bridge from steel, wood and cable, then watch real physics decide whether your bus crosses or plunges."
   },
+  "made": "2026-10-02",
   "public": {
    "github": {
     "forks": 0,
@@ -9822,6 +10095,7 @@
    "ai_built": "yes",
    "pitch": "Treat evolving infections across ten medical eras as the disease adapts, resists, and mutates against your every move."
   },
+  "made": "2026-09-09",
   "public": {
    "github": {
     "forks": 0,
@@ -9858,6 +10132,7 @@
    "ai_built": "likely",
    "pitch": "Build a shared valley with a friend in real time: 25 crops, 12 animals, 136 recipes and 40 levels."
   },
+  "made": "2026-10-05",
   "public": {
    "github": {
     "forks": 0,
@@ -9894,6 +10169,7 @@
    "ai_built": "yes",
    "pitch": "Grind rails, link manuals and reverts into huge combos across three distinct 3D parks in fast two-minute runs."
   },
+  "made": "2026-09-24",
   "public": {
    "github": {
     "forks": 0,
@@ -9930,6 +10206,7 @@
    "ai_built": "yes",
    "pitch": "Cast your line, reel in rare fish, upgrade rods, unlock new maps, and climb the leaderboard."
   },
+  "made": "2026-04-15",
   "public": {
    "github": {
     "forks": 0,
@@ -9966,6 +10243,7 @@
    "ai_built": "yes",
    "pitch": "Faithful Galaga rebuilt from the arcade ROM's data: authentic enemy flight paths, dual-fighter capture, and escalating stages, playable instantly in-browser."
   },
+  "made": "2025-06-07",
   "public": {
    "github": {
     "forks": 0,
@@ -10002,6 +10280,7 @@
    "ai_built": "yes",
    "pitch": "Steer the massive Titanic through a procedurally generated, stormy North Atlantic, threading near misses between icebergs in slow-motion before the hull gives way."
   },
+  "made": "2026-06-11",
   "public": {
    "github": {
     "forks": 0,
@@ -10038,6 +10317,7 @@
    "ai_built": "likely",
    "pitch": "Play full-rules chess against friends online, a minimax CPU with four difficulty levels, or an LLM opponent."
   },
+  "made": "2026-08-07",
   "public": {
    "github": {
     "forks": 0,
@@ -10074,6 +10354,7 @@
    "ai_built": "yes",
    "pitch": "Pilot a fighter through alien fleet battles in AR on your phone, aiming with your gyroscope and fighting bosses."
   },
+  "made": "2026-06-19",
   "public": {
    "github": {
     "forks": 0,
@@ -10110,6 +10391,7 @@
    "ai_built": "yes",
    "pitch": "Cruise a neon-lit city freely or race the clock through street missions against bot drivers, in day, night, or rain."
   },
+  "made": "2026-07-27",
   "public": {
    "github": {
     "forks": 0,
@@ -10146,6 +10428,7 @@
    "ai_built": "yes",
    "pitch": "Grow a hot dog cart into an AI startup in 30 days, balancing pricing, compute, and chaotic incidents."
   },
+  "made": "2026-07-17",
   "public": {
    "github": {
     "forks": 0,
@@ -10182,6 +10465,7 @@
    "ai_built": "yes",
    "pitch": "Match colours and images to words in seven languages, progressing from recognition to typing to speaking aloud as the timer speeds up."
   },
+  "made": "2026-01-31",
   "public": {
    "github": {
     "forks": 0,
@@ -10218,6 +10502,7 @@
    "ai_built": "yes",
    "pitch": "Race nine detailed cars across six circuits in championships, time trials and ghost chases, with cinematic cameras and changing weather."
   },
+  "made": "2026-09-20",
   "public": {
    "github": {
     "forks": 1,
@@ -10254,6 +10539,7 @@
    "ai_built": "likely",
    "pitch": "Bind the undead to run an occult chip-foundry, rendering corpses into Compute while spreading Dread haze threatens your colony."
   },
+  "made": "2026-06-17",
   "public": {
    "github": {
     "forks": 0,
@@ -10290,6 +10576,7 @@
    "ai_built": "yes",
    "pitch": "Type words to blast rocks, defend cities, and fight centipedes in a collection of arcade shooters controlled only by your keyboard."
   },
+  "made": "2026-08-14",
   "public": {
    "github": {
     "forks": 0,
@@ -10326,6 +10613,7 @@
    "ai_built": "likely",
    "pitch": "Build a base, mine the red desert, command tank columns, and survive a storm in this full RTS."
   },
+  "made": "2026-08-03",
   "public": {
    "github": {
     "forks": 0,
@@ -10362,6 +10650,7 @@
    "ai_built": "yes",
    "pitch": "Build a team from 33 units and 14 synergies, then watch deterministic auto-battles play out against a scouting Hard AI."
   },
+  "made": "2026-08-14",
   "public": {
    "github": {
     "forks": 0,
@@ -10398,6 +10687,7 @@
    "ai_built": "yes",
    "pitch": "Throw real numbered boxing combos at a 3D trainer's mitts using only your webcam while your own face reacts to every hit."
   },
+  "made": "2026-09-24",
   "public": {
    "github": {
     "forks": 0,
@@ -10434,6 +10724,7 @@
    "ai_built": "yes",
    "pitch": "Run a chaotic tech event with your team: solve crises, answer staff chat, and survive six events up to DevFest."
   },
+  "made": "2026-10-08",
   "public": {
    "github": {
     "forks": 0,
@@ -10470,6 +10761,7 @@
    "ai_built": "yes",
    "pitch": "Build a Helsinki property empire, outsmart four Finnish tycoon AI rivals, and survive pipe bursts, market crashes, and bizarre events."
   },
+  "made": "2026-04-02",
   "public": {
    "github": {
     "forks": 0,
@@ -10506,6 +10798,7 @@
    "ai_built": "yes",
    "pitch": "Play a blind hitman who sees only through sound: pings, footsteps, and gunshots reveal the dark and expose you."
   },
+  "made": "2026-10-02",
   "public": {
    "github": {
     "forks": 0,
@@ -10542,6 +10835,7 @@
    "ai_built": "likely",
    "pitch": "Pick a knight, mage, or ranger and fight through a story campaign solo, in 3-player co-op, or in 1v1 duels."
   },
+  "made": "2026-07-02",
   "public": {
    "github": {
     "forks": 0,
@@ -10578,6 +10872,7 @@
    "ai_built": "likely",
    "pitch": "Ten browser games in tabs, including a 3D Cube World, an RTS-style Perimeter, a platformer and a space shooter, all playable offline."
   },
+  "made": "2026-09-26",
   "public": {
    "github": {
     "forks": 0,
@@ -10614,6 +10909,7 @@
    "ai_built": "yes",
    "pitch": "Race dusty off-road tracks in a WebGPU arcade racer, solo or against up to four friends online."
   },
+  "made": "2026-09-30",
   "public": {
    "github": {
     "forks": 0,
@@ -10650,6 +10946,7 @@
    "ai_built": "likely",
    "pitch": "Drive a rover across real lunar and Martian terrain through realistic signal delay, then see where it actually ended up."
   },
+  "made": "2026-09-24",
   "public": {
    "github": {
     "forks": 0,
@@ -10686,6 +10983,7 @@
    "ai_built": "yes",
    "pitch": "Type falling words to grow a magical garden across 10 levels, with pets, combos, and sparkling effects."
   },
+  "made": "2026-04-22",
   "public": {
    "github": {
     "forks": 0,
@@ -10736,6 +11034,7 @@
   "stars": null,
   "repo_dir": "dmcinnes-html5-asteroids",
   "external": null,
+  "made": "2010-05-13",
   "public": {
    "github": {
     "forks": 336,

@@ -131,6 +131,9 @@
     return p ? esc(p.short) : esc(g.category || 'Arcade') + (g.review && g.review.ai_built !== 'no' ? ' · AI-made' : '');
   };
 
+  const ago = d => Math.floor((Date.now() - Date.parse(d)) / 864e5);
+  const madeTxt = d => { const n = ago(d); return n <= 0 ? 'Made today' : n === 1 ? 'Made yesterday' : n < 14 ? `Made ${n} days ago` : `Made ${Math.round(n / 7)} weeks ago`; };
+
   async function home() {
     const gs = (await games()).slice().sort((a, b) => score(b) - score(a));
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
@@ -158,12 +161,12 @@
     $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; store.set('cat', cat); draw(); };
     document.addEventListener('click', e => { const s = e.target.closest('[data-see]'); if (!s) return; e.preventDefault(); cat = s.dataset.see; store.set('cat', cat); draw(); $('cats').scrollIntoView({ behavior: 'smooth' }); });
 
-    const tile = g => `<a class="tile" href="${href(g)}"><img src="${esc(art(g))}" alt="" loading="lazy">
-      <b>${esc(g.name)}</b><span>${metaLine(g, stats[g.slug])}</span></a>`;
+    const tile = (g, fresh) => `<a class="tile" href="${href(g)}"><img src="${esc(art(g))}" alt="" loading="lazy">
+      <b>${esc(g.name)}</b><span>${fresh ? `<span class="new">${madeTxt(g.made)}</span>` : metaLine(g, stats[g.slug])}</span></a>`;
     const row = (g, i) => `<a class="row" href="${href(g)}"><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
       <div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p><span class="sub">${metaLine(g, stats[g.slug])}</span></div><span class="get">PLAY</span></a>`;
-    const shelf = (title, list, see) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>
-      <div class="rail">${list.slice(0, 15).map(tile).join('')}</div></section>` : '';
+    const shelf = (title, list, see, fresh) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>
+      <div class="rail">${list.slice(0, 15).map(g => tile(g, fresh)).join('')}</div></section>` : '';
 
     function draw() {
       $('cats').querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.c === 'All' && !cat) || b.dataset.c === cat)));
@@ -172,9 +175,10 @@
         $('shelves').innerHTML = `<section class="chart"><header><h2>Top ${esc(cat)}</h2><span class="eyebrow">${list.length} games</span></header>${list.map(row).join('')}</section>`;
         return;
       }
-      const recent = gs.filter(g => g.added === latest);
+      // "Just made": newest creations first, whatever day we added them
+      const recent = gs.filter(g => g.made && ago(g.made) <= 21).sort((a, b) => (b.made > a.made ? 1 : -1));
       const byCat = cats.map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
-      $('shelves').innerHTML = shelf('New this week', recent) +
+      $('shelves').innerHTML = shelf('Just made', recent, null, true) +
         byCat.map(([c, l]) => shelf(c, l, c)).join('') +
         `<section class="chart"><header><h2>Top games</h2></header>${gs.slice(0, 25).map(row).join('')}</section>`;
     }
