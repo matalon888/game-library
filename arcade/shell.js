@@ -31,10 +31,12 @@
     const p = g.public || {}, out = [];
     if (p.itch) out.push({ short: `★ ${p.itch.rating.toFixed(1)} on itch.io (${p.itch.count})`, long: `★ ${p.itch.rating.toFixed(1)} from ${p.itch.count} players on itch.io`, url: p.itch.url });
     if (p.hn) out.push({ short: `▲ ${p.hn.points} on Hacker News`, long: `▲ ${p.hn.points} points, ${p.hn.comments} comments on Hacker News (${p.hn.year})`, url: p.hn.url });
+    if (p.reddit) out.push({ short: `▲ ${kNum(p.reddit.score)} on r/${p.reddit.sub}`, long: `▲ ${kNum(p.reddit.score)} upvotes, ${p.reddit.comments} comments on r/${p.reddit.sub} (${p.reddit.year})`, url: p.reddit.url });
     if (p.github) out.push({ short: `${kNum(p.github.stars)} GitHub stars`, long: `${kNum(p.github.stars)} stars, ${kNum(p.github.forks)} forks on GitHub`, url: p.github.url });
     return out;
   };
-  const praiseList = g => { const l = praise(g); return l.length ? `<ul class="praise">${l.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.long)}</a></li>`).join('')}</ul>` : ''; };
+  const quote = g => { const q = (g.public || {}).quote; return q ? `<blockquote class="praise-quote">“${esc(q.text)}”<cite><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(q.who)} on ${esc(q.where)}</a></cite></blockquote>` : ''; };
+  const praiseList = g => { const l = praise(g); return (l.length ? `<ul class="praise">${l.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.long)}</a></li>`).join('')}</ul>` : '') + quote(g); };
 
   // ---------------------------------------------------------------- install prompt
   // Android Chrome: real one-tap install. iPhone: Apple allows no install button, so we point at the exact

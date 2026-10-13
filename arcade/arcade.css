@@ -142,3 +142,6 @@ button { font: inherit; color: inherit }
 .praise { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font: 600 12px/1.4 var(--mono) }
 .praise a { color: var(--coin); text-decoration: none }
 .praise a:hover { text-decoration: underline }
+.praise-quote { margin: 10px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--coin); font-size: 13px; line-height: 1.45; opacity: .9 }
+.praise-quote cite { display: block; margin-top: 4px; font: 600 11px/1.4 var(--mono); font-style: normal }
+.praise-quote cite a { color: var(--coin); text-decoration: none }
