@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Add the Arcade to your AI · Ad-Safe Arcade</title>
+<meta name="description" content="Play free open-source games inside Claude, ChatGPT or Grok. Two steps, under a minute.">
+<meta name="theme-color" content="#0d1017">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="stylesheet" href="arcade.css">
+<style>
+  .cx { max-width: 640px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 26px) 16px calc(env(safe-area-inset-bottom, 0px) + 40px); display: grid; gap: 22px }
+  .cx h2 { font: 700 26px/1.15 var(--display); margin: 0; text-wrap: balance }
+  .cx h2 span { color: var(--coin) }
+  .lead { color: var(--muted); margin: 0; max-width: 52ch }
+  .covers { display: flex; gap: 8px; overflow: hidden; height: 120px }
+  .covers img { height: 100%; aspect-ratio: 3 / 5; border-radius: 10px; object-fit: cover; border: 1px solid var(--line) }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap }
+  .tab { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 600 }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--bg) }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 16px }
+  .step { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start }
+  .n { width: 28px; height: 28px; border-radius: 50%; background: var(--raise); display: grid; place-items: center; font: 600 13px var(--mono); color: var(--coin) }
+  .step p { margin: 3px 0 0; color: var(--muted) }
+  .step b { color: var(--ink) }
+  .go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--coin); color: #1a1300; font-weight: 700; padding: 13px 18px; border-radius: 999px; text-decoration: none; border: 0; cursor: pointer; width: 100% }
+  .url { display: flex; gap: 8px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 12px; min-width: 0 }
+  .url code { font: 600 12px var(--mono); color: var(--ink); overflow-wrap: anywhere; flex: 1; min-width: 0; user-select: all }
+  .url button { border: 1px solid var(--line); background: var(--raise); border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: none }
+  .say { display: flex; flex-wrap: wrap; gap: 6px }
+  .say span { background: var(--raise); border-radius: 999px; padding: 5px 11px; font-size: 13px }
+  .note { font-size: 13px; color: var(--muted); margin: 0 }
+  .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none }
+  .toast.on { opacity: 1 }
+  .alt { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 18px }
+  .alt a { color: var(--accent) }
+</style>
+</head>
+<body>
+<main class="cx">
+  <div class="brand"><img src="icons/icon-192.png" alt=""><div><h1>Ad-Safe <span>Arcade</span></h1><div class="eyebrow" id="count">Free · open source · no sign-up</div></div></div>
+
+  <h2>Play games right inside <span>your AI chat</span></h2>
+  <p class="lead">Add the arcade to Claude, ChatGPT or Grok once. After that, just ask "show me the arcade" in any chat. New games arrive twice a day.</p>
+  <div class="covers" id="covers" aria-hidden="true"></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="claude">Claude</button>
+    <button class="tab" role="tab" data-t="chatgpt">ChatGPT</button>
+    <button class="tab" role="tab" data-t="grok">Grok</button>
+  </div>
+  <section class="panel" id="panel" aria-live="polite"></section>
+
+  <div class="alt"><span class="note">No AI app? Play in your browser and add it to your home screen.</span><a href="./">Open the arcade →</a></div>
+  <p class="note">No accounts and no ads inside chats. <a href="privacy.html" style="color:var(--accent)">Privacy</a></p>
+</main>
+<div class="toast" id="toast">Link copied</div>
+<script>
+const MCP = 'https://arcade-api-production-bfdf.up.railway.app/mcp';
+const SAY = ['Show me the arcade', "What's new today?", 'Play a puzzle game'];
+const HOSTS = {
+  claude: { open: 'https://claude.ai/settings/connectors', label: 'Copy link & open Claude',
+    steps: ['In Connectors, tap <b>Add custom connector</b>.', 'Name it <b>Arcade</b>, paste the link, tap <b>Add</b>.'],
+    note: 'Works on claude.ai, the desktop app and the phone app once added.' },
+  chatgpt: { open: 'https://chatgpt.com/#settings/Connectors', label: 'Copy link & open ChatGPT',
+    steps: ['Open <b>Apps → Advanced</b> and turn on <b>Developer mode</b>.', 'Tap <b>Create app</b>, name it <b>Arcade</b>, paste the link, choose <b>No authentication</b>, save.'],
+    note: 'Needs ChatGPT on the web the first time. A one-tap listing in the ChatGPT app store is pending review.' },
+  grok: { open: 'https://grok.com/connectors', label: 'Copy link & open Grok',
+    steps: ['Choose <b>Add connector</b> (custom MCP).', 'Paste the link and save.'],
+    note: 'Grok paid plans only. Grok lists the games with play links instead of a game grid.' }
+};
+const $ = s => document.querySelector(s);
+const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 1800); };
+async function copy() {
+  try { await navigator.clipboard.writeText(MCP); toast('Link copied'); return true; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($('#mcp')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Link selected, copy it'); return false; }
+}
+function show(k) {
+  const h = HOSTS[k];
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.t === k));
+  $('#panel').innerHTML = `
+    <div class="step"><span class="n">1</span><div><a class="go" id="go" href="${h.open}" target="_blank" rel="noopener">${h.label}</a></div></div>
+    <div class="url"><code id="mcp">${MCP}</code><button id="cp">Copy</button></div>
+    ${h.steps.map((s, i) => `<div class="step"><span class="n">${i + 2}</span><p>${s}</p></div>`).join('')}
+    <div class="step"><span class="n">${h.steps.length + 2}</span><div><p>Then in any chat, say:</p><div class="say" style="margin-top:8px">${SAY.map(s => `<span>${s}</span>`).join('')}</div></div></div>
+    <p class="note">${h.note}</p>`;
+  $('#go').addEventListener('click', copy);
+  $('#cp').addEventListener('click', copy);
+  try { localStorage.setItem('arcade.host', k); } catch (e) {}
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => show(b.dataset.t));
+let start = 'claude';
+try { start = new URLSearchParams(location.search).get('ai') || localStorage.getItem('arcade.host') || start; } catch (e) {}
+show(HOSTS[start] ? start : 'claude');
+fetch('games.json').then(r => r.json()).then(gs => {
+  $('#count').textContent = `${gs.length} games · free · no sign-up`;
+  $('#covers').innerHTML = gs.filter(g => g.cover).slice(0, 8).map(g => `<img src="${g.cover}" alt="">`).join('');
+}).catch(() => {});
+</script>
+</body>
+</html>
