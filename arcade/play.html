@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Play · Ad-Safe Arcade</title>
+<meta name="theme-color" content="#0d1017">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="stylesheet" href="arcade.css">
+</head>
+<body>
+<div class="player">
+  <div class="topbar">
+    <button class="icon" id="back" aria-label="Back to the arcade">←</button>
+    <div class="t" id="title">Loading…</div>
+    <button class="icon" id="info" aria-label="Credits">ⓘ</button>
+  </div>
+  <div class="stage" id="stage"></div>
+  <div class="pad" id="pad"></div>
+</div>
+<script src="shell.js"></script>
+<script>
+Arcade.play();
+</script>
+</body>
+</html>
