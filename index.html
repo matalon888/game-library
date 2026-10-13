@@ -149,7 +149,8 @@ function open(k) {
     <a class="btn" id="add" href="${phone && h.appAdd ? h.appAdd : h.add}" target="_blank" rel="noopener">${h.addLabel}</a>
     ${h.steps.map(s => `<p class="step">${s}</p>`).join('')}
     ${h.note && phone ? `<p class="step note">${h.note}</p>` : ''}
-    <a class="btn dark" href="${h.play}" target="_blank" rel="noopener">${device !== 'desktop' ? 'Start playing in the ' + h.name + ' app' : 'Start playing'}</a>`;
+    <a class="btn dark" href="${h.play}" target="_blank" rel="noopener">${device !== 'desktop' ? 'Start playing in the ' + h.name + ' app' : 'Start playing'}</a>
+    <p class="step note">📌 Then pin that chat (⋯ → Pin) so the arcade is one tap away.</p>`;
   if (h.copy) $('#add').addEventListener('click', () => navigator.clipboard.writeText(MCP).then(() => toast('Link copied'), () => toast(MCP)));
   $('#x').onclick = close;
   document.body.classList.add('open');
