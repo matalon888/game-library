@@ -1,4 +1,402 @@
 {
+ "nkzw-tech-athena-crisis": {
+  "github": {
+   "forks": 161,
+   "stars": 1984,
+   "url": "https://github.com/nkzw-tech/athena-crisis"
+  }
+ },
+ "starknightt-operation-ironhold": {
+  "github": {
+   "forks": 26,
+   "stars": 100,
+   "url": "https://github.com/StarKnightt/operation-ironhold"
+  }
+ },
+ "haan-lightbot": {
+  "github": {
+   "forks": 55,
+   "stars": 71,
+   "url": "https://github.com/haan/Lightbot"
+  }
+ },
+ "rohitg00-k8sgames": {
+  "github": {
+   "forks": 192,
+   "stars": 1401,
+   "url": "https://github.com/rohitg00/k8sgames"
+  }
+ },
+ "cosmoart-quiz-game": {
+  "github": {
+   "forks": 32,
+   "stars": 93,
+   "url": "https://github.com/cosmoart/quiz-game"
+  }
+ },
+ "blockly-games-blockly-games": {
+  "github": {
+   "forks": 635,
+   "stars": 1372,
+   "url": "https://github.com/blockly-games/blockly-games"
+  }
+ },
+ "schaoss-wall-go": {
+  "github": {
+   "forks": 13,
+   "stars": 30,
+   "url": "https://github.com/schaoss/wall-go"
+  },
+  "hn": {
+   "points": 33,
+   "comments": 12,
+   "title": "Show HN: Wall Go \u2013 browser remake of a Devil's Plan 2 mini-game",
+   "year": "2025",
+   "url": "https://news.ycombinator.com/item?id=44088248"
+  },
+  "quote": {
+   "text": "I don't seem to be able to select \"hard\" AI - is this just not implemented yet? It'd be nice to have a stronger AI, but I do realise that this is a lot easier said than done.",
+   "who": "jfindley",
+   "where": "Hacker News",
+   "url": "https://news.ycombinator.com/item?id=44088562"
+  }
+ },
+ "harmonyhoney-tiny-crate": {
+  "github": {
+   "forks": 32,
+   "stars": 239,
+   "url": "https://github.com/HarmonyHoney/tiny_crate"
+  }
+ },
+ "daredev256-whats-poppin": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/DareDev256/whats-poppin"
+  }
+ },
+ "bencoder-js13k-2019": {
+  "github": {
+   "forks": 31,
+   "stars": 216,
+   "url": "https://github.com/bencoder/js13k-2019"
+  }
+ },
+ "salvatorepreviti-js13k-2022": {
+  "github": {
+   "forks": 23,
+   "stars": 154,
+   "url": "https://github.com/SalvatorePreviti/js13k-2022"
+  }
+ },
+ "rahulatrkm-fuse": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/rahulatrkm/fuse"
+  }
+ },
+ "xcxi-shake-shake-beasts": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/XCxi/shake-shake-beasts"
+  }
+ },
+ "joaorizzo0112-minesweeper-classic-98": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/joaorizzo0112/Minesweeper-Classic-98"
+  }
+ },
+ "eduardoprofe666-sudoku-play": {
+  "github": {
+   "forks": 1,
+   "stars": 9,
+   "url": "https://github.com/EduardoProfe666/sudoku-play"
+  }
+ },
+ "z-biz-game-z-biz-game-minesweeper-cos": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/z-biz-game/z-biz-game-minesweeper-cos"
+  }
+ },
+ "mike007jd-voxel-musou": {
+  "github": {
+   "forks": 45,
+   "stars": 143,
+   "url": "https://github.com/mike007jd/voxel-musou"
+  }
+ },
+ "mkthingshq-mkgame-sudoku": {
+  "github": {
+   "forks": 5,
+   "stars": 23,
+   "url": "https://github.com/MkThingsHQ/mkgame-sudoku"
+  }
+ },
+ "mkthingshq-mkgame-blocks": {
+  "github": {
+   "forks": 7,
+   "stars": 15,
+   "url": "https://github.com/MkThingsHQ/mkgame-blocks"
+  }
+ },
+ "innocenat-typingmania": {
+  "github": {
+   "forks": 3,
+   "stars": 47,
+   "url": "https://github.com/innocenat/typingmania"
+  }
+ },
+ "d-dezeeuw-triple7": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/D-dezeeuw/Triple7"
+  }
+ },
+ "nicechunk-game": {
+  "github": {
+   "forks": 2,
+   "stars": 314,
+   "url": "https://github.com/nicechunk/game"
+  }
+ },
+ "splargdotcom-atventurerer": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/splargdotcom/atventurerer"
+  }
+ },
+ "matteo-grella-lorys-lab": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/matteo-grella/lorys-lab"
+  }
+ },
+ "vidipt89-vidimahjong": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/VidiPT89/VidiMahjong"
+  }
+ },
+ "offerpk-ball-sort-puzzle": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/OfferPk/ball-sort-puzzle"
+  }
+ },
+ "aicoderproject-chain-drop-lab": {
+  "github": {
+   "forks": 1,
+   "stars": 4,
+   "url": "https://github.com/AICoderProject/chain-drop-lab"
+  }
+ },
+ "manthanank-2048": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/manthanank/2048"
+  }
+ },
+ "salvatorepreviti-js13k-2020": {
+  "github": {
+   "forks": 8,
+   "stars": 56,
+   "url": "https://github.com/SalvatorePreviti/js13k-2020"
+  }
+ },
+ "chetanck03-sortify-ballsortpuzzle": {
+  "github": {
+   "forks": 1,
+   "stars": 2,
+   "url": "https://github.com/chetanck03/Sortify-BallSortPuzzle"
+  }
+ },
+ "feliperyba-angry-aliens-phaser": {
+  "github": {
+   "forks": 0,
+   "stars": 3,
+   "url": "https://github.com/feliperyba/angry-aliens-phaser"
+  }
+ },
+ "chandu-collab-mahjong": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/Chandu-Collab/Mahjong"
+  }
+ },
+ "marcelolazzari-fancy2048": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/marcelolazzari/Fancy2048"
+  }
+ },
+ "debski-patrick-quiz-game": {
+  "github": {
+   "forks": 1,
+   "stars": 3,
+   "url": "https://github.com/debski-patrick/quiz-game"
+  }
+ },
+ "ilyamirin-osome": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/ilyamirin/osome"
+  }
+ },
+ "rajgurung-warden-zero": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/rajgurung/warden-zero"
+  }
+ },
+ "sanjays2402-memory-matrix": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Sanjays2402/memory-matrix"
+  }
+ },
+ "iacbi-matah": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/IACBI/matah"
+  }
+ },
+ "johnmorrisdotca-tsunagi": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/johnmorrisdotca/tsunagi"
+  }
+ },
+ "mustafaobaidd1-lensing-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/mustafaobaidd1/lensing-game"
+  }
+ },
+ "migueljiro-tech-dle": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/MiguelJiRo/Tech-dle"
+  }
+ },
+ "lk0923-cyber-hero-level-up": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/LK0923/Cyber-Hero-Level-Up"
+  }
+ },
+ "steadystategames-cat-solitaire": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SteadyStateGames/Cat-Solitaire"
+  }
+ },
+ "basem3sam-trosc-it-challenge": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Basem3sam/trosc-it-challenge"
+  }
+ },
+ "chenhsieh-triop-game": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/ChenHsieh/triop-game"
+  }
+ },
+ "shadowxdgamer-vault-88": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/shadowxdgamer/Vault-88"
+  }
+ },
+ "ikshwakuvanani-tertris": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/IkshwakuVanani/Tertris"
+  }
+ },
+ "jgohil07-sudokuzen": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/jgohil07/SudokuZen"
+  }
+ },
+ "gmh-code-pk2": {
+  "github": {
+   "forks": 3,
+   "stars": 34,
+   "url": "https://github.com/GMH-Code/PK2"
+  }
+ },
+ "aortaa-quiz-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/aortaa/quiz-game"
+  }
+ },
+ "mrcdprm-hangman-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/MrcDprm/hangman-game"
+  }
+ },
+ "augy-studios-sudoku-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/augy-studios/sudoku-game"
+  }
+ },
+ "skorbezhartem-minesweeper": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SkorbezhArtem/minesweeper"
+  }
+ },
+ "augy-studios-connect4-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/augy-studios/connect4-game"
+  }
+ },
+ "phmatray-minesweeper": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/phmatray/MineSweeper"
+  }
+ },
  "ygpydh-space-game": {
   "github": {
    "forks": 2,
@@ -29,7 +427,7 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 19,
+   "forks": 21,
    "stars": 75,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
@@ -2018,7 +2416,7 @@
  "pshenok-server-survival": {
   "github": {
    "forks": 711,
-   "stars": 6442,
+   "stars": 6443,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
@@ -2043,10 +2441,10 @@
    "url": "https://news.ycombinator.com/item?id=5247965"
   },
   "quote": {
-   "text": "Amazing! Works super well on Mobile Safari and it has the yeti attack at the end!",
-   "who": "nextstep",
+   "text": "Played just to confirm that the yeti ate me :-D. Good times!",
+   "who": "silverlight",
    "where": "Hacker News",
-   "url": "https://news.ycombinator.com/item?id=5248503"
+   "url": "https://news.ycombinator.com/item?id=5248215"
   }
  },
  "felixmariotto-edelweiss": {
@@ -2054,11 +2452,6 @@
    "forks": 46,
    "stars": 315,
    "url": "https://github.com/felixmariotto/Edelweiss"
-  },
-  "itch": {
-   "rating": 4.2,
-   "count": 6,
-   "url": "https://felixmrtt.itch.io/edelweiss"
   }
  },
  "bkcore-hexgl": {

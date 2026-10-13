@@ -21,7 +21,7 @@
   "public": {
    "github": {
     "forks": 711,
-    "stars": 6442,
+    "stars": 6443,
     "url": "https://github.com/pshenok/server-survival"
    }
   },
@@ -29,6 +29,43 @@
   "thumb": "covers/pshenok-server-survival.webp",
   "icon": "art/pshenok-server-survival.webp",
   "clip": "clips/pshenok-server-survival.mp4"
+ },
+ {
+  "slug": "nkzw-tech-athena-crisis",
+  "name": "Athena Crisis",
+  "blurb": "Command units, capture buildings, and defeat opponents in turn-based tactical battles across campaigns and multiplayer maps.",
+  "category": "Strategy",
+  "author": "nkzw-tech and contributors",
+  "credit": "Copyright (c) nkzw-tech and contributors",
+  "licence": "NOASSERTION",
+  "source": "https://github.com/nkzw-tech/athena-crisis",
+  "entry": "index.html",
+  "external": "https://athenacrisis.com/open-source",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1984,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 9,
+   "polish": 9,
+   "ai_built": "no",
+   "pitch": "Command units, capture buildings, and outwit opponents in a modern-retro tactical strategy game with campaigns and multiplayer."
+  },
+  "made": "2024-05-05",
+  "public": {
+   "github": {
+    "forks": 161,
+    "stars": 1984,
+    "url": "https://github.com/nkzw-tech/athena-crisis"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
  },
  {
   "slug": "bkcore-hexgl",
@@ -72,6 +109,80 @@
   "cover": "covers/bkcore-hexgl.webp",
   "thumb": "covers/bkcore-hexgl.webp",
   "icon": "art/bkcore-hexgl.webp",
+  "clip": null
+ },
+ {
+  "slug": "rohitg00-k8sgames",
+  "name": "K8s Games",
+  "blurb": "Fix outages in a 3D Kubernetes cluster by typing real kubectl commands as incidents pile up.",
+  "category": "3D",
+  "author": "Rohit Ghumare",
+  "credit": "Copyright 2026 Rohit Ghumare",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/rohitg00/k8sgames",
+  "entry": "index.html",
+  "external": "https://k8sgames.com",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1401,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Fix outages in a 3D Kubernetes cluster by typing real kubectl commands as incidents escalate until everything breaks."
+  },
+  "made": "2026-02-15",
+  "public": {
+   "github": {
+    "forks": 192,
+    "stars": 1401,
+    "url": "https://github.com/rohitg00/k8sgames"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "blockly-games-blockly-games",
+  "name": "Blockly Games",
+  "blurb": "Solve mazes, pond duels, and other challenges by snapping together visual code blocks.",
+  "category": "Puzzle",
+  "author": "blockly-games and contributors",
+  "credit": "Copyright (c) blockly-games and contributors",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/blockly-games/blockly-games",
+  "entry": "index.html",
+  "external": "https://blockly.games/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1372,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 8,
+   "ai_built": "no",
+   "pitch": "Program your way through mazes, pond duels, and more using visual code blocks across multiple games."
+  },
+  "made": "2014-08-25",
+  "public": {
+   "github": {
+    "forks": 635,
+    "stars": 1372,
+    "url": "https://github.com/blockly-games/blockly-games"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
   "clip": null
  },
  {
@@ -144,10 +255,10 @@
     "url": "https://news.ycombinator.com/item?id=5247965"
    },
    "quote": {
-    "text": "I swear this game is better than most of the game I've played this and last year. Graphics aren't everything.",
-    "who": "d0m",
+    "text": "Played just to confirm that the yeti ate me :-D. Good times!",
+    "who": "silverlight",
     "where": "Hacker News",
-    "url": "https://news.ycombinator.com/item?id=5248480"
+    "url": "https://news.ycombinator.com/item?id=5248215"
    }
   },
   "cover": "covers/basicallydan-skifree-js.webp",
@@ -216,17 +327,86 @@
     "forks": 46,
     "stars": 315,
     "url": "https://github.com/felixmariotto/Edelweiss"
-   },
-   "itch": {
-    "rating": 4.2,
-    "count": 6,
-    "url": "https://felixmrtt.itch.io/edelweiss"
    }
   },
   "cover": "covers/felixmariotto-edelweiss.webp",
   "thumb": "covers/felixmariotto-edelweiss.webp",
   "icon": "art/felixmariotto-edelweiss.webp",
   "clip": "clips/felixmariotto-edelweiss.mp4"
+ },
+ {
+  "slug": "nicechunk-game",
+  "name": "NICECHUNK",
+  "blurb": "Mine, smelt, forge, claim land and build in a shared voxel world with a player marketplace.",
+  "category": "3D",
+  "author": "nicechunk and contributors",
+  "credit": "Copyright (c) nicechunk and contributors",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/nicechunk/game",
+  "entry": "index.html",
+  "external": "https://nicechunk.com/play",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 314,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Mine, smelt, forge, claim land and build in a shared voxel world with chain-backed ownership and a player marketplace."
+  },
+  "made": "2026-07-20",
+  "public": {
+   "github": {
+    "forks": 2,
+    "stars": 314,
+    "url": "https://github.com/nicechunk/game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "harmonyhoney-tiny-crate",
+  "name": "Tiny Crate",
+  "blurb": "Pick up and throw your crate to get through precision platforming puzzles in pixel-art levels.",
+  "category": "Action",
+  "author": "HarmonyHoney and contributors",
+  "credit": "Copyright (c) HarmonyHoney and contributors",
+  "licence": "Unlicense",
+  "source": "https://github.com/HarmonyHoney/tiny_crate",
+  "entry": "index.html",
+  "external": "http://harmonymonroe.com",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 239,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Pick up and throw your crate to solve precision platforming puzzles across many handcrafted pixel-art levels."
+  },
+  "made": "2020-08-22",
+  "public": {
+   "github": {
+    "forks": 32,
+    "stars": 239,
+    "url": "https://github.com/HarmonyHoney/tiny_crate"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
  },
  {
   "slug": "mrzh7-scam-with-your-friends-web",
@@ -266,6 +446,43 @@
   "clip": null
  },
  {
+  "slug": "bencoder-js13k-2019",
+  "name": "xx142-b2.exe",
+  "blurb": "Race a 13-second timer in 3D, using ghosts of your earlier runs as platforms to reach the core.",
+  "category": "3D",
+  "author": "Ben Clark, Salvatore Previti",
+  "credit": "Copyright (c) 2019 Ben Clark, Salvatore Previti",
+  "licence": "MIT",
+  "source": "https://github.com/bencoder/js13k-2019",
+  "entry": "src/index.html",
+  "external": "https://bencoder.github.io/js13k-2019",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 216,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 8,
+   "ai_built": "no",
+   "pitch": "Race a 13-second antivirus timer, replaying ghosts of your past runs as platforms to hack the alien core."
+  },
+  "made": "2019-08-27",
+  "public": {
+   "github": {
+    "forks": 31,
+    "stars": 216,
+    "url": "https://github.com/bencoder/js13k-2019"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
   "slug": "ramazancetinkaya-snake-game",
   "name": "Snake Pro",
   "blurb": "Polished modern Snake with swipe steering, an on-screen D-pad, speed modes and badges.",
@@ -294,6 +511,154 @@
   "cover": "covers/ramazancetinkaya-snake-game.webp",
   "thumb": "covers/ramazancetinkaya-snake-game.webp",
   "icon": "art/ramazancetinkaya-snake-game.webp",
+  "clip": null
+ },
+ {
+  "slug": "salvatorepreviti-js13k-2022",
+  "name": "Dante",
+  "blurb": "Descend through Dante's Inferno in a 3D platformer, jumping across hazards and exploring each circle.",
+  "category": "3D",
+  "author": "Salvatore Previti",
+  "credit": "Copyright (c) 2022 Salvatore Previti",
+  "licence": "MIT",
+  "source": "https://github.com/SalvatorePreviti/js13k-2022",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 154,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 9,
+   "ai_built": "no",
+   "pitch": "Descend through Dante's Inferno in a 13KB 3D platformer with dynamic shadows, Beethoven's music, and award-winning polish."
+  },
+  "made": "2022-06-03",
+  "public": {
+   "github": {
+    "forks": 23,
+    "stars": 154,
+    "url": "https://github.com/SalvatorePreviti/js13k-2022"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "mike007jd-voxel-musou",
+  "name": "Voxel Musou",
+  "blurb": "Fight through hundreds of soldiers as Three Kingdoms officers, using combos and Musou finishers across four chapters.",
+  "category": "3D",
+  "author": "BubuAi",
+  "credit": "Copyright (c) 2026 BubuAi",
+  "licence": "MIT",
+  "source": "https://github.com/mike007jd/voxel-musou",
+  "entry": "index.html",
+  "external": "https://voxel-musou.vercel.app",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 143,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 9,
+   "polish": 9,
+   "ai_built": "likely",
+   "pitch": "Carve through hundreds of soldiers as legendary Three Kingdoms officers across four chapters, ranked trials and Musou finishers."
+  },
+  "made": "2026-09-24",
+  "public": {
+   "github": {
+    "forks": 45,
+    "stars": 143,
+    "url": "https://github.com/mike007jd/voxel-musou"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "starknightt-operation-ironhold",
+  "name": "Operation Ironhold",
+  "blurb": "Shoot ten hostiles in a container yard within three minutes using four weapons, aiming down sights, and double jumps.",
+  "category": "3D",
+  "author": "StarKnightt",
+  "credit": "Copyright (c) 2026 StarKnightt",
+  "licence": "MIT",
+  "source": "https://github.com/StarKnightt/operation-ironhold",
+  "entry": "index.html",
+  "external": "https://starknightt.github.io/operation-ironhold/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 100,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 8,
+   "ai_built": "yes",
+   "pitch": "Clear a container yard of ten hostiles in three minutes using four weapons, ADS, double jumps and a sniper scope."
+  },
+  "made": "2026-07-26",
+  "public": {
+   "github": {
+    "forks": 26,
+    "stars": 100,
+    "url": "https://github.com/StarKnightt/operation-ironhold"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "cosmoart-quiz-game",
+  "name": "Quiz Game",
+  "blurb": "Answer AI-generated trivia questions across categories and game modes, using wildcards to get past hard questions.",
+  "category": "Word & Math",
+  "author": "cosmoart and contributors",
+  "credit": "Copyright (c) cosmoart and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/cosmoart/quiz-game",
+  "entry": "index.html",
+  "external": "https://quizi.vercel.app",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 93,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Test your knowledge across categories and game modes, using wildcards to rescue tough questions, with AI-generated trivia."
+  },
+  "made": "2023-01-25",
+  "public": {
+   "github": {
+    "forks": 32,
+    "stars": 93,
+    "url": "https://github.com/cosmoart/quiz-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
   "clip": null
  },
  {
@@ -391,7 +756,7 @@
   "made": "2026-08-27",
   "public": {
    "github": {
-    "forks": 19,
+    "forks": 21,
     "stars": 75,
     "url": "https://github.com/Lattymoy/daggerfall-js-source"
    }
@@ -399,6 +764,142 @@
   "cover": "covers/lattymoy-daggerfall-js-source.webp",
   "thumb": "covers/lattymoy-daggerfall-js-source.webp",
   "icon": "art/lattymoy-daggerfall-js-source.webp",
+  "clip": null
+ },
+ {
+  "slug": "haan-lightbot",
+  "name": "Lightbot",
+  "blurb": "Program a robot with commands, loops, and procedures to light every blue tile in isometric puzzle levels.",
+  "category": "Puzzle",
+  "author": "haan and contributors",
+  "credit": "Copyright (c) haan and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/haan/Lightbot",
+  "entry": "index.html",
+  "external": "https://www.lightbot.lu",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 71,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Program a robot with loops, jumps and procedures to light every blue tile across increasingly tricky isometric puzzle levels."
+  },
+  "made": "2011-10-09",
+  "public": {
+   "github": {
+    "forks": 55,
+    "stars": 71,
+    "url": "https://github.com/haan/Lightbot"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "salvatorepreviti-js13k-2020",
+  "name": "Island Not Found",
+  "blurb": "Explore a procedurally generated island and solve puzzles to uncover its secrets.",
+  "category": "3D",
+  "author": "SalvatorePreviti and contributors",
+  "credit": "Copyright (c) SalvatorePreviti and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/SalvatorePreviti/js13k-2020",
+  "entry": "index.html",
+  "external": "https://js13kgames.com/entries/island-not-found",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 56,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 8,
+   "ai_built": "no",
+   "pitch": "Explore a procedurally generated raymarched island, solving puzzles to uncover its secrets, all in a 13KB WebGL2 game."
+  },
+  "made": "2020-08-13",
+  "public": {
+   "github": {
+    "forks": 8,
+    "stars": 56,
+    "url": "https://github.com/SalvatorePreviti/js13k-2020"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "innocenat-typingmania",
+  "name": "TypingMania",
+  "blurb": "Type song lyrics in time with the music, including Kanji lines with furigana, or load your own songs.",
+  "category": "Word & Math",
+  "author": "innocenat and contributors",
+  "credit": "Copyright (c) innocenat and contributors",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/innocenat/typingmania",
+  "entry": "index.html",
+  "external": "https://typingmania.stdlib.xyz/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 47,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Type along to song lyrics like karaoke, with YouTube playback, Kanji and furigana lines, and your own custom songs."
+  },
+  "made": "2013-10-02",
+  "public": {
+   "github": {
+    "forks": 3,
+    "stars": 47,
+    "url": "https://github.com/innocenat/typingmania"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/innocenat-typingmania.webp",
+  "clip": "clips/innocenat-typingmania.mp4"
+ },
+ {
+  "slug": "ucfx-minimax-game-ai",
+  "name": "Tic-Tac-Toe AI",
+  "blurb": "Play tic-tac-toe against a friend or an unbeatable minimax AI.",
+  "category": "2-Player",
+  "author": "Youcef Hammadi [@ucfx](",
+  "credit": "Copyright (c) 2024 Youcef Hammadi [@ucfx](https://github.com/ucfx)",
+  "licence": "MIT",
+  "source": "https://github.com/ucfx/minimax-game-ai",
+  "entry": "__build/index.html",
+  "external": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 44,
+  "flag": null,
+  "review": null,
+  "made": "2022-09-15",
+  "public": null,
+  "cover": "covers/ucfx-minimax-game-ai.webp",
+  "thumb": "covers/ucfx-minimax-game-ai.webp",
+  "icon": "art/ucfx-minimax-game-ai.webp",
   "clip": null
  },
  {
@@ -437,6 +938,43 @@
   "thumb": "covers/vincenzo-afk-sudokuflow.webp",
   "icon": "art/vincenzo-afk-sudokuflow.webp",
   "clip": null
+ },
+ {
+  "slug": "gmh-code-pk2",
+  "name": "Pekka Kana 2",
+  "blurb": "Guide Pekka the rooster through platform levels, dodging or defeating enemies along the way.",
+  "category": "Action",
+  "author": "GMH-Code and contributors",
+  "credit": "Copyright (c) GMH-Code and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/GMH-Code/PK2",
+  "entry": "index.html",
+  "external": "https://pk2.m-h.org.uk",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 34,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Play as Pekka the rooster in a full platformer with many levels, enemies, and 16 tracker music tracks, on desktop or mobile."
+  },
+  "made": "2023-11-28",
+  "public": {
+   "github": {
+    "forks": 3,
+    "stars": 34,
+    "url": "https://github.com/GMH-Code/PK2"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/gmh-code-pk2.webp",
+  "clip": "clips/gmh-code-pk2.mp4"
  },
  {
   "slug": "lakhwan-startup-game",
@@ -513,6 +1051,56 @@
   "clip": "clips/yami-inc-ai-death-game.mp4"
  },
  {
+  "slug": "schaoss-wall-go",
+  "name": "Wall Go",
+  "blurb": "Move pieces and build walls on a 7×7 board to claim the most territory against AI or friends.",
+  "category": "Strategy",
+  "author": "schaoss and contributors",
+  "credit": "Copyright (c) schaoss and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/schaoss/wall-go",
+  "entry": "index.html",
+  "external": "https://schaoss.github.io/wall-go/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 30,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Build walls and outmaneuver rivals on a 7×7 board to claim the most territory, solo against AI or with friends."
+  },
+  "made": "2025-05-22",
+  "public": {
+   "github": {
+    "forks": 13,
+    "stars": 30,
+    "url": "https://github.com/schaoss/wall-go"
+   },
+   "hn": {
+    "points": 33,
+    "comments": 12,
+    "title": "Show HN: Wall Go – browser remake of a Devil's Plan 2 mini-game",
+    "year": "2025",
+    "url": "https://news.ycombinator.com/item?id=44088248"
+   },
+   "quote": {
+    "text": "I don't seem to be able to select \"hard\" AI - is this just not implemented yet? It'd be nice to have a stronger AI, but I do realise that this is a lot easier said than done.",
+    "who": "jfindley",
+    "where": "Hacker News",
+    "url": "https://news.ycombinator.com/item?id=44088562"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/schaoss-wall-go.webp",
+  "clip": "clips/schaoss-wall-go.mp4"
+ },
+ {
   "slug": "ipel-ns-shaft",
   "name": "NS-Shaft",
   "blurb": "Fall down the shaft, land on platforms and dodge the spike ceiling. Tap left or right half to move.",
@@ -542,6 +1130,43 @@
   "thumb": "covers/ipel-ns-shaft.webp",
   "icon": "art/ipel-ns-shaft.webp",
   "clip": null
+ },
+ {
+  "slug": "mkthingshq-mkgame-sudoku",
+  "name": "Cat Sudoku",
+  "blurb": "Place cats in a Sudoku grid across 80 handmade levels and daily puzzles.",
+  "category": "Puzzle",
+  "author": "MkThingsHQ and contributors",
+  "credit": "Copyright (c) MkThingsHQ and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/MkThingsHQ/mkgame-sudoku",
+  "entry": "index.html",
+  "external": "https://sudoku.mksaas.link",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 23,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Place adorable cats in a cozy Sudoku with 80 handcrafted levels, daily puzzles, hints, music, and haptics."
+  },
+  "made": "2026-07-25",
+  "public": {
+   "github": {
+    "forks": 5,
+    "stars": 23,
+    "url": "https://github.com/MkThingsHQ/mkgame-sudoku"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/mkthingshq-mkgame-sudoku.webp",
+  "clip": "clips/mkthingshq-mkgame-sudoku.mp4"
  },
  {
   "slug": "daniele-cangi-civic-nightmare",
@@ -748,6 +1373,31 @@
   "clip": "clips/cheshire137-blicblock-js.mp4"
  },
  {
+  "slug": "mo7ammedd-color-quiz-application",
+  "name": "Color Guessing Game",
+  "blurb": "See a hex colour code and tap the swatch that matches it before time runs out.",
+  "category": "Puzzle",
+  "author": "Mohammed mostafa",
+  "credit": "Copyright (c) 2023 Mohammed mostafa",
+  "licence": "MIT",
+  "source": "https://github.com/Mo7ammedd/color-quiz-application",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 17,
+  "flag": null,
+  "review": null,
+  "made": "2023-08-10",
+  "public": null,
+  "cover": "covers/mo7ammedd-color-quiz-application.webp",
+  "thumb": "covers/mo7ammedd-color-quiz-application.webp",
+  "icon": "art/mo7ammedd-color-quiz-application.webp",
+  "clip": null
+ },
+ {
   "slug": "playpip-pip-web",
   "name": "Pip",
   "blurb": "Play single-player Texas Hold'em tournaments against AI opponents using play-money chips.",
@@ -783,6 +1433,43 @@
   "thumb": "covers/playpip-pip-web.webp",
   "icon": "art/playpip-pip-web.webp",
   "clip": null
+ },
+ {
+  "slug": "mkthingshq-mkgame-blocks",
+  "name": "Blocks",
+  "blurb": "Drop block shapes onto a grid to complete and clear lines, with daily challenges and hints.",
+  "category": "Puzzle",
+  "author": "MkThingsHQ and contributors",
+  "credit": "Copyright (c) MkThingsHQ and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/MkThingsHQ/mkgame-blocks",
+  "entry": "index.html",
+  "external": "https://blocks.mksaas.link",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 15,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Drop blocks to clear lines in a Block Blast-style puzzle with daily challenges, hints, music, haptics, and instant mobile play."
+  },
+  "made": "2026-07-25",
+  "public": {
+   "github": {
+    "forks": 7,
+    "stars": 15,
+    "url": "https://github.com/MkThingsHQ/mkgame-blocks"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/mkthingshq-mkgame-blocks.webp",
+  "clip": "clips/mkthingshq-mkgame-blocks.mp4"
  },
  {
   "slug": "viral-doshi-catan",
@@ -896,6 +1583,43 @@
   "clip": "clips/imshota1009-bartender-jp.mp4"
  },
  {
+  "slug": "eduardoprofe666-sudoku-play",
+  "name": "Sudoku Play",
+  "blurb": "Fill the 9×9 grid so every row, column, and box holds the digits 1 to 9.",
+  "category": "Puzzle",
+  "author": "Eduardo Alejandro González Martell",
+  "credit": "Copyright (c) 2024 Eduardo Alejandro González Martell",
+  "licence": "MIT",
+  "source": "https://github.com/EduardoProfe666/sudoku-play",
+  "entry": "index.html",
+  "external": "https://sudoku-play.onrender.com/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 9,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Play sudoku offline on any device, with five difficulty levels, notes, sound effects, confetti wins, and your own custom puzzles."
+  },
+  "made": "2024-08-02",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 9,
+    "url": "https://github.com/EduardoProfe666/sudoku-play"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
   "slug": "tanuu5-nova-lancer",
   "name": "Nova Lancer",
   "blurb": "Pilot a fighter along a fixed path, shoot enemies, and battle a giant mechanical sea serpent.",
@@ -1005,6 +1729,31 @@
   "thumb": "covers/rockbenben-thousand-lives.webp",
   "icon": "art/rockbenben-thousand-lives.webp",
   "clip": "clips/rockbenben-thousand-lives.mp4"
+ },
+ {
+  "slug": "ljy969-deal-or-no-deal",
+  "name": "Deal or No Deal",
+  "blurb": "Pick a briefcase, open the others one by one and decide whether to take the banker's offer.",
+  "category": "Strategy",
+  "author": "MOX",
+  "credit": "Copyright (c) 2026 MOX",
+  "licence": "MIT",
+  "source": "https://github.com/ljy969/DEAL-OR-NO-DEAL",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 8,
+  "flag": "Name is a TV show trademark",
+  "review": null,
+  "made": "2026-08-19",
+  "public": null,
+  "cover": "covers/ljy969-deal-or-no-deal.webp",
+  "thumb": "covers/ljy969-deal-or-no-deal.webp",
+  "icon": "art/ljy969-deal-or-no-deal.webp",
+  "clip": null
  },
  {
   "slug": "wanikhawar-ferris-forge",
@@ -1118,6 +1867,68 @@
   "clip": "clips/btsouth-typearchy.mp4"
  },
  {
+  "slug": "rakeshid03-arrowpathpuzzle",
+  "name": "Arrow Path Puzzle",
+  "blurb": "Rotate the arrow tiles so your player can follow a path to the goal.",
+  "category": "Puzzle",
+  "author": "Rakesh Chowdhury",
+  "credit": "Copyright (c) 2025 Rakesh Chowdhury",
+  "licence": "MIT",
+  "source": "https://github.com/rakeshid03/arrowpathpuzzle",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 4,
+  "flag": "Repo is MIT but the page footer says 'All Rights Reserved' (boilerplate)",
+  "review": null,
+  "made": "2025-10-20",
+  "public": null,
+  "cover": "covers/rakeshid03-arrowpathpuzzle.webp",
+  "thumb": "covers/rakeshid03-arrowpathpuzzle.webp",
+  "icon": "art/rakeshid03-arrowpathpuzzle.webp",
+  "clip": null
+ },
+ {
+  "slug": "aicoderproject-chain-drop-lab",
+  "name": "Chain Drop Lab",
+  "blurb": "Drop colored gems into the well and set off chain reactions by matching them.",
+  "category": "Puzzle",
+  "author": "AICoderProject and contributors",
+  "credit": "Copyright (c) AICoderProject and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/AICoderProject/chain-drop-lab",
+  "entry": "index.html",
+  "external": "https://aicoderproject.github.io/chain-drop-lab/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 4,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Drop colorful gems and trigger huge screen-shaking chain reactions, with a beginner mode that makes 10+ chains almost effortless."
+  },
+  "made": "2026-06-01",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 4,
+    "url": "https://github.com/AICoderProject/chain-drop-lab"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/aicoderproject-chain-drop-lab.webp",
+  "clip": "clips/aicoderproject-chain-drop-lab.mp4"
+ },
+ {
   "slug": "orou500-cityflow",
   "name": "CityFlow",
   "blurb": "Buy, develop and trade properties on a world map, with stocks, banking and company co-ops against other players.",
@@ -1153,6 +1964,80 @@
   "thumb": "covers/orou500-cityflow.webp",
   "icon": "art/orou500-cityflow.webp",
   "clip": "clips/orou500-cityflow.mp4"
+ },
+ {
+  "slug": "feliperyba-angry-aliens-phaser",
+  "name": "Angry Aliens",
+  "blurb": "Fling aliens from a slingshot to knock down shattering structures across 30 levels.",
+  "category": "Action",
+  "author": "feliperyba and contributors",
+  "credit": "Copyright (c) feliperyba and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/feliperyba/angry-aliens-phaser",
+  "entry": "index.html",
+  "external": "https://feliperyba.github.io/angry-aliens-phaser/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 3,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Fling aliens from a slingshot and watch Voronoi-shattered structures collapse in chain-reaction explosions across 30 levels."
+  },
+  "made": "2026-03-15",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 3,
+    "url": "https://github.com/feliperyba/angry-aliens-phaser"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/feliperyba-angry-aliens-phaser.webp",
+  "clip": "clips/feliperyba-angry-aliens-phaser.mp4"
+ },
+ {
+  "slug": "debski-patrick-quiz-game",
+  "name": "Quizi",
+  "blurb": "Answer AI-generated trivia questions across topics and modes, using wildcards when stuck.",
+  "category": "Word & Math",
+  "author": "debski-patrick and contributors",
+  "credit": "Copyright (c) debski-patrick and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/debski-patrick/quiz-game",
+  "entry": "index.html",
+  "external": "https://quizi.vercel.app",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 3,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Test your knowledge across topics and game modes, using wildcards to rescue you when a question stumps you."
+  },
+  "made": "2024-03-30",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 3,
+    "url": "https://github.com/debski-patrick/quiz-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/debski-patrick-quiz-game.webp",
+  "clip": "clips/debski-patrick-quiz-game.mp4"
  },
  {
   "slug": "vibezzzcoder-clawd-pop",
@@ -1375,6 +2260,43 @@
   "thumb": "covers/amsanghi-gops.webp",
   "icon": "art/amsanghi-gops.webp",
   "clip": "clips/amsanghi-gops.mp4"
+ },
+ {
+  "slug": "chetanck03-sortify-ballsortpuzzle",
+  "name": "Sortify",
+  "blurb": "Sort colored balls into glass tubes across 40 levels with five visual themes.",
+  "category": "Puzzle",
+  "author": "chetanck03 and contributors",
+  "credit": "Copyright (c) chetanck03 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/chetanck03/Sortify-BallSortPuzzle",
+  "entry": "index.html",
+  "external": "https://youtu.be/Px2MXnhq6CY",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 2,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Sort glossy colored balls into glass tubes across 40 levels, with five themes like Candy and Gems."
+  },
+  "made": "2026-04-23",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 2,
+    "url": "https://github.com/chetanck03/Sortify-BallSortPuzzle"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
  },
  {
   "slug": "pkolarov-cortexclash",
@@ -1967,6 +2889,228 @@
   "thumb": "covers/jessicaisleep-genshin-impact-travel.webp",
   "icon": "art/jessicaisleep-genshin-impact-travel.webp",
   "clip": "clips/jessicaisleep-genshin-impact-travel.mp4"
+ },
+ {
+  "slug": "daredev256-whats-poppin",
+  "name": "What's Poppin",
+  "blurb": "Match and pop bubbles in chains to build streak multipliers, trigger Fever Mode, and beat a daily challenge.",
+  "category": "Puzzle",
+  "author": "James Olusoga (DareDev256)",
+  "credit": "Copyright (c) 2026 James Olusoga (DareDev256)",
+  "licence": "MIT",
+  "source": "https://github.com/DareDev256/whats-poppin",
+  "entry": "index.html",
+  "external": "https://passion-pop.vercel.app",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Chain bubble cascades to build streak multipliers, trigger gold-bordered Fever Mode, and compete on a daily seeded challenge."
+  },
+  "made": "2026-03-15",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/DareDev256/whats-poppin"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/daredev256-whats-poppin.webp",
+  "clip": "clips/daredev256-whats-poppin.mp4"
+ },
+ {
+  "slug": "d-dezeeuw-triple7",
+  "name": "Triple7",
+  "blurb": "Match glass fruit to fuel a slot machine and a coin dozer, chaining the games together.",
+  "category": "Idle",
+  "author": "D-dezeeuw and contributors",
+  "credit": "Copyright (c) D-dezeeuw and contributors",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/D-dezeeuw/Triple7",
+  "entry": "index.html",
+  "external": "https://d-dezeeuw.github.io/Triple7/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 9,
+   "polish": 8,
+   "ai_built": "yes",
+   "pitch": "Match glass fruit to fuel a slot machine, then a coin dozer, in one chain of cozy, generous, ad-free games."
+  },
+  "made": "2026-07-25",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/D-dezeeuw/Triple7"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/d-dezeeuw-triple7.webp",
+  "clip": "clips/d-dezeeuw-triple7.mp4"
+ },
+ {
+  "slug": "chandu-collab-mahjong",
+  "name": "Mahjong",
+  "blurb": "Match tiles in Mahjong solitaire, take daily challenges, build layouts, or play against friends.",
+  "category": "Puzzle",
+  "author": "Chandu-Collab and contributors",
+  "credit": "Copyright (c) Chandu-Collab and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/Chandu-Collab/Mahjong",
+  "entry": "index.html",
+  "external": "https://mahjong-u.netlify.app/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Match tiles in classic Mahjong solitaire, take on daily challenges, build your own layouts, or race friends in 2-6 player multiplayer."
+  },
+  "made": "2025-11-15",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 1,
+    "url": "https://github.com/Chandu-Collab/Mahjong"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "marcelolazzari-fancy2048",
+  "name": "Fancy2048",
+  "blurb": "Slide and merge tiles on boards from 3×3 to 6×6, with AI hints and undo.",
+  "category": "Puzzle",
+  "author": "marcelolazzari and contributors",
+  "credit": "Copyright (c) marcelolazzari and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/marcelolazzari/Fancy2048",
+  "entry": "index.html",
+  "external": "https://marcelolazzari.github.io/Fancy2048/pages/index.html",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Play 2048 on boards from 3×3 to 6×6, get AI hints or watch the AI auto-play, and undo mistakes."
+  },
+  "made": "2025-01-16",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/marcelolazzari/Fancy2048"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/marcelolazzari-fancy2048.webp",
+  "clip": "clips/marcelolazzari-fancy2048.mp4"
+ },
+ {
+  "slug": "chenhsieh-triop-game",
+  "name": "Triop",
+  "blurb": "Combine twelve operator tiles into an equation that hits the target number.",
+  "category": "Word & Math",
+  "author": "Chen Hsieh",
+  "credit": "Copyright (c) 2026 Chen Hsieh",
+  "licence": "MIT",
+  "source": "https://github.com/ChenHsieh/triop-game",
+  "entry": "index.html",
+  "external": "https://chenhsieh.github.io/triop-game/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Combine twelve operator tiles to hit the target, with four modes, a shared daily puzzle, streaks, and spoiler-free share cards."
+  },
+  "made": "2025-05-22",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/ChenHsieh/triop-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/chenhsieh-triop-game.webp",
+  "clip": "clips/chenhsieh-triop-game.mp4"
+ },
+ {
+  "slug": "shadowxdgamer-vault-88",
+  "name": "Vault 88",
+  "blurb": "Crack the vault's secret code using glowing hints that show how close each guess is.",
+  "category": "Puzzle",
+  "author": "shadowxdgamer and contributors",
+  "credit": "Copyright (c) shadowxdgamer and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/shadowxdgamer/Vault-88",
+  "entry": "index.html",
+  "external": "https://vault-88.netlify.app/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Crack the vault's secret code with Wordle-style glowing hints in a moody cyber-rustic world, across three difficulty levels."
+  },
+  "made": "2025-12-29",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 1,
+    "url": "https://github.com/shadowxdgamer/Vault-88"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/shadowxdgamer-vault-88.webp",
+  "clip": "clips/shadowxdgamer-vault-88.mp4"
  },
  {
   "slug": "stephanecot-typing-of-the-dev",
@@ -3743,6 +4887,1005 @@
   "thumb": "covers/rukkhadevata123-piano-typing-game.webp",
   "icon": "art/rukkhadevata123-piano-typing-game.webp",
   "clip": "clips/rukkhadevata123-piano-typing-game.mp4"
+ },
+ {
+  "slug": "rahulatrkm-fuse",
+  "name": "Fuse",
+  "blurb": "Slide tiles to merge matching numbers and reach 2048, with themes, daily challenge, and time attack modes.",
+  "category": "Puzzle",
+  "author": "rahulatrkm",
+  "credit": "Copyright (c) 2026 rahulatrkm",
+  "licence": "MIT",
+  "source": "https://github.com/rahulatrkm/fuse",
+  "entry": "index.html",
+  "external": "https://rahulatrkm.github.io/fuse/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Slide and fuse tiles to chase 2048, with six themes, a daily seeded challenge, 90-second time attack and a 5×5 grid."
+  },
+  "made": "2026-07-31",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/rahulatrkm/fuse"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/rahulatrkm-fuse.webp",
+  "clip": "clips/rahulatrkm-fuse.mp4"
+ },
+ {
+  "slug": "xcxi-shake-shake-beasts",
+  "name": "Shake Shake Beasts",
+  "blurb": "Trigger a shockwave to launch a pile of emoji beasts and merge them in chain combos.",
+  "category": "Puzzle",
+  "author": "震震萌兽 contributors",
+  "credit": "Copyright (c) 2026 震震萌兽 contributors",
+  "licence": "MIT",
+  "source": "https://github.com/XCxi/shake-shake-beasts",
+  "entry": "index.html",
+  "external": "https://xcxi.github.io/shake-shake-beasts/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Smash the pile with one shockwave and watch cute emoji beasts fly, collide and chain-merge into big combos."
+  },
+  "made": "2026-10-01",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/XCxi/shake-shake-beasts"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/xcxi-shake-shake-beasts.webp",
+  "clip": "clips/xcxi-shake-shake-beasts.mp4"
+ },
+ {
+  "slug": "joaorizzo0112-minesweeper-classic-98",
+  "name": "Minesweeper Classic 98",
+  "blurb": "Uncover safe squares and flag mines on a grid, in a Windows 98 style with five difficulty levels.",
+  "category": "Retro",
+  "author": "João Rizzo",
+  "credit": "Copyright (c) 2026 João Rizzo",
+  "licence": "MIT",
+  "source": "https://github.com/joaorizzo0112/Minesweeper-Classic-98",
+  "entry": "index.html",
+  "external": "https://joaorizzo0112.github.io/Minesweeper-Classic-98/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Classic Windows 98 Minesweeper with five difficulties, a no-guess logic mode, hints, achievements and installable offline play."
+  },
+  "made": "2026-09-30",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/joaorizzo0112/Minesweeper-Classic-98"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/joaorizzo0112-minesweeper-classic-98.webp",
+  "clip": "clips/joaorizzo0112-minesweeper-classic-98.mp4"
+ },
+ {
+  "slug": "z-biz-game-z-biz-game-minesweeper-cos",
+  "name": "Minesweeper",
+  "blurb": "Clear a minefield using logic alone, on boards verified solvable without guessing.",
+  "category": "Puzzle",
+  "author": "z-biz-game",
+  "credit": "Copyright (c) 2026 z-biz-game",
+  "licence": "MIT",
+  "source": "https://github.com/z-biz-game/z-biz-game-minesweeper-cos",
+  "entry": "index.html",
+  "external": "https://z-biz-game.github.io/z-biz-game-minesweeper-cos/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Every Minesweeper board is solver-verified to be solvable by pure logic, so you never have to gamble on a 50/50 guess."
+  },
+  "made": "2026-09-27",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/z-biz-game/z-biz-game-minesweeper-cos"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/z-biz-game-z-biz-game-minesweeper-cos.webp",
+  "clip": "clips/z-biz-game-z-biz-game-minesweeper-cos.mp4"
+ },
+ {
+  "slug": "splargdotcom-atventurerer",
+  "name": "Atventurerer",
+  "blurb": "Match gems to fight dungeon monsters, collect relics and spells, and descend through ten floors or endlessly.",
+  "category": "Puzzle",
+  "author": "Splarg",
+  "credit": "Copyright (c) 2026 Splarg",
+  "licence": "MIT",
+  "source": "https://github.com/splargdotcom/atventurerer",
+  "entry": "index.html",
+  "external": "https://splarg.itch.io/atventurerer",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Match gems to fight dungeon monsters, collect relics and spells, and survive a ten-floor story or endless descent."
+  },
+  "made": "2026-09-19",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/splargdotcom/atventurerer"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "matteo-grella-lorys-lab",
+  "name": "Lory's Lab",
+  "blurb": "Build Rube Goldberg machines with ropes, cannons, fans and magnets to feed a lorikeet.",
+  "category": "Puzzle",
+  "author": "Matteo Grella, Lorenzo Grella",
+  "credit": "Copyright (c) 2026 Matteo Grella, Lorenzo Grella",
+  "licence": "MIT",
+  "source": "https://github.com/matteo-grella/lorys-lab",
+  "entry": "index.html",
+  "external": "https://matteo-grella.github.io/lorys-lab/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 9,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Build silly Rube Goldberg machines with ropes, cannons, fans and magnets to feed Lory the lorikeet, then make your own puzzles."
+  },
+  "made": "2026-07-07",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/matteo-grella/lorys-lab"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "vidipt89-vidimahjong",
+  "name": "VidiMahjong",
+  "blurb": "Clear a 144-tile turtle layout by matching free tiles, or play four-player Riichi against bots or friends.",
+  "category": "Puzzle",
+  "author": "VidiMahjong contributors",
+  "credit": "Copyright (c) 2026 VidiMahjong contributors",
+  "licence": "MIT",
+  "source": "https://github.com/VidiPT89/VidiMahjong",
+  "entry": "index.html",
+  "external": "https://vidipt89.github.io/VidiMahjong/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Clear a provably solvable 144-tile turtle with hints, undo and shuffle, or play full 4-player Riichi against bots or friends online."
+  },
+  "made": "2026-08-04",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 0,
+    "url": "https://github.com/VidiPT89/VidiMahjong"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "offerpk-ball-sort-puzzle",
+  "name": "Ball Sort Puzzle",
+  "blurb": "Pour colored balls between tubes until each tube holds a single color.",
+  "category": "Puzzle",
+  "author": "OfferPk",
+  "credit": "Copyright (c) 2026 OfferPk",
+  "licence": "MIT",
+  "source": "https://github.com/OfferPk/ball-sort-puzzle",
+  "entry": "www/index.html",
+  "external": "https://offerpk.github.io/ball-sort-puzzle/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Endless solvable ball-sorting levels that ramp up to 12 colors, with undo, hints, star ratings and satisfying pour animations."
+  },
+  "made": "2026-09-27",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/OfferPk/ball-sort-puzzle"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "manthanank-2048",
+  "name": "2048",
+  "blurb": "Slide and merge numbered tiles to reach 2048, with timed and limited-move modes.",
+  "category": "Puzzle",
+  "author": "Manthan Ankolekar",
+  "credit": "Copyright (c) 2025 Manthan Ankolekar",
+  "licence": "MIT",
+  "source": "https://github.com/manthanank/2048",
+  "entry": "index.html",
+  "external": "https://manthanank.github.io/2048/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Classic 2048 with undo/redo, timed and limited-move challenges, multiple board sizes, neon theme, and synthesized sound effects."
+  },
+  "made": "2025-05-24",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 0,
+    "url": "https://github.com/manthanank/2048"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/manthanank-2048.webp",
+  "clip": "clips/manthanank-2048.mp4"
+ },
+ {
+  "slug": "ilyamirin-osome",
+  "name": "Osome",
+  "blurb": "Tap matching customers in a parcel pickup queue to clear groups of three or more.",
+  "category": "Puzzle",
+  "author": "ilyamirin and contributors",
+  "credit": "Copyright (c) ilyamirin and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/ilyamirin/osome",
+  "entry": "index.html",
+  "external": "https://ilyamirin.github.io/osome/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Tap matching customers in a chaotic parcel pickup queue, clear groups of 3+, chain combos, and survive the rush with a commentating cat."
+  },
+  "made": "2026-03-25",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 0,
+    "url": "https://github.com/ilyamirin/osome"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/ilyamirin-osome.webp",
+  "clip": "clips/ilyamirin-osome.mp4"
+ },
+ {
+  "slug": "rajgurung-warden-zero",
+  "name": "Warden Zero",
+  "blurb": "Shoot waves of enemies in a top-down arena, collect gems to level up, and fight the boss.",
+  "category": "Action",
+  "author": "rajgurung and contributors",
+  "credit": "Copyright (c) rajgurung and contributors",
+  "licence": "NOASSERTION",
+  "source": "https://github.com/rajgurung/warden-zero",
+  "entry": "index.html",
+  "external": "https://warden-zero.vercel.app",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Blast endless hordes, grab gems to level up mid-fight, build your loadout, and take down the Colossus boss."
+  },
+  "made": "2026-06-16",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/rajgurung/warden-zero"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/rajgurung-warden-zero.webp",
+  "clip": "clips/rajgurung-warden-zero.mp4"
+ },
+ {
+  "slug": "sanjays2402-memory-matrix",
+  "name": "Memory Matrix",
+  "blurb": "Flip cards to find matching pairs against the clock, building streak multipliers across five decks.",
+  "category": "Arcade",
+  "author": "Sanjays2402 and contributors",
+  "credit": "Copyright (c) Sanjays2402 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/Sanjays2402/memory-matrix",
+  "entry": "index.html",
+  "external": "https://sanjays2402.github.io/memory-matrix/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Chain card matches into huge streak multipliers, race the clock for bonus seconds, and pick from five themed decks."
+  },
+  "made": "2026-04-05",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/Sanjays2402/memory-matrix"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "iacbi-matah",
+  "name": "Matah",
+  "blurb": "Host on a TV while friends join from phones to play joke, trivia and bluffing rounds.",
+  "category": "2-Player",
+  "author": "IACBI and contributors",
+  "credit": "Copyright (c) IACBI and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/IACBI/matah",
+  "entry": "index.html",
+  "external": "https://quibble-0rjn.onrender.com",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Turn your TV into a party game night: friends join from their phones to out-joke and out-bluff each other."
+  },
+  "made": "2026-06-05",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/IACBI/matah"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "johnmorrisdotca-tsunagi",
+  "name": "Tsunagi",
+  "blurb": "Connect matching pairs of marbles with lines so every cell on the board is filled.",
+  "category": "Puzzle",
+  "author": "johnmorrisdotca and contributors",
+  "credit": "Copyright (c) johnmorrisdotca and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/johnmorrisdotca/tsunagi",
+  "entry": "index.html",
+  "external": "https://johnmorrisdotca.github.io/tsunagi/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Join matching marble pairs and fill the whole board across 2,600+ hand-checked levels, each with exactly one solution, from 4×4 up to 30×30."
+  },
+  "made": "2026-10-01",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/johnmorrisdotca/tsunagi"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "mustafaobaidd1-lensing-game",
+  "name": "Lensing",
+  "blurb": "Place moons, stars and black holes to bend starlight into telescopes across 30 plates.",
+  "category": "Puzzle",
+  "author": "mustafaobaidd1 and contributors",
+  "credit": "Copyright (c) mustafaobaidd1 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/mustafaobaidd1/lensing-game",
+  "entry": "index.html",
+  "external": "https://mustafaobaidd1.github.io/lensing-game/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 9,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Place moons, stars and black holes to bend starlight into telescopes across 30 plates, plus endless mode and a level editor."
+  },
+  "made": "2026-10-07",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/mustafaobaidd1/lensing-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/mustafaobaidd1-lensing-game.webp",
+  "clip": "clips/mustafaobaidd1-lensing-game.mp4"
+ },
+ {
+  "slug": "migueljiro-tech-dle",
+  "name": "Tech-dle",
+  "blurb": "Guess the daily programming language, framework or database in six tries using clues like year, type and paradigm.",
+  "category": "Word & Math",
+  "author": "MiguelJiRo and contributors",
+  "credit": "Copyright (c) MiguelJiRo and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/MiguelJiRo/Tech-dle",
+  "entry": "index.html",
+  "external": "https://tech-dle.vercel.app",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Guess the daily programming language, framework or database in six tries using year, type, paradigm and typing clues."
+  },
+  "made": "2025-10-27",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/MiguelJiRo/Tech-dle"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/migueljiro-tech-dle.webp",
+  "clip": "clips/migueljiro-tech-dle.mp4"
+ },
+ {
+  "slug": "lk0923-cyber-hero-level-up",
+  "name": "Cyber Hero Level Up",
+  "blurb": "Answer cybersecurity questions and play skill cards to defeat phishing bosses across 10 levels.",
+  "category": "Strategy",
+  "author": "LK0923 and contributors",
+  "credit": "Copyright (c) LK0923 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/LK0923/Cyber-Hero-Level-Up",
+  "entry": "index.html",
+  "external": "https://cyber-hero-level-up.web.app",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Battle phishing bosses with skill cards as you answer cybersecurity questions across 10 levels and climb the leaderboard."
+  },
+  "made": "2026-05-21",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/LK0923/Cyber-Hero-Level-Up"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
+ },
+ {
+  "slug": "steadystategames-cat-solitaire",
+  "name": "Cat Solitaire",
+  "blurb": "Solve cat-themed logic puzzles to place Tommy, Cinnamon and Shrimpy, and unlock accessories for them.",
+  "category": "Puzzle",
+  "author": "SteadyStateGames and contributors",
+  "credit": "Copyright (c) SteadyStateGames and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/SteadyStateGames/Cat-Solitaire",
+  "entry": "index.html",
+  "external": "https://steadystategames.dev/Cat-Solitaire/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Help Tommy, Cinnamon and Shrimpy find their spots in cozy cat puzzles, then dress them up in unlockable accessories."
+  },
+  "made": "2026-10-03",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/SteadyStateGames/Cat-Solitaire"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/steadystategames-cat-solitaire.webp",
+  "clip": "clips/steadystategames-cat-solitaire.mp4"
+ },
+ {
+  "slug": "basem3sam-trosc-it-challenge",
+  "name": "TROSC IT Challenge",
+  "blurb": "Answer quiz questions to battle IT-themed monsters, build combos, and survive the final boss before your hearts run out.",
+  "category": "Action",
+  "author": "Basem3sam and contributors",
+  "credit": "Copyright (c) Basem3sam and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/Basem3sam/trosc-it-challenge",
+  "entry": "index.html",
+  "external": "https://trosc-challenge.vercel.app",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Battle 20 IT-themed monsters with quiz answers, build combo streaks, and survive the final boss KERNEL PANIC before your hearts run out."
+  },
+  "made": "2026-10-06",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/Basem3sam/trosc-it-challenge"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/basem3sam-trosc-it-challenge.webp",
+  "clip": "clips/basem3sam-trosc-it-challenge.mp4"
+ },
+ {
+  "slug": "ikshwakuvanani-tertris",
+  "name": "Tertris",
+  "blurb": "Stack and clear falling blocks in a neon arena, chaining combos for bonus points.",
+  "category": "Retro",
+  "author": "Ikshwaku V",
+  "credit": "Copyright (c) 2025 Ikshwaku V",
+  "licence": "MIT",
+  "source": "https://github.com/IkshwakuVanani/Tertris",
+  "entry": "index.html",
+  "external": "https://ikshwakuvanani.github.io/Tertris/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Classic falling-block action in a neon arcade rift, with combo chains, jackpot bonuses, particle explosions, and a synthesized soundtrack."
+  },
+  "made": "2025-05-16",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/IkshwakuVanani/Tertris"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/ikshwakuvanani-tertris.webp",
+  "clip": "clips/ikshwakuvanani-tertris.mp4"
+ },
+ {
+  "slug": "jgohil07-sudokuzen",
+  "name": "SudokuZen",
+  "blurb": "Fill the grid so every row, column and box holds digits 1 to 9, with pencil marks and hints.",
+  "category": "Puzzle",
+  "author": "Jay",
+  "credit": "Copyright (c) 2026 Jay",
+  "licence": "MIT",
+  "source": "https://github.com/jgohil07/SudokuZen",
+  "entry": "index.html",
+  "external": "https://jgohil07.github.io/SudokuZen/",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 8,
+   "ai_built": "likely",
+   "pitch": "Clean, ad-free Sudoku with four difficulties, pencil marks, smart hints and a daily puzzle that works offline."
+  },
+  "made": "2026-09-13",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/jgohil07/SudokuZen"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/jgohil07-sudokuzen.webp",
+  "clip": "clips/jgohil07-sudokuzen.mp4"
+ },
+ {
+  "slug": "aortaa-quiz-game",
+  "name": "Quiz Game",
+  "blurb": "Answer AI-generated trivia questions across categories and modes, using wildcard helpers when stuck.",
+  "category": "Word & Math",
+  "author": "aortaa and contributors",
+  "credit": "Copyright (c) aortaa and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/aortaa/quiz-game",
+  "entry": "index.html",
+  "external": "https://quizi.vercel.app",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Test your knowledge across categories and game modes, with wildcard helpers and AI-generated questions to keep every round fresh."
+  },
+  "made": "2025-05-02",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/aortaa/quiz-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/aortaa-quiz-game.webp",
+  "clip": "clips/aortaa-quiz-game.mp4"
+ },
+ {
+  "slug": "mrcdprm-hangman-game",
+  "name": "Hangman",
+  "blurb": "Guess letters to reveal a hidden Turkish or English word before you run out of tries.",
+  "category": "Word & Math",
+  "author": "MrcDprm and contributors",
+  "credit": "Copyright (c) MrcDprm and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/MrcDprm/hangman-game",
+  "entry": "index.html",
+  "external": "https://hangman.miracdeprem.com",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Guess hidden words in Turkish or English across 10 categories, use hints wisely, and chase your best win streak."
+  },
+  "made": "2026-09-28",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/MrcDprm/hangman-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/mrcdprm-hangman-game.webp",
+  "clip": "clips/mrcdprm-hangman-game.mp4"
+ },
+ {
+  "slug": "augy-studios-sudoku-game",
+  "name": "Sudoku",
+  "blurb": "Solve the same Sudoku puzzle as a friend, either racing or working together.",
+  "category": "2-Player",
+  "author": "augy-studios and contributors",
+  "credit": "Copyright (c) augy-studios and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/augy-studios/sudoku-game",
+  "entry": "index.html",
+  "external": "https://sudoku.uwuapps.org",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Race a friend on the same puzzle or solve together, then share an instant replay of your game."
+  },
+  "made": "2025-09-23",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/augy-studios/sudoku-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/augy-studios-sudoku-game.webp",
+  "clip": "clips/augy-studios-sudoku-game.mp4"
+ },
+ {
+  "slug": "skorbezhartem-minesweeper",
+  "name": "Minesweeper",
+  "blurb": "Uncover squares and flag mines using number clues, without clicking on a mine.",
+  "category": "Puzzle",
+  "author": "SkorbezhArtem and contributors",
+  "credit": "Copyright (c) SkorbezhArtem and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/SkorbezhArtem/minesweeper",
+  "entry": "index.html",
+  "external": "https://skorbezhartem.github.io/minesweeper/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Sweep a sleek tactical-HUD minefield with three difficulty levels, sound effects, a podium leaderboard, and light/dark themes."
+  },
+  "made": "2026-05-04",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/SkorbezhArtem/minesweeper"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/skorbezhartem-minesweeper.webp",
+  "clip": "clips/skorbezhartem-minesweeper.mp4"
+ },
+ {
+  "slug": "augy-studios-connect4-game",
+  "name": "Connect 4",
+  "blurb": "Drop discs into a grid to line up four in a row before your opponent does.",
+  "category": "2-Player",
+  "author": "augy-studios and contributors",
+  "credit": "Copyright (c) augy-studios and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/augy-studios/connect4-game",
+  "entry": "index.html",
+  "external": "https://connect4.uwuapps.org",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "likely",
+   "pitch": "Play Connect 4 against four difficulty levels of AI or a friend, with replayable seeds, unlimited undo, and online leaderboards."
+  },
+  "made": "2026-09-27",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/augy-studios/connect4-game"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": "art/augy-studios-connect4-game.webp",
+  "clip": "clips/augy-studios-connect4-game.mp4"
+ },
+ {
+  "slug": "phmatray-minesweeper",
+  "name": "MineSweeper",
+  "blurb": "Uncover squares and flag mines using number clues, without hitting a mine.",
+  "category": "Puzzle",
+  "author": "phmatray and contributors",
+  "credit": "Copyright (c) phmatray and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/phmatray/MineSweeper",
+  "entry": "index.html",
+  "external": "https://phmatray.github.io/MineSweeper/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-13",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Classic Minesweeper with three difficulty levels, achievements, confetti and explosion effects, sound, and installable offline play on your phone."
+  },
+  "made": "2025-07-05",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/phmatray/MineSweeper"
+   }
+  },
+  "cover": null,
+  "thumb": null,
+  "icon": null,
+  "clip": null
  },
  {
   "slug": "rubikou-unirush-js13k",
