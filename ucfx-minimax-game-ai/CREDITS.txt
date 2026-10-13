@@ -1,0 +1,3 @@
+ucfx/minimax-game-ai - https://github.com/ucfx/minimax-game-ai
+Copyright (c) 2024 Youcef Hammadi [@ucfx](https://github.com/ucfx)
+Licence: MIT (original licence file kept in this folder, unmodified game files)
