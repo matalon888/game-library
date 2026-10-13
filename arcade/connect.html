@@ -60,13 +60,13 @@
 const MCP = 'https://arcade-api-production-bfdf.up.railway.app/mcp';
 const SAY = ['Show me the arcade', "What's new today?", 'Play a puzzle game'];
 const HOSTS = {
-  claude: { open: 'https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Arcade&connectorUrl=' + encodeURIComponent(MCP), label: 'Add to Claude', prefill: true,
+  claude: { open: 'https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Arcade&connectorUrl=' + encodeURIComponent(MCP), label: 'Add to Claude', prefill: true, play: 'https://claude.ai/new?q=', app: 'Claude',
     steps: ['Claude opens with <b>Arcade</b> already filled in. Keep <b>No sign-in</b> and tap <b>Add</b>. The safety notice is normal for apps not yet in Claude\'s directory.'],
     note: 'Works on claude.ai, the desktop app and the phone app once added.' },
-  chatgpt: { open: 'https://chatgpt.com/#settings/Connectors', label: 'Copy link & open ChatGPT',
+  chatgpt: { open: 'https://chatgpt.com/#settings/Connectors', label: 'Copy link & open ChatGPT', play: 'https://chatgpt.com/?q=', app: 'ChatGPT',
     steps: ['Open <b>Apps → Advanced</b> and turn on <b>Developer mode</b>.', 'Tap <b>Create app</b>, name it <b>Arcade</b>, paste the link, choose <b>No authentication</b>, save.'],
     note: 'Needs ChatGPT on the web the first time. A one-tap listing in the ChatGPT app store is pending review.' },
-  grok: { open: 'https://grok.com/connectors', label: 'Copy link & open Grok',
+  grok: { open: 'https://grok.com/connectors', label: 'Copy link & open Grok', play: 'https://grok.com/?q=', app: 'Grok',
     steps: ['Choose <b>Add connector</b> (custom MCP).', 'Paste the link and save.'],
     note: 'Grok paid plans only. Grok lists the games with play links instead of a game grid.' }
 };
@@ -83,7 +83,7 @@ function show(k) {
     <div class="step"><span class="n">1</span><div><a class="go" id="go" href="${h.open}" target="_blank" rel="noopener">${h.label}</a></div></div>
     ${h.prefill ? '' : `<div class="url"><code id="mcp">${MCP}</code><button id="cp">Copy</button></div>`}
     ${h.steps.map((s, i) => `<div class="step"><span class="n">${i + 2}</span><p>${s}</p></div>`).join('')}
-    <div class="step"><span class="n">${h.steps.length + 2}</span><div><p>Then in any chat, say:</p><div class="say" style="margin-top:8px">${SAY.map(s => `<span>${s}</span>`).join('')}</div></div></div>
+    <div class="step"><span class="n">${h.steps.length + 2}</span><div style="display:grid;gap:8px"><a class="go" style="background:var(--raise);color:var(--ink);border:1px solid var(--line)" href="${h.play + encodeURIComponent(SAY[0])}" target="_blank" rel="noopener">Start playing in ${h.app} →</a><p>Opens a chat that asks for the arcade. Later, just say:</p><div class="say">${SAY.map(s => `<span>${s}</span>`).join('')}</div></div></div>
     <p class="note">${h.note}</p>`;
   if (!h.prefill) { $('#go').addEventListener('click', copy); $('#cp').addEventListener('click', copy); }
   try { localStorage.setItem('arcade.host', k); } catch (e) {}
