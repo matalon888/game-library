@@ -1,4 +1,2020 @@
 {
+ "ygpydh-space-game": {
+  "github": {
+   "forks": 2,
+   "stars": 89,
+   "url": "https://github.com/ygpydh/space-game"
+  }
+ },
+ "oil-oil-wolfcha": {
+  "github": {
+   "forks": 66,
+   "stars": 733,
+   "url": "https://github.com/oil-oil/wolfcha"
+  }
+ },
+ "mangelajo-microkarts-qwen3-8-27b": {
+  "github": {
+   "forks": 0,
+   "stars": 5,
+   "url": "https://github.com/mangelajo/microkarts-qwen3.8-27b"
+  }
+ },
+ "mrzh7-scam-with-your-friends-web": {
+  "github": {
+   "forks": 19,
+   "stars": 230,
+   "url": "https://github.com/mrzh7/scam-with-your-friends-web"
+  }
+ },
+ "lattymoy-daggerfall-js-source": {
+  "github": {
+   "forks": 19,
+   "stars": 75,
+   "url": "https://github.com/Lattymoy/daggerfall-js-source"
+  }
+ },
+ "jobtalle-koi": {
+  "github": {
+   "forks": 61,
+   "stars": 413,
+   "url": "https://github.com/jobtalle/Koi"
+  }
+ },
+ "tanuu5-nova-lancer": {
+  "github": {
+   "forks": 2,
+   "stars": 9,
+   "url": "https://github.com/tanuu5/nova-lancer"
+  }
+ },
+ "vibezzzcoder-clawd-pop": {
+  "github": {
+   "forks": 0,
+   "stars": 3,
+   "url": "https://github.com/VibezZzCoder/clawd-pop"
+  }
+ },
+ "pkolarov-cortexclash": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/pkolarov/cortexclash"
+  }
+ },
+ "stephanecot-typing-of-the-dev": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/stephanecot/typing-of-the-dev"
+  }
+ },
+ "rushilbh27-hover-slam": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/rushilbh27/hover-slam"
+  }
+ },
+ "mmgrt-lawbox": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/mmgrt/lawbox"
+  }
+ },
+ "lakhwan-startup-game": {
+  "github": {
+   "forks": 6,
+   "stars": 33,
+   "url": "https://github.com/LaKhWaN/startup-game"
+  }
+ },
+ "karinnielsen-strike-first": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/karinnielsen/strike-first"
+  }
+ },
+ "rubikou-unirush-js13k": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/Rubikou/Unirush-js13k"
+  }
+ },
+ "justgibas-js13kgame2026": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/JustGibas/JS13kGame2026"
+  }
+ },
+ "yami-inc-ai-death-game": {
+  "github": {
+   "forks": 14,
+   "stars": 31,
+   "url": "https://github.com/yami-inc/ai-death-game"
+  }
+ },
+ "radrael-unicornnight-js13k": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/Radrael/UnicornNight-js13k"
+  }
+ },
+ "playpip-pip-web": {
+  "github": {
+   "forks": 10,
+   "stars": 16,
+   "url": "https://github.com/playpip/pip-web"
+  }
+ },
+ "loosecannons-grid-wars": {
+  "github": {
+   "forks": 2,
+   "stars": 2,
+   "url": "https://github.com/loosecannons/grid-wars"
+  }
+ },
+ "yers1-ballbrawl": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Yers1/BallBrawl"
+  }
+ },
+ "rahulg1999-neon-runner-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Rahulg1999/neon_runner_game"
+  }
+ },
+ "devinjones521-last-stand": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/devinjones521/last-stand"
+  }
+ },
+ "matdata-eu-game-judo-duel": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Matdata-eu/game-judo-duel"
+  }
+ },
+ "terryrl-vectorbreach": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/TerryRL/VectorBreach"
+  }
+ },
+ "darkblad3z-hkmahjong": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/DarkBlad3Z/HKMahjong"
+  }
+ },
+ "zakedwardscode-cartgame": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ZakEdwardsCode/CartGame"
+  }
+ },
+ "kraewon7422-fallen-memoir": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/kraewon7422/fallen-memoir"
+  }
+ },
+ "vagnertxr-mahjongvibes": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/vagnertxr/MahjongVibes"
+  }
+ },
+ "pfeilbr-creature-chess": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/pfeilbr/creature-chess"
+  }
+ },
+ "wchenyinmethod-routesetters": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/wchenyinmethod/routesetters"
+  }
+ },
+ "ctbot000-ironhold-tower-defense": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ctbot000/ironhold-tower-defense"
+  }
+ },
+ "vanlil-webkick": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/vanlil/webkick"
+  }
+ },
+ "siliconvalley007-whack-a-mole": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SiliconValley007/Whack-A-Mole"
+  }
+ },
+ "imshota1009-nyan-cororin": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/imshota1009/Nyan-Cororin"
+  }
+ },
+ "alexalesha-fallingblocks": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ALEXalesha/FallingBlocks"
+  }
+ },
+ "alexalesha-jumpjump": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ALEXalesha/JumpJump"
+  }
+ },
+ "matdata-eu-game-wizard-duel": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Matdata-eu/game-wizard-duel"
+  }
+ },
+ "rstibal-monster-shop-idle": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/rstibal/monster-shop-idle"
+  }
+ },
+ "jessecmaddox3-mythic-motors": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/jessecmaddox3/mythic-motors"
+  }
+ },
+ "kelvinbeh-dark-survivors": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/kelvinbeh/dark-survivors"
+  }
+ },
+ "j7f7vr5997-netizen-homeroom-hustle": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/j7f7vr5997-netizen/homeroom-hustle"
+  }
+ },
+ "macikmir-glider2d": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/macikmir/glider2D"
+  }
+ },
+ "stephanecot-typing-of-the-spec": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/stephanecot/typing-of-the-spec"
+  }
+ },
+ "abc-wvc-hop-bot": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/abc-wvc/hop-bot"
+  }
+ },
+ "auggiepeery-flan-slam": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/auggiepeery/flan-slam"
+  }
+ },
+ "mrckilic-puzzle-nexus": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/mrckilic/puzzle-nexus"
+  }
+ },
+ "matdata-eu-game-football-duel": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Matdata-eu/game-football-duel"
+  }
+ },
+ "ddmaster24-snakes": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/DDMaster24/Snakes"
+  }
+ },
+ "daniele-cangi-civic-nightmare": {
+  "github": {
+   "forks": 4,
+   "stars": 22,
+   "url": "https://github.com/Daniele-Cangi/civic-nightmare"
+  }
+ },
+ "eddiesanjuan-bonk-box": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/eddiesanjuan/bonk-box"
+  }
+ },
+ "gipppp121-buzzdrop": {
+  "github": {
+   "forks": 0,
+   "stars": 9,
+   "url": "https://github.com/Gipppp121/buzzdrop"
+  }
+ },
+ "iairu-quantum-game": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/iairu/QUANTUM_GAME"
+  }
+ },
+ "xia2226-anime-frame-quiz-cloudflare": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Xia2226/Anime-Frame-Quiz-Cloudflare"
+  }
+ },
+ "simplyboys-tokaido-pixel": {
+  "github": {
+   "forks": 1,
+   "stars": 18,
+   "url": "https://github.com/SIMPLYBOYS/tokaido-pixel"
+  }
+ },
+ "keithadler-dominoes27": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/keithadler/dominoes27"
+  }
+ },
+ "octobooth-4-buddy-rollback": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/octobooth-4/buddy-rollback"
+  }
+ },
+ "marceld23-catapult-blade": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/marceld23/Catapult-Blade"
+  }
+ },
+ "ehgzao-dungeonscoundrel": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ehgzao/DungeonScoundrel"
+  }
+ },
+ "vincenzo-afk-sudokuflow": {
+  "github": {
+   "forks": 0,
+   "stars": 37,
+   "url": "https://github.com/vincenzo-afk/sudokuflow"
+  }
+ },
+ "christianmocz-ece-city": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ChristianMocz/ECE-City"
+  }
+ },
+ "tim-findlay-bellwether-brawlers": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/tim-findlay/bellwether-brawlers"
+  }
+ },
+ "ddallabenetta-seoul-crashers": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ddallabenetta/Seoul-Crashers"
+  }
+ },
+ "z-biz-game-z-biz-game-ashen-ring-cos": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/z-biz-game/z-biz-game-ashen-ring-cos"
+  }
+ },
+ "jbum-cheesetoast": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/jbum/cheesetoast"
+  }
+ },
+ "mofferato-tempora": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Mofferato/tempora"
+  }
+ },
+ "oliver-jig-sorting-machine": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Oliver-jig/sorting-machine"
+  }
+ },
+ "alicerven-fener-bekcisi": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/alicerven/fener-bekcisi"
+  }
+ },
+ "mywestlord-flappening": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/MyWestLord/flappening"
+  }
+ },
+ "obeskay-vertice": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/obeskay/vertice"
+  }
+ },
+ "agentic-commerce-lab-lightcone-webmcp-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/agentic-commerce-lab/lightcone-webmcp-game"
+  }
+ },
+ "ferdousbhai-splat-tanks": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ferdousbhai/splat-tanks"
+  }
+ },
+ "elomar3-minijuegos-random-con-ia": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ElOmar3/minijuegos-random-con-ia"
+  }
+ },
+ "nyeinchan-lwin-wordguess": {
+  "github": {
+   "forks": 0,
+   "stars": 10,
+   "url": "https://github.com/nyeinchan-lwin/wordguess"
+  }
+ },
+ "rockbenben-thousand-lives": {
+  "github": {
+   "forks": 2,
+   "stars": 9,
+   "url": "https://github.com/rockbenben/thousand-lives"
+  }
+ },
+ "marvijo-code-leonida-stories-3d": {
+  "github": {
+   "forks": 2,
+   "stars": 0,
+   "url": "https://github.com/marvijo-code/leonida-stories-3d"
+  }
+ },
+ "viral-doshi-catan": {
+  "github": {
+   "forks": 11,
+   "stars": 13,
+   "url": "https://github.com/Viral-Doshi/catan"
+  }
+ },
+ "orou500-cityflow": {
+  "github": {
+   "forks": 0,
+   "stars": 4,
+   "url": "https://github.com/orou500/CityFlow"
+  }
+ },
+ "jonradoff-chessmata": {
+  "github": {
+   "forks": 3,
+   "stars": 20,
+   "url": "https://github.com/jonradoff/chessmata"
+  }
+ },
+ "den-run-ai-snowglider": {
+  "github": {
+   "forks": 3,
+   "stars": 3,
+   "url": "https://github.com/den-run-ai/snowglider"
+  }
+ },
+ "keithadler-spades27": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/keithadler/spades27"
+  }
+ },
+ "lucasdreyer-cubestrike-rio": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/LUCASDREYER/cubestrike-rio"
+  }
+ },
+ "phaethix-polished-arcade-shooter": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/phaethix/polished-arcade-shooter"
+  }
+ },
+ "randynorthrup-ptype": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/RandyNorthrup/ptype"
+  }
+ },
+ "jeiel85-submarine-depth": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/jeiel85/submarine-depth"
+  }
+ },
+ "albertoit-23-meridian-line": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/AlbertoIT-23/meridian-line"
+  }
+ },
+ "jaytee427-dbyf": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/JayTee427/DBYF"
+  }
+ },
+ "suprabhat-ai-paisa-pathshala": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/suprabhat-ai/paisa-pathshala"
+  }
+ },
+ "dadonstyle-lullwood": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/DadonStyle/LULLWOOD"
+  }
+ },
+ "grgbrg-traveler-challange": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/grgbrg/traveler-challange"
+  }
+ },
+ "aditya2022331060-space-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Aditya2022331060/Space_Game"
+  }
+ },
+ "hirosichen-ai-sky-rings-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/hirosichen/ai-sky-rings-game"
+  }
+ },
+ "hirosichen-ai-f1-racing-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/hirosichen/ai-f1-racing-game"
+  }
+ },
+ "mridulsn-ruledrift": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/mridulsn/ruledrift"
+  }
+ },
+ "kovaldenys1-boardly": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/KovalDenys1/Boardly"
+  }
+ },
+ "southers-orbitbreak": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Southers/ORBITBREAK"
+  }
+ },
+ "mmattia09-impostor": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/mmattia09/impostor"
+  }
+ },
+ "frostburn-dead-slow": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/frostburn/dead-slow"
+  }
+ },
+ "nihilistau-big-baby-company": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/nihilistau/big-baby-company"
+  }
+ },
+ "naveenoid-vidhi": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/naveenoid/vidhi"
+  }
+ },
+ "btsouth-typearchy": {
+  "github": {
+   "forks": 0,
+   "stars": 5,
+   "url": "https://github.com/btsouth/typearchy"
+  }
+ },
+ "robleuscaesar-civilization-game": {
+  "github": {
+   "forks": 2,
+   "stars": 2,
+   "url": "https://github.com/RobleusCaesar/civilization-game"
+  }
+ },
+ "diaow2331-ops-dungeon-echo": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/diaow2331-ops/dungeon-echo"
+  }
+ },
+ "wiverhome-empires": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/WiverHome/empires"
+  }
+ },
+ "jordyusa-star-shooter": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/JordyUSA/Star-shooter"
+  }
+ },
+ "sburrell23-net-defence": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SBurrell23/Net-Defence"
+  }
+ },
+ "bcjack0125-escape-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/BCJACK0125/Escape-Game"
+  }
+ },
+ "lingfeiwang-game-emberforge": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/lingfeiwang/game_emberforge"
+  }
+ },
+ "ctbot000-chess": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ctbot000/chess"
+  }
+ },
+ "vishc1-fungame": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/vishc1/FunGame"
+  }
+ },
+ "pbl64k-raincoil-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/pbl64k/raincoil-game"
+  }
+ },
+ "eiioitsmin-tom-and-jerry-robochase": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/eiioitsMin/tom-and-jerry-robochase"
+  }
+ },
+ "yarisharis-cleanup-apk": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/YarisHaris/Cleanup_apk"
+  }
+ },
+ "xlordtime-open-browser-game-lib": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/xLordTime/Open-Browser-Game-Lib"
+  }
+ },
+ "triptych-web-games-andrew": {
+  "github": {
+   "forks": 0,
+   "stars": 3,
+   "url": "https://github.com/triptych/web-games-andrew"
+  }
+ },
+ "reaperhulk-theruinsremember": {
+  "github": {
+   "forks": 0,
+   "stars": 3,
+   "url": "https://github.com/reaperhulk/theruinsremember"
+  }
+ },
+ "tel-0s-sand-and-rust-public": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/tel-0s/sand-and-rust-public"
+  }
+ },
+ "token-gremlin-summer-haven": {
+  "github": {
+   "forks": 3,
+   "stars": 1,
+   "url": "https://github.com/Token-Gremlin/summer-haven"
+  }
+ },
+ "gallind-sky-combat": {
+  "github": {
+   "forks": 0,
+   "stars": 3,
+   "url": "https://github.com/Gallind/Sky-Combat"
+  }
+ },
+ "berochlu-astrafloor": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/BEROCHLU/astrafloor"
+  }
+ },
+ "slonce70-zombie-world-rescue": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/slonce70/zombie-world-rescue"
+  }
+ },
+ "csimi-ycda": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/csimi/ycda"
+  }
+ },
+ "nguyenmav-project-vibecode-grokbuild-game-void-surge": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/NguyenMav/Project_Vibecode_GrokBuild_Game_Void_Surge"
+  }
+ },
+ "sigmafier-ellaz-games": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/Sigmafier/ellaz-games"
+  }
+ },
+ "tanuu5-kaiju-dokan": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/tanuu5/kaiju-dokan"
+  }
+ },
+ "wcy4213-bullcamp": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/wcy4213/bullcamp"
+  }
+ },
+ "richardtheuws-cosmos-2026": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/RichardTheuws/cosmos-2026"
+  }
+ },
+ "joecool169-geeklabs-td": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/joecool169/geeklabs-td"
+  }
+ },
+ "wildrelation-backrooms-horror": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/WildRelation/backrooms-horror"
+  }
+ },
+ "earino-assistant-flag-reveal": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/earino-assistant/flag-reveal"
+  }
+ },
+ "jmthecoder-colordice": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/JMTheCoder/colordice"
+  }
+ },
+ "kyhsa93-abyss": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/kyhsa93/abyss"
+  }
+ },
+ "sanchezsaul-boplicity": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/sanchezsaul/boplicity"
+  }
+ },
+ "atharva236723-ludochaos": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/atharva236723/ludochaos"
+  }
+ },
+ "naveen-6802-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/naveen-6802/game"
+  }
+ },
+ "rishir123-dig-for-bharat": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/RishiR123/dig-for-bharat"
+  }
+ },
+ "amsanghi-gops": {
+  "github": {
+   "forks": 0,
+   "stars": 3,
+   "url": "https://github.com/amsanghi/gops"
+  }
+ },
+ "merijnvanes-city-builder-3000": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/merijnvanes/city-builder-3000"
+  }
+ },
+ "hmarzban-fusegrid": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/HMarzban/fusegrid"
+  }
+ },
+ "stmn-ramnevercomes": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/stmn/ramnevercomes"
+  }
+ },
+ "augustosei-chopfirst": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/AugustOsei/ChopFirst"
+  }
+ },
+ "08useok-colors": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/08useok/Colors"
+  }
+ },
+ "leks2000-hexkingdom": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Leks2000/Hexkingdom"
+  }
+ },
+ "endpx-rocket-arena": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/EndPx/Rocket-Arena"
+  }
+ },
+ "wafley-tembaku": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/wafley/tembaku"
+  }
+ },
+ "sirkicker-kicker": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/sirkicker/kicker"
+  }
+ },
+ "polmarza-afloat": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/polmarza/afloat"
+  }
+ },
+ "benjaminbreen-youngdarwin": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/benjaminbreen/YoungDarwin"
+  }
+ },
+ "amaterus1125-celestfall": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Amaterus1125/Celestfall"
+  }
+ },
+ "homie-wu-hideaway": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Homie-Wu/hideaway"
+  }
+ },
+ "lingikaushikreddy-settlement-village": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Lingikaushikreddy/Settlement-Village"
+  }
+ },
+ "dusterbloom-skybloom": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/dusterbloom/skybloom"
+  }
+ },
+ "fsc-01-fps-shooting-game": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/fsc-01/fps-shooting-game"
+  }
+ },
+ "krbone14-world-capitals-game": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/krbone14/world-capitals-game"
+  }
+ },
+ "matthew-kissinger-falling-sand-alchemy": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/matthew-kissinger/falling-sand-alchemy"
+  }
+ },
+ "miraculix95-the-etruscan-if": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/miraculix95/the_etruscan_if"
+  }
+ },
+ "maninae-hole-foods": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/Maninae/hole-foods"
+  }
+ },
+ "merimenjason-dora-enzo-arcade": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/merimenjason/dora-enzo-arcade"
+  }
+ },
+ "egirardo-lunchbreak-civ": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/egirardo/lunchbreak-civ"
+  }
+ },
+ "tanuu5-out-of-the-box": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/tanuu5/out-of-the-box"
+  }
+ },
+ "andrewmunn-ciws-command": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/andrewmunn/ciws-command"
+  }
+ },
+ "virgilvox-doot-doot-revolution": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/virgilvox/doot-doot-revolution"
+  }
+ },
+ "williamjxj-whodunit-voice": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/williamjxj/whodunit-voice"
+  }
+ },
+ "enzozon-soccer-car": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/enzozon/soccer-car"
+  }
+ },
+ "warasugitewara-easy-cities-2d": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/warasugitewara/easy-cities-2d"
+  }
+ },
+ "harshkuro-procedural-dungeon-hacker-cyberpunk-stealth-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/HarshKuro/Procedural-Dungeon-Hacker-Cyberpunk-Stealth-Game"
+  }
+ },
+ "mattlo0546-bun-buns-carrot-run": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Mattlo0546/bun-buns-carrot-run"
+  }
+ },
+ "bradyontech-uplandin": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/BradyOnTech/uplandin"
+  }
+ },
+ "kersex-elementis": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/KERSEX/Elementis"
+  }
+ },
+ "moth3d-hydro-rush": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Moth3D/Hydro-Rush"
+  }
+ },
+ "ericrius1-coastlove": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ericrius1/coastlove"
+  }
+ },
+ "axel-pm-roadmap-raiders": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/axel-pm/roadmap-raiders"
+  }
+ },
+ "eldermoraes-delta-strike": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/eldermoraes/Delta-Strike"
+  }
+ },
+ "alekholt-random-html-games": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/AlekHolt/random-html-games"
+  }
+ },
+ "gray0072-tanks": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/gray0072/tanks"
+  }
+ },
+ "msoyaph-ai-kids-games": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/msoyaph/AI-Kids-Games"
+  }
+ },
+ "bunlongheng-country-defense": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/bunlongheng/country-defense"
+  }
+ },
+ "kaanturan28-dedektif-app": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/KaanTuran28/Dedektif_App"
+  }
+ },
+ "dgahagan-hollowdeep": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/dgahagan/hollowdeep"
+  }
+ },
+ "dragunovartem99-chess-animals": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/dragunovartem99/chess-animals"
+  }
+ },
+ "farzinmirzaie-squirm": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/farzinmirzaie/squirm"
+  }
+ },
+ "veersaraf-kaleydo-world": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/veersaraf/kaleydo-world"
+  }
+ },
+ "tanuu5-dystopia-meshi": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/tanuu5/dystopia-meshi"
+  }
+ },
+ "gryphonpy-arcade-retro": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/GryphonPY/arcade-retro"
+  }
+ },
+ "victorlcampos-slop-games": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/victorlcampos/slop-games"
+  }
+ },
+ "pasturl-monument-fighters": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/pasturl/monument-fighters"
+  }
+ },
+ "appleweiping-hungry-fin": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/appleweiping/hungry-fin"
+  }
+ },
+ "seobuk-defense-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Seobuk/defense-game"
+  }
+ },
+ "chanmeng666-css-tower-defense": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ChanMeng666/css-tower-defense"
+  }
+ },
+ "markldn-forager": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/markldn/forager"
+  }
+ },
+ "sivagamedev-my-mini-game-endless-runner-": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/sivaGameDev/My-Mini-Game-Endless-Runner-"
+  }
+ },
+ "levsage-dilijump": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/levsage/DiliJump"
+  }
+ },
+ "ayomidealaka-wreck-the-web": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ayomidealaka/wreck-the-web"
+  }
+ },
+ "msinclair25-sector-lords": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/msinclair25/sector-lords"
+  }
+ },
+ "niklas-heer-shoalow": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/niklas-heer/shoalow"
+  }
+ },
+ "gatsby007max-astronaut-academy": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Gatsby007max/astronaut-academy"
+  }
+ },
+ "winchxyz-pudgy-torture-simulator": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/winchxyz/pudgy-torture-simulator"
+  }
+ },
+ "llukehanna-mapped": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/llukehanna/Mapped"
+  }
+ },
+ "userjesus-ronin-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/userJesus/ronin-game"
+  }
+ },
+ "davutkmbr-seventeenskies": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/davutkmbr/seventeenskies"
+  }
+ },
+ "franco-gh-space-shooter-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/franco-gh/space-shooter-game"
+  }
+ },
+ "kenduest-block-run": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/kenduest/block-run"
+  }
+ },
+ "freudelaufet358358-a11y-cardgame": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/freudelaufet358358-a11y/CardGame"
+  }
+ },
+ "thangluuquoc-splashcity": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ThangLuuQuoc/splashcity"
+  }
+ },
+ "emyotyyy-emyot-fun": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/EmyoTyyy/emyot.fun"
+  }
+ },
+ "teddy4445-rl-course-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/teddy4445/RL-Course-Game"
+  }
+ },
+ "elijah-lin-dancer-jelly-fish-childen-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Elijah-Lin-Dancer/Jelly-Fish-childen-game"
+  }
+ },
+ "samuelasherrivello-babylon-lite-bomberman-clone": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SamuelAsherRivello/babylon-lite-bomberman-clone"
+  }
+ },
+ "inashra-gameok": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/InAshRa/gameok"
+  }
+ },
+ "venuschd123-blobverse": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/venuschd123/blobverse"
+  }
+ },
+ "michalstankiewicz4-cell-space": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/michalstankiewicz4-cell/Space"
+  }
+ },
+ "energon-a-secas-enjeu-site": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/energon-a-secas/enjeu-site"
+  }
+ },
+ "nixocode-vietnam-65-lanes-of-war": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/nixocode/vietnam-65-lanes-of-war"
+  }
+ },
+ "platret-caldera-minesweeper": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/platret/caldera-minesweeper"
+  }
+ },
+ "wellingtonhzt-lara-world-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/wellingtonhzt/lara-world-game"
+  }
+ },
+ "aieatassam-inkbound-scroll": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/AieatAssam/inkbound-scroll"
+  }
+ },
+ "duyuanxi-bonjour-campus": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/duyuanxi/bonjour-campus"
+  }
+ },
+ "gray0072-ivan": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/gray0072/ivan"
+  }
+ },
+ "oopslurp-immunostrat": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Oopslurp/immunostrat"
+  }
+ },
+ "borisgiller-bombs-away": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/borisgiller/bombs-away"
+  }
+ },
+ "kpax2049-qwen-outpost": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/kpax2049/qwen-outpost"
+  }
+ },
+ "lkjsxc-cell-sphere-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/lkjsxc/cell-sphere-game"
+  }
+ },
+ "albader94-maze-game-html": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/albader94/maze-game-html"
+  }
+ },
+ "soanssandha-placeless": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SoansSandha/placeless"
+  }
+ },
+ "fadhlanputra-tebakinaja": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/FadhlanPutra/tebakinaja"
+  }
+ },
+ "babyuncle23-rather-party-one-screen-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Babyuncle23/Rather-Party-One-Screen-Game"
+  }
+ },
+ "william89971-road-to-el-salvador": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/william89971/Road-to-El-Salvador"
+  }
+ },
+ "jharek09-dev-dead-signal": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/jharek09-dev/dead_signal"
+  }
+ },
+ "tanviaanand-spelling-bee-party": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/tanviaanand/spelling-bee-party"
+  }
+ },
+ "kevinjcroke-ghost-protocol": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/kevinjcroke/ghost-protocol"
+  }
+ },
+ "flomerboy-digi-fuze": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/flomerboy/digi-fuze"
+  }
+ },
+ "dhrubadc1-gridly": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/DhrubaDC1/gridly"
+  }
+ },
+ "emrezdemir-echo-game-io": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/emrezdemir/echo-game.io"
+  }
+ },
+ "killian01-claude-of-legends": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/killian01/claude-of-legends"
+  }
+ },
+ "nickita-khylkouski-flatlander": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/nickita-khylkouski/flatlander"
+  }
+ },
+ "rakhimv-nullstern": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Rakhimv/NULLSTERN"
+  }
+ },
+ "dairus01-blacksite": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Dairus01/blacksite"
+  }
+ },
+ "matthewod11-stack-catrunner": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/matthewod11-stack/CatRunner"
+  }
+ },
+ "masabinhok-lettermancer": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/masabinhok/lettermancer"
+  }
+ },
+ "dongsebastian86-lab-dsebastian-poker-game": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/dongsebastian86-lab/dsebastian-poker-game"
+  }
+ },
+ "henrik-me-guesswhatisnext": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/henrik-me/guesswhatisnext"
+  }
+ },
+ "imshota1009-bartender-jp": {
+  "github": {
+   "forks": 2,
+   "stars": 10,
+   "url": "https://github.com/imshota1009/Bartender-JP"
+  }
+ },
+ "stackloomdev-silent-meridian": {
+  "github": {
+   "forks": 3,
+   "stars": 2,
+   "url": "https://github.com/stackloomdev/silent-meridian"
+  }
+ },
+ "bubblewong-capture-quest": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/BubbleWong/Capture-Quest"
+  }
+ },
+ "earino-assistant-geoparty": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/earino-assistant/geoparty"
+  }
+ },
+ "jamalxcode-breakout-game-html": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/jamalxcode/breakout-game-html"
+  }
+ },
+ "salmonellasarduri-leap-or-keep": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Salmonellasarduri/Leap-or-Keep"
+  }
+ },
+ "88ckszgp9m-netizen-night-baseball-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/88ckszgp9m-netizen/night-baseball-game"
+  }
+ },
+ "sunnywell81-ai-generated-orbital-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SunnyWell81-ai-generated/orbital-game"
+  }
+ },
+ "fakejerell-underlore": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/fakejerell/Underlore"
+  }
+ },
+ "chethober-games": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/chethober/games"
+  }
+ },
+ "ohnotnow-soladroid": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ohnotnow/soladroid"
+  }
+ },
+ "smkzz-humanerror": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Smkzz/humanerror"
+  }
+ },
+ "yahyazaghloul-emoji-decode": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/YahyaZaghloul/Emoji-Decode"
+  }
+ },
+ "umage-ai-spangame": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/umage-ai/SpanGame"
+  }
+ },
+ "wanikhawar-ferris-forge": {
+  "github": {
+   "forks": 0,
+   "stars": 6,
+   "url": "https://github.com/wanikhawar/ferris-forge"
+  }
+ },
+ "danielwjohnston-rxdrop": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/danielwjohnston/rxdrop"
+  }
+ },
+ "krasimirkralev-harvest-hollow": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/KrasimirKralev/harvest-hollow"
+  }
+ },
+ "thechyeahhh-code-skater": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/TheChyeahhh/code-skater"
+  }
+ },
+ "kaimiewl-fishing-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/KaimiEwl/fishing-game"
+  }
+ },
+ "jdardash-alien-escape": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/jdardash/alien-escape"
+  }
+ },
+ "alexi5000-titanic-iceberg-run": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Alexi5000/titanic-iceberg-run"
+  }
+ },
+ "anubhavraj4u-strategic-chess-game": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/anubhavraj4u/Strategic-Chess-Game"
+  }
+ },
+ "ex13m-starwars-archived": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Ex13m/StarWars-ARCHIVED"
+  }
+ },
+ "jessicaisleep-genshin-impact-travel": {
+  "github": {
+   "forks": 1,
+   "stars": 2,
+   "url": "https://github.com/Jessicaisleep/Genshin-Impact-travel"
+  }
+ },
+ "siddqamar-midnight-shuto": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/siddqamar/midnight-shuto"
+  }
+ },
+ "bonitadreama-token-cart-tycoon": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/bonitadreama/token-cart-tycoon"
+  }
+ },
+ "stephenbeale-waffley": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/stephenbeale/waffley"
+  }
+ },
+ "j3vb-sanctuarys-end": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/J3vb/Sanctuarys_End"
+  }
+ },
+ "tech-firefish-delta-geometry": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Tech-FireFish/Delta-Geometry"
+  }
+ },
+ "nain9dev-orbe-runner-3d": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Nain9Dev/orbe-runner-3d"
+  }
+ },
+ "alexeygrigorev-cinderwake": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/alexeygrigorev/cinderwake"
+  }
+ },
+ "maharajahu-spline-rush": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/Maharajahu/Spline-Rush"
+  }
+ },
+ "antoniomarreti-party-games": {
+  "github": {
+   "forks": 1,
+   "stars": 1,
+   "url": "https://github.com/AntonioMarreti/party-games"
+  }
+ },
+ "aurph-the-soul-foundry": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/aurph/the-soul-foundry"
+  }
+ },
+ "nscott9350-typinggames": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/nscott9350/TypingGames"
+  }
+ },
+ "justinzyc271828-sys-red-storm": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/justinzyc271828-sys/red-storm"
+  }
+ },
+ "edisontw-pepepow-auto-battleground": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/edisontw/pepepow-auto-battleground"
+  }
+ },
+ "kheechan04-shadow-mitts": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/kheechan04/shadow-mitts"
+  }
+ },
+ "nicolaguglielmi-overbooked": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/nicolaguglielmi/overbooked"
+  }
+ },
+ "schwerbelastung-helsingin-herra": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/Schwerbelastung/helsingin-herra"
+  }
+ },
+ "arbaig123-arkham-knights": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ARBAIG123/Arkham-Knights"
+  }
+ },
+ "aayushsharma1003-emberfall": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/AayushSharma1003/emberfall"
+  }
+ },
+ "alexalesha-gameroom": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/ALEXalesha/GameRoom"
+  }
+ },
+ "samuelasherrivello-babylon-lite-super-offroad-clone": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/SamuelAsherRivello/babylon-lite-super-offroad-clone"
+  }
+ },
+ "tarang-tj-tycho": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/tarang-tj/tycho"
+  }
+ },
+ "camster91-magic-type-quest": {
+  "github": {
+   "forks": 0,
+   "stars": 0,
+   "url": "https://github.com/camster91/magic-type-quest"
+  }
+ },
+ "rukkhadevata123-piano-typing-game": {
+  "github": {
+   "forks": 0,
+   "stars": 1,
+   "url": "https://github.com/Rukkhadevata123/piano-typing-game"
+  }
+ },
  "pshenok-server-survival": {
   "github": {
    "forks": 711,
@@ -25,6 +2041,12 @@
    "title": "SkiFree in the Browser",
    "year": "2013",
    "url": "https://news.ycombinator.com/item?id=5247965"
+  },
+  "quote": {
+   "text": "I swear this game is better than most of the game I've played this and last year. Graphics aren't everything.",
+   "who": "d0m",
+   "where": "Hacker News",
+   "url": "https://news.ycombinator.com/item?id=5248480"
   }
  },
  "felixmariotto-edelweiss": {
@@ -51,6 +2073,12 @@
    "title": "HexGL by BKcore",
    "year": "2014",
    "url": "https://news.ycombinator.com/item?id=8640249"
+  },
+  "quote": {
+   "text": "Works really well on desktop chrome! Good job!",
+   "who": "fataliss",
+   "where": "Hacker News",
+   "url": "https://news.ycombinator.com/item?id=8642381"
   }
  },
  "ipel-ns-shaft": {

@@ -1,0 +1,24 @@
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Local server / build artifacts
+node_modules/
+dist/
+.cache/
+
+# Local settings
+.env
+.env.local
+.claude/
+
+# Deploy packages (produced by deploy.ps1)
+echo-game-v*.zip

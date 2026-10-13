@@ -1,0 +1,364 @@
+// ===========================================
+// Te Pā Tiaki - Variables & Mixins
+// THEME: MĀORI CULTURAL / EARTHY TONES
+// ===========================================
+
+// Grid Configuration
+@grid-cols: 12;
+@grid-rows: 8;
+@cell-size: 60px;
+@map-rotation: 45deg; // Flatter angle for comic look
+@perspective: 1200px;
+
+// ===========================================
+// CSS VARIABLES (Dynamic Theming)
+// ===========================================
+:root {
+    // SEASONAL THEME COLORS (Changeable)
+    --color-bg: #B8D8E8; // Soft powder blue
+
+    --color-grass: #8BC34A;
+    --color-grass-light: #A8D965;
+    --color-grass-dark: #6B9A30;
+
+    --color-path: #E8C864;
+    --color-path-light: #F2DD8A;
+    --color-path-dark: #C4A642;
+}
+
+// ===========================================
+// STATIC PALETTE (HEX for LESS functions)
+// ===========================================
+@color-cyan: #2D8A8A;
+@color-magenta: #D4738A;
+@color-yellow: #F2D864;
+@color-black: #1A1614;
+@color-white: #FFF8F0;
+@color-blue: #4A90C4;
+@color-green: #5EA65E;
+@color-danger: #E8635A;
+@color-success: #5EA65E;
+
+// SEMANTIC COLORS
+@color-primary: @color-cyan;
+@color-secondary: @color-magenta;
+@color-dark: @color-black;
+@color-darker: #000;
+@color-light: @color-white;
+
+// GAME ENTITIES (Dynamic)
+@color-grass: var(--color-grass);
+@color-grass-light: var(--color-grass-light);
+@color-grass-dark: var(--color-grass-dark);
+
+@color-path: var(--color-path);
+@color-path-light: var(--color-path-light);
+@color-path-dark: var(--color-path-dark);
+@color-bg: var(--color-bg);
+
+// Static calculated values (because fade() works on hex)
+@color-grid-hover: fade(@color-cyan, 50%);
+@color-grid-valid: fade(@color-success, 60%);
+@color-grid-invalid: fade(@color-danger, 60%);
+
+// TOWERS (Static) - Māori weapons & deities
+@color-tower-taiaha: #8B4513;        // Carved wood brown
+@color-tower-taiaha-glow: #D4A87A;
+@color-tower-arrow: @color-tower-taiaha; // Alias for CSS class compatibility
+@color-tower-arrow-glow: @color-tower-taiaha-glow;
+
+@color-tower-mere: #3CB371;          // Pounamu green
+@color-tower-mere-glow: #7AE8A8;
+@color-tower-cannon: @color-tower-mere; // Alias
+@color-tower-cannon-glow: @color-tower-mere-glow;
+
+@color-tower-tangaroa: #1E90FF;      // Ocean blue
+@color-tower-tangaroa-glow: #87CEEB;
+@color-tower-ice: @color-tower-tangaroa; // Alias
+@color-tower-ice-glow: @color-tower-tangaroa-glow;
+
+@color-tower-tohunga: #4B0082;       // Spiritual purple
+@color-tower-tohunga-glow: #9B7BB8;
+@color-tower-magic: @color-tower-tohunga; // Alias
+@color-tower-magic-glow: @color-tower-tohunga-glow;
+
+@color-tower-tawhiri: #708090;       // Storm gray
+@color-tower-tawhiri-glow: #B0C4DE;
+@color-tower-tesla: @color-tower-tawhiri; // Alias
+
+@color-tower-mahuika: #B22222;       // Fire red
+@color-tower-mahuika-glow: #E8635A;
+@color-tower-flame: @color-tower-mahuika; // Alias
+
+// ENEMIES (Static) - Māori mythology
+@color-enemy-kehua: #C8E8C8;         // Ghostly pale green
+@color-enemy-slime: @color-enemy-kehua; // Alias
+
+@color-enemy-patupaiarehe: #A8D8F0;  // Misty blue
+@color-enemy-goblin: @color-enemy-patupaiarehe; // Alias
+
+@color-enemy-toa: #8B4513;           // Warrior brown
+@color-enemy-knight: @color-enemy-toa; // Alias
+
+@color-enemy-taniwha: #1A5276;       // Deep water blue
+@color-enemy-boss: @color-enemy-taniwha; // Alias
+
+// CULTURAL PALETTE - Māori art colors
+@color-pounamu-deep: #1E6B47;        // Deep jade
+@color-flax-gold: #C4A035;           // Flax/harakeke gold
+@color-koru-cream: #F5E6C8;          // Bone/ivory for carvings
+@color-obsidian: #2A1A10;            // Volcanic glass black
+@color-earth-ochre: #C4763A;         // Red ochre clay
+
+// HEALTH BAR COLORS
+@color-health-high: #5EA65E;         // Green (>75%)
+@color-health-medium: #F2D864;       // Yellow (50-75%)
+@color-health-low: #E8635A;          // Red (25-50%)
+@color-health-critical: #D4512A;     // Deep red (<25%)
+
+// TYPOGRAPHY
+@font-main: 'Comic Neue', 'Comic Sans MS', sans-serif;
+@font-title: 'Bangers', 'Impact', cursive;
+@font-comic: 'Comic Neue', cursive;
+
+// ===========================================
+// POP-ART MIXINS
+// ===========================================
+
+// 1. HARD SHADOW (Pop-out effect)
+.pop-shadow(@x: 8px, @y: 8px, @color: @color-black) {
+    box-shadow: @x @y 0 @color;
+}
+
+// 2. COMIC BORDER (Thick outline)
+.comic-border(@width: 3px, @color: @color-black) {
+    border: @width solid @color;
+}
+
+// 3. TEXT OUTLINE (Stroke effect)
+.text-outline(@color: @color-black, @width: 1px) {
+    -webkit-text-stroke: @width @color;
+    text-shadow:
+        1px 1px 0 @color,
+        -1px -1px 0 @color,
+        1px -1px 0 @color,
+        -1px 1px 0 @color;
+}
+
+// 4. HALFTONE PATTERN (Dots)
+.halftone-bg(@dot-color: rgba(0, 0, 0, 0.1), @dot-size: 2px) {
+    background-image: radial-gradient(@dot-color @dot-size, transparent @dot-size);
+    background-size: (@dot-size * 4) (@dot-size * 4);
+    background-position: 0 0;
+}
+
+// Common Helpers
+.flex-center() {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.preserve-3d() {
+    transform-style: preserve-3d;
+}
+
+.no-select() {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+// ===========================================
+// VISUAL EFFECTS VARIABLES
+// ===========================================
+
+// Fire Effect Colors
+@fire-core: #FFF8E8;
+@fire-inner: #F2D864;
+@fire-mid: #E88A42;
+@fire-outer: #D4512A;
+@fire-edge: #3A1A10;
+@smoke-color: rgba(60, 50, 45, 0.5);
+
+// Aurora Effect Colors
+@aurora-green: rgba(94, 166, 94, 0.5);
+@aurora-cyan: rgba(126, 200, 217, 0.4);
+@aurora-purple: rgba(155, 89, 182, 0.35);
+
+// Boss Effect Colors
+@boss-grid-primary: #7B2D8E;
+@boss-grid-secondary: #2D8A8A;
+@boss-glow: rgba(123, 45, 142, 0.7);
+
+// Effect Performance Mixins
+.gpu-accelerate() {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+.contain-paint() {
+    contain: layout style paint;
+}
+
+// ===========================================
+// MĀORI CULTURAL PATTERN MIXINS
+// ===========================================
+
+// Tāniko weave pattern (diagonal stripes)
+.taniko-pattern(@c1, @c2, @size: 6px) {
+    background-image: repeating-linear-gradient(
+        45deg, @c1 0px, @c1 @size, @c2 @size, @c2 (@size * 2)
+    );
+}
+
+// Jade/pounamu shine effect
+.jade-shine() {
+    background-image: linear-gradient(
+        135deg, transparent 35%, rgba(255,255,255,0.35) 45%,
+        rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.35) 55%, transparent 65%
+    );
+}
+
+// Spirit/mana glow
+.spirit-glow(@color, @size: 8px) {
+    box-shadow: 0 0 @size fade(@color, 50%);
+}
+
+// Carved groove lines (for tower/enemy body details)
+.carving-lines(@color: @color-obsidian, @spacing: 8px) {
+    background-image: repeating-linear-gradient(
+        0deg, transparent, transparent (@spacing - 1px),
+        fade(@color, 30%) (@spacing - 1px), fade(@color, 30%) @spacing
+    );
+}
+
+// ===========================================
+// CULTURAL KEYFRAMES
+// ===========================================
+
+// Gentle spirit floating
+@keyframes spirit-float {
+    0% { transform: translateX(-50%) translateY(0) scale(1, 1); }
+    50% { transform: translateX(-50%) translateY(-4px) scale(1.02, 0.98); }
+    100% { transform: translateX(-50%) translateY(0) scale(1, 1); }
+}
+
+// Health critical pulse
+@keyframes health-critical-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+// Spirit flicker (low health)
+@keyframes spirit-flicker {
+    0%, 100% { opacity: 0.6; }
+    25% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+    75% { opacity: 0.4; }
+}
+
+// Mana aura rotation
+@keyframes mana-rotate {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to { transform: translateX(-50%) rotate(360deg); }
+}
+
+// Jade shine sweep
+@keyframes jade-sweep {
+    0% { background-position: -100% 0; }
+    100% { background-position: 200% 0; }
+}
+
+// Boss enrage pulse
+@keyframes enrage-pulse {
+    0%, 100% { filter: hue-rotate(0deg) brightness(1.2); }
+    50% { filter: hue-rotate(15deg) brightness(1.5); }
+}
+
+// ===========================================
+// P0 GAME FEEL KEYFRAMES
+// ===========================================
+
+// Damage number float-up-and-fade
+@keyframes damage-number-float {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(0.8);
+    }
+    20% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-8px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-35px) scale(0.9);
+    }
+}
+
+// Death burst particle outward
+@keyframes death-burst-fly {
+    0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--burst-x, 20px), var(--burst-y, -20px)) scale(0.3);
+    }
+}
+
+// Camera shake — light
+@keyframes shake-light {
+    0%, 100% { transform: translate(0, 0); }
+    15% { transform: translate(-2px, 1px); }
+    30% { transform: translate(2px, -1px); }
+    45% { transform: translate(-1px, 2px); }
+    60% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, 0); }
+}
+
+// Camera shake — heavy
+@keyframes shake-heavy {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-4px, 2px); }
+    20% { transform: translate(4px, -3px); }
+    30% { transform: translate(-3px, 4px); }
+    40% { transform: translate(3px, -2px); }
+    50% { transform: translate(-2px, 3px); }
+    60% { transform: translate(2px, -2px); }
+    70% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, -1px); }
+}
+
+// Tower per-type firing animations
+@keyframes arrow-turret-recoil {
+    0% { transform: translateX(-50%) translateY(0); }
+    30% { transform: translateX(-50%) translateY(3px); }
+    100% { transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes cannon-barrel-kickback {
+    0% { transform: translateX(-50%) translateY(0); }
+    20% { transform: translateX(-50%) translateY(6px) scaleY(0.92); }
+    100% { transform: translateX(-50%) translateY(0) scaleY(1); }
+}
+
+@keyframes ice-crystal-pulse {
+    0% { filter: brightness(1) drop-shadow(2px 0 0 @color-black) drop-shadow(-2px 0 0 @color-black) drop-shadow(0 2px 0 @color-black) drop-shadow(0 -2px 0 @color-black); }
+    30% { filter: brightness(1.6) drop-shadow(2px 0 0 @color-black) drop-shadow(-2px 0 0 @color-black) drop-shadow(0 2px 0 @color-black) drop-shadow(0 -2px 0 @color-black) drop-shadow(0 0 8px @color-tower-ice); }
+    100% { filter: brightness(1) drop-shadow(2px 0 0 @color-black) drop-shadow(-2px 0 0 @color-black) drop-shadow(0 2px 0 @color-black) drop-shadow(0 -2px 0 @color-black); }
+}
+
+@keyframes magic-orb-flare {
+    0% { transform: translateX(-50%) scale(1); box-shadow: 4px 4px 0 @color-black, 0 0 8px fade(@color-tower-magic-glow, 50%); }
+    30% { transform: translateX(-50%) scale(1.3); box-shadow: 4px 4px 0 @color-black, 0 0 20px @color-tower-magic-glow, 0 0 40px fade(@color-tower-magic-glow, 40%); }
+    100% { transform: translateX(-50%) scale(1); box-shadow: 4px 4px 0 @color-black, 0 0 8px fade(@color-tower-magic-glow, 50%); }
+}
+
+@keyframes tesla-coil-discharge {
+    0% { transform: translateX(-50%) scale(1); opacity: 0.8; box-shadow: 0 0 10px @color-tower-tesla; }
+    20% { transform: translateX(-50%) scale(1.4); opacity: 1; box-shadow: 0 0 25px @color-tower-tesla, 0 0 50px fade(@color-tower-tesla, 50%); }
+    100% { transform: translateX(-50%) scale(1); opacity: 0.8; box-shadow: 0 0 10px @color-tower-tesla; }
+}
+

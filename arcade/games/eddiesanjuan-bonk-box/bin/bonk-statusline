@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+# Bonk Box in Claude Code's status line.
+#
+# This does NOT replace your status line. It runs whatever you already had,
+# prints that output untouched, and adds a small stickman on the end. The
+# command it wraps is recorded at install time in statusline.json, and the
+# uninstaller puts your original setting back exactly as it was.
+#
+# The first rule here is DO NO HARM. Your status line renders on every turn; if
+# anything in this script goes wrong it must still print what your own command
+# printed. Every failure path below falls through to that.
+#
+# It reads one file the hooks write - an event word and a timestamp - and the
+# heat tally, which is counts per day. No prompt text exists in either.
+
+set -uo pipefail
+
+CONFIG_DIR="$HOME/.config/bonk-box"
+# The command we wrap is kept as one plain line rather than inside JSON, so
+# that a status line command containing quotes, arguments or backslashes
+# survives being read back. The JSON next to it is the record used to put your
+# original setting back, and only the uninstaller reads that.
+WRAPPED_FILE="$CONFIG_DIR/statusline-wrapped"
+STATE_FILE="$CONFIG_DIR/session-state.json"
+TALLY_FILE="$CONFIG_DIR/heat/tally.json"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+
+# Stdin can only be read once, and the command we are wrapping needs it.
+input="$(cat)"
+
+# ---- whatever you already had -------------------------------------------
+wrapped=""
+if [ -f "$WRAPPED_FILE" ]; then
+  wrapped="$(head -1 "$WRAPPED_FILE" 2>/dev/null)"
+fi
+
+base=""
+if [ -n "$wrapped" ]; then
+  # Keep whatever it printed, whatever it exited with. A status line that
+  # writes its line and then returns nonzero on some edge - a missing jq, a
+  # repo that vanished - still had a line worth showing, and throwing it away
+  # on the exit code would blank the display for a reason nobody could see.
+  base="$(printf '%s' "$input" | eval "$wrapped" 2>/dev/null)" || true
+fi
+
+# From here on, anything that fails just means no stickman.
+emit() {
+  if [ -n "$base" ] && [ -n "${1:-}" ]; then
+    printf '%s  %s\n' "$base" "$1"
+  elif [ -n "$base" ]; then
+    printf '%s\n' "$base"
+  elif [ -n "${1:-}" ]; then
+    printf '%s\n' "$1"
+  fi
+  exit 0
+}
+
+# Switched off is switched off.
+if [ -f "$CONFIG_FILE" ] &&
+  grep -q '"statusline"[[:space:]]*:[[:space:]]*false' "$CONFIG_FILE" 2>/dev/null; then
+  emit ""
+fi
+
+# ---- how he is doing ----------------------------------------------------
+event=""
+ts=0
+if [ -f "$STATE_FILE" ]; then
+  event="$(sed -n 's/.*"event"[[:space:]]*:[[:space:]]*"\([a-z-]*\)".*/\1/p' "$STATE_FILE" 2>/dev/null | head -1)"
+  ts="$(sed -n 's/.*"ts"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/p' "$STATE_FILE" 2>/dev/null | head -1)"
+fi
+[ -n "$ts" ] || ts=0
+
+now="$(date +%s 2>/dev/null || echo 0)"
+age=$((now - ts))
+# A mood is a moment, not a mode. Everything settles back to standing.
+[ "$age" -lt 0 ] && age=999
+if [ "$age" -gt 45 ]; then
+  event=""
+fi
+
+# ---- the figure ---------------------------------------------------------
+line=""
+case "$event" in
+  oops)
+    figure='ᕕ(ᐖ)ᕗ'
+    line='shipping a fix...'
+    ;;
+  heated)
+    # Arms up, eyes shut, waiting for it.
+    figure='\(>_<)/'
+    line=''
+    ;;
+  cheer)
+    figure='\(^o^)/'
+    line=''
+    ;;
+  echo-absolutely-right)
+    figure='(ᐛ)'
+    line="you're absolutely right."
+    ;;
+  bonk)
+    # Spiral eyes, the way it heals in the toy.
+    figure='(@_@)'
+    line=''
+    ;;
+  *)
+    # Standing about. He shifts his weight now and then, because a figure that
+    # never moves reads as a dead pixel rather than somebody waiting.
+    case $(( (now / 7) % 4 )) in
+      0) figure='ᕦ(ᐛ)ᕤ' ;;
+      1) figure='ᕦ(ᐛ )ᕤ' ;;
+      2) figure='ᕦ( ᐛ)ᕤ' ;;
+      *) figure='ᕦ(ᐛ)ᕤ' ;;
+    esac
+    ;;
+esac
+
+# ---- the tally ----------------------------------------------------------
+# Only when he has nothing to say, so the segment never grows two long things
+# at once and starts wrapping somebody's terminal.
+tally=""
+if [ -z "$line" ] && [ -f "$TALLY_FILE" ]; then
+  today="$(date +%Y-%m-%d 2>/dev/null)"
+  tally="$(TALLY_FILE="$TALLY_FILE" TODAY="$today" /usr/bin/python3 - <<'PY' 2>/dev/null
+import json, os
+try:
+    d = json.load(open(os.environ["TALLY_FILE"]))
+    live, scanned = d.get("live", {}), d.get("scanned", {})
+    days = set(live) | set(scanned)
+    total = sum(max(live.get(k, 0), scanned.get(k, 0)) for k in days)
+    t = os.environ["TODAY"]
+    today_n = max(live.get(t, 0), scanned.get(t, 0))
+    # today·all-time. Terse on purpose: this shares a line somebody else
+    # already filled, and two extra columns is the difference between a status
+    # line and a wrapped one. The README says what the two numbers are.
+    if total:
+        print("%d·%d" % (today_n, total))
+except Exception:
+    pass
+PY
+  )" || tally=""
+fi
+
+# ---- colour, if you want it --------------------------------------------
+seg="$figure"
+[ -n "$line" ] && seg="$seg $line"
+[ -n "$tally" ] && seg="$seg $tally"
+
+if [ -z "${NO_COLOR:-}" ]; then
+  case "$event" in
+    heated) seg="$(printf '\033[31m%s\033[0m' "$seg")" ;;
+    oops) seg="$(printf '\033[33m%s\033[0m' "$seg")" ;;
+    cheer) seg="$(printf '\033[32m%s\033[0m' "$seg")" ;;
+    *) seg="$(printf '\033[90m%s\033[0m' "$seg")" ;;
+  esac
+fi
+
+emit "$seg"

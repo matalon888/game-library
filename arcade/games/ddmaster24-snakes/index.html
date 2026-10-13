@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snakes IO Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #070a12;
+            overflow: hidden;
+        }
+
+        #bgCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #gameCanvas {
+            position: fixed;
+            inset: 0;
+            display: block;
+            background: transparent;
+            z-index: 1;
+        }
+
+        #gameCanvas.playing {
+            cursor: none;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            color: white;
+            z-index: 2;
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        #leaderboard {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 200px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        #leaderboard h3 {
+            margin-bottom: 10px;
+            text-align: center;
+            color: #00ff88;
+        }
+
+        .leaderboard-entry {
+            padding: 5px;
+            margin: 3px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .leaderboard-entry.player {
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        #killFeed {
+            position: absolute;
+            top: 220px;
+            right: 20px;
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        #killFeed .kill-line {
+            background: rgba(0,0,0,0.45);
+            color: #ffb3b3;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        #menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: all;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 50px 60px;
+            border-radius: 20px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            max-width: 600px;
+        }
+
+        #menu h1 {
+            font-size: 52px;
+            margin-bottom: 10px;
+            color: #00ff88;
+            text-shadow: 0 0 20px #00ff88;
+        }
+
+        #menu .subtitle {
+            font-size: 16px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        #menu h3 {
+            font-size: 20px;
+            color: #00ff88;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            background: rgba(100, 100, 100, 0.5);
+            border: 2px solid #666;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            min-width: 140px;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .color-picker {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 30px 0;
+        }
+
+        .color-option {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.2);
+        }
+
+        .color-option.selected {
+            border-color: white;
+            box-shadow: 0 0 15px white;
+        }
+
+        #startGameBtn {
+            padding: 18px 50px;
+            font-size: 22px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        #startGameBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        #gameOver {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: all;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ff4444;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+        }
+
+        #gameOver h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff4444;
+            text-shadow: 0 0 20px #ff4444;
+        }
+
+        #gameOver p {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        #gameOver button {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+            pointer-events: all;
+        }
+
+        #gameOver button:hover {
+            transform: scale(1.05);
+        }
+
+        #pauseMenu {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: all;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        #pauseMenu h2 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: #00ff88;
+        }
+
+        #pauseMenu button {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+            pointer-events: all;
+            margin: 10px;
+            display: block;
+            width: 200px;
+            margin: 10px auto;
+        }
+
+        #pauseMenu button:hover {
+            transform: scale(1.05);
+        }
+
+        #pauseMenu button.danger {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #roomCodeHud {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            border-radius: 10px;
+            padding: 8px 16px;
+            color: #eafff5;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        #roomCodeHud .code {
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: #00ff88;
+            margin-left: 6px;
+        }
+
+        /* ---------- Home screen (dashboard) redesign ---------- */
+        #menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(92vw, 560px);
+            max-height: 92vh;
+            overflow-y: auto;
+            text-align: center;
+            pointer-events: all;
+            background: linear-gradient(180deg, rgba(13,19,30,0.82), rgba(8,12,20,0.9));
+            padding: 34px 34px 30px;
+            border-radius: 22px;
+            border: 1px solid rgba(0,255,136,0.35);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 24px 80px rgba(0,0,0,0.6), 0 0 60px rgba(0,255,136,0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            animation: menuIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes menuIn { from { opacity: 0; transform: translate(-50%, -46%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
+        #menu .brand { margin-bottom: 6px; }
+        #menu .title {
+            font-size: clamp(34px, 6vw, 50px);
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #eafff5;
+            text-shadow: 0 0 18px rgba(0,255,136,0.75), 0 0 42px rgba(0,255,136,0.35);
+            line-height: 1;
+        }
+        #menu .title .dot { color: #00ff88; margin: 0 4px; text-shadow: 0 0 18px #00ff88; }
+        #menu .subtitle {
+            margin-top: 8px;
+            font-size: 12px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #7c8aa0;
+        }
+
+        .preview-wrap {
+            position: relative;
+            margin: 16px auto 4px;
+            border-radius: 14px;
+            background: radial-gradient(ellipse at center, rgba(0,255,136,0.06), rgba(0,0,0,0.25));
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 6px;
+            max-width: 100%;
+        }
+        #previewCanvas { display: block; width: 100%; height: auto; border-radius: 10px; }
+        .preview-tag {
+            position: absolute;
+            bottom: 8px; right: 12px;
+            font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+            color: rgba(230,241,255,0.5);
+        }
+
+        .setup { margin: 18px 0 8px; display: flex; flex-direction: column; gap: 14px; }
+        .field { display: flex; align-items: center; gap: 14px; text-align: left; }
+        .field-label {
+            width: 64px; flex-shrink: 0;
+            font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #7c8aa0;
+        }
+        .name-input {
+            flex: 1;
+            padding: 11px 14px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+            color: #e6f1ff; font-size: 15px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .name-input:focus { border-color: rgba(0,255,136,0.6); box-shadow: 0 0 0 3px rgba(0,255,136,0.12); }
+
+        .color-picker { display: flex; gap: 10px; margin: 0; }
+        .color-option {
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .color-option:hover { transform: scale(1.15); }
+        .color-option.selected { border-color: #fff; box-shadow: 0 0 12px currentColor; }
+
+        .control-buttons { display: flex; gap: 8px; margin: 0; }
+        .control-btn {
+            flex: 1; padding: 9px 6px; min-width: 0; font-size: 13px; font-weight: 700;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 9px; color: #cdd8e6; cursor: pointer; transition: all 0.15s;
+        }
+        .control-btn:hover { border-color: rgba(0,255,136,0.4); color: #fff; }
+        .control-btn.active {
+            background: linear-gradient(135deg, rgba(0,255,136,0.9), rgba(0,204,106,0.9));
+            border-color: #00ff88; color: #06210f; box-shadow: 0 0 16px rgba(0,255,136,0.4);
+        }
+
+        .modes { display: flex; gap: 12px; margin-top: 18px; }
+        .mode-btn {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+            padding: 16px 12px; border-radius: 14px; cursor: pointer;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+            color: #e6f1ff; transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .mode-btn:hover { transform: translateY(-2px); border-color: rgba(0,255,136,0.5); }
+        .mode-btn .mode-title { font-size: 17px; font-weight: 800; letter-spacing: 0.5px; }
+        .mode-btn .mode-sub { font-size: 11px; color: #8595ad; }
+        .mode-btn.primary {
+            background: linear-gradient(135deg, rgba(0,255,136,0.16), rgba(0,255,136,0.04));
+            border-color: rgba(0,255,136,0.5);
+        }
+        .mode-btn.primary:hover { box-shadow: 0 0 26px rgba(0,255,136,0.28); }
+        .mode-btn.primary .mode-title { color: #00ff88; text-shadow: 0 0 14px rgba(0,255,136,0.5); }
+        .mode-btn.full { width: 100%; }
+        .mode-btn.compact { flex-direction: row; padding: 0 22px; font-size: 15px; font-weight: 800; }
+
+        .mp-panel { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+        .or { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #5f6b80; }
+        .join-row { display: flex; gap: 10px; justify-content: center; }
+        .code-input {
+            width: 150px; text-transform: uppercase; letter-spacing: 8px; text-align: center;
+            padding: 12px; border-radius: 11px; font-size: 20px; font-weight: 800;
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+            border: 1px solid rgba(255,255,255,0.14); background: rgba(0,0,0,0.35); color: #eafff5; outline: none;
+        }
+        .code-input:focus { border-color: rgba(0,255,136,0.6); box-shadow: 0 0 0 3px rgba(0,255,136,0.12); }
+        .link-btn { background: none; border: none; color: #7c8aa0; cursor: pointer; font-size: 13px; padding: 4px; }
+        .link-btn:hover { color: #e6f1ff; }
+
+        .lobby-banner {
+            margin-top: 14px; padding: 12px; border-radius: 12px;
+            background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.4);
+            color: #eafff5; font-size: 14px;
+        }
+        .lobby-banner .code {
+            display: block; margin-top: 4px; font-size: 30px; font-weight: 900; letter-spacing: 10px;
+            font-family: ui-monospace, 'SF Mono', Menlo, monospace; color: #00ff88;
+            text-shadow: 0 0 18px rgba(0,255,136,0.6);
+        }
+        .lobby-msg { min-height: 18px; margin-top: 10px; color: #ff6b6b; font-size: 13px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            #menu { animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui">
+        <div id="score">Length: 10 | Mass: 100</div>
+        <div id="roomCodeHud" class="hidden"></div>
+        
+        <div id="leaderboard">
+            <h3>🏆 Leaderboard</h3>
+            <div id="leaderboardList"></div>
+        </div>
+
+        <div id="killFeed"></div>
+
+        <div id="menu">
+            <div class="brand">
+                <h1 class="title">SNAKES<span class="dot">·</span>IO</h1>
+                <p class="subtitle">eat &nbsp;·&nbsp; grow &nbsp;·&nbsp; dominate</p>
+            </div>
+
+            <div class="preview-wrap">
+                <canvas id="previewCanvas" width="440" height="130"></canvas>
+                <span class="preview-tag">this is you</span>
+            </div>
+
+            <div class="setup">
+                <div class="field">
+                    <span class="field-label">Name</span>
+                    <input id="playerName" class="name-input" placeholder="Your name" maxlength="16" />
+                </div>
+                <div class="field">
+                    <span class="field-label">Color</span>
+                    <div class="color-picker">
+                        <div class="color-option selected" data-color="#00ff88" style="background: #00ff88;"></div>
+                        <div class="color-option" data-color="#ff6b6b" style="background: #ff6b6b;"></div>
+                        <div class="color-option" data-color="#4ecdc4" style="background: #4ecdc4;"></div>
+                        <div class="color-option" data-color="#f9ca24" style="background: #f9ca24;"></div>
+                        <div class="color-option" data-color="#6c5ce7" style="background: #6c5ce7;"></div>
+                        <div class="color-option" data-color="#fd79a8" style="background: #fd79a8;"></div>
+                        <div class="color-option" data-color="#74b9ff" style="background: #74b9ff;"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Control</span>
+                    <div class="control-buttons">
+                        <button id="mouseBtn" class="control-btn active">Mouse</button>
+                        <button id="arrowsBtn" class="control-btn">Arrows</button>
+                        <button id="joystickBtn" class="control-btn">Joystick</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="modeChoice" class="modes">
+                <button id="singlePlayerBtn" class="mode-btn primary">
+                    <span class="mode-title">Single Player</span>
+                    <span class="mode-sub">Jump in solo against bots</span>
+                </button>
+                <button id="multiplayerBtn" class="mode-btn">
+                    <span class="mode-title">Multiplayer</span>
+                    <span class="mode-sub">Play friends on the same WiFi</span>
+                </button>
+            </div>
+
+            <div id="mpPanel" class="mp-panel hidden">
+                <button id="createLobbyBtn" class="mode-btn primary full">
+                    <span class="mode-title">Create Lobby</span>
+                    <span class="mode-sub">Get a code to share</span>
+                </button>
+                <div class="or">or join a friend</div>
+                <div class="join-row">
+                    <input id="joinCode" class="code-input" placeholder="CODE" maxlength="5" />
+                    <button id="joinLobbyBtn" class="mode-btn compact">Join</button>
+                </div>
+                <button id="mpBackBtn" class="link-btn">← back</button>
+            </div>
+
+            <div id="lobbyBanner" class="lobby-banner hidden"></div>
+            <div id="lobbyMsg" class="lobby-msg"></div>
+        </div>
+
+        <div id="pauseMenu">
+            <h2>⏸️ PAUSED</h2>
+            <button id="resumeBtn">RESUME</button>
+            <button id="mainMenuBtn" class="danger">MAIN MENU</button>
+        </div>
+
+        <div id="gameOver">
+            <h2>💀 GAME OVER</h2>
+            <p id="finalScore">Your final length: 0</p>
+            <button id="restartBtn">PLAY AGAIN</button>
+        </div>
+
+        <div id="instructions" class="hidden">
+            <span id="controlText">Move your mouse to control</span> • Hold SPACE to boost • ESC to pause
+        </div>
+    </div>
+
+    <!-- Shared simulation (also used by server) -->
+    <script src="src/shared/vector2.js"></script>
+    <script src="src/shared/constants.js"></script>
+    <script src="src/shared/random.js"></script>
+    <!-- Client -->
+    <script src="src/client/net.js"></script>
+    <script src="src/client/renderer.js"></script>
+    <script src="src/client/input.js"></script>
+    <script src="src/client/audio.js"></script>
+    <script src="src/client/menu-fx.js"></script>
+    <script src="src/client/main.js"></script>
+</body>
+</html>

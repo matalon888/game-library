@@ -1,0 +1,187 @@
+/* ============================================================
+   Caldera — design tokens
+   Theme = single [data-theme] attribute swap on <html>.
+   --accent (molten amber) is identical in every theme: it is the
+   shared signature and only ignites at moments of tension.
+   ============================================================ */
+
+:root,
+:root[data-theme="caldera"],
+:root[data-theme="system"] {
+  color-scheme: light;
+
+  --bg: #F4F1EC;
+  --bg-deep: #EAE4DA;
+  --well: #ECE7DF;
+  --cell-top: #FFFFFF;
+  --cell-top-grad: #F3EEE6;
+  --cell-edge: #D8D0C4;
+  --cell-revealed: #E7E1D7;
+  --cell-revealed-2: #EDE8DF;
+  --text: #1F1B16;
+  --muted: #8C8273;
+  --hairline: #E0D9CD;
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.7);
+
+  --accent: #FF7A1A;
+  --accent-soft: #FFB066;
+  --mine-core: #C8410E;
+  --flag: #E5484D;
+  --flag-pole: #2A2A2A;
+  --win: #2FBF8F;
+  --focus: #5B8CFF;
+
+  --n1: #3B7DD8;
+  --n2: #2FA46B;
+  --n3: #E5484D;
+  --n4: #6E56CF;
+  --n5: #C8410E;
+  --n6: #0E9CA8;
+  --n7: #1F1B16;
+  --n8: #8C8273;
+
+  /* keycap depth — ONE pre-baked layered shadow, not runtime-stacked */
+  --cap-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -2px 0 var(--cell-edge) inset,
+    0 2px 3px rgba(60, 50, 35, 0.18);
+  --cap-shadow-hover:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 -2px 0 var(--cell-edge) inset,
+    0 4px 7px rgba(60, 50, 35, 0.22);
+  --well-shadow:
+    0 2px 4px rgba(40, 30, 20, 0.07) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.6) inset;
+  --card-shadow: 0 12px 40px -12px rgba(40, 30, 20, 0.28);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #16130F;
+  --bg-deep: #0F0D0A;
+  --well: #1F1B16;
+  --cell-top: #2C2722;
+  --cell-top-grad: #221E19;
+  --cell-edge: #3A332B;
+  --cell-revealed: #1A1611;
+  --cell-revealed-2: #201B15;
+  --text: #F2EDE4;
+  --muted: #9A9082;
+  --hairline: #2B2620;
+  --glass: rgba(40, 35, 29, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --accent: #FF7A1A;
+  --accent-soft: #FFB066;
+  --mine-core: #E5694A;
+  --flag: #FB7185;
+  --flag-pole: #0A0A0A;
+  --win: #4ADE80;
+  --focus: #79A0FF;
+
+  --n1: #79C0FF;
+  --n2: #56D364;
+  --n3: #FF7B72;
+  --n4: #D2A8FF;
+  --n5: #FFA657;
+  --n6: #39C5CF;
+  --n7: #E6EDF3;
+  --n8: #9A9082;
+
+  --cap-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.35) inset,
+    0 2px 4px rgba(0, 0, 0, 0.45);
+  --cap-shadow-hover:
+    0 1px 0 rgba(255, 255, 255, 0.1) inset,
+    0 -2px 0 rgba(0, 0, 0, 0.35) inset,
+    0 5px 9px rgba(0, 0, 0, 0.5);
+  --well-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.04) inset;
+  --card-shadow: 0 16px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* Cool "Slate" palette */
+:root[data-theme="slate"] {
+  color-scheme: dark;
+  --bg: #0E1116;
+  --bg-deep: #090B0F;
+  --well: #161B22;
+  --cell-top: #232B36;
+  --cell-top-grad: #1B222C;
+  --cell-edge: #2E3845;
+  --cell-revealed: #12161C;
+  --cell-revealed-2: #181D25;
+  --text: #E7EDF5;
+  --muted: #8B97A7;
+  --hairline: #232B36;
+  --glass: rgba(30, 38, 49, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --accent: #FF7A1A;
+  --accent-soft: #FFB066;
+  --mine-core: #FF6B6B;
+  --flag: #FB7185;
+  --flag-pole: #0A0A0A;
+  --win: #34D399;
+  --focus: #60A5FA;
+  --n1: #60A5FA; --n2: #34D399; --n3: #FB7185; --n4: #C084FC;
+  --n5: #FBBF24; --n6: #22D3EE; --n7: #E7EDF5; --n8: #8B97A7;
+  --cap-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 -2px 0 rgba(0,0,0,.4) inset, 0 2px 4px rgba(0,0,0,.5);
+  --cap-shadow-hover: 0 1px 0 rgba(255,255,255,.1) inset, 0 -2px 0 rgba(0,0,0,.4) inset, 0 5px 9px rgba(0,0,0,.55);
+  --well-shadow: 0 2px 6px rgba(0,0,0,.55) inset, 0 -1px 0 rgba(255,255,255,.04) inset;
+  --card-shadow: 0 16px 50px -12px rgba(0,0,0,.75);
+}
+
+/* Classic, high-readability palette */
+:root[data-theme="classic"] {
+  color-scheme: light;
+  --bg: #EDEDED;
+  --bg-deep: #DFDFDF;
+  --well: #C6C6C6;
+  --cell-top: #FBFBFB;
+  --cell-top-grad: #E8E8E8;
+  --cell-edge: #B8B8B8;
+  --cell-revealed: #D6D6D6;
+  --cell-revealed-2: #DCDCDC;
+  --text: #1A1A1A;
+  --muted: #6B6B6B;
+  --hairline: #C2C2C2;
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --accent: #E8590C;
+  --accent-soft: #FFA94D;
+  --mine-core: #C92A2A;
+  --flag: #D6336C;
+  --flag-pole: #1A1A1A;
+  --win: #2B8A3E;
+  --focus: #1971C2;
+  --n1: #1971C2; --n2: #2B8A3E; --n3: #C92A2A; --n4: #5F3DC4;
+  --n5: #9C2A00; --n6: #0C8599; --n7: #1A1A1A; --n8: #6B6B6B;
+  --cap-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 -2px 0 var(--cell-edge) inset, 0 2px 3px rgba(0,0,0,.15);
+  --cap-shadow-hover: 0 1px 0 rgba(255,255,255,.95) inset, 0 -2px 0 var(--cell-edge) inset, 0 4px 7px rgba(0,0,0,.18);
+  --well-shadow: 0 2px 4px rgba(0,0,0,.12) inset, 0 -1px 0 rgba(255,255,255,.6) inset;
+  --card-shadow: 0 12px 40px -12px rgba(0,0,0,.3);
+}
+
+:root {
+  /* geometry */
+  --cell-size: 34px;
+  --cell-gap: 3px;
+  --cell-radius: 8px;
+  --card-radius: 16px;
+  --well-pad: 14px;
+
+  /* motion */
+  --dur-fast: 110ms;
+  --dur-base: 180ms;
+  --dur-slow: 320ms;
+  --ease-spring: cubic-bezier(.2, .8, .2, 1);
+  --ease-back: cubic-bezier(.34, 1.56, .64, 1);
+
+  /* type */
+  --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", "SF Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+}

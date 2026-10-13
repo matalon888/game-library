@@ -1,0 +1,513 @@
+// ===========================================
+// CSS Tower Defense - Map & Environment
+// THEME: POP-ART / CEL-SHADED
+// ===========================================
+
+// 3D Scene Container
+.scene {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    perspective: @perspective;
+    overflow: hidden;
+    background: @color-bg;
+    .halftone-bg(fade(@color-black, 5%), 2px);
+
+    // Background Radial Burst (Comic style)
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 200vmax;
+        height: 200vmax;
+        background: repeating-conic-gradient(from 0deg,
+                @color-white 0deg 10deg,
+                transparent 10deg 20deg);
+        transform: translate(-50%, -50%);
+        z-index: -2;
+        opacity: 0.1;
+        animation: spin-slow 60s linear infinite;
+    }
+
+    transition: background-color 2s ease;
+
+    // DAY STATE
+    &.day {
+        background-color: @color-bg; // Sky Blue
+    }
+
+    // NIGHT STATE
+    &.night {
+        background-color: #1A2A3A; // Warm navy
+
+        &::before {
+            opacity: 0.05;
+        }
+
+        // Dim burst at night
+    }
+}
+
+// SKY CYCLE (Sun/Moon Rotation)
+.sky-cycle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    height: 80%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.sky-body-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    // Rotation handled by JS, smooth transition for wave-driven day/night
+    transition: transform 3s ease-in-out;
+}
+
+.sun {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    width: 80px;
+    height: 80px;
+    background: @color-yellow;
+    border-radius: 50%;
+    .comic-border(4px);
+    .pop-shadow(10px, 10px, orange);
+    transform: translateX(-50%);
+
+    // Sun rays
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 140%;
+        height: 140%;
+        background: repeating-conic-gradient(from 0deg,
+                orange 0deg 10deg,
+                transparent 10deg 20deg);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: -1;
+        animation: spin 10s linear infinite;
+    }
+}
+
+.moon-comic {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    background: @color-white;
+    border-radius: 50%;
+    .comic-border(3px);
+    .pop-shadow(8px, 8px, gray);
+    transform: translateX(-50%) rotate(180deg); // Upside down initially relative to container
+
+    // Craters
+    &::before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        width: 10px;
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 50%;
+        box-shadow: 20px 10px 0 #e0e0e0;
+    }
+}
+
+// WEATHER SYSTEMS
+.weather-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    overflow: hidden;
+}
+
+// RAIN
+.rain-container {
+    width: 100%;
+    height: 100%;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.rain-drop {
+    position: absolute;
+    top: -10%;
+    width: 2px;
+    height: 30px;
+    background: @color-blue;
+    opacity: 0.8;
+    animation: rain-fall linear infinite;
+}
+
+@keyframes rain-fall {
+    to {
+        transform: translateY(110vh);
+    }
+}
+
+// Scene reacts to rain
+.scene.weather-rain {
+    filter: saturate(0.8) brightness(0.9);
+}
+
+// SNOW
+.snow-container {
+    width: 100%;
+    height: 100%;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.snow-flake {
+    position: absolute;
+    top: -5%;
+    width: 6px;
+    height: 6px;
+    background: @color-white;
+    border-radius: 50%;
+    .comic-border(1px);
+    animation: snow-fall linear infinite;
+}
+
+@keyframes snow-fall {
+    to {
+        transform: translateY(110vh) translateX(20px);
+    }
+}
+
+// Scene reacts to snow
+.scene.weather-snow {
+    filter: brightness(1.1);
+}
+
+// ===========================================
+// AURORA EFFECT - Winter Season
+// ===========================================
+.scene.aurora-active {
+    // Dark night sky for aurora visibility
+    background: linear-gradient(
+        180deg,
+        #0a1628 0%,
+        #1a2a4a 30%,
+        #2a3a5a 60%,
+        var(--color-bg) 100%
+    );
+
+    // Add aurora sky element
+    .aurora-sky {
+        display: block;
+    }
+
+    // Add star particles
+    .aurora-particles {
+        display: block;
+    }
+
+    // Slightly dim the halftone pattern
+    &::before {
+        opacity: 0.03;
+    }
+
+    // Night mode adjustments
+    &.night {
+        background: linear-gradient(
+            180deg,
+            #050a14 0%,
+            #0a1428 30%,
+            #152238 60%,
+            darken(#1a2a4a, 20%) 100%
+        );
+    }
+}
+
+// Default hidden state for aurora elements
+.aurora-sky,
+.aurora-particles {
+    display: none;
+}
+
+// WIND
+.wind-container {
+    width: 100%;
+    height: 100%;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.wind-line {
+    position: absolute;
+    left: -10%;
+    width: 100px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    animation: wind-blow linear infinite;
+
+    &::before {
+        content: '〰'; // Wavy line char
+        position: absolute;
+        right: 0;
+        top: -10px;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 20px;
+    }
+}
+
+@keyframes wind-blow {
+    to {
+        transform: translateX(120vw);
+    }
+}
+
+// Map Container
+.map {
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    width: (@cell-size * @grid-cols);
+    height: (@cell-size * @grid-rows);
+    transform: translate(-50%, -50%) rotateX(@map-rotation);
+    .preserve-3d();
+    .no-select();
+    background: @color-black; // Gaps are black lines
+    .comic-border(4px);
+    .pop-shadow(15px, 15px, rgba(0, 0, 0, 0.3));
+
+    // Paper stack effect
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: @color-white;
+        transform: translate(10px, 10px);
+        z-index: -1;
+        .comic-border(4px);
+    }
+}
+
+// Grid Cell
+.cell {
+    position: absolute;
+    width: @cell-size;
+    height: @cell-size;
+    box-sizing: border-box;
+    transition: all 0.2s;
+    .preserve-3d();
+    // Inset border for grid lines
+    border: 1px solid @color-black;
+
+    &.grass {
+        background: @color-grass;
+
+        // Polka dot grass texture
+        background-image: radial-gradient(@color-grass-light 20%, transparent 20%);
+        background-size: 10px 10px;
+    }
+
+    &.path {
+        background: @color-path;
+        border: 2px solid @color-black; // Thicker path outline
+
+        // Striped road pattern
+        background-image: repeating-linear-gradient(45deg,
+                translate(transparent, 10px),
+                transparent 10px,
+                fade(@color-white, 30%) 10px,
+                fade(@color-white, 30%) 20px);
+    }
+
+    &.buildable {
+        cursor: pointer;
+
+        &:hover {
+            transform: translateZ(10px);
+            background: @color-cyan;
+            .comic-border(2px);
+            box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        &.valid-placement {
+            background: @color-success;
+
+            &::after {
+                content: 'OK!';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-family: @font-comic;
+                font-weight: bold;
+                color: @color-white;
+                .text-outline();
+            }
+        }
+
+        &.invalid-placement {
+            background: @color-danger;
+
+            &::after {
+                content: 'NO!';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-family: @font-comic;
+                font-weight: bold;
+                color: @color-white;
+                .text-outline();
+            }
+        }
+    }
+
+    &.start {
+        background: @color-blue;
+
+        &::after {
+            content: 'START';
+            font-family: @font-title;
+            color: @color-white;
+            .text-outline();
+            font-size: 0.8rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    &.end {
+        background: @color-danger;
+
+        &::after {
+            content: 'END';
+            font-family: @font-title;
+            color: @color-white;
+            .text-outline();
+            font-size: 0.8rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    // Center island cells (Te Moana map) — special buildable area with range bonus
+    &.center-island {
+        background: linear-gradient(
+            135deg,
+            lighten(@color-pounamu-deep, 15%) 0%,
+            lighten(@color-pounamu-deep, 25%) 100%
+        );
+        border: 1px solid fade(@color-pounamu-deep, 40%);
+        box-shadow: inset 0 0 8px fade(@color-pounamu-deep, 30%);
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            background: @color-cyan;
+            border-radius: 50%;
+            opacity: 0.6;
+            box-shadow: 0 0 4px @color-cyan;
+        }
+    }
+}
+
+// Range indicator (Dotted Circle)
+.range-indicator {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px dashed @color-black;
+    background: fade(@color-cyan, 30%);
+    pointer-events: none;
+    transform: rotateX(-@map-rotation); // Flat against screen usually better for 2D look
+    animation: rotate-range 4s linear infinite;
+}
+
+@keyframes rotate-range {
+    from {
+        transform: rotateX(-@map-rotation) rotate(0deg);
+    }
+
+    to {
+        transform: rotateX(-@map-rotation) rotate(360deg);
+    }
+}
+
+// Particle Overrides
+.particles {
+    display: none;
+}
+
+// Remove old particles
+
+// New Comic Particles (Squares/Stars)
+.comic-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: @color-black;
+    animation: comic-float 2s infinite;
+}
+
+@keyframes comic-float {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(20deg);
+    }
+
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+}
+
+.ground-shadow {
+    display: none; // Flat style doesn't need smooth shadow
+}
+
+// Container layers (inside map, above cells)
+.enemies,
+.towers,
+.projectiles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    .preserve-3d();
+    pointer-events: none;
+    z-index: 10;
+}

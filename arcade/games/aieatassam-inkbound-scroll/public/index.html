@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkbound Scroll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@400;500;600;700&family=Klee+One:wght@400;600&family=Yomogi&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- shared SVG defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- rough brush-edge filter -->
+    <filter id="brush-rough" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n" seed="7"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/>
+    </filter>
+    <filter id="brush-rough-soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="2" result="n" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="6"/>
+    </filter>
+    <!-- photographic walnut (CC0, ambientCG Wood027) -->
+    <pattern id="wood-rod-tex" patternUnits="userSpaceOnUse" width="640" height="100">
+      <image href="img/wood-rod.jpg" width="640" height="100" preserveAspectRatio="none"/>
+    </pattern>
+    <pattern id="wood-knob-tex" patternUnits="userSpaceOnUse" width="128" height="128">
+      <image href="img/wood-knob.jpg" width="128" height="128" preserveAspectRatio="none"/>
+    </pattern>
+    <!-- cylindrical shading laid over the photo texture -->
+    <linearGradient id="rod-shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000" stop-opacity="0.5"/>
+      <stop offset="0.16" stop-color="#fff" stop-opacity="0.28"/>
+      <stop offset="0.34" stop-color="#fff" stop-opacity="0.05"/>
+      <stop offset="0.62" stop-color="#000" stop-opacity="0.18"/>
+      <stop offset="0.86" stop-color="#000" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.62"/>
+    </linearGradient>
+    <radialGradient id="knob-shade" cx="0.34" cy="0.3" r="1.0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.4"/>
+      <stop offset="0.3" stop-color="#fff" stop-opacity="0.1"/>
+      <stop offset="0.62" stop-color="#000" stop-opacity="0.12"/>
+      <stop offset="0.85" stop-color="#000" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.66"/>
+    </radialGradient>
+    <radialGradient id="knob-gloss" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4e2a4"/><stop offset="0.22" stop-color="#d9b45e"/>
+      <stop offset="0.5" stop-color="#b3893a"/><stop offset="0.74" stop-color="#8a6423"/>
+      <stop offset="1" stop-color="#5c4113"/>
+    </linearGradient>
+    <!-- lacquered turned-wood finial with golden collar; drawn for the LEFT end.
+         Rod centreline y=45; rod proper starts at x=100. -->
+    <g id="finial">
+      <!-- end disc -->
+      <circle cx="24" cy="45" r="21" fill="url(#wood-knob-tex)"/>
+      <circle cx="24" cy="45" r="21" fill="url(#knob-shade)"/>
+      <ellipse cx="17" cy="37" rx="8" ry="6" fill="url(#knob-gloss)" opacity="0.85"/>
+      <circle cx="24" cy="45" r="21" fill="none" stroke="#1a0f06" stroke-width="1.4" opacity="0.65"/>
+      <circle cx="24" cy="45" r="13.5" fill="none" stroke="#1a0f06" stroke-width="1.1" opacity="0.4"/>
+      <circle cx="24" cy="45" r="6" fill="none" stroke="#1a0f06" stroke-width="1" opacity="0.35"/>
+      <!-- turned bulb -->
+      <ellipse cx="56" cy="45" rx="18" ry="31" fill="url(#wood-knob-tex)"/>
+      <ellipse cx="56" cy="45" rx="18" ry="31" fill="url(#knob-shade)"/>
+      <ellipse cx="49" cy="31" rx="7" ry="11" fill="url(#knob-gloss)" opacity="0.7"/>
+      <ellipse cx="56" cy="45" rx="18" ry="31" fill="none" stroke="#1a0f06" stroke-width="1.3" opacity="0.55"/>
+      <!-- lathe grooves on the bulb -->
+      <path d="M42,24 Q56,18 70,24 M40,66 Q56,73 72,66 M38.5,45 Q56,41 73.5,45"
+            fill="none" stroke="#1a0f06" stroke-width="1.2" opacity="0.42"/>
+      <!-- waisted neck -->
+      <ellipse cx="77" cy="45" rx="7" ry="22" fill="url(#wood-knob-tex)"/>
+      <ellipse cx="77" cy="45" rx="7" ry="22" fill="url(#rod-shade)"/>
+      <!-- golden collar -->
+      <rect x="84" y="17" width="20" height="56" rx="7" fill="url(#gold-grad)"/>
+      <rect x="86" y="21" width="16" height="5" rx="2.5" fill="#fbf0c8" opacity="0.6"/>
+      <rect x="84" y="17" width="20" height="56" rx="7" fill="none" stroke="#43300d" stroke-width="1.1" opacity="0.65"/>
+      <!-- engraved collar grooves -->
+      <path d="M84,31 h20 M84,59 h20" stroke="#4d3811" stroke-width="1.6" opacity="0.6"/>
+      <path d="M84,33.5 h20 M84,61.5 h20" stroke="#fbf0c8" stroke-width="0.9" opacity="0.5"/>
+      <circle cx="94" cy="45" r="2.6" fill="none" stroke="#4d3811" stroke-width="1.2" opacity="0.6"/>
+    </g>
+    <!-- the full rod: cylinder + both finials -->
+    <g id="scroll-rod-art">
+      <g>
+        <rect x="100" y="26" width="700" height="38" rx="17" fill="url(#wood-rod-tex)"/>
+        <rect x="100" y="26" width="700" height="38" rx="17" fill="url(#rod-shade)"/>
+        <rect x="106" y="31" width="688" height="6" rx="3" fill="#fff" opacity="0.16"/>
+        <rect x="100" y="26" width="700" height="38" rx="17" fill="none" stroke="#1a0f06" stroke-width="1.2" opacity="0.5"/>
+      </g>
+      <use href="#finial"/>
+      <use href="#finial" transform="translate(900,0) scale(-1,1)"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- ══════════ LOBBY ══════════ -->
+<section id="lobby" class="screen active">
+  <!-- mist mountains backdrop -->
+  <svg class="mountains" viewBox="0 0 1200 320" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <g filter="url(#brush-rough-soft)">
+      <path class="mtn mtn-far" d="M0,320 L0,210 Q140,90 260,190 Q330,240 420,200 Q560,120 660,210 Q760,290 900,190 Q1010,110 1200,230 L1200,320 Z"/>
+      <path class="mtn mtn-mid" d="M0,320 L0,260 Q180,170 320,250 Q430,300 560,240 Q700,180 830,260 Q950,320 1200,270 L1200,320 Z"/>
+      <path class="mtn mtn-near" d="M0,320 L0,295 Q220,240 430,290 Q640,335 860,285 Q1030,250 1200,300 L1200,320 Z"/>
+    </g>
+  </svg>
+
+  <div class="lobby-inner">
+    <!-- ensō drawn behind the seal -->
+    <div class="seal-wrap">
+      <svg class="enso" viewBox="0 0 120 120" aria-hidden="true">
+        <path class="enso-path" filter="url(#brush-rough)"
+          d="M60,14 C88,12 106,34 105,60 C104,88 82,107 57,106 C32,105 14,84 15,58 C16,36 32,20 52,16"/>
+      </svg>
+      <div class="title-seal">墨</div>
+    </div>
+
+    <h1 class="game-title">Inkbound Scroll</h1>
+    <!-- brush underline that draws itself -->
+    <svg class="title-stroke" viewBox="0 0 300 14" aria-hidden="true">
+      <path class="title-stroke-path" filter="url(#brush-rough)"
+        d="M6,8 Q75,3 150,7 T294,6"/>
+    </svg>
+    <div class="emaki-cue" role="img" aria-label="Japanese picture scroll">
+      <div class="emaki-cue-paper">
+        <span>絵巻</span>
+        <small>PICTURE SCROLL</small>
+      </div>
+      <svg viewBox="0 0 900 90" preserveAspectRatio="none" aria-hidden="true">
+        <use href="#scroll-rod-art"/>
+      </svg>
+    </div>
+    <p class="tagline">Draw with ink. The story follows your brush.</p>
+
+    <div class="config-panel">
+      <div class="config-row">
+        <label>Length</label>
+        <div class="seg" data-config="length">
+          <button data-v="quick">Quick</button>
+          <button data-v="classic" class="on">Classic</button>
+          <button data-v="epic">Epic</button>
+        </div>
+      </div>
+      <div class="config-row">
+        <label>Tone</label>
+        <div class="seg" data-config="tone">
+          <button data-v="random" class="on">Fate</button>
+          <button data-v="gentle">Gentle</button>
+          <button data-v="funny">Funny</button>
+          <button data-v="mysterious">Mysterious</button>
+          <button data-v="brave">Brave</button>
+          <button data-v="bittersweet">Bittersweet</button>
+        </div>
+      </div>
+      <div class="config-row">
+        <label>Voice</label>
+        <div class="seg" data-config="voice">
+          <button data-v="prose" class="on">Prose</button>
+          <button data-v="verse">Poem</button>
+        </div>
+      </div>
+      <div class="config-row">
+        <label for="seed-idea">Your idea <span class="opt">(optional)</span></label>
+        <input id="seed-idea" maxlength="300"
+               placeholder="e.g. a snail who dreams of becoming a comet">
+      </div>
+    </div>
+
+    <div class="lobby-actions">
+      <button id="btn-new-scroll" class="btn btn-primary">Begin a New Scroll</button>
+      <div class="join-row">
+        <input id="join-code" maxlength="4" placeholder="ROOM" autocomplete="off">
+        <button id="btn-join" class="btn">Join Friends</button>
+      </div>
+      <button id="btn-archive" class="btn btn-ghost">Finished Scrolls</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ GAME ══════════ -->
+<section id="game" class="screen">
+  <header class="game-header">
+    <span id="scroll-title" class="scroll-title">A new scroll unrolls…</span>
+    <span class="room-info">room <b id="room-code">—</b> · <span id="player-count">1</span> brush(es)</span>
+  </header>
+
+  <div class="scroll-area" id="scroll-area">
+    <div class="scroll-stage">
+      <svg class="scroll-rod rod-top" viewBox="0 0 900 90" preserveAspectRatio="none" aria-hidden="true">
+        <use href="#scroll-rod-art"/>
+      </svg>
+      <div class="scroll-body">
+      <div class="scroll-paper">
+        <div class="brocade brocade-top" aria-hidden="true"></div>
+        <div id="story-flow" class="story-flow"></div>
+        <!-- ink spirit thinking: an ensō draws and redraws itself -->
+        <div id="thinking" class="thinking hidden" role="status" aria-label="the ink settles">
+          <svg viewBox="0 0 60 60" class="thinking-enso" aria-hidden="true">
+            <path filter="url(#brush-rough)"
+              d="M30,8 C44,7 53,18 52,30 C51,44 40,53 28,52 C16,51 7,41 8,29 C9,18 17,10 27,8.5"/>
+          </svg>
+          <span>the ink settles…</span>
+        </div>
+
+        <!-- draw contribution -->
+        <div class="brush-panel hidden" id="brush-panel">
+          <p id="drawing-prompt" class="contrib-prompt draw"></p>
+          <div class="canvas-wrap">
+            <svg class="frame-corner tl" viewBox="0 0 40 40" aria-hidden="true"><path d="M38,4 Q10,6 4,38" filter="url(#brush-rough)"/></svg>
+            <svg class="frame-corner br" viewBox="0 0 40 40" aria-hidden="true"><path d="M38,4 Q10,6 4,38" filter="url(#brush-rough)"/></svg>
+            <canvas id="draw-canvas"></canvas>
+          </div>
+          <div class="brush-tools">
+            <div class="seg" id="ink-picker">
+              <button data-ink="sumi" class="on"><span class="ink-dot dot-sumi"></span>Ink</button>
+              <button data-ink="vermillion"><span class="ink-dot dot-verm"></span>Vermillion</button>
+            </div>
+            <div class="seg" id="size-picker">
+              <button data-size="fine"><span class="size-dot dot-fine"></span>Fine</button>
+              <button data-size="bold" class="on"><span class="size-dot dot-bold"></span>Bold</button>
+            </div>
+            <button id="btn-undo" class="btn btn-ghost">Undo</button>
+            <button id="btn-clear" class="btn btn-ghost">Wash Away</button>
+            <button id="btn-submit" class="btn btn-primary">Offer to the Ink Spirit</button>
+          </div>
+        </div>
+
+        <!-- write contribution -->
+        <div class="write-panel hidden" id="write-panel">
+          <p id="write-prompt" class="contrib-prompt write"></p>
+          <div class="write-row">
+            <input id="write-input" maxlength="120" placeholder="a few words…" autocomplete="off">
+            <button id="btn-submit-write" class="btn btn-primary">Speak the Words</button>
+          </div>
+        </div>
+
+        <div id="ending-panel" class="ending-panel hidden">
+          <!-- hanko seal stamps down -->
+          <svg class="hanko" viewBox="0 0 100 100" aria-hidden="true">
+            <g filter="url(#brush-rough)">
+              <rect x="10" y="10" width="80" height="80" rx="10" class="hanko-bg"/>
+              <text x="50" y="66" text-anchor="middle" class="hanko-char">終</text>
+            </g>
+          </svg>
+          <p>The scroll is complete.</p>
+          <div class="brush-tools">
+            <button id="btn-save-scroll" class="btn btn-primary">Keep This Scroll</button>
+            <button id="btn-download-pdf" class="btn">Download PDF</button>
+            <button id="btn-back-lobby" class="btn btn-ghost">Return</button>
+          </div>
+        </div>
+
+        <div class="brocade brocade-bottom" aria-hidden="true"></div>
+      </div>
+      <svg class="scroll-rod rod-bottom" viewBox="0 0 900 90" preserveAspectRatio="none" aria-hidden="true">
+        <use href="#scroll-rod-art"/>
+      </svg>
+      </div>
+    </div>
+  </div>
+
+
+
+</section>
+
+<!-- ══════════ ARCHIVE ══════════ -->
+<section id="archive" class="screen">
+  <header class="game-header">
+    <span class="scroll-title">Finished Scrolls</span>
+    <button id="btn-archive-back" class="btn btn-ghost">Return</button>
+  </header>
+  <div id="archive-list" class="archive-list"></div>
+</section>
+
+<!-- chapter divider template (cloned by JS) -->
+<template id="divider-template">
+  <svg class="chapter-divider" viewBox="0 0 400 20" aria-hidden="true">
+    <path filter="url(#brush-rough)" d="M20,11 Q120,6 200,10 T380,9"/>
+    <circle cx="200" cy="10" r="3.5"/>
+  </svg>
+</template>
+
+<button id="btn-sound" class="sound-toggle" aria-label="toggle sound" aria-pressed="true">
+  <svg viewBox="0 0 32 32" aria-hidden="true">
+    <path class="st-body" filter="url(#brush-rough)" d="M6,12 L11,12 L17,6 L17,26 L11,20 L6,20 Z"/>
+    <path class="st-wave" d="M21,11 Q25,16 21,21 M24,8 Q30,16 24,24" fill="none"/>
+    <line class="st-slash" x1="5" y1="27" x2="27" y2="5"/>
+  </svg>
+</button>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

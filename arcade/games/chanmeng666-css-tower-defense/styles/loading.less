@@ -1,0 +1,811 @@
+// ===========================================
+// Te Pā Tiaki - Unified Start Screen
+// THEME: POP-ART + MĀORI ACCENTS
+// Combines loading and start functionality
+// ===========================================
+
+// Māori accent colors (used alongside pop-art palette)
+@color-pounamu-green: #3CB371;
+@color-flax-gold: #DAA520;
+@color-koru-cream: #F5E6D3;
+@color-earth-brown: #8B4513;
+
+// Main Container - Pop-Art Sunburst Style
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    // Pop-art sunburst background
+    background: repeating-conic-gradient(
+        from 0deg,
+        @color-cyan 0deg 15deg,
+        lighten(@color-cyan, 12%) 15deg 30deg
+    );
+    .flex-center();
+    flex-direction: column;
+    z-index: 100000;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    overflow: hidden;
+
+    // Halftone overlay for pop-art texture
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        .halftone-bg(fade(@color-white, 15%), 3px);
+        pointer-events: none;
+    }
+
+    &.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
+
+// Background decorations - Māori greetings
+.loading-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+
+    // Māori greetings (text outline only, no box shadow)
+    &::before {
+        content: 'Kia Ora!';
+        position: absolute;
+        top: 15%;
+        left: 5%;
+        font-family: @font-title;
+        font-size: 2.2rem;
+        color: @color-yellow;
+        .text-outline(@color-black, 3px);
+        transform: rotate(-15deg);
+        animation: float-decoration 3s ease-in-out infinite;
+    }
+
+    &::after {
+        content: 'Haere Mai!';
+        position: absolute;
+        bottom: 20%;
+        right: 5%;
+        font-family: @font-title;
+        font-size: 2.2rem;
+        color: @color-pounamu-green;
+        .text-outline(@color-black, 3px);
+        transform: rotate(10deg);
+        animation: float-decoration 3s ease-in-out infinite reverse;
+    }
+}
+
+@keyframes float-decoration {
+    0%, 100% {
+        transform: rotate(-15deg) translateY(0);
+    }
+    50% {
+        transform: rotate(-15deg) translateY(-15px);
+    }
+}
+
+// Brand Logo
+.loading-logo {
+    width: 120px;
+    height: 120px;
+    z-index: 2;
+    filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.5));
+    animation: logo-float 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes logo-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+// Title Area - Prominent above gateway
+.loading-title-area {
+    text-align: center;
+    margin-bottom: 10px;
+    z-index: 2;
+}
+
+.loading-game-title {
+    font-family: @font-title;
+    font-size: 5rem;
+    color: @color-yellow;
+    .text-outline(@color-black, 4px);
+    // No box-shadow on text - only text outline
+    margin: 0;
+    line-height: 1;
+    animation: title-wobble 2s infinite ease-in-out;
+    letter-spacing: 4px;
+}
+
+.loading-subtitle {
+    font-family: @font-title;
+    font-size: 1.5rem;
+    color: @color-white;
+    .text-outline(@color-black, 2px);
+    margin: 8px 0 0 0;
+    letter-spacing: 2px;
+}
+
+@keyframes title-wobble {
+    0%, 100% {
+        transform: rotate(-2deg) scale(1);
+    }
+    50% {
+        transform: rotate(1deg) scale(1.02);
+    }
+}
+
+// Hidden old title (no longer needed - using explicit title element)
+.loading-text {
+    display: none;
+}
+
+.loading-screen::after {
+    display: none;
+}
+
+
+// Loading Dots - Comic Style (hidden when ready)
+.loading-dots {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    z-index: 2;
+
+    // Hide when ready
+    .ready & {
+        display: none;
+    }
+}
+
+.loading-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    .comic-border(2px);
+    animation: dot-bounce 1s ease-in-out infinite;
+
+    &:nth-child(1) {
+        background: @color-danger;
+        animation-delay: 0s;
+    }
+
+    &:nth-child(2) {
+        background: @color-yellow;
+        animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+        background: @color-success;
+        animation-delay: 0.4s;
+    }
+}
+
+@keyframes dot-bounce {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-15px) scale(1.2);
+    }
+}
+
+// Progress Bar - Comic Style (hidden when ready)
+.loading-progress {
+    width: 300px;
+    height: 25px;
+    background: @color-white;
+    .comic-border();
+    .pop-shadow(4px, 4px);
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+
+    // Hide when ready
+    .ready & {
+        display: none;
+    }
+}
+
+.loading-progress-fill {
+    height: 100%;
+    width: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        @color-success 0px,
+        @color-success 10px,
+        lighten(@color-success, 15%) 10px,
+        lighten(@color-success, 15%) 20px
+    );
+    animation: progress-fill 2s ease-out forwards;
+    position: relative;
+
+    // Shine effect
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.5) 0%,
+            transparent 100%
+        );
+    }
+}
+
+@keyframes progress-fill {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+// Main Action Row (Difficulty + START)
+.loading-main-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    z-index: 2;
+    opacity: 0;
+    animation: button-appear 0.5s ease forwards;
+    animation-delay: 2s;
+
+    .ready & {
+        opacity: 1;
+        animation: none;
+    }
+}
+
+// Difficulty Dropdown (compact) - Opens UPWARD
+.difficulty-dropdown {
+    position: relative;
+    z-index: 10;
+}
+
+.difficulty-toggle {
+    font-family: @font-title;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    background: @color-white;
+    color: @color-black;
+    border: none;
+    .comic-border(3px);
+    .pop-shadow(4px, 4px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.1s;
+
+    &:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0 @color-black;
+    }
+
+    .dropdown-arrow {
+        font-size: 0.8em;
+        transition: transform 0.2s;
+    }
+
+    &.open .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+}
+
+// Dropdown opens UPWARD (bottom: 100% instead of top: 100%)
+.difficulty-options {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    margin-bottom: 5px;
+    background: @color-white;
+    .comic-border(2px);
+    .pop-shadow(3px, -3px);
+    border-radius: 4px;
+    overflow: hidden;
+
+    &.hidden {
+        display: none;
+    }
+
+    button {
+        display: block;
+        width: 100%;
+        padding: 10px 15px;
+        font-family: @font-title;
+        font-size: 1rem;
+        background: @color-white;
+        color: @color-black;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.1s;
+
+        &:hover {
+            background: fade(@color-cyan, 20%);
+        }
+
+        &.selected {
+            background: @color-yellow;
+        }
+
+        &[data-difficulty="hard"] {
+            &.selected {
+                background: @color-magenta;
+                color: @color-white;
+            }
+        }
+
+        &[data-difficulty="expert"] {
+            &.selected {
+                background: @color-danger;
+                color: @color-white;
+            }
+        }
+
+        // Map selector subtitle
+        small {
+            display: block;
+            font-family: @font-main;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+    }
+}
+
+// Start Button - Main CTA
+.loading-start {
+    font-family: @font-title;
+    font-size: 2rem;
+    padding: 15px 50px;
+    border: none;
+    background: @color-yellow;
+    color: @color-black;
+    cursor: pointer;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 2;
+    .comic-border(3px);
+    .pop-shadow(8px, 8px);
+    transition: all 0.1s;
+
+    &:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 10px 10px 0 @color-black;
+        background: lighten(@color-yellow, 10%);
+    }
+
+    &:active {
+        transform: translate(4px, 4px);
+        box-shadow: 2px 2px 0 @color-black;
+    }
+
+    // Ready state - pulse animation
+    .ready & {
+        animation: button-pulse 1s ease-in-out infinite;
+    }
+}
+
+@keyframes button-appear {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes button-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+// More Options Button & Menu
+.more-options-container {
+    position: relative;
+    margin-top: 15px;
+    z-index: 5;
+    opacity: 0;
+    animation: button-appear 0.5s ease forwards;
+    animation-delay: 2.2s;
+
+    .ready & {
+        opacity: 1;
+        animation: none;
+    }
+}
+
+.more-options-btn {
+    font-family: @font-title;
+    font-size: 1rem;
+    padding: 8px 20px;
+    background: fade(@color-black, 70%);
+    color: @color-white;
+    border: 2px solid fade(@color-white, 40%);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .menu-icon {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: fade(@color-black, 85%);
+        border-color: @color-cyan;
+        transform: translateY(-2px);
+    }
+
+    &.open {
+        background: @color-black;
+        border-color: @color-cyan;
+    }
+}
+
+.more-options-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    background: @color-black;
+    .comic-border(2px, @color-cyan);
+    border-radius: 6px;
+    overflow: hidden;
+    min-width: 180px;
+
+    &.hidden {
+        display: none;
+    }
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 18px;
+        font-family: @font-title;
+        font-size: 0.95rem;
+        background: transparent;
+        color: @color-white;
+        border: none;
+        border-bottom: 1px solid fade(@color-white, 15%);
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.1s;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: fade(@color-cyan, 30%);
+        }
+
+        &.hidden {
+            display: none;
+        }
+
+        // CSS icon styling
+        .menu-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+    }
+}
+
+// Developer Modal
+.dev-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: fade(@color-black, 80%);
+    .flex-center();
+    z-index: 100001;
+    backdrop-filter: blur(4px);
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.dev-modal-content {
+    background: linear-gradient(135deg, #1a2a3a 0%, @color-black 100%);
+    border: 3px solid @color-cyan;
+    border-radius: 12px;
+    padding: 30px;
+    width: 380px;
+    max-width: 90vw;
+    position: relative;
+    .pop-shadow(8px, 8px);
+    animation: modal-appear 0.3s ease;
+}
+
+@keyframes modal-appear {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.dev-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: fade(@color-white, 60%);
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+
+    &:hover {
+        color: @color-white;
+    }
+}
+
+.dev-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid fade(@color-white, 15%);
+}
+
+.dev-modal-logo {
+    width: 60px;
+    height: 60px;
+    filter: invert(1);
+    transition: transform 0.3s;
+
+    &:hover {
+        transform: rotate(-5deg) scale(1.05);
+    }
+}
+
+.dev-modal-title {
+    h2 {
+        font-family: @font-title;
+        font-size: 1.8rem;
+        color: @color-yellow;
+        margin: 0;
+        letter-spacing: 1px;
+    }
+
+    p {
+        font-family: @font-comic;
+        font-size: 0.9rem;
+        color: @color-cyan;
+        margin: 4px 0 0 0;
+    }
+}
+
+.dev-modal-body {
+    text-align: center;
+}
+
+.dev-modal-cta {
+    font-family: @font-title;
+    font-size: 1.1rem;
+    color: @color-white;
+    margin: 0 0 10px 0;
+}
+
+.dev-modal-desc {
+    font-family: @font-comic;
+    font-size: 0.85rem;
+    color: fade(@color-white, 70%);
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+}
+
+.dev-modal-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dev-modal-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    font-family: @font-title;
+    font-size: 1rem;
+    color: @color-white;
+    background: fade(@color-white, 10%);
+    border: 2px solid fade(@color-white, 20%);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.15s;
+
+    svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background: fade(@color-cyan, 20%);
+        border-color: @color-cyan;
+        transform: translateY(-2px);
+    }
+
+    &.dev-modal-link-primary {
+        background: @color-cyan;
+        border-color: @color-cyan;
+        color: @color-white;
+
+        &:hover {
+            background: lighten(@color-cyan, 10%);
+            border-color: lighten(@color-cyan, 10%);
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 400px) {
+    .dev-modal-content {
+        padding: 20px;
+    }
+
+    .dev-modal-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .dev-modal-logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .dev-modal-title h2 {
+        font-size: 1.5rem;
+    }
+}
+
+// Old difficulty selector - hidden (replaced by dropdown)
+.difficulty-select {
+    display: none;
+}
+
+.difficulty-label {
+    display: none;
+}
+
+.difficulty-btn {
+    display: none;
+}
+
+// Old start menu row - hidden (replaced by More Options)
+.start-menu-row {
+    display: none;
+}
+
+.start-menu-btn {
+    display: none;
+}
+
+// Responsive Design
+@media (max-width: 600px) {
+    .loading-logo {
+        width: 90px;
+        height: 90px;
+    }
+
+    .loading-game-title {
+        font-size: 3.5rem;
+    }
+
+    .loading-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .loading-start {
+        font-size: 1.5rem;
+        padding: 12px 35px;
+    }
+
+    .loading-progress {
+        width: 250px;
+    }
+
+    .loading-bg::before,
+    .loading-bg::after {
+        font-size: 1.5rem;
+    }
+
+    .loading-main-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    .loading-logo {
+        width: 70px;
+        height: 70px;
+    }
+
+    .loading-game-title {
+        font-size: 2.5rem;
+    }
+
+    .loading-subtitle {
+        font-size: 1rem;
+    }
+
+    .loading-bg::before,
+    .loading-bg::after {
+        display: none;
+    }
+}
+
+// Reduced Motion Support
+@media (prefers-reduced-motion: reduce) {
+    .loading-logo,
+    .loading-dot,
+    .loading-game-title {
+        animation: none !important;
+    }
+
+    .loading-start {
+        animation: none !important;
+    }
+
+    .loading-progress-fill {
+        animation: none !important;
+        width: 100%;
+    }
+
+    .loading-main-row,
+    .more-options-container {
+        opacity: 1;
+        animation: none !important;
+    }
+}

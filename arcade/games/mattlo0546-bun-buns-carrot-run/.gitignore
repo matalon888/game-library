@@ -1,0 +1,8 @@
+.DS_Store
+.claude/
+
+# Never commit credentials. The game uses each player's own key, entered in the browser.
+.env*
+*.pem
+*service-account*.json
+gen-lang-client-*.json

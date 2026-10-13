@@ -1,0 +1,429 @@
+/* Quiz Lara World - estilos do minigame dentro do overlay compartilhado */
+
+.quiz-lara {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px clamp(12px, 3vw, 28px) calc(18px + env(safe-area-inset-bottom));
+  color: #f5f0e8;
+  font-family: inherit;
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+}
+
+.quiz-lara .hidden {
+  display: none !important;
+}
+
+.quiz-intro,
+.quiz-play {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quiz-intro {
+  min-height: 100%;
+  justify-content: center;
+}
+
+.quiz-intro-icon {
+  font-size: clamp(40px, 8vh, 64px);
+  line-height: 1;
+  text-align: center;
+}
+
+.quiz-intro-title {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(22px, 4vh, 32px);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.quiz-intro-desc {
+  margin: 0;
+  text-align: center;
+  color: #c9c2b8;
+  font-size: clamp(14px, 2.2vh, 16px);
+  line-height: 1.5;
+}
+
+.quiz-field {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 12px 14px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quiz-field-legend {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ffb84d;
+}
+
+.quiz-mode-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.quiz-mode-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.quiz-mode-option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.quiz-mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.quiz-mode-option input:checked + .quiz-mode-card {
+  border-color: #ff8c00;
+  background: rgba(255, 140, 0, 0.14);
+}
+
+.quiz-mode-option:has(input:focus-visible) .quiz-mode-card {
+  outline: 2px solid #ffa000;
+  outline-offset: 2px;
+}
+
+.quiz-mode-name {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.quiz-mode-count {
+  font-size: 14px;
+  color: #ffb84d;
+}
+
+.quiz-mode-meta {
+  font-size: 12px;
+  color: #c9c2b8;
+  line-height: 1.35;
+}
+
+.quiz-category-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.18);
+  color: #f5f0e8;
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.quiz-category-select:focus-visible {
+  outline: 2px solid #ffa000;
+  outline-offset: 2px;
+}
+
+.quiz-category-select option {
+  background: #1a1a2e;
+  color: #f5f0e8;
+}
+
+.quiz-intro-actions,
+.quiz-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.quiz-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.quiz-btn:focus-visible {
+  outline: 2px solid #ffa000;
+  outline-offset: 2px;
+}
+
+.quiz-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.quiz-btn-primary {
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #ff6f00, #ffa000);
+  box-shadow: 0 4px 14px rgba(255, 140, 0, 0.35);
+}
+
+.quiz-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 18px rgba(255, 140, 0, 0.5);
+}
+
+.quiz-btn-secondary {
+  color: #f5f0e8;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.quiz-btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.quiz-hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quiz-hud-item {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.quiz-streak {
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #ff6f00, #ffa000);
+  border-color: transparent;
+}
+
+.quiz-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.quiz-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff6f00, #ffa000);
+  transition: width 0.3s ease;
+}
+
+.quiz-card {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  padding: clamp(14px, 3vh, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.quiz-question-text {
+  margin: 0;
+  font-size: clamp(17px, 3vh, 22px);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.quiz-alternatives {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quiz-alternative {
+  appearance: none;
+  -webkit-appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.18);
+  color: #f5f0e8;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, transform 0.12s ease;
+}
+
+.quiz-alternative:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.quiz-alternative:focus-visible {
+  outline: 2px solid #ffa000;
+  outline-offset: 2px;
+}
+
+.quiz-alternative:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.quiz-alternative-letter {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffb84d;
+}
+
+.quiz-alternative.is-correct {
+  border-color: #2ecc71;
+  background: rgba(46, 204, 113, 0.16);
+}
+
+.quiz-alternative.is-correct .quiz-alternative-letter {
+  background: #2ecc71;
+  color: #1a1a2e;
+}
+
+.quiz-alternative.is-wrong {
+  border-color: #e74c3c;
+  background: rgba(231, 76, 60, 0.16);
+}
+
+.quiz-alternative.is-wrong .quiz-alternative-letter {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.quiz-alternative:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.quiz-feedback {
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.quiz-feedback-status {
+  font-weight: 700;
+}
+
+.quiz-feedback-status.is-good {
+  color: #5ee0a0;
+}
+
+.quiz-feedback-status.is-bad {
+  color: #ff8a80;
+}
+
+.quiz-feedback-explanation {
+  margin: 8px 0 0;
+  color: #c9c2b8;
+}
+
+@media (max-width: 768px) {
+  .quiz-lara {
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .quiz-mode-list {
+    grid-template-columns: 1fr;
+  }
+
+  .quiz-intro,
+  .quiz-play {
+    gap: 12px;
+  }
+
+  .quiz-hud-item {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .quiz-alternative {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .quiz-lara {
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .quiz-intro-icon {
+    font-size: 30px;
+  }
+
+  .quiz-intro-title {
+    font-size: 20px;
+  }
+
+  .quiz-intro,
+  .quiz-play {
+    gap: 8px;
+  }
+
+  .quiz-card {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .quiz-alternative {
+    padding: 8px 10px;
+  }
+
+  .quiz-btn {
+    padding: 9px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-alternative,
+  .quiz-btn,
+  .quiz-mode-card,
+  .quiz-progress-fill {
+    transition: none;
+  }
+
+  .quiz-btn:active:not(:disabled),
+  .quiz-alternative:active:not(:disabled) {
+    transform: none;
+  }
+}

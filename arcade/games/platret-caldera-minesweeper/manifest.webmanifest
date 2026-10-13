@@ -1,0 +1,19 @@
+{
+  "name": "Caldera Minesweeper",
+  "short_name": "Caldera",
+  "description": "A modern, customizable, tactile Minesweeper.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#16130F",
+  "theme_color": "#16130F",
+  "icons": [
+    {
+      "src": "./assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

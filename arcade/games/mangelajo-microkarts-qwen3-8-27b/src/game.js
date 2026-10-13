@@ -1,0 +1,1044 @@
+import * as THREE from 'three';
+import {
+  game,
+  N_AI, AI_SKILL,
+  CAM_DIST, CAM_HEIGHT, SIM_DT, COUNTDOWN_MS, LAPS, KMH_PER_U, DRIFT_MIN_KMH, DRIFT_CHARGE_MAX, PERFECT_CHARGE, P2_COLOR,
+  ITEM_TURBO, ITEM_WALL,
+} from './config.js';
+import { renderer, scene, camera, updateDust, dustForKart } from './scene.js';
+import { makeExplosions } from './explosion.js';
+import { makeNameTags } from './nametag.js';
+import { initMinimap, setMinimapVisible, updateMinimap, resizeMinimap } from './minimap.js';
+import { Kart } from './kart.js';
+import { aiControl, setWindOn } from './ai.js';
+import { TRACKS } from './tracks.js';
+import { dailyChallenge } from './daily.js';
+import { recordStart, recordFrame, hasRecording, playbackFrame } from './replay.js';
+import { initTrackEditor, setEditorTrackIdx, resetEditor } from './trackedit.js';
+import { selectTrack, updateItemBoxes, syncWallMeshes, syncStickyPatches, tickProps, tickHazards } from './track.js';
+import { initDayNight, setDayNightFor, updateDayNight } from './daynight.js';
+import { initGamepad, gamepadPoll } from './gamepad.js';
+import { buildWeather, tickWeather, applyWeatherLights, tickPuddles, puddleRipple, setWeatherRain, getWeatherRain } from './weather.js';
+import { tickScenery } from './scenery.js';
+import { setRoadWet } from './track.js';
+import { GRID, simulateTick, raceOrder } from './race.js';
+import { setObstaclesOn, getObstaclesOn } from './obstacles.js';
+import { setItemsOn, getItemsOn } from './items.js';
+import { makeStateEncoder, encFinish } from './net.js';
+import {
+  fmt, el, startBtn, resultsEl, showOverlay, hideOverlay, hideCountdown, updateHud,
+  initTrackPicker, cycleTrack, getTrackIdx, getMode,
+  initHazardPicker, setHazard, getHazardOn, loadHazardPref,
+  initItemPicker, setItem, getItemOn, loadItemPref,
+  initWeatherPicker, setWeatherChip,
+  initMenuTabs, setMenuPage, setHostRoster,
+  hudRankNudge,
+} from './hud.js';
+import * as audio from './audio.js';
+import {
+  initGhost, ghostSetTrack, ghostLapStart, ghostFrame, ghostLapDone, ghostStop,
+} from './ghost.js';
+import { rankInit, rankSetTrack, rankLapDone } from './rankings.js';
+import { getDrive, initTouch, setActive as touchSetActive, pulseHint, isTouchDevice } from './touch.js';
+import { createNet2p } from './net2p.js';
+import { podiumHtml, celebrate } from './resultsfx.js';
+
+/* ------------------------------------------------------------------ *
+ *  Karts — the roster has 3 AI bodies (solo uses 3, 2P uses 2) + the
+ *  local player, which stays LAST in `karts`. P2 (the networked human)
+ *  is spliced in before the local player on the first 2P session.
+ *  Host-side 2P wire order: [AI0, AI1, P2, local].
+ * ------------------------------------------------------------------ */
+const karts = [];
+const player = new Kart({ isPlayer: true, color: 0xe0392b, accent: 0xf6c445 });
+let p2 = null;
+const ROSTER = [
+  { color: 0x2e7dd1, name: 'AZURE' },
+  { color: 0x39b17c, name: 'MATCHA' },
+  { color: 0xd153f1, name: 'PLUMP' },
+];
+for (let i = 0; i < N_AI; i++) {
+  karts.push(new Kart({ ...ROSTER[i], isPlayer: false, skill: AI_SKILL[i] }));
+}
+karts.push(player);
+
+function ensureP2() {
+  if (!p2) {
+    p2 = new Kart({ isPlayer: false, net: true, name: 'P2', color: P2_COLOR, accent: 0xf6c445 });
+    karts.splice(karts.length - 1, 0, p2); // before the local player
+  }
+  return p2;
+}
+
+/* Roster (a number 1..4):
+   • solo (netMode !== 2): total karts = the player + (n-1) AI
+   • WS 2P: human seats (the host + joiners); AI fills the rest of the 4-kart grid
+   Wire order = this array; in WS the player sits at racers()[mySlot()]. */
+function racers() {
+  const n = Math.max(1, Math.min(4, (game.roster | 0) || 4));
+  if (game.netMode !== 2) {
+    // solo: the player + (n-1) AI, player last (the HUD reads the last kart)
+    const ai = [karts[0], karts[1], karts[2]].slice(0, n - 1);
+    return ai.concat(player);
+  }
+  if (n2.wsMode()) {
+    // WS: wire order [slot0, slot1, slot2, slot3]; my own vessel sits at mySlot
+    const me = n2.mySlot();
+    const others = [p2, karts[0], karts[1], karts[2]].filter(Boolean); // p2, AI0..AI2
+    const out = new Array(4);
+    let oi = 0;
+    for (let s = 0; s < 4; s++) { out[s] = (s === me) ? player : others[oi++]; }
+    return out;
+  }
+  // LAN 2P (legacy, one keyboard, two humans): always 2 humans + 2 AI
+  return [karts[0], karts[1], p2, player];
+}
+
+// karts outside the active roster (e.g. unused AI in 1v1) are hidden
+function syncRosterVisibility() {
+  const active = racers();
+  for (const k of karts) k.mesh.root.visible = active.includes(k);
+  el('nCars').textContent = String(active.length);
+}
+
+// The AI stagger (WS): an AI launches further back, offset toward the centre,
+// so its launch doesn't rear-end a human's kart before the player can steer.
+// Slots 2/3 match the original 2P values; slot 1 is new (a 4P AI in seat 2).
+const AI_STAGGER = { 1: { u: 0.97, o: 1.0 }, 2: { u: 0.97, o: -1.0 }, 3: { u: 0.955, o: 1.0 } };
+// The connected human seats (WS host). Humans occupy slots 0..(n-1) — the
+// server hands joiners the next free slot, so the connected set is contiguous.
+function humansIn() {
+  if (!n2.wsMode()) return 0;
+  const names = n2.net() && n2.net().names;
+  let n = 0;
+  if (names) for (let s = 0; s < 4; s++) if (names[s]) n++;
+  return Math.max(1, n);
+}
+// the grid cell for wire slot s (WS: humans in the front, AI staggered back)
+function gridForSlot(s) {
+  if (n2.wsMode() && s >= humansIn()) return AI_STAGGER[s] || GRID[s];
+  return GRID[s];
+}
+
+function resetKarts() {
+  if (n2.wsMode()) {
+    // WS: wire order (racers() is already in slot order 0..3); the AI (slot
+    // >= humansIn) launches staggered — matches the wire grid startRace sends,
+    // so the host's countdown mirror equals the joiner's.
+    const list = racers();
+    for (let s = 0; s < list.length; s++) {
+      const g = gridForSlot(s);
+      list[s].laps = game.laps; list[s].placeAt(g.u, g.o);
+    }
+    syncRosterVisibility();
+    return;
+  }
+  if (game.netMode !== 2) {
+    // solo: the player keeps its traditional GRID[1] start; the AI take
+    // GRID[0/2/3] (as many as the roster has) — the 4-kart case is unchanged
+    const n = Math.max(1, Math.min(4, (game.roster | 0) || 4));
+    const ai = [karts[0], karts[1], karts[2]].slice(0, n - 1);
+    const placed = [];
+    if (ai[0]) placed.push([ai[0], GRID[0]]);
+    placed.push([player, GRID[1]]);
+    if (ai[1]) placed.push([ai[1], GRID[2]]);
+    if (ai[2]) placed.push([ai[2], GRID[3]]);
+    for (const [k, g] of placed) { k.laps = game.laps; k.placeAt(g.u, g.o); }
+    syncRosterVisibility();
+    return;
+  }
+  // LAN 2P (legacy): 2 humans in the front row, 2 AI in the back row
+  [player, p2, karts[0], karts[1]].forEach((k, i) => { k.laps = game.laps; k.placeAt(GRID[i].u, GRID[i].o); });
+  syncRosterVisibility();
+}
+
+/* ------------------------------------------------------------------ *
+ *  Input (each device drives its own WASD+arrows — no remapping)
+ * ------------------------------------------------------------------ */
+const keys = { up: false, down: false, left: false, right: false, drift: false };
+const KEYMAP = {
+  KeyW: 'up', ArrowUp: 'up',
+  KeyS: 'down', ArrowDown: 'down',
+  KeyA: 'left', ArrowLeft: 'left',
+  KeyD: 'right', ArrowRight: 'right',
+};
+function inText() { return (keys.left ? 1 : 0) - (keys.right ? 1 : 0); }
+// The car's single local drive source: a live finger drag (touch.js) wins over
+// the keyboard so the two never fight; fall back to the classic discrete WASD.
+// readDrive is called per frame for the player's kart, for the audio pitch, and
+// (on the client) for what gets streamed over the wire.
+const drive = { throttle: 0, steer: 0, drift: false };
+let touchDrift = false;   // the on-screen DRIFT button (phones)
+{
+  const db = document.getElementById('driftBtn');
+  if (db) {
+    const down = e => { e.preventDefault(); touchDrift = true; db.classList.add('down'); if (navigator.vibrate) navigator.vibrate(20); };
+    const up = () => { touchDrift = false; db.classList.remove('down'); };
+    db.addEventListener('pointerdown', down);
+    db.addEventListener('pointerup', up);
+    db.addEventListener('pointercancel', up);
+    db.addEventListener('pointerleave', up);
+  }
+}
+function readDrive(racing) {
+  const t = getDrive();
+  if (t.active && racing) {
+    drive.throttle = t.throttle; drive.steer = t.steer;
+    // touch: the on-screen DRIFT button, or drag the stick to FULL lock
+    drive.drift = keys.drift || touchDrift || (Math.abs(t.steer) > 0.95 && t.throttle > 0.5);
+  }
+  else {
+    drive.throttle = (keys.up ? 1 : 0) - (keys.down ? 1 : 0);
+    drive.steer = inText();
+    drive.drift = keys.drift;
+   }
+  const g = gamepadPoll();   // a connected, active pad overrides keyboard/touch
+  if (g) {
+    drive.throttle = g.throttle;
+    drive.steer = g.steer;
+    drive.drift = g.drift;
+    if (g.itemEdge) itemUseQ++;   // RT / X — edge-triggered, same as KeyE
+  }
+  return drive;
+}
+addEventListener('keydown', e => {
+  if (e.target && e.target.isContentEditable) return; // typing a pairing code — before any preventDefault eats the keystroke
+  audio.ensureAudio();
+  const k = KEYMAP[e.code];
+  if (k) { keys[k] = true; e.preventDefault(); }
+  if (e.code === 'Enter' || e.code === 'KeyR') primaryAction();
+  if (e.code === 'Escape' && game.state === 'finished') toMenu();
+  // menu pages (menu state only — no conflict with race keys)
+  if (game.state === 'menu' && !e.repeat) {
+    if (e.code === 'Digit1') setMenuPage('race');
+    if (e.code === 'Digit2') setMenuPage('multi');
+    if (e.code === 'Digit3') setMenuPage('extras');
+    if (e.code === 'Digit4') setMenuPage('controls');
+    if (e.code === 'Digit5') setMenuPage('edit');
+  }
+  if (e.code === 'KeyM') updateMusicMute();
+  if (e.code === 'KeyN') updateSfxMute();
+  if (e.code === 'KeyK') toggleMap();
+  // on the menu, arrows double as track switching (race steering unaffected —
+  // the game isn't racing, so no conflict)
+  if ((game.state === 'menu' || game.state === 'finished') && !e.repeat) {
+    if (e.code === 'ArrowLeft') { audio.ensureAudio(); cycleTrack(-1); audio.beep(330); }
+    if (e.code === 'ArrowRight') { audio.ensureAudio(); cycleTrack(1); audio.beep(440); }
+    if (e.code === 'KeyZ' && getMode() !== 'join') {
+      audio.ensureAudio(); toggleHazard(); audio.beep(getObstaclesOn() ? 440 : 330);
+    }
+    if (e.code === 'KeyI' && getMode() !== 'join') {
+      audio.ensureAudio(); toggleItems(); audio.beep(getItemsOn() ? 440 : 330);
+    }
+    if (e.code === 'KeyT') {
+      audio.ensureAudio(); toggleWeather(); audio.beep(getWeatherRain() ? 440 : 330);
+    }
+  }
+  if (e.code === 'KeyE' && game.state === 'racing' && !e.repeat) itemUseQ++; // fire held item
+  if (e.code === 'Space') { keys.drift = true; e.preventDefault(); }   // hold to drift
+});
+addEventListener('keyup', e => {
+  if (e.target && e.target.isContentEditable) return;
+  const k = KEYMAP[e.code];
+  if (k) { keys[k] = false; e.preventDefault(); }
+  if (e.code === 'Space') keys.drift = false;
+});
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  resizeMinimap();
+});
+
+// mobile: the floating "pull" joystick lives on the render canvas; it drives
+// via the same {throttle, steer} channel as the keyboard (see readDrive).
+initTouch(renderer.domElement);
+if (isTouchDevice()) document.body.classList.add('touch');   // after initTouch sets the flag
+
+// item use is edge-triggered: E queues one fire (itemUseQ), touch devices
+// auto-fire a turbo/wall ~450 ms after pickup (autoUseAt). The rubber band
+// never needs the button — it works passively (items.js tickRubber).
+let itemUseQ = 0;
+let autoUseAt = 0;
+let lastPlayerItem = 0;   // pickup sfx + touch auto-fire arming
+let perfectT = 0;         // PERFECT callout hide timer
+let cornerT = 0;          // corner-delta flash hide timer
+let bestCornerLapMs = 0;  // session-best lap (ms) — the corner-delta reference
+let bestCornerTimes = null; // its per-corner times (s)
+function tryConsumeItemUse(now) {
+  const touchFire = isTouchDevice() && now >= autoUseAt
+    && (player.item === ITEM_TURBO || player.item === ITEM_WALL);
+  if (itemUseQ > 0 || touchFire) { itemUseQ = 0; autoUseAt = 0; return true; }
+  return false;
+}
+
+function keyInput(k, racing) {
+  if (!k.isPlayer || !racing) return { throttle: 0, steer: 0 };
+  // replay mode: feed the recorded input stream (deterministic re-run)
+  if (replayMode) {
+    const f = playbackFrame(replayIdx++);
+    if (!f) return { throttle: 0, steer: 0 };   // stream done — coast out
+    return { throttle: f.th, steer: f.st, drift: f.df, use: !!f.it };
+  }
+  const c = readDrive(racing);
+  if (tryConsumeItemUse(performance.now())) {
+    recordFrame(c.throttle, c.steer, c.drift, true);
+    return { throttle: c.throttle, steer: c.steer, drift: c.drift, use: true }; // spread: drive is shared
+  }
+  recordFrame(c.throttle, c.steer, c.drift, false);
+  return c;
+}
+
+/* ------------------------------------------------------------------ *
+ *  2P net session — the orchestration (NetSession, host/join lifecycle,
+ *  the client render mirror, HUD mode wiring) lives in net2p.js; game.js
+ *  hands in the shared context and drives the per-frame host ticks +
+ *  client pass in animate().
+ * ------------------------------------------------------------------ */
+/* explosion FX (scene-level) — a kart that hits the table after a fall bursts;
+   host/solo fire it on the fellOff transition, the join client via net2p */
+const expFx = makeExplosions(scene);
+let prevFell = [];
+
+const n2 = createNet2p({
+  karts, player, p2Ref: () => p2, ensureP2,
+  racers, syncRosterVisibility, addShake, snapChaseCam, camSnap,
+  boom: (x, y, z) => expFx.boom(x, y, z),
+});
+
+// QR pairing (P2's phone): a scanned ?join=CODE opens straight into the
+// JOIN flow — mode selected, code pre-filled, connect kicked off. The
+// param is consumed so a reload doesn't re-fire the handshake.
+try {
+  const joinParam = new URLSearchParams(location.search).get('join');
+  if (joinParam) {
+    history.replaceState('', '', location.pathname);
+    n2.joinAuto(joinParam);
+    setMenuPage('multi'); // show the pairing UI (code pre-filled, connect in flight)
+  }
+} catch { /* non-URL host (file://) */ }
+
+/* 3D name tags — WS 2P: the other player's nickname floats above their kart
+   (and "YOU" above yours; AI-3/AI-4 for the AI). Solo: hidden. Billboarded
+   canvas sprites, repositioned above the kart each frame. */
+const nameTags = makeNameTags(racers, (i) => n2.wsMode() ? n2.nameOfSlot(i, false) : '');
+nameTags.addAll(scene);
+
+/* ------------------------------------------------------------------ *
+ *  Race lifecycle
+ * ------------------------------------------------------------------ */
+const camPos = new THREE.Vector3();
+const camLook = new THREE.Vector3();
+const _cdVec = new THREE.Vector3();
+
+el('nCars').textContent = String(karts.length);
+
+// snap the chase camera behind a kart's grid spot (startRace + clientStart)
+function camSnap(p) {
+  const f = new THREE.Vector3(Math.sin(p.heading), 0, Math.cos(p.heading));
+  camPos.copy(p.pos).addScaledVector(f, -CAM_DIST);
+  camPos.y = p.pos.y + CAM_HEIGHT;
+  camLook.copy(p.pos);
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+}
+
+function startRace() {
+  audio.ensureAudio();
+  audio.startMusic(getTrackIdx());
+  game.laps = LAPS;
+  resetKarts();
+  itemUseQ = 0; autoUseAt = 0; lastPlayerItem = 0;   // fresh item state each race
+  recordStart();                                     // fresh input recording each race
+  if (replayQueued) { replayQueued = false; replayMode = true; replayIdx = 0; }
+  const rb = el('replayBtn'); if (rb) rb.style.display = 'none';
+  bestCornerLapMs = 0; bestCornerTimes = null;        // fresh corner-delta reference
+  n2.resetClientItems();
+  ghostStop();          // fresh race: the ghost restarts at GO
+  game.raceTime = 0;
+  game.raceOverAt = 0;
+  const now = performance.now();
+  game.state = 'countdown';
+  game.cdText = -1;
+  hideOverlay();
+  hideCountdown();
+  startBtn.blur();
+  if (n2.role() === 'host') {
+    // fixed sim clock starts at 0 → GO at COUNTDOWN_MS (local-sim path only;
+    // WS mode gets its countdown from the server's PREP/START wall clock)
+    n2.host.t = 0; n2.host.acc = 0;
+    game.raceStart = n2.wsMode() ? now + COUNTDOWN_MS : COUNTDOWN_MS;
+    if (!n2.wsMode()) {
+      n2.host.enc = makeStateEncoder(racers().length);
+      n2.net().kartN = racers().length;
+    }
+    const list = racers();
+    n2.net().sendPrep(getTrackIdx(), COUNTDOWN_MS); // client syncs countdown first (ordered channel)
+    n2.net().sendStart({
+      karts: list.length, laps: LAPS,
+      rosterN: Math.max(1, Math.min(4, (game.roster | 0) || 4)),
+      steerFlip: false, simDt: SIM_DT,
+      grid: list.flatMap((k, s) => {
+        // WS: humans in the front, AI staggered back (gridForSlot). The local
+        // (LAN/solo) grid is unchanged (gridSlot by kart identity).
+        const g = n2.wsMode() ? gridForSlot(s) : GRID[gridSlot(k)];
+        return [g.u, g.o];
+      }),
+    });
+  } else {
+    game.raceStart = now + COUNTDOWN_MS;
+  }
+  for (const k of racers()) k.lapStart = game.raceStart;
+  camSnap(player);               // snap camera behind the player kart
+  updateHud(0, 0, racers());
+  pulseHint();               // show the "PULL TO DRIVE" cue (no-op on non-touch)
+}
+
+// grid slot per kart (non-WS only — WS uses the wire index s via gridForSlot)
+function gridSlot(k) {
+  if (game.netMode !== 2) return k === player ? 1 : k === karts[0] ? 0 : k === karts[1] ? 2 : 3;
+  return k === player ? 0 : k === p2 ? 1 : k === karts[0] ? 2 : 3; // LAN 2P
+}
+
+function finishRace() {
+  game.state = 'finished';
+  hideCountdown();
+  ghostStop();
+  const best = player.lapDone > 0 ? Math.min(...player.lapTimes) : null;
+  el('best').innerHTML = 'BEST <span class="val">' + fmt(best) + '</span>';
+  const list = racers();
+  const order = raceOrder(list);
+  const nameOf = k => k.isPlayer ? 'YOU' : (k === p2 ? 'P2' : k.name);
+  const rows = [];
+  order.forEach((k, i) => {
+    const nm = nameOf(k);
+    const lap = k.lapTimes.length ? ' ' + fmt(k.lapTimes[k.lapTimes.length - 1]) : '';
+    rows.push((i + 1) + '. ' + (k.isPlayer ? '<b>' + nm + '</b>' : nm) + lap);
+  });
+  const place = list.indexOf(player) + 1;
+  const placeMsg =
+    place === 1 ? 'YOU WRECKED EVERYONE AROUND THE TABLE' :
+    place === list.length ? 'LAST PLACE ON THE DINNER TABLE' :
+    'YOU FINISHED ' + place + ' OF ' + list.length;
+  showOverlay('RACE COMPLETE', placeMsg, 'RACE AGAIN', false, 'OR PRESS R \u00b7 ESC = MENU');
+  audio.stopMusicTimer();
+  resultsEl.innerHTML = '<b>TOTAL ' + fmt(game.raceTime) + '</b> &nbsp;·&nbsp; BEST LAP <b>' +
+    fmt(best) + '</b>' + podiumHtml(order, nameOf) +
+    '<div style="font-size:13px;letter-spacing:1px;margin-top:10px">' +
+    rows.join(' &nbsp;&nbsp; ') + '</div>';
+  resultsEl.style.display = '';
+  const replayBtn = el('replayBtn');
+  replayBtn.style.display = (n2.role() !== 'join' && hasRecording()) ? '' : 'none';
+  celebrate();   // confetti burst (resultsfx.js)
+  if (n2.role() === 'host') {
+    n2.net().sendFinish(encFinish(order.map(k => list.indexOf(k)),
+      order.map(k => k.lapTimes.length ? k.lapTimes[k.lapTimes.length - 1] * 1000 : 0)));
+  }
+}
+
+function primaryAction() {
+  if (n2.role() === 'join') return;               // the host calls the shots
+  // the host needs a live server link AND a joiner actually in the room
+  // (the old gate tested `net.open` — a method, always truthy — so the host
+  // could start a 1-player race by accident)
+  if (n2.role() === 'host' && !n2.netReady()) return;
+  if (game.state === 'menu' || game.state === 'finished') startRace();
+}
+
+// back to the menu from the results screen (Esc): the menu is the full
+// state again — fresh karts, clean HUD, mode/track/toggles all editable
+function toMenu() {
+  if (game.state !== 'finished') return;
+  if (n2.role() === 'join') return;             // the host calls the shots
+  game.state = 'menu';
+  ghostStop();
+  hideCountdown();
+  resultsEl.style.display = 'none';
+  el('lap').textContent = 'LAP 1/' + LAPS;
+  el('time').textContent = '0:00.0';
+  el('pos').textContent = '1';
+  el('speed').textContent = '0';
+  el('itemSlot').textContent = '—';
+  setMenuPage('race');
+  showOverlay('MICRO KART RACING', 'A TINY CIRCUIT ON THE DINNER TABLE',
+    'START RACE', true, 'OR PRESS ENTER \u00a0\u00b7\u00a0 3 LAPS \u00a0\u00b7\u00a0 1/2/3/4 = PAGES');
+}
+
+function updateMusicMute() {
+  const m = audio.toggleMusicMute();
+  el('muteMusic').textContent = m ? 'MUSIC OFF' : 'MUSIC';
+  el('muteMusic').classList.toggle('on', m);
+}
+
+function updateSfxMute() {
+  const m = audio.toggleSfxMute();
+  el('muteSfx').textContent = m ? 'SFX OFF' : 'SFX';
+  el('muteSfx').classList.toggle('on', m);
+}
+
+startBtn.addEventListener('click', () => {
+  audio.ensureAudio();
+  primaryAction();
+  startBtn.blur();
+});
+
+// DAILY CHALLENGE: the same UTC day always yields the same track + setup.
+// Applying it sets the hazard/item config + selects the track (persisted,
+// like a normal selection — the challenge is "today's" every boot).
+const applyDaily = () => {
+  const dc = dailyChallenge();
+  setHazard(dc.hazards);
+  setItem(dc.items);
+  const tag = document.getElementById('dailyTag');
+  if (tag) tag.textContent = `${dc.label} — ${dc.trackName} · ${dc.hazards ? 'hazards' : 'no hazards'} · ${dc.items ? 'items' : 'no items'}`;
+  // route the selection through the picker so the chip + persistence update
+  const chips = document.querySelectorAll('#trackRow .tchip');
+  if (chips[dc.track]) chips[dc.track].click();
+};
+const dailyBtn = document.getElementById('dailyBtn');
+if (dailyBtn) {
+  dailyBtn.addEventListener('click', () => { audio.ensureAudio(); applyDaily(); dailyBtn.blur(); });
+  const dc0 = dailyChallenge();
+  const tag0 = document.getElementById('dailyTag');
+  if (tag0) tag0.textContent = `${dc0.label} — ${dc0.trackName} · ${dc0.hazards ? 'hazards' : 'no hazards'} · ${dc0.items ? 'items' : 'no items'}`;
+}
+// REPLAY: re-run this race with the recorded input stream
+const replayBtnEl = document.getElementById('replayBtn');
+if (replayBtnEl) replayBtnEl.addEventListener('click', () => {
+  audio.ensureAudio();
+  replayQueued = true;
+  startRace();
+  replayBtnEl.blur();
+});
+// TRACK EDITOR: solo-only (a 2P peer would build the un-edited track)
+function initEditorButtons() {
+  const note = document.getElementById('editNote');
+  initTrackEditor(getTrackIdx(), note);
+  const soloOnly = () => {
+    if (n2.role() === 'host' && n2.net().open && note) note.textContent = 'SOLO ONLY — 2P PAIRING ACTIVE (RESET + RACE FROM THE RACE PAGE)';
+  };
+  const er = document.getElementById('editReset');
+  if (er) er.addEventListener('click', () => { resetEditor(getTrackIdx()); er.blur(); });
+  const ee = document.getElementById('editRace');
+  if (ee) ee.addEventListener('click', () => {
+    audio.ensureAudio();
+    setMenuPage('race');
+    startRace();
+    ee.blur();
+  });
+  soloOnly();
+}
+initEditorButtons();
+
+// track picker: chips + persistence. Rebuild the scene on selection;
+// track switch = rebuild the track + (re)apply its day/night mode
+function applyTrackVisuals(idx) { selectTrack(idx); setDayNightFor(idx); setWindOn(TRACKS[idx].theme === 'storm'); }
+
+// track.js already built TRACKS[0] eagerly at import, so skip a redundant build.
+initTrackPicker(
+  idx => {
+    applyTrackVisuals(idx);
+    ghostSetTrack(idx);   // best laps + ghost timeline are per-track
+    rankSetTrack(idx);   // the top-5 board is per-track too
+    setEditorTrackIdx(idx);   // the editor edits the selected track
+    if (n2.role() === 'host') n2.net().sendTrack(getTrackIdx(), getObstaclesOn(), getItemOn()); // client previews
+  },
+);
+
+// menu pages: RACE / 2P / EXTRAS / CONTROLS — chips + 1/2/3/4
+initMenuTabs(p => setMenuPage(p));
+
+// sugar hazards: restore the persisted toggle BEFORE the first rebuild so the
+// boot-up track already has its candy; Z on the menu toggles it too.
+function toggleHazard() { setHazard(!getHazardOn()); }
+setObstaclesOn(loadHazardPref());
+initHazardPicker(
+  on => {
+    setObstaclesOn(on);
+    applyTrackVisuals(getTrackIdx());
+    if (n2.role() === 'host') n2.net().sendTrack(getTrackIdx(), getObstaclesOn(), getItemOn()); // client mirrors
+  },
+  getObstaclesOn(),
+);
+
+// item boxes: restore the persisted toggle BEFORE the first rebuild so the
+// boot-up track already has its boxes; I on the menu toggles them too.
+function toggleItems() { setItem(!getItemOn()); }
+setItemsOn(loadItemPref());
+initItemPicker(
+  on => {
+    setItemsOn(on);
+    applyTrackVisuals(getTrackIdx());
+    if (n2.role() === 'host') n2.net().sendTrack(getTrackIdx(), getObstaclesOn(), getItemOn()); // client mirrors
+  },
+  getItemsOn(),
+);
+// day/night: build the starfield + moon, then set the mode for the boot track
+initDayNight();
+initGamepad();   // connect at boot (no-op headless)
+buildWeather();  // rain field (no-op headless; visible only when raining)
+
+// rain (weather.js): T on the menu + the EXTRAS chip. Purely cosmetic —
+// wet retint + streaks + puddles + dimmed lights + patter; no wire.
+function setWeather(on) {
+  setWeatherRain(on);
+  setRoadWet(on);
+  audio.rainPatter(on);
+  setWeatherChip(on);
+}
+function toggleWeather() { setWeather(!getWeatherRain()); }
+initWeatherPicker(on => setWeather(on), false);
+if (getTrackIdx() !== 0 || getObstaclesOn() || getItemsOn()) applyTrackVisuals(getTrackIdx());
+setDayNightFor(getTrackIdx());
+
+// restore mute preferences
+try {
+  if (localStorage.getItem('mkr-music') === '1') audio.setMusicMuted(true);
+  if (localStorage.getItem('mkr-sfx') === '1') audio.setSfxMuted(true);
+} catch { /* private mode */ }
+el('muteMusic').textContent = audio.isMusicMuted() ? 'MUSIC OFF' : 'MUSIC';
+el('muteMusic').classList.toggle('on', audio.isMusicMuted());
+el('muteSfx').textContent = audio.isSfxMuted() ? 'SFX OFF' : 'SFX';
+el('muteSfx').classList.toggle('on', audio.isSfxMuted());
+el('muteMusic').addEventListener('click', e => { audio.ensureAudio(); updateMusicMute(); e.target.blur(); });
+el('muteSfx').addEventListener('click', e => { audio.ensureAudio(); updateSfxMute(); e.target.blur(); });
+
+/* ------------------------------------------------------------------ *
+ *  Minimap — a top-down track map (bottom-left HUD). Shown on the grid and
+ *  during the race; hidden on the menu / results. 'K' toggles it (persisted).
+ * ------------------------------------------------------------------ */
+let mmOn = true;
+try { if (localStorage.getItem('mkr-map') === '0') mmOn = false; } catch { /* private mode */ }
+initMinimap();
+initGhost(getTrackIdx());
+rankInit();   // top-5 best-lap board (rankings.js)
+// nickname (the multi page's #nickIn) — persisted across reloads
+try {
+  const _nickIn = el('nickIn');
+  if (_nickIn) {
+    const _savedName = localStorage.getItem('mkr-name');
+    if (_savedName) _nickIn.value = _savedName;
+    _nickIn.addEventListener('input', () => {
+      try { localStorage.setItem('mkr-name', _nickIn.value.trim().slice(0, 12)); } catch { /* private mode */ }
+    });
+  }
+} catch { /* private mode / headless */ }
+/* ------------------------------------------------------------------ *
+ *  Roster — solo (total karts = you + AI, mkr-solo, default 4) and
+ *  online (human seats, mkr-online, default 2). The default mode is solo,
+ *  so the initial game.roster is the solo roster; each mode's picker
+ *  restores its own saved value on switch (see the mode callback in net2p).
+ * ------------------------------------------------------------------ */
+function clampRoster(v, d) { v = parseInt(v, 10); return Math.max(1, Math.min(4, isNaN(v) ? d : v)); }
+try {
+  const soloRow = el('soloRosterRow');
+  if (soloRow) for (const c of soloRow.children)
+    c.addEventListener('click', () => {
+      game.roster = clampRoster(c.dataset.roster, 4);
+      for (const x of soloRow.children) x.classList.toggle('sel', x === c);
+      try { localStorage.setItem('mkr-solo', String(game.roster)); } catch { /* private mode */ }
+      syncRosterVisibility(); c.blur();
+    });
+  const soloV = clampRoster(localStorage.getItem('mkr-solo'), 4);
+  const onlineV = clampRoster(localStorage.getItem('mkr-online'), 2);
+  if (soloRow) for (const x of soloRow.children) x.classList.toggle('sel', parseInt(x.dataset.roster, 10) === soloV);
+  game.roster = soloV;              // the default mode is solo
+  setHostRoster(onlineV);          // the online picker shows its saved value
+} catch { /* private mode / headless */ }
+
+function toggleMap() {
+  mmOn = !mmOn;
+  try { localStorage.setItem('mkr-map', mmOn ? '1' : '0'); } catch { /* private mode */ }
+  setMinimapVisible(false);              // re-evaluated next frame from the game state
+}
+
+/* ------------------------------------------------------------------ *
+ *  Collision juice: jolt both karts + shake the camera if it's our kart
+ * ------------------------------------------------------------------ */
+function crashJuice(a, b, v) {
+  a.jolt = Math.min(1, Math.max(a.jolt, v));
+  b.jolt = Math.min(1, Math.max(b.jolt, v));
+  if (a === player || b === player) addShake(v * 0.9);
+  if (a === p2 || b === p2) addShake(v * 0.9); // client: our kart is p2
+  if (a === player || b === player) audio.crash(v);
+}
+
+/* Sugar-hazard juice: jolt + shake + thump when one of OUR karts clips candy */
+function obJuice(k, v) {
+  k.jolt = Math.min(1, Math.max(k.jolt, v));
+  if (k === player || k === p2) addShake(v * 0.7);
+  if (k === player || k === p2) audio.crash(v * 0.8);
+}
+
+/* wall juice: shake + thump when one of our karts eats a wall (host + solo;
+ * the join client sees the slam via the host's position snap + jolt). */
+function wallJuice(w, k) {
+  if (k === player || k === p2) { addShake(0.8); audio.crash(0.8); }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Per-kart input: who drives each kart, per context
+ * ------------------------------------------------------------------ */
+function soloInputFor(k, racing) {
+  if (k.isPlayer) return keyInput(k, racing);
+  if (racing) { const c = aiControl(k, racers()); return { throttle: c.throttle, steer: c.steer, use: !!c.use }; }
+  return { throttle: 0, steer: 0 };
+}
+
+function hostInputFor(k, racing) {
+  if (k.isPlayer) return keyInput(k, racing);
+  if (k === p2) {
+    // the peer's kart: driven from the wire (or still before the channel / GO)
+    if (!racing || !n2.net() || !n2.net().open || p2.netOn === false) return { throttle: 0, steer: 0 };
+    const inp = n2.input();
+    if (inp.at && performance.now() - inp.at < 250) {
+      return { throttle: inp.throttle, steer: inp.steer, drift: inp.drift, use: !!inp.use };
+    }
+    return { throttle: 0, steer: 0 }; // peer frozen — no phantom throttle
+  }
+  if (racing) { const c = aiControl(k, racers()); return { throttle: c.throttle, steer: c.steer, use: !!c.use }; }
+  return { throttle: 0, steer: 0 };
+}
+
+/* ------------------------------------------------------------------ *
+ *  Cameras
+ * ------------------------------------------------------------------ */
+let camShake = 0; // collision camera shake, decays
+let hapticMs = 0; // last drift-charge milestone (haptic pulses)
+function addShake(v) { camShake = Math.min(1, camShake + v); }
+
+// replay: record the player's input each race; REPLAY re-runs it
+let replayMode = false, replayIdx = 0, replayQueued = false;
+
+function snapChaseCam(dt) {
+  const p = n2.selfKart();
+  const fx = Math.sin(p.heading), fz = Math.cos(p.heading);
+  // 9:16 portrait layout pass: narrow screens crop the chase — pull the
+  // camera in + up so the kart and the road ahead both fit
+  const portrait = typeof window !== 'undefined' && window.innerWidth < window.innerHeight;
+  const cdist = portrait ? CAM_DIST * 0.82 : CAM_DIST;
+  const cheight = portrait ? CAM_HEIGHT * 1.2 : CAM_HEIGHT;
+  // the camera rides with the kart's elevation (3D tracks: p.pos.y > 0)
+  const target = _cdVec.set(p.pos.x - fx * cdist, p.pos.y + cheight, p.pos.z - fz * cdist);
+  camPos.lerp(target, 1 - Math.exp(-7 * dt));
+  camera.position.copy(camPos);
+  camLook.lerp(_cdVec.set(p.pos.x + fx * 3.5, p.pos.y + 0.9, p.pos.z + fz * 3.5), 1 - Math.exp(-7 * dt));
+  camera.lookAt(camLook);
+  // speed-FOV: widens with speed for a sense of pace (55 -> ~70 at top speed)
+  const fovT = 55 + 15 * Math.min(Math.abs(p.speed) / 30, 1) + (portrait ? 8 : 0);
+  camera.fov += (fovT - camera.fov) * Math.min(1, 4 * dt);
+  camera.updateProjectionMatrix();
+  // collision shake: high-frequency offset, decays fast
+  if (camShake > 0.003) {
+    const t = performance.now() * 0.05;
+    camera.position.x += Math.sin(t * 1.7) * camShake * 0.28;
+    camera.position.y += Math.sin(t * 2.3 + 1.3) * camShake * 0.22;
+    camera.position.z += Math.sin(t * 1.9 + 2.1) * camShake * 0.28;
+    camera.lookAt(camLook);
+    camShake *= Math.exp(-9 * dt);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Main loop — three contexts:
+ *    solo    variable-step sim (byte-identical feel to the old loop)
+ *    host    fixed-step sim (@SIM_DT), authoritative, broadcasts state
+ *    join    render-only: interpolate host state, send key input
+ * ------------------------------------------------------------------ */
+const clock = new THREE.Clock();
+const menuLook = new THREE.Vector3(0, 0, 5);
+
+/* main-thread health: the rAF gap (a big gap = the tab's main thread was
+   busy — the whole page froze; a small gap + a big NET gap = the frames
+   stopped arriving). 5 s rolling max. */
+let lastLoopT = 0, rafMax = 0, rafMaxAt = 0;
+
+/* freeze detector: any single rAF gap > 300 ms announces itself with a loud
+   banner (visible in a normal screen recording) + logs to window.__mkr.freezes
+   with the NET/BUF/EXT values at that instant. A big RAF = main thread stalled;
+   a small RAF + big NET = frames stopped arriving. This is the one datum that
+   settles whether the stutter is the client's render loop or the network. */
+function announceFreeze(g) {
+  window.__mkr = window.__mkr || {};
+  window.__mkr.freezes = window.__mkr.freezes || [];
+  const nd = n2.netDebug ? n2.netDebug() : null;
+  window.__mkr.freezes.push({ t: Date.now(), gap: Math.round(g), net: nd ? nd.netMax : -1, buf: nd ? nd.bufMs : -1, ext: nd ? nd.extMs : -1, vis: document.visibilityState });
+  const fz = document.getElementById('freezeBanner');
+  if (!fz) return;
+  fz.textContent = `FREEZE ${(g / 1000).toFixed(1)}s — NET ${nd ? nd.netMax.toFixed(0) : '?'}ms · RAF ${g.toFixed(0)}ms · BUF ${nd ? nd.bufMs.toFixed(0) : '?'}ms · EXT ${nd ? nd.extMs.toFixed(0) : '?'}ms`;
+  fz.style.opacity = '1';
+  clearTimeout(animate._fzT);
+  animate._fzT = setTimeout(() => { fz.style.opacity = '0'; }, 4000);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const rafNow = performance.now();
+  if (lastLoopT) {
+    const g = rafNow - lastLoopT;
+    if (rafNow - rafMaxAt > 5000) { rafMax = 0; rafMaxAt = rafNow; }
+    rafMax = Math.max(rafMax, g);
+    if (g > 300 && typeof window !== 'undefined') announceFreeze(g);
+  }
+  lastLoopT = rafNow;
+  game.dt = Math.min(clock.getDelta(), 0.05);
+  const dt = game.dt;
+  const now = performance.now();
+  updateDayNight(now * 0.001); // the sky drifts (menu included — the orbit view shows it too)
+  tickWeather(1 / 60, camera.position); // rain (no-op when off)
+  applyWeatherLights();                // dim after daynight's absolute set
+  tickPuddles(1 / 60);
+  if (getWeatherRain()) puddleRipple(player.pos.x, player.pos.z, player.pos.y);
+  tickScenery(now * 0.001);   // crystals pulse, beacon rotates, buoys bob
+  const list = racers();
+  const role = n2.role();
+  // netplay debug line (1 Hz DOM update): NET = worst state-frame arrival gap
+  // over the last 10 s on THIS browser's WS path (Traefik included), RAF =
+  // worst main-thread frame gap over 5 s, BUF = live buffer depth, EXT = how
+  // far the render point is extrapolating past the newest frame.
+  // A whole-page freeze shows as big RAF; a kart-only freeze as big NET.
+  if (role && now - (animate._dbgAt || 0) > 1000) {
+    animate._dbgAt = now;
+    const d = n2.netDebug ? n2.netDebug() : null;
+    const elD = document.getElementById('netDebug');
+    if (elD && d) {
+      elD.style.display = '';
+      elD.textContent = `NET ${d.netMax.toFixed(0)}ms${d.netMaxN > 2 ? ' x' + d.netMaxN : ''} · RAF ${rafMax.toFixed(0)}ms · BUF ${d.bufMs.toFixed(0)}ms · EXT ${d.extMs.toFixed(0)}ms`;
+    } else if (elD) elD.style.display = 'none';
+  }
+  // reactive props (cosmetic): a kart near a roadside prop spins/wobbles it —
+  // runs before the sim step, so contact is one frame behind (imperceptible)
+  tickProps(dt, list);
+  tickHazards(dt, list);
+  // the pull-joystick only drives while the car may move; it parks on menu/results
+  touchSetActive(game.state === 'countdown' || game.state === 'racing');
+
+  if (game.state === 'menu') {
+    const a = now * 0.00009;
+    camera.position.set(Math.cos(a) * 105, 62, Math.sin(a) * 105 + 5);
+    camera.lookAt(menuLook);
+  } else if (game.state === 'countdown') {
+    let clockMs = now;
+    if (role === 'host' && !n2.wsMode()) {
+      // step the (static) sim so hostSimT tracks the client's expected wall clock
+      n2.host.acc += Math.min(dt, 0.1);
+      let steps = 0;
+      while (n2.host.acc >= SIM_DT && steps < 8) {
+        n2.host.t += SIM_DT * 1000;
+        n2.host.tick = (n2.host.tick || 0) + 1;
+        simulateTick(list, hostInputFor, SIM_DT, n2.host.t, { racing: false });
+        if ((n2.host.tick & 1) === 0) n2.broadcast();   // 30 Hz on the wire — the 60 Hz sim keeps running locally
+        n2.host.acc -= SIM_DT;
+        steps++;
+      }
+      if (steps === 8) n2.host.acc = 0;
+      clockMs = n2.host.t;
+    }
+    const remain = (game.raceStart - clockMs) / 1000;
+    const txt = remain <= 0 ? 'GO' : String(remain > 3 ? 3 : Math.ceil(remain - 1e-6));
+    if (txt !== game.cdText) {
+      game.cdText = txt;
+      if (txt === 'GO') audio.go(); else audio.beep(440);
+      const c = el('countdown');
+      c.textContent = txt;
+      c.classList.add('on');
+      c.classList.toggle('go', txt === 'GO');
+    }
+    if (clockMs >= game.raceStart + 700) {
+      game.state = 'racing';
+      hideCountdown();
+      if (role === 'host' && !n2.wsMode()) { n2.host.acc = 0; n2.host.tick = 0; p2.netOn = true; }
+      // GO — the ghost laps with us from here (join clients mirror, never record)
+      if (role !== 'join' && !n2.wsMode()) ghostLapStart();
+    }
+  } else if (role === 'join' || n2.wsMode()) {      // ---- WS + client: no sim, render snapshots + stream our input ----
+    if (game.state === 'racing') {
+      // live touch drag drives over the wire; otherwise the keyboard. steer pitch
+      const d = readDrive(true);
+      const use = tryConsumeItemUse(performance.now());   // E / touch auto-fire
+      n2.inputNow(d.throttle, d.steer, d.drift, use);   // inputNow is on the n2 factory, not the session
+      n2.applyClientState(dt);
+      const sk = n2.selfKart();
+      if (sk.item !== lastPlayerItem) {   // item juice on the wire-mirrored item
+        if (sk.item !== 0) {
+          audio.beep(660 + 220 * sk.item);
+          if (isTouchDevice() && (sk.item === ITEM_TURBO || sk.item === ITEM_WALL)) autoUseAt = performance.now() + 450;
+        }
+        lastPlayerItem = sk.item;
+      }
+      audio.updateEngine(sk.speed, d.steer, !sk.offRoad, d.drift && sk.speed * KMH_PER_U > DRIFT_MIN_KMH, (sk.charge || 0) / DRIFT_CHARGE_MAX, sk.boost || 0); // engine sound from interpolated speed
+      // HUD from the interpolated mirror — the WS branch previously had NO
+      // HUD update, so the item slot / speed / lap counter sat frozen at
+      // grid values on both devices ("the joiner can't catch items").
+      // updateHud reads karts[karts.length-1] as the player → self last.
+      const rl = racers();
+      game.raceTime = Math.max(0, (now - game.raceStart) / 1000);
+      updateHud(game.raceTime, Math.max(0, (now - sk.lapStart) / 1000),
+        [...rl.filter(k => k !== sk), sk]);
+    }
+  } else {
+    // ---- solo + net host sim: ONE shared body, only the time base differs.
+    // The host steps fixed SIM_DT ticks off its own sim clock (n2.host.t) and
+    // streams every tick; solo steps a single variable dt off performance.now().
+    const racing = game.state === 'racing'; // false after finish: karts coast
+    let clockMs;
+    if (role === 'host') {
+      n2.host.acc += Math.min(dt, 0.1);
+      let steps = 0;
+      while (n2.host.acc >= SIM_DT && steps < 8) {
+        n2.host.t += SIM_DT * 1000;
+        n2.host.tick = (n2.host.tick || 0) + 1;
+        p2.netOn = true;
+        simulateTick(list, hostInputFor, SIM_DT, n2.host.t, {
+          racing,
+          crashFor: crashJuice,
+          obFor: obJuice,
+          wallFor: wallJuice,
+        });
+        if (racing && (n2.host.tick & 1) === 0) n2.broadcast();   // 30 Hz on the wire (60 Hz sim stays local)
+        n2.host.acc -= SIM_DT;
+        steps++;
+      }
+      if (steps === 8) n2.host.acc = 0; // tab stall — stop the sim rather than spiral
+      clockMs = n2.host.t;
+    } else {
+      simulateTick(list, soloInputFor, dt, now, {
+        racing,
+        crashFor: crashJuice,
+        obFor: obJuice,
+        wallFor: wallJuice,
+      });
+      clockMs = now;
+    }
+    audio.updateEngine(player.speed, readDrive(racing).steer, !player.offRoad, player.drifting, player.charge / DRIFT_CHARGE_MAX, player.boost);
+    // music reactivity: drift charge + boost open the filter + add arp density
+    audio.setMusicEnergy(0.55 * (player.charge / DRIFT_CHARGE_MAX) + 0.45 * Math.min(player.boost, 1));
+    // haptic pulses on drift-charge milestones (phones feel the slide building)
+    {
+      const c = player.charge / DRIFT_CHARGE_MAX;
+      if (c > hapticMs && c - hapticMs >= 0.3) {
+        hapticMs = c;
+        if (navigator.vibrate) navigator.vibrate(c >= PERFECT_CHARGE ? [40, 30, 40] : 30);
+      }
+      if (c < hapticMs - 0.2) hapticMs = 0;
+    }
+    if (player.boostEdge) {   // drift released with charge — whoosh (louder = more charge)
+      player.boostEdge = false;
+      if (player.boost > 0.2) audio.beep(430 + 640 * player.boost);
+    }
+    if (player.perfectEdge) {  // PERFECT release — callout + chime
+      player.perfectEdge = false;
+      audio.perfect();
+      const pc = el('perfectCallout');
+      pc.classList.remove('hidden');
+      clearTimeout(perfectT);
+      perfectT = setTimeout(() => pc.classList.add('hidden'), 1200);
+    }
+    // corner-delta flash: +/- vs the session-best lap's per-corner time
+    const cc = player.cornerClosedNow;
+    const cd = el('cornerDelta');
+    if (cc && now - cc.t < 1500 && player.cornerTimes && player.cornerTimes[cc.idx] !== undefined) {
+      const t = player.cornerTimes[cc.idx];
+      const d = bestCornerTimes ? t - bestCornerTimes[cc.idx] : 0;
+      cd.textContent = bestCornerTimes ? (d >= 0 ? '+' : '\u2212') + Math.abs(d).toFixed(2) : t.toFixed(2);
+      cd.style.color = !bestCornerTimes ? '#c9d4e8' : (d > 0.02 ? '#ff9d8a' : d < -0.02 ? '#9be36a' : '#c9d4e8');
+      cd.classList.remove('hidden');
+      clearTimeout(cornerT);
+      cornerT = setTimeout(() => cd.classList.add('hidden'), 1500);
+    } else cd.classList.add('hidden');
+    if (racing && player.item !== lastPlayerItem) {   // pickup chime + touch auto-fire arming
+      if (player.item !== 0) {
+        audio.beep(660 + 220 * player.item);
+        if (isTouchDevice() && (player.item === ITEM_TURBO || player.item === ITEM_WALL)) autoUseAt = now + 450;
+      }
+      lastPlayerItem = player.item;
+    }
+    if (player.lapDone !== game.lastLapBeep) {
+      game.lastLapBeep = player.lapDone;
+      if (player.lapDone > 0 && !player.raceDone) audio.lap();
+      if (player.lapDone > 0 && role !== 'join') {
+        // completed lap: bank it if it's the track best, then start the next
+        // ghost lap (finisher's partial final lap never gets recorded)
+        const prev = player.lapDone - 1;
+        if (!player.raceDone || prev <= player.laps) {
+          const lapMs = player.lapTimes.length ? player.lapTimes[player.lapTimes.length - 1] * 1000 : 0;
+          if (ghostLapDone(lapMs)) audio.beep(990);   // new track record chime
+          const rk = rankLapDone(lapMs);              // top-5 board (same local-only gate)
+          if (rk > 0) hudRankNudge(rk);              // "NEW RECORD — #N" flash
+          // corner-delta reference: bank the session-best lap's per-corner times
+          if (player.lapCorners && player.lapCorners.length && (!bestCornerLapMs || lapMs < bestCornerLapMs)) {
+            bestCornerLapMs = lapMs;
+            bestCornerTimes = player.lapCorners.slice();
+          }
+          if (!player.raceDone) ghostLapStart();
+        }
+      }
+    }
+    if (racing) ghostFrame(dt, player);
+    if (racing) {
+      let finished = 0;
+      for (const k of list) if (k.raceDone) finished++;
+      if (player.raceDone === false && finished >= list.length - 1 && game.raceOverAt === 0) {
+        game.raceOverAt = clockMs + 5000; // player still racing, rivals done — give it a moment
+      }
+      if (finished >= list.length && game.raceOverAt === 0) game.raceOverAt = clockMs + 1200;
+    }
+    for (const k of list) k.sync(dt);
+    nameTags.update();   // 3D name tags follow the karts (WS 2P only)
+    game.raceTime = Math.max(0, (clockMs - game.raceStart) / 1000);
+    if (game.state !== 'finished') {
+      updateHud(game.raceTime, Math.max(0, (clockMs - player.lapStart) / 1000), list);
+      snapChaseCam(dt);
+    }
+    // `racing &&` fires finishRace exactly once, on the frame the flag drops.
+    // (The old host path lacked this guard and re-ran finishRace — re-sending
+    // finish frames at 60 Hz — for every frame after the race ended.)
+    if (racing && (player.raceDone || (game.raceOverAt && clockMs >= game.raceOverAt))) finishRace();
+  }
+  if (game.state !== 'menu') {
+    for (const k of list) dustForKart(k, dt);
+    updateDust(dt);
+  }
+   // minimap: on the grid + during the race (hidden on menu / results)
+  if (mmOn && (game.state === 'countdown' || game.state === 'racing')) {
+    setMinimapVisible(true);
+    updateMinimap(list, n2.selfKart());
+   } else {
+    setMinimapVisible(false);
+   }
+  updateItemBoxes(dt, now);   // spin + bob the item boxes (hidden while respawning)
+  syncWallMeshes();           // point the pooled wall meshes at live projectiles
+  syncStickyPatches(now * 0.001);   // the slow patches (fade + pulse)
+  // explosion on floor-hit: every kart that just started its fell-off stun
+  // (solo/LAN host on its own sim karts; WS mode on the server-mirrored
+  // karts on BOTH devices — the state frame now carries fellOff)
+  if (role !== 'join' || n2.wsMode()) {
+    for (let i = 0; i < list.length; i++) {
+      const k = list[i];
+      if (!k || !k.pos) continue;
+      if (k.fellOff && !prevFell[i]) {
+        expFx.boom(k.pos.x, k.pos.y, k.pos.z);
+        audio.explode();
+      }
+      prevFell[i] = !!k.fellOff;
+    }
+  }
+  expFx.update(dt);
+  renderer.render(scene, camera);
+}
+
+/* Read-only E2E hook for the Playwright gates (no-op in headless Node). */
+if (typeof window !== 'undefined') {
+  window.__mkr = { game, n2, player: () => player, racers: () => racers(), nameTags, build: '' };
+  // BUILD tag: which server build is this page talking to (the /health commit
+  // is CI-injected). A stale client build used to run old code silently after a
+  // deploy — the tag makes a one-glance "am I on the latest?" check possible.
+  fetch('/health').then(r => r.json())
+    .then(h => {
+      window.__mkr.build = (h.commit || 'dev').slice(0, 7);
+      const t = document.getElementById('buildTag');
+      if (t) t.textContent = 'BUILD ' + window.__mkr.build;
+    }).catch(() => {});
+}
+
+animate();

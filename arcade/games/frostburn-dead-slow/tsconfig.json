@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2022",
+    "module": "CommonJS",
+    "types": [],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
+  },
+  "files": [
+    "src/boundary-globals.d.ts",
+    "src/rail-commands.js",
+    "src/simulations.js",
+    "src/rail-adapter.js",
+    "src/polar-adapter.js",
+    "src/compatibility.js",
+    "src/rail-levels.js",
+    "tools/validate-rail.cjs",
+    "tests/contracts.ts"
+  ]
+}

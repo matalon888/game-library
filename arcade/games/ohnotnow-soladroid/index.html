@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111713" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23111713'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23ffc74d' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23e8e1c7'/%3E%3C/svg%3E" />
+    <meta
+      name="description"
+      content="SolaDroid: Deck Override — a browser action game of robot possession and descent into a hostile starship intelligence."
+    />
+    <title>SolaDroid: Deck Override</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="cabinet" aria-label="SolaDroid: Deck Override game">
+      <header class="masthead">
+        <div class="brand-lockup" aria-label="SolaDroid Deck Override">
+          <span class="brand-kicker">DECK CONTROL // 20</span>
+          <h1>SOLADROID</h1>
+          <span class="brand-edition">DECK OVERRIDE</span>
+        </div>
+        <div class="ship-stamp" aria-hidden="true">
+          <span>ROVING SYSTEMS</span>
+          <strong>RMS // CERES</strong>
+        </div>
+      </header>
+
+      <section class="game-shell">
+        <div class="hud" aria-live="polite">
+          <div class="hud-unit">
+            <span class="hud-label">CHASSIS</span>
+            <strong id="hudDroid">001</strong>
+            <span id="hudName">INFLUENCE</span>
+          </div>
+          <div class="hud-energy">
+            <div class="hud-energy-copy">
+              <span class="hud-label">INTEGRITY</span>
+              <span id="hudEnergyText">100%</span>
+            </div>
+            <div class="energy-track"><i id="hudEnergyBar"></i></div>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-label">DECK</span>
+            <strong id="hudDeck">01/20</strong>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-label">HOSTILES</span>
+            <strong id="hudHostiles">00</strong>
+          </div>
+          <div class="hud-stat hud-score">
+            <span class="hud-label">SCORE</span>
+            <strong id="hudScore">000000</strong>
+          </div>
+        </div>
+
+        <div id="viewport" class="viewport">
+          <canvas id="gameCanvas" width="1280" height="720" aria-label="Game view"></canvas>
+          <div class="screen-glass" aria-hidden="true"></div>
+          <div id="objective" class="objective" aria-live="polite"></div>
+          <aside id="radar" class="radar" aria-label="Ship navigation radar">
+            <header><span>NAV-COM</span><strong id="radarStatus">SIGNAL LOCK</strong></header>
+            <canvas id="radarCanvas" width="440" height="250" aria-label="Map showing your position, hostiles, terminal, and lift"></canvas>
+            <footer><span><i class="radar-you"></i>YOU</span><span><i class="radar-hostile"></i>HOSTILE</span><span><i class="radar-goal"></i>OBJECTIVE</span></footer>
+          </aside>
+          <section id="tutorial" class="field-guide" aria-live="polite">
+            <div class="guide-rail" aria-hidden="true"><i id="tutorialProgress"></i></div>
+            <div class="guide-heading">
+              <span id="tutorialStep">FIELD GUIDE // 01</span>
+              <span><kbd>T</kbd> DISMISS</span>
+            </div>
+            <h2 id="tutorialTitle">GET YOUR BEARINGS</h2>
+            <p id="tutorialBody">Move with <kbd>WASD</kbd> or the arrow keys. Your droid fires in the last direction it travelled.</p>
+          </section>
+          <div id="prompt" class="action-prompt" aria-live="polite"></div>
+          <div id="toast" class="toast" aria-live="assertive"></div>
+
+          <section id="startScreen" class="overlay start-screen is-visible" aria-labelledby="startTitle">
+            <div class="start-grid" aria-hidden="true"></div>
+            <div class="start-emblem" aria-hidden="true">
+              <div class="influence-orb"><i></i><b>001</b></div>
+            </div>
+            <div class="start-copy">
+              <span class="eyebrow">RMS CERES // SECURITY INCIDENT 7</span>
+              <h2 id="startTitle">THE CREW IS GONE.<br />THE MACHINES AREN'T.</h2>
+              <p>
+                You are Influence Device <strong>001</strong>. Board hostile droids, turn their
+                weapons against them, and descend through twenty decks to Central Command.
+              </p>
+              <button id="startButton" class="primary-button" type="button">
+                <span>INITIALISE</span><kbd>ENTER</kbd>
+              </button>
+              <div class="control-strip">
+                <span><kbd>WASD</kbd> MOVE</span>
+                <span><kbd>SPACE</kbd> FIRE</span>
+                <span><kbd>E</kbd> INTERACT / TRANSFER</span>
+                <span><kbd>P</kbd> PAUSE</span>
+              </div>
+              <p class="gamepad-note">GAMEPAD READY · LEFT STICK MOVE · RIGHT STICK AIM · A FIRE · X TRANSFER</p>
+              <p class="briefing-note">FIRST DEPLOYMENT INCLUDES ACTIVE FIELD GUIDANCE</p>
+            </div>
+          </section>
+
+          <section id="terminal" class="overlay terminal" aria-modal="true" role="dialog" aria-labelledby="terminalTitle">
+            <div class="terminal-bezel">
+              <div class="terminal-topline">
+                <span>ROVING SYSTEMS 64K</span>
+                <span id="terminalClock">READY.</span>
+              </div>
+              <div class="terminal-screen">
+                <div class="terminal-scanlines" aria-hidden="true"></div>
+                <p class="terminal-command">LOAD "<span id="terminalFile">DECK.LOG</span>",8,1</p>
+                <h2 id="terminalTitle">SHIP'S LOG</h2>
+                <div id="terminalBody" class="terminal-body"></div>
+                <p class="terminal-cursor">PRESS <kbd>E</kbd> TO RETURN<span>█</span></p>
+              </div>
+              <div class="terminal-badge">RS<span>64</span></div>
+            </div>
+          </section>
+
+          <section id="dossier" class="overlay dossier" aria-modal="true" role="dialog" aria-labelledby="dossierTitle">
+            <div class="dossier-bezel">
+              <div class="dossier-case-line">
+                <span>ROVING SYSTEMS // DROID DATA LIBRARY</span>
+                <strong>LINK PROBE ACTIVE</strong>
+              </div>
+              <div class="dossier-screen">
+                <div class="terminal-scanlines" aria-hidden="true"></div>
+                <header class="dossier-titlebar">
+                  <div><span>TRANSFER INTERCEPT</span><h2 id="dossierTitle">DROID RECOGNITION</h2></div>
+                  <p>COMPARE BEFORE COMMITTING</p>
+                </header>
+                <div class="dossier-identities">
+                  <article class="dossier-identity current-droid">
+                    <span>CURRENT HOST</span>
+                    <div><strong id="dossierCurrentId">001</strong><h3 id="dossierCurrentName">INFLUENCE</h3></div>
+                    <p id="dossierCurrentRole">INFILTRATOR</p>
+                    <small id="dossierCurrentWeapon">TWIN NEEDLE LASER</small>
+                  </article>
+                  <div class="dossier-versus">VS</div>
+                  <article class="dossier-identity target-droid">
+                    <span>TRANSFER TARGET</span>
+                    <div><strong id="dossierTargetId">123</strong><h3 id="dossierTargetName">SCOUT</h3></div>
+                    <p id="dossierTargetRole">RECON CHASSIS</p>
+                    <small id="dossierTargetWeapon">PULSE REPEATER</small>
+                  </article>
+                </div>
+                <div id="dossierStats" class="dossier-stats" aria-label="Droid capability comparison"></div>
+                <div class="dossier-verdicts">
+                  <article><span>TARGET ADVANTAGE</span><strong id="dossierStrength">Fastest chassis; excellent firing cycle.</strong></article>
+                  <article><span>TARGET LIABILITY</span><strong id="dossierWeakness">Fragile with very low shot impact.</strong></article>
+                </div>
+                <footer class="dossier-actions">
+                  <p><kbd>ESC</kbd> ABORT LINK</p>
+                  <p class="dossier-recommendation" id="dossierRecommendation">NET CHANGE // MOBILITY +2</p>
+                  <p><kbd>E</kbd> BEGIN TRANSFER</p>
+                </footer>
+              </div>
+              <div class="dossier-case-badge">DD<span>64</span></div>
+            </div>
+          </section>
+
+          <section id="transfer" class="overlay transfer" aria-modal="true" role="dialog" aria-labelledby="transferTitle">
+            <div class="transfer-panel">
+              <div class="transfer-header">
+                <div><span>TRANSFER PROTOCOL</span><strong id="transferPlayer">001</strong></div>
+                <h2 id="transferTitle">CIRCUIT DUEL</h2>
+                <div class="transfer-target"><span>TARGET</span><strong id="transferEnemy">420</strong></div>
+              </div>
+              <canvas id="transferCanvas" width="980" height="440" aria-label="Transfer circuit duel"></canvas>
+              <div class="transfer-footer">
+                <p><kbd>↑</kbd><kbd>↓</kbd> SELECT ROUTE <kbd>SPACE</kbd> COMMIT PULSE</p>
+                <p>CAPTURE FIVE CORES // EVERY PULSE IS FINITE</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="pauseScreen" class="overlay pause-screen" aria-modal="true" role="dialog">
+            <span class="eyebrow">SIMULATION SUSPENDED</span>
+            <h2>PAUSED</h2>
+            <p>Press <kbd>P</kbd> or <kbd>ESC</kbd> to continue</p>
+            <button id="resumeButton" class="primary-button" type="button">RESUME</button>
+            <button id="soundButton" class="text-button" type="button">SOUND: ON</button>
+          </section>
+
+          <section id="endScreen" class="overlay end-screen" aria-modal="true" role="dialog">
+            <span id="endEyebrow" class="eyebrow">SYSTEM REPORT</span>
+            <h2 id="endTitle">SHIP SECURED</h2>
+            <p id="endMessage"></p>
+            <div class="end-stats">
+              <div><span>SCORE</span><strong id="endScore">000000</strong></div>
+              <div><span>HIGH SCORE</span><strong id="endHighScore">000000</strong></div>
+            </div>
+            <button id="restartButton" class="primary-button" type="button">RUN AGAIN <kbd>ENTER</kbd></button>
+          </section>
+        </div>
+      </section>
+
+      <footer class="cabinet-footer">
+        <span>UNOFFICIAL HOMAGE // ORIGINAL CONCEPT: A. BRAYBROOK</span>
+        <span class="status-lamps"><i></i><i></i><i></i></span>
+        <span>NO POINTER REQUIRED</span>
+      </footer>
+    </main>
+    <script type="module" src="game.js"></script>
+  </body>
+</html>

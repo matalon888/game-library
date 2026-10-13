@@ -1,0 +1,648 @@
+/* ── LIGHTCONE · one fixed screen: the arena, with the HUD living inside it ── */
+
+:root {
+  --void: #05070f;
+  --panel: #0a0e1b;
+  --line: #1b2138;
+  --text: #c8d2e8;
+  --text-dim: #6c7691;
+  --bright: #f2f6ff;
+
+  --you: #5df2d6;        /* hider: teal */
+  --you-dim: rgba(93, 242, 214, 0.14);
+  --trail: #ff4fc3;      /* scent: magenta */
+  --seeker: #ffb454;     /* agent: amber */
+  --danger: #ff5d5d;
+  --beyond: #b26bff;     /* ascension: violet */
+
+  --display: "Michroma", sans-serif;
+  --body: "Sora", system-ui, sans-serif;
+  --mono: "Martian Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+
+body {
+  background:
+    radial-gradient(1200px 700px at 50% -10%, #0b1122 0%, var(--void) 60%);
+  color: var(--text);
+  font-family: var(--body);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+}
+
+.mono { font-family: var(--mono); }
+
+/* ── header ── */
+header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 22px 8px;
+}
+
+.brand { display: flex; align-items: baseline; gap: 12px; }
+
+/* the light cone — two null lines crossing at the event. on the plane it is
+   the 2+1 cone (a pair of triangles); once anyone has stepped beside the
+   world it becomes the 3+1 cone: the same shape, but with a base you can see */
+.brand-mark {
+  align-self: center;
+  width: 22px; height: 22px;
+  overflow: visible;
+  filter: drop-shadow(0 0 7px var(--you));
+  transition: filter .8s;
+}
+.brand-mark .lc-future { fill: var(--you); fill-opacity: 0.92; }
+.brand-mark .lc-past   { fill: var(--you); fill-opacity: 0.2; stroke: var(--you); stroke-opacity: 0.7; stroke-width: 0.8; stroke-linejoin: round; }
+.brand-mark .lc-rim    { fill: none; stroke: var(--bright); stroke-width: 1; }
+.brand-mark .lc-rim-past { stroke-opacity: 0.55; }
+.brand-mark .lc-event  { fill: #fff; }
+.brand-mark .lc-3d { display: none; }
+
+.brand.ascended .brand-mark { filter: drop-shadow(0 0 9px var(--beyond)); }
+.brand.ascended .brand-mark .lc-2d { display: none; }
+.brand.ascended .brand-mark .lc-3d { display: inline; }
+.brand.ascended .brand-mark .lc-future,
+.brand.ascended .brand-mark .lc-past { fill: var(--beyond); stroke: var(--beyond); }
+
+.brand h1 {
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: 0.34em;
+  color: var(--bright);
+  font-weight: 400;
+  transition: color .8s, text-shadow .8s;
+}
+.brand.ascended h1 { color: #ece0ff; text-shadow: 0 0 14px rgba(178, 107, 255, 0.45); }
+.brand h1.renamed { animation: brand-rename 1.2s ease-out; }
+@keyframes brand-rename {
+  0%   { color: var(--beyond); text-shadow: 0 0 22px var(--beyond); letter-spacing: 0.52em; opacity: 0.2; }
+  35%  { opacity: 1; }
+  100% { letter-spacing: 0.34em; }
+}
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+.webmcp-badge {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font: 9px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.webmcp-badge[data-state="ready"] {
+  border-color: rgba(93, 242, 214, 0.45);
+  color: var(--you);
+  box-shadow: 0 0 10px rgba(93, 242, 214, 0.08);
+}
+.webmcp-badge[data-state="error"],
+.webmcp-badge[data-state="unavailable"] {
+  border-color: rgba(255, 93, 136, 0.45);
+  color: var(--danger);
+}
+
+/* ── buttons ── */
+.icon-btn, .primary-btn, .ability {
+  font-family: var(--body);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  transition: border-color .15s, color .15s;
+}
+.icon-btn:hover { border-color: var(--text-dim); color: var(--bright); }
+.icon-btn[aria-pressed="false"] { color: var(--text-dim); }
+.icon-btn svg {
+  width: 16px; height: 16px;
+  fill: none; stroke: currentColor; stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.icon-btn .ic-off, .icon-btn[aria-pressed="false"] .ic-on { display: none; }
+.icon-btn[aria-pressed="false"] .ic-off { display: block; }
+
+.primary-btn {
+  background: var(--you-dim);
+  border: 1px solid rgba(93, 242, 214, 0.5);
+  color: var(--you);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 9px 18px;
+  transition: background .15s, box-shadow .15s;
+}
+.primary-btn:hover { background: rgba(93, 242, 214, 0.24); box-shadow: 0 0 18px rgba(93, 242, 214, 0.25); }
+.primary-btn:disabled { opacity: .4; cursor: default; box-shadow: none; }
+
+/* the lobby "button" is a waiting notice — the agent starts rounds, not you */
+.primary-btn.waiting {
+  display: inline-block;
+  cursor: default;
+  user-select: none;
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text-dim);
+  animation: waiting-breathe 2.4s ease-in-out infinite;
+}
+.primary-btn.waiting:hover { background: transparent; box-shadow: none; }
+.primary-btn.waiting .dots::after {
+  content: "";
+  display: inline-block;
+  width: 1.4em;
+  text-align: left;
+  animation: waiting-dots 1.6s steps(4, end) infinite;
+}
+@keyframes waiting-breathe {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+@keyframes waiting-dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
+
+/* the card's action column: Ready, or the waiting notice — and, when no
+   agent has shown up, the demo offer beneath it, in the seeker's amber */
+.overlay-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+.demo-offer {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: 100%;
+  margin-top: 4px; padding-top: 16px;
+  border-top: 1px solid var(--line);
+  animation: demo-offer-in .5s ease-out both;
+}
+.demo-hint { font-size: 12px; line-height: 1.5; color: var(--text-dim); max-width: 360px; }
+
+.ghost-btn {
+  font-family: var(--body);
+  cursor: pointer;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 180, 84, 0.45);
+  color: var(--seeker);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  transition: background .15s, box-shadow .15s;
+}
+.ghost-btn:hover { background: rgba(255, 180, 84, 0.12); box-shadow: 0 0 18px rgba(255, 180, 84, 0.2); }
+
+@keyframes demo-offer-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+:focus-visible { outline: 2px solid var(--you); outline-offset: 2px; }
+
+/* ── stage fills the rest of the screen, letterboxed to the arena ── */
+main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 2px 18px 14px;
+}
+
+#stage {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  width: min(100%, calc((100dvh - 88px) * 1.5));
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--void);
+  box-shadow: 0 0 60px rgba(20, 40, 90, 0.35), inset 0 0 80px rgba(0, 0, 0, 0.5);
+  cursor: crosshair;
+}
+
+/* ── in-canvas HUD ── */
+#hudTop {
+  position: absolute;
+  top: 10px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: baseline; gap: 16px;
+  padding: 4px 18px;
+  border-radius: 999px;
+  background: rgba(5, 7, 15, 0.55);
+  border: 1px solid rgba(27, 33, 56, 0.8);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.timer {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--bright);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 16px rgba(120, 160, 255, 0.35);
+}
+.timer.low { color: var(--danger); text-shadow: 0 0 18px rgba(255, 93, 93, 0.5); }
+/* someone is beside the world: the clock holds its breath */
+.timer.frozen {
+  color: #b26bff;
+  text-shadow: 0 0 18px rgba(178, 107, 255, 0.6);
+  animation: timer-frozen 2.2s ease-in-out infinite;
+}
+@keyframes timer-frozen {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.score { font-family: var(--mono); font-size: 14px; }
+.score i { font-style: normal; color: var(--text-dim); padding: 0 6px; }
+.you-c { color: var(--you); }
+.seeker-c { color: var(--seeker); }
+
+/* ── the instruction you hand to your agent — click to copy.
+   pinned to the bottom of the WINDOW, shown in full (wraps if needed),
+   and never reaching closer than ~200px to the right edge ── */
+.agent-line {
+  position: fixed;
+  left: 14px; bottom: 10px;
+  max-width: calc(100vw - 214px);
+  z-index: 11;
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: rgba(5, 7, 15, 0.7);
+  border: 1px solid rgba(27, 33, 56, 0.8);
+  backdrop-filter: blur(4px);
+  color: #8a8fa8;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  text-align: left;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.agent-line:hover { border-color: rgba(255, 180, 84, 0.6); color: #c8d2e8; }
+.agent-line .al-icon { color: #ffb454; font-size: 12px; flex: none; }
+.agent-line .al-body { display: flex; flex-direction: column; gap: 3px; }
+.agent-line .al-eyebrow {
+  font-family: var(--display);
+  font-size: 7.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255, 180, 84, 0.75);
+}
+.agent-line .al-text { white-space: normal; word-break: break-word; }
+.agent-line.copied { border-color: rgba(93, 242, 214, 0.7); color: #5df2d6; }
+.agent-line.copied .al-icon { color: #5df2d6; }
+/* mid-round it collapses to its icon; hover brings the text back */
+.agent-line.collapsed:not(:hover) { padding: 6px 8px; }
+.agent-line.collapsed:not(:hover) .al-body { display: none; }
+
+#hudEnergy {
+  position: absolute;
+  left: 14px; bottom: 14px;
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(5, 7, 15, 0.55);
+  border: 1px solid rgba(27, 33, 56, 0.8);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hud-label {
+  font-family: var(--display);
+  font-size: 8px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--you);
+}
+
+.energy-bar {
+  width: 150px; height: 9px;
+  background: #070a14;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+#energyFill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #2a8f7f, var(--you));
+  box-shadow: 0 0 10px rgba(93, 242, 214, 0.5);
+  border-radius: 999px;
+  transition: width .12s linear;
+}
+#energyNum { font-size: 12px; color: var(--you); min-width: 28px; text-align: right; }
+
+#hudAbilities {
+  position: absolute;
+  right: 14px; bottom: 14px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 7px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.passives {
+  display: flex; gap: 12px;
+  font-size: 10px; color: var(--text-dim);
+  padding: 0 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.passives b {
+  font-family: var(--mono); font-weight: 400; color: var(--text);
+  border: 1px solid var(--line); border-radius: 3px; padding: 0 4px;
+  background: rgba(5, 7, 15, 0.6);
+}
+
+.abilities { display: flex; gap: 8px; }
+
+.ability {
+  pointer-events: auto;
+  position: relative;
+  width: 76px;
+  background: rgba(8, 11, 22, 0.72);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 12px 6px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  backdrop-filter: blur(4px);
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.ability:hover { border-color: rgba(93, 242, 214, 0.5); }
+.ability.armed {
+  border-color: var(--you);
+  background: rgba(93, 242, 214, 0.16);
+  box-shadow: 0 0 16px rgba(93, 242, 214, 0.3);
+}
+.ability:disabled { opacity: .38; cursor: default; }
+.ability .key {
+  position: absolute; top: 4px; left: 5px;
+  font-family: var(--mono); font-size: 9px;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+.ability .ab-name { font-weight: 600; font-size: 12px; margin-top: 4px; }
+.ability .ab-cost { font-family: var(--mono); font-size: 10px; color: var(--you); }
+
+/* ── callouts: the agent thinking out loud on the board ── */
+#callouts {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+  border-radius: 8px;
+}
+
+.callout {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  max-width: 280px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.45;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(5, 7, 15, 0.78);
+  border: 1px solid var(--line);
+  animation: callout-rise 3.6s ease-out forwards;
+}
+.callout.c-seeker { color: var(--seeker); border-color: rgba(255, 180, 84, 0.4); }
+.callout.c-alert  { color: var(--danger); border-color: rgba(255, 93, 93, 0.55); font-weight: 700; }
+.callout.c-you    { color: var(--you); border-color: rgba(93, 242, 214, 0.4); }
+.callout.c-noise  { color: var(--trail); border-color: rgba(255, 79, 195, 0.4); }
+.callout.c-sys    { color: var(--text-dim); }
+.callout.c-glitch {
+  color: #b26bff;
+  border-color: rgba(178, 107, 255, 0.5);
+  text-shadow: 0 0 8px rgba(178, 107, 255, 0.6);
+  font-style: italic;
+}
+.callout.c-think {
+  color: #ffe2b8;
+  border-color: transparent;
+  background: none;
+  font-style: italic;
+  font-size: 11.5px;
+  text-shadow: 0 0 10px rgba(255, 180, 84, 0.55), 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+.callout.c-think::before { content: '· '; opacity: .6; }
+.callout.c-think::after  { content: ' ·'; opacity: .6; }
+/* the agent's voice: one sentence, said out loud, when the game turns out bigger than it was told */
+.callout.c-realize {
+  color: #f3e7ff;
+  border-color: rgba(178, 107, 255, 0.7);
+  background: rgba(14, 6, 28, 0.9);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  max-width: 340px;
+  padding: 7px 14px;
+  text-shadow: 0 0 12px rgba(178, 107, 255, 0.85), 0 1px 3px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 24px rgba(178, 107, 255, 0.35);
+  animation: callout-rise 6.5s ease-out forwards;
+}
+.callout.c-realize::before { content: '“'; opacity: .7; }
+.callout.c-realize::after  { content: '”'; opacity: .7; }
+.callout.c-bot {
+  color: #ffb454;
+  border-color: rgba(255, 180, 84, 0.55);
+  background: rgba(24, 14, 4, 0.85);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px rgba(255, 180, 84, 0.5);
+}
+
+/* ── code glimpse: what the machine is reading, shown to the human ── */
+.code-glimpse {
+  position: absolute;
+  left: 12px; top: 52px;
+  max-width: 46%;
+  max-height: 55%;
+  overflow: hidden;
+  z-index: 4;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: #d2aaff;
+  background: rgba(10, 6, 20, 0.88);
+  border: 1px solid rgba(178, 107, 255, 0.45);
+  border-left: 3px solid #b26bff;
+  border-radius: 6px;
+  padding: 10px 12px;
+  box-shadow: 0 0 28px rgba(178, 107, 255, 0.25);
+  text-shadow: 0 0 6px rgba(178, 107, 255, 0.4);
+  opacity: 1;
+  transition: opacity 0.45s;
+}
+.code-glimpse.fading { opacity: 0; }
+/* the player is under the pane — turn to glass so they can see themselves */
+.code-glimpse.ghost { opacity: 0.13; }
+.code-glimpse.ghost.fading { opacity: 0; }
+
+/* the amber variant: code the machine wrote FOR ITSELF (daemon rewrites) */
+.code-glimpse.bot {
+  color: #ffd9a0;
+  border-color: rgba(255, 180, 84, 0.45);
+  border-left-color: #ffb454;
+  box-shadow: 0 0 28px rgba(255, 180, 84, 0.22);
+  text-shadow: 0 0 6px rgba(255, 180, 84, 0.35);
+}
+
+/* ── the fourth ability: it does not exist until it suddenly does ── */
+.ability-floor { border-color: rgba(178, 107, 255, 0.45); }
+.ability-floor .ab-cost { color: #b26bff; }
+.ability-floor:hover { border-color: rgba(178, 107, 255, 0.8); }
+.ability-floor.armed {
+  border-color: #b26bff;
+  background: rgba(178, 107, 255, 0.16);
+  box-shadow: 0 0 16px rgba(178, 107, 255, 0.35);
+}
+.ability-floor.reveal { animation: floor-reveal 1s ease-out; }
+@keyframes floor-reveal {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.7); filter: blur(5px); }
+  55%  { opacity: 1; filter: blur(0); box-shadow: 0 0 34px rgba(178, 107, 255, 0.9); }
+  100% { transform: none; box-shadow: none; }
+}
+
+@keyframes callout-rise {
+  0%   { opacity: 0; margin-top: 6px; }
+  6%   { opacity: 1; margin-top: 0; }
+  70%  { opacity: 1; margin-top: -14px; }
+  100% { opacity: 0; margin-top: -26px; }
+}
+
+/* JS toggles .hidden on the taunt, countdown and cast; their class rules set
+   display, which would otherwise outrank the UA's [hidden] { display: none } */
+[hidden] { display: none !important; }
+
+/* ── overlay (lobby / countdown / result) ── */
+.overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 6, 13, 0.72);
+  backdrop-filter: blur(3px);
+  border-radius: 8px;
+  transition: opacity .3s;
+  z-index: 10;
+}
+.overlay.hidden { opacity: 0; pointer-events: none; }
+
+.overlay-card { max-width: 480px; text-align: center; padding: 24px; }
+
+.overlay-eyebrow {
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+.overlay-title {
+  font-family: var(--display);
+  font-size: 34px;
+  letter-spacing: 0.22em;
+  color: var(--bright);
+  margin-bottom: 16px;
+  text-shadow: 0 0 30px rgba(93, 242, 214, 0.35);
+}
+.overlay-title.caught { color: var(--seeker); text-shadow: 0 0 30px rgba(255, 180, 84, 0.4); }
+.overlay-title.escaped { color: var(--you); text-shadow: 0 0 30px rgba(93, 242, 214, 0.5); }
+
+.overlay-sub { color: var(--text); margin-bottom: 22px; }
+
+/* who is who — shown once, before the first round */
+.cast {
+  display: flex; align-items: flex-start; justify-content: center; gap: 30px;
+  margin: 2px 0 20px;
+}
+.cast-item { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 64px; }
+.cast-you {
+  width: 22px; height: 22px; margin: 4px 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, var(--you) 40%, rgba(93, 242, 214, 0.55) 70%, transparent 100%);
+  box-shadow: 0 0 12px var(--you), 0 0 30px var(--you), 0 0 64px rgba(93, 242, 214, 0.45);
+  animation: cast-breathe 2.6s ease-in-out infinite;
+}
+@keyframes cast-breathe {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 12px var(--you), 0 0 30px var(--you), 0 0 64px rgba(93, 242, 214, 0.45); }
+  50%      { transform: scale(1.12); box-shadow: 0 0 16px var(--you), 0 0 40px var(--you), 0 0 80px rgba(93, 242, 214, 0.6); }
+}
+.cast-agent {
+  width: 36px; height: 30px;
+  /* path already points right — the hunter faces its prey on the right */
+  fill: var(--seeker);
+  stroke: rgba(255, 220, 170, 0.9); stroke-width: 1.2;
+  filter: drop-shadow(0 0 10px rgba(255, 180, 84, 0.65));
+}
+.cast-label {
+  font-family: var(--display);
+  font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+}
+.cast-vs {
+  font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+  padding-top: 8px;
+}
+.overlay-sub b {
+  font-family: var(--mono); font-weight: 400; color: var(--bright);
+  border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; font-size: 12px;
+}
+
+.countdown {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display);
+  font-size: 120px;
+  color: var(--bright);
+  text-shadow: 0 0 40px var(--you), 0 0 90px var(--you);
+  pointer-events: none;
+}
+
+/* ── taunt bubble ── */
+.taunt {
+  position: absolute;
+  transform: translate(-50%, -160%);
+  max-width: 240px;
+  background: rgba(20, 14, 4, 0.92);
+  border: 1px solid rgba(255, 180, 84, 0.55);
+  color: var(--seeker);
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(255, 180, 84, 0.25);
+  pointer-events: none;
+  z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .callout { animation: none; opacity: 1; }
+}

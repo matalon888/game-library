@@ -1,0 +1,19 @@
+# Local save. Holds the player's name, credits, unlocks and settings — personal,
+# and regenerated on first run, so it never belongs in the repo.
+profile.json
+
+node_modules/
+.DS_Store
+
+# Your soundtrack. Audio dropped into music/ is yours, not this project's, and its
+# licence is unknown here — so the tracks stay out of a public repo while the folder
+# READMEs are kept, which is all anyone needs to add their own (see README: Soundtrack).
+music/**/*.mp3
+music/**/*.ogg
+music/**/*.m4a
+music/**/*.opus
+music/**/*.wav
+music/**/*.webm
+
+# Stray copies of the source tree left by earlier tooling.
+mnt/

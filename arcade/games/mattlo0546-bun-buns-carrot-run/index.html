@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#5C94FC">
+  <meta name="description" content="BunBun's Carrot Run: a retro platformer where you can turn yourself (or anything) into the hero and pick your own power-up with AI-generated sprites.">
+  <title>BunBun’s Carrot Run</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥕</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="on-title">
+  <main id="stage">
+    <canvas id="game-canvas" width="800" height="480" tabindex="0" aria-label="BunBun's Carrot Run game"></canvas>
+
+    <!-- Title menu (over the canvas title screen) -->
+    <nav id="menu" aria-label="Main menu">
+      <button class="btn btn-primary" id="btn-play">▶ Play</button>
+      <button class="btn btn-magic" id="btn-create">✨ Create your hero</button>
+      <button class="btn btn-ghost" id="btn-settings">⚙ Settings</button>
+      <p class="controls-hint"><kbd>←</kbd><kbd>→</kbd> move · <kbd>Space</kbd> jump · <kbd>Shift</kbd> run · <kbd>↓</kbd> pipes &amp; ground-pound · <kbd>Z</kbd>/<kbd>X</kbd> throw</p>
+      <p id="custom-badge" hidden>Playing as <strong id="custom-name"></strong> · <button class="link" id="btn-reset-hero">back to BunBun</button></p>
+    </nav>
+
+    <!-- In-game buttons -->
+    <div id="game-buttons">
+      <button class="icon-btn" id="btn-mute" title="Mute (M)" aria-label="Mute">🔊</button>
+      <button class="icon-btn" id="btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>
+      <button class="icon-btn" id="btn-home" title="Back to title" aria-label="Back to title">⌂</button>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touch" aria-hidden="true">
+      <div class="pad-left">
+        <button class="touch-btn" data-key="ArrowLeft">◀</button>
+        <button class="touch-btn" data-key="ArrowDown">▼</button>
+        <button class="touch-btn" data-key="ArrowRight">▶</button>
+      </div>
+      <div class="pad-right">
+        <button class="touch-btn" data-key="KeyX">B</button>
+        <button class="touch-btn touch-a" data-key="Space">A</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Character Maker -->
+  <section class="overlay" id="maker" hidden aria-labelledby="maker-title">
+    <div class="panel">
+      <header class="panel-head">
+        <p class="eyebrow">Character Maker</p>
+        <h2 id="maker-title">Forge your <span class="rainbow">hero</span></h2>
+        <p class="sub">Upload a photo or describe your hero and their power-up. Gemini draws the pixel-art sprites, and you play the whole game as them.</p>
+      </header>
+
+      <div class="notice" id="key-notice" hidden>
+        🔑 This uses <strong>your own</strong> Google Gemini API key. <button class="link" id="btn-open-key">Add your key</button> to start. It's free to get one.
+      </div>
+      <div class="error" id="maker-error" role="alert" hidden></div>
+
+      <label class="field">
+        <span>Game title</span>
+        <input id="in-title" type="text" maxlength="28" placeholder="BunBun's Carrot Run" autocomplete="off">
+      </label>
+
+      <div class="slots">
+        <div class="slot">
+          <label class="drop" id="drop-hero">
+            <input type="file" accept="image/*" id="in-hero">
+            <img alt="" hidden>
+            <span class="drop-empty"><b>Hero</b><small>photo, drawing, pet…</small></span>
+          </label>
+          <textarea id="in-hero-text" rows="2" placeholder="…or describe them, e.g. “a tiny knight with a red scarf”"></textarea>
+        </div>
+        <div class="slot">
+          <label class="drop" id="drop-powerup">
+            <input type="file" accept="image/*" id="in-powerup">
+            <img alt="" hidden>
+            <span class="drop-empty"><b>Power-up</b><small>the item they pick up</small></span>
+          </label>
+          <textarea id="in-powerup-text" rows="2" placeholder="…or describe it, e.g. “a flaming baguette”"></textarea>
+        </div>
+      </div>
+
+      <div class="progress" id="maker-progress" hidden><span class="spinner"></span><span id="progress-label">Working…</span></div>
+
+      <div class="previews" id="previews" hidden>
+        <figure><img id="pv-hero" alt="Hero walk preview"><figcaption>Hero</figcaption></figure>
+        <figure><img id="pv-powered" alt="Powered-up hero preview"><figcaption>Powered up</figcaption></figure>
+        <figure><img id="pv-item" alt="Power-up item preview"><figcaption>Power-up</figcaption></figure>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" id="btn-maker-close">Close</button>
+        <button class="btn btn-ghost" id="btn-download" hidden>⬇ Save sheet</button>
+        <button class="btn btn-magic" id="btn-generate">✨ Generate sprites</button>
+        <button class="btn btn-primary" id="btn-use" hidden>▶ Play as this hero</button>
+      </div>
+
+      <p class="fineprint">
+        Already have a sprite sheet (5×5 grid on a solid background)? <label class="link"><input type="file" accept="image/png,image/*" id="in-sheet" hidden>Load it</label>. No API key needed.
+      </p>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section class="overlay" id="settings" hidden aria-labelledby="settings-title">
+    <div class="panel panel-narrow">
+      <header class="panel-head">
+        <p class="eyebrow">Settings</p>
+        <h2 id="settings-title">Gemini API key</h2>
+      </header>
+      <p class="sub">The Character Maker runs entirely in your browser and talks to Google directly with your key. Nothing goes through any other server. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free key from Google AI Studio ↗</a></p>
+
+      <label class="field">
+        <span>API key</span>
+        <input id="in-key" type="password" placeholder="AIza…" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="check"><input type="checkbox" id="in-remember"> Remember on this device (saved in this browser's local storage)</label>
+
+      <label class="field">
+        <span>Image model</span>
+        <select id="in-model"></select>
+      </label>
+
+      <div class="actions">
+        <button class="btn btn-ghost" id="btn-forget">Forget key</button>
+        <button class="btn btn-ghost" id="btn-reset-progress">Reset world progress</button>
+        <button class="btn btn-primary" id="btn-settings-save">Save</button>
+      </div>
+      <p class="fineprint" id="settings-status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

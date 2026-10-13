@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+screens/
+
+# editor cruft
+.*.swp
+.swp
+Modelfile
+
+# QEMU/Chromium headless crash dumps (never commit)
+*.core

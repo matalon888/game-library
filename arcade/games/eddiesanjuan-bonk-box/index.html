@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Bonk Box — a physics toy for people with AI agents</title>
+    <meta
+      name="description"
+      content="A tiny physics toy where your AI agent lives in a box on your screen. Flick him, launch fireworks, knock over his fort — he always bounces back. Press Option+Command+B when your agent ships a bug."
+    />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#FAF7F2" />
+
+    <!-- So a shared link unfurls with him mid-flight rather than a bare URL. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bonk Box" />
+    <meta property="og:title" content="Bonk Box — a physics toy for people with AI agents" />
+    <meta
+      property="og:description"
+      content="Your agent. In a box. Bonk him. A stickman doodle on a sketchbook page who bounces off the walls, builds forts, and always gets back up."
+    />
+    <meta property="og:url" content="https://bonk-box-production.up.railway.app/" />
+    <meta property="og:image" content="https://bonk-box-production.up.railway.app/docs/social.png" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta property="og:image:alt" content="A hand-drawn stickman tumbling through the air with stars around his head, captioned Bonk Box." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Bonk Box — a physics toy for people with AI agents" />
+    <meta name="twitter:description" content="Your agent. In a box. Bonk him." />
+    <meta name="twitter:image" content="https://bonk-box-production.up.railway.app/docs/social.png" />
+
+    <!-- The only network fetch on the page, and it is cosmetic: everything
+         still works offline with the cursive fallback. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,400;0,600;0,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main id="stage">
+      <canvas id="page" aria-label="Bonk Box play area: a stickman on a sketchbook page. Use the tool tray below to play with him."></canvas>
+
+      <div class="hud hud-tl">
+        <div class="nametag" title="Click the name to rename him">
+          <label class="visually-hidden" for="nameInput">Your buddy's name</label>
+          <input id="nameInput" type="text" maxlength="18" spellcheck="false" autocomplete="off" value="your agent" />
+          <div class="gauges">
+            <div class="gauge">
+              <span class="gauge-label">mood</span>
+              <svg class="meter" viewBox="0 0 64 12" aria-hidden="true">
+                <path class="meter-frame" d="M1.5 2.4 Q 32 0.6 62.4 2 Q 63.2 6 62.6 10 Q 32 11.6 1.6 10.2 Q 0.8 6 1.5 2.4 Z" />
+                <rect id="moodFill" class="meter-fill meter-fill-mood" x="3" y="3.4" width="30" height="5.4" rx="2" />
+              </svg>
+              <span class="gauge-read" id="moodRead">ok</span>
+            </div>
+            <div class="gauge">
+              <span class="gauge-label">scuffs</span>
+              <svg class="meter" viewBox="0 0 64 12" aria-hidden="true">
+                <path class="meter-frame" d="M1.4 2.2 Q 32 1 62.6 2.4 Q 63 6 62.4 10.1 Q 32 11.2 1.5 10 Q 1 6 1.4 2.2 Z" />
+                <rect id="scuffFill" class="meter-fill meter-fill-scuff" x="3" y="3.4" width="0" height="5.4" rx="2" />
+              </svg>
+              <span class="gauge-read" id="scuffRead">none</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud hud-tr">
+        <div class="coins" id="coinTally">
+          <svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7.2v9.6M9.4 9.6h4.2a1.9 1.9 0 0 1 0 3.8H9.4h4.4a1.9 1.9 0 0 1 0 3.8H9.4" />
+          </svg>
+          <span id="coinValue">0</span>
+          <span class="visually-hidden">doodle-coins</span>
+        </div>
+        <div class="streak" id="streak" hidden>
+          <span class="streak-marks" id="streakMarks" aria-hidden="true"></span>
+          <span id="streakLabel">day 1</span>
+        </div>
+        <div class="chrome">
+          <button id="btnBug" class="btn btn-marker" type="button">he shipped a bug</button>
+          <button id="btnReset" class="btn" type="button" title="Clear the props, keep your coins (R)">fresh page</button>
+          <button id="btnMute" class="btn" type="button" aria-pressed="false" title="Mute (M)">sound on</button>
+        </div>
+      </div>
+
+      <div class="hud hud-bottom">
+        <div class="tray" id="tray" role="toolbar" aria-label="Tool tray"></div>
+        <button id="btnShop" class="tray-add" type="button" aria-haspopup="dialog" title="Open the shop">
+          <span aria-hidden="true">+</span>
+          <span class="visually-hidden">Open the shop</span>
+        </button>
+      </div>
+
+      <p class="footer">a loving parody of Interactive Buddy (2005) &middot; made with &hearts; by Granular</p>
+
+      <div class="shop" id="shop" role="dialog" aria-modal="true" aria-labelledby="shopTitle" hidden>
+        <div class="shop-sheet">
+          <header class="shop-head">
+            <h2 id="shopTitle">the shop</h2>
+            <p class="shop-sub">everything he does earns doodle-coins. even the nice things.</p>
+            <button id="shopClose" class="btn btn-close" type="button">close</button>
+          </header>
+          <div class="shop-grid" id="shopItems"></div>
+        </div>
+      </div>
+    </main>
+
+    <script src="vendor/matter.min.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/doodle.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/buddy.js"></script>
+    <script src="js/buddy-draw.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/fort.js"></script>
+    <script src="js/companions.js"></script>
+    <script src="js/agent-events.js"></script>
+    <script src="js/heat.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+.dino-runner-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #87CEEB;
+  border-radius: 12px;
+  touch-action: none;
+}

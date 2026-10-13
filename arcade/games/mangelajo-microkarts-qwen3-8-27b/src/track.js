@@ -1,0 +1,659 @@
+import * as THREE from 'three';
+import { N_SAMPLES, ROAD_HW, CURB_W, MAX_ELEVATION } from './config.js';
+import { scene, sun, hemi, fill } from './scene.js';
+import { woodTexture, checkerTexture, curbTexture, seaTexture } from './textures.js';
+import { TRACKS, trackTheme } from './tracks.js';
+import { retintSky } from './sky.js';
+import { buildObstacles, obstacleList, getObstaclesOn, HAZ_COLOR, mulberry32, KART_R } from './obstacles.js';
+import { buildPads, padList, CELL_LEN, CELL_W, GAP, CELLS } from './pads.js';
+import { buildItems, itemBoxList, walls, stickyPatches } from './items.js';
+import { buildCorners } from './corners.js';
+import { buildPuddles } from './weather.js';
+import { buildScenery } from './scenery.js';
+
+/* ------------------------------------------------------------------ *
+ *  Track data — filled IN PLACE by buildTrack().
+ *  kart.js / ai-sim hold live bindings to these, so rebuilding a track
+ *  keeps every consumer working without re-importing anything.
+ * ------------------------------------------------------------------ */
+
+// wet-road retint (weather.js toggles it via setRoadWet)
+let roadMatRef = null;
+const roadBaseColor = new THREE.Color(0xffffff);
+export function setRoadWet(on) {
+  if (!roadMatRef) return;
+  roadMatRef.roughness = on ? 0.3 : 0.95;
+  roadMatRef.color.set(on ? 0x5f7488 : roadBaseColor);
+}
+
+export const samples = [];
+for (let i = 0; i < N_SAMPLES; i++) samples.push(new THREE.Vector3());
+export let trackLen = 0;
+export const sampleHead = new Float32Array(N_SAMPLES);
+
+export const headingAt = t => sampleHead[Math.floor((((t % 1) + 1) % 1) * N_SAMPLES) % N_SAMPLES];
+export const angDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+export function curvatureAt(t) { // signed 1/u: rate of heading change per unit arc-length
+  const w = 8 / trackLen; // half-window: ±8 u of arc
+  return angDiff(headingAt(t + w), headingAt(t - w)) / 16;
+}
+
+/* Elevation (PLAN.md): the track's Y is pure track data — karts and AI
+ * read it locally, so no wire traffic and full determinism (like pads/
+ * obstacles). Flat tracks have y=0 everywhere, so these are no-ops there. */
+export function heightAt(t) { // interpolated road height at arc fraction t
+  const f = ((((t % 1) + 1) % 1) * N_SAMPLES);
+  const i = Math.floor(f) % N_SAMPLES, i1 = (i + 1) % N_SAMPLES;
+  const fr = f - Math.floor(f);
+  return samples[i].y * (1 - fr) + samples[i1].y * fr;
+}
+export function slopeAt(t) { // rise per unit arc-length (±8 u window, like curvatureAt)
+  const w = 8 / trackLen;
+  return (heightAt(t + w) - heightAt(t - w)) / 16;
+}
+
+/* ------------------------------------------------------------------ *
+ *  The table — built once; its wood is re-painted per track theme
+ * ------------------------------------------------------------------ */
+let table = null;
+function setTableWood(base, sea = false) {
+  const tex = sea ? seaTexture() : woodTexture(base);
+  if (!table) {
+    table = new THREE.Mesh(
+      new THREE.PlaneGeometry(420, 420),
+      new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 }),
+    );
+    table.rotation.x = -Math.PI / 2;
+    table.position.y = -0.05;
+    table.receiveShadow = true;
+    scene.add(table);
+  } else {
+    table.material.map.dispose();
+    table.material.map = tex;
+    table.material.needsUpdate = true;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  buildTrack(def) — (re)build curve data + visible meshes + palette.
+ *  def = { name, points, theme } from tracks.js
+ * ------------------------------------------------------------------ */
+const group = new THREE.Group(); // swappable: road, curbs, start line, props
+scene.add(group);
+let curve = null;
+let prevMats = [];
+let propMats = [];
+
+// live "current track" record — mutate the fields, keep the reference stable
+export const current = { name: '', theme: '' };
+
+const stickMat = new THREE.MeshStandardMaterial({ color: 0xf5f0e8, roughness: 0.8 });
+const pencilMat = new THREE.MeshStandardMaterial({ color: 0xff8f00, roughness: 0.5 });
+
+function buildRibbon(parent, c, inner, outer, y, material) {
+  const pos = [], uv = [], idx = [];
+  for (let i = 0; i <= N_SAMPLES; i++) {
+    const t = (i % N_SAMPLES) / N_SAMPLES;
+    const p = c.getPointAt(t);
+    const tan = c.getTangentAt(t);
+    const nx = -tan.z, nz = tan.x; // perpendicular in XZ
+    const il = (i % N_SAMPLES) / N_SAMPLES, iu = i / N_SAMPLES;
+    // y is an OFFSET above the (possibly elevated) road surface; the clamp
+    // must mirror the sample clamp in buildTrack so visuals and physics
+    // agree, and the road never dips under the table (spline overshoot).
+    pos.push(p.x + nx * inner, Math.max(p.y, 0.02) + y, p.z + nz * inner);
+    pos.push(p.x + nx * outer, Math.max(p.y, 0.02) + y, p.z + nz * outer);
+    uv.push(il, 0);
+    uv.push(iu, 1);
+  }
+  for (let i = 0; i < N_SAMPLES; i++) {
+    const a = i * 2, b = a + 1, c2 = a + 2, d = a + 3;
+    idx.push(a, b, c2, b, d, c2);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, material);
+  m.receiveShadow = true;
+  parent.add(m);
+  return m;
+}
+
+function scatterProps(parent, idx) {
+  // deterministic per track (like pads/hazards): host + every client build the
+  // identical field from the track index, so a graze looks the same for all.
+  // Seven props sit in the DRIFT BAND just outside the curb (grazeable by a
+  // kart that leaves the road), the rest scatter the table as before.
+  propList.length = 0;
+  const rng = mulberry32((0x7f4a7c15 ^ Math.imul(idx + 3, 3405733215)) >>> 0);
+  const GRAZE_KINDS = [0, 1, 3, 4];   // low enough to graze (no block)
+  // props are rendered INSTANCED (one InstancedMesh per part — ~7 draw
+  // calls instead of ~40 meshes, the mobile draw-call win); the per-prop
+  // STATE (spin/wobble/hop) lives here, the matrices in refreshPropMatrices
+  const makeProp = (x, y, z, kind) => {
+    const baseRotY = kind === 2 ? rng() * Math.PI : 0;   // block: random heading
+    const baseRotX = kind === 4 ? rng() * Math.PI : 0;   // pencil: random heading (lies down via baseRotZ)
+    return { x, y, z, kind, spinVel: 0, wobble: 0, wobblePh: rng() * 6,
+             hop: 0, hopV: 0, baseRotX, baseRotY,
+             baseRotZ: kind === 4 ? Math.PI / 2 : 0,
+             rotX: baseRotX, rotY: baseRotY, rotZ: kind === 4 ? Math.PI / 2 : 0,
+             colorIdx: rngIndex++ % propMats.length, r: [0.9, 0.8, 1.2, 0.9, 1.0][kind] };
+  };
+  let rngIndex = 0;
+  // drift band: 1.2–3.0 u outside the outer curb, riding the road surface
+  for (let i = 0; i < 7; i++) {
+    const s = Math.floor(rng() * N_SAMPLES);
+    const off = ROAD_HW + CURB_W + 1.2 + rng() * 1.8;
+    const h = sampleHead[s];                 // heading → xz normal (cos h, -sin h)
+    const x = samples[s].x + Math.cos(h) * off;
+    const z = samples[s].z - Math.sin(h) * off;
+    propList.push(makeProp(x, samples[s].y, z, GRAZE_KINDS[Math.floor(rng() * GRAZE_KINDS.length)]));
+  }
+  // table scatter (far from the road, as before)
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const x = (rng() * 2 - 1) * 95;
+    const z = (rng() * 2 - 1) * 85;
+    let d = Infinity;
+    for (let j = 0; j < N_SAMPLES; j += 3) {
+      const dx = samples[j].x - x, dz = samples[j].z - z;
+      const dd = dx * dx + dz * dz;
+      if (dd < d) d = dd;
+    }
+    if (Math.sqrt(d) < ROAD_HW + 5) continue;
+    propList.push(makeProp(x, 0, z, Math.floor(rng() * 5)));
+  }
+  buildPropInstances(parent);
+  refreshPropMatrices();
+}
+
+/* instanced prop rendering — one InstancedMesh per part (7 total) instead
+ * of ~40 individual meshes (the mobile draw-call win). Built per track;
+ * the per-prop matrices are refreshed by refreshPropMatrices (after
+ * tickProps / at build). Colors: the palette pick per prop (stick parts
+ * keep their fixed colour). */
+let propInst = {};   // part name -> InstancedMesh | null
+const _pm4 = new THREE.Matrix4();
+const _pq = new THREE.Quaternion();
+const _pe = new THREE.Euler();
+const _pp = new THREE.Vector3();
+const _ps = new THREE.Vector3();
+const _pv = new THREE.Vector3();
+const _pc = new THREE.Color();
+
+function setInst(im, i, x, y, z, rx, ry, rz, sx = 1, sy = 1, sz = 1) {
+  if (!im) return;
+  _pe.set(rx, ry, rz);
+  _pq.setFromEuler(_pe);
+  _pm4.compose(_pp.set(x, y, z), _pq, _ps.set(sx, sy, sz));
+  im.setMatrixAt(i, _pm4);
+}
+
+function buildPropInstances(parent) {
+  const counts = [0, 0, 0, 0, 0];
+  for (const p of propList) counts[p.kind]++;
+  const M = (name, geo, mat, n) => {
+    if (n <= 0) { propInst[name] = null; return; }
+    const im = new THREE.InstancedMesh(geo, mat, n);
+    im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    im.castShadow = true;
+    im.receiveShadow = true;
+    parent.add(im);
+    propInst[name] = im;
+  };
+  propInst = {};
+  M('donut', new THREE.TorusGeometry(0.7, 0.28, 10, 24), propMats[0], counts[0]);
+  M('lolliStick', new THREE.CylinderGeometry(0.09, 0.09, 1.5, 8), stickMat, counts[1]);
+  M('lolliHead', new THREE.SphereGeometry(0.55, 14, 12), propMats[2], counts[1]);
+  M('block', new THREE.BoxGeometry(1.6, 1.6, 1.6), propMats[1], counts[2]);
+  M('gumdrop', new THREE.SphereGeometry(0.75, 14, 10), propMats[3], counts[3]);
+  M('pencilBody', new THREE.CylinderGeometry(0.2, 0.2, 2.4, 10), pencilMat, counts[4]);
+  M('pencilTip', new THREE.ConeGeometry(0.2, 0.5, 10), stickMat, counts[4]);
+  // per-instance colour: the palette pick (stick parts stay fixed-colour)
+  const tint = (im, i, mat) => { if (im) { _pc.copy(mat.color); im.setColorAt(i, _pc); if (im.instanceColor) im.instanceColor.needsUpdate = true; } };
+  const ci = [0, 0, 0, 0, 0];
+  for (const p of propList) {
+    const i = ci[p.kind]++;
+    const pal = propMats[(p.colorIdx + [0, 2, 1, 3, 0][p.kind]) % propMats.length];
+    if (p.kind === 0) tint(propInst.donut, i, pal);
+    else if (p.kind === 1) { tint(propInst.lolliHead, i, pal); tint(propInst.lolliStick, i, stickMat); }
+    else if (p.kind === 2) tint(propInst.block, i, pal);
+    else if (p.kind === 3) tint(propInst.gumdrop, i, pal);
+  }
+}
+
+const HOP_OFF = [0.3, 0, 0.8, 0.5, 0.25];
+function refreshPropMatrices() {
+  const ci = [0, 0, 0, 0, 0];
+  for (const p of propList) {
+    const i = ci[p.kind]++;
+    const y = p.y + HOP_OFF[p.kind] + p.hop;
+    if (p.kind === 0) setInst(propInst.donut, i, p.x, y, p.z, Math.PI / 2, p.rotY, p.rotZ);
+    else if (p.kind === 1) {
+      setInst(propInst.lolliStick, i, p.x, y + 0.75, p.z, 0, p.rotY, p.rotZ);
+      setInst(propInst.lolliHead, i, p.x, y + 1.55, p.z, 0, p.rotY, p.rotZ);
+    } else if (p.kind === 2) setInst(propInst.block, i, p.x, y, p.z, p.rotX, p.rotY, p.rotZ);
+    else if (p.kind === 3) setInst(propInst.gumdrop, i, p.x, y, p.z, 0, p.rotY, p.rotZ, 1, 0.68, 1);
+    else {
+      setInst(propInst.pencilBody, i, p.x, y, p.z, p.rotX, 0, p.rotZ);
+      _pe.set(p.rotX, 0, p.rotZ);
+      _pq.setFromEuler(_pe);
+      _pv.set(0, 1.45, 0).applyQuaternion(_pq);
+      setInst(propInst.pencilTip, i, p.x + _pv.x, y + _pv.y, p.z + _pv.z, p.rotX, 0, p.rotZ);
+    }
+  }
+  for (const im of Object.values(propInst)) if (im && im.instanceMatrix) im.instanceMatrix.needsUpdate = true;
+}
+
+/* reactive props (cosmetic, never touches kart physics): a kart within a
+ * prop's radius spins it (scaled to speed), wobbles it, and a hard graze
+ * hops it. Spin/wobble decay exponentially; state lives in propList so the
+ * function is headless-safe (ai-sim can tick it on fake karts). */
+export const propList = [];
+export function tickProps(dt, karts) {
+  for (const p of propList) {
+    const R = p.r + 1.0;
+    for (const k of karts) {
+      if (!k || !k.pos) continue;   // not placed yet (menu / join-before-start)
+      const dy = Math.abs(k.pos.y - p.y);
+      if (dy > 2.2) continue;   // a table kart under an elevated road doesn't touch road-side props
+      const dx = k.pos.x - p.x, dz = k.pos.z - p.z;
+      const sp = Math.abs(k.speed);
+      if (dx * dx + dz * dz < R * R && sp > 2) {
+        p.spinVel = Math.max(p.spinVel, sp * 0.55);
+        p.wobble = Math.min(1, p.wobble + sp * 0.05);
+        if (p.hop === 0 && sp > 14) p.hopV = 3.2;   // hard graze: little bounce
+      }
+    }
+    if (p.spinVel > 0.01) {
+      if (p.kind === 2 || p.kind === 4) p.rotX += p.spinVel * dt;   // roll
+      else p.rotY += p.spinVel * dt * 1.4;                          // spin like a top
+      p.spinVel *= Math.exp(-1.6 * dt);
+      if (p.spinVel < 0.01) p.spinVel = 0;
+    }
+    if (p.wobble > 0.01) {
+      p.wobblePh += 16 * dt;
+      p.rotZ = p.baseRotZ + p.wobble * Math.sin(p.wobblePh) * 0.35;
+      p.wobble *= Math.exp(-2.4 * dt);
+      if (p.wobble < 0.01) { p.wobble = 0; p.rotZ = p.baseRotZ; }
+    }
+    if (p.hopV !== 0 || p.hop > 0) {
+      p.hopV -= 9.8 * dt;
+      p.hop += p.hopV * dt;
+      if (p.hop <= 0) { p.hop = 0; p.hopV = 0; }
+    }
+  }
+  refreshPropMatrices();   // the instanced matrices follow the state
+}
+
+/* ------------------------------------------------------------------ *
+ *  Sugar hazards — candy that karts must swerve around. The collision
+ *  field is built deterministically per track in obstacles.js; this only
+ *  draws the meshes, which live on the track group so they swap + dispose
+ *  with every rebuild. No-op when hazards are off.
+ * ------------------------------------------------------------------ */
+let hazardMats = null; // persistent: ring + base + per-kind body, like propMats
+export const hazardFx = []; // per-obstacle reaction state (pulse) — reset on rebuild
+function ensureHazardMats() {
+  if (hazardMats) return hazardMats;
+  const ring = new THREE.MeshStandardMaterial({ color: 0x241008, emissive: 0xff5a1e, emissiveIntensity: 0.85, roughness: 0.6 });
+  const base = new THREE.MeshStandardMaterial({ color: 0x140f0a, roughness: 0.95 });
+  const body = {};
+  for (const [kind, c] of Object.entries(HAZ_COLOR)) {
+    body[kind] = new THREE.MeshStandardMaterial({ color: c, roughness: 0.32, metalness: 0.15 });
+  }
+  hazardMats = { ring, base, body };
+  return hazardMats;
+}
+
+function hazardGeo(kind) {
+  return ({
+    gumdrop:    new THREE.ConeGeometry(0.9, 1.8, 14),
+    lolly:      new THREE.SphereGeometry(0.42, 14, 12),
+    gumball:    new THREE.SphereGeometry(0.6, 16, 14),
+    jawbreaker: new THREE.IcosahedronGeometry(0.9, 0),
+    dice:       new THREE.BoxGeometry(1.5, 1.5, 1.5),
+    bean:       new THREE.CapsuleGeometry(0.55, 1.0, 6, 12),
+  })[kind] ?? new THREE.SphereGeometry(0.7, 14, 12); // fresh each build: group dispose handles it
+}
+
+function scatterHazardMeshes(parent) {
+  const m = ensureHazardMats();
+  hazardFx.length = 0;
+  for (const o of obstacleList) {
+    const body = new THREE.Group();
+    body.position.set(o.x, o.y || 0, o.z);   // sits ON the (elevated) road
+    body.rotation.y = o.rot;
+
+    const geo = hazardGeo(o.kind);
+    const mesh = new THREE.Mesh(geo, m.body[o.kind]);
+    const s = o.r / (o.kind === 'gumdrop' ? 0.9 : o.kind === 'dice' ? 0.75 : 0.62);
+    mesh.scale.setScalar(s);
+    if (o.kind === 'gumdrop') mesh.position.y = o.r * 0.9;             // tip up, base on the table
+    else if (o.kind === 'lolly') mesh.position.y = o.r * 1.6;         // candy head (stick below)
+    else if (o.kind === 'bean') { mesh.rotation.z = Math.PI / 2; mesh.position.y = o.r * 0.6; }
+    else mesh.position.y = o.r * 0.9;
+    mesh.castShadow = mesh.receiveShadow = true;
+    body.add(mesh);
+    if (o.kind === 'lolly') {
+      const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, o.r * 1.6, 8), m.base);
+      stick.position.y = o.r * 0.8; stick.castShadow = true;
+      body.add(stick);
+    }
+    // a dark base disc + a glowing ring telegraph the hazard (reads as "careful")
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(o.r + 0.35, 0.08, 8, 28), m.ring);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.02; ring.receiveShadow = true;
+    body.add(ring);
+    const baseM = new THREE.Mesh(new THREE.CylinderGeometry(o.r * 0.55, o.r * 0.7, 0.12, 16), m.base);
+    baseM.position.y = 0.06; baseM.receiveShadow = true;
+    body.add(baseM);
+
+    parent.add(body);
+    hazardFx.push({ o, body, mesh, baseS: s, pulse: 0, ph: o.rot * 3 });
+  }
+}
+
+/* reactive hazards (cosmetic, like the props): a fast kart in a hazard's
+ * radius squash-stretches + wobbles the candy, decaying to rest. State
+ * lives in hazardFx so the function is headless-safe. */
+export function tickHazards(dt, karts) {
+  for (const h of hazardFx) {
+    const o = h.o, R = o.r + KART_R;
+    for (const k of karts) {
+      if (!k || !k.pos) continue;
+      if (Math.abs(k.pos.y - (o.y || 0)) > 2.2) continue;
+      const dx = k.pos.x - o.x, dz = k.pos.z - o.z;
+      const sp = Math.abs(k.speed);
+      if (dx * dx + dz * dz < R * R && sp > 3) h.pulse = Math.min(1, h.pulse + sp * 0.06);
+    }
+    if (h.pulse > 0.01) {
+      h.ph += 14 * dt;
+      const w = h.pulse * Math.cos(h.ph);
+      h.mesh.scale.set(h.baseS * (1 + 0.28 * w), h.baseS * (1 - 0.22 * w), h.baseS * (1 + 0.28 * w));
+      h.body.rotation.y = o.rot + 0.45 * h.pulse * Math.sin(h.ph);
+      h.pulse *= Math.exp(-4.5 * dt);
+      if (h.pulse < 0.01) {
+        h.pulse = 0;
+        h.mesh.scale.setScalar(h.baseS);
+        h.body.rotation.y = o.rot;
+      }
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Boost pads — glowing chevron strips on the straights. The field
+ *  (cells + chain hits) lives in pads.js; this only draws it. One plane
+ *  per strip, canvas chevrons pointing along the direction of travel.
+ * ------------------------------------------------------------------ */
+let padMat = null;   // persistent across rebuilds, like hazardMats
+function ensurePadMat() {
+  if (padMat) return padMat;
+  if (typeof document === 'undefined') return null;   // headless (ai-sim)
+  const c = document.createElement('canvas'); c.width = 64; c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(255, 200, 60, 0.14)';           // soft underlay
+  g.fillRect(9, 10, 46, 236);
+  g.strokeStyle = 'rgba(255, 216, 80, 0.95)';
+  g.lineWidth = 7; g.lineJoin = 'round'; g.lineCap = 'round';
+  g.shadowColor = 'rgba(255, 170, 40, 0.9)'; g.shadowBlur = 10;
+  for (let i = 0; i < CELLS; i++) {                   // chevrons point "up" = forward
+    const yc = 46 + i * 82;
+    g.beginPath(); g.moveTo(14, yc + 24); g.lineTo(32, yc); g.lineTo(50, yc + 24); g.stroke();
+  }
+  padMat = new THREE.MeshBasicMaterial({
+    map: new THREE.CanvasTexture(c),
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  });
+  return padMat;
+}
+
+function scatterPads(parent) {
+  const mat = ensurePadMat();
+  if (!mat || !padList.length) return;
+  const stripLen = CELLS * CELL_LEN + (CELLS - 1) * GAP;
+  for (const p of padList) {
+    if (p.cell !== 1) continue;      // middle cell of each strip = its centre
+    const gNode = new THREE.Group();
+    gNode.position.set(p.x, (p.y || 0) + 0.018, p.z);
+    gNode.rotation.x = -Math.atan(p.sl || 0);  // pitch to the road (X then Y order)
+    gNode.rotation.y = p.h;
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(CELL_W + 0.4, stripLen), mat);
+    pl.rotation.x = Math.PI / 2;     // canvas "up" -> local +z = travel direction
+    pl.renderOrder = 1;
+    gNode.add(pl);
+    parent.add(gNode);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Item boxes + walls — the field (layout + rolls + live walls) lives in
+ *  items.js; this only draws it. Boxes ride the track group (swap +
+ *  dispose per rebuild); wall meshes live on the SCENE because a wall in
+ *  flight must survive a track rebuild — syncWallMeshes() is called on
+ *  every rebuild (hides stale walls) and every frame (main.js).
+ * ------------------------------------------------------------------ */
+let boxMats = null;   // persistent across rebuilds, like hazardMats
+function ensureBoxMats() {
+  if (boxMats) return boxMats;
+  if (typeof document === 'undefined') return null;   // headless (ai-sim)
+  boxMats = {
+    shell: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.55 }),
+    core:  new THREE.MeshStandardMaterial({ color: 0x8fd4ff, emissive: 0x59b7ff, emissiveIntensity: 1.5, roughness: 0.4 }),
+    ring:  new THREE.MeshBasicMaterial({ color: 0x8fd4ff, transparent: true, opacity: 0.5 }),
+  };
+  return boxMats;
+}
+
+function scatterItemBoxes(parent) {
+  const m = ensureBoxMats();
+  if (!m || !itemBoxList.length) return;
+  for (const b of itemBoxList) {
+    const g = new THREE.Group();
+    g.position.set(b.x, b.y + 0.55, b.z);      // hovers just over the (elevated) road
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.05, 1.05, 1.05), m.shell);
+    body.rotation.set(Math.PI / 4, 0, 0);      // diamond orientation reads as "box"
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 10), m.core);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.05, 8, 24), m.ring);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = -0.55;
+    g.add(body, core, ring);
+    parent.add(g);
+    b._mesh = g;    // main.js spins it + hides it while respawning
+  }
+}
+
+// spin + bob the boxes; a box in its respawn cooldown is hidden (main.js calls this per frame)
+export function updateItemBoxes(dt, nowMs) {
+  for (const b of itemBoxList) {
+    const g = b._mesh;
+    if (!g) continue;
+    if (b.respawnT > 0) { g.visible = false; continue; }
+    g.visible = true;
+    g.position.y = b.y + 0.55 + 0.14 * Math.sin(nowMs * 0.004 + b.iid * 2.1);
+    g.rotation.y += dt * 1.8;
+  }
+}
+
+const wallGroup = new THREE.Group();   // scene-level: survives track rebuilds
+scene.add(wallGroup);
+let wallPool = [];
+function ensureWallPool() {
+  if (wallPool.length || typeof document === 'undefined') return wallPool;
+  const body = new THREE.MeshStandardMaterial({ color: 0xf5f0e8, roughness: 0.5 });
+  const halo = new THREE.MeshBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0.45 });
+  for (let i = 0; i < 6; i++) {
+    const g = new THREE.Group();
+    const b = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.8, 0.35), body);
+    b.castShadow = true;
+    const h = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.4), halo);
+    h.position.z = -0.02;
+    g.add(b, h);
+    g.visible = false;
+    wallGroup.add(g);
+    wallPool.push(g);
+  }
+  return wallPool;
+}
+
+// point the pooled wall meshes at items.js's live projectile list
+export function syncWallMeshes() {
+  const pool = ensureWallPool();
+  for (let i = 0; i < pool.length; i++) {
+    const w = walls[i], g = pool[i];
+    if (!w) { g.visible = false; continue; }
+    g.visible = true;
+    g.position.set(w.x, w.y + 0.5, w.z);
+    g.rotation.y = Math.atan2(w.dx, w.dz);
+  }
+}
+
+/* sticky-candy slow patches — scene-level pool (survive track rebuilds),
+ * synced from items.js's stickyPatches each frame. The patch fades out
+ * over its 2 s lifetime; a hit patch flashes. */
+let stickyPool = [];
+function ensureStickyPool() {
+  if (stickyPool.length) return stickyPool;
+  const mat = new THREE.MeshBasicMaterial({ color: 0x8a5a2a, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false });
+  for (let i = 0; i < 8; i++) {
+    const d = new THREE.Mesh(new THREE.CircleGeometry(2.2, 24), mat.clone());
+    d.rotation.x = -Math.PI / 2;
+    d.renderOrder = 1;
+    d.visible = false;
+    scene.add(d);
+    stickyPool.push(d);
+  }
+  return stickyPool;
+}
+
+export function syncStickyPatches(nowS) {
+  const pool = ensureStickyPool();
+  const STICKY_TTL = 2.0;
+  for (let i = 0; i < pool.length; i++) {
+    const s = stickyPatches[i], m = pool[i];
+    if (!s) { m.visible = false; continue; }
+    m.visible = true;
+    m.position.set(s.x, s.y + 0.03, s.z);
+    const life = 1 - s.t / STICKY_TTL;      // fade out over the lifetime
+    const pulse = 1 + 0.08 * Math.sin(nowS * 9);
+    m.scale.set(pulse * (0.6 + 0.4 * life), pulse * (0.6 + 0.4 * life), 1);
+    m.material.opacity = (s.hit ? 0.75 : 0.4) * life;
+  }
+}
+
+export function buildTrack(def, index = 0) {
+  // [x, y, z] (or legacy [x, z] → y = 0); cap elevation at MAX_ELEVATION
+  let maxAbsY = 0;
+  for (const p of def.points) maxAbsY = Math.max(maxAbsY, Math.abs(p.length > 2 ? p[1] : 0));
+  const yScale = maxAbsY > MAX_ELEVATION ? MAX_ELEVATION / maxAbsY : 1;
+  const pts = def.points.map(p => {
+    // [x, y, z], or legacy [x, z] (read as y = 0)
+    const y = p[2] !== undefined ? p[1] : 0;
+    const z = p[2] !== undefined ? p[2] : p[1];
+    return new THREE.Vector3(p[0], y * yScale, z);
+  });
+  curve = new THREE.CatmullRomCurve3(pts, true, 'catmullrom', 0.5);
+
+  // --- data: refill in place so live bindings stay valid ---
+  // the spline can overshoot below the table between control points
+  // (measured dips of ~0.2 u); the table plane is opaque at y = -0.05,
+  // so clamp the road (visuals AND physics) to stay just above it.
+  trackLen = 0;
+  for (let i = 0; i < N_SAMPLES; i++) {
+    samples[i].copy(curve.getPointAt(i / N_SAMPLES));
+    samples[i].y = Math.max(samples[i].y, 0.02);
+  }
+  for (let i = 1; i < N_SAMPLES; i++) trackLen += samples[i].distanceTo(samples[i - 1]);
+  for (let i = 0; i < N_SAMPLES; i++) {
+    const A = samples[(i + N_SAMPLES - 1) % N_SAMPLES], B = samples[(i + 1) % N_SAMPLES];
+    sampleHead[i] = Math.atan2(B.x - A.x, B.z - A.z);
+  }
+
+  // --- visible: swap the track group's contents (dispose old) ---
+  hazardFx.length = 0;
+  while (group.children.length) {
+    const c = group.children.pop();
+    c.traverse(n => {
+      if (n.isMesh || n.isInstancedMesh) {
+        n.geometry.dispose();
+        if (n.isInstancedMesh) n.dispose();
+      }
+    });
+  }
+  if (!propMats.length) {
+    propMats = [0xf48fb1, 0xffcc80, 0x80d8ff, 0xc5e1a5, 0xfff176, 0xce93d8]
+      .map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6 }));
+  }
+
+  const th = trackTheme(def);
+  const builtMats = [];
+  const trackMat = m => { builtMats.push(m); return m; };
+
+  const roadMat = trackMat(new THREE.MeshStandardMaterial({ color: th.road, roughness: 0.95, metalness: 0, side: THREE.DoubleSide }));
+  roadMatRef = roadMat;
+  roadBaseColor.set(th.road);   // for the wet retint (weather.js setRoadWet)
+  buildRibbon(group, curve, -ROAD_HW, ROAD_HW, 0.01, roadMat);
+
+  const curbMat = trackMat(new THREE.MeshStandardMaterial({ map: curbTexture(), roughness: 0.85, side: THREE.DoubleSide }));
+  curbMat.map.repeat.set(Math.round(trackLen / 6), 1);
+  buildRibbon(group, curve, ROAD_HW, ROAD_HW + CURB_W, 0.005, curbMat);
+  buildRibbon(group, curve, -ROAD_HW, -(ROAD_HW + CURB_W), 0.005, curbMat);
+
+  // start / finish line — laid on the road, aligned to the 3D tangent
+  // (flat tracks: p.y = 0, zero pitch — identical to before)
+  const startP = samples[0];
+  const startT = samples[1].clone().sub(samples[0]).normalize();
+  const startSide = new THREE.Vector3(-startT.z, 0, startT.x).normalize();
+  const line = new THREE.Mesh(
+    new THREE.PlaneGeometry(ROAD_HW * 2, 2.4),
+    trackMat(new THREE.MeshStandardMaterial({ map: checkerTexture(), roughness: 0.9 }))
+  );
+  line.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(
+    startSide, startT, startSide.clone().cross(startT).normalize()));
+  line.position.set(startP.x, startP.y + 0.02, startP.z);
+  line.receiveShadow = true;
+  group.add(line);
+
+  scatterProps(group, index);
+  buildObstacles(index);          // deterministic hazard field for sim + AI (per track)
+  if (getObstaclesOn()) scatterHazardMeshes(group);   // visuals only when hazards are on
+  buildPads(index);               // boost-pad strips (deterministic; pads.js holds the hits)
+  scatterPads(group);
+  buildItems(index);              // item boxes (deterministic; items.js holds the state)
+  scatterItemBoxes(group);
+  syncWallMeshes();               // walls live on the scene — hide any in flight
+  syncStickyPatches(0);           // patches too
+
+  // dispose the previous build's per-track materials (shared prop mats persist)
+  for (const m of prevMats) m.dispose();
+  prevMats = builtMats;
+
+  // --- palette: fog/sky, lights, table wood ---
+  scene.fog?.color.set(th.fog);
+  scene.background?.set(th.fog);
+  retintSky(scene, th.sky);
+  if (sun) sun.intensity = th.light.sun;
+  if (hemi) hemi.intensity = th.light.hemi;
+  if (fill) fill.intensity = th.light.fill;
+  setTableWood(th.wood, def.theme === 'storm');   // storm: the table is a sea
+
+  // --- remember the current track ---
+  current.name = def.name;
+  current.theme = def.theme;
+  buildCorners();   // per-corner timing field (deterministic from the samples)
+  buildPuddles(index, group);   // weather: seeded puddles on flat sections (always built; visible only when raining)
+  buildScenery(def.theme, index);   // per-theme scenery (cavern ceiling/crystals, storm buoys/lighthouse)
+
+  return { trackLen, name: def.name, points: def.points.length };
+}
+
+// eager build of the first track so imported data (samples etc.) is valid
+// the moment track.js loads (browser AND ai-sim); main.js re-builds the
+// user's persisted choice at boot.
+buildTrack(TRACKS[0], 0);
+export function selectTrack(idx) {
+  const def = TRACKS[((idx % TRACKS.length) + TRACKS.length) % TRACKS.length];
+  return buildTrack(def, idx);
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.cache/
+*.log
+screenshots/
+promo/
+docs/evidence/
+docs/CHECKPOINT.md
+desktop/icon.ico
+work/
+.env
+.env.*
+!.env.example
+*.pem
+*.key

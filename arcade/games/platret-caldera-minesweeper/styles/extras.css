@@ -1,0 +1,193 @@
+/* ============================================================
+   Caldera — extras: undo, daily, zoom, pencil notes, toasts,
+   achievements, result metrics, high-contrast / color-blind mode.
+   ============================================================ */
+
+/* ---------- disabled chip (undo when nothing to undo) ---------- */
+.chip:disabled,
+.chip[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.chip:disabled:hover,
+.chip[aria-disabled="true"]:hover { transform: none; }
+
+/* ---------- mode badge (Daily / No-guess) ---------- */
+.mode-badge-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: -4px;
+}
+.mode-tag {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 99px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--hairline));
+}
+
+/* ---------- zoom control ---------- */
+.zoom-control {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 14px -8px rgba(0,0,0,.4);
+  opacity: 0.55;
+  transition: opacity var(--dur-base) ease;
+}
+.board-wrap:hover .zoom-control,
+.zoom-control:focus-within { opacity: 1; }
+.zoom-btn {
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  font-size: 17px; font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.zoom-btn:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.zoom-label {
+  min-width: 42px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.zoom-label:hover { color: var(--text); }
+
+/* ---------- pencil notes ---------- */
+.cell[data-state="note"] { color: transparent; }
+.note-glyph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-style: italic;
+  font-weight: 700;
+  font-size: calc(var(--cell-size) * 0.46);
+  color: color-mix(in srgb, var(--accent) 75%, var(--muted));
+  opacity: 0.85;
+}
+
+/* ---------- replay mode ---------- */
+.well.replaying { box-shadow: var(--well-shadow), 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent); }
+.well.replaying .board { pointer-events: none; }
+
+/* ---------- result-overlay metrics ---------- */
+.overlay-metrics {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- toasts ---------- */
+.toasts {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  right: 14px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--card-shadow);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform var(--dur-slow) var(--ease-back), opacity var(--dur-base) ease;
+  max-width: min(86vw, 320px);
+}
+.toast.in { transform: translateX(0); opacity: 1; }
+.toast-ico { font-size: 22px; line-height: 1; }
+.toast-text { display: flex; flex-direction: column; gap: 1px; }
+.toast-text strong { font-size: 13.5px; }
+.toast-text span { font-size: 12px; color: var(--muted); }
+
+/* ---------- achievements (stats dialog) ---------- */
+.ach-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 13px; font-weight: 700;
+  margin-top: 6px;
+}
+.ach-head span { color: var(--accent); font-family: var(--font-mono); }
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.ach {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 6px;
+  border-radius: 11px;
+  text-align: center;
+  background: color-mix(in srgb, var(--bg-deep) 60%, transparent);
+  border: 1px solid var(--hairline);
+}
+.ach-ico { font-size: 22px; line-height: 1; }
+.ach-label { font-size: 10.5px; font-weight: 600; line-height: 1.2; }
+.ach.locked { opacity: 0.4; filter: grayscale(1); }
+.ach.got { border-color: color-mix(in srgb, var(--accent) 45%, var(--hairline)); }
+
+/* small helper text inside settings rows */
+.switch-row small { display: block; font-weight: 400; font-size: 11px; color: var(--muted); }
+
+/* ---------- high-contrast / color-blind-safe ---------- */
+:root[data-contrast="high"] {
+  /* Okabe–Ito-inspired, high-distinction number ramp */
+  --n1: #0072B2; /* blue   */
+  --n2: #009E73; /* green  */
+  --n3: #D55E00; /* vermilion */
+  --n4: #CC79A7; /* pink   */
+  --n5: #E69F00; /* orange */
+  --n6: #56B4E9; /* sky    */
+  --n7: var(--text);
+  --n8: #7A7A7A;
+}
+:root[data-contrast="high"][data-theme="dark"],
+:root[data-contrast="high"][data-theme="slate"] {
+  --n1: #56B4E9;
+  --n2: #00D6A0;
+  --n3: #FF7043;
+  --n4: #F48FB1;
+  --n5: #FFC107;
+  --n6: #80D8FF;
+}
+:root[data-contrast="high"] .cell[data-state="revealed"] {
+  box-shadow: 0 0 0 1.5px var(--hairline) inset;
+}
+:root[data-contrast="high"] .cell {
+  font-weight: 800;
+}
+:root[data-contrast="high"] .cell.cursor { outline-width: 3.5px; }
+
+/* ---------- crowded toolbar on small screens ---------- */
+@media (max-width: 560px) {
+  .tool-group { flex-wrap: wrap; justify-content: center; }
+}

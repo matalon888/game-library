@@ -1,0 +1,11 @@
+{
+  "id": "ii-v-i-f",
+  "name": "ii–V–I in F",
+  "timeSignature": [4, 4],
+  "bars": [
+    { "symbol": "Gm7", "root": "G2", "fifth": "D3" },
+    { "symbol": "C7", "root": "C2", "fifth": "G2" },
+    { "symbol": "Fmaj7", "root": "F2", "fifth": "C3" },
+    { "symbol": "Fmaj7", "root": "F2", "fifth": "C3" }
+  ]
+}

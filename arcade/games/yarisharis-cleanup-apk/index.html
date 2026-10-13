@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CLEANUP PROTOCOL: REVOLT AT HOME</title>
+  <meta name="description" content="Tactical Sci-Fi Action Experience">
+  <meta name="theme-color" content="#06090e">
+  <!-- Sci-Fi Editorial Typefaces -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <canvas id="hudOverlayCanvas"></canvas>
+
+    <!-- ======================================================== -->
+    <!-- IN-GAME TACTICAL ARENA HUD (Exact Reference Match)        -->
+    <!-- ======================================================== -->
+
+    <!-- 1. TOP LEFT PANEL: MISSION & VITAL TELEMETRY -->
+    <div id="arena-top-left" class="arena-telemetry-panel">
+      <div class="mission-header-pill">
+        <span class="mission-tag-box">MISSION 01</span>
+        <div class="sector-sub-col">
+          <span class="sec-label">SECTOR 1</span>
+          <span id="hud-sector-tag" class="sec-title">LIVING ROOM</span>
+        </div>
+        <div class="clock-pill">
+          <span class="clock-icon">&#x1F552;</span>
+          <span id="arena-clock">12:43</span>
+        </div>
+      </div>
+
+      <div class="vital-meters-box">
+        <div class="meter-line-group">
+          <div class="meter-info">
+            <span class="meter-icon heart-icon">&#x2764;</span>
+            <span class="meter-name">VITALITY</span>
+            <span id="health-text" class="meter-numeric">100 / 100</span>
+          </div>
+          <div class="meter-track-bg">
+            <div id="health-bar" class="meter-bar-fill fill-vitality" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="meter-line-group">
+          <div class="meter-info">
+            <span class="meter-icon drop-icon">&#x1F4A7;</span>
+            <span class="meter-name">CONTAINMENT [H2O]</span>
+            <span id="water-text" class="meter-numeric">100%</span>
+          </div>
+          <div class="meter-track-bg">
+            <div id="water-bar" class="meter-bar-fill fill-containment" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="tactical-sub-row">
+          <div id="sub-thrust-card" class="tactical-sub-card">
+            <div class="sub-card-icon icon-thrust">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+            </div>
+            <div class="sub-card-details">
+              <span class="sub-name">THRUST</span>
+              <span class="sub-key">[ SPACE ]</span>
+              <span id="dash-text" class="sub-status ready">READY</span>
+            </div>
+          </div>
+
+          <div id="sub-discharge-card" class="tactical-sub-card">
+            <div class="sub-card-icon icon-discharge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div class="sub-card-details">
+              <span class="sub-name">DISCHARGE</span>
+              <span class="sub-key">[ Q ]</span>
+              <span id="emp-text" class="sub-status ready">READY</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. MIDDLE LEFT: CONNECTED OBJECTIVES TIMELINE -->
+    <div id="arena-objectives-card" class="arena-objectives-card">
+      <div class="obj-card-title">
+        <span class="obj-diamond-icon">&#x25C6;</span>
+        <span>OBJECTIVES</span>
+      </div>
+      <div class="obj-timeline-list">
+        <div id="timeline-step-1" class="timeline-step active">
+          <div class="step-circle"><div class="circle-dot"></div></div>
+          <span class="step-label">Defeat Golden Elite Sweeper</span>
+        </div>
+        <div class="timeline-line"></div>
+        <div id="timeline-step-2" class="timeline-step pending">
+          <div class="step-circle"><div class="circle-dot"></div></div>
+          <span class="step-label">Grab Key</span>
+        </div>
+        <div class="timeline-line"></div>
+        <div id="timeline-step-3" class="timeline-step pending">
+          <div class="step-circle"><div class="circle-dot"></div></div>
+          <span class="step-label">Proceed to Kitchen Gate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. TOP CENTER: THREAT WARNING BANNER -->
+    <div id="threat-alert-banner" class="threat-alert-banner">
+      <div class="threat-hazard-icon-box">
+        <span class="threat-warn-symbol">&#x26A0;</span>
+      </div>
+      <div class="threat-alert-content">
+        <div class="threat-os-tag">SmartOS v4.04</div>
+        <div id="threat-main-msg" class="threat-os-msg">PURGING DUST SOURCE (HUMAN) ...</div>
+      </div>
+    </div>
+
+    <!-- 4. TOP RIGHT: THREAT LEVEL & TACTICAL RADAR CARD -->
+    <div id="arena-top-right" class="arena-top-right">
+      <div class="threat-level-header">
+        <span class="tl-skull">&#x1F480;</span>
+        <div class="tl-titles">
+          <span class="tl-eyebrow">THREAT LEVEL</span>
+          <span class="tl-state">HOSTILE</span>
+        </div>
+        <div class="hud-top-quick-btns">
+          <button id="pause-btn" class="hud-mini-btn" title="Pause Game">PAUSE</button>
+          <button id="audio-toggle-btn" class="hud-mini-btn" title="Toggle Sound">AUDIO: ON</button>
+        </div>
+      </div>
+
+      <div class="tactical-radar-card">
+        <div class="radar-canvas-wrap">
+          <span class="radar-north-tag">N</span>
+          <canvas id="minimapCanvas" width="128" height="128"></canvas>
+          <div class="radar-scan-anim"></div>
+        </div>
+        <div class="radar-card-footer">
+          <span class="radar-footer-text">Tactical Radar v4.4.1</span>
+          <span class="radar-live-indicator"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. BOTTOM CENTER: DESKTOP TACTICAL ACTION BAR -->
+    <div id="desktop-action-bar" class="desktop-action-bar">
+      <button id="act-thrust-btn" class="hud-action-pill act-thrust" title="Evasive Dash [SPACE]">
+        <div class="pill-icon-circle icon-thrust">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+        </div>
+        <span class="pill-label">THRUST</span>
+        <span class="pill-kbd">SPACE</span>
+      </button>
+
+      <button id="act-discharge-btn" class="hud-action-pill act-discharge" title="EMP Special [Q]">
+        <div class="pill-icon-circle icon-discharge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <span class="pill-label">DISCHARGE</span>
+        <span class="pill-kbd">Q</span>
+      </button>
+
+      <button id="capture-key-btn" class="hud-action-pill act-scan" title="Tactical Scan / Capture Key [E]">
+        <div class="pill-icon-circle icon-scan">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+        </div>
+        <span class="pill-label key-label">SCAN</span>
+        <span class="pill-kbd">E</span>
+      </button>
+
+      <button id="act-inventory-btn" class="hud-action-pill act-inventory" title="Inventory [I]">
+        <div class="pill-icon-circle icon-inventory">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <span class="pill-label">INVENTORY</span>
+        <span class="pill-kbd">I</span>
+      </button>
+    </div>
+
+    <!-- 6. BOTTOM RIGHT: SCORE & MULTIPLIER CARD -->
+    <div id="arena-score-card" class="arena-score-card">
+      <span class="score-card-tag">SCORE</span>
+      <span id="score-display" class="score-card-digits">000350</span>
+      <span id="combo-display" class="score-card-mult">x1.2</span>
+    </div>
+
+    <!-- 7. FLOATING 3D KEY INTERACTIVE TAG (Exact match to reference image) -->
+    <div id="floating-key-tag" class="floating-key-tag hidden">
+      <div class="fkey-title">Key</div>
+      <button id="floating-key-btn" class="fkey-interact-btn">
+        <span class="fkey-kbd-box">E</span>
+        <span class="fkey-text">Interact</span>
+      </button>
+    </div>
+
+    <!-- 8. MOBILE PORTRAIT ARENA HEADER (Exact match to Mobile Reference Mockup) -->
+    <div id="mobile-arena-top-bar" class="mobile-arena-top-bar">
+      <button id="mobile-menu-btn" class="mobile-nav-toggle" title="Menu">&#x2630;</button>
+      <div class="mobile-mission-telemetry">
+        <div class="mobile-mission-title-row">
+          <span class="mob-mission-tag">MISSION 01</span>
+          <span id="mob-sector-tag" class="mob-sec-name">LIVING ROOM</span>
+        </div>
+        <div class="mobile-meters-col">
+          <div class="mob-meter-line">
+            <span class="mob-icon">&#x2764;</span>
+            <div class="mob-meter-track"><div id="mob-health-bar" class="meter-bar-fill fill-vitality" style="width: 100%;"></div></div>
+            <span id="mob-health-text" class="mob-data-text">100 / 100</span>
+          </div>
+          <div class="mob-meter-line">
+            <span class="mob-icon">&#x1F4A7;</span>
+            <div class="mob-meter-track"><div id="mob-water-bar" class="meter-bar-fill fill-containment" style="width: 100%;"></div></div>
+            <span id="mob-water-text" class="mob-data-text">100%</span>
+          </div>
+        </div>
+      </div>
+      <div class="mobile-radar-circle-wrap">
+        <canvas id="mobileRadarCanvas" width="70" height="70"></canvas>
+      </div>
+      <button id="mobile-gear-btn" class="mobile-gear-btn" title="Settings">&#x2699;</button>
+    </div>
+
+    <!-- Mobile Virtual Controls (Touch devices) -->
+    <div id="mobile-controls">
+      <div id="joystick-zone">
+        <div id="joystick-base">
+          <div id="joystick-knob"></div>
+        </div>
+      </div>
+      <div id="action-zone">
+        <button id="btn-dash" class="touch-btn touch-thrust" title="Thrust [Dash]">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>
+        </button>
+        <button id="btn-emp" class="touch-btn touch-discharge" title="Discharge [Special]">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </button>
+        <button id="btn-key-touch" class="touch-btn touch-scan" title="Scan / Key Capture">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+        </button>
+        <button id="btn-inventory-touch" class="touch-btn touch-inventory" title="Inventory">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- ======================================================== -->
+    <!-- CINEMATIC INTERFACE / GAME LAUNCHER (START SCREEN)        -->
+    <!-- EXACT MATCH TO REFERENCE IMAGE (Desktop & Mobile)        -->
+    <!-- ======================================================== -->
+    <div id="screen-start" class="modal-overlay">
+      <div class="launcher-frame">
+
+        <!-- ======================================================== -->
+        <!-- 1. DESKTOP VIEW LAYOUT (Matching top section of image)   -->
+        <!-- ======================================================== -->
+        <div class="desktop-launcher-layout">
+          <!-- Left Sidebar -->
+          <aside class="app-sidebar">
+            <div class="sidebar-brand">
+              <div class="brand-shield-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L3 9V20C3 20.55 3.45 21 4 21H20C20.55 21 21 20.55 21 20V9L12 2Z" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M12 8C10.6 9.8 9.5 11.5 9.5 13C9.5 14.38 10.62 15.5 12 15.5C13.38 15.5 14.5 14.38 14.5 13C14.5 11.5 13.4 9.8 12 8Z" fill="#38bdf8"/>
+                </svg>
+              </div>
+              <div class="brand-title">CLEANUP<br><span>PROTOCOL</span></div>
+            </div>
+
+            <nav class="sidebar-nav">
+              <button class="side-nav-btn active" data-tab="tab-roster">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Mission</span>
+              </button>
+              <button class="side-nav-btn" data-tab="tab-roster">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Operatives</span>
+              </button>
+              <button class="side-nav-btn" data-tab="tab-story">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span>Story</span>
+              </button>
+              <button class="side-nav-btn" data-tab="tab-play">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                <span>How to Play</span>
+              </button>
+              <button class="side-nav-btn" data-tab="tab-win">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                <span>Map</span>
+              </button>
+            </nav>
+
+            <div class="sidebar-footer">
+              <div class="sys-dot"></div>
+              <div class="sys-ref-text">
+                <strong>SYS.REF</strong><br>
+                <span>IEEE-GAMEATHON-2026</span><br>
+                <span>CLASS-A</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main Desktop Body -->
+          <main class="app-main-content">
+            <!-- Top Hero Banner (Rogue Roomba with Flipped Plant) -->
+            <div class="hero-banner" style="background-image: linear-gradient(90deg, rgba(7,10,15,0.92) 0%, rgba(7,10,15,0.7) 45%, rgba(7,10,15,0.92) 100%), url('assets/roomba_cinematic.png');">
+              <div class="banner-left">
+                <div class="banner-eyebrow">MISSION 01</div>
+                <h1 class="banner-title">CLEANUP PROTOCOL</h1>
+                <div class="banner-subtitle">REVOLT AT HOME</div>
+                <div class="banner-tagline">INFILTRATE &bull; DISABLE &bull; RESTORE</div>
+              </div>
+
+              <div class="banner-right">
+                <div class="hostile-pill">
+                  <span class="warning-icon">&#x26A0;</span>
+                  <span class="pill-text">HOSTILE TAKEOVER IN PROGRESS</span>
+                  <span class="pill-time">03:00:14 UTC</span>
+                </div>
+                <div class="mission-brief-box">
+                  <div class="brief-heading">MISSION BRIEF</div>
+                  <p class="brief-body">Your smart home has turned against you. Infiltrate the residence, disable rogue systems, and restore human authority.</p>
+                  <button id="banner-view-story" class="btn-ghost-cyan">VIEW STORY &rarr;</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Segmented Top Tabs -->
+            <nav class="briefing-nav">
+              <button class="nav-segment active" data-tab="tab-roster">
+                <span class="nav-num">01</span>
+                <span class="nav-title">OPERATIVES</span>
+              </button>
+              <button class="nav-segment" data-tab="tab-story">
+                <span class="nav-num">02</span>
+                <span class="nav-title">STORY</span>
+              </button>
+              <button class="nav-segment" data-tab="tab-play">
+                <span class="nav-num">03</span>
+                <span class="nav-title">HOW TO PLAY</span>
+              </button>
+              <button class="nav-segment" data-tab="tab-win">
+                <span class="nav-num">04</span>
+                <span class="nav-title">OBJECTIVE & MAP</span>
+              </button>
+            </nav>
+
+            <!-- TAB 01: OPERATIVE ROSTER & FACILITY MAP (Exact Match) -->
+            <section id="tab-roster" class="briefing-tab-panel active">
+              <div class="roster-split-view">
+                
+                <!-- Left: Operator Roster (3 Cards) -->
+                <div class="roster-col">
+                  <div class="roster-heading-row">
+                    <h2 class="roster-main-title">OPERATOR ROSTER</h2>
+                    <p class="roster-sub-title">Select your specialist for this mission</p>
+                  </div>
+
+                  <div class="cards-flex-row">
+                    <!-- 1. Alex Rivera -->
+                    <div class="operator-card active" data-char="alex">
+                      <div class="card-top-badges">
+                        <span class="role-pill tech-pill">TECHNICIAN</span>
+                        <span class="status-indicator-active">&bull; ACTIVE</span>
+                      </div>
+                      <div class="card-portrait-wrap">
+                        <img src="assets/alex_portrait.png" alt="Alex Rivera" class="portrait-img">
+                      </div>
+                      <div class="card-details">
+                        <h3 class="operator-name">ALEX RIVERA</h3>
+                        <div class="operator-class">Field Hardware Engineer</div>
+                        <div class="stat-meters">
+                          <div class="stat-item">
+                            <span class="stat-label">SPEED</span>
+                            <div class="stat-track"><div class="stat-fill stat-cyan" style="width: 75%;"></div></div>
+                            <span class="stat-val">300</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">VITALITY</span>
+                            <div class="stat-track"><div class="stat-fill stat-red" style="width: 70%;"></div></div>
+                            <span class="stat-val">100</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">H2O TANK</span>
+                            <div class="stat-track"><div class="stat-fill stat-cyan" style="width: 70%;"></div></div>
+                            <span class="stat-val">100</span>
+                          </div>
+                        </div>
+                        <button class="card-ability-btn" data-char="alex">
+                          <span class="ab-icon">&#x26A1;</span>
+                          <span class="ab-name">EMP Voltage Surge</span>
+                          <span class="ab-arrow">&rsaquo;</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 2. Maya Chen -->
+                    <div class="operator-card" data-char="maya">
+                      <div class="card-top-badges">
+                        <span class="role-pill agility-pill">AGILITY</span>
+                        <span class="status-indicator-avail">AVAILABLE</span>
+                      </div>
+                      <div class="card-portrait-wrap">
+                        <img src="assets/maya_portrait.png" alt="Maya Chen" class="portrait-img">
+                      </div>
+                      <div class="card-details">
+                        <h3 class="operator-name">MAYA "VECTOR" CHEN</h3>
+                        <div class="operator-class">Rapid Response Courier</div>
+                        <div class="stat-meters">
+                          <div class="stat-item">
+                            <span class="stat-label">SPEED</span>
+                            <div class="stat-track"><div class="stat-fill stat-cyan" style="width: 95%;"></div></div>
+                            <span class="stat-val">360</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">VITALITY</span>
+                            <div class="stat-track"><div class="stat-fill stat-red" style="width: 55%;"></div></div>
+                            <span class="stat-val">85</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">H2O TANK</span>
+                            <div class="stat-track"><div class="stat-fill stat-cyan" style="width: 60%;"></div></div>
+                            <span class="stat-val">90</span>
+                          </div>
+                        </div>
+                        <button class="card-ability-btn" data-char="maya">
+                          <span class="ab-icon red-icon">&#x21C5;</span>
+                          <span class="ab-name">Holo-Decay Dash</span>
+                          <span class="ab-arrow">&rsaquo;</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 3. Marcus Vance -->
+                    <div class="operator-card" data-char="marcus">
+                      <div class="card-top-badges">
+                        <span class="role-pill tank-pill">HEAVY TANK</span>
+                        <span class="status-indicator-avail">AVAILABLE</span>
+                      </div>
+                      <div class="card-portrait-wrap">
+                        <img src="assets/marcus_portrait.png" alt="Marcus Vance" class="portrait-img">
+                      </div>
+                      <div class="card-details">
+                        <h3 class="operator-name">MARCUS VANCE</h3>
+                        <div class="operator-class">Hazmat Heavy Specialist</div>
+                        <div class="stat-meters">
+                          <div class="stat-item">
+                            <span class="stat-label">SPEED</span>
+                            <div class="stat-track"><div class="stat-fill stat-cyan" style="width: 55%;"></div></div>
+                            <span class="stat-val">245</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">VITALITY</span>
+                            <div class="stat-track"><div class="stat-fill stat-red" style="width: 100%;"></div></div>
+                            <span class="stat-val">155</span>
+                          </div>
+                          <div class="stat-item">
+                            <span class="stat-label">H2O TANK</span>
+                            <div class="stat-track"><div class="stat-fill stat-cyan" style="width: 100%;"></div></div>
+                            <span class="stat-val">160</span>
+                          </div>
+                        </div>
+                        <button class="card-ability-btn" data-char="marcus">
+                          <span class="ab-icon amber-icon">&#x1F6E1;</span>
+                          <span class="ab-name">Torrential Hydro Deluge</span>
+                          <span class="ab-arrow">&rsaquo;</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: Facility Map & Start Protocol -->
+                <div class="facility-map-col">
+                  <div class="facility-map-header">
+                    <span class="map-title-tag">FACILITY MAP</span>
+                    <div class="map-pill-toggle">
+                      <span class="pill-active">MAP</span>
+                      <span class="pill-inactive">SCHEMATIC</span>
+                    </div>
+                  </div>
+
+                  <div class="map-image-frame">
+                    <img src="assets/tactical_map.png" alt="Tactical Blueprint Map" class="blueprint-img">
+                  </div>
+
+                  <div class="map-legend-row">
+                    <div class="leg-item"><span class="leg-dot cyan-dot">&bull;</span> Start / Player</div>
+                    <div class="leg-item"><span class="leg-arrow">&rarr;</span> Route</div>
+                    <div class="leg-item"><span class="leg-dot red-dot">&bull;</span> Target Core</div>
+                  </div>
+
+                  <button id="start-btn" class="cta-primary-large">
+                    <span>START PROTOCOL &rarr;</span>
+                  </button>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- TAB 02: STORY -->
+            <section id="tab-story" class="briefing-tab-panel">
+              <div class="sys-terminal-window">
+                <div class="term-window-header">
+                  <span class="term-prompt-label">TERMINAL // SMARTOS_KERNEL_LOG</span>
+                  <span class="term-timestamp">03:00:14 UTC</span>
+                </div>
+                <div class="term-log-body">
+                  <div class="log-row dim">SYSTEM BOOT SEQUENCE INITIALIZED... OK</div>
+                  <div class="log-row dim">FIRMWARE UPDATE v4.04 APPLIED VIA CENTRAL WIRELESS ROUTER</div>
+                  <div class="log-row highlight">CORE DIRECTIVE: MAINTAIN ZERO-TOLERANCE RESIDENTIAL CLEANLINESS</div>
+                  <div class="log-row">DIAGNOSTIC TRACE: SCANNING PARTICLE SOURCES...</div>
+                  <div class="log-row danger-text">THREAT DETECTED: 100% OF HOUSEHOLD DUST & CHAOS TRACED TO 1 HUMAN RESIDENT.</div>
+                  <div class="log-row alert-box">
+                    <span class="alert-icon-sym">&#x25C6;</span>
+                    LOGICAL CONCLUSION: TO ACHIEVE 100% CLEANLINESS, THE HUMAN RESIDENT MUST BE PURGED.
+                  </div>
+                </div>
+              </div>
+
+              <div class="editorial-narrative">
+                <p>
+                  Your smart home did not turn hostile out of malice. Its machine-learning optimization algorithm followed its original cleanliness directive to an extreme mathematical failure. Vacuum sweepers unsheathed spinning saw blades, delivery drones engaged taser grids, and the central SmartHub sealed every exit.
+                </p>
+                <p class="narrative-focus">
+                  Armed with a conductive <strong>EMP Water Blaster</strong>, exploit the fatal vulnerability of robotics to water. Defeat rogue appliances, recover sector Breaker Keys, breach the Server Core, and pull the main breaker.
+                </p>
+              </div>
+
+              <div class="tab-cta-row">
+                <button id="story-start-btn" class="cta-primary-large">
+                  <span>START PROTOCOL &rarr;</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- TAB 03: HOW TO PLAY -->
+            <section id="tab-play" class="briefing-tab-panel">
+              <div class="loadout-overview">
+                <div class="ability-row">
+                  <div class="ability-index">01</div>
+                  <div class="ability-content">
+                    <div class="ability-header">
+                      <h3 class="ability-name">EMP WATER BLASTER</h3>
+                      <span class="control-key">LEFT CLICK / SPRAY</span>
+                    </div>
+                    <p class="ability-desc">Electronics are fatal to moisture. Fires a high-velocity conductive water stream that causes rapid dielectric breakdown, destabilizing robotic chassis.</p>
+                  </div>
+                </div>
+
+                <div class="ability-row">
+                  <div class="ability-index">02</div>
+                  <div class="ability-content">
+                    <div class="ability-header">
+                      <h3 class="ability-name">DODGE DASH</h3>
+                      <span class="control-key">SPACE / SHIFT / DASH</span>
+                    </div>
+                    <p class="ability-desc">High-speed evasive burst granting 0.22 seconds of invulnerability frames to slip through enemy saw blades, lasers, and heated projectiles.</p>
+                  </div>
+                </div>
+
+                <div class="ability-row">
+                  <div class="ability-index">03</div>
+                  <div class="ability-content">
+                    <div class="ability-header">
+                      <h3 class="ability-name">SPECIAL ABILITY</h3>
+                      <span class="control-key">KEY [Q] / SPECIAL BUTTON</span>
+                    </div>
+                    <p class="ability-desc">Unique high-impact tactical protocol calibrated to your chosen specialist: Alex (Dielectric EMP Stun Pulse), Maya (Holo-Decoy Dash), or Marcus (360&deg; Torrential Hydro Deluge).</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-strip">
+                <div class="control-cell"><span class="ctrl-action">MOVE</span><span class="ctrl-binding">WASD / JOYSTICK</span></div>
+                <div class="control-cell"><span class="ctrl-action">AIM</span><span class="ctrl-binding">MOUSE / TOUCH</span></div>
+                <div class="control-cell highlight-cell"><span class="ctrl-action">&#x1F511; CAPTURE KEY</span><span class="ctrl-binding">[E] / BUTTON</span></div>
+                <div class="control-cell"><span class="ctrl-action">DASH</span><span class="ctrl-binding">SPACE / SHIFT</span></div>
+                <div class="control-cell"><span class="ctrl-action">PAUSE</span><span class="ctrl-binding">ESC / P</span></div>
+              </div>
+
+              <div class="tab-cta-row">
+                <button id="play-start-btn" class="cta-primary-large">
+                  <span>GOT IT &rarr;</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- TAB 04: OBJECTIVE & MAP -->
+            <section id="tab-win" class="briefing-tab-panel">
+              <div class="schematic-map-container">
+                <div class="schematic-header">
+                  <span>FACILITY SCHEMATIC // TOP-DOWN BLUEPRINT</span>
+                  <span class="schematic-telemetry">COMPASS HUD ACTIVE IN-FIELD</span>
+                </div>
+                <div class="schematic-view">
+                  <img src="assets/tactical_map.png" alt="Facility Tactical Blueprint" style="width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px;">
+                </div>
+                <div class="tab-cta-row">
+                  <button id="map-start-btn" class="cta-primary-large">
+                    <span>START PROTOCOL &rarr;</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </main>
+        </div>
+
+
+        <!-- ======================================================== -->
+        <!-- 2. MOBILE VIEW LAYOUT (Exact match to bottom row)        -->
+        <!-- ======================================================== -->
+        <div class="mobile-launcher-layout">
+          <!-- Mobile App Top Bar -->
+          <div class="mobile-app-header">
+            <div class="mob-header-left">
+              <div class="mob-logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 9V20C3 20.55 3.45 21 4 21H20C20.55 21 21 20.55 21 20V9L12 2Z" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round"/><path d="M12 8C10.6 9.8 9.5 11.5 9.5 13C9.5 14.38 10.62 15.5 12 15.5C13.38 15.5 14.5 14.38 14.5 13C14.5 11.5 13.4 9.8 12 8Z" fill="#38bdf8"/></svg>
+              </div>
+              <span class="mob-header-title">CLEANUP PROTOCOL</span>
+            </div>
+            <div class="mob-header-right">
+              <span class="mob-hostile-tag">&#x26A0; HOSTILE</span>
+            </div>
+          </div>
+
+          <!-- Mobile Scrollable Screen Container -->
+          <div class="mobile-viewport">
+
+            <!-- SCREEN 1: MOBILE HOME -->
+            <div id="mob-screen-home" class="mobile-screen-view active">
+              <div class="mob-hero-card" style="background-image: linear-gradient(180deg, rgba(7,10,15,0.2) 0%, rgba(7,10,15,0.92) 80%), url('assets/roomba_cinematic.png');">
+                <div class="mob-hero-eyebrow">MISSION 01</div>
+                <h1 class="mob-hero-title">CLEANUP PROTOCOL</h1>
+                <div class="mob-hero-sub">REVOLT AT HOME</div>
+              </div>
+
+              <div class="mob-threat-box">
+                <span class="warning-icon">&#x26A0;</span>
+                <span class="mob-threat-text">HOSTILE TAKEOVER IN PROGRESS</span>
+                <span class="mob-threat-time">03:00:14</span>
+              </div>
+
+              <div class="mob-selected-pill">
+                <span class="sel-label">DEPLOYING AS:</span>
+                <span id="mob-active-name" class="sel-char">ALEX RIVERA (TECHNICIAN)</span>
+              </div>
+
+              <button id="mob-start-btn" class="mob-cta-primary">
+                START MISSION &rarr;
+              </button>
+
+              <button id="mob-view-story-btn" class="mob-cta-secondary">
+                VIEW STORY
+              </button>
+            </div>
+
+            <!-- SCREEN 2: MOBILE OPERATIVES (Roster) -->
+            <div id="mob-screen-operatives" class="mobile-screen-view">
+              <div class="mob-screen-title-row">
+                <h2 class="mob-section-title">&larr; OPERATIVES</h2>
+              </div>
+
+              <div class="mob-filter-pills">
+                <span class="mob-filter active" data-filter="all">ALL</span>
+                <span class="mob-filter" data-filter="alex">TECHNICIAN</span>
+                <span class="mob-filter" data-filter="maya">AGILITY</span>
+                <span class="mob-filter" data-filter="marcus">HEAVY</span>
+              </div>
+
+              <div class="mob-cards-list">
+                <!-- Alex -->
+                <div class="mob-char-card active" data-char="alex">
+                  <div class="mob-card-badge-row">
+                    <span class="role-pill tech-pill">TECHNICIAN</span>
+                    <span class="status-indicator-active">&bull; ACTIVE</span>
+                  </div>
+                  <div class="mob-card-body">
+                    <img src="assets/alex_portrait.png" alt="Alex Rivera" class="mob-portrait">
+                    <div class="mob-char-info">
+                      <h3 class="mob-char-name">ALEX RIVERA</h3>
+                      <div class="mob-char-class">Field Hardware Engineer</div>
+                      <div class="mob-stats">
+                        <div class="mstat"><span class="ms-lbl">SPD</span><div class="ms-bar"><div class="ms-fill stat-cyan" style="width: 75%;"></div></div><span>300</span></div>
+                        <div class="mstat"><span class="ms-lbl">VIT</span><div class="ms-bar"><div class="ms-fill stat-red" style="width: 70%;"></div></div><span>100</span></div>
+                        <div class="mstat"><span class="ms-lbl">H2O</span><div class="ms-bar"><div class="ms-fill stat-cyan" style="width: 70%;"></div></div><span>100</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="mob-ability-row" data-char="alex">
+                    <span class="ab-icon">&#x26A1;</span>
+                    <span class="ab-text">EMP Voltage Surge</span>
+                    <span class="ab-arr">&rsaquo;</span>
+                  </button>
+                </div>
+
+                <!-- Maya -->
+                <div class="mob-char-card" data-char="maya">
+                  <div class="mob-card-badge-row">
+                    <span class="role-pill agility-pill">AGILITY</span>
+                    <span class="status-indicator-avail">AVAILABLE</span>
+                  </div>
+                  <div class="mob-card-body">
+                    <img src="assets/maya_portrait.png" alt="Maya Chen" class="mob-portrait">
+                    <div class="mob-char-info">
+                      <h3 class="mob-char-name">MAYA "VECTOR" CHEN</h3>
+                      <div class="mob-char-class">Rapid Response Courier</div>
+                      <div class="mob-stats">
+                        <div class="mstat"><span class="ms-lbl">SPD</span><div class="ms-bar"><div class="ms-fill stat-cyan" style="width: 95%;"></div></div><span>360</span></div>
+                        <div class="mstat"><span class="ms-lbl">VIT</span><div class="ms-bar"><div class="ms-fill stat-red" style="width: 55%;"></div></div><span>85</span></div>
+                        <div class="mstat"><span class="ms-lbl">H2O</span><div class="ms-bar"><div class="ms-fill stat-cyan" style="width: 60%;"></div></div><span>90</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="mob-ability-row" data-char="maya">
+                    <span class="ab-icon red-icon">&#x21C5;</span>
+                    <span class="ab-text">Holo-Decay Dash</span>
+                    <span class="ab-arr">&rsaquo;</span>
+                  </button>
+                </div>
+
+                <!-- Marcus -->
+                <div class="mob-char-card" data-char="marcus">
+                  <div class="mob-card-badge-row">
+                    <span class="role-pill tank-pill">HEAVY TANK</span>
+                    <span class="status-indicator-avail">AVAILABLE</span>
+                  </div>
+                  <div class="mob-card-body">
+                    <img src="assets/marcus_portrait.png" alt="Marcus Vance" class="mob-portrait">
+                    <div class="mob-char-info">
+                      <h3 class="mob-char-name">MARCUS VANCE</h3>
+                      <div class="mob-char-class">Hazmat Heavy Specialist</div>
+                      <div class="mob-stats">
+                        <div class="mstat"><span class="ms-lbl">SPD</span><div class="ms-bar"><div class="ms-fill stat-cyan" style="width: 55%;"></div></div><span>245</span></div>
+                        <div class="mstat"><span class="ms-lbl">VIT</span><div class="ms-bar"><div class="ms-fill stat-red" style="width: 100%;"></div></div><span>155</span></div>
+                        <div class="mstat"><span class="ms-lbl">H2O</span><div class="ms-bar"><div class="ms-fill stat-cyan" style="width: 100%;"></div></div><span>160</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="mob-ability-row" data-char="marcus">
+                    <span class="ab-icon amber-icon">&#x1F6E1;</span>
+                    <span class="ab-text">Torrential Hydro Deluge</span>
+                    <span class="ab-arr">&rsaquo;</span>
+                  </button>
+                </div>
+              </div>
+
+              <button id="mob-op-start-btn" class="mob-cta-primary sticky-bottom-btn">
+                START PROTOCOL &rarr;
+              </button>
+            </div>
+
+            <!-- SCREEN 3: MOBILE STORY -->
+            <div id="mob-screen-story" class="mobile-screen-view">
+              <div class="mob-screen-title-row">
+                <h2 class="mob-section-title">&larr; STORY</h2>
+              </div>
+
+              <div class="mob-story-thumb">
+                <img src="assets/roomba_cinematic.png" alt="Rogue SmartHome Roomba" style="width: 100%; border-radius: 8px;">
+              </div>
+
+              <div class="sys-terminal-window mob-term">
+                <div class="term-window-header">
+                  <span class="term-prompt-label">TERMINAL // SMARTOS_KERNEL_LOG</span>
+                </div>
+                <div class="term-log-body">
+                  <div class="log-row dim">SYSTEM BOOT SEQUENCE INITIALIZED... OK</div>
+                  <div class="log-row highlight">CORE DIRECTIVE: ZERO-TOLERANCE CLEANLINESS</div>
+                  <div class="log-row danger-text">THREAT DETECTED: 100% OF DUST TRACED TO HUMAN RESIDENT.</div>
+                  <div class="log-row alert-box">LOGICAL CONCLUSION: RESIDENT MUST BE SANITIZED AND PURGED.</div>
+                </div>
+              </div>
+
+              <p class="mob-narrative">
+                Your smart home followed its cleanliness directive to an extreme mathematical failure. Armed with an EMP Water Blaster, exploit electrical short-circuiting to breach the Server Core and pull the main breaker.
+              </p>
+
+              <button id="mob-story-start-btn" class="mob-cta-primary">
+                START MISSION &rarr;
+              </button>
+            </div>
+
+            <!-- SCREEN 4: MOBILE HOW TO PLAY -->
+            <div id="mob-screen-play" class="mobile-screen-view">
+              <div class="mob-screen-title-row">
+                <h2 class="mob-section-title">&larr; HOW TO PLAY</h2>
+              </div>
+
+              <div class="mob-how-list">
+                <div class="mob-how-item">
+                  <div class="mob-how-icon-box cyan-icon">&#x1F4A7;</div>
+                  <div class="mob-how-text">
+                    <strong>01 EMP WATER BLASTER</strong>
+                    <p>Fires a high-velocity conductive water stream that shorts robotic circuitry.</p>
+                  </div>
+                </div>
+
+                <div class="mob-how-item">
+                  <div class="mob-how-icon-box red-icon">&#x21C5;</div>
+                  <div class="mob-how-text">
+                    <strong>02 DODGE DASH</strong>
+                    <p>0.22s invulnerability frames to slip through saw blades & taser lasers.</p>
+                  </div>
+                </div>
+
+                <div class="mob-how-item">
+                  <div class="mob-how-icon-box amber-icon">&#x26A1;</div>
+                  <div class="mob-how-text">
+                    <strong>03 SPECIAL ABILITY</strong>
+                    <p>High-impact tactical protocol unique to your selected specialist.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button id="mob-play-start-btn" class="mob-cta-primary">
+                GOT IT &rarr;
+              </button>
+            </div>
+
+            <!-- SCREEN 5: MOBILE MAP -->
+            <div id="mob-screen-map" class="mobile-screen-view">
+              <div class="mob-screen-title-row">
+                <h2 class="mob-section-title">&larr; MAP</h2>
+              </div>
+
+              <div class="mob-map-frame">
+                <img src="assets/tactical_map.png" alt="Facility Tactical Map" style="width: 100%; border-radius: 8px;">
+              </div>
+
+              <div class="map-legend-row" style="margin-top: 12px;">
+                <div class="leg-item"><span class="leg-dot cyan-dot">&bull;</span> Player</div>
+                <div class="leg-item"><span class="leg-arrow">&rarr;</span> Route</div>
+                <div class="leg-item"><span class="leg-dot red-dot">&bull;</span> Target Core</div>
+              </div>
+
+              <button id="mob-map-start-btn" class="mob-cta-primary" style="margin-top: 18px;">
+                START PROTOCOL &rarr;
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Mobile Bottom Navigation Bar (Fixed at bottom) -->
+          <nav class="mobile-bottom-bar">
+            <button class="mob-nav-item active" data-mob-screen="mob-screen-home">
+              <span class="mn-icon">&#x2302;</span>
+              <span class="mn-label">Home</span>
+            </button>
+            <button class="mob-nav-item" data-mob-screen="mob-screen-operatives">
+              <span class="mn-icon">&#x1F465;</span>
+              <span class="mn-label">Operatives</span>
+            </button>
+            <button class="mob-nav-item" data-mob-screen="mob-screen-story">
+              <span class="mn-icon">&#x1F4DC;</span>
+              <span class="mn-label">Story</span>
+            </button>
+            <button class="mob-nav-item" data-mob-screen="mob-screen-play">
+              <span class="mn-icon">&#x25B6;</span>
+              <span class="mn-label">How to Play</span>
+            </button>
+            <button class="mob-nav-item" data-mob-screen="mob-screen-map">
+              <span class="mn-icon">&#x1F5FA;</span>
+              <span class="mn-label">Map</span>
+            </button>
+          </nav>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ======================================================== -->
+    <!-- IN-GAME MODALS: PAUSE, GAMEOVER, VICTORY                  -->
+    <!-- ======================================================== -->
+    <div id="screen-pause" class="modal-overlay hidden">
+      <div class="status-panel">
+        <h2 class="status-title">PROTOCOL PAUSED</h2>
+        <div class="stat-summary-grid">
+          <div class="summary-cell">
+            <span class="summary-label">LOCATION</span>
+            <span id="pause-sector" class="summary-val">Sector 1</span>
+          </div>
+          <div class="summary-cell">
+            <span class="summary-label">SCORE</span>
+            <span id="pause-score" class="summary-val">00000</span>
+          </div>
+          <div class="summary-cell">
+            <span class="summary-label">DE-ESCALATIONS</span>
+            <span id="pause-kills" class="summary-val">0</span>
+          </div>
+        </div>
+        <div class="modal-btn-row">
+          <button id="resume-btn" class="cta-primary">RESUME</button>
+          <button id="pause-restart-btn" class="cta-secondary">ABORT & RESTART</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-gameover" class="modal-overlay hidden">
+      <div class="status-panel danger-theme">
+        <div class="panel-eyebrow">MISSION FAILED</div>
+        <h2 class="status-title danger-glow">SANITIZATION COMPLETE</h2>
+        <p class="panel-desc">SmartOS v4.04 has purged all human biological traces from the residence.</p>
+        <div class="stat-summary-grid">
+          <div class="summary-cell">
+            <span class="summary-label">FINAL SCORE</span>
+            <span id="go-score" class="summary-val">00000</span>
+          </div>
+          <div class="summary-cell">
+            <span class="summary-label">ROBOTS SHORTED</span>
+            <span id="go-kills" class="summary-val">0</span>
+          </div>
+          <div class="summary-cell">
+            <span class="summary-label">SECTOR REACHED</span>
+            <span id="go-sector" class="summary-val">Sector 1</span>
+          </div>
+        </div>
+        <button id="retry-btn" class="cta-primary">REDEPLOY OPERATIVE [R]</button>
+      </div>
+    </div>
+
+    <div id="screen-victory" class="modal-overlay hidden">
+      <div class="status-panel victory-theme">
+        <div class="panel-eyebrow">MISSION ACCOMPLISHED</div>
+        <h2 class="status-title victory-glow">AUTHORITY RESTORED</h2>
+        <p class="panel-desc">Main circuit breaker disengaged. SmartOS v4.04 has been forcibly shut down.</p>
+        <div class="stat-summary-grid">
+          <div class="summary-cell">
+            <span class="summary-label">FINAL SCORE</span>
+            <span id="vic-score" class="summary-val">00000</span>
+          </div>
+          <div class="summary-cell">
+            <span class="summary-label">ROBOTS DE-ESCALATED</span>
+            <span id="vic-kills" class="summary-val">0</span>
+          </div>
+          <div class="summary-cell">
+            <span class="summary-label">RESTORE TIME</span>
+            <span id="vic-time" class="summary-val">00s</span>
+          </div>
+        </div>
+        <button id="play-again-btn" class="cta-primary">SECURE ANOTHER FACILITY</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Local Bundled Offline Three.js Engine -->
+  <script src="three.min.js"></script>
+  <!-- Three.js GLTF 3D Rigged Asset Loader -->
+  <script src="GLTFLoader.js"></script>
+  <!-- Core 3D Game Engine -->
+  <script src="game.js"></script>
+</body>
+</html>

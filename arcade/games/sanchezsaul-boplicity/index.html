@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f1e9da">
+  <title>Boplicity — Bebop improvisation practice</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=20260721k">
+</head>
+<body>
+  <aside id="compatibility-banner" class="compatibility-banner" hidden><span>Boplicity needs desktop Chrome for MIDI input. Demo Mode works everywhere.</span><button id="dismiss-banner" type="button" aria-label="Dismiss browser notice">×</button></aside>
+  <main id="app">
+    <section id="title-screen" class="screen is-active" aria-labelledby="game-title">
+      <div class="title-rule" aria-hidden="true"></div>
+      <p class="eyebrow">BEBOP IMPROVISATION</p>
+      <h1 id="game-title">BOPLICITY<span>.</span></h1>
+      <p class="tagline">How well can you play the changes?</p>
+      <div class="title-mode-actions">
+        <button id="play-button" class="primary-button" type="button" disabled>LOADING AUDIO…</button>
+        <button id="learn-button" class="learn-button" type="button" disabled>LEARN</button>
+        <button id="demo-button" class="title-demo-button" type="button" disabled>DEMO MODE</button>
+      </div>
+      <p class="hands-hint">D♭→C — PLAY / RETRY · C→D♭ — LEARN / ADVANCE · F–A–C–E — LISTEN</p>
+      <details class="scoring-guide" open>
+        <summary>How scoring works</summary>
+        <div class="scoring-guide-content">
+          <h2>HOW TO EARN</h2>
+          <p class="scoring-guide-intro">The engine scores the bebop language itself — every value below was tuned from transcribed solos of the masters: Charlie Parker, Bud Powell, Sonny Clark, Barry Harris, Hank Jones, and Red Garland.</p>
+          <div class="scoring-items">
+            <p><strong>Enclosure +250</strong> — surround a chord tone from above and below, then land it. Bebop's signature move.</p>
+            <p><strong>Arpeggio +200</strong> — three chord tones in one direction. Makes the harmony audible in your line.</p>
+            <p><strong>3rd or 7th on a downbeat +150</strong> — guide tones define each chord; the masters land them on strong beats.</p>
+            <p><strong>Triplet +100</strong> — one purposeful triplet per bar, the classic ornament burst.</p>
+            <p><strong>Upbeat entry +75</strong> — start your phrase on the "and." The masters enter off the beat three times out of four.</p>
+            <p><strong>Chord tone +50</strong> — any chord tone on a downbeat is a landing spot (half value on beats 2 and 4).</p>
+            <p><strong>Sus 4→3 +50</strong> — the 4 over a dominant is tension; resolving it down is the payoff.</p>
+            <p><strong>Color tone +25</strong> — b9, #9, #11, b13 over dominants (and the 6 on major chords): the colors the masters reached for.</p>
+            <p><strong>Chromatic passing +25</strong> — connect chord tones by the chromatic path, not the scale.</p>
+          </div>
+          <p class="scoring-guide-closing">Rests are always free — space is part of the language.<span>Let tensions resolve by step; notes left hanging earn nothing. Combos multiply your arcade score; the musicianship grade compares your line to the masters' own measured rate — 100 means you played at their level.</span></p>
+          <figure class="restart-prompt title-restart-prompt">
+            <figcaption>HANDS-ON-KEYS CONTROLS</figcaption>
+          </figure>
+        </div>
+      </details>
+      <div class="title-options">
+        <label for="key-select">KEY</label>
+        <select id="key-select">
+          <option value="C">C</option><option value="F" selected>F</option><option value="Bb">Bb</option><option value="Eb">Eb</option><option value="Ab">Ab</option><option value="Db">Db</option><option value="Gb">Gb</option><option value="B">B</option><option value="E">E</option><option value="A">A</option><option value="D">D</option><option value="G">G</option>
+        </select>
+        <label for="bpm-select">TEMPO</label>
+        <select id="bpm-select">
+          <option value="80">80 BPM</option>
+          <option value="100" selected>100 BPM</option>
+          <option value="120">120 BPM</option>
+        </select>
+        <label for="feel-select">FEEL</label>
+        <select id="feel-select"><option value="swing" selected>SWING</option><option value="straight">STRAIGHT</option></select>
+        <label for="mode-select">MODE</label>
+        <select id="mode-select"><option value="normal" selected>NORMAL</option><option value="hard">HARD</option></select>
+        <div class="calibration-entry">
+          <p id="first-run-calibration-invite" class="first-run-calibration-invite" hidden>First time here? <strong>Calibrate</strong> your timing — one minute, twelve clicks.</p>
+          <button id="calibrate-button" class="calibrate-button" type="button" disabled>CALIBRATE</button>
+        </div>
+      </div>
+      <p id="title-input-status" class="input-status">Checking for MIDI…</p>
+      <p class="right-hand-notice">v1 scores single-note lines — play your right hand only.</p>
+      <p class="keyboard-hint">No keyboard? Play with <strong>A–K</strong> and <strong>W E T Y U</strong>.</p>
+      <section id="calibration-panel" class="calibration-panel" aria-labelledby="calibration-title" hidden>
+        <div class="calibration-card">
+          <p class="eyebrow">INPUT TIMING</p>
+          <h2 id="calibration-title">Latency calibration</h2>
+          <p id="calibration-estimate" class="calibration-estimate">Hardware estimate: —ms</p>
+          <p id="calibration-copy">After one bar of count-in, tap any piano or QWERTY key with each of 12 clicks.</p>
+          <div class="calibration-readout" aria-live="polite">
+            <strong id="calibration-status">READY</strong>
+            <span id="calibration-progress">12 steady taps</span>
+          </div>
+          <div class="calibration-actions">
+            <button id="calibration-start-button" class="primary-button" type="button">START</button>
+            <button id="calibration-save-button" class="primary-button" type="button" hidden>SAVE</button>
+            <button id="calibration-cancel-button" class="secondary-button" type="button">CANCEL</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="learn-screen" class="screen" aria-labelledby="learn-stone-title">
+      <button id="learn-close-button" class="learn-close-button" type="button">TITLE</button>
+      <p class="eyebrow">LEARN · LEVEL</p>
+      <h2 id="learn-stone-title">First Steps</h2>
+      <div class="player-meter" data-player-meter aria-label="Player experience"><div class="player-meter-head"><strong class="player-level">Level 1</strong><span class="player-xp">0 / 150 XP</span></div><div class="player-meter-track"><i class="player-meter-fill"></i></div><span class="player-xp-gain" aria-live="polite"></span></div>
+      <p id="learn-cleared-badge" class="learn-cleared-badge" hidden>CLEARED</p>
+      <div class="learn-progress" aria-label="Lesson progress"><span id="learn-progress-label">LESSON 1 OF 3</span><div id="learn-progress-dots"></div></div>
+      <article id="learn-lesson-card" class="lesson-card">
+        <p class="eyebrow">TODAY'S LANGUAGE</p>
+        <h3 id="learn-skill-name">Guide tones</h3>
+        <p id="learn-skill-teach" class="learn-skill-teach"></p>
+        <div id="learn-example-chart" class="learn-example-chart" aria-label="Notated lesson example"><p>Preparing example…</p></div>
+      </article>
+      <section id="learn-synthesis-prompt" class="learn-synthesis-prompt" hidden>
+        <p class="eyebrow">GRADED SYNTHESIS</p>
+        <h3>Put it together</h3>
+        <p id="learn-synthesis-copy"></p>
+      </section>
+      <button id="learn-next-button" class="primary-button" type="button">NEXT SKILL</button>
+      <p id="learn-hands-hint" class="hands-hint">C major up to D♭ major — move forward · starts automatically</p>
+    </section>
+
+    <section id="learn-results-screen" class="screen" aria-labelledby="learn-results-title">
+      <p id="learn-result-eyebrow" class="eyebrow">LEVEL COMPLETE</p>
+      <h2 id="learn-results-title">First Steps</h2>
+      <div class="player-meter" data-player-meter aria-label="Player experience"><div class="player-meter-head"><strong class="player-level">Level 1</strong><span class="player-xp">0 / 150 XP</span></div><div class="player-meter-track"><i class="player-meter-fill"></i></div><span class="player-xp-gain" aria-live="polite"></span></div>
+      <p id="stone-result-message" class="stone-result-message"></p>
+      <div class="stone-grade"><strong id="stone-grade-value">0</strong><span>/100</span></div>
+      <p id="stone-result-status" class="stone-result-status">KEEP SHEDDING</p>
+      <div id="stone-skill-grades" class="stone-skill-grades"></div>
+      <p id="stone-result-tip" class="stone-result-tip"></p>
+      <section class="solo-review learn-result-review" aria-labelledby="learn-result-review-title">
+        <div class="review-heading"><div><p id="learn-result-review-eyebrow" class="eyebrow">YOUR SYNTHESIS</p><h3 id="learn-result-review-title">Simplified notation</h3></div><span>12-bar transcription</span></div>
+        <div class="review-chart-wrap"><div id="learn-result-review-chart" class="review-chart"><p>Preparing your transcription…</p></div></div>
+        <div class="notation-legend" aria-label="Notation color legend"><span class="green-dot">Earned points</span><span class="black-dot">Neutral / chord tone</span><span class="gray-dot">Passing tone</span><span class="red-dot">Unresolved</span></div>
+      </section>
+      <figure class="restart-prompt">
+        <figcaption>Restart / retry — play D♭ major down to C major.</figcaption>
+        <div id="learn-restart-notation" class="restart-notation" aria-label="Restart melody notation"></div>
+      </figure>
+      <div class="results-actions"><button id="stone-retry-button" class="primary-button" type="button">RETRY</button><button id="stone-title-button" class="secondary-button" type="button">TITLE</button></div>
+      <p id="learn-result-hands-hint" class="hands-hint">D♭→C — retry · C→D♭ — continue · F–A–C–E — listen</p>
+    </section>
+
+    <section id="play-screen" class="screen" aria-label="Play screen">
+      <header class="play-header">
+        <button id="brand-button" type="button" aria-label="Return to title">BOPLICITY<span>.</span></button>
+        <div id="transport-status" class="transport-status" aria-live="polite">READY</div>
+        <div class="play-actions">
+          <div id="play-input-status" class="input-status">KEYBOARD MODE</div>
+          <span class="retry-hint">D♭→C — retry</span>
+          <button id="stop-button" type="button">STOP <span>ESC</span></button>
+        </div>
+      </header>
+
+      <aside class="score-hud" aria-label="Score and combo">
+        <strong id="score-value">0</strong><span>SCORE</span>
+        <div id="combo-value">COMBO ×1</div>
+        <div class="player-meter compact" data-player-meter aria-label="Player experience"><div class="player-meter-head"><strong class="player-level">Level 1</strong><span class="player-xp">0 / 150 XP</span></div><div class="player-meter-track"><i class="player-meter-fill"></i></div></div>
+      </aside>
+
+      <section class="chart-area" aria-label="Chord progression">
+        <div id="midi-lost-overlay" class="midi-lost-overlay" hidden><strong>MIDI connection lost</strong><span>Reconnect your keyboard or press any QWERTY key to continue</span></div>
+        <div id="popup-layer" class="popup-layer" aria-live="polite"></div>
+        <div class="count-in" id="count-in" aria-live="assertive" aria-hidden="true">
+          <span>COUNT IN</span><strong id="count-in-number">4</strong>
+        </div>
+        <div id="measure-strip" class="measure-strip"></div>
+        <div class="strip-legend" aria-hidden="true"><span>‹ PLAYED</span><span>NOW</span><span>COMING UP ›</span></div>
+      </section>
+
+      <section class="piano-section" aria-label="Two octave piano keyboard">
+        <div id="piano" class="piano"></div>
+      </section>
+    </section>
+
+    <section id="results-screen" class="screen" aria-labelledby="results-title">
+      <p class="eyebrow">SESSION COMPLETE</p>
+      <h2 id="results-title">Vocabulary Report</h2>
+      <p id="results-session-summary" class="results-session-summary">ii–V–I in F · 100 BPM · SWING</p>
+      <div class="player-meter" data-player-meter aria-label="Player experience"><div class="player-meter-head"><strong class="player-level">Level 1</strong><span class="player-xp">0 / 150 XP</span></div><div class="player-meter-track"><i class="player-meter-fill"></i></div><span class="player-xp-gain" aria-live="polite"></span></div>
+      <div class="final-score"><strong id="final-score">0</strong><span>ARCADE SCORE · COMBO BOOSTED</span></div>
+      <section class="session-grade" aria-label="Musicianship grade">
+        <p>MUSICIANSHIP: <strong id="grade-value">0</strong>/100 at <b id="grade-tempo">100</b> BPM<span id="grade-mode"></span>.</p>
+        <span id="grade-band">Woodshedding</span>
+        <div class="grade-categories">
+          <section class="grade-category" data-category="harmony"><header><b>HARMONY</b><i id="grade-harmony">0</i></header><p>Guide tones · chord tones · color tones · sus resolutions</p><small id="grade-harmony-tip" class="grade-tip" hidden></small></section>
+          <section class="grade-category" data-category="melody"><header><b>MELODY</b><i id="grade-melody">0</i></header><p>Arpeggios · enclosures · chromatic passing tones</p><small id="grade-melody-tip" class="grade-tip" hidden></small></section>
+          <section class="grade-category" data-category="rhythm"><header><b>RHYTHM</b><i id="grade-rhythm">0</i></header><p>Upbeat entries · triplets</p><small id="grade-rhythm-tip" class="grade-tip" hidden></small></section>
+        </div>
+        <small>100 = the bebop masters' measured rate in this engine's own scoring.</small><small id="hard-mode-note" hidden>Hard mode: 100 demands more than the masters' measured rate — and not one hanging note.</small>
+      </section>
+      <button id="listen-back-button" class="listen-back-button" type="button" aria-pressed="false">LISTEN BACK</button>
+      <span class="results-shortcut-hint">D♭→C — play again · F–A–C–E — listen / stop</span>
+      <section class="solo-review" aria-labelledby="solo-review-title">
+        <div class="review-heading"><div><p class="eyebrow">SOLO REVIEW</p><h3 id="solo-review-title">Simplified notation</h3></div><span>Quantized to the swing grid</span></div>
+        <div id="review-chart-wrap" class="review-chart-wrap">
+          <div id="review-chart" class="review-chart"><p>Preparing your solo…</p></div>
+          <div id="playback-cursor" class="playback-cursor" aria-hidden="true"></div>
+        </div>
+        <div class="notation-legend" aria-label="Notation color legend"><span class="green-dot">Earned points</span><span class="black-dot">Neutral / chord tone</span><span class="gray-dot">Passing tone</span><span class="red-dot">Unresolved</span></div>
+        <p id="carry-over-footnote" class="carry-over-footnote" hidden>* held into the next chord — release earlier or resolve.</p>
+      </section>
+      <figure class="restart-prompt">
+        <figcaption>Restart / retry — play D♭ major down to C major.</figcaption>
+        <div id="results-restart-notation" class="restart-notation" aria-label="Restart melody notation"></div>
+      </figure>
+      <dl class="report-grid">
+        <div><dt>Guide tones</dt><dd id="report-guides">0</dd></div>
+        <div><dt>Other chord tones</dt><dd id="report-chords">0</dd></div>
+        <div><dt>Arpeggios</dt><dd id="report-arpeggios">0</dd></div>
+        <div><dt>Enclosures</dt><dd id="report-enclosures">0</dd></div>
+        <div><dt>Passing tones</dt><dd id="report-passing">0</dd></div>
+        <div><dt>Unresolved notes</dt><dd id="report-unresolved">0</dd></div>
+        <div><dt>Triplets</dt><dd id="report-triplets">0</dd></div>
+        <div><dt>Upbeat entries</dt><dd id="report-upbeats">0</dd></div>
+        <div><dt>Longest combo</dt><dd id="report-combo">0</dd></div>
+        <div class="step-balance"><dt>Diatonic steps:</dt><dd><span id="report-diatonic">0</span> · Chromatic approaches: <span id="report-chromatic">0</span></dd></div>
+      </dl>
+      <div class="pace-report"><p id="time-feel-report">Average deviation: — · No grid attacks recorded.</p><p id="consistency-report">Strongest bars: 1-4 · Weakest bars: 1-4</p><p id="latency-nudge" class="latency-nudge" hidden>Timing reads consistently off — consider recalibrating.</p></div>
+      <p class="red-note-help">Red notes are unresolved — try resolving them by step to a nearby chord tone.</p>
+      <p id="coaching-line" class="coaching-line"></p>
+      <div class="results-actions">
+        <button id="play-again-button" class="primary-button" type="button">PLAY AGAIN</button>
+        <button id="results-title-button" class="secondary-button" type="button">TITLE</button>
+        <button id="dev-export-button" class="secondary-button" type="button" hidden>EXPORT DEMO JSON</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="theory.js?v=20260720a"></script>
+  <script src="app.js?v=20260721v"></script>
+</body>
+</html>

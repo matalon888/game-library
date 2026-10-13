@@ -1,0 +1,57 @@
+.game-event-overlay {
+  --event-accent: #7c4dff;
+  position: absolute;
+  z-index: 25;
+  left: 50%;
+  bottom: 8%;
+  display: flex;
+  width: min(78%, 460px);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 2px solid color-mix(in srgb, var(--event-accent) 42%, white);
+  border-radius: 22px;
+  color: #4e342e;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--event-accent) 24%, transparent), inset 0 1px 0 #fff;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 14px) scale(.96);
+  transition: opacity 160ms ease, transform 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.game-event-overlay[hidden] { display: none; }
+.game-event-overlay.is-visible { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.game-event-icon { flex: none; font-size: 2.65rem; line-height: 1; filter: drop-shadow(0 3px 5px rgba(0,0,0,.13)); }
+.game-event-copy { display: grid; min-width: 0; gap: 2px; }
+.game-event-title { color: var(--event-accent); font-size: 1.08rem; font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
+.game-event-message { font-size: .86rem; font-weight: 650; line-height: 1.35; overflow-wrap: anywhere; }
+.game-event-message[hidden] { display: none; }
+
+.game-event-dice { --event-accent: #e91e63; }
+.game-event-movement { --event-accent: #0288d1; }
+.game-event-bonus, .game-event-success { --event-accent: #2e7d32; }
+.game-event-penalty, .game-event-failure { --event-accent: #d84315; }
+.game-event-challenge { --event-accent: #7b1fa2; }
+.game-event-minigame { --event-accent: #5e35b1; }
+.game-event-turn { --event-accent: #ad1457; }
+.game-event-neutral { --event-accent: #795548; }
+
+@media (max-width: 600px) {
+  .game-event-overlay { bottom: 5%; width: min(88%, 390px); gap: 10px; padding: 11px 13px; border-radius: 18px; }
+  .game-event-icon { font-size: 2rem; }
+  .game-event-title { font-size: .96rem; }
+  .game-event-message { font-size: .78rem; }
+}
+
+@media (max-height: 460px) and (orientation: landscape) {
+  .game-event-overlay { right: 2%; bottom: 5%; left: auto; width: min(46%, 360px); transform: translateY(12px) scale(.96); }
+  .game-event-overlay.is-visible { transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-event-overlay { transition: opacity 80ms linear; transform: translate(-50%, 0); }
+  .game-event-overlay.is-visible { transform: translate(-50%, 0); }
+}

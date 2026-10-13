@@ -1,0 +1,122 @@
+/* ============================================================
+   Caldera — motion. transform/opacity only (GPU friendly).
+   All neutralized under prefers-reduced-motion / [data-anim="off"].
+   ============================================================ */
+
+/* reveal ripple — staggered by --delay (set inline from Chebyshev dist) */
+.cell.reveal-anim {
+  animation: reveal-pop var(--dur-base) var(--ease-back) both;
+  animation-delay: var(--delay, 0ms);
+}
+@keyframes reveal-pop {
+  0%   { transform: scale(0.86); }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* number digit pop */
+.cell.num-anim {
+  animation: num-pop var(--dur-base) var(--ease-back) both;
+  animation-delay: var(--delay, 0ms);
+}
+@keyframes num-pop {
+  0%   { color: transparent; transform: scale(0.5); }
+  100% { transform: scale(1); }
+}
+
+/* flag plant */
+.cell.flag-anim .flag-glyph {
+  animation: flag-pop 280ms var(--ease-back) both;
+}
+@keyframes flag-pop {
+  0%   { transform: scale(0) rotate(-12deg); }
+  60%  { transform: scale(1.15) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.cell.flag-anim {
+  animation: flag-wobble 320ms var(--ease-spring) both;
+}
+@keyframes flag-wobble {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(3deg); }
+  60% { transform: rotate(-2deg); }
+}
+
+/* mine reveal sweep on loss */
+.cell.mine-anim {
+  animation: mine-rise 260ms var(--ease-back) both;
+  animation-delay: var(--delay, 0ms);
+}
+@keyframes mine-rise {
+  0%   { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* exploded shockwave ring */
+.cell.exploded-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: shockwave 520ms ease-out forwards;
+  pointer-events: none;
+}
+@keyframes shockwave {
+  0%   { transform: scale(0.5); opacity: 0.9; }
+  100% { transform: scale(3.4); opacity: 0; }
+}
+
+/* win wave lift */
+.cell.win-anim {
+  animation: win-wave 600ms var(--ease-spring) both;
+  animation-delay: var(--delay, 0ms);
+}
+@keyframes win-wave {
+  0%   { transform: translateY(0); }
+  35%  { transform: translateY(-7px); }
+  100% { transform: translateY(0); }
+}
+
+.well.win-glow { animation: well-glow 1200ms ease-out; }
+@keyframes well-glow {
+  0%, 100% { box-shadow: var(--well-shadow); }
+  40% { box-shadow: var(--well-shadow), 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
+}
+
+@keyframes overlay-in {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* face bump on state change */
+.face[data-face="lost"] .face-glyph { animation: face-shake 420ms ease both; }
+@keyframes face-shake {
+  0%,100% { transform: translateY(-1px) rotate(0); }
+  25% { transform: translateY(-1px) rotate(-12deg); }
+  75% { transform: translateY(-1px) rotate(12deg); }
+}
+
+/* timer record pulse */
+.readout-value.pulse { animation: pulse 600ms var(--ease-spring) 2; }
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+/* mine danger flash on hud */
+#mine-readout.flash .readout-value { animation: pulse 400ms ease; }
+
+/* honor reduced motion / settings toggle: kill all cell animations */
+@media (prefers-reduced-motion: reduce) {
+  .cell.reveal-anim, .cell.num-anim, .cell.flag-anim, .cell.mine-anim,
+  .cell.win-anim, .cell.exploded-anim::after, .overlay-card {
+    animation: none !important;
+  }
+}
+[data-anim="off"] .cell,
+[data-anim="off"] .overlay-card,
+[data-anim="off"] .well {
+  animation: none !important;
+}
+[data-anim="off"] .cell { transition: background-color var(--dur-base) ease; }

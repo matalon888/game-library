@@ -1,0 +1,31 @@
+{
+  "name": "neon-runner",
+  "version": "1.0.0",
+  "description": "A browser FPS. Single-player works by just opening the file; multiplayer needs one machine to run a small server (details below).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/run-all.js"
+  },
+  "keywords": [
+    "fps",
+    "webgl",
+    "three.js",
+    "browser-game",
+    "lan-multiplayer"
+  ],
+  "author": "Rahul Gupta",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rahulg1999/neon_runner_game.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Rahulg1999/neon_runner_game/issues"
+  },
+  "homepage": "https://github.com/Rahulg1999/neon_runner_game#readme",
+  "type": "commonjs",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

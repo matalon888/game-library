@@ -1,0 +1,8 @@
+{
+  "name": "token-cart-tycoon",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

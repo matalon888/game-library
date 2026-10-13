@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Guess What's Next — a pattern recognition game. Spot the sequence and pick what comes next!">
+  <meta name="theme-color" content="#6c5ce7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Guess What's Next">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="img/icons/icon-192.png">
+  <title>Guess What's Next</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- Connectivity banner (CS52-4 § Connectivity state machine) -->
+    <div id="connectivity-banner" class="connectivity-banner" role="status" aria-live="polite" data-bind="connectivity-banner" data-state="ok" style="display:none">
+      <span class="connectivity-banner-text" data-bind="connectivity-banner-text"></span>
+      <button type="button" class="connectivity-banner-action" data-action="connectivity-sign-in" style="display:none" aria-label="Sign in to save your games">Sign in</button>
+    </div>
+
+    <!-- Persistent Auth Top Bar (positioned top-right, overlays header) -->
+    <header id="auth-top-bar" class="auth-top-bar" aria-label="Account">
+      <div class="auth-top-bar-logged-out" data-bind="auth-bar-logged-out">
+        <button class="btn btn-auth-bar" data-action="show-auth-login" aria-label="Log in">Login</button>
+      </div>
+      <div class="auth-top-bar-logged-in" data-bind="auth-bar-logged-in" style="display:none">
+        <span class="auth-bar-user-icon" aria-hidden="true">👤</span>
+        <button class="auth-bar-username" data-action="show-profile" aria-label="View Profile"><span data-bind="auth-bar-username-text"></span></button>
+        <button class="btn btn-auth-bar btn-auth-bar-logout" data-action="logout" aria-label="Log out">Logout</button>
+      </div>
+    </header>
+
+    <!-- Home Screen -->
+    <section id="screen-home" class="screen active" data-screen="home" aria-label="Home">
+      <header class="screen-header home-header">
+        <div class="title-icon" aria-hidden="true">🧩</div>
+        <h1 class="game-title">Guess What's Next</h1>
+        <p class="game-subtitle">Can you spot the pattern?</p>
+      </header>
+      <nav class="home-menu" aria-label="Game modes">
+        <button class="btn btn-primary" data-action="start-freeplay" aria-label="Start Practice Free Play (offline-friendly local mode)">🎮 Practice — Free Play</button>
+        <button class="btn btn-primary" data-action="start-ranked-freeplay" data-bind="ranked-entry" aria-label="Start Ranked Free Play (online, server-validated)">🏆 Ranked — Free Play</button>
+        <button class="btn btn-secondary" data-action="start-daily" aria-label="Start Practice Daily Challenge">📅 Practice — Daily Challenge</button>
+        <button class="btn btn-secondary" data-action="start-ranked-daily" data-bind="ranked-entry" aria-label="Start Ranked Daily (one verified attempt per day)">🏆 Ranked — Daily</button>
+        <button class="btn btn-secondary" data-action="start-multiplayer" aria-label="Start Multiplayer">⚔️ Multiplayer</button>
+        <button class="btn btn-secondary" data-action="show-leaderboard" aria-label="View Leaderboard">🏆 Leaderboard</button>
+        <button class="btn btn-secondary" data-action="show-achievements" aria-label="View Achievements">🏅 Achievements</button>
+        <button class="btn btn-secondary" data-action="show-community" aria-label="Community Puzzles" style="display:none">🌍 Community Puzzles</button>
+        <button class="btn btn-secondary" data-action="show-settings" aria-label="Settings">⚙️ Settings</button>
+      </nav>
+    </section>
+
+    <!-- Community Hub Screen -->
+    <section id="screen-community" class="screen" data-screen="community" aria-label="Community Puzzles">
+      <header class="screen-header">
+        <h2>🌍 Community Puzzles</h2>
+        <p class="screen-description">Browse, create, and share puzzles with the community</p>
+      </header>
+      <nav class="community-menu" aria-label="Community options">
+        <button class="btn btn-primary" data-action="browse-community" aria-label="Browse Community Puzzles">🔍 Browse Community</button>
+        <button class="btn btn-secondary" data-action="create-puzzle" data-bind="community-create-btn" aria-label="Create a Puzzle" style="display:none">✏️ Create Puzzle</button>
+        <button class="btn btn-secondary" data-action="show-my-submissions" data-bind="my-submissions-btn" aria-label="View My Submissions" style="display:none">📋 My Submissions <span class="notification-badge" data-bind="notification-badge" role="status" aria-live="polite" aria-atomic="true" style="display:none"></span></button>
+        <button class="btn btn-secondary" data-action="show-moderation" data-bind="moderation-btn" aria-label="Review Submissions" style="display:none">🛡️ Moderation</button>
+      </nav>
+      <button class="btn btn-back" data-action="go-home" aria-label="Go back to home screen">← Back</button>
+    </section>
+
+    <!-- Category Select Screen -->
+    <section id="screen-category" class="screen" data-screen="category" aria-label="Category selection">
+      <header class="screen-header">
+        <h2>Choose a Category</h2>
+        <p class="screen-description">Pick a topic to test your pattern skills</p>
+      </header>
+      <div class="difficulty-selector" role="group" aria-label="Difficulty selection">
+        <span class="difficulty-label">Difficulty:</span>
+        <button class="difficulty-btn active" data-difficulty="all">All</button>
+        <button class="difficulty-btn" data-difficulty="1">Easy</button>
+        <button class="difficulty-btn" data-difficulty="2">Medium</button>
+        <button class="difficulty-btn" data-difficulty="3">Hard</button>
+      </div>
+      <div class="category-grid" data-bind="category-list" role="list" aria-label="Available categories">
+        <!-- Categories populated by JS -->
+      </div>
+      <button class="btn btn-back" data-action="go-home" aria-label="Go back to home screen">← Back</button>
+    </section>
+
+    <!-- Game Screen -->
+    <section id="screen-game" class="screen" data-screen="game" aria-label="Game round">
+      <div class="game-hud" role="status" aria-label="Game status">
+        <div class="hud-item">
+          <span class="hud-label">Score</span>
+          <span class="hud-value" data-bind="score" aria-label="Current score">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Round</span>
+          <span class="hud-value" aria-label="Current round"><span data-bind="round">1</span>/<span data-bind="total-rounds">10</span></span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Streak</span>
+          <span class="hud-value" data-bind="streak" aria-label="Current streak">0</span>
+        </div>
+      </div>
+      <div class="timer-bar-container" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="100">
+        <div class="timer-bar" data-bind="timer-bar"></div>
+      </div>
+      <div class="sequence-display" data-bind="sequence" aria-label="Pattern sequence">
+        <!-- Sequence items rendered by JS -->
+      </div>
+      <div class="puzzle-credit" data-bind="puzzle-credit"></div>
+      <p class="prompt-text">What comes next?</p>
+      <div class="options-grid" data-bind="options" role="group" aria-label="Answer options">
+        <!-- 4 option buttons rendered by JS -->
+      </div>
+      <button class="btn btn-skip" id="btn-skip" data-action="skip-round" aria-label="Skip this round" style="display:none">Skip →</button>
+    </section>
+
+    <!-- Round Result Screen -->
+    <section id="screen-result" class="screen" data-screen="result" aria-label="Round result">
+      <div class="result-icon" data-bind="result-icon" aria-hidden="true"></div>
+      <h2 class="result-title" data-bind="result-title"></h2>
+      <p class="result-explanation" data-bind="result-explanation"></p>
+      <div class="score-breakdown" data-bind="score-breakdown">
+        <!-- Score breakdown rendered by JS -->
+      </div>
+      <button class="btn btn-primary" data-action="next-round" aria-label="Continue to next round">Next Round →</button>
+    </section>
+
+    <!-- Game Over Screen -->
+    <section id="screen-gameover" class="screen" data-screen="gameover" aria-label="Game over summary">
+      <div class="gameover-header">
+        <div class="gameover-icon" aria-hidden="true">🎉</div>
+        <h2 class="gameover-title">Game Over!</h2>
+      </div>
+      <div class="gameover-stats" aria-label="Final statistics">
+        <div class="stat">
+          <span class="stat-value" data-bind="final-score">0</span>
+          <span class="stat-label">Final Score</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" data-bind="correct-count">0</span>
+          <span class="stat-label">Correct</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" data-bind="best-streak">0</span>
+          <span class="stat-label">Best Streak</span>
+        </div>
+        <div class="stat stat-skipped" data-bind="skip-stat-container" style="display:none">
+          <span class="stat-value" data-bind="skip-count">0</span>
+          <span class="stat-label">Skipped</span>
+        </div>
+      </div>
+      <nav class="gameover-actions" aria-label="Game over options">
+        <button class="btn btn-primary" data-action="play-again" aria-label="Play the game again">🔄 Play Again</button>
+        <button class="btn btn-secondary" data-action="share-result" aria-label="Copy result to clipboard">📋 Share Result</button>
+        <button class="btn btn-back" data-action="go-home" aria-label="Return to home screen">← Home</button>
+      </nav>
+    </section>
+
+    <!-- Leaderboard Screen -->
+    <section id="screen-leaderboard" class="screen" data-screen="leaderboard" aria-label="Leaderboard">
+      <header class="screen-header">
+        <h2>🏆 Leaderboard</h2>
+        <p class="screen-description">Top players ranked by score</p>
+      </header>
+      <div class="personal-bests" data-bind="personal-bests" role="region" aria-label="Your personal bests"></div>
+      <div class="leaderboard-mode-tabs" role="tablist" aria-label="Leaderboard mode">
+        <button class="leaderboard-mode-tab active" data-action="leaderboard-mode" data-mode="freeplay" role="tab" aria-selected="true">🎮 Free Play</button>
+        <button class="leaderboard-mode-tab" data-action="leaderboard-mode" data-mode="daily" role="tab" aria-selected="false">📅 Daily</button>
+        <button class="leaderboard-mode-tab" data-action="leaderboard-mode" data-mode="multiplayer" role="tab" aria-selected="false">⚔️ Multiplayer</button>
+      </div>
+      <div class="leaderboard-source-tabs" role="tablist" aria-label="Score source filter" data-bind="leaderboard-source-tabs">
+        <button class="leaderboard-source-tab" data-action="leaderboard-source" data-source="all" role="tab" aria-selected="true">All</button>
+        <button class="leaderboard-source-tab" data-action="leaderboard-source" data-source="ranked" role="tab" aria-selected="false">🏆 Ranked</button>
+        <button class="leaderboard-source-tab" data-action="leaderboard-source" data-source="offline" role="tab" aria-selected="false">🎮 Practice</button>
+      </div>
+      <div class="leaderboard-tabs" role="tablist" aria-label="Leaderboard period filter" data-bind="leaderboard-period-tabs">
+        <button class="leaderboard-tab active" data-action="leaderboard-tab" data-period="alltime" role="tab" aria-selected="true">All Time</button>
+        <button class="leaderboard-tab" data-action="leaderboard-tab" data-period="weekly" role="tab" aria-selected="false">Weekly</button>
+        <button class="leaderboard-tab" data-action="leaderboard-tab" data-period="daily" role="tab" aria-selected="false">Daily</button>
+      </div>
+      <div class="leaderboard-list" data-bind="leaderboard-table" role="list" aria-label="Rankings">
+        <!-- Leaderboard rows populated by JS -->
+      </div>
+      <button class="btn btn-back" data-action="go-home" aria-label="Go back to home screen">← Back</button>
+    </section>
+
+    <!-- Auth Screen -->
+    <section id="screen-auth" class="screen" data-screen="auth" aria-label="Login or Register">
+      <header class="screen-header">
+        <div class="title-icon" aria-hidden="true">🔑</div>
+        <h2 data-bind="auth-screen-title">Sign In</h2>
+        <p class="screen-description" data-bind="auth-screen-subtitle">Log in to access multiplayer</p>
+      </header>
+      <form class="auth-form" id="auth-form" autocomplete="off">
+        <div class="auth-field">
+          <label class="auth-label" for="auth-username">Username</label>
+          <input class="auth-input" id="auth-username" type="text" placeholder="Enter username" minlength="3" maxlength="20" required aria-label="Username">
+        </div>
+        <div class="auth-field">
+          <label class="auth-label" for="auth-password">Password</label>
+          <input class="auth-input" id="auth-password" type="password" placeholder="Enter password" minlength="6" required aria-label="Password">
+        </div>
+        <div class="auth-error" data-bind="auth-error" role="alert" aria-live="polite"></div>
+        <div class="visually-hidden" data-bind="auth-status" role="status" aria-live="polite"></div>
+        <div class="auth-actions">
+          <button class="btn btn-primary" type="submit" data-action="auth-submit" aria-label="Log in" data-bind="auth-submit-btn">Login</button>
+        </div>
+        <p class="auth-toggle-text">
+          <span data-bind="auth-toggle-prompt">Don&#8217;t have an account?</span>
+          <button class="auth-toggle-link" type="button" data-action="auth-toggle-mode" data-bind="auth-toggle-link">Register</button>
+        </p>
+      </form>
+      <button class="btn btn-back" data-action="go-home" aria-label="Go back to home screen">← Back</button>
+    </section>
+
+    <!-- Multiplayer Menu Screen -->
+    <section id="screen-multiplayer" class="screen" data-screen="multiplayer" aria-label="Multiplayer menu">
+      <header class="screen-header">
+        <div class="title-icon" aria-hidden="true">⚔️</div>
+        <h2>Multiplayer</h2>
+        <p class="screen-description">Challenge another player in real-time</p>
+      </header>
+      <nav class="multiplayer-menu" aria-label="Multiplayer options">
+        <div class="room-config" aria-label="Room settings">
+          <div class="room-config-row">
+            <label class="room-config-label" for="room-max-players">👥 Max Players</label>
+            <select class="room-config-select" id="room-max-players" aria-label="Maximum players">
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" data-action="create-room" aria-label="Create a new room">🏠 Create Room</button>
+        <div class="join-room-group">
+          <input class="auth-input join-room-input" id="join-room-code" type="text" placeholder="Enter room code" maxlength="6" aria-label="Room code">
+          <button class="btn btn-secondary" data-action="join-room" aria-label="Join a room">🚪 Join Room</button>
+        </div>
+        <button class="btn btn-secondary" data-action="show-match-history" aria-label="View match history">📜 Match History</button>
+      </nav>
+      <button class="btn btn-back" data-action="go-home" aria-label="Go back to home screen">← Back</button>
+    </section>
+
+    <!-- Waiting Lobby Screen -->
+    <section id="screen-lobby" class="screen" data-screen="lobby" aria-label="Waiting lobby">
+      <header class="screen-header">
+        <h2>Waiting Room</h2>
+        <p class="screen-description">Share this code with your opponent</p>
+      </header>
+      <div class="lobby-code-container">
+        <span class="lobby-code" data-bind="lobby-room-code" aria-label="Room code"></span>
+        <button class="lobby-copy-btn" data-action="copy-room-code" aria-label="Copy room code">📋</button>
+        <button class="lobby-copy-btn" data-action="copy-room-link" aria-label="Copy shareable link">🔗 Copy Link</button>
+      </div>
+      <div class="lobby-player-count" data-bind="lobby-player-count" aria-label="Player count"></div>
+      <div class="lobby-spectator-count" data-bind="lobby-spectator-count" style="display:none" aria-label="Spectator count"></div>
+      <div class="lobby-status">
+        <div class="lobby-spinner" aria-hidden="true"></div>
+        <p class="lobby-waiting-text" data-bind="lobby-status">Waiting for opponent...</p>
+      </div>
+      <div class="lobby-players" data-bind="lobby-players" role="list" aria-label="Players in room">
+        <!-- Player list populated by JS -->
+      </div>
+      <button class="btn btn-primary btn-start-match" data-action="start-match" style="display:none" aria-label="Start the match">🎮 Start Match</button>
+      <button class="btn btn-back" data-action="leave-lobby" aria-label="Leave the lobby">← Leave</button>
+    </section>
+
+    <!-- Live Match Screen -->
+    <section id="screen-match" class="screen" data-screen="match" aria-label="Multiplayer match">
+      <div class="match-hud-bar">
+        <span class="match-round-badge" data-bind="match-round">Round 1/5</span>
+        <span class="spectator-badge" data-bind="spectator-badge" style="display:none" aria-label="Spectating">👀 Spectating</span>
+        <span class="spectator-count" data-bind="spectator-count" style="display:none" aria-label="Spectator count"></span>
+        <button class="sound-toggle-btn" data-action="toggle-sound" aria-label="Toggle sound effects">🔇</button>
+      </div>
+      <div class="match-scoreboard" role="status" aria-label="Match scores" data-bind="match-scoreboard">
+        <!-- Dynamic scoreboard rows rendered by JS -->
+      </div>
+      <div class="timer-bar-container" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="100">
+        <div class="timer-bar" data-bind="match-timer-bar"></div>
+      </div>
+      <div class="sequence-display" data-bind="match-sequence" aria-label="Pattern sequence">
+        <!-- Sequence items rendered by JS -->
+      </div>
+      <div class="puzzle-credit" data-bind="match-puzzle-credit"></div>
+      <p class="prompt-text">What comes next?</p>
+      <div class="options-grid" data-bind="match-options" role="group" aria-label="Answer options">
+        <!-- Option buttons rendered by JS -->
+      </div>
+    </section>
+
+    <!-- Match Round Result Overlay -->
+    <section id="screen-match-result" class="screen" data-screen="match-result" aria-label="Round result">
+      <div class="result-icon" data-bind="match-result-icon" aria-hidden="true"></div>
+      <h2 class="result-title" data-bind="match-result-title"></h2>
+      <div class="match-round-scores" data-bind="match-round-scores">
+        <!-- Round scores rendered by JS -->
+      </div>
+      <p class="match-result-info" data-bind="match-result-info">Next round starting...</p>
+    </section>
+
+    <!-- Match Game Over Screen -->
+    <section id="screen-match-over" class="screen" data-screen="match-over" aria-label="Match result">
+      <div class="gameover-header">
+        <div class="gameover-icon" data-bind="match-over-icon" aria-hidden="true">🏆</div>
+        <h2 class="gameover-title" data-bind="match-over-title">Match Over!</h2>
+      </div>
+      <p class="match-placement" data-bind="match-placement" aria-label="Your placement"></p>
+      <div class="match-final-scores" data-bind="match-final-scores" aria-label="Final scores">
+        <!-- Final rankings rendered by JS -->
+      </div>
+      <div class="rematch-host-indicator" data-bind="rematch-host-indicator" style="display:none"></div>
+      <div class="rematch-players" data-bind="rematch-players" aria-label="Ready players" style="display:none"></div>
+      <nav class="gameover-actions" aria-label="Post-match options">
+        <button class="btn btn-primary" data-action="rematch" aria-label="Ready for rematch">🔄 Rematch</button>
+        <button class="btn btn-primary btn-start-rematch" data-action="start-rematch" aria-label="Start rematch" style="display:none">🚀 Start Rematch</button>
+        <button class="btn btn-back" data-action="go-home" aria-label="Return to home screen">← Home</button>
+      </nav>
+      <div class="rematch-status" data-bind="rematch-status" aria-live="polite" style="display:none"></div>
+    </section>
+
+    <!-- Match History Screen -->
+    <section id="screen-match-history" class="screen" data-screen="match-history" aria-label="Match History">
+      <header class="screen-header">
+        <h2>📜 Match History</h2>
+        <p class="screen-description">Your recent multiplayer matches</p>
+      </header>
+      <div class="match-history-list" data-bind="match-history-list" role="list" aria-label="Match history">
+        <!-- Match history populated by JS -->
+      </div>
+      <button class="btn btn-back" data-action="back-to-multiplayer" aria-label="Back to multiplayer menu">← Back</button>
+    </section>
+
+    <!-- Achievements Screen -->
+    <section id="screen-achievements" class="screen" data-screen="achievements" aria-label="Achievements">
+      <header class="screen-header">
+        <h2>🏅 Achievements</h2>
+        <p class="screen-description">Unlock badges by playing!</p>
+      </header>
+      <div class="achievements-grid" data-bind="achievements-grid">
+        <!-- Populated by JS -->
+      </div>
+      <button class="btn btn-back" data-action="go-home">← Back</button>
+    </section>
+
+    <!-- Player Profile Screen -->
+    <section id="screen-profile" class="screen" data-screen="profile" aria-label="Player Profile">
+      <header class="screen-header">
+        <h2>👤 Player Profile</h2>
+      </header>
+      <div class="profile-content" data-bind="profile-content">
+        <div class="profile-loading">Loading profile...</div>
+      </div>
+      <div class="profile-actions">
+        <button class="btn btn-logout-profile" data-action="logout" aria-label="Log out">Logout</button>
+      </div>
+      <button class="btn btn-back" data-action="go-home">← Back</button>
+    </section>
+
+    <!-- Settings Screen -->
+    <section id="screen-settings" class="screen" data-screen="settings" aria-label="Settings">
+      <header class="screen-header">
+        <h2>⚙️ Settings</h2>
+        <p class="screen-description">Customize your experience</p>
+      </header>
+      <div class="settings-list">
+        <div class="settings-item">
+          <label class="settings-label">
+            <span>🔊 Sound Effects</span>
+            <input type="checkbox" id="setting-sound" class="settings-toggle" data-setting="sound" checked>
+          </label>
+        </div>
+        <div class="settings-item">
+          <label class="settings-label">
+            <span>🎨 Theme</span>
+            <select id="setting-theme" class="settings-select" data-setting="theme">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </label>
+        </div>
+        <div class="settings-item">
+          <label class="settings-label">
+            <span>⏱️ Timer Duration</span>
+            <select id="setting-timer" class="settings-select" data-setting="timer">
+              <option value="10">10 seconds</option>
+              <option value="15" selected>15 seconds</option>
+              <option value="20">20 seconds</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-back" data-action="go-home" aria-label="Go back">← Back</button>
+    </section>
+
+    <!-- Submit Puzzle Screen -->
+    <section id="screen-submit-puzzle" class="screen" data-screen="submit-puzzle" aria-label="Submit a Puzzle">
+      <header class="screen-header">
+        <h2>📝 Submit a Puzzle</h2>
+        <p class="screen-description">Propose a new pattern for the community!</p>
+      </header>
+      <div id="submit-onboarding" class="onboarding-explainer" role="region" aria-label="How submissions work">
+        <button class="onboarding-toggle" data-action="toggle-onboarding" aria-expanded="true" aria-controls="onboarding-content">How it works <span class="onboarding-chevron" aria-hidden="true">▾</span></button>
+        <div id="onboarding-content" class="onboarding-content">
+          <div class="onboarding-steps">
+            <div class="onboarding-step">
+              <span class="onboarding-icon" aria-hidden="true">✏️</span>
+              <span class="onboarding-label">Create</span>
+            </div>
+            <span class="onboarding-arrow" aria-hidden="true">→</span>
+            <div class="onboarding-step">
+              <span class="onboarding-icon" aria-hidden="true">👀</span>
+              <span class="onboarding-label">Review</span>
+            </div>
+            <span class="onboarding-arrow" aria-hidden="true">→</span>
+            <div class="onboarding-step">
+              <span class="onboarding-icon" aria-hidden="true">🎮</span>
+              <span class="onboarding-label">Live</span>
+            </div>
+          </div>
+          <p class="onboarding-text">Submit a puzzle sequence → admins review it → approved puzzles go live for everyone to play</p>
+          <button class="btn btn-dismiss" data-action="dismiss-onboarding" aria-label="Dismiss onboarding guide">Got it!</button>
+        </div>
+      </div>
+      <form id="submit-puzzle-form" class="submit-puzzle-form" autocomplete="off">
+        <div class="form-group">
+          <label>Puzzle Type</label>
+          <div class="type-selector" aria-label="Puzzle type">
+            <label class="type-card active" data-type="emoji">
+              <input type="radio" name="puzzle-type" value="emoji" checked>
+              <span class="type-card-icon" aria-hidden="true">😀</span>
+              <span class="type-card-label">Emoji</span>
+              <span class="type-card-desc">Use emoji characters in your sequence</span>
+            </label>
+            <label class="type-card" data-type="text">
+              <input type="radio" name="puzzle-type" value="text">
+              <span class="type-card-icon" aria-hidden="true">📝</span>
+              <span class="type-card-label">Text</span>
+              <span class="type-card-desc">Use words, numbers, or text patterns</span>
+            </label>
+            <label class="type-card" data-type="image">
+              <input type="radio" name="puzzle-type" value="image">
+              <span class="type-card-icon" aria-hidden="true">🖼️</span>
+              <span class="type-card-label">Image</span>
+              <span class="type-card-desc">Upload images for your sequence</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="sp-category">Category</label>
+          <select id="sp-category" required>
+            <option value="">Select a category…</option>
+            <option value="Nature">Nature</option>
+            <option value="Math & Numbers">Math &amp; Numbers</option>
+            <option value="Colors & Patterns">Colors &amp; Patterns</option>
+            <option value="General Knowledge">General Knowledge</option>
+            <option value="Emoji Sequences">Emoji Sequences</option>
+            <option value="Music">Music</option>
+            <option value="Flags">Flags</option>
+            <option value="Science">Science</option>
+            <option value="Sports">Sports</option>
+            <option value="Food">Food</option>
+            <option value="Animals">Animals</option>
+            <option value="Pop Culture">Pop Culture</option>
+            <option value="Letter & Word Patterns">Letter &amp; Word Patterns</option>
+            <option value="Logic Sequences">Logic Sequences</option>
+            <option value="Visual & Spatial">Visual &amp; Spatial</option>
+            <option value="Creative & Mixed">Creative &amp; Mixed</option>
+            <option value="Geography">Geography</option>
+            <option value="History">History</option>
+            <option value="Technology">Technology</option>
+            <option value="Art & Design">Art &amp; Design</option>
+            <option value="Language & Grammar">Language &amp; Grammar</option>
+          </select>
+          <p class="field-error" data-error="category" aria-live="polite"></p>
+        </div>
+        <div class="form-group">
+          <label for="sp-difficulty">Difficulty</label>
+          <select id="sp-difficulty" required>
+            <option value="1">Easy</option>
+            <option value="2" selected>Medium</option>
+            <option value="3">Hard</option>
+          </select>
+        </div>
+        <div class="form-group" id="sp-sequence-group">
+          <label for="sp-sequence">Sequence (comma-separated, at least 3 items)</label>
+          <input type="text" id="sp-sequence" placeholder="e.g. 🌑, 🌒, 🌓, 🌔" required>
+          <p class="field-error" data-error="sequence" aria-live="polite"></p>
+        </div>
+        <div class="form-group" id="sp-image-sequence-group" style="display:none">
+          <label>Sequence Images (3–6 images, max 500KB each)</label>
+          <div class="image-upload-grid" id="sp-image-sequence" aria-label="Sequence images">
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="sp-add-seq-image" aria-label="Add sequence image">+ Add Image</button>
+          <p class="field-error" data-error="image-sequence" aria-live="polite"></p>
+        </div>
+        <div class="form-group" id="sp-answer-group">
+          <label for="sp-answer">Answer (the next item)</label>
+          <input type="text" id="sp-answer" placeholder="e.g. 🌕" required>
+          <p class="field-error" data-error="answer" aria-live="polite"></p>
+        </div>
+        <div class="form-group" id="sp-image-answer-group" style="display:none">
+          <label>Answer Image (max 500KB)</label>
+          <div class="image-upload-single" id="sp-image-answer" aria-label="Answer image">
+            <div class="image-drop-zone" data-image-slot="answer">
+              <span class="drop-zone-text">Click or drag to upload</span>
+              <input type="file" class="image-file-input" accept=".png,.jpg,.jpeg,.gif,.svg,.webp" aria-label="Upload answer image">
+            </div>
+          </div>
+          <p class="field-error" data-error="image-answer" aria-live="polite"></p>
+        </div>
+        <div class="form-group" id="sp-options-group">
+          <label>Answer Choices (4 options — players pick from these)</label>
+          <div class="options-editor" aria-label="Answer choices">
+            <div class="option-row">
+              <input type="radio" name="correct-option" value="0" checked class="option-radio" aria-label="Correct answer indicator for option 1">
+              <input type="text" class="option-input" data-option="0" placeholder="Option 1 (correct answer)" aria-label="Option 1">
+            </div>
+            <div class="option-row">
+              <input type="radio" name="correct-option" value="1" class="option-radio" aria-label="Correct answer indicator for option 2">
+              <input type="text" class="option-input" data-option="1" placeholder="Option 2" aria-label="Option 2">
+            </div>
+            <div class="option-row">
+              <input type="radio" name="correct-option" value="2" class="option-radio" aria-label="Correct answer indicator for option 3">
+              <input type="text" class="option-input" data-option="2" placeholder="Option 3" aria-label="Option 3">
+            </div>
+            <div class="option-row">
+              <input type="radio" name="correct-option" value="3" class="option-radio" aria-label="Correct answer indicator for option 4">
+              <input type="text" class="option-input" data-option="3" placeholder="Option 4" aria-label="Option 4">
+            </div>
+          </div>
+          <p class="field-error" data-error="options" aria-live="polite"></p>
+        </div>
+        <div class="form-group" id="sp-image-distractors-group" style="display:none">
+          <label>Distractor Images (3 wrong-answer options, max 500KB each)</label>
+          <div class="image-upload-grid" id="sp-image-distractors" aria-label="Distractor images">
+            <div class="image-drop-zone" data-image-slot="distractor-0">
+              <span class="drop-zone-text">Distractor 1</span>
+              <input type="file" class="image-file-input" accept=".png,.jpg,.jpeg,.gif,.svg,.webp" aria-label="Upload distractor 1">
+            </div>
+            <div class="image-drop-zone" data-image-slot="distractor-1">
+              <span class="drop-zone-text">Distractor 2</span>
+              <input type="file" class="image-file-input" accept=".png,.jpg,.jpeg,.gif,.svg,.webp" aria-label="Upload distractor 2">
+            </div>
+            <div class="image-drop-zone" data-image-slot="distractor-2">
+              <span class="drop-zone-text">Distractor 3</span>
+              <input type="file" class="image-file-input" accept=".png,.jpg,.jpeg,.gif,.svg,.webp" aria-label="Upload distractor 3">
+            </div>
+          </div>
+          <p class="field-error" data-error="image-distractors" aria-live="polite"></p>
+        </div>
+        <div class="form-group">
+          <label for="sp-explanation">Explanation</label>
+          <textarea id="sp-explanation" rows="3" placeholder="Explain the pattern…" required></textarea>
+          <p class="field-error" data-error="explanation" aria-live="polite"></p>
+        </div>
+        <div class="form-group submit-puzzle-actions">
+          <button type="submit" class="btn btn-primary" id="sp-submit-btn" disabled>Submit Puzzle</button>
+        </div>
+        <p class="submit-puzzle-status" data-bind="submit-puzzle-status" role="status" aria-live="polite"></p>
+      </form>
+      <div id="puzzle-preview" class="puzzle-preview" aria-label="Puzzle preview">
+        <h3 class="preview-title">📱 Preview</h3>
+        <div class="preview-content" data-bind="preview-content">
+          <p class="preview-empty">Fill in the form to see a live preview</p>
+        </div>
+      </div>
+      <div class="submit-puzzle-links">
+        <button class="btn-link" data-action="show-my-submissions" aria-label="View My Submissions">📋 View My Submissions</button>
+      </div>
+      <button class="btn btn-back" data-action="go-community">← Back</button>
+    </section>
+
+    <!-- Community Gallery Screen -->
+    <section id="screen-community-gallery" class="screen" data-screen="community-gallery" aria-label="Community Gallery">
+      <header class="screen-header">
+        <h2>🌍 Community Puzzles</h2>
+        <p class="screen-description">Browse and play puzzles created by the community</p>
+      </header>
+      <div class="gallery-filters" aria-label="Filter puzzles">
+        <select id="gallery-category-filter" class="gallery-filter-select" aria-label="Filter by category">
+          <option value="">All Categories</option>
+        </select>
+        <div class="gallery-difficulty-filter" role="group" aria-label="Filter by difficulty">
+          <button class="difficulty-btn active" data-gallery-difficulty="all">All</button>
+          <button class="difficulty-btn" data-gallery-difficulty="1">⭐</button>
+          <button class="difficulty-btn" data-gallery-difficulty="2">⭐⭐</button>
+          <button class="difficulty-btn" data-gallery-difficulty="3">⭐⭐⭐</button>
+        </div>
+      </div>
+      <div class="gallery-grid" data-bind="gallery-grid" role="list" aria-label="Community puzzles">
+        <p class="gallery-loading">Loading community puzzles…</p>
+      </div>
+      <div class="gallery-pagination" data-bind="gallery-pagination" style="display:none">
+        <button class="btn btn-secondary" data-action="gallery-load-more">Load More</button>
+      </div>
+      <button class="btn btn-back" data-action="go-community">← Back</button>
+    </section>
+
+    <!-- My Submissions Screen -->
+    <section id="screen-my-submissions" class="screen" data-screen="my-submissions" aria-label="My Submissions">
+      <header class="screen-header">
+        <h2>📋 My Submissions</h2>
+        <p class="screen-description">Track your puzzle submissions and their review status</p>
+      </header>
+      <div class="notifications-section" data-bind="notifications-section" style="display:none">
+        <div class="notifications-header">
+          <button class="notifications-toggle" data-action="toggle-notifications" aria-expanded="true">🔔 Notifications (<span data-bind="notifications-unread-count">0</span> unread) ▾</button>
+          <button class="btn-link notifications-mark-all" data-action="mark-all-notifications-read">Mark all as read</button>
+        </div>
+        <div class="notifications-list" data-bind="notifications-list" role="list"></div>
+      </div>
+      <div class="my-submissions-list" data-bind="my-submissions-list" aria-label="Your submissions" role="list">
+        <p class="my-submissions-loading">Loading submissions…</p>
+      </div>
+      <button class="btn btn-back" data-action="go-community">← Back</button>
+    </section>
+
+    <!-- Admin Moderation Screen -->
+    <section id="screen-moderation" class="screen" data-screen="moderation" aria-label="Moderation">
+      <header class="screen-header">
+        <h2>🛡️ Moderation</h2>
+        <p class="screen-description">Review community puzzle submissions</p>
+      </header>
+
+      <!-- Stats bar -->
+      <div class="mod-stats-bar" data-bind="mod-stats-bar" aria-label="Submission statistics">
+        <div class="mod-stat-card">
+          <span class="mod-stat-label">Pending</span>
+          <span class="mod-stat-value" data-bind="stat-pending">—</span>
+        </div>
+        <div class="mod-stat-card">
+          <span class="mod-stat-label">Approved</span>
+          <span class="mod-stat-value" data-bind="stat-approved">—</span>
+        </div>
+        <div class="mod-stat-card">
+          <span class="mod-stat-label">Rejected</span>
+          <span class="mod-stat-value" data-bind="stat-rejected">—</span>
+        </div>
+        <div class="mod-stat-card">
+          <span class="mod-stat-label">Today</span>
+          <span class="mod-stat-value" data-bind="stat-today">—</span>
+        </div>
+      </div>
+
+      <div class="moderation-tabs" role="tablist">
+        <button class="btn btn-secondary active" id="tab-submissions" data-mod-tab="submissions" role="tab" aria-selected="true" aria-controls="mod-submissions-panel">📝 Pending Submissions</button>
+        <button class="btn btn-secondary" id="tab-users" data-mod-tab="users" role="tab" aria-selected="false" aria-controls="mod-users-panel">👥 User Management</button>
+      </div>
+
+      <div id="mod-submissions-panel" data-mod-panel="submissions" role="tabpanel" aria-labelledby="tab-submissions">
+        <!-- Bulk select header -->
+        <div class="mod-bulk-header" data-bind="mod-bulk-header" style="display:none">
+          <label class="mod-select-all-label">
+            <input type="checkbox" data-bind="mod-select-all" aria-label="Select all submissions"> Select All
+          </label>
+        </div>
+
+        <div class="moderation-list" data-bind="moderation-list" aria-label="Pending submissions">
+          <p class="moderation-loading">Loading submissions…</p>
+        </div>
+
+        <!-- Floating bulk action bar -->
+        <div class="mod-bulk-actions" data-bind="mod-bulk-actions" style="display:none" role="toolbar" aria-label="Bulk actions">
+          <span class="mod-bulk-count" data-bind="mod-bulk-count">0 selected</span>
+          <button class="btn btn-approve" data-action="bulk-approve">✅ Approve Selected</button>
+          <button class="btn btn-reject" data-action="bulk-reject">❌ Reject Selected</button>
+        </div>
+      </div>
+
+      <div id="mod-users-panel" data-mod-panel="users" role="tabpanel" aria-labelledby="tab-users" style="display:none">
+        <div class="moderation-list" data-bind="user-management-list" aria-label="User list">
+          <p class="moderation-loading">Loading users…</p>
+        </div>
+      </div>
+
+      <p class="moderation-status" data-bind="moderation-status" role="status" aria-live="polite"></p>
+      <button class="btn btn-back" data-action="go-community">← Back</button>
+    </section>
+    <div id="reconnect-overlay" class="reconnect-overlay" style="display:none" aria-live="assertive">
+      <div class="reconnect-content">
+        <div class="reconnect-spinner" aria-hidden="true"></div>
+        <p class="reconnect-message" data-bind="reconnect-message">Connection lost — reconnecting...</p>
+        <button class="btn btn-back reconnect-home-btn" data-action="reconnect-go-home" style="display:none" aria-label="Return to home screen">← Home</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+  <script defer src="js/sw-register.js"></script>
+</body>
+</html>

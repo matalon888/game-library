@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101d25"><meta name="description" content="RAINCOIL. Eat the weather. A kinetic color-matching survival game.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; media-src 'self' blob:; base-uri 'none'">
+  <link rel="icon" href="./src/icon.svg" type="image/svg+xml">
+  <title>RAINCOIL — Eat the weather</title>
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+<div class="shell">
+  <header><a class="brand" href="#" id="brand" aria-label="Raincoil main menu"><span class="brand-icon">↯</span> RAINCOIL<span class="brand-dot">01</span></a><div class="edition">PIGMENT RECLAMATION DIVISION <span>FIELD UNIT / 001</span></div><button class="icon-button" id="settings-button" aria-label="Open settings">SETTINGS <span>☷</span></button></header>
+  <main>
+    <aside class="left-rail">
+      <div class="eyebrow">A LITTLE LIFE IN A LOT OF RAIN</div>
+      <h1>EAT THE<br>WEATHER<span>.</span></h1>
+      <p class="intro">Catch color.<br>Lose your tail.<br>Make room to live.</p>
+      <div class="rule-card"><span class="tiny">01 / COLLECT</span><div class="sample-beads"><i class="coral">●</i><i class="coral">●</i><i class="coral">●</i><b>↗</b></div><p>Rain paints two links.<br><strong>3 matching links = a burst.</strong></p></div>
+      <div class="rule-card"><span class="tiny">02 / RECLAIM</span><p>Bursts shorten your coil and clear nearby rubble.</p></div>
+      <div class="rule-card"><span class="tiny">03 / SURVIVE</span><p>Missed rain turns to stone.<br>Your tail keeps growing.</p></div>
+      <div class="controls"><div><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd><span>or WASD</span></div><div><kbd>SPACE</kbd><span>shed 4 links</span></div><div><kbd>ESC</kbd><span>pause</span></div></div>
+      <div class="rail-foot">ORIGINAL ARCADE EXPERIMENT<br><span>A LITTLE MORE TIME / v0.3</span></div>
+    </aside>
+    <section class="chamber" aria-label="Game chamber">
+      <div class="chamber-top"><span><i id="live-dot"></i><b id="mode-label">STORM CHAMBER</b></span><span id="phase-label">AWAITING SIGNAL</span><button id="pause-button" title="Pause (Escape)" aria-label="Pause game">Ⅱ</button></div>
+      <div class="viewport" id="viewport">
+        <canvas id="game" width="660" height="720" tabindex="0" aria-label="Raincoil arena. Use arrow keys or WASD to steer. Space sheds four tail links. Escape pauses."></canvas>
+        <div id="toast" class="toast" aria-live="polite"></div>
+        <div class="overlay" id="menu">
+          <div class="menu-stamp">YOU ARE THE CLEANUP CREW</div>
+          <div class="menu-mark" aria-hidden="true">↯</div>
+          <h2>RAIN<br><span>COIL</span></h2>
+          <p class="menu-copy">A living fuse. A sky full of color.<br>Three minutes to hold it together.</p>
+          <button id="variant-button" class="variant-button" aria-haspopup="dialog"><span>GAME TYPE <b id="chosen-variant">CADENCE</b></span><span>CHANGE ↗</span></button>
+          <button class="primary" id="start-button">ENTER THE STORM <span>↗</span></button>
+          <div class="menu-secondary"><button id="learn-button">FIRST RAIN <small>learn to play</small></button><button id="endless-button">ENDLESS <small>no finish line</small></button></div>
+          <div class="menu-note">HEADPHONES WELCOME · KEYBOARD RECOMMENDED</div>
+        </div>
+        <div class="overlay hidden" id="pause-overlay"><div class="menu-stamp">TAKE A BREATH</div><h2 class="small-title">STILL<br><span>HERE.</span></h2><p>The storm can wait.</p><button class="primary" id="resume-button">BACK INTO IT <span>↗</span></button><button class="plain" id="restart-button">RESTART RUN</button><button class="plain" id="quit-button">MAIN MENU</button></div>
+        <div class="overlay hidden" id="result-overlay"><div class="menu-stamp" id="result-stamp">SIGNAL LOST</div><h2 class="small-title" id="result-title">AFTER<br><span>THE RAIN.</span></h2><p id="result-copy"></p><div class="result-score" id="result-score">0</div><div class="result-metrics" id="result-metrics"></div><button class="primary" id="again-button">ONE MORE STORM <span>↗</span></button><button class="plain" id="result-menu-button">MAIN MENU</button></div>
+        <div class="training hidden" id="training"><span class="tiny" id="training-step"></span><h3 id="training-title"></h3><p id="training-copy"></p><button id="training-next">NEXT ↗</button><button id="training-exit" class="training-exit">SKIP TO STORM</button></div>
+      </div>
+      <div class="chamber-bottom"><span id="board-caption">COLOR IS A WAY OUT.</span><span class="pigment-key"><i class="coral">●</i><i class="blue">◆</i><i class="yellow">−</i></span></div>
+    </section>
+    <aside class="right-rail">
+      <div class="score-box"><span class="tiny">RECLAIMED / SCORE</span><div id="score">00000</div><span class="record">PERSONAL BEST <b id="best">0</b></span></div>
+      <div class="clock-box"><span class="tiny" id="time-label">STORM REMAINING</span><div id="time">03<span>:</span>00</div><div class="progress"><i id="time-progress"></i></div></div>
+      <div class="stat-box"><span class="tiny">INTEGRITY</span><div class="hearts" id="hearts"><i>✦</i><i>✦</i><i>✦</i></div><span class="hint">Walls, tail & stone hurt.</span></div>
+      <div class="stat-pair"><div><span class="tiny">COIL LENGTH</span><strong id="length">12</strong></div><div><span class="tiny">CHAIN</span><strong id="combo">×1</strong></div></div>
+      <button class="shed-button" id="shed-button"><span>SHED <kbd>SPACE</kbd></span><strong id="shed-state">NEED 9 LINKS</strong><div class="shed-track"><i id="shed-progress"></i></div></button><p class="shed-hint">Trade 4 links for a clearing<br>and a moment of safety.</p>
+      <div class="weather-box"><span class="tiny">WEATHER REPORT</span><h3 id="weather">RAIN INCOMING</h3><div id="phrase-preview" class="phrase-preview" aria-label="Upcoming rain phrase"></div><p id="weather-copy">Watch the signals above.<br>Get your body under color.</p><span id="skin-count" class="tiny hidden"></span></div>
+      <div class="right-foot"><span class="pulse-mark">◉</span> <span id="status-caption">ALL SYSTEMS DREAMING</span></div>
+    </aside>
+  </main>
+  <div class="touch-controls" aria-label="Touch controls"><div class="dpad"><button data-dir="0,-1" aria-label="Up">↑</button><button data-dir="-1,0" aria-label="Left">←</button><button data-dir="0,1" aria-label="Down">↓</button><button data-dir="1,0" aria-label="Right">→</button></div><button id="touch-shed">SHED</button></div>
+  <footer><span>Game by <b>OpenAI Codex</b><br>Original game concept by <b>L. Lepin</b></span><span>RAINCOIL / <b>03</b></span></footer>
+</div>
+<dialog id="variant-dialog"><form method="dialog"><div class="eyebrow">THREE WAYS THROUGH THE WEATHER</div><h2>CHOOSE YOUR RAIN.</h2><div class="variant-options">
+<button type="button" data-variant="wild" aria-pressed="false"><span class="variant-symbol">∴</span><span><strong>WILD <small>ORIGINAL</small></strong><b>Unpredictable rain. Immediate escapes.</b><em>The first RAINCOIL rules.</em></span></button>
+<button type="button" data-variant="cadence" aria-pressed="true"><span class="variant-symbol">↘</span><span><strong>CADENCE</strong><b>Recognizable three-drop phrases.</b><em>Read the forecast. Catch the returning color.</em></span></button>
+<button type="button" data-variant="afterimage" aria-pressed="false"><span class="variant-symbol">◌</span><span><strong>AFTERIMAGE</strong><b>Patterned rain. Persistent shed skins.</b><em>Leave a collector behind. Match it to clear it.</em></span></button>
+</div><label class="relaxed-option"><input id="relaxed-pace" type="checkbox"><span><strong>Relaxed pace</strong><small>Slower movement and rain, gentler growth, five integrity points. Five-minute Storms. More time to find your route.</small></span></label><p>Works with every game type and Endless. Standard and Relaxed records are separate.</p><button class="primary">BACK TO THE CHAMBER ↗</button></form></dialog>
+<dialog id="settings"><form method="dialog"><div class="eyebrow">CHAMBER SETTINGS</div><h2>YOUR FREQUENCY.</h2><label>Sound effects <input id="sfx-volume" type="range" min="0" max="100" value="65"></label><label>Music <input id="music-volume" type="range" min="0" max="100" value="35"></label><label class="check-label">Reduced motion <input id="reduced-motion" type="checkbox"></label><p>Colors also have distinct symbols. Progress and settings are saved on this device when browser storage is available.</p><button class="primary">DONE ↗</button><button type="button" class="plain" id="fullscreen-button">TOGGLE FULLSCREEN</button></form></dialog>
+<script type="module" src="./src/app.js"></script>
+</body></html>

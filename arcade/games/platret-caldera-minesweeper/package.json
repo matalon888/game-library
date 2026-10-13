@@ -1,0 +1,13 @@
+{
+  "name": "caldera-minesweeper",
+  "version": "1.0.0",
+  "description": "A modern, customizable, tactile Minesweeper for the web — no build step, no dependencies.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "start": "python3 -m http.server 8000"
+  },
+  "keywords": ["minesweeper", "game", "vanilla-js", "no-build", "pwa", "accessible"],
+  "license": "MIT",
+  "private": true
+}

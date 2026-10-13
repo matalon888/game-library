@@ -1,0 +1,357 @@
+:root {
+  --edge: 16px;
+  --map: 150px; /* minimap size */
+  --top: calc(var(--edge) + env(safe-area-inset-top));
+  --left: calc(var(--edge) + env(safe-area-inset-left));
+  --right: calc(var(--edge) + env(safe-area-inset-right));
+  --bottom: calc(var(--edge) + env(safe-area-inset-bottom));
+  --ink: #fff;
+  --panel: rgba(14, 18, 30, 0.78);
+  --accent: #ffcf33;
+  /* Where banners sit. Layouts override these on #hud, which always beats this inherited default. */
+  --banner-top: 24%;
+  --banner-anchor: top; /* where banners hang from: top (style.css) or bottom (just above the level panel, hud.js) */
+  --sub-gap: clamp(52px, 8.5vw, 98px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0f1320; font-family: 'Trebuchet MS', system-ui, sans-serif; color: var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+canvas#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+.hidden { display: none !important; }
+
+/* --- Screens ------------------------------------------------------------------------- */
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 14px; padding: var(--top) var(--right) var(--bottom) var(--left); background: radial-gradient(ellipse at center, rgba(15, 19, 32, 0.25), rgba(15, 19, 32, 0.85)); z-index: 20; overflow-y: auto; }
+#menu { justify-content: flex-start; padding-top: calc(var(--top) + 8px); }
+.logo { font-weight: 900; font-size: clamp(44px, 9vw, 96px); letter-spacing: 2px; line-height: 0.9; text-shadow: 0 6px 0 #000, 0 0 40px rgba(255, 110, 199, 0.5); transform: rotate(-3deg); }
+.logo b { color: var(--accent); margin-left: 0.18em; }
+.logo.small { font-size: clamp(38px, 7vw, 72px); }
+.tagline { font-size: 18px; opacity: 0.9; text-shadow: 0 2px 0 #000; text-align: center; }
+.tagline b { color: var(--accent); }
+.hint { opacity: 0.85; font-size: 16px; text-align: center; }
+.loadbar { width: min(360px, 80vw); height: 14px; border-radius: 8px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
+.loadbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ff7a1a, var(--accent)); transition: width 0.2s; }
+
+.panel { background: var(--panel); border: 2px solid rgba(255, 255, 255, 0.12); border-radius: 18px; padding: 14px 18px; width: min(560px, 100%); backdrop-filter: blur(6px); }
+.row { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.label { width: 86px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; flex: none; }
+.callsign .name { font-size: 24px; font-weight: 900; flex: 1; }
+.icon-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); font-size: 22px; }
+.icon-btn:active { transform: scale(0.92); }
+.colors { display: flex; gap: 8px; flex-wrap: wrap; }
+.colors button { width: 44px; height: 44px; border-radius: 50%; border: 3px solid transparent; }
+.colors button.taken { opacity: 0.35; }
+.colors button.on { border-color: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3); }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { min-height: 44px; padding: 9px 14px; font-size: 18px; border-radius: 10px; background: rgba(255, 255, 255, 0.1); font-weight: 700; min-width: 48px; }
+/* Upright phones: each label on its own line, so a row of choices (2 3 4) stays together. */
+@media (max-width: 420px) {
+  .row { flex-wrap: wrap; gap: 4px 12px; padding-bottom: 6px; }
+  .label { width: 100%; }
+  .seg button { padding: 9px 10px; }
+}
+.seg button.on { background: var(--accent); color: #1b1300; }
+.lobby { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.lobby:empty { display: none; }
+.chip { padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: 14px; background: rgba(255, 255, 255, 0.1); border: 2px solid; }
+.big-go { font-size: 30px; font-weight: 900; padding: 16px 48px; border-radius: 18px; background: linear-gradient(180deg, #ff7ad1, #c43bff); box-shadow: 0 6px 0 #7a1fa8, 0 10px 30px rgba(200, 60, 255, 0.45); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); letter-spacing: 1px; font-style: italic; }
+.big-go:active { transform: translateY(4px); box-shadow: 0 2px 0 #7a1fa8; }
+.big-go:hover { filter: brightness(1.1); }
+.controls-help { font-size: 14px; opacity: 0.75; text-align: center; max-width: 640px; }
+.controls-help b { color: var(--accent); }
+.touch-only { display: none; }
+@media (any-pointer: coarse) { .touch-only { display: inline; } .kbd-only { display: none; } }
+/* A touch laptop or an iPad with a mouse: both sets of hints. */
+@media (any-pointer: coarse) and (any-pointer: fine) { .kbd-only { display: inline; } }
+
+/* --- HUD ----------------------------------------------------------------------------- */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+#hud button, #hud .stick, #upgrades { pointer-events: auto; }
+/* Minimap, music button and news feed stacked down the left edge. Above the touch sticks so the button stays tappable. */
+.hud-left { position: absolute; z-index: 2; top: var(--top); left: var(--left); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+#minimap { width: var(--map); height: var(--map); border-radius: 14px; background: rgba(10, 14, 24, 0.55); border: 2px solid rgba(255, 255, 255, 0.2); }
+#feed { display: flex; flex-direction: column; gap: 4px; max-width: 46vw; }
+.news { background: rgba(10, 14, 24, 0.7); padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; white-space: nowrap; animation: slidein 0.25s ease-out; }
+.news b { font-weight: 900; }
+@keyframes slidein { from { transform: translateX(-30px); opacity: 0; } }
+.top-center { position: absolute; top: var(--top); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.pill { background: rgba(10, 14, 24, 0.7); padding: 6px 16px; border-radius: 999px; font-weight: 900; font-size: 24px; border: 2px solid rgba(255, 255, 255, 0.15); }
+.pill.small { font-size: 12px; padding: 3px 10px; opacity: 0.85; }
+/* Painting together: a box per part, laid out like the floor, each filling as it's painted. */
+.fraction-box { display: none; flex-direction: column; align-items: center; gap: 4px; background: rgba(10, 14, 24, 0.7); padding: 8px 12px; border-radius: 16px; border: 2px solid rgba(255, 255, 255, 0.15); }
+body.together .fraction-box { display: flex; }
+body.together #timer, body.together #board, body.together #lvl, body.together .bar.paint, body.together .bar.xp { display: none; }
+body.together .bars { width: auto; }
+/* The boxes together make a square, like the floor: a 2 x 2 grid, or n tall strips. */
+.fraction { --side: 84px; display: grid; grid-auto-flow: column; gap: 4px; }
+.fraction.grid { grid-auto-flow: row; grid-template-columns: repeat(2, auto); }
+.fraction .part { position: relative; width: calc((var(--side) - 4px * (var(--n) - 1)) / var(--n)); height: var(--side); border-radius: 6px; border: 2px dashed rgba(255, 255, 255, 0.75); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.fraction .part i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: rgba(255, 207, 51, 0.55); transition: height 0.6s ease-out; }
+.fraction.grid .part { width: calc(var(--side) / 2 - 2px); height: calc(var(--side) / 2 - 2px); }
+.fraction .part.done { border-style: solid; border-color: #fff; }
+.fraction .part.done i { background: var(--accent); }
+.fraction .part.done b { color: #1b1300; text-shadow: none; }
+.fraction .part.mine { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35); }
+.fraction b { position: relative; display: flex; flex-direction: column; align-items: center; font-size: 14px; line-height: 1; font-weight: 900; text-shadow: 0 1px 0 #000; }
+.fraction sup { border-bottom: 2px solid currentColor; padding: 0 2px 1px; }
+.fraction sub { padding-top: 1px; }
+#fraction-words { font-size: 12px; font-weight: 800; opacity: 0.85; }
+/* Narrow or short screens: the strip moves to the free top-right corner (no leaderboard when painting
+   together), smaller, so it never covers your tank when the camera looks ahead of it. */
+@media (max-width: 600px), (max-height: 520px) {
+  body.together .top-center { left: auto; right: var(--right); transform: none; }
+  .fraction { --side: 60px; }
+  .fraction b { font-size: 12px; }
+}
+/* Upright phones: the middle is where the camera keeps your tank, so banners sit up top, under the strip or
+   timer and right of the minimap. In a match the leaderboard makes way while one shows. */
+@media (max-width: 600px) and (orientation: portrait) {
+  #hud { --banner-top: calc(var(--top) + 106px); }
+  #hud #banner, #hud #subbanner { left: calc(var(--left) + var(--map) + 12px); right: var(--right); }
+  #hud #banner { font-size: 26px; }
+  #hud #subbanner { font-size: 15px; }
+  body.bannering #board { visibility: hidden; }
+}
+#board { position: absolute; top: calc(var(--top) + 56px); right: var(--right); width: 210px; display: flex; flex-direction: column; gap: 3px; }
+.brow { display: flex; align-items: center; gap: 6px; background: rgba(10, 14, 24, 0.65); padding: 4px 8px; border-radius: 8px; font-size: 13px; font-weight: 800; border-left: 5px solid; }
+.brow.me { background: rgba(255, 207, 51, 0.25); }
+.sw { width: 14px; height: 14px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6); }
+.brow .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brow .l { opacity: 0.7; font-size: 11px; }
+.brow .k { min-width: 22px; text-align: right; color: var(--accent); }
+
+/* Banners are a soft dark pill around their words, so they read over anything behind (labels, paint, sky). */
+#banner, #subbanner { position: absolute; left: 0; right: 0; width: fit-content; max-width: calc(100% - 16px); margin: 0 auto; padding: 4px 12px; text-align: center; background: rgba(10, 14, 24, 0.55); border-radius: 14px; opacity: 0; pointer-events: none; }
+#banner { top: var(--banner-top); font-size: clamp(30px, 6vw, 64px); font-weight: 900; color: var(--accent); text-shadow: 0 4px 0 #000; transform: scale(0.94); transition: opacity 0.4s ease-out, transform 0.5s ease-out; }
+#banner.show { opacity: 1; transform: scale(1); }
+#subbanner { top: calc(var(--banner-top) + var(--sub-gap)); font-size: clamp(16px, 2.6vw, 24px); font-weight: 800; text-shadow: 0 2px 0 #000; transition: opacity 0.2s; }
+#subbanner.show { opacity: 1; }
+
+/* While the upgrade cards are up, the sub-banner makes way for them. */
+body.cards #subbanner { display: none; }
+#upgrades { position: absolute; z-index: 5; left: 50%; bottom: calc(var(--bottom) + 108px); transform: translateX(-50%); width: max-content; display: flex; flex-direction: column; align-items: center; gap: 8px; animation: fadein 0.4s ease-out; }
+@keyframes fadein { from { opacity: 0; } }
+.up-title { font-weight: 900; font-size: 16px; text-shadow: 0 2px 0 #000; color: var(--accent); }
+#up-cards { display: flex; gap: 10px; }
+.card { width: 128px; padding: 10px 8px 8px; border-radius: 14px; background: linear-gradient(180deg, #2b3350, #161b2e); border: 3px solid #4a5585; text-align: center; position: relative; box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4); }
+.card:hover { border-color: var(--accent); transform: translateY(-4px); }
+.card:active { transform: scale(0.95); }
+.card .ic { font-size: 34px; display: block; }
+.card .nm { font-weight: 900; font-size: 14px; display: block; margin: 4px 0 2px; }
+.card .tx { font-size: 11px; opacity: 0.8; display: block; }
+.card .pips { margin-top: 6px; display: flex; gap: 3px; justify-content: center; }
+.card .pips i { width: 10px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.2); }
+.card .pips i.on { background: var(--accent); }
+.card .key { position: absolute; top: -10px; left: -8px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #1b1300; font-weight: 900; font-size: 14px; line-height: 24px; }
+@media (any-pointer: coarse) { .card .key { display: none; } }
+
+.bottom { position: absolute; left: 50%; bottom: var(--bottom); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.levelrow { display: flex; align-items: center; gap: 10px; background: rgba(10, 14, 24, 0.7); border-radius: 18px; padding: 8px 12px; border: 2px solid rgba(255, 255, 255, 0.15); }
+.lvl { width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe680, #f59e0b 60%, #b45309); color: #2a1600; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); }
+.lvl.bump { animation: bump 0.5s; }
+@keyframes bump { 40% { transform: scale(1.12); } }
+.bars { width: clamp(120px, 34vw, 300px); display: flex; flex-direction: column; gap: 4px; }
+.tiername { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+.bar { position: relative; height: 18px; border-radius: 9px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 100%; transition: width 0.15s; }
+.bar.paint i { background: #ff6ec7; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.18), inset 0 4px 0 rgba(255, 255, 255, 0.35); }
+.bar.paint span { position: absolute; inset: 0; text-align: center; font-size: 12px; font-weight: 900; line-height: 18px; text-shadow: 0 1px 0 #000; }
+.bar.xp { height: 8px; }
+.bar.xp i { background: linear-gradient(90deg, #60a5fa, #a78bfa); }
+.abilities { display: flex; gap: 8px; }
+.ability { position: relative; width: 50px; height: 50px; border-radius: 12px; background: rgba(255, 255, 255, 0.14); display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
+.ability i { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); height: 0; }
+.ability small { position: absolute; bottom: 1px; font-size: 8px; font-weight: 900; opacity: 0.8; }
+.ability.ready { box-shadow: 0 0 0 2px var(--accent), 0 0 14px rgba(255, 207, 51, 0.6); }
+.ability.locked { opacity: 0.3; filter: grayscale(1); }
+#buffs { display: flex; gap: 6px; }
+.buff { position: relative; overflow: hidden; background: rgba(10, 14, 24, 0.75); border-radius: 999px; padding: 3px 10px 5px; font-weight: 900; font-size: 13px; }
+.buff i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); }
+
+.corner-btn { width: 44px; height: 44px; border-radius: 12px; background: rgba(10, 14, 24, 0.6); font-size: 20px; }
+.corner-btn.off { opacity: 0.4; }
+.corner-btn.on { box-shadow: 0 0 0 3px var(--accent); }
+/* Driver's seat view: dark edges like looking out of a hatch. */
+#periscope { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; background: radial-gradient(ellipse at 50% 45%, transparent 58%, rgba(10, 14, 24, 0.6) 100%); }
+body.seat #periscope { display: block; }
+/* Narrow or short screens: the goal pill would run under the leaderboard. */
+@media (max-width: 700px), (max-height: 520px) { #goal { display: none; } }
+
+/* Touch: twin sticks, with the action buttons stacked in the bottom-right corner. (The upgrade cards go up
+   top on touch screens; see below.) */
+.touch { display: none; }
+@media (any-pointer: coarse) {
+  .touch { display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  .touch > * { pointer-events: auto; }
+  .stick { position: absolute; bottom: 0; width: 42vw; height: 55vh; }
+  .stick:not(.aim) { left: 0; }
+  .stick.aim { right: 0; }
+  .stick-base { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 3px solid rgba(255, 255, 255, 0.25); opacity: 0.6; }
+  .stick.held .stick-base { opacity: 1; }
+  .stick-knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); transform: translate(-50%, -50%); }
+  .stick.aim .stick-knob { background: rgba(255, 90, 60, 0.75); }
+  .touch-btn { position: absolute; right: calc(var(--right) + 8px); bottom: calc(var(--bottom) + 8px); width: 64px; height: 64px; border-radius: 50%; background: rgba(255, 207, 51, 0.85); font-size: 30px; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4); }
+  .touch-btn.mega { bottom: calc(var(--bottom) + 84px); background: rgba(199, 125, 255, 0.85); }
+  /* The aim stick rests up and in from its corner, so its ring is clear of the ⚡ and 🎈 buttons. */
+  .stick.aim .stick-base { top: 35%; left: 40%; }
+  @media (max-width: 600px) and (max-height: 520px) { .stick.aim .stick-base { left: 30%; } }
+  .bottom { transform: translateX(-50%) scale(0.8); transform-origin: bottom center; }
+  .abilities { display: none; }
+  :root { --map: 110px; }
+  #board { width: 160px; }
+  .card { width: min(104px, 28vw); }
+}
+/* Phones upright: compact cards sit up top, under the timer and right of the minimap, clear of your tank in
+   the middle and of where thumbs rest on the sticks. While they're up, the leaderboard and banner make way. */
+@media (any-pointer: coarse) and (orientation: portrait) {
+  #upgrades { top: calc(var(--top) + 52px); }
+  .up-title { font-size: 13px; }
+  #up-cards { gap: 6px; width: 100%; }
+  .card { flex: 1; width: auto; padding: 6px 4px; }
+  .card .ic { font-size: 22px; }
+  body.cards #board, body.cards #banner, body.cards #goal { display: none; }
+}
+/* Tablets on their side, short laptop windows and short screens: compact cards at the top in place of the
+   timer and strip, clear of your tank in the middle. */
+@media (any-pointer: coarse) and (orientation: landscape), (orientation: landscape) and (max-height: 700px), (max-height: 520px) {
+  #upgrades { top: var(--top); }
+  body.cards .top-center, body.cards #board { display: none; }
+}
+/* Compact cards (touch screens and short ones): icon and name only, centred in the space right of the
+   minimap so a card never covers it. (The two blocks above set how far down they sit.) */
+@media (any-pointer: coarse), (orientation: landscape) and (max-height: 700px), (max-height: 520px) {
+  .card .tx, .card .pips { display: none; }
+  #upgrades { bottom: auto; left: calc(var(--left) + var(--map) + 12px); right: var(--right); transform: none; width: auto; }
+  #up-cards { justify-content: center; }
+}
+/* Upright phones: news of friends arriving or leaving wraps under the minimap, two lines at most. */
+@media (max-width: 430px) {
+  #feed { max-width: var(--map); }
+  .news { white-space: normal; }
+  #feed .news:nth-child(n + 3) { display: none; }
+}
+/* Landscape phones: the drive stick's area starts right of the 🎵 👀 🏠 column, so a thumb can't land on them.
+   (The store's preview frame, 280 px tall or less, hides that column, so the stick keeps the whole corner.) */
+@media (any-pointer: coarse) and (max-height: 520px) and (min-height: 281px) {
+  .stick:not(.aim) { left: calc(var(--left) + 52px); width: calc(42vw - 52px); }
+}
+@media (any-pointer: coarse) and (max-width: 400px) {
+  :root { --map: 92px; }
+  .bottom { left: calc(50% - 36px); }
+}
+/* Short screens and landscape laptop windows: a toast goes to the top middle, never over your tank. */
+@media (orientation: landscape) and (max-height: 700px), (max-height: 520px) {
+  body #toast { top: var(--top); bottom: auto; font-size: 14px; padding: 6px 12px; }
+}
+/* Landscape screens: the camera keeps your tank in the middle, so banners hang just above the bottom panel,
+   which is also where upgrade cards sit on a desktop: while they're up, the banner makes way (the voice
+   still says it). */
+@media (orientation: landscape) {
+  #hud { --banner-anchor: bottom; }
+  #banner { font-size: clamp(26px, 4vw, 44px); }
+  body.cards #banner { display: none; }
+}
+/* Short screens (landscape phones): the menu, the results and the match banners. Other short-screen rules sit
+   beside the parts they move (the strip, goal, sticks, cards, toast and the PLAY column). */
+@media (max-height: 520px) {
+  #menu .logo { font-size: 40px; }
+  #menu .tagline, #menu .controls-help { display: none; }
+  #results.together { flex-direction: row; justify-content: center; }
+  /* The picture, title and buttons fit without Play again floating over the picture, toolbar and all. */
+  #results.together .floor-pic { width: min(150px, 40vh, calc(100vh - 200px)); }
+  #end .logo.small { font-size: 28px; }
+  #end .tagline { font-size: 15px; }
+  #end .painters { gap: 4px; }
+  #end .painters .chip { padding: 2px 8px; font-size: 12px; }
+  #end .panel { padding: 8px 12px; }
+  /* A match's banners go up top too, between the minimap and the leaderboard; the timer makes way while one
+     shows. (Painting together, they hang above the panel, or sit up top on very short screens, below.) */
+  body:not(.together) #hud { --banner-anchor: top; --banner-top: var(--top); }
+  body:not(.together) #banner, body:not(.together) #subbanner { left: calc(var(--left) + var(--map) + 12px); right: calc(var(--right) + 172px); }
+  body.bannering:not(.together) .top-center { visibility: hidden; }
+  /* Banners are smaller here. */
+  #banner { font-size: clamp(22px, 4.5vw, 30px); }
+  #subbanner { font-size: 16px; }
+  #board .brow:nth-child(n + 4) { display: none; }
+  .card { padding: 6px; }
+  .card .ic { font-size: 24px; }
+}
+/* Very short screens (a landscape phone with its toolbar showing): even just above the panel is where your
+   tank sits, so painting together, banners go up top between the minimap and the fraction strip. (The store's
+   preview frame, 280 px or less, has no minimap to sit beside and keeps the bottom anchor.) */
+@media (max-height: 340px) and (min-height: 281px) {
+  body.together #hud { --banner-anchor: top; --banner-top: var(--top); }
+  body.together #banner, body.together #subbanner { left: calc(var(--left) + var(--map) + 12px); right: calc(var(--right) + 100px); }
+  /* The strip keeps just its boxes here (the voice says the words), leaving the banner room beside it. */
+  #fraction-words { display: none; }
+  body.together #banner { font-size: 20px; }
+  body.together #subbanner { font-size: 13px; }
+}
+/* A small window (the store's preview frame on a phone): only what's needed to play. */
+@media (max-height: 280px) {
+  /* No minimap or leaderboard here to sit beside: banners span the frame, small. */
+  #hud #banner, #hud #subbanner { left: var(--left); right: var(--right); }
+  #hud #banner { font-size: 18px; }
+  #hud #subbanner { font-size: 12px; }
+  .hud-left, #board, #timer, .up-title, .bars { display: none; }
+  .bottom { transform: translateX(-50%) scale(0.6); }
+  #upgrades { top: 6px; left: var(--left); } /* no minimap here: centred across the whole frame */
+  .card { width: 84px; padding: 4px; }
+  .touch-btn { width: 48px; height: 48px; font-size: 22px; }
+  .touch-btn.mega { bottom: calc(var(--bottom) + 8px); right: calc(var(--right) + 64px); }
+}
+#crosshair { position: fixed; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 50%; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.4); pointer-events: none; display: none; }
+#crosshair::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; background: #fff; border-radius: 50%; }
+#crosshair.far { opacity: 0.4; }
+#reach { position: fixed; left: 0; top: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #fff; border-radius: 50%; box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45); pointer-events: none; display: none; }
+body.playing { cursor: none; }
+
+#floaters { position: fixed; inset: 0; pointer-events: none; z-index: 11; overflow: hidden; }
+.floater { position: absolute; left: 0; top: 0; font-weight: 900; font-size: 22px; color: #fff; text-shadow: 0 2px 0 #000, 0 0 6px #000; white-space: nowrap; }
+.floater.me { color: #ff6b6b; }
+.floater.xp { color: #9ec5ff; font-size: 16px; }
+
+#results { display: flex; flex-direction: column; gap: 4px; max-height: 50vh; overflow-y: auto; }
+.rrow { display: grid; grid-template-columns: 34px 18px 1fr 80px 54px; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); font-weight: 800; border-left: 6px solid; }
+.rrow.me { background: rgba(255, 207, 51, 0.2); }
+.rrow .pos { font-size: 20px; }
+
+/* A screen that has just appeared (results, or the menu after a round) holds its buttons back for a moment
+   (inert, set in setScreen), so taps and keys meant for the play controls do nothing, and the finished floor is
+   seen. They show faded meanwhile. */
+body.arriving #end .go-row, body.arriving #go { opacity: 0.3; }
+#end .go-row, #go { transition: opacity 0.5s; }
+/* The end screen: the host's again and menu buttons; painting together shows the floor and its painters. */
+.go-row { display: flex; align-items: center; gap: 14px; }
+.icon-btn.home { width: 64px; height: 64px; border-radius: 18px; font-size: 30px; }
+#results.together { align-items: center; gap: 12px; max-height: none; overflow: visible; flex-shrink: 0; }
+.floor-pic { width: min(240px, 56vw, 34vh); height: auto; aspect-ratio: 1; border-radius: 12px; border: 3px solid rgba(255, 255, 255, 0.6); }
+.painters { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.painters .chip { display: inline-flex; align-items: center; gap: 6px; }
+.painters .chip.me { background: rgba(255, 207, 51, 0.2); }
+
+/* The parts choice: a little square cut into equal parts. */
+.cut { display: inline-block; width: 22px; height: 22px; margin-right: 6px; vertical-align: -4px; border: 2px solid currentColor; border-radius: 3px; }
+.cut.c2 { background: linear-gradient(90deg, transparent calc(50% - 1px), currentColor 0 calc(50% + 1px), transparent 0); }
+.cut.c3 { background: linear-gradient(90deg, transparent calc(33.3% - 1px), currentColor 0 calc(33.3% + 1px), transparent 0 calc(66.7% - 1px), currentColor 0 calc(66.7% + 1px), transparent 0); }
+.cut.c4 { background: linear-gradient(90deg, transparent calc(50% - 1px), currentColor 0 calc(50% + 1px), transparent 0), linear-gradient(0deg, transparent calc(50% - 1px), currentColor 0 calc(50% + 1px), transparent 0); }
+
+/* Short screens: 🎨 PLAY, and the results' again and 🏠, always in view at the bottom. */
+@media (max-height: 700px) {
+  #menu #go, #end .go-row { position: sticky; bottom: 0; z-index: 1; flex: none; }
+}
+/* Landscape phones: PLAY stands beside the choices rather than floating over the last rows of them. */
+@media (max-height: 520px) and (orientation: landscape) and (min-width: 540px) {
+  #menu { display: grid; grid-template-columns: min(560px, 100vw - var(--left) - var(--right) - 152px) 140px; grid-template-areas: 'logo logo' 'panel go'; justify-content: center; align-content: start; column-gap: 12px; }
+  #menu .logo { grid-area: logo; justify-self: center; }
+  #menu .panel { grid-area: panel; width: auto; padding: 10px 12px; }
+  #menu .label { width: 64px; font-size: 11px; letter-spacing: 0; }
+  /* It stays in view, mid-screen, while the choices scroll beside it (not at the bottom, as on other short screens). */
+  #menu #go, #menu #waiting-host { grid-area: go; align-self: start; position: sticky; top: calc(50% - 28px); bottom: auto; max-width: 140px; }
+  #menu #go { font-size: 20px; padding: 12px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+#toast { pointer-events: none; position: fixed; bottom: 30%; left: 50%; transform: translateX(-50%); background: var(--panel); padding: 10px 18px; border-radius: 12px; font-weight: 800; z-index: 30; }

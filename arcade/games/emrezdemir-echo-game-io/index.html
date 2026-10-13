@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07080d" />
+  <!-- If the page is loaded without a trailing slash (for example
+       /time-echo instead of /time-echo/), the browser treats the last
+       segment as a file and resolves every relative URL against the
+       parent directory. The reliable cross-host fix is to redirect to
+       the directory form so the browser sets the correct base before
+       any other resource is requested. The script runs synchronously
+       and must precede every URL-resolving tag in the head. -->
+  <script>
+    (function () {
+      var p = location.pathname;
+      var isFile = /\.[a-z0-9]+$/i.test(p);
+      var endsWithSlash = p.charAt(p.length - 1) === "/";
+      if (p.length > 1 && !endsWithSlash && !isFile) {
+        location.replace(p + "/" + location.search + location.hash);
+      }
+    })();
+  </script>
+  <title>Time Echo</title>
+  <!-- Inline SVG favicon (diamond) — avoids the default /favicon.ico request. -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%224%22%20fill%3D%22%2307080d%22%2F%3E%3Cpath%20d%3D%22M16%204%20L28%2016%20L16%2028%20L4%2016%20Z%22%20fill%3D%22%238a7dff%22%20stroke%3D%22%235ad7ff%22%20stroke-width%3D%221.5%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%223%22%20fill%3D%22%235ad7ff%22%2F%3E%3C%2Fsvg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <!-- ===== TITLE ===== -->
+  <section id="screenTitle" class="screen active">
+    <canvas id="titleCanvas" width="1280" height="800"></canvas>
+    <div class="title-frame">
+      <h1 class="big-title" data-text="TIME ECHO">TIME&nbsp;ECHO</h1>
+      <p class="tagline" data-i18n="menu.tagline"></p>
+      <div class="menu">
+        <button data-act="start"    data-i18n="menu.start"></button>
+        <button data-act="tutorial" data-i18n="menu.tutorial"></button>
+        <button data-act="select"   data-i18n="menu.select"></button>
+        <button data-act="editor"   data-i18n="menu.editor"></button>
+        <button data-act="version"  data-i18n="menu.version"></button>
+        <button data-act="lang"     id="btnLang"  data-i18n="menu.lang"></button>
+        <button data-act="mute"     id="btnMute"  data-i18n="menu.sound.on"></button>
+      </div>
+      <div class="version" id="titleVersion">v?.?.? · monolith build</div>
+      <div class="credits">
+        Music: <a href="https://ncs.io/C_Voyage" target="_blank" rel="noopener">C — Voyage</a> · NCS
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LEVEL SELECT ===== -->
+  <section id="screenSelect" class="screen">
+    <div class="select-frame">
+      <h2 class="screen-title" data-i18n="select.title"></h2>
+      <div class="select-toolbar">
+        <button id="selJumpUnlocked" class="primary" data-i18n="select.continue"></button>
+        <span id="selPageInfo" class="page-info"></span>
+      </div>
+      <div id="levelList" class="level-list"></div>
+      <div class="pager">
+        <button id="selFirst" class="back">«</button>
+        <button id="selPrev"  class="back">‹</button>
+        <input id="selPageJump" type="number" min="1" />
+        <button id="selNext"  class="back">›</button>
+        <button id="selLast"  class="back">»</button>
+      </div>
+      <button class="back" data-act="title" data-i18n="hud.back"></button>
+    </div>
+  </section>
+
+  <!-- ===== STORY ===== -->
+  <section id="screenStory" class="screen">
+    <div class="story-frame">
+      <h2 id="storyTitle" class="story-title">// LOG</h2>
+      <pre id="storyBody" class="story-body"></pre>
+      <button id="storyContinue" class="primary" data-i18n="ov.continue"></button>
+    </div>
+  </section>
+
+  <!-- ===== GAME ===== -->
+  <section id="screenGame" class="screen">
+    <main class="frame">
+      <header class="hud">
+        <div class="title">// TIME&nbsp;ECHO</div>
+        <div class="stats">
+          <span><span data-i18n="hud.moves"></span> <b id="movesLeft">10</b></span>
+          <span><span data-i18n="hud.rec"></span> <b id="recCount">0</b></span>
+          <span><span data-i18n="hud.echo"></span> <b id="echoCount">0</b></span>
+          <span><span data-i18n="hud.level"></span> <b id="levelNum">1</b></span>
+          <span><span data-i18n="hud.timer"></span> <b id="timerDisplay">0:00.0</b></span>
+          <span class="hud-ver" id="hudVersion">v?.?.?</span>
+          <button class="hud-btn" data-act="menu" data-i18n="hud.menu"></button>
+        </div>
+      </header>
+
+      <section class="stage">
+        <canvas id="board" width="640" height="640"></canvas>
+        <div id="toast" class="toast hidden"></div>
+        <div id="overlay" class="overlay hidden">
+          <div class="overlay-card">
+            <h2 id="overlayTitle">STABILIZED</h2>
+            <p id="overlayBody">Zaman çizgisi sabitlendi.</p>
+            <div class="overlay-btns">
+              <button id="overlayBtn">DEVAM</button>
+              <button id="overlayBtn2" class="ghost">MENÜ</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mobil dokunmatik kontroller -->
+      <section class="touch-controls">
+        <div class="dpad">
+          <button class="dp dp-ul"    data-touch="upleft">◤</button>
+          <button class="dp dp-up"    data-touch="up">▲</button>
+          <button class="dp dp-ur"    data-touch="upright">◥</button>
+          <button class="dp dp-left"  data-touch="left">◀</button>
+          <button class="dp dp-center"></button>
+          <button class="dp dp-right" data-touch="right">▶</button>
+          <button class="dp dp-dl"    data-touch="downleft">◣</button>
+          <button class="dp dp-down"  data-touch="down">▼</button>
+          <button class="dp dp-dr"    data-touch="downright">◢</button>
+        </div>
+        <div class="actions">
+          <button class="act act-r" data-touch="r">R</button>
+          <button class="act act-z" data-touch="z">Z</button>
+          <button class="act act-n" data-touch="n">N</button>
+        </div>
+      </section>
+
+      <footer class="legend">
+        <span data-i18n="legend.you"></span>
+        <span data-i18n="legend.echo"></span>
+        <span data-i18n="legend.goal"></span>
+        <span data-i18n="legend.plate"></span>
+        <span data-i18n="legend.door"></span>
+        <span data-i18n="legend.portal"></span>
+        <span data-i18n="legend.laser"></span>
+        <span data-i18n="legend.quantum"></span>
+        <span data-i18n="legend.box"></span>
+        <span data-i18n="legend.patrol"></span>
+        <span data-i18n="legend.fragile"></span>
+        <span data-i18n="legend.wall"></span>
+        <span class="keys" data-i18n="legend.keys"></span>
+      </footer>
+    </main>
+  </section>
+
+  <!-- ===== EDITOR ===== -->
+  <section id="screenEditor" class="screen">
+    <div class="editor-frame">
+      <header class="ed-header">
+        <h2 data-i18n="ed.title"></h2>
+        <button id="edBack" class="back" data-i18n="hud.back"></button>
+      </header>
+      <div class="ed-body">
+        <aside class="ed-side">
+          <div class="ed-row">
+            <label data-i18n="ed.name"></label>
+            <input id="edName" maxlength="32" />
+          </div>
+          <div class="ed-row">
+            <label data-i18n="ed.intro"></label>
+            <textarea id="edIntro" maxlength="200" rows="2"></textarea>
+          </div>
+          <div class="ed-row triple">
+            <div><label data-i18n="ed.width"></label><input id="edWidth" type="number" min="4" max="24" value="10" /></div>
+            <div><label data-i18n="ed.height"></label><input id="edHeight" type="number" min="4" max="18" value="8" /></div>
+            <div><label data-i18n="ed.moves"></label><input id="edMoves" type="number" min="1" max="99" value="16" /></div>
+          </div>
+          <div class="ed-row">
+            <label data-i18n="ed.brush"></label>
+            <div id="edToolbar" class="ed-toolbar"></div>
+          </div>
+          <div class="ed-actions">
+            <button id="edClear" data-i18n="ed.clear"></button>
+            <button id="edTest" class="primary" data-i18n="ed.test"></button>
+            <button id="edShare" class="primary" data-i18n="ed.share"></button>
+            <button id="edSave" data-i18n="ed.save"></button>
+            <button id="edGalleryBtn" data-i18n="ed.gallery"></button>
+          </div>
+          <div id="edGallery" class="ed-gallery"></div>
+          <input id="edShareBox" class="share-box" readonly data-i18n-placeholder="ed.shareBox" />
+          <div id="edStatus" class="ed-status"></div>
+          <div class="ed-help" data-i18n-html="ed.help"></div>
+        </aside>
+        <main class="ed-canvas-wrap">
+          <canvas id="editorCanvas" width="640" height="640"></canvas>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== VERSION HISTORY ===== -->
+  <section id="screenVersion" class="screen">
+    <div class="version-frame">
+      <header class="ed-header">
+        <h2 class="screen-title" data-i18n="ver.title"></h2>
+        <button class="back" data-act="title" data-i18n="hud.back"></button>
+      </header>
+      <div id="versionList" class="version-list"></div>
+    </div>
+  </section>
+
+  <script src="version.js"></script>
+  <script src="i18n.js"></script>
+  <script src="audio.js"></script>
+  <script src="music.js"></script>
+  <script src="story.js"></script>
+  <script src="generator.js"></script>
+  <script src="levels.js"></script>
+  <script src="editor.js"></script>
+  <script src="webgl.js"></script>
+  <script src="sprite.js"></script>
+  <script src="effects.js"></script>
+  <script src="bark.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

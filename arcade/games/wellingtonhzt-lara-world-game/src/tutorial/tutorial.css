@@ -1,0 +1,273 @@
+/* ============================================
+   Lara World — Tutorial Screen (src/tutorial/tutorial.css)
+   Glass card hero style, consistent with menu
+   ============================================ */
+
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.tutorial-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tutorial-card {
+  position: relative;
+  width: 92%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 18px;
+  border: 1.5px solid rgba(200, 170, 140, 0.35);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.18),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 28px 24px 22px;
+  transform: scale(0.92);
+  transition: transform 0.3s ease;
+}
+
+.tutorial-overlay.visible .tutorial-card {
+  transform: scale(1);
+}
+
+.tutorial-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  color: #555;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tutorial-close-btn:hover,
+.tutorial-close-btn:focus-visible {
+  background: rgba(0, 0, 0, 0.15);
+  color: #333;
+  outline: none;
+}
+
+.tutorial-step-counter {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #9e9e9e;
+  margin-bottom: 14px;
+}
+
+.tutorial-content {
+  text-align: center;
+  min-height: 140px;
+}
+
+.tutorial-step-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.tutorial-step-title {
+  font-family: 'Baloo 2', cursive, system-ui, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #4e342e;
+  margin-bottom: 6px;
+}
+
+.tutorial-step-text {
+  font-size: 0.92rem;
+  color: #5d4037;
+  line-height: 1.55;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.tutorial-step-note {
+  font-size: 0.82rem;
+  color: #8d6e63;
+  font-style: italic;
+  line-height: 1.45;
+  max-width: 360px;
+  margin: 10px auto 0;
+  padding: 8px 12px;
+  background: rgba(161, 136, 127, 0.08);
+  border-radius: 8px;
+}
+
+.tutorial-step-list {
+  text-align: left;
+  max-width: 360px;
+  margin: 10px auto 0;
+}
+
+.tutorial-step-list-item {
+  font-size: 0.88rem;
+  color: #5d4037;
+  line-height: 1.5;
+  padding: 2px 0;
+}
+
+.tutorial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0 10px;
+}
+
+.tutorial-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.tutorial-dot.active {
+  background: #a1887f;
+  transform: scale(1.2);
+}
+
+.tutorial-skip-btn {
+  display: block;
+  margin: 0 auto 10px;
+  background: none;
+  border: none;
+  font-family: 'Baloo 2', cursive, system-ui, sans-serif;
+  font-size: 0.82rem;
+  color: #a1887f;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.tutorial-skip-btn:hover,
+.tutorial-skip-btn:focus-visible {
+  color: #6d4c41;
+}
+
+.tutorial-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tutorial-nav-btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Baloo 2', cursive, system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.tutorial-nav-btn:active {
+  transform: scale(0.96);
+}
+
+.tutorial-prev-btn {
+  background: rgba(0, 0, 0, 0.06);
+  color: #8d6e63;
+}
+
+.tutorial-prev-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-next-btn {
+  background: linear-gradient(135deg, #ffab91, #ff8a65);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 138, 101, 0.3);
+}
+
+.tutorial-next-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 14px rgba(255, 138, 101, 0.45);
+}
+
+.tutorial-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-overlay,
+  .tutorial-card,
+  .tutorial-dot,
+  .tutorial-nav-btn {
+    transition: none;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .tutorial-card {
+    width: 94%;
+    padding: 22px 18px 18px;
+  }
+
+  .tutorial-step-title {
+    font-size: 1.15rem;
+  }
+
+  .tutorial-step-icon {
+    font-size: 2.5rem;
+  }
+}
+
+/* Phone */
+@media (max-width: 600px) {
+  .tutorial-card {
+    width: 96%;
+    padding: 18px 14px calc(14px + env(safe-area-inset-bottom));
+    border-radius: 14px;
+  }
+
+  .tutorial-step-title {
+    font-size: 1.05rem;
+  }
+
+  .tutorial-step-icon {
+    font-size: 2.2rem;
+  }
+
+  .tutorial-step-text {
+    font-size: 0.85rem;
+  }
+
+  .tutorial-step-note {
+    font-size: 0.78rem;
+  }
+
+  .tutorial-step-list-item {
+    font-size: 0.82rem;
+  }
+
+  .tutorial-nav-btn {
+    padding: 7px 14px;
+    font-size: 0.82rem;
+  }
+}

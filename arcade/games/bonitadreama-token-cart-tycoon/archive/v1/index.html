@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Token Cart Tycoon is a 30-day educational startup survival game." />
+    <title>Token Cart Tycoon</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to game</a>
+    <main id="main-content">
+      <section id="landing-screen" class="screen landing-screen" aria-labelledby="game-title">
+        <div class="landing-copy">
+          <p class="eyebrow">A 30-day AI startup survival game</p>
+          <h1 id="game-title"><span>Token Cart</span> Tycoon</h1>
+          <p class="intro">One hot dog cart. One laptop. Five users. Keep your tiny AI app—and yourself—alive for 30 days.</p>
+          <button id="start-button" class="primary-button" type="button">Open for business <span aria-hidden="true">→</span></button>
+          <p class="fine-print">No sign-up. No API bill. About 5 minutes of founder chaos.</p>
+        </div>
+
+        <div class="hero-scene" aria-label="A cheerful hot dog cart with a laptop serving an AI startup">
+          <div class="sunburst" aria-hidden="true"></div>
+          <div class="steam steam-one" aria-hidden="true">~</div>
+          <div class="steam steam-two" aria-hidden="true">~</div>
+          <div class="cart-flag" aria-hidden="true"><span>NOW<br />SERVING</span></div>
+          <div class="cart-awning" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="laptop" aria-hidden="true"><span>AI</span></div>
+          <div class="hotdog" aria-hidden="true"><span></span></div>
+          <div class="cart-body" aria-hidden="true">
+            <div class="cart-logo"><small>TOKEN</small><strong>CART</strong><em>fresh models daily</em></div>
+          </div>
+          <div class="wheel wheel-left" aria-hidden="true"></div>
+          <div class="wheel wheel-right" aria-hidden="true"></div>
+          <div class="ground-shadow" aria-hidden="true"></div>
+        </div>
+
+        <div class="starter-receipt" aria-label="Starting resources">
+          <span>Your opening shift</span>
+          <strong>$500 · 5 users · 1 laptop</strong>
+        </div>
+      </section>
+
+      <section id="game-screen" class="screen game-screen" hidden aria-label="Token Cart Tycoon game">
+        <header class="game-header">
+          <div class="mini-brand"><span aria-hidden="true">◒</span> Token Cart Tycoon</div>
+          <div class="day-display">
+            <span>Day</span>
+            <strong id="day-number">1</strong>
+            <small>/ 30</small>
+          </div>
+          <button id="restart-button" class="text-button" type="button">Restart</button>
+        </header>
+
+        <section class="resource-bar" aria-label="Company resources">
+          <div class="resource" data-resource="cash">
+            <div class="resource-label"><span>Cash</span><strong id="cash-value">$500</strong></div>
+            <div class="meter"><span id="cash-meter"></span></div>
+          </div>
+          <div class="resource" data-resource="users">
+            <div class="resource-label"><span>Users</span><strong id="users-value">5</strong></div>
+            <div class="meter"><span id="users-meter"></span></div>
+          </div>
+          <div class="resource" data-resource="compute">
+            <div class="resource-label"><span>Compute</span><strong id="compute-value">20</strong></div>
+            <div class="meter"><span id="compute-meter"></span></div>
+          </div>
+          <div class="resource" data-resource="trust">
+            <div class="resource-label"><span>Trust</span><strong id="trust-value">60</strong></div>
+            <div class="meter"><span id="trust-meter"></span></div>
+          </div>
+          <div class="resource" data-resource="hype">
+            <div class="resource-label"><span>Hype</span><strong id="hype-value">10</strong></div>
+            <div class="meter"><span id="hype-meter"></span></div>
+          </div>
+          <div class="resource" data-resource="quality">
+            <div class="resource-label"><span>Quality</span><strong id="quality-value">10</strong></div>
+            <div class="meter"><span id="quality-meter"></span></div>
+          </div>
+          <div class="resource" data-resource="sanity">
+            <div class="resource-label"><span>Sanity</span><strong id="sanity-value">80</strong></div>
+            <div class="meter"><span id="sanity-meter"></span></div>
+          </div>
+        </section>
+
+        <div class="game-layout">
+          <section class="action-panel" aria-labelledby="action-heading">
+            <div class="section-heading">
+              <p class="eyebrow">Choose one</p>
+              <h2 id="action-heading">Today’s move</h2>
+            </div>
+            <div id="action-list" class="action-list"></div>
+          </section>
+
+          <section class="playfield" aria-label="Your startup cart">
+            <div class="status-tape">
+              <span>Current status</span>
+              <strong id="current-status">Tiny, scrappy, and technically online</strong>
+            </div>
+
+            <div class="mini-cart" aria-hidden="true">
+              <div class="mini-steam">~</div>
+              <div class="mini-awning"><i></i><i></i><i></i><i></i></div>
+              <div class="mini-laptop">AI</div>
+              <div class="mini-cart-body"><strong>TC</strong><span>HOT DOGS + HOT TAKES</span></div>
+              <div class="mini-wheel left"></div>
+              <div class="mini-wheel right"></div>
+            </div>
+
+            <article id="daily-card" class="daily-card" aria-live="polite">
+              <div class="card-kicker">Day 1 · Opening note</div>
+              <h2>Your first five users are hungry.</h2>
+              <p>Pick one move. The cart handles revenue and operating costs after every shift.</p>
+              <div class="lesson"><span>THE LESSON</span> Every startup day trades one scarce resource for another.</div>
+            </article>
+
+            <div class="shift-preview" id="shift-preview">Daily overhead starts at $8. Compute burn grows with users.</div>
+          </section>
+
+          <aside class="log-panel" aria-labelledby="log-heading">
+            <div class="section-heading log-heading">
+              <p class="eyebrow">Receipts</p>
+              <h2 id="log-heading">Shift log</h2>
+            </div>
+            <ol id="event-log" class="event-log" aria-live="polite"></ol>
+          </aside>
+        </div>
+      </section>
+
+      <section id="end-screen" class="screen end-screen" hidden aria-labelledby="ranking-title">
+        <div class="end-rays" aria-hidden="true"></div>
+        <div class="end-content">
+          <p class="eyebrow" id="end-kicker">The cart is closed</p>
+          <h1 id="ranking-title">Sustainable Startup</h1>
+          <p id="end-summary" class="end-summary"></p>
+          <div class="score-stamp">
+            <span>Founder score</span>
+            <strong id="final-score">0</strong>
+          </div>
+          <div id="final-stats" class="final-stats"></div>
+          <div class="end-actions">
+            <button id="play-again-button" class="primary-button" type="button">Run it back <span aria-hidden="true">↻</span></button>
+          </div>
+          <p id="end-lesson" class="end-lesson"></p>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

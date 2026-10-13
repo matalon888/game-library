@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# bonk - give him one.
+#
+#   bonk           the animation in your terminal, and the app reacts too
+#   bonk --app     just summon the desktop box, no animation
+#   bonk --quiet   send the event and say nothing
+#   bonk --help
+#
+# Piped or redirected, the animation is replaced by three static lines, so
+# `npm test || bonk` reads well in a build log.
+set -uo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$HERE/.." && pwd)"
+EVENT="$REPO/hooks/bonk-event.sh"
+
+mode="terminal"
+case "${1:-}" in
+  --app) mode="app" ;;
+  --quiet | -q) mode="quiet" ;;
+  --help | -h)
+    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0
+    ;;
+  "") ;;
+  *)
+    printf 'bonk: unknown option %s (try --help)\n' "$1" >&2
+    exit 2
+    ;;
+esac
+
+# The event goes out first either way, so he reacts in the window and the
+# terminal at the same moment rather than one lagging the other. Silent and
+# quick on every path, because this runs from hooks.
+if [ "$mode" = "app" ]; then
+  if ! pgrep -f "Bonk Box.app/Contents/MacOS" >/dev/null 2>&1; then
+    open -a "Bonk Box" >/dev/null 2>&1 || true
+    sleep 1
+  fi
+fi
+[ -x "$EVENT" ] && "$EVENT" bonk >/dev/null 2>&1 || true
+
+case "$mode" in
+  app | quiet) exit 0 ;;
+esac
+
+if command -v node >/dev/null 2>&1 && [ -f "$REPO/bin/bonk-ascii.js" ]; then
+  exec node "$REPO/bin/bonk-ascii.js"
+fi
+
+# No node, no animation - still say something rather than nothing.
+printf '  ( )\n  /|\\   bonked. he is fine.\n  / \\\n'

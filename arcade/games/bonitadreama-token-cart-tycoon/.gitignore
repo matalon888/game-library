@@ -1,0 +1,5 @@
+node_modules/
+.playwright-cli/
+output/
+archive/v1/patch-health-check.txt
+*.log

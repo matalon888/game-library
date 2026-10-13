@@ -1,0 +1,227 @@
+/* ============================================================
+   Caldera — the board: recessed well + keycap / recessed cells
+   ============================================================ */
+
+.board-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.well {
+  padding: var(--well-pad);
+  border-radius: calc(var(--card-radius) + 4px);
+  background: var(--well);
+  box-shadow: var(--well-shadow);
+  border: 1px solid var(--hairline);
+  transition: filter var(--dur-slow) ease;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell-size));
+  grid-auto-rows: var(--cell-size);
+  gap: var(--cell-gap);
+  contain: layout paint;
+  outline: none;
+}
+.board:focus-visible { outline: 2.5px solid var(--focus); outline-offset: 6px; }
+
+/* ARIA row wrappers don't participate in layout — cells stay grid items */
+.cell-row { display: contents; }
+
+/* ---- the cell ---- */
+.cell {
+  position: relative;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-radius: var(--cell-radius);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: calc(var(--cell-size) * 0.52);
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(180deg, var(--cell-top), var(--cell-top-grad));
+  box-shadow: var(--cap-shadow);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    box-shadow var(--dur-fast) ease,
+    background-color var(--dur-base) ease;
+  will-change: transform;
+}
+
+/* hover lifts the keycap with a NEUTRAL rim-light (never amber) */
+@media (hover: hover) {
+  .cell[data-state="hidden"]:hover,
+  .cell[data-state="flagged"]:hover,
+  .cell[data-state="question"]:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--cap-shadow-hover);
+  }
+}
+.cell[data-state="hidden"]:active { transform: translateY(1px) scale(0.97); }
+
+/* revealed = recessed flush into the slab */
+.cell[data-state="revealed"],
+.cell[data-state="mine"],
+.cell[data-state="exploded"] {
+  background: var(--cell-revealed);
+  box-shadow:
+    0 1px 1px rgba(0,0,0,.05) inset,
+    0 0 0 1px var(--hairline) inset;
+  cursor: default;
+}
+.cell[data-state="revealed"] { color: var(--text); }
+
+/* checkerboard subtlety on revealed cells for readability */
+.cell[data-state="revealed"].alt,
+.cell[data-state="mine"].alt,
+.cell[data-state="exploded"].alt { background: var(--cell-revealed-2); }
+
+/* number colors */
+.cell[data-adj="1"] { color: var(--n1); }
+.cell[data-adj="2"] { color: var(--n2); }
+.cell[data-adj="3"] { color: var(--n3); }
+.cell[data-adj="4"] { color: var(--n4); }
+.cell[data-adj="5"] { color: var(--n5); }
+.cell[data-adj="6"] { color: var(--n6); }
+.cell[data-adj="7"] { color: var(--n7); }
+.cell[data-adj="8"] { color: var(--n8); }
+
+/* flag */
+.cell[data-state="flagged"]::after,
+.cell[data-state="question"]::after {
+  content: "";
+}
+.cell[data-state="flagged"] {
+  color: transparent;
+}
+.flag-glyph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--flag);
+  font-size: calc(var(--cell-size) * 0.5);
+  line-height: 1;
+}
+.cell[data-state="question"] {
+  color: var(--muted);
+}
+.cell[data-state="question"]::before {
+  content: "?";
+  font-size: calc(var(--cell-size) * 0.55);
+}
+
+/* mine */
+.mine-dot {
+  position: absolute;
+  width: 46%; height: 46%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--mine-core) 60%, #fff), var(--mine-core) 60%, color-mix(in srgb, var(--mine-core) 70%, #000));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mine-core) 25%, transparent);
+}
+.mine-dot::before, .mine-dot::after {
+  content: "";
+  position: absolute; inset: -28% 42%;
+  background: var(--mine-core);
+  border-radius: 2px;
+}
+.mine-dot::after { transform: rotate(90deg); }
+
+.cell[data-state="exploded"] {
+  background: color-mix(in srgb, var(--mine-core) 30%, var(--cell-revealed));
+}
+.cell[data-state="exploded"] .mine-dot {
+  background: radial-gradient(circle at 35% 30%, #fff, var(--accent) 50%, var(--mine-core));
+}
+
+/* wrong flag after loss → X */
+.cell[data-state="wrong"] { background: var(--cell-revealed); }
+.cell[data-state="wrong"] .flag-glyph { color: var(--muted); opacity: 0.6; }
+.cell[data-state="wrong"]::after {
+  content: "✕";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  color: var(--mine-core);
+  font-size: calc(var(--cell-size) * 0.7);
+  font-weight: 700;
+}
+
+/* chord pre-highlight */
+.cell.chord-peek[data-state="hidden"] {
+  transform: translateY(1px) scale(0.96);
+  box-shadow: 0 0 0 1px var(--hairline) inset;
+  background: var(--cell-revealed);
+}
+
+/* keyboard cursor */
+.cell.cursor {
+  outline: 2.5px solid var(--focus);
+  outline-offset: -1px;
+  z-index: 2;
+}
+
+/* long-press progress ring (touch flag) */
+.cell.pressing::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: conic-gradient(var(--accent) calc(var(--press, 0) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  opacity: 0.8;
+}
+
+/* confetti canvas overlay */
+.confetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* loss desaturate */
+.well.lost { filter: saturate(0.6) brightness(0.97); }
+
+/* ---------- result overlay ---------- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 6;
+  padding: 20px;
+}
+.overlay-card {
+  text-align: center;
+  padding: 26px 30px;
+  border-radius: var(--card-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 240px;
+  animation: overlay-in var(--dur-slow) var(--ease-back) both;
+}
+.overlay-emoji { font-size: 46px; line-height: 1; }
+.overlay h2 { font-size: 24px; }
+.overlay-sub { color: var(--muted); font-family: var(--font-mono); }
+.overlay-best {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 2px;
+}
+.overlay-actions { display: flex; gap: 10px; margin-top: 14px; }

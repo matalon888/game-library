@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07141d"><meta name="description" content="Dead Slow: seventy-two maritime, spacecraft, giant hamster-ball and freight railway trials, twelve polar passage assignments and the Century Ship bonus, local records, and ghost runs. A self-contained offline browser game.">
+<title>DEAD SLOW — Harbor Trials</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="coast">
+<div class="app">
+ <header class="topbar">
+  <div class="brand"><div class="brand-symbol" aria-hidden="true"></div><div><div class="brand-name">DEAD SLOW</div><div class="brand-sub" id="world-label">WORLD 1 · DAY WATCH</div></div></div>
+  <div class="clock-block"><div class="clock-label" id="clock-label">RUN TIME · IGT</div><div class="main-clock" id="clock">00:00.00</div></div>
+  <div class="clock-delta" id="delta">NO RECORD</div>
+  <nav class="top-actions" aria-label="Game menu">
+   <button class="small" id="courses-btn">Harbors</button><button class="small hide-phone" id="log-btn">Logbook</button>
+   <button class="icon hide-phone" id="sound-btn" title="Toggle audio (M)" aria-label="Toggle audio" aria-pressed="true">♪</button>
+   <button class="icon desktop-only" id="ghost-btn" title="Toggle personal-best ghost (G)" aria-label="Toggle personal-best ghost" aria-pressed="true">◇</button>
+   <button class="icon" id="quick-retry-btn" title="Instant retry (Shift+R)" aria-label="Instant retry">↻</button>
+   <button class="icon" id="pause-btn" title="Pause (Escape)" aria-label="Pause">Ⅱ</button>
+   <button class="icon" id="help-btn" title="Controls and rules (F1)" aria-label="Controls and rules">?</button>
+  </nav>
+ </header>
+ <main class="workspace">
+  <section class="sea-section" id="chart-section" aria-label="Harbor chart and ship">
+   <details id="rail-info" class="rail-info" open hidden><summary id="rail-info-title">Train status</summary><div class="rail-info-body" id="rail-info-body"></div></details>
+   <details id="polar-info" class="polar-info" open hidden>
+    <summary><span>Bridge watch</span><strong id="polar-summary"></strong></summary>
+    <div class="polar-info-body">
+     <strong id="polar-phase" role="status" hidden></strong>
+     <div id="polar-dispatch" class="section-label"></div><strong id="polar-readout" role="status"></strong>
+     <div id="polar-ice"></div><p id="polar-notice" role="status"></p>
+     <div id="polar-surface-status"><div id="polar-tow-readout"></div><div id="polar-gun-readout" role="status"></div><div id="polar-fleet-readouts"></div></div>
+     <div id="polar-sub-status" hidden><div id="sub-depth-status" role="status"></div><div id="sub-noise" role="status"></div><div id="sub-solution" role="status"></div><p id="sub-track-detail"></p></div>
+     <details class="polar-notes"><summary>Assignment &amp; chart key</summary><p id="polar-brief"></p><p id="polar-tip"></p><p id="polar-legend"></p></details>
+    </div>
+   </details>
+   <canvas id="sea" role="img" aria-label="Top-down harbor chart. Use keyboard or the helm buttons below to control the ship."></canvas>
+   <div class="chart-heading"><div class="eyebrow" id="stage-tag"></div><div class="chart-title" id="chart-title"></div></div>
+   <div class="chart-meta"><div><strong id="ship-name">MV PATIENCE</strong></div><div id="weather-text">CALM WATER</div><div class="desktop-only" id="chart-frame-label">N ↑ · METRIC CHART</div></div>
+   <section id="work-panel" class="work-panel" aria-label="Island job instruments" hidden>
+    <div id="work-order" class="work-order"></div><div id="work-readout" class="work-readout"></div>
+    <div class="bar"><i id="work-progress"></i></div><div id="manifest" class="manifest" aria-label="Vehicles aboard"></div>
+    <div id="tow-controls" class="tow-controls" hidden><button id="line-action" aria-label="Make or release towline"><span class="key-hint">F · </span>MAKE FAST</button><button id="line-in-label" data-hold="linein" aria-label="Hold winch to reel in towline"><span class="key-hint">J · </span>REEL IN</button><button id="line-out-label" data-hold="lineout" aria-label="Hold winch to pay out towline"><span class="key-hint">K · </span>PAY OUT</button></div>
+   </section>
+   <div class="mobile-instruments"><span><strong id="mobile-speed">0.0</strong> <span id="mobile-speed-unit">kn</span> <b id="mobile-direction">STOP</b></span><span>HULL <strong id="mobile-hull">100</strong>%</span><span>HITS <strong id="mobile-hits">0</strong></span><span id="mobile-extra">NEUTRAL</span></div>
+   <div class="chart-bottom"><div class="mission-strip" id="mission-strip"><span class="status-dot"></span><span id="mission-status">Awaiting departure.</span></div><div class="chart-scale" id="scale-label">25 METRES</div></div>
+   <button id="zoom-btn" class="chart-zoom" aria-label="Cycle chart zoom" title="Chart zoom (Z)">1×</button>
+   <button id="radar-btn" class="chart-zoom" style="right:76px" title="Send radar pulse (H)" aria-label="Send radar pulse" hidden>◎</button>
+   <div class="review-controls" id="review-controls" hidden>
+    <label for="review-rate">PRACTICE</label>
+    <select id="review-rate" aria-label="Practice time multiplier" title="Slower [ / faster ]">
+     <option value="0">Frozen</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option><option value="32">32×</option><option id="review-custom" value="" hidden></option>
+    </select><button id="review-freeze" title="Freeze / resume time (backslash)">Freeze</button>
+   </div>
+   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </section>
+  <aside class="sidebar">
+   <div class="section-label assignment-label">CURRENT ASSIGNMENT</div><h1 class="mission-name" id="mission-name"></h1><p class="brief" id="brief"></p>
+   <div class="rule"></div>
+   <div class="instruments"><div><div class="section-label" id="speed-frame-label">SPEED / GROUND</div><div class="reading green"><span id="speed">0.0</span> <small id="speed-unit">kn</small></div><div class="motion-label" id="speed-direction">STOPPED</div><div class="drift-label" id="drift">NO SIDEWAYS DRIFT</div></div><div><div class="section-label" id="heading-label">BOW HEADING</div><div class="reading"><span id="heading">090</span><small>°</small></div></div><div><div class="section-label" id="contact-count-label">CONTACTS</div><div class="reading"><span id="contacts">0</span></div></div><div><div class="section-label" id="engine-output-label">ENGINE OUTPUT</div><div class="reading"><span id="engine-read">0</span><small>%</small></div></div></div>
+   <div class="local-water"><span id="shelter-status">OPEN WATER</span><strong id="local-set">SET 0.0 kn</strong></div><div class="hull-row"><span id="hull-state-label">HULL INTEGRITY</span><span id="hull-label">100%</span></div><div class="bar"><i id="hull-bar"></i></div>
+   <section id="polar-panel" class="polar-panel" aria-label="Polar passage and convoy orders" hidden>
+    <div class="section-label">BRIDGE ORDERS</div>
+    <div id="polar-actions" hidden>
+     <div id="polar-tow-controls" hidden><button data-polar-action="tow">Connect / release tow <span class="key-hint">· F</span></button><div class="polar-winch"><button data-hold="linein">Shorten <span class="key-hint">· J</span></button><button data-hold="lineout">Lengthen <span class="key-hint">· K</span></button></div></div>
+     <div id="polar-gun-controls" hidden><div id="polar-targets" aria-label="Hostile targets"></div><div class="polar-winch"><button data-polar-action="target">Next target <span class="key-hint">· T</span></button><button data-polar-action="fire" id="polar-fire">Fire <span class="key-hint">· B</span></button></div></div>
+     <div id="polar-sub-controls" hidden>
+      <div id="sub-pickups" aria-label="Team rendezvous" hidden></div>
+      <div class="section-label">DEPTH ORDER · Z / X</div><div class="sub-depths"><button data-sub-depth="0">Shallow · 18 m</button><button data-sub-depth="1">Working · 48 m</button><button data-sub-depth="2">Deep · 88 m</button></div>
+      <div class="polar-winch"><button id="sub-ping" data-polar-action="ping">Active pulse <span class="key-hint">· P</span></button><button data-polar-action="target">Next contact <span class="key-hint">· T</span></button></div>
+      <div id="sub-contacts" aria-label="Select a sonar track"></div>
+      <div class="polar-winch"><button id="sub-identify" data-polar-action="identify">Record identification <span class="key-hint">· I</span></button><button id="sub-fire" data-polar-action="fire">Torpedo <span class="key-hint">· B</span></button></div>
+      <button id="sub-team" data-polar-action="team">Insert team <span class="key-hint">· F</span></button>
+     </div>
+    </div>
+    <div id="polar-fleet"></div>
+   </section>
+   <div class="rule"></div><div class="section-label" id="dock-list-label">MOORING CHECKLIST</div>
+   <div class="dock-checks"><div class="check" id="check-objectives">Clearance</div><div class="check" id="check-inside">Inside berth</div><div class="check" id="check-aligned">Bow aligned</div><div class="check" id="check-slow">Slow + neutral</div></div><div class="bar dock-bar"><i id="dock-bar"></i></div>
+   <div class="rule"></div><div class="section-label">SECTOR SPLITS</div><div class="splits" id="splits"></div>
+   <div class="record-pair"><span>BEST OVERALL</span><strong id="best-overall">—</strong></div><div class="record-pair"><span>BEST CLEAN</span><strong id="best-clean">—</strong></div>
+   <p class="hint" id="hint"></p><div id="race-banner" class="race-banner" hidden></div>
+  </aside>
+  <aside id="rail-panel" class="rail-panel" aria-label="Train controls and route" hidden></aside>
+ </main>
+ <footer id="helm-controls" class="helm" aria-label="Ship helm controls">
+  <canvas id="rail-grade" class="rail-grade" role="img" aria-label="Side-view track profile, with train, nearby wagons and junctions"></canvas>
+  <div id="rail-helm" class="rail-helm" aria-label="Railway telegraphs"></div>
+  <div class="rampage-helm">
+   <div class="gerbo-push"><span class="section-label">PUSH IN MAP DIRECTIONS · HOLD</span><div class="gerbo-pad">
+    <button data-hold="rollnorth" aria-label="Push north">↑ <kbd>W</kbd></button>
+    <button data-hold="rollwest" aria-label="Push west">← <kbd>A</kbd></button>
+    <button data-hold="rollsouth" aria-label="Push south">↓ <kbd>S</kbd></button>
+    <button data-hold="rolleast" aria-label="Push east">→ <kbd>D</kbd></button>
+   </div></div>
+   <div class="gerbo-shield-group"><button id="gerbo-shield">SHIELD READY<span class="key-hint"> · SPACE</span></button><span>3 s protection · 6 s recharge</span><button id="gerbo-fire" data-hold="breathe" aria-label="Hold to breathe fire" hidden>FIRE BREATH<span class="key-hint"> · HOLD H</span></button></div>
+   <div class="gerbo-legend">BROWN · elevation contours<br>BLUE · no traction<br>GREEN · slow forest<br>BLACK · impassable rock</div>
+  </div>
+  <div class="helm-group engine"><div class="helm-heading"><span id="helm-engine-label">ENGINE TELEGRAPH</span><span class="key-hint">W / S · NOTCH UP / DOWN</span></div><div class="throttle-controls"><button id="throttle-down" aria-label="Decrease throttle one notch" title="More astern (S)">−</button><div class="telegraph-name"><span id="telegraph-name">STOP</span><small id="telegraph-detail">NEUTRAL · STILL COASTING</small><div class="notches" id="notches"></div></div><button id="throttle-up" aria-label="Increase throttle one notch" title="More ahead (W)">+</button></div><button class="neutral secondary" id="neutral-btn" title="Set neutral (Space)">NEUTRAL</button></div>
+  <div class="helm-group"><div class="helm-heading"><span id="helm-rudder-label">RUDDER</span><span class="key-hint">A / D · HOLD</span></div><div class="dual-buttons"><button class="hold-control" data-hold="port" aria-label="Hold port rudder"><b>←</b> PORT</button><button class="hold-control" data-hold="starboard" aria-label="Hold starboard rudder">STBD <b>→</b></button></div><div class="rudder-meter"><i id="rudder-indicator"></i></div></div>
+  <div class="helm-group"><div class="helm-heading"><span id="helm-bow-label">BOW THRUSTER</span><span class="key-hint">Q / E · HOLD</span></div><div class="dual-buttons"><button class="hold-control" data-hold="bowport" aria-label="Hold bow thruster to port"><b>«</b> PORT</button><button class="hold-control" data-hold="bowstarboard" aria-label="Hold bow thruster to starboard">STBD <b>»</b></button></div><div class="helm-caption" id="helm-caption">Most effective at low water speed</div></div>
+  <div class="utility"><button id="retry-btn"><span>↻ RETRY</span><kbd>Shift+R</kbd></button><button class="secondary" id="horn-btn">SOUND HORN <kbd>H</kbd></button><div class="utility-note" id="helm-warning">NEUTRAL IS NOT A BRAKE</div></div>
+ </footer>
+ <div class="support-link permanent-support">Bugs and feature requests: <a href="https://github.com/frostburn/dead-slow/issues/" target="_blank" rel="noopener noreferrer">GitHub issue tracker</a></div>
+</div>
+<div class="overlay" id="overlay"><section class="dialog" id="dialog" role="dialog" aria-modal="true" aria-label="Game menu"></section></div>
+<input type="file" accept="application/json,.json" id="import-file" hidden>
+<script src="src/physics.js"></script>
+<script src="src/navigation.js"></script>
+<script src="src/archipelago.js"></script>
+<script src="src/space-levels.js"></script>
+<script src="src/space.js"></script>
+<script src="src/rampage.js"></script>
+<script src="src/rail-levels.js"></script>
+<script src="src/rail-commands.js"></script>
+<script src="src/rail.js"></script>
+<script src="src/rail-scenery.js"></script>
+<script src="src/rail-presentation.js"></script>
+<script src="src/rail-view.js"></script>
+<script src="src/submarine-levels.js"></script>
+<script src="src/polar-finale-levels.js"></script>
+<script src="src/polar-levels.js"></script>
+<script src="src/polar-grid.js"></script>
+<script src="src/polar-operations.js"></script>
+<script src="src/sonar.js"></script>
+<script src="src/submarine-recovery.js"></script>
+<script src="src/submarine.js"></script>
+<script src="src/polar-finale.js"></script>
+<script src="src/polar.js"></script>
+<script src="src/polar-labels.js"></script>
+<script src="src/submarine-view.js"></script>
+<script src="src/polar-view.js"></script>
+<script src="src/levels.js"></script>
+<script src="src/jobs.js"></script>
+<script src="src/compatibility.js"></script>
+<script src="src/storage.js"></script>
+<script src="src/space-renderer.js"></script>
+<script src="src/space-ui.js"></script>
+<script src="src/rampage-view.js"></script>
+<script src="src/renderer.js"></script>
+<script src="src/space-audio.js"></script>
+<script src="src/rampage-audio.js"></script>
+<script src="src/rail-audio.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/verification.js"></script>
+<script src="src/console.js"></script>
+<script src="src/simulations.js"></script>
+<script src="src/rail-adapter.js"></script>
+<script src="src/polar-adapter.js"></script>
+<script src="src/game.js"></script>
+</body></html>

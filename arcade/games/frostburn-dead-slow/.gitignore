@@ -1,0 +1,13 @@
+# Generated playable bundle is included in release archives, not source commits.
+/dist/
+/reports/
+/screenshots/
+/node_modules/
+/.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+.env
+.env.*
+*.log

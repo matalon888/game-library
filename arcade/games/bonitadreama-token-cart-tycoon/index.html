@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Run a tiny AI startup from a hot dog cart for 30 educational, chaotic days." />
+    <title>Token Cart Tycoon</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23f4bd36%22/><text x=%2232%22 y=%2243%22 text-anchor=%22middle%22 font-size=%2236%22>🌭</text></svg>" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/styles-v2.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to game</a>
+    <main id="main-content">
+      <section id="landing-screen" class="screen landing-screen" aria-labelledby="game-title">
+        <div class="landing-copy">
+          <p class="eyebrow">Forecast. Configure. Survive 30 days.</p>
+          <h1 id="game-title"><span>Token Cart</span> Tycoon</h1>
+          <p class="intro">One hot dog cart. One laptop. Five subscribers. Read the market, price your app, scale your tiny AI stack, and try not to melt.</p>
+          <button id="start-button" class="primary-button" type="button">Open for business <span aria-hidden="true">→</span></button>
+          <p class="fine-print">A cozy-chaotic lesson in demand, infrastructure, trust, and unit economics.</p>
+        </div>
+        <div class="hero-scene" aria-label="A cheerful hot dog cart with a laptop serving an AI startup">
+          <div class="sunburst" aria-hidden="true"></div><div class="steam steam-one" aria-hidden="true">~</div><div class="steam steam-two" aria-hidden="true">~</div>
+          <div class="cart-flag" aria-hidden="true"><span>NOW<br />SERVING</span></div>
+          <div class="cart-awning" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="laptop" aria-hidden="true"><span>AI</span></div><div class="hotdog" aria-hidden="true"><span></span></div>
+          <div class="cart-body" aria-hidden="true"><div class="cart-logo"><small>TOKEN</small><strong>CART</strong><em>fresh models daily</em></div></div>
+          <div class="wheel wheel-left" aria-hidden="true"></div><div class="wheel wheel-right" aria-hidden="true"></div><div class="ground-shadow" aria-hidden="true"></div>
+        </div>
+        <div class="starter-receipt" aria-label="Starting resources"><span>Your opening stack</span><strong>$500 · 5 users · 8 GB RAM · 20 compute</strong></div>
+      </section>
+
+      <section id="game-screen" class="screen game-screen v2-game" hidden aria-label="Token Cart Tycoon game">
+        <header class="game-header">
+          <div class="mini-brand"><span aria-hidden="true">◒</span> Token Cart Tycoon</div>
+          <div class="day-display"><span>Day</span><strong id="day-number">1</strong><small>/ 30</small></div>
+          <button id="restart-button" class="text-button" type="button">Restart</button>
+        </header>
+
+        <section class="resource-bar v2-resources" aria-label="Company resources">
+          <div class="resource" data-resource="cash"><div class="resource-label"><span>Cash</span><strong id="cash-value">$500</strong></div><div class="meter"><span id="cash-meter"></span></div></div>
+          <div class="resource" data-resource="users"><div class="resource-label"><span>Subscribers</span><strong id="users-value">5</strong></div><div class="meter"><span id="users-meter"></span></div></div>
+          <div class="resource" data-resource="compute"><div class="resource-label"><span>Compute / day</span><strong id="compute-value">20</strong></div><div class="meter"><span id="compute-meter"></span></div></div>
+          <div class="resource" data-resource="trust"><div class="resource-label"><span>Trust</span><strong id="trust-value">60</strong></div><div class="meter"><span id="trust-meter"></span></div></div>
+          <div class="resource" data-resource="hype"><div class="resource-label"><span>Hype</span><strong id="hype-value">10</strong></div><div class="meter"><span id="hype-meter"></span></div></div>
+          <div class="resource" data-resource="quality"><div class="resource-label"><span>Quality</span><strong id="quality-value">10</strong></div><div class="meter"><span id="quality-meter"></span></div></div>
+          <div class="resource" data-resource="sanity"><div class="resource-label"><span>Sanity</span><strong id="sanity-value">80</strong></div><div class="meter"><span id="sanity-meter"></span></div></div>
+        </section>
+
+        <div class="strategy-layout">
+          <aside class="morning-column">
+            <article class="newspaper" aria-labelledby="news-title">
+              <div class="paper-masthead"><span>THE TOKEN TIMES</span><strong id="news-tag">MARKET</strong></div>
+              <h2 id="news-title">Morning headline</h2>
+              <p id="news-text"></p>
+              <div class="signal-row">
+                <div><span>Demand</span><strong id="demand-signal">Normal</strong></div>
+                <div><span>GPU price</span><strong id="gpu-signal">Normal</strong></div>
+              </div>
+            </article>
+
+            <section class="focus-panel" aria-labelledby="focus-heading">
+              <div class="section-heading"><p class="eyebrow">One founder focus</p><h2 id="focus-heading">What gets your attention?</h2></div>
+              <div id="action-list" class="action-list compact-actions"></div>
+            </section>
+          </aside>
+
+          <section class="operations-stage" aria-label="Daily app operations">
+            <div class="status-tape"><span>Current status</span><strong id="current-status">Tiny, strategic, and technically online</strong></div>
+            <div class="forecast-board" aria-label="Daily forecast">
+              <div><span id="forecast-requests-label">Expected requests</span><strong id="forecast-requests">—</strong></div>
+              <div><span id="forecast-capacity-label">Safe capacity</span><strong id="forecast-capacity">—</strong></div>
+              <div><span id="forecast-signups-label">Expected signups</span><strong id="forecast-signups">—</strong></div>
+            </div>
+
+            <div class="mini-cart v2-cart" aria-hidden="true">
+              <div class="mini-steam">~</div><div class="mini-awning"><i></i><i></i><i></i><i></i></div><div class="mini-laptop">AI</div>
+              <div class="mini-cart-body"><strong>TC</strong><span>HOT DOGS + HOT TAKES</span></div><div class="mini-wheel left"></div><div class="mini-wheel right"></div>
+            </div>
+
+            <div id="request-queue" class="request-queue" aria-hidden="true"></div>
+
+            <article id="daily-card" class="daily-card v2-daily-card" aria-live="polite">
+              <div class="card-kicker">Morning plan</div>
+              <h2>Read the signals. Prepare the stack.</h2>
+              <p>Your settings persist. Change only what today’s market makes necessary, then choose one founder focus.</p>
+              <div class="lesson"><span>THE QUESTION</span> Can your product serve the demand you are about to create?</div>
+            </article>
+
+            <div class="stage-actions">
+              <button id="open-app-button" class="primary-button run-button" type="button" disabled>Choose a founder focus</button>
+              <button id="next-day-button" class="primary-button next-button" type="button" hidden>Read tomorrow’s news <span aria-hidden="true">→</span></button>
+            </div>
+          </section>
+
+          <aside class="stack-column" aria-labelledby="stack-heading">
+            <div class="section-heading"><p class="eyebrow">Operating desk</p><h2 id="stack-heading">Price & stack</h2></div>
+            <section class="setting-group">
+              <label for="price-input"><span>Weekly subscription</span><strong id="price-output">$9</strong></label>
+              <input id="price-input" type="range" min="5" max="18" value="9" step="1" />
+              <div class="range-labels"><span>More demand</span><span>More margin</span></div>
+            </section>
+            <section class="setting-group">
+              <label for="model-select"><span>Model tier</span></label>
+              <select id="model-select">
+                <option value="tiny">Tiny & Quick</option>
+                <option value="balanced" selected>Cart Classic</option>
+                <option value="deluxe">Deluxe Reasoner</option>
+              </select>
+              <p id="model-description" class="setting-note">A practical middle ground.</p>
+            </section>
+            <label class="burst-toggle"><input id="burst-input" type="checkbox" /><span><strong>Allow burst compute</strong><small>Serve up to 55% overflow at premium rates.</small></span></label>
+
+            <section class="infra-shop" aria-labelledby="shop-heading">
+              <div class="shop-title"><h3 id="shop-heading">Infrastructure shelf</h3><span id="stack-summary">8 GB RAM · 20 compute</span></div>
+              <div id="upgrade-list" class="upgrade-list"></div>
+            </section>
+            <div class="safety-readout"><span>Safety maturity</span><strong id="safety-value">18</strong></div>
+          </aside>
+        </div>
+
+        <section class="ledger-section" aria-labelledby="ledger-heading">
+          <div class="ledger-title"><span class="eyebrow">Operations history</span><h2 id="ledger-heading">Shift ledger</h2></div>
+          <div id="event-log" class="ledger-list"><p>Your first shift report will appear here.</p></div>
+        </section>
+      </section>
+
+      <section id="end-screen" class="screen end-screen" hidden aria-labelledby="ranking-title">
+        <div class="end-rays" aria-hidden="true"></div>
+        <div class="end-content"><p class="eyebrow" id="end-kicker">The cart is closed</p><h1 id="ranking-title">Sustainable Startup</h1><p id="end-summary" class="end-summary"></p>
+          <div class="score-stamp"><span>Founder score</span><strong id="final-score">0</strong></div><div id="final-stats" class="final-stats"></div>
+          <section class="founder-debrief" aria-labelledby="debrief-heading">
+            <div class="debrief-title"><span>POSTMORTEM, BUT COZY</span><h2 id="debrief-heading">Founder debrief</h2></div>
+            <div id="debrief-metrics" class="debrief-metrics"></div>
+            <div id="debrief-insights" class="debrief-insights"></div>
+          </section>
+          <div class="end-actions"><button id="play-again-button" class="primary-button" type="button">Run it back <span aria-hidden="true">↻</span></button></div><p id="end-lesson" class="end-lesson"></p></div>
+      </section>
+    </main>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

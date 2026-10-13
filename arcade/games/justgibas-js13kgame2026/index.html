@@ -1,0 +1,2212 @@
+<!-- /*
+ * Copyright 2026 Justinas Gibas
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://apache.org
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */ -->
+
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1" /> -->
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" /> -->
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> -->
+    <!-- <meta name="viewport" content="width=device-width, user-scalable=no"> -->
+    <title>MawLight</title>
+    <meta name="author" content="Justinas Gibas" />
+    <!--<link rel="icon" type="image/svg+xml" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="55%" x="50%" dominant-baseline="middle" text-anchor="middle" font-size="80">🕳️</text></svg>'>-->
+    <style>
+        * {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            /* -webkit-tap-highlight-color: transparent; */
+            user-select: none;
+            touch-action: none;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* Styling for the virtual joysticks */
+        .j {
+            position: fixed;
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .2);
+            border: 2px solid rgba(255, 255, 255, .5);
+            display: none; /* Hidden by default, shown for touch devices */
+        }
+
+        /* The movable part of the joystick */
+        .jh {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .8);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* The handle itself doesn't capture clicks */
+        }
+
+    /* Positioning for left and right joysticks */
+    #L { bottom: 36px; left: 36px; }
+    #R { bottom: 36px; right: 36px; }
+
+    /* CHAT disabled: #chatInput { position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0 } */
+
+        /* Media query to show joysticks only on touch-capable (coarse pointer) devices */
+        @media (pointer:coarse) {
+            .j { display: block; }
+        }
+    </style>
+</head>
+<body>
+    <!-- The main canvas for WebGL rendering -->
+    <!-- <canvas id="C"></canvas> -->
+    <canvas id="C"></canvas>
+
+    <!-- HTML elements for the virtual joysticks -->
+    <div id="L" class="j"><div class="jh"></div></div>
+    <div id="R" class="j"><div class="jh"></div></div>
+    <!-- <input id="chatInput" maxlength="64" /> -->
+    <!-- CHAT disabled: <input id="chatInput" maxlength="64" autocomplete="off" /> -->
+
+    <script>
+    // -- FEATURE: Core --
+    // -- PART: Math --
+    // Expose Math functions to global scope
+    Object.getOwnPropertyNames(Math).forEach(name => window[name.toUpperCase()] = Math[name]);
+    // --- Math Library ---
+    // const D2R = 0.0174532925 // or PI / 180;
+    //const D2R = PI / 180;
+    const F32 = Float32Array;
+    const DM=DOMMatrix;
+    const M4 = values => new F32(values || [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+    const V3 = values => new F32(values || 3);
+    const T_V3_A = V3(), T_V3_B = V3(), T_V3_C = V3(); // Reusable temporary V3s
+    const T_V4_A = V3(4), T_V4_B = V3(4); // Reusable temporary V4s
+    const T_V3_RAY_O = V3(), T_V3_RAY_D = V3(); // For raycasting results (Origin, Direction)
+    const SUB=(out,left,right)=>(out[0]=left[0]-right[0],out[1]=left[1]-right[1],out[2]=left[2]-right[2],out);
+    const DOT=(left,right)=>left[0]*right[0]+left[1]*right[1]+left[2]*right[2];
+    const CROSS=(out,left,right)=>(out[0]=left[1]*right[2]-left[2]*right[1],out[1]=left[2]*right[0]-left[0]*right[2],out[2]=left[0]*right[1]-left[1]*right[0],out);
+    const NORM=(out,vector)=>{var length=HYPOT(vector[0],vector[1],vector[2]);return length>0&&(out[0]=vector[0]/length,out[1]=vector[1]/length,out[2]=vector[2]/length),out};
+    const MULTMAT4 = (left,right) => (new DM(left)).multiply(new DM(right)).toFloat32Array();
+    const INV = matrix => (new DM(matrix)).inverse().toFloat32Array();
+    const PERSP = (out,fov,aspect,near,far) => { const scale=1/TAN(fov*.01745/2);out.set([scale/aspect,0,0,0,0,scale,0,0,0,0,(far+near)/(near-far),-1,0,0,(2*far*near)/(near-far),0]);return out; };
+    const LOOKAT = (out,eye,center,up) => { SUB(T_V3_A,eye,center);NORM(T_V3_A,T_V3_A);CROSS(T_V3_B,up,T_V3_A);NORM(T_V3_B,T_V3_B);CROSS(T_V3_C,T_V3_A,T_V3_B);out.set([T_V3_B[0],T_V3_C[0],T_V3_A[0],0,T_V3_B[1],T_V3_C[1],T_V3_A[1],0,T_V3_B[2],T_V3_C[2],T_V3_A[2],0,-DOT(T_V3_B,eye),-DOT(T_V3_C,eye),-DOT(T_V3_A,eye),1]);return out; };
+    // --- World Matrices ---
+    const M = M4(), V = M4(), P = M4(); // Model, View, Projection
+    let PV=M4(),invPV=M4(); // Combined and inverse matrices for picking
+
+    // Multiplies a 3D point or direction by a 4x4 matrix (w=1 or 0).
+    function mulPoint(matrix,point,w) { const x=point[0],y=point[1],z=point[2];return [matrix[0]*x+matrix[4]*y+matrix[8]*z+matrix[12]*w,matrix[1]*x+matrix[5]*y+matrix[9]*z+matrix[13]*w,matrix[2]*x+matrix[6]*y+matrix[10]*z+matrix[14]*w]; }
+
+    //function mul4(m, v) { return [m[0]*v[0]+m[4]*v[1]+m[8]*v[2]+m[12]*v[3], m[1]*v[0]+m[5]*v[1]+m[9]*v[2]+m[13]*v[3], m[2]*v[0]+m[6]*v[1]+m[10]*v[2]+m[14]*v[3], m[3]*v[0]+m[7]*v[1]+m[11]*v[2]+m[15]*v[3]]; }
+    const mul4 = (out,matrix,vector) => {
+        const v0=vector[0],v1=vector[1],v2=vector[2],v3=vector[3];
+        out[0]=matrix[0]*v0+matrix[4]*v1+matrix[8]*v2+matrix[12]*v3;
+        out[1]=matrix[1]*v0+matrix[5]*v1+matrix[9]*v2+matrix[13]*v3;
+        out[2]=matrix[2]*v0+matrix[6]*v1+matrix[10]*v2+matrix[14]*v3;
+        out[3]=matrix[3]*v0+matrix[7]*v1+matrix[11]*v2+matrix[15]*v3;
+        return out;
+    };
+    
+
+
+    // Shared translation/scale scratch matrix: upload or copy before the next call.
+    function translateScale(x,y,z,sx,sy,sz) { M.set([sx,0,0,0, 0,sy,0,0, 0,0,sz,0, x,y,z,1]);return M; }
+    // -- /PART: Math --
+
+    // -- PART: Runtime --
+    // const D = document
+    // const canvas = D.getElementById('canvas');
+    const canvas = document.getElementById('C');
+    // CHAT disabled: const chatInput = document.getElementById('chatInput');
+    
+    // State variables for the user/camera, rendering loop, and WebGL/WebXR contexts
+     let player = { x: 0, y: 1.6, z: 2, yaw: 0, pitch: .2 }; // User position and orientation
+     // OPTIONAL: tracked planar player velocity for predictive enemy pursuit; currently unused.
+     //let prevUserX=player.x,prevUserZ=player.z,userVelX=0,userVelZ=0;
+    let last = 0; // Timestamp of the last frame for calculating delta time
+    let gl, xr = null, ref = null, xrHeight, xrHead=0, xrM = M4(); // WebGL and WebXR objects
+
+    //gl = canvas.getContext('webgl2', { antialias: true, xrCompatible: true });
+    gl = canvas.getContext('webgl2', { 'xrCompatible': true });
+    //if (!gl) { alert('Need WebGL2'); }
+
+    function lerp(start,end,amount){ return start+(end-start)*amount; }
+    function lerpAngle(start,end,amount){
+        let difference=end-start;
+        if(difference>PI)difference-=2*PI;else if(difference<-PI)difference+=2*PI;
+        return start+difference*amount;
+    }
+    // -- /PART: Runtime --
+
+    // -- MODULE: Multiplayer --
+    // -- PART: Connection --
+    // Minimal MMO support using JS13k relay. Toggle via HUD. Other players use the shared character mesh.
+    let mmoEnabled=false;
+    let ws=null;
+    let myId=null;
+    const peers = new Map(); // id -> interpolated player and skill state
+    const remoteEnemies = new Map(); // owner id -> Map(enemy id -> predicted enemy)
+    const remoteShots = [];
+    let mmoSendTimer = 0;
+    let mmoEnemyTick = 0;
+
+    // Buffered interpolation: players use 120ms; 5Hz enemy snapshots use 230ms.
+    function sampleMotion(peer, targetT){
+        const history=peer.hist;
+        // The first boundary also handles a one-sample history.
+        if(targetT<=history[0].t)return history[0];
+        const count=history.length;
+        if(targetT>=history[count-1].t)return history[count-1];
+        // find bracketing samples (linear scan is fine for small buffers)
+        for(let i=0;i<count-1;i++){
+            const before=history[i],after=history[i+1];
+            if(before.t<=targetT&&targetT<=after.t){
+                const duration=after.t-before.t;
+                const amount=(targetT-before.t)/duration;
+                return {
+                    x:lerp(before.x,after.x,amount),
+                    y:lerp(before.y,after.y,amount),
+                    z:lerp(before.z,after.z,amount),
+                    yaw:lerpAngle(before.yaw,after.yaw,amount)
+                };
+            }
+        }
+    }
+
+    // LOG disabled: function logMMO(message){ log('MMO: '+message); }
+    function sendMMO(message,id){try{if(ws?.readyState===1)ws.send(id?'@'+id+'|'+message:message);}catch(_){}}
+    function tellPeers(message){peers.forEach((_,id)=>sendMMO(message,id));}
+    function forgetPeer(id){peers.delete(id);remoteEnemies.delete(id);for(let i=remoteShots.length;i--;)if(remoteShots[i].o===id)remoteShots.splice(i,1);}
+    function clearMMO(){ws=null;myId=null;peers.clear();remoteEnemies.clear();remoteShots.length=0;}
+
+    function toggleMMO(){
+        mmoEnabled = !mmoEnabled;
+        if (mmoEnabled){resetRun();connectMMO();} else disconnectMMO();
+    }
+
+    function disconnectMMO(){
+        try { ws?.close(); } catch(_){}
+        clearMMO();
+        mmoSendTimer=0;
+        // LOG disabled: logMMO('disabled');
+    }
+
+    function connectMMO(){
+        try { ws?.close(); } catch(_){}
+        // LOG disabled: logMMO('connecting…');
+        try {
+            ws=new WebSocket('wss://relay.js13kgames.com/mawlight');
+        } catch (error) {
+            // LOG disabled: logMMO('WebSocket error: ' + error.message);
+            return;
+        }
+        // Relay assigns the client ID automatically; no opening payload is required.
+        // Unneeded relay payload disabled: ws.onopen = _ => { try { ws.send('cat!'); } catch(_){} logMMO('connected'); };
+        // LOG disabled: ws.onopen=_=>logMMO('connected');
+        // LOG disabled: ws.onclose = _ => { logMMO('closed'); ws=null;myId=null;peers.clear();remoteEnemies.clear();remoteShots.length=0;if(mmoEnabled)setTimeout(connectMMO,1000); };
+        ws.onclose=_=>{clearMMO();if(mmoEnabled)setTimeout(connectMMO,1000)};
+        // OPTIONAL handler disabled: ws.onerror = _ => { /* errors surface via close */ };
+        ws.onmessage = ev => handleMMOMessage(ev.data);
+    }
+    // -- /PART: Connection --
+
+    // -- PART: Messages --
+    function handleMMOMessage(message){
+        const command=message[0];
+        // LOG disabled: case '@':myId=message.slice(1);logMMO('my id: '+myId);return;
+        if(command==='@'){myId=message.slice(1);return;}
+        if(command==='-'){forgetPeer(message.slice(1));return;}
+        /* DIRECT MMO compatibility disabled to save bytes.
+        Restore this block and remove `const payload=message` below if older clients
+        send targeted messages in the form @targetId|payload.
+        let payload=message;
+        if (payload[0] === '@'){
+            const bar = payload.indexOf('|');
+            if (bar > 0) payload = payload.slice(bar+1);
+        }
+        */
+        const payload=message;
+        // Expected: p|id|x|z|yaw|orbs|orbPhase|damage
+        if(command==='p'){
+            const parts = payload.split('|');
+            const id = parts[1];
+                if(id!==myId){
+                    const x=+parts[2];
+                    const z=+parts[3];
+                    const yaw=+parts[4];
+                    const peer = peers.get(id) || {x,z,last:0,hist:[],anim:0};
+                    const now = performance.now();
+                    if(!nearCity(x,z)){if(peers.has(id))forgetPeer(id);return;}
+                    peer.hist.push({t:now,x,y:0,z,yaw});peer.cx=x;peer.cz=z;peer.last=now;
+                    const cutoff=now-2000;while(peer.hist[0].t<cutoff)peer.hist.shift();
+                    peer.orbs=parts[5].split(',').slice(0,8).map(Number);
+                    peer.op=MAX(peer.op||0,+parts[6]);
+                    peer.d=+parts[7];
+                    const group=[],fields=parts[8].split(',').map(Number);
+                    for(let i=0;i<fields.length-3;i+=4){const x=fields[i],z=fields[i+1],tier=fields[i+2],health=MIN(1,MAX(-1,fields[i+3])),beacon=[x,z,tier,health>=0,MAX(0,health),1];group.push(beacon);}
+                    peer.b=group;
+                    peers.set(id, peer);
+                }
+        }
+        else if(command==='v'){
+            const parts=payload.split('|'),index=parts[1]===myId&&SPAWN_BEACONS.findIndex(beacon=>beacon[0]==parts[2]&&beacon[1]==parts[3]);
+            if(index>0&&!SPAWN_BEACONS[index][3]){SPAWN_BEACONS.splice(index,1);const beacon=spawnBeacon();if(beacon)SPAWN_BEACONS.push(beacon);}
+        }
+        /* MMO CHAT disabled:
+        if (payload[0] === 'c' && payload[1] === '|'){
+            const parts = payload.split('|'), id = parts[1];
+            if (id !== myId) say((id || '?').slice(-4) + ': ' + parts.slice(2).join('|').slice(0,64));
+        }
+        */
+        else if(command==='e'){
+            const parts=payload.split('|'),
+                owner=parts[1];
+
+            if(peers.has(owner)){
+                const group=remoteEnemies.get(owner)||new Map(),
+                    now=performance.now();
+
+                for(const row of parts[2].split(';'))if(row){
+                    const fields=row.split(',').map(Number),
+                        id=fields[0];
+                    if(!nearCity(fields[1],fields[2]))continue;
+                    let enemy=group.get(id);
+                    if(!enemy){
+                        enemy={i:id,x:fields[1],z:fields[2],y:fields[3],yaw:fields[4],hit:0,scale:0,hist:[]};
+                    }else if(fields[6]<enemy.hp){
+                        damageNumber(enemy.x,enemy.z,enemy.hp-fields[6]);
+                    }
+
+                    enemy.hist.push({t:now,x:fields[1],z:fields[2],y:fields[3],yaw:fields[4]});
+                    const cutoff=now-2000;while(enemy.hist[0].t<cutoff)enemy.hist.shift();
+                    enemy.tier=fields[5];
+                    enemy.hp=fields[6];
+                    enemy.max=fields[7];
+                    enemy.mut=fields[8];
+                    enemy.last=now;
+                    group.set(id,enemy);
+                }
+
+                for(const [id,enemy] of group){
+                    if(enemy.last<now)group.delete(id);
+                }
+                remoteEnemies.set(owner,group);
+            }
+        }
+        else if(command==='k'){
+            const parts=payload.split('|'),enemy=parts[1]===myId&&enemies.find(enemy=>enemy.i===+parts[2]);
+            if(enemy)enemy.dead=1;
+        }
+        else if(command==='d'){
+            const parts=payload.split('|'),
+                group=remoteEnemies.get(parts[1]),
+                enemy=group&&group.get(+parts[2]);
+
+            if(parts[1]!==myId){
+                if(parts[7]===myId){
+                    defeated++;
+                    playImpactSound(+parts[3],+parts[4],1);
+                    dropReward(+parts[3],+parts[4],+parts[9]);
+                }
+                if(+parts[6])damageNumber(+parts[3],+parts[4],+parts[6]);
+            }
+
+            if(enemy)enemy.dead=1;
+        }
+        else if(command==='a'){
+            const parts=payload.split('|');if(parts[1]===myId)dealt+=+parts[2];
+        }
+        else if(command==='s'){
+            const parts=payload.split('|'),owner=parts[1],x=+parts[2],z=+parts[3],aim=+parts[4],tier=MIN(6,MAX(-1,+parts[5])),count=+parts[6],damage=+parts[7],first=+parts[8];
+            if(peers.has(owner)){
+                for(let i=count;i--;){const angle=aim+(i-(count-1)/2)*.18;remoteShots.push({o:owner,x,y:.7,z,vx:SIN(angle)*10,vz:COS(angle)*10,d:damage,i:first+count-i,t:3,c:tier});}
+                damage>0&&playShotSound(x,z);
+            }
+        }
+        else if(command==='x'){
+            const parts=payload.split('|'),
+                list=parts[1]===myId?shots:remoteShots;
+            if(parts[1]===myId)tellPeers(payload);
+
+            for(let i=list.length;i--;){
+                if(list[i].i===+parts[2]&&(parts[1]===myId||list[i].o===parts[1])){
+                    list.splice(i,1);
+                }
+            }
+        }
+    }
+    document.onvisibilitychange=_=>mmoEnabled&&!xr&&(document.hidden?(ws&&(ws.onmessage=ws.onclose=0),disconnectMMO()):connectMMO());
+    // -- /PART: Messages --
+
+    // -- PART: Sync --
+    function mmoTick(dt){
+        if (!mmoEnabled || ws?.readyState !== 1 || !myId) return;
+        if ((mmoSendTimer += dt) >= .1){ // ~10 Hz
+            mmoSendTimer = 0;
+            // compact broadcast with our id
+            const message = 'p|' + myId +
+                        '|' + (player.x/!!hp).toFixed(2) +
+                        '|' + player.z.toFixed(2) +
+                        '|' + player.yaw.toFixed(3)+
+                        '|'+orbCounts.join(',')+
+                        '|'+skillTime.toFixed(2)+
+                        '|'+damage+
+                        '|'+SPAWN_BEACONS.slice(1).flatMap(beacon=>[beacon[0],beacon[1],beacon[2],beacon[3]?(beacon[4]/beacon[5]).toFixed(2):-1]);
+            sendMMO(message);
+            if(mmoEnemyTick^=1)tellPeers('e|'+myId+'|'+enemies.map(enemy=>[enemy.i,enemy.x.toFixed(2),enemy.z.toFixed(2),enemy.y.toFixed(1),enemy.yaw.toFixed(2),enemy.tier,enemy.hp,enemy.max,enemy.mut]).join(';'));
+        }
+    }
+    // -- /PART: Sync --
+
+    // -- /MODULE: Multiplayer --
+
+    // -- PART: WebGL --
+    // Resize the canvas to fill the window, accounting for device pixel ratio
+    function resize() {
+    const width=innerWidth,height=innerHeight,dpr=devicePixelRatio||1;
+    canvas.width=width*dpr;
+    canvas.height=height*dpr;
+    canvas.style.width=width+'px';
+    canvas.style.height=height+'px';
+    }
+    addEventListener('resize', resize);
+    resize(); // Initial resize
+
+    // Helper function to compile and link a shader program
+    function prog(vs,fs){
+        const program=gl.createProgram();
+        [vs,fs].forEach((source,i)=>{
+            // WebGL shader types: VERTEX_SHADER=35633, FRAGMENT_SHADER=35632.
+            const shader=gl.createShader(35633-i);
+            gl.shaderSource(shader,'#version 300 es\nprecision highp float;'+source);
+            gl.compileShader(shader);gl.attachShader(program,shader);
+        });
+        gl.linkProgram(program);return program;
+    }
+    // -- /PART: WebGL --
+    // -- /FEATURE: Core --
+    
+    // -- FEATURE: Input --
+    // -- PART: Core --
+    // --- Unified Input Handling ---
+    // OPTIONAL: detects touch-style coarse pointers; CSS currently handles joystick visibility alone.
+    //const isMobile=matchMedia('(pointer:coarse)').matches;
+    // Unified input state object for keyboard, joysticks, pointer-look, and pointer coordinates
+    let keys={};
+    const joy={L:{x:0,y:0},R:{x:0,y:0}};let lookId=null,lookX,lookY,pointerX=0,pointerY=0;
+    const DZ = .1;    // Deadzone for joystick/gamepad axes to prevent drift
+    // GAMEPAD SUPPORT: let gamepadButtons=0;
+    // -- VR: Input --
+    // Point-to-move must be held briefly so a hand changing pose cannot move the player accidentally.
+    // OPTIONAL: 150ms gesture debounce; remove with its timing and cleanup code for a smaller instant-response build.
+    const pointStarted=new Map(),selecting=new Set();
+    /* TEMP XR stick diagnostics; uncomment with the loop call below when needed.
+    let stickLogAt = 0;
+    // Temporary raw WebXR monitor. Kept separate from movement so diagnostics cannot block input.
+    function logXRSticks(session) {
+        const now = performance.now();
+        if (now < stickLogAt) return;
+        stickLogAt = now + 700;
+        try {
+            const rows = [];
+            for (const source of session.inputSources) {
+                const gamepad=source.gamepad;
+                if(!gamepad)continue;
+                const axes=Array.from(gamepad.axes,value=>value==null||value!==value?'n':Math.round(value*100)/100);
+                rows.push((source.handedness[0]||'?')+'['+axes+']');
+            }
+            log((rows.length ? 'ST ' + rows.join(' ') : 'ST no gamepad src=' + session.inputSources.length) + ' p[' + Math.round(player.x*10)/10 + ',' + Math.round(player.z*10)/10 + ',' + Math.round(player.yaw*10)/10 + ']');
+        } catch (error) { log('ST ERR ' + error.message); }
+    } */
+    // -- /VR: Input --
+
+    // State for the raycast
+    // -- /PART: Core --
+    
+    // -- PART: Keyboard-Pointer --
+    // Keyboard event listeners for movement and HUD toggle
+    document.onkeydown=event => {
+        // CHAT disabled: if (event.target === chatInput) return;
+        initAudio();
+        const key=event.code;
+        keys[key]=true;
+        // if(key.startsWith('Arrow'))event.preventDefault();
+        // CHAT disabled: if(!event.repeat&&key==='Enter'){event.preventDefault();setChat(true);return;}
+        // INVENTORY HUD disabled: if (!event.repeat && key === 'KeyF') { hudVisible=true;hudPage=2;return; }
+        // CHAT disabled: if(!event.repeat&&key==='KeyC'){setChat(true);return;}
+        if(!event.repeat&&key==='KeyZ'){hudVisible=true;document.exitPointerLock?.();return;}
+        if(!event.repeat&&choosing&&/^(Digit|Numpad)[1-3]$/.test(key)){
+            event.preventDefault();playClickSound();upgrade(choices[+key.slice(-1)-1]);return;
+        }
+        // KeyH HUD toggle disabled.
+        if(!event.repeat&&(key==='Escape'||key==='KeyX')){playClickSound();hudVisible=!hudVisible;} // Escape and X toggle HUD visibility
+        if(hudVisible&&opts[1])document.exitPointerLock();
+        //if (key === 'KeyF') {playClickSound(); beastMode = !beastMode;} // 'F' key toggles beastMode
+    };
+    document.addEventListener('keyup',event=>keys[event.code]=false);
+    window.addEventListener('blur',()=>keys={});
+    // 300ms click blocker
+    // let lastTouch=0;document.ontouchend=e=>{if(performance.now()-lastTouch<300)e.preventDefault();lastTouch=performance.now()};
+    
+    function updatePointer(event){
+        const locked=opts[1],rect=locked&&canvas.getBoundingClientRect();
+        pointerX=locked?rect.left+rect.width/2:event.clientX;
+        pointerY=locked?rect.top+rect.height/2:event.clientY;return locked;
+    }
+    // Start look on the canvas, then track globally so mobile capture quirks cannot drop the drag.
+    canvas.onpointerdown=event => {
+        initAudio(); // NEW: Initialize audio on first user interaction
+        // Start drag-look from touch or the left mouse button.
+        if((!event.button||event.pointerType==='touch')&&lookId===null){
+            lookId=event.pointerId;
+            lookX=event.clientX;
+            lookY=event.clientY;
+        }
+        // Always update pointer position for picking
+        updatePointer(event);
+    };
+    
+    document.onpointermove=event => {
+        // Update pointer position for hover effects
+        const locked=opts[1];
+
+        if(locked||event.pointerId===lookId){
+            const dx=locked?event.movementX:event.clientX-lookX;
+            const dy=locked?event.movementY:event.clientY-lookY;
+            lookX=event.clientX;
+            lookY=event.clientY;
+            player.yaw -= dx * .002 * (opts[0] ? -1 : 1);
+            player.pitch = MAX(-PI/2+.001,MIN(PI/2-.001,player.pitch+dy*.002*(opts[0] ? -1 : 1)));
+        }
+        updatePointer(event);
+    };
+    
+    document.onpointerup=event => {
+        // Stop mouse-look mode.
+        if(event.pointerId!==lookId)return;
+        lookId=null;
+        // Update pointer position and trigger an interaction check
+        updatePointer(event);
+        interactDesktopAt(pointerX,pointerY);
+    };
+    document.onpointerlockchange=()=>{
+        opts[1]=+(document.pointerLockElement===canvas);
+        lookId=null;
+        hudVisible=!opts[1];
+    };
+    
+    document.onpointercancel=event => {
+        if(event.pointerId===lookId){
+            lookId=null;
+        }
+    };
+    // -- /PART: Keyboard-Pointer --
+    
+    // -- PART: Joystick --
+    // --- Virtual Joysticks for Touch Devices ---
+    function initJoysticks() {
+        const joys = [
+            { side: 'L', el: document.getElementById('L') },
+            { side: 'R', el: document.getElementById('R') }
+        ];
+        for (const joystick of joys) {
+            const handle=document.querySelector('#'+joystick.side+' .jh');
+            joystick.el.onpointerdown=event => { initAudio(); joystick.id = event.pointerId; joystick.el.setPointerCapture(event.pointerId); updateJoy(joystick, event, handle); };
+            joystick.el.onpointermove=event => { if (event.pointerId === joystick.id) updateJoy(joystick, event, handle); };
+            joystick.el.onpointerup=joystick.el.onpointercancel=event => { if (event.pointerId === joystick.id) { resetJoy(joystick, handle); } };
+        }
+
+    function updateJoy(joystick, event, handle) {
+            const rect=joystick.el.getBoundingClientRect();
+            const centerX=rect.left+rect.width/2;
+            const centerY=rect.top+rect.height/2;
+            const maxRadius=rect.width/2-6; // Max radius for handle movement
+            const dx=event.clientX-centerX;
+            const dy=event.clientY-centerY;
+            const distance=MIN(HYPOT(dx,dy),maxRadius);
+            const angle=ATAN2(dy,dx);
+
+            // Normalize joystick output from -1 to 1
+            const x=distance>DZ*30?distance/maxRadius*COS(angle):0;
+            const y=distance>DZ*30?distance/maxRadius*SIN(angle):0;
+
+            joy[joystick.side].x = x;
+            joy[joystick.side].y = y;
+
+            // Update handle's visual position
+            handle.style.transform=`translate(calc(-50% + ${x*maxRadius}px), calc(-50% + ${y*maxRadius}px))`;
+        }
+
+        function resetJoy(joystick, handle) {
+            joy[joystick.side].x = 0;
+            joy[joystick.side].y = 0;
+            handle.style.transform = 'translate(-50%, -50%)';
+            joystick.id = null;
+        }
+    }
+    initJoysticks();
+    // -- /PART: Joystick --
+    // -- PART: Ray --
+    // --- Raycasting and Picking ---
+    // Checks if a world-space ray intersects with a button on the HUD
+    // -- PART: Screen --
+    // Creates a world-space ray from screen coordinates (for desktop mouse picking)
+    function rayFromScreen(px, py) {
+    const rect=canvas.getBoundingClientRect();
+        const x=((px-rect.left)/rect.width)*2-1;
+        const y=1-((py-rect.top)/rect.height)*2;
+        //const near = [x, y, -1, 1], far = [x, y, 1, 1];
+        // Use T_V4_A for the 'near' and T_V4_B for the 'far' vector4s
+        T_V4_A[0] = x; T_V4_A[1] = y; T_V4_A[2] = -1; T_V4_A[3] = 1;
+        T_V4_B[0] = x; T_V4_B[1] = y; T_V4_B[2] = 1;  T_V4_B[3] = 1;
+
+        // Unproject near and far points from clip space to world space
+        //const n4 = mul4(invPV, near),
+        //      f4 = mul4(invPV, far);
+        //const n = [n4[0] / n4[3], n4[1] / n4[3], n4[2] / n4[3]];
+        //const f = [f4[0] / f4[3], f4[1] / f4[3], f4[2] / f4[3]];
+        
+        // Unproject, writing the results back into our temporary V4s
+        mul4(T_V4_A, invPV, T_V4_A);
+        mul4(T_V4_B, invPV, T_V4_B);
+
+        // Convert to 3D points, writing to our dedicated ray vectors
+        T_V3_RAY_O[0] = T_V4_A[0] / T_V4_A[3]; T_V3_RAY_O[1] = T_V4_A[1] / T_V4_A[3]; T_V3_RAY_O[2] = T_V4_A[2] / T_V4_A[3]; // This is 'n' (the origin)
+        T_V3_A[0]    = T_V4_B[0] / T_V4_B[3]; T_V3_A[1]    = T_V4_B[1] / T_V4_B[3]; T_V3_A[2]    = T_V4_B[2] / T_V4_B[3]; // This is 'f' (the far point)
+
+
+        // Create a normalized direction vector.
+        //const d = [f[0] - n[0], f[1] - n[1], f[2] - n[2]];
+        //const il = 1 / HYPOT(d[0], d[1], d[2]);
+        //return { o: n, d: [d[0] * il, d[1] * il, d[2] * il] };
+
+        
+        // Calculate the direction vector into T_V3_RAY_D
+        SUB(T_V3_RAY_D, T_V3_A, T_V3_RAY_O);
+        NORM(T_V3_RAY_D, T_V3_RAY_D);
+            
+        return { o: T_V3_RAY_O, d: T_V3_RAY_D };
+
+
+    }
+    // -- /PART: Screen --
+    // Handles a click/tap interaction in desktop mode
+    function interactDesktopAt(px, py) {
+        const ray=rayFromScreen(px,py);
+        const WH = HUD_WH_world;
+        const hit=HUD_pick(WH,ray);
+
+        if(hit&&hit.button){
+            activate(hit.button[5]); // A button was clicked
+            return;
+        }
+
+        // If no button was clicked, check for a hit on the ground
+        //const g = rayHitGround(r);
+        //if (g) {
+        //    lastHit = g;
+        //    log('ground ' + g.map(v => v.toFixed(2)).join(','));
+        //}
+    }
+
+    // Calculates the intersection point of a ray with the ground plane (Y=0)
+    //function rayHitGround(ray) {
+    //    if (!ray || ray.d[1] >= 0) return null; // Ray is parallel to or going away from the ground
+    //    const t = (0 - ray.o[1]) / ray.d[1];
+    //    if (t > 0) {
+    //        return [ray.o[0] + ray.d[0] * t, 0.001, ray.o[2] + ray.d[2] * t];
+    //    }
+    //    return null;
+    //}
+
+    // -- VR: Input --
+    // Helper to get a ray from a VR controller
+    function controllerRay(frame,source) {
+        const pose=source.targetRaySpace?frame.getPose(source.targetRaySpace,ref):null;
+        if (pose) {
+            const matrix=MULTMAT4(xrM,pose.transform.matrix);
+            return {o:[matrix[12],matrix[13],matrix[14]],d:[-matrix[8],-matrix[9],-matrix[10]]};
+        }
+        return { o: [0, 0, 0], d: [0, 0, -1] }; // Fallback, ray from Head
+    }
+    // -- /VR: Input --
+
+    //const d = [-sy * cp, -sp, -cy * cp];
+    //const o = [user.x, user.y, user.z];
+    //return { o, d };
+    //T_V3_RAY_D[0] = -sy * cp; T_V3_RAY_D[1] = -sp; T_V3_RAY_D[2] = -cy * cp;
+    //T_V3_RAY_O[0] = user.x; T_V3_RAY_O[1] = user.y; T_V3_RAY_O[2] = user.z;
+    //return { o: T_V3_RAY_O, d: T_V3_RAY_D };
+    
+    // -- /PART: Ray --
+    // -- /FEATURE: Input --
+
+    // -- FEATURE: Gameplay --
+    //let beastMode = false; // toggle beast mode
+    // -- MODULE: World --
+    // -- PART: City --
+    //const BOOST_DURATION = 15;          // seconds per pickup
+    //const BOOST_AMOUNT  = 0.3;        // +30% per stack
+    //const MAX_BOOSTS    = 100;           // safety cap
+    const items = [];                  // pickups: t 0 XP, 1 health, 2 magnet
+    const CITY_BLOCK = 18;
+    let buildings = [],cityX=1e9,cityZ;
+    // Change 123321 below to try different city layouts and choose one that meets our standards.
+    const cityHash = (x,z,salt=0) => { const hash=SIN(x*.321+z*.123+salt*.1)*123321;return hash-FLOOR(hash); };
+    const buildingAt = (x,z,radius=0) => buildings.find(building=>ABS(x-building.x)<building.w/2+radius&&ABS(z-building.z)<building.d/2+radius);
+    const nearCity=(x,z)=>ABS(ROUND(x/CITY_BLOCK)-cityX)<16&&ABS(ROUND(z/CITY_BLOCK)-cityZ)<16;
+    function updateCity(){
+        const cx=ROUND(player.x/CITY_BLOCK),cz=ROUND(player.z/CITY_BLOCK);if(cx===cityX&&cz===cityZ)return;
+        cityX=cx;cityZ=cz;const next=[];
+        for(let z=cz-15;z<=cz+15;z++)for(let x=cx-15;x<=cx+15;x++){
+            if(ABS(x)<2&&ABS(z)<2||cityHash(x,z)<.3+HYPOT(x,z)/80)continue;
+            const side=cityHash(x,z,1)>.5,wall=3+10*(HYPOT(x,z)/12|0)+ABS(x-z)%4*.4,width=side?wall:3+cityHash(x,z,1)*4,depth=side?3+cityHash(x,z,2)*4:wall,height=6+cityHash(x,z,3)*26,building={x:x*CITY_BLOCK,z:z*CITY_BLOCK,w:width,d:depth,h:height};
+            next.push(building);
+        }
+        if(next.length)buildings=next.sort((a,b)=>b.h-a.h);
+    }
+    // Player capsule constants (smaller than an object w/ props)
+    //const CR = .5;//, CH = 1.6, CE = 1.6; // capsule radius, height, eye-offset
+
+    // -- /PART: City --
+    // -- /MODULE: World --
+
+    // -- MODULE: Combat --
+    // -- PART: State --
+    // const runStats={defeated:0};
+    let defeated=0,dealt=0;
+    // Enemies seek, skills hit automatically, and XP drops fuel upgrades.
+    const enemies=[];
+    // Keep the original centre beacon and append three local gameplay beacons.
+    const SPAWN_BEACONS=[[0,0]];
+    const shots=[];
+    const damageNumbers=[];
+    // One shared power language for enemies, levels, loot, and upgrade rarity.
+    // Index order is always weakest (red) to strongest (violet).
+    const POWER=[
+        ['#e43',[.9,.04,.03]],
+        ['#f80',[1,.25,.01]],
+        ['#fd3',[1,.7,.02]],
+        ['#4a4',[.05,.65,.12]],
+        ['#0ac',[.02,.65,.8]],
+        ['#28f',[.04,.2,1]],
+        ['#82a',[.55,.04,.75]]
+    ];
+    let skillTime=0;
+    let level=1;
+    let xp=0;
+    let choosing=0;
+    let enemyId=0;
+    const orbCounts=[1],boltCounts=[1],boltTimes=[],evolutionQueue=[],claimedBeacons=new Set;
+    let cooldownPower=0;
+    let damage=1;
+    let movePower=30;
+    let choices=[],bannerText='REACH BEACON',bannerTime=1e9;
+    let seed=Date.now()|0,spawnAngle=-PI/2;
+    let hp=100;
+    let maxHp=100;
+    function rng(){return ((seed=seed*1664525+1013904223|0)>>>0)/4294967296;}
+    const orbPhase=(time,tier)=>2.5*(15-ABS(time%30-15))*(1+(tier+1)*.08)+(tier+1)*1.7,orbRadius=tier=>tier<0?2.5:4+tier*1.5,cooldown=power=>MAX(.15,1/(1/3+.15*SQRT(power)));
+    // Only HP above the normal spawn baseline adds size, in half-size doubling steps.
+    const worldPower=(x,z)=>HYPOT(x,z)/100|0,beaconTier=(x,z)=>{const cap=MIN(6,worldPower(x,z)-1),roll=cityHash(x,z);return cap>0?MIN(cap,roll<.06?cap:roll<.2?MAX(1,cap-1):cityHash(x,z,1)*(cap+1)|0):0},enemyPopulationTarget=()=>7+worldPower(player.x,player.z)*3,scaledHealth=(danger,tier)=>FLOOR((1+danger*(danger+1))*MAX(1,danger-9)*(tier*2+1)*EXP(skillTime/60*.02*danger/(1+danger))),sizeEnemy=(enemy,dt)=>enemy.scale=lerp(enemy.scale,enemy.tier>6?6:1+MAX(0,CEIL(LOG2(enemy.hp*(enemy.mut+2)/enemy.max)))/2,MIN(1,dt*4));
+    // -- /PART: State --
+
+    // -- PART: Spawning --
+    function spawnBeacon(){
+        for(let attempts=100;attempts--;){
+            const angle=rng()*PI*2,radius=70+rng()*30,x=player.x+COS(angle)*radius,z=player.z+SIN(angle)*radius;
+            let valid=SPAWN_BEACONS.every(beacon=>HYPOT(beacon[0]-x,beacon[1]-z)>=30)&&!buildings.some(building=>ABS(x-building.x)<building.w/2+6&&ABS(z-building.z)<building.d/2+6),now=performance.now();
+            peers.forEach(peer=>valid&=now-peer.last>15000||HYPOT(peer.x-x,peer.z-z)>=50&&peer.b.every(beacon=>HYPOT(beacon[0]-x,beacon[1]-z)>=30));
+            if(valid&&HYPOT(x,z)>=HYPOT(player.x,player.z)-20){const X=ROUND(x*10)/10,Z=ROUND(z*10)/10;return [X,Z,HYPOT(X,Z)>1000&&cityHash(X,Z,2)<.25?7+beaconTier(X/10,Z/10):beaconTier(X,Z)];}
+        }
+    }
+    function resetBeacons(){
+        SPAWN_BEACONS.length=1;
+        for(let i=3;i--;){const beacon=spawnBeacon();if(beacon)SPAWN_BEACONS.push(beacon);}
+    }
+    function spawnEnemy(enemy){
+        const beacon=enemy.b&&SPAWN_BEACONS.find(beacon=>beacon[6]===enemy.b),anchorX=beacon?beacon[0]:player.x,anchorZ=beacon?beacon[1]:player.z;
+        if(enemy.b&&!beacon&&enemy.mut<7){enemy.dead=1;if(hp>0&&enemy.tier>6)playMotif(undefined,0,1);return;}
+        let angle,radius,x,z,valid,attempts=100,now=performance.now();
+        do{angle=rng()*PI*2;if(!beacon&&rng()<.5)angle=spawnAngle+angle/2-PI/2;radius=beacon?20+rng()*10:35+rng()*20;x=anchorX+COS(angle)*radius;z=anchorZ+SIN(angle)*radius;valid=1;peers.forEach(peer=>valid&=now-peer.last>15000||HYPOT(peer.x-x,peer.z-z)>=20);}while(--attempts&&!valid);
+        // Accept the first street or rooftop position; climbing makes either valid.
+        enemy.x=x;enemy.z=z;
+        enemy.scale=enemy.vx=enemy.vz=enemy.yaw=enemy.anim=0;enemy.y=(buildingAt(x,z,.6)?.h||0)+.6;enemy.h=[];
+        if(enemy.tier>6)enemy.mut=-1,enemy.max=enemy.hp=1e6*(enemy.tier-6)**2;else{
+            const danger=HYPOT(enemy.x,enemy.z)/100,time=skillTime/60,cap=MIN(6,HYPOT(enemy.x,enemy.z)/125|0),roll=rng();
+            enemy.tier=cap?MIN(cap,roll<.06?cap:roll<.2?MAX(1,cap-1):rng()*(cap+1)|0):0;enemy.mut=-1;enemy.max=enemy.hp=scaledHealth(danger,enemy.tier);
+            const mutationChance=1-EXP(-(danger*.03+time*.005)*danger/(1+danger)*(enemy.b?4:1));
+            if(danger>=1&&rng()<mutationChance){enemy.mut=0;while(enemy.mut<6&&rng()<.4)enemy.mut++;if(enemy.mut===enemy.tier)enemy.mut+=enemy.mut<6?1:-1;enemy.max=enemy.hp=CEIL(enemy.max*(1.5+enemy.mut*.75));}
+        }
+        return enemy;
+    }
+    function resetEnemies(){
+        enemies.length=shots.length=0;
+        for(let i=enemyPopulationTarget();i--;)enemies.push(spawnEnemy({i:++enemyId}));
+    }
+    function syncEnemyPopulation(){
+        const target=enemyPopulationTarget();let ordinary=enemies.filter(enemy=>!enemy.b&&!enemy.dead).length;
+        while(ordinary<target){enemies.push(spawnEnemy({i:++enemyId}));ordinary++;}
+        // Keep one ring's three-enemy population as hysteresis when moving inward.
+        if(ordinary>target+3)for(let i=enemies.length;i--&&ordinary>target;)if(!enemies[i].b){enemies.splice(i,1);ordinary--;}
+    }
+    function spawnBeaconWave(beacon){
+        for(let count=7+worldPower(beacon[0],beacon[1])*3;count--;)enemies.push(spawnEnemy({i:++enemyId,b:beacon[6]}));
+    }
+    // -- /PART: Spawning --
+
+    // -- PART: Beacons --
+    function startBeacon(beacon){
+        const danger=worldPower(beacon[0],beacon[1]);
+        bannerText=beacon[2]>6?'BOSS':'DEFEND';bannerTime=performance.now()+4e3;
+        beacon[3]=1;beacon[4]=beacon[5]=10*scaledHealth(danger,beacon[2]);beacon[6]=++enemyId;beacon[7]=0;
+        if(beacon[2]>6)enemies.push(spawnEnemy({i:++enemyId,b:beacon[6],tier:beacon[2]})),SPAWN_BEACONS.splice(SPAWN_BEACONS.indexOf(beacon),1);
+        else spawnBeaconWave(beacon);
+        playMotif(beacon[0],beacon[1]);
+    }
+    function activateBeacons(){
+        const beacon=SPAWN_BEACONS.length<4+worldPower(player.x,player.z)*2&&spawnBeacon();if(beacon)SPAWN_BEACONS.push(beacon);
+        for(let i=1;i<SPAWN_BEACONS.length;i++){
+            const beacon=SPAWN_BEACONS[i];
+            if(!beacon[3]&&(player.x-beacon[0])**2+(player.z-beacon[1])**2<(.55*(beacon[2]>6?5:1))**2)startBeacon(beacon);
+        }
+    }
+    function claimRemoteBeacons(){
+        peers.forEach((peer,owner)=>peer.b.forEach(beacon=>{const claim=owner+','+beacon[0]+','+beacon[1];if(!beacon[3]&&!claimedBeacons.has(claim)&&(player.x-beacon[0])**2+(player.z-beacon[1])**2<(.55*(beacon[2]>6?5:1))**2){claimedBeacons.add(claim);const local=[beacon[0],beacon[1],beacon[2],0,0,0,0,0];SPAWN_BEACONS.push(local);startBeacon(local);sendMMO(`v|${owner}|${beacon[0]}|${beacon[1]}`,owner);}}));
+    }
+    function finishBeacons(){
+        for(let i=SPAWN_BEACONS.length;i-->1;){
+            const beacon=SPAWN_BEACONS[i];
+            const cleared=beacon[3]&&!enemies.some(enemy=>enemy.b===beacon[6]);
+            if(cleared&&beacon[4]>0&&beacon[7]<beacon[2]){beacon[7]++;spawnBeaconWave(beacon);continue;}
+            const success=cleared&&beacon[4]>0;
+            if(beacon[3]&&(beacon[4]<1||success)){
+                bannerText=success?'CLEARED':'FAILED';bannerTime=performance.now()+4e3;
+                for(let j=enemies.length;j--;)if(enemies[j].b===beacon[6])enemies.splice(j,1);
+                SPAWN_BEACONS.splice(i,1);
+                // Preserve any open card offer; beacon rewards wait until it is claimed.
+                if(success){playMotif(beacon[0],beacon[1]);evolutionQueue.push(beacon[2]);if(!choosing)rollChoices(evolutionQueue.shift());}
+                else playMotif(beacon[0],beacon[1],1);
+            }
+        }
+    }
+    // -- /PART: Beacons --
+
+    // -- PART: Progression --
+    let returning=0;
+    function resetRun(){
+        returning=0;player.y=1.6;
+        level=1;
+        xp=0;
+        choosing=0;
+        defeated=dealt=0;
+        skillTime=0;
+        boltTimes.length=evolutionQueue.length=0;orbCounts.length=boltCounts.length=1;orbCounts[0]=boltCounts[0]=1;claimedBeacons.clear();
+        damage=1;
+        cooldownPower=0;
+        movePower=30;
+        maxHp=100;
+        hp=100;
+        items.length=0;
+        damageNumbers.length=0;
+        choices=[];
+        player.x=0;
+        player.z=2;
+        updateCity();
+        resetBeacons();
+        resetEnemies();
+        // LOG disabled: log(mmoEnabled?'MMO run started':'Run ended');
+    }
+    function rollChoices(tier){
+        const rollTier=()=>{
+            let tier=0,cap=MIN(6,1+(level/3|0));
+            while(tier<cap&&rng()<.4)tier++;
+            return tier;
+        };
+        const pool=tier<0?(tier=~tier,[10,11,14]):tier===undefined?[0,3,4,5,6,7]:[8,9,12,13];
+        choices=[];
+        while(choices.length<3){
+            const type=pool[rng()*pool.length|0];
+            if(!choices.some(choice=>choice[0]===type))choices.push([type,tier===undefined?rollTier():tier]);
+        }
+        for(let i=3;i--;){
+            const choice=choices[i];
+            UI_LEVEL[i][4]=cardText(choice[0],choice[1]+1);
+            UI_LEVEL[i][6]=choice[1];
+        }
+        choosing=1;
+        hudVisible=false;
+        if(tier===undefined)playMotif(player.x,player.z);
+    }
+    function upgrade(choice){
+        const type=choice[0],power=choice[1]+1;
+        if(type===8)orbCounts[choice[1]+1]=(orbCounts[choice[1]+1]||0)+1;
+        else if(type===9)boltCounts[choice[1]+1]=(boltCounts[choice[1]+1]||0)+1;
+        else if(type===10)damage+=power*500;
+        else if(type===12)damage+=power*10;
+        else if(type===11||type===13||type===6){const added=type===6?power*20:type===13?power*100:power*5e3;maxHp+=added;hp+=added;}
+        else if(type===0)orbCounts[0]+=power;
+        else if(type===3)boltCounts[0]+=power;
+        else if(type%10===4)movePower+=power*(type>9?5:1);
+        else if(type===5)cooldownPower+=power;
+        else if(type===7)damage+=power;
+        if(type<8)xp-=level++*3;
+        choosing=0;
+        if(evolutionQueue.length)rollChoices(evolutionQueue.shift());else if(xp>=level*3)rollChoices();
+    }
+    function dropReward(x,z,maxHealth){
+        const count=MAX(1,1+ROUND(LOG2(maxHealth/3))),width=MIN(7,count);
+        for(let i=count;i--;){const roll=rng();items.push({x:x+(i%width-(width-1)/2)*.35,y:.16,z:z+FLOOR(i/width)*.35,r:.4,t:roll<.02?2:roll<.08?1:0});}
+        while(items.length>1000)items.shift();
+        // while(items.length>10000)items.shift();
+    }
+    function damageNumber(x,z,amount){damageNumbers.push({x,y:1.4,z,n:ROUND(amount),t:1});}
+    function hurt(enemy,amount,killer){
+        if(enemy.dead)return;
+        amount=MIN(enemy.hp,MAX(1,FLOOR(amount)));enemy.hp-=amount;damageNumber(enemy.x,enemy.z,amount);
+        if(!myId||killer===myId)dealt+=amount; // damage addition
+        else sendMMO(`a|${killer}|${amount}`,killer);
+        if(enemy.hp<1)defeat(enemy,amount,killer);else playImpactSound(enemy.x,enemy.z);
+    }
+    function defeat(enemy,amount,killer){
+        const x=enemy.x,z=enemy.z,tier=enemy.tier,mutation=enemy.mut;
+        if(!myId||killer===myId){
+            defeated++;
+            playImpactSound(x,z,1);dropReward(x,z,enemy.max);
+        }
+        if(tier>6){bannerText='CLEARED';bannerTime=performance.now()+4e3;playMotif();evolutionQueue.push(6-tier);if(!choosing)rollChoices(evolutionQueue.shift());}
+        if(myId)tellPeers(`d|${myId}|${enemy.i}|${x.toFixed(2)}|${z.toFixed(2)}|${tier}|${amount}|${killer}|${mutation}|${enemy.max}`);
+        enemy.dead=1;
+    }
+    // -- /PART: Progression --
+
+    // -- PART: Enemy-Simulation --
+    function updateEnemies(dt){
+        skillTime+=dt;peers.forEach(peer=>peer.op+=dt);
+        syncEnemyPopulation();
+        for(const enemy of enemies){
+            if(enemy.dead)continue;
+            sizeEnemy(enemy,dt);
+            const boss=enemy.tier>6;
+            let tx=player.x,tz=player.z,best=(tx-enemy.x)**2+(tz-enemy.z)**2,now=performance.now(),self=1,targetBeacon;
+            peers.forEach(peer=>{const distance=(peer.cx-enemy.x)**2+(peer.cz-enemy.z)**2;if(now-peer.last<15000&&distance<best){best=distance;tx=peer.cx;tz=peer.cz;self=0;}});
+            for(let i=1;!boss&&i<SPAWN_BEACONS.length;i++){
+                const beacon=SPAWN_BEACONS[i],distance=(beacon[0]-enemy.x)**2+(beacon[1]-enemy.z)**2;
+                if(beacon[3]&&distance<best){best=distance;tx=beacon[0];tz=beacon[1];self=0;targetBeacon=beacon;}
+            }
+            // Recycle abandoned enemies and never allow a powerful enemy inside the starter zone.
+            if(!boss&&best>60**2){enemy.dead=1;continue;}
+            if(HYPOT(enemy.x,enemy.z)<20&&(enemy.tier||enemy.mut>=0||enemy.max>1)){enemy.tier=0;enemy.mut=-1;enemy.max=enemy.hp=1;}
+            let dx=tx-enemy.x,dz=tz-enemy.z,distance=HYPOT(dx,dz)||1,maxSpeed=boss?2.35:2.35+LOG2(enemy.max+1)*.22,fx=dx/distance*maxSpeed*3,fz=dz/distance*maxSpeed*3;
+            enemy.vx+=fx*dt;enemy.vz+=fz*dt;
+            // HP drives movement speed logarithmically, including mutation HP.
+            let speed=HYPOT(enemy.vx,enemy.vz)||1;
+            if(speed>maxSpeed){enemy.vx*=maxSpeed/speed;enemy.vz*=maxSpeed/speed;speed=maxSpeed;}
+            const px=enemy.x,pz=enemy.z;
+            enemy.x+=enemy.vx*dt;enemy.z+=enemy.vz*dt;
+            const building=buildingAt(enemy.x,enemy.z,.45*enemy.scale),roof=(building?.h||0)+.6,wall=building&&enemy.y<roof&&resolveCityCollision(enemy,.45*enemy.scale,px,pz);
+            if(wall)enemy.y+=dt*maxSpeed;else enemy.y=MAX(roof,enemy.y-dt*maxSpeed*3);
+            enemy.vx*=1-dt;enemy.vz*=1-dt;
+            enemy.anim+=speed*dt*3;enemy.yaw=ATAN2(dx,dz);
+            if(boss&&(enemy.fire=(enemy.fire||0)-dt)<0){
+                enemy.fire=7/enemy.tier;fireVolley(enemy.x,enemy.z,enemy.yaw,-1,enemy.tier*2-13,-SQRT(enemy.max)/10);
+            }
+            if(targetBeacon&&distance<.6+enemy.scale*.6){
+                targetBeacon[4]-=enemy.hp;
+                enemy.dead=1;
+                continue;
+            }
+            if(self&&distance<MIN(4,enemy.scale)*.6+.6){
+                //player.x+=dx/d*(2+c.tier*.2); // knockback
+                //player.z+=dz/d*(2+c.tier*.2); // knockback
+                //player.y+=dz/d*(2+c.tier*.2);
+                hp=MAX(0,hp-enemy.hp);
+                playHurtSound();
+                enemy.dead=1;
+                if(hp<1)return;
+                continue;
+            }
+            let hitIndex=0;
+            if((enemy.x-player.x)**2+(enemy.z-player.z)**2<(14+enemy.scale)**2)for(let tier=-1;tier<7;tier++)for(let i=orbCounts[tier+1]||0;i--;){
+                const count=orbCounts[tier+1],angle=orbPhase(skillTime,tier)+i*PI*2/count,radius=orbRadius(tier),ox=player.x+COS(angle)*radius,oz=player.z+SIN(angle)*radius;
+                if((enemy.h[hitIndex]||0)<skillTime&&(enemy.x-ox)**2+(enemy.z-oz)**2<(.25+.5*enemy.scale)**2){hurt(enemy,damage*(tier+2),myId);enemy.h[hitIndex]=skillTime+.15;}hitIndex++;
+            }
+            peers.forEach((peer,id)=>{
+                const histories=enemy.oh||(enemy.oh={}),hits=histories[id]||(histories[id]=[]);
+                let hitIndex=0;
+                if(now-peer.last<15000&&(enemy.x-peer.cx)**2+(enemy.z-peer.cz)**2<(14+enemy.scale)**2)for(let tier=-1;tier<7;tier++)for(let i=peer.orbs[tier+1]||0;i--;){
+                    const count=peer.orbs[tier+1],angle=orbPhase(peer.op,tier)+i*PI*2/count,radius=orbRadius(tier),ox=peer.cx+COS(angle)*radius,oz=peer.cz+SIN(angle)*radius;
+                    if((hits[hitIndex]||0)<now&&(enemy.x-ox)**2+(enemy.z-oz)**2<(.25+.5*enemy.scale)**2){hurt(enemy,peer.d*(tier+2),id);hits[hitIndex]=now+150;}hitIndex++;
+                }
+            });
+        }
+        for(let i=enemies.length;i--;)if(enemies[i].dead)enemies.splice(i,1);
+    }
+    function updateRemoteEnemies(dt){
+        const now=performance.now();
+        remoteEnemies.forEach((group,owner)=>group.forEach(enemy=>{
+            if(hp<1||now-enemy.last>15000||enemy.dead)return;
+            sizeEnemy(enemy,dt);
+            const sample=sampleMotion(enemy,now-230);enemy.x=sample.x;enemy.z=sample.z;enemy.y=sample.y;enemy.yaw=sample.yaw;enemy.hit-=dt;
+            if((player.x-enemy.x)**2+(player.z-enemy.z)**2<(MIN(4,enemy.scale)*.6+.6)**2&&enemy.hit<0){
+                // KNOCKBACK disabled: let dx=player.x-enemy.x,dz=player.z-enemy.z,distance=HYPOT(dx,dz)||1;player.x+=dx/distance*(2+enemy.tier*.2);player.z+=dz/distance*(2+enemy.tier*.2);
+                hp=MAX(0,hp-enemy.hp);enemy.hit=1;playHurtSound();
+                sendMMO(`k|${owner}|${enemy.i}`,owner);
+            }
+        }));
+    }
+    // -- /PART: Enemy-Simulation --
+
+    // -- PART: Projectiles --
+    // Shared local/remote simulation is both clearer and smaller in the measured PPMd ZIP.
+    function removeShot(projectile,remote){if(myId){const owner=remote?projectile.o:myId,message=`x|${owner}|${projectile.i}`;remote?sendMMO(message,owner):tellPeers(message);}projectile.t=0;}
+    function updateProjectiles(list,dt,remote){
+        for(let i=list.length;i--;){
+            const projectile=list[i],radius=.2;
+            projectile.x+=projectile.vx*dt;
+            projectile.z+=projectile.vz*dt;
+            projectile.t-=dt;
+
+            if(remote&&!nearCity(projectile.x,projectile.z)){list.splice(i,1);continue;}
+
+            if(buildingAt(projectile.x,projectile.z,radius)){
+                list.splice(i,1);
+                continue;
+            }
+
+            if(projectile.d<0&&(player.x-projectile.x)**2+(player.z-projectile.z)**2<.7**2){
+                hp=MAX(0,hp+projectile.d);playHurtSound();
+                removeShot(projectile,remote);
+            }
+
+            for(const enemy of enemies)if(projectile.d>0&&(enemy.x-projectile.x)**2+(enemy.z-projectile.z)**2<(.5*enemy.scale+radius)**2){
+                hurt(enemy,projectile.d,remote?projectile.o:myId);
+                removeShot(projectile,remote);
+                break;
+            }
+
+            if(projectile.d>0&&!remote&&projectile.t>0)remoteHit:
+                for(const [owner,group] of remoteEnemies)
+                    for(const enemy of group.values())
+                        if(!enemy.dead&&(enemy.x-projectile.x)**2+(enemy.z-projectile.z)**2<(.5*enemy.scale+radius)**2){
+                            playImpactSound(enemy.x,enemy.z);
+                            projectile.t=0;
+                            break remoteHit;
+                        }
+
+            if(projectile.t<=0)list.splice(i,1);
+        }
+    }
+    // -- /PART: Projectiles --
+    function fireVolley(x,z,aim,tier,count,d){
+        if(myId)tellPeers(`s|${myId}|${x.toFixed(2)}|${z.toFixed(2)}|${aim.toFixed(3)}|${tier}|${count}|${d}|${enemyId}`);
+        for(let i=count;i--;){const angle=aim+(i-(count-1)/2)*.18;shots.push({x,y:.7,z,vx:SIN(angle)*10,vz:COS(angle)*10,d,i:++enemyId,t:3,c:tier});}
+    }
+    function fireBolts(tier,count){
+        let target=enemies[0],best=1e9;
+        for(const enemy of enemies){const distance=HYPOT(enemy.x-player.x,enemy.z-player.z);if(distance<best){best=distance;target=enemy;}}
+        remoteEnemies.forEach(group=>group.forEach(enemy=>{const distance=HYPOT(enemy.x-player.x,enemy.z-player.z);if(!enemy.dead&&performance.now()-enemy.last<15000&&distance<best){best=distance;target=enemy;}}));
+        if(!target)return;
+        const aim=ATAN2(target.x-player.x,target.z-player.z);
+        fireVolley(player.x,player.z,aim,tier,count,damage*(tier+2));
+        playShotSound();
+    }
+    function updateShots(dt){
+        for(let tier=-1;tier<7;tier++){const index=tier+1,count=boltCounts[index];if(count&&((boltTimes[index]=(boltTimes[index]||0)-dt)<0)){boltTimes[index]+=cooldown(cooldownPower);fireBolts(tier,count);}}
+        updateProjectiles(shots,dt,0);
+        updateProjectiles(remoteShots,dt,1);
+        for(let i=damageNumbers.length;i--;){
+            const number=damageNumbers[i];
+            number.y+=dt*.5;
+            if((number.t-=dt)<0)damageNumbers.splice(i,1);
+        }
+    }
+    // -- /MODULE: Combat --
+
+    // -- MODULE: Player --
+    // -- PART: Collection-Collision --
+    function tryPickupItems(dt,collected){
+        // Closest point on capsule segment (vertical)
+        const baseY=player.y-1.6,
+            topY=baseY+1.6;
+
+        for (const item of items){
+            if(!item.r)continue;
+
+            if(item.m){
+                const dx=player.x-item.x,
+                    dz=player.z-item.z,
+                    distance=HYPOT(dx,dz)||1,
+                    step=MIN(distance,18*dt);
+                item.x+=dx/distance*step;
+                item.z+=dz/distance*step;
+            }
+
+            const nearestY=MAX(baseY,MIN(topY,item.y));
+            const dx=item.x-player.x,
+                dy=item.y-nearestY,
+                dz=item.z-player.z;
+
+            if(HYPOT(dx,dy,dz)<item.r+.5){
+                item.r=0; // mark consumed
+                if(item.t===1){
+                    hp<maxHp?hp=MIN(maxHp,hp+ROUND(maxHp/100)):hp=++maxHp;
+                    playSound(330,.25,.08,'sine',660);
+                }else if(item.t===2){
+                    for(const pickup of items)if(!pickup.t&&pickup.r>0)pickup.m=1;
+                    playSound(180,.5,.09,'sawtooth',900);
+                }else{
+                    xp++;
+                    collected=1;
+                    if(xp>=level*3&&!choosing)rollChoices();
+                }
+            }
+        }
+        collected&&playXPSound();
+    }
+
+    function resolveCollisions(prevX, prevZ){
+        resolveCityCollision(player,.5,prevX,prevZ);
+        // Ground collision (keep eye at least capsule height above 0)
+    if (player.y - 1.6 < 0) player.y = 1.6;
+    }
+
+    // Reject blocked axes against all footprints; preserve the free sliding axis.
+    function resolveCityCollision(entity,radius,prevX,prevZ){
+        const x=entity.x,z=entity.z;if(!buildingAt(x,z,radius))return;
+        entity.z=prevZ;
+        if(!buildingAt(x,prevZ,radius))return 1;
+        entity.x=prevX;entity.z=z;
+        if(!buildingAt(prevX,z,radius))return 1;
+        entity.z=prevZ;return 1;
+    }
+    // -- /PART: Collection-Collision --
+
+    // -- PART: Movement --
+    // --- Movement Logic ---
+    // Movement and input constants
+    //const MOVES = 3;    // Movement speed in meters per second
+    //const TURNS = 2;    // Turning speed in radians per second
+
+    // Consolidates input from keyboard, joysticks, and VR controllers into a single movement vector
+    // -- VR: Input --
+    // OPTIONAL: remove this whole function and hand-tracking session feature for controller-only VR.
+    function handPointMove(frame, source) {
+        if(!source.hand)return null;
+        const base = ref;
+        const pose = name => {
+            const joint = source.hand.get(name);
+            return joint && frame.getJointPose(joint, base);
+        };
+        const wrist=pose('wrist'),index=pose('index-finger-tip'),indexBase=pose('index-finger-phalanx-proximal'),thumb=pose('thumb-tip'),thumbBase=pose('thumb-phalanx-proximal');
+        if(!wrist)return null;
+        const position = pose => pose.transform.position;
+        const distanceBetween=(pointA,pointB)=>HYPOT(pointA.x-pointB.x,pointA.y-pointB.y,pointA.z-pointB.z);
+        const extended=(tip,base)=>tip&&base&&distanceBetween(position(tip),position(wrist))>distanceBetween(position(base),position(wrist))*1.45;
+        const curl=(tip,base)=>tip&&base&&distanceBetween(position(tip),position(wrist))<distanceBetween(position(base),position(wrist))*1.05;
+        let curled = 0;
+        for (const finger of ['middle','ring','pinky']) {
+            if (curl(pose(finger+'-finger-tip'), pose(finger+'-finger-phalanx-proximal'))) curled++;
+        }
+        // FINGERTIP STEERING: index has priority; thumb is the fallback.
+        const finger=extended(index,indexBase)?[index,indexBase]:extended(thumb,thumbBase)?[thumb,thumbBase]:0;
+        if(!finger||curled<3){pointStarted.delete(source);return null;}
+        const now=performance.now(),started=pointStarted.get(source);
+        // OPTIONAL: gesture debug feedback
+        // if(started===undefined){pointStarted.set(source,now);log('POINT '+source.handedness);return null;}
+        if(started===undefined){pointStarted.set(source,now);return null;}
+        // if (now-started < 150) return null;
+        if (now-started < 100) return null;
+        // FINGERTIP STEERING: use the proximal-to-tip vector and reject mostly vertical pointing.
+        const tip=position(finger[0]),basePosition=position(finger[1]),dx=tip.x-basePosition.x,dy=tip.y-basePosition.y,dz=tip.z-basePosition.z,horizontal=HYPOT(dx,dz);
+        if(horizontal<HYPOT(dx,dy,dz)*.35)return null;
+        return {x:dx/horizontal,y:-dz/horizontal};
+    }
+    // -- /VR: Input --
+
+    function getMove(session, frame) {
+        let vx=0,vy=0,vt=0;
+        // GAMEPAD SUPPORT: let vx=0,vy=0,vt=0,gx=0,gy=0,gt=0;
+        const deadzone=value=>ABS(value)>DZ?value:0;
+        // -- PART: Keyboard --
+        // Keyboard input (WASD for move, QE or arrows for move/turn)
+    const kx = (+!!keys['KeyD']) - (+!!keys['KeyA']);
+    const ky = +!!(keys['KeyW']||keys['ArrowUp']) - +!!(keys['KeyS']||keys['ArrowDown']);
+    const kt = +!!(keys['KeyQ']||keys['ArrowLeft']) - +!!(keys['KeyE']||keys['ArrowRight']);
+        // -- /PART: Keyboard --
+    
+        // -- PART: Joystick --
+    // Virtual joystick input
+    const moveJoy=joy[opts[4]?'R':'L'],turnJoy=joy[opts[4]?'L':'R'];
+    const jx = moveJoy.x;
+    const jy = -moveJoy.y;
+    const jt = -turnJoy.x;
+        // -- /PART: Joystick --
+
+        /* GAMEPAD SUPPORT: Standard handheld controller: left stick moves, right stick turns.
+        if(!session){
+            const pads=navigator.getGamepads?.();
+            let gamepad;
+            if(pads)for(const pad of pads)if(pad){gamepad=pad;break;}
+            if(gamepad){
+                const axes=gamepad.axes;
+                gx=deadzone(axes[0]||0);gy=-deadzone(axes[1]||0);gt=-deadzone(axes[2]||0);
+                let buttons=gamepad.buttons[2]?.pressed|gamepad.buttons[0]?.pressed<<1|gamepad.buttons[1]?.pressed<<2;
+                buttons|=gamepad.buttons[9]?.pressed<<3;
+                const pressed=buttons&~gamepadButtons;
+                gamepadButtons=buttons;
+                if(pressed)initAudio();
+                if(choosing)for(let i=0;i<3;i++){if(pressed&1<<i){activate(20+i);break;}}
+                else if(pressed&8){playClickSound();hudVisible=!hudVisible;}
+            }else gamepadButtons=0;
+        } */
+
+        // -- PART: VR --
+        // -- VR: Input --
+        // VR gamepad input
+        if (session) {
+            for (const source of session.inputSources) {
+                // CHAT disabled: const left=source.handedness===(opts[5]?'right':'left'),handMove=handPointMove(frame,source);
+                const left=source.handedness===(opts[4]?'right':'left'),handMove=handPointMove(frame,source);
+                let x,y;
+                if (handMove) { x=handMove.x;y=-handMove.y; }
+                else {
+                    const axes=source.gamepad?.axes;
+                    if(!axes||axes.length<2)continue;
+                    // OPTIONAL COMPATIBILITY: Meta Quest uses 2/3; fallback also supports compact 0/1-axis gamepads.
+                    const axisOffset=axes.length>=4?2:0;
+                    x=deadzone(axes[axisOffset]||0);y=deadzone(axes[axisOffset+1]||0);
+                }
+                
+                // Sticks and hand gestures share mobile's move/turn sides, including the swap option.
+                if (left) { vx = x; vy = -y; }
+                else if(handMove||source.handedness){vt=-x;}
+                // OPTIONAL COMPATIBILITY: Meta Quest normally reports left/right handedness.
+                else if (!vx && !vy) { vx = x; vy = -y; } // Fallback for undefined handedness
+            }
+        }
+        // -- /VR: Input --
+        // -- /PART: VR --
+
+        // Return combined movement, prioritizing VR, then keyboard, then joystick
+        const x=vx||kx||jx,y=vy||ky||jy,magnitude=MAX(1,HYPOT(x,y));
+        // GAMEPAD SUPPORT: const x=vx||kx||gx||jx,y=vy||ky||gy||jy,magnitude=MAX(1,HYPOT(x,y));
+        return {x:x/magnitude,y:y/magnitude,t:vt||kt||jt};
+        // GAMEPAD SUPPORT: return {x:x/magnitude,y:y/magnitude,t:vt||kt||gt||jt};
+    }
+
+    // -- PART: Step --
+    // Updates the user's position and orientation based on movement input and delta time
+    function step(dt, movement) {
+        // New movement logic
+        const speed=movePower/10;
+        // Apply movement
+    player.yaw += movement.t * 2/*TURNS*/ * dt; // Apply turning
+        
+        // Calculate forward and right vectors based on current yaw
+    const yaw=player.yaw+(xr?xrHead:0),cy=COS(yaw),sy=SIN(yaw);
+        //const sp = MOVES * dt;
+        const sp = speed * dt;
+        // collision resolution
+    const prevX = player.x, prevZ = player.z;
+
+        // Apply movement along forward and right vectors
+        player.x+=(cy*movement.x-sy*movement.y)*sp;
+        player.z+=(-sy*movement.x-cy*movement.y)*sp;
+    // OPTIONAL: update the unused predictive-pursuit velocity declared near player state.
+    //userVelX=(player.x-prevUserX)/dt;userVelZ=(player.z-prevUserZ)/dt;prevUserX=player.x;prevUserZ=player.z;
+        // Resolve collisions with obstacles
+        resolveCollisions(prevX, prevZ);
+        spawnAngle=-yaw-ATAN2(movement.y||!movement.x,movement.x);
+        tryPickupItems(dt);
+
+    }
+    // -- /PART: Step --
+    // -- /PART: Movement --
+    // -- /MODULE: Player --
+    // -- PART: Update --
+    function updateWorld(dt, session, frame) {
+        if(hp<1){
+            if(!returning){const boss=enemies.some(enemy=>enemy.tier>6);playMotif(undefined,0,1);hudVisible=!boss;choosing=0;returning=[player.x,player.z,0];if(boss){bannerText='FAILED';bannerTime=performance.now()+4e3;}}
+            // Round only the two corners; straight sections keep a constant speed.
+            const flight=returning,t=flight[2]+=dt,d=MAX(1,HYPOT(flight[0],flight[1]-2)/50),bend=v=>v<0?0:v<1?v*v/2:v-.5,a=bend(t-1),b=bend(t-d-1),step=1-(a-b)/d;
+            player.y=1.6+33.4*(t-a-b)/1.5;
+            player.x=flight[0]*step;player.z=2+(flight[1]-2)*step;
+            if(t>=d+3)resetRun();
+        }else step(dt, getMove(session,frame));
+        updateCity();
+        if(hp>0){
+            activateBeacons();claimRemoteBeacons();updateEnemies(dt);
+            if(hp>0){finishBeacons();updateRemoteEnemies(dt);if(hp>0)updateShots(dt);}
+        }
+        mmoTick(dt);
+    }
+    // -- /PART: Update --
+    // -- /FEATURE: Gameplay --
+    
+    // -- FEATURE: Scene --
+    // -- MODULE: Audio --
+    let audioContext,
+        spatialOutput,
+        localOutput,
+        masterOutput,
+        notes=[330,494,660],
+        // CHAT disabled: opts=[0,0,1,1,1,0];
+        opts=[0,0,1,1,0];
+
+    function initAudio(){
+        if(!audioContext){
+            // LEGACY fallback disabled: new (window.AudioContext||window.webkitAudioContext)()
+            const context=audioContext=new AudioContext(),
+                filter=context.createBiquadFilter(),
+                reverb=context.createConvolver(),
+                impulse=context.createBuffer(2,context.sampleRate*1.4,context.sampleRate),
+                reverbGain=context.createGain(),
+                spatialBus=context.createGain(),
+                compressor=context.createDynamicsCompressor();
+
+            // Catch bursts quickly and recover without a long dip in the whole mix.
+            // compressor.attack.value=0;
+            // compressor.release.value=.08;
+            // compressor.ratio.value=22;
+
+            // Fill both impulse-response channels with fading noise for compact synthetic reverb.
+            for(let channel=2;channel--;){
+                const samples=impulse.getChannelData(channel);
+                for(let sample=samples.length;sample--;)
+                    samples[sample]=(RANDOM()*2-1)*(1-sample/samples.length)**2;
+            }
+
+            reverb.buffer=impulse;
+            filter.frequency.value=6000;
+            reverbGain.gain.value=.2;
+
+            // Local sounds go straight to the filter. Spatial sounds split into dry and reverberated paths.
+            filter.connect(compressor).connect(masterOutput=context.createGain()).connect(context.destination);
+            masterOutput.gain.value=opts[2];
+            spatialBus.connect(filter);
+            spatialBus.connect(reverb).connect(reverbGain).connect(filter);
+            spatialOutput=localOutput=spatialBus;
+            // Schumann resonance shifted up three octaves into the audible range.
+            playSound(62.64,1e6,.005);
+            // playSound(54.81,1e6,.004);
+            // playSound(82.5,1e6,.002);
+
+            localOutput=filter;
+        }
+        audioContext.resume();
+    }
+    // Build one synthesized tone. The final x/y/z arguments make it spatial;
+    // leaving x undefined sends it directly to the non-spatial local output.
+    function playSound(
+        frequency,
+        duration,
+        volume,
+        waveType='sine',
+        endFrequency=frequency,
+        delay=0,
+        attack=.005,
+        x,
+        y,
+        z
+    ){
+        // CHAT disabled: if(!audioContext||!opts[3])return;
+        // if(!audioContext||!opts[2]||x!==undefined&&HYPOT(x-player.x,z-player.z)>60)return;
+        if(!audioContext||!opts[2])return;
+
+        const startTime=audioContext.currentTime+delay,
+            oscillator=audioContext.createOscillator(),
+            gain=audioContext.createGain();
+
+        oscillator.type=waveType;
+        oscillator.frequency.setValueAtTime(frequency,startTime);
+        oscillator.frequency.exponentialRampToValueAtTime(endFrequency,startTime+duration);
+
+        gain.gain.setValueAtTime(.001,startTime);
+        gain.gain.linearRampToValueAtTime(volume,startTime+attack);
+        gain.gain.exponentialRampToValueAtTime(.001,startTime+duration);
+        oscillator.connect(gain);
+
+        if(x===undefined)gain.connect(localOutput);
+        else{
+            const panner=audioContext.createPanner();
+            panner.panningModel='HRTF';
+            panner.distanceModel='linear';
+            panner.maxDistance=60;
+            panner.positionX.value=x;
+            panner.positionY.value=y;
+            panner.positionZ.value=z;
+            gain.connect(panner).connect(spatialOutput);
+        }
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime+duration);
+    }
+    function playClickSound(){
+        playSound(520,.05,.08,'square',260);
+    }
+    function playShotSound(x=player.x,z=player.z){
+        // CHAT disabled: if(opts[4]){
+        if(opts[3]){
+            playSound(900,.1,.07,'square',180,0,.005,x,.7,z);
+        }
+    }
+    function playImpactSound(x,z,kill){
+        playSound(kill?260:300,kill?.14:.08,kill?.08:.035,'triangle',kill?90:130,0,.003,x,.6,z);
+        if(kill)playSound(900,.035,.025,'square',180,0,.002,x,.6,z);
+    }
+    function playHurtSound(){
+        playSound(100,.3,.18,'sawtooth',38);
+    }
+    function playXPSound(){
+        const frequency=600*2**((xp%6)/12);
+        playSound(frequency,.1,.06,'square',frequency*2);
+        playSound(frequency*1.5,.22,.035,'triangle',frequency*3,.05);
+    }
+    function playMotif(x,z,reverse){
+        for(let i=0;i<3;i++){
+            const frequency=notes[reverse?2-i:i];
+            playSound(frequency,i<2?.18:1,.06,'triangle',frequency*.97,i*.22,.03,x,.6,z);
+        }
+    }
+    function updateAudioListener(matrix){
+        // Use the shared legacy API for compact Firefox-compatible listener updates.
+        if(audioContext){
+            const listener=audioContext.listener;
+            listener.setPosition(matrix[12],matrix[13],matrix[14]);
+            listener.setOrientation(-matrix[8],-matrix[9],-matrix[10],matrix[4],matrix[5],matrix[6]);
+        }
+    }
+    // -- /MODULE: Audio --
+
+    // -- MODULE: HUD --
+    // -- PART: State-Layout --
+    // CHAT disabled: const LOG = [], CHAT = [];
+    // LOG disabled: const LOG=[];
+    // CHAT disabled: let logScroll = 0, hudVisible = true, hudPage = 0, chatText = '';
+    let hudVisible=true;
+    let HUD_WH_world = M4(), hoverBtn = null;
+
+    // --- HUD COLOR PALETTE ---
+    // UI_PANEL: large panel/chat background. UI_BUTTON: every button/card background.
+    // UI_HOVER: hovered button/card. UI_TEXT: primary text/borders.
+    // MUTED TEXT disabled: const UI_PANEL='#000d',UI_BUTTON='#333',UI_HOVER='#666',UI_TEXT='#fff',UI_MUTED='#999';
+    const UI_PANEL='#000d',UI_BUTTON='#333',UI_HOVER='#222',UI_TEXT='#fff';
+    // Bar accents: HP is green and XP is yellow; their empty tracks stay black.
+    // Upgrade card borders and titles separately use their POWER tier color below.
+
+    // CHAT disabled: function log(message) { LOG.push(message); LOG.length > 200 && LOG.shift(); logScroll = 0; }
+    // LOG disabled: function log(message){LOG.push(message);LOG.length>200&&LOG.shift()}
+    // CHAT disabled: function say(message) { log(message); CHAT.push(message); CHAT.length > 4 && CHAT.shift(); }
+
+    /* VR/desktop CHAT input disabled:
+    const CHAT_NAV=[
+        [.66,.62,.80,.72,'UP',4],[.82,.62,.96,.72,'DOWN',5]
+    ], KEY_NAV=[
+        [.66,.375,.80,.46,'UP',4],[.82,.375,.96,.46,'DOWN',5]
+    ], UI_KEYS=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map((character,i)=>{
+        const x=.03+i%9*.07,y=.48+(i/9|0)*.14;
+        return [x,y,x+.06,y+.11,character,character];
+    }).concat([
+        [.68,.48,.96,.59,'SPACE',' '],
+        [.68,.62,.96,.73,'BACK',8],
+        [.65,.85,.81,.93,'SEND',10],
+        [.82,.85,.96,.93,'CANCEL',11]
+    ]).concat(KEY_NAV), UI_CHAT=CHAT_NAV.concat(UI_KEYS.slice(28,30));
+    */
+    // u0,v0,u1,v1,label,action
+    const UI_MAIN = [
+        [.66,.06,.96,.18,'AUDIO',16],
+        [.66,.20,.96,.32,'SHOTS',17],
+        [.66,.34,.96,.46,'SWAP',18],
+        [.66,.48,.96,.60,'INVERT',14],
+        [.66,.62,.96,.74,'LOCK',15],
+        [.04,.82,.32,.94,'',2],[.34,.82,.62,.94,'VR',1],
+        [.66,.82,.96,.94,'CLOSE',6]
+    ], UI_TAB = [[.4,0,.6,.16,'',7]], UI_LEVEL=[
+        [.025,.35,.325,.63,'',20],
+        [.35,.35,.65,.63,'',21],
+        [.675,.35,.975,.63,'',22]
+    ];
+    function cardText(type,power){
+        if(type===0)return `+${power} ORB`;
+        if(type===8)return '+1 EVO ORB';
+        if(type===9)return '+1 EVO BOLT';
+        if(type===10)return `+${power*500} DMG`;
+        if(type===11)return `+${power*5e3} HP`;
+        if(type===12)return `+${power}0 DMG`;
+        if(type===13)return `+${power}00 HP`;
+        if(type===3)return `+${power} BOLT`;
+        if(type%10===4)return `+${power*(type>9?5:1)/10} MOVE`;
+        if(type===5)return `+${(1/cooldown(cooldownPower+power)-1/cooldown(cooldownPower)).toFixed(2)} RATE`;
+        if(type===6)return `+${power*20} HP`;
+        return `+${power} DMG`;
+    }
+
+    // INVENTORY HUD disabled: function currentUI() { return choosing ? UI_LEVEL : !hudVisible ? UI_TAB : hudPage===1 ? xr ? UI_KEYS : UI_CHAT : hudPage===2 ? UI_BACK : hudPage===3 ? UI_SETTINGS : UI_MAIN; }
+    // CHAT disabled: function currentUI() { return choosing ? UI_LEVEL : !hudVisible ? UI_TAB : hudPage===1 ? xr ? UI_KEYS : UI_CHAT : hudPage===3 ? UI_SETTINGS : UI_MAIN; }
+    function currentUI(){return hudVisible?UI_MAIN:choosing?UI_LEVEL.concat(UI_TAB):UI_TAB}
+    // -- /PART: State-Layout --
+
+    // -- PART: Actions --
+    /* CHAT disabled:
+    function setChat(open) {
+        hudPage = open ? 1 : 0; chatText = ''; chatInput.value = ''; logScroll=0;
+        if (open && !xr) { hudVisible = true; document.exitPointerLock?.(); chatInput.focus(); }
+        else chatInput.blur();
+    }
+    function sendChat() {
+        const message = chatText.trim().replace(/\|/g,'').slice(0,64);
+        if (!message) return setChat(false);
+        if (!ws || ws.readyState !== 1 || !myId) return log('CHAT: MMO OFFLINE');
+        ws.send('c|' + myId + '|' + message); say('YOU: ' + message); setChat(false);
+    }
+    */
+    function activate(action) {
+        playClickSound();
+        if(action>19)return upgrade(choices[action-20]);
+        // CHAT disabled: if (typeof action === 'string') chatText = (chatText + action).slice(0,64);
+        if (action === 1) toggleXRFromUI();
+        else if (action === 2) toggleMMO();
+        // CHAT disabled: else if (action === 3) setChat(true);
+        // CHAT disabled: else if (action === 4) logScroll=MIN(MAX(0,LOG.length-1),logScroll+1);
+        // CHAT disabled: else if (action === 5) logScroll=MAX(0,logScroll-1);
+        // CHAT disabled: else if (action === 6) { setChat(false);hudVisible=false; }
+        else if(action===6)hudVisible=false;
+        else if (action === 7) hudVisible=true;
+        // CHAT disabled: else if (action === 8) chatText=chatText.slice(0,-1);
+        // CHAT disabled: else if (action === 10) sendChat();
+        // CHAT disabled: else if (action === 11) setChat(false);
+        else if(action===15){
+            if(opts[1])document.exitPointerLock();
+            else if(!xr)canvas.requestPointerLock?.()?.catch(()=>{});
+        }
+        else if (action>13){
+            opts[action-14]^=1;
+            if(action===16&&masterOutput)masterOutput.gain.value=opts[2];
+        }
+    }
+    /* CHAT disabled:
+    chatInput.oninput = _ => chatText = chatInput.value.slice(0,64);
+    chatInput.onkeydown = event => {
+        event.stopPropagation();
+        if(event.key==='Enter'){event.preventDefault();sendChat();}
+        else if(event.key==='Escape')setChat(false);
+    };
+    */
+    // -- /PART: Actions --
+
+    // -- PART: Transform-Picking --
+    // Returns the correct local transform for the HUD based on its visibility state
+    function getHudTransform() {
+        // translate(X, Y, Z): X=horizontal; Y=open -.05, closed/choices .5; Z=closed VR -1.5m, everything else -1.15m.
+        return translateScale(0,hudVisible?-.05:xr?.4:.5,xr&&!hudVisible?-1.5:-1.15,1,1,1);
+    }
+
+    // --- HUD Interaction Needs Input-ray ---
+    function HUD_pick(WH, ray) {
+        const ui=currentUI();
+        const inv = INV(WH);
+        const origin=mulPoint(inv,ray.o,1); // Transform ray to HUD's local space
+        const direction=mulPoint(inv,ray.d,0);
+        const distance=-origin[2]/direction[2]; // Intersect with the Z=0 plane
+        if(distance<=0)return null;
+
+        const x=origin[0]+direction[0]*distance;
+        const y=origin[1]+direction[1]*distance;
+
+        // Check if the hit is within the quad's bounds
+        if (x < -.26 || x > .26 || y < -.15 || y > .15) return null;
+        
+        // Convert local coordinates to UV coordinates
+        const normalizedX=(x+.26)/(.26*2);
+        const normalizedY=(.15-y)/(.15*2);
+
+        // Check against each button's UV bounds
+        for(const button of ui)if(normalizedX>=button[0]&&normalizedX<=button[2]&&normalizedY>=button[1]&&normalizedY<=button[3])return {button,t:distance};
+        return {t:distance}; // Hit the panel but not a button
+    }
+    // -- /PART: Transform-Picking --
+
+    // -- PART: Canvas-Drawing --
+    // --- HUD Drawing ---
+    function drawBars(barY){
+        const barX=hudVisible?20:120,width=400;
+        // Bar entries: current value, maximum value, label, filled color, empty color.
+        for(const bar of [[hp,maxHp,'HP','#2a2','#252'],[xp,level*3,'XP','#aa2','#552']]){
+            hudCtx.fillStyle=bar[4];hudCtx.fillRect(barX,barY,width,22);
+            hudCtx.fillStyle=bar[3];hudCtx.fillRect(barX,barY,width*MIN(1,bar[0]/bar[1]),22);
+            hudCtx.fillStyle=UI_TEXT;hudCtx.font='20px system-ui';hudCtx.textAlign='left';hudCtx.textBaseline='middle';
+            hudCtx.fillText(`${bar[2]} ${ROUND(bar[0])}/${bar[1]}`,barX+8,barY+11);barY+=23;
+        }
+        hudCtx.textBaseline='alphabetic';
+    }
+    // Draws the entire HUD onto the 2D canvas
+    function drawHUDCanvas() {
+        hudCtx.clearRect(0, 0, hudCan.width, hudCan.height);
+
+        // Draw the compact menu tab while the main HUD is closed.
+        if (!hudVisible) {
+            const button = UI_TAB[0];
+            const buttonX=button[0]*640;
+            const buttonY=button[1]*320;
+            const width=(button[2]-button[0])*640;
+            const height=(button[3]-button[1])*320;
+
+            // Closed HUD MENU button background and hover colors.
+            hudCtx.fillStyle = hoverBtn === button ? UI_HOVER : UI_BUTTON;
+            hudCtx.fillRect(buttonX,buttonY,width,height);
+            hudCtx.fillStyle = UI_TEXT;
+            hudCtx.font = 'bold 22px system-ui';
+            hudCtx.textAlign = 'center';
+            hudCtx.textBaseline = 'middle';
+            hudCtx.fillText('MENU',buttonX+width/2,buttonY+height/2);
+            const data=[`${FLOOR(skillTime/6)/10}m`,`LVL ${level}`,`X ${ROUND(player.x)}`,`Y ${ROUND(player.z)}`];
+            for(let i=4;i--;){hudCtx.textAlign=i<2?'right':'left';hudCtx.fillText(data[i],buttonX+(i<2?-10:width+10),buttonY+13+i%2*25)}
+            drawBars(56);
+
+            if(choosing){
+                for(const button of UI_LEVEL){
+                    const buttonX=button[0]*640,buttonY=button[1]*320,width=(button[2]-button[0])*640,height=(button[3]-button[1])*320;
+                    // Level-up card background, hover, border, title, and description colors.
+                    hudCtx.fillStyle=hoverBtn===button?UI_HOVER:UI_BUTTON;hudCtx.fillRect(buttonX,buttonY,width,height);
+                    hudCtx.strokeStyle=hudCtx.fillStyle=POWER[button[6]][0];hudCtx.lineWidth=5;hudCtx.strokeRect(buttonX+2,buttonY+2,width-4,height-4);
+                    hudCtx.font='bold 22px system-ui';hudCtx.textAlign='center';hudCtx.textBaseline='middle';hudCtx.fillText(button[4],buttonX+width/2,buttonY+height/2);
+                }
+            }
+            if(bannerTime>performance.now()){
+                hudCtx.font='bold 48px system-ui';hudCtx.textAlign='center';hudCtx.fillStyle=UI_TEXT;
+                hudCtx.strokeStyle=UI_PANEL;hudCtx.lineWidth=14;hudCtx.strokeText(bannerText,320,240);
+                hudCtx.fillText(bannerText,320,240);
+            }
+
+            /* CLOSED CHAT UI disabled:
+            // Keep the latest chat messages visible over the closed HUD.
+            if (!choosing && opts[2] && CHAT.length) {
+                const lines = CHAT.slice(-3);
+                hudCtx.fillStyle = UI_PANEL;
+                hudCtx.fillRect(20, 84, 600, 22 + lines.length * 18);
+                hudCtx.fillStyle = UI_TEXT;
+                hudCtx.font = '14px monospace';
+                hudCtx.textAlign = 'left';
+                hudCtx.textBaseline = 'alphabetic';
+                lines.forEach((message, i) =>
+                    hudCtx.fillText(message.slice(0, 68), 28, 104 + i * 18)
+                );
+            }
+            */
+        } else {
+            // Open HUD main panel background.
+            hudCtx.fillStyle = UI_PANEL;
+            hudCtx.fillRect(6, 6, 628, 308);
+
+            hudCtx.textAlign = 'left';
+            hudCtx.textBaseline = 'alphabetic';
+            /* CHAT disabled:
+            hudCtx.fillText(
+                hudPage === 1 ? 'CHAT' :
+                // hudPage === 2 ? 'INVENTORY' : // INVENTORY HUD disabled
+                hudPage === 3 ? 'SETTINGS' :
+                'MAWLIGHT',
+                20,
+                34
+            );
+            */
+            drawBars(20);
+            hudCtx.font = '20px system-ui';
+            hudCtx.fillStyle = UI_TEXT;
+
+            /* CHAT UI disabled:
+            if (hudPage === 1) {
+                // Chat history and text entry field.
+                const lineCount=xr?4:11;
+                const iy = xr ? 120 : 270;
+                const lines = LOG.slice(
+                    MAX(0, LOG.length - lineCount - logScroll),
+                    LOG.length - logScroll
+                );
+
+                lines.forEach((message, i) =>
+                    hudCtx.fillText(
+                        message.slice(0, xr ? 62 : 48),
+                        20,
+                        48 + i * (xr ? 18 : 19)
+                    )
+                );
+
+                // Chat input field uses the same background as every HUD button.
+                hudCtx.fillStyle = UI_BUTTON;
+                hudCtx.fillRect(20, iy, 390, 28);
+                hudCtx.fillStyle = UI_TEXT;
+                hudCtx.fillText(
+                    '> ' + chatText.slice(-58) +
+                        (performance.now() % 1e3 < 500 ? '_' : ''),
+                    28,
+                    iy + 20
+                );
+            }
+            */
+            /* INVENTORY HUD disabled:
+            else if (hudPage === 2) {
+                // Inventory placeholder.
+                hudCtx.fillStyle = UI_MUTED;
+                hudCtx.font = '16px system-ui';
+                hudCtx.fillText('INVENTORY', 20, 82);
+                hudCtx.font = '14px monospace';
+                hudCtx.fillText('Items and equipment', 20, 112);
+            } */
+            let peerCount=1,now=performance.now(),y=62;
+            peers.forEach(peer =>
+                now-peer.last<15000&&peerCount++
+            );
+
+                for(const text of [`LVL ${level}`,`MOBS ${defeated}`,`DMG ${dealt}`,`TIME ${FLOOR(skillTime/6)/10}m`,`MMO ${mmoEnabled?'ON':'OFF'}`,`PPL ${peerCount}`,`X ${ROUND(player.x)}`,`Y ${ROUND(player.z)}`])hudCtx.fillText(text,28,y+=24);
+                // LOG/MUTED TEXT disabled: hudCtx.fillStyle = UI_MUTED;
+                // LOG disabled: hudCtx.font = '14px monospace';
+
+                /* LOG disabled:
+                // CHAT disabled: const lines=LOG.slice(MAX(0,LOG.length-9-logScroll),LOG.length-logScroll);
+                const lines=LOG.slice(-9);
+                lines.forEach((message, i) =>
+                    hudCtx.fillText(message.slice(0, 48), 20, 158 + i * 17)
+                );
+                */
+            // Draw every button belonging to the active page.
+            for (const button of UI_MAIN) {
+                const buttonX=button[0]*640;
+                const buttonY=button[1]*320;
+                const width=(button[2]-button[0])*640;
+                const height=(button[3]-button[1])*320;
+                const action = button[5];
+
+                // Open HUD button background and hover colors are controlled here.
+                hudCtx.fillStyle = hoverBtn === button ? UI_HOVER : UI_BUTTON;
+                hudCtx.fillRect(buttonX,buttonY,width,height);
+                hudCtx.fillStyle = UI_TEXT;
+                /* CHAT disabled:
+                hudCtx.font = (
+                    (hudPage === 1 && xr) || button[2] - button[0] < .2 ? '13' : '16'
+                ) + 'px system-ui';
+                */
+                hudCtx.font='18px system-ui';
+                hudCtx.textAlign = 'center';
+                hudCtx.textBaseline = 'middle';
+                hudCtx.fillText(
+                    action === 1 ? 'VR ' + (xr ? 'ON' : 'OFF') :
+                    action === 2 ? 'MMO ' + (mmoEnabled ? 'ON' : 'OFF') :
+                    action>13 ? button[4]+' '+(opts[action-14]?'ON':'OFF') :
+                    button[4],
+                    buttonX+width/2,
+                    buttonY+height/2
+                );
+            }
+        }
+
+        // Upload the canvas content to the WebGL texture
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, hudCan);
+    }
+    // -- /PART: Canvas-Drawing --
+
+    // -- PART: WebGL-Setup --
+    // --- HUD Shader ---
+    // The HUD is a 2D canvas drawn in the DOM, then uploaded to a WebGL texture to be displayed on a 3D quad
+
+    let hudCan = document.createElement('canvas');
+    let hudCtx = hudCan.getContext('2d');
+    hudCan.width = 640;
+    hudCan.height = 320;
+
+    gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    // Simple textured quad shader for the HUD (unified MVP)
+    const vsMVP = `layout(location=0)in vec3 p;layout(location=1)in vec2 uv;uniform mat4 M,V,P;out vec2 f;void main(){f=uv;gl_Position=P*V*M*vec4(p,1.);}`;
+    const PH=prog(vsMVP,`in vec2 f;uniform sampler2D T;out vec4 o;void main(){o=texture(T,f);}`);
+    // Shared solid-color fragment program (reused by spheres and beam)
+    const PC=prog(vsMVP,`uniform vec4 col;out vec4 o;void main(){o=col;}`);
+    const uMH = gl.getUniformLocation(PH, 'M'),
+          uVH = gl.getUniformLocation(PH, 'V'),
+          uPH = gl.getUniformLocation(PH, 'P');
+
+    const vaoH = gl.createVertexArray();
+    gl.bindVertexArray(vaoH);
+    gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());
+    // Vertex data for the HUD quad (position and UV coordinates).
+    gl.bufferData(gl.ARRAY_BUFFER, new F32([-.26,.15,0, 0,0,  .26,.15,0, 1,0,  .26,-.15,0, 1,1,  -.26,.15,0, 0,0,  .26,-.15,0, 1,1,  -.26,-.15,0, 0,1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); 
+    gl.vertexAttribPointer(0, 3, 
+    gl.FLOAT, false, 20, 0);
+    gl.enableVertexAttribArray(1); 
+    gl.vertexAttribPointer(1, 2, 
+    gl.FLOAT, false, 20, 12);
+    function drawHud(M,V,P) {
+        gl.useProgram(PH);gl.bindVertexArray(vaoH);
+        gl.uniformMatrix4fv(uMH,false,M);gl.uniformMatrix4fv(uVH,false,V);gl.uniformMatrix4fv(uPH,false,P);
+        gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,6);gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);
+    }
+    // -- /PART: WebGL-Setup --
+
+    // -- /MODULE: HUD --
+
+    // -- MODULE: World-Renderer --
+    // -- PART: Sphere-Renderer --
+    // Shared sphere geometry and renderer.
+
+    function buildSphere(){
+        const vertices=[];
+        for(let i=0;i<10;i++){
+            const t1=PI*i/10, t2=PI*(i+1)/10;
+            for(let j=0;j<12;j++){
+                const p1=2*PI*j/12, p2=2*PI*(j+1)/12;
+                const quad=[
+                    sph(t1,p1),sph(t2,p1),sph(t2,p2),
+                    sph(t1,p1),sph(t2,p2),sph(t1,p2)
+                ];
+                for(const point of quad) vertices.push(point[0],point[1],point[2]);
+            }
+        }
+        return new F32(vertices);
+    }
+    function sph(theta,phi){ return [SIN(theta)*COS(phi),COS(theta),SIN(theta)*SIN(phi)]; }
+
+    const sphereVao = gl.createVertexArray();
+    gl.bindVertexArray(sphereVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());
+    const sphereVerts = buildSphere();
+    gl.bufferData(gl.ARRAY_BUFFER, sphereVerts, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    const uS_M = gl.getUniformLocation(PC,'M');
+    const uS_V = gl.getUniformLocation(PC,'V');
+    const uS_P = gl.getUniformLocation(PC,'P');
+    const uS_Color = gl.getUniformLocation(PC,'col');
+
+    // drawWorld binds PC, the eye matrices, and sphereVao before all sphere draws.
+    function drawSphere(x,y,z,radius,color,height=radius){
+        gl.uniformMatrix4fv(uS_M,false,translateScale(x,y,z,radius,height,radius));
+        gl.uniform4f(uS_Color,color[0],color[1],color[2],color[3]??1);
+        gl.drawArrays(gl.TRIANGLES,0,sphereVerts.length/3);
+    }
+
+    // -- /PART: Sphere-Renderer --
+
+    // -- PART: City --
+    // Near black buildings with crisp white contour lines.
+    //const groundVerts = new F32([-500,0,-500,500,0,-500,500,0,500,-500,0,-500,500,0,500,-500,0,500]);
+    //const groundVao=gl.createVertexArray(),groundBuf=gl.createBuffer();
+    //gl.bindVertexArray(groundVao);gl.bindBuffer(gl.ARRAY_BUFFER,groundBuf);gl.bufferData(gl.ARRAY_BUFFER,groundVerts,gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    const cubeVerts=new F32([
+        -1,-1,-1,1,-1,-1,1,1,-1,-1,-1,-1,1,1,-1,-1,1,-1,1,-1,1,-1,-1,1,-1,1,1,1,-1,1,-1,1,1,1,1,1,
+        -1,-1,1,-1,-1,-1,-1,1,-1,-1,-1,1,-1,1,-1,-1,1,1,1,-1,-1,1,-1,1,1,1,1,1,-1,-1,1,1,1,1,1,-1,
+        -1,1,-1,1,1,-1,1,1,1,-1,1,-1,1,1,1,-1,1,1,-1,-1,1,1,-1,1,1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1]);
+    const edgeVerts=new F32([
+        -1,-1,-1,1,-1,-1,1,-1,-1,1,-1,1,1,-1,1,-1,-1,1,-1,-1,1,-1,-1,-1,
+        -1,1,-1,1,1,-1,1,1,-1,1,1,1,1,1,1,-1,1,1,-1,1,1,-1,1,-1,
+        -1,-1,-1,-1,1,-1,1,-1,-1,1,1,-1,1,-1,1,1,1,1,-1,-1,1,-1,1,1]);
+    const buildingVao=gl.createVertexArray();
+    gl.bindVertexArray(buildingVao);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,cubeVerts,gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    const edgeVao=gl.createVertexArray();
+    gl.bindVertexArray(edgeVao);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,edgeVerts,gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    updateCity();resetBeacons();resetEnemies();
+    function drawCity(V,P){
+        gl.useProgram(PC);gl.uniformMatrix4fv(uS_V,false,V);gl.uniformMatrix4fv(uS_P,false,P);
+        //gl.uniformMatrix4fv(uS_M,false,M);gl.uniform4f(uS_Color,0,0,0,1);gl.bindVertexArray(groundVao);gl.drawArrays(gl.TRIANGLES,0,6);
+        for(const building of buildings){
+            // Draw each building as a dark cube scaled to its width, height, and depth.
+            gl.uniformMatrix4fv(uS_M,false,translateScale(building.x,building.h/2,building.z,building.w/2,building.h/2,building.d/2));
+            gl.uniform4f(uS_Color,.05,.05,.05,1);gl.bindVertexArray(buildingVao);gl.drawArrays(gl.TRIANGLES,0,36);
+            // Draw a slightly larger white outline around each building to create a crisp contour effect.
+            gl.uniformMatrix4fv(uS_M,false,translateScale(building.x,building.h/2,building.z,building.w/2+.01,building.h/2+.01,building.d/2+.01)); // 0.01 biger
+            gl.uniform4f(uS_Color,1,1,1,1);gl.bindVertexArray(edgeVao);gl.drawArrays(gl.LINES,0,24);
+        }
+    }
+    // -- /PART: City --
+
+    // -- VR: Rendering --
+    // -- PART: Disc-Renderer --
+    // Reticle removed; single disc shader used for VR hand/grip indicator
+
+    // Use shared vsMVP for disc and a tiny fragment shader that reads the same uv varying name 'f'
+    const PDisc=prog(vsMVP,`in vec2 f;uniform vec4 col;uniform float width;out vec4 o;void main(){float d=distance(f,vec2(.5)),h=width/2.,edge=fwidth(d)*1.5,r=1.-smoothstep(h-edge,h+edge,abs(d-(.5-h)));o=vec4(col.rgb,col.a*r);if(o.a<.02)discard;}`);
+    const uMDisc = gl.getUniformLocation(PDisc, 'M'),
+          uVDisc = gl.getUniformLocation(PDisc, 'V'),
+          uPDisc = gl.getUniformLocation(PDisc, 'P'),
+          uColDisc = gl.getUniformLocation(PDisc, 'col'),
+          uWidthDisc = gl.getUniformLocation(PDisc, 'width');
+
+    // No custom VAO: reuse the HUD quad, which already has positions and UVs.
+
+    // -- /PART: Disc-Renderer --
+
+    // -- PART: Beam-Renderer --
+    // Beam for pointing ray (reuses PC and its shared uniform locations)
+    const vaoBeam = gl.createVertexArray();
+    gl.bindVertexArray(vaoBeam);
+    gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());
+    // A simple quad scaled to form the beam
+    gl.bufferData(gl.ARRAY_BUFFER, new F32([0,0,0, 1,0,0, 1,0,1, 0,0,0, 1,0,1, 0,0,1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+    // -- /PART: Beam-Renderer --
+
+    // -- PART: Beacon --
+    // Reuse the original centre-beacon visual for every generated beacon.
+    function drawSpawnBeacons(V,P){
+        gl.depthMask(false);gl.enable(gl.BLEND);
+        gl.useProgram(PDisc);gl.uniformMatrix4fv(uVDisc,false,V);gl.uniformMatrix4fv(uPDisc,false,P);
+        const visibleBeacons=SPAWN_BEACONS.slice(),now=performance.now();peers.forEach(peer=>{if(now-peer.last<15000)peer.b.forEach(beacon=>visibleBeacons.push(beacon))});
+        for(const beacon of visibleBeacons){
+            const x=beacon[0],z=beacon[1],boss=beacon[2]>6,color=beacon.length>2?POWER[beacon[2]%7][1]:WHITE,health=beacon[3]?MAX(0,beacon[4])/beacon[5]:1,visual=(boss?5:1)*(beacon[3]? .2+.8*SQRT(health):1),width=4*visual,height=beacon.length<3?300:beacon[3]?20+280*health:180,length=HYPOT(player.x-x,player.z-z)||1,dx=(player.z-z)/length,dz=(x-player.x)/length;
+            // outer beam
+            gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.useProgram(PC);gl.bindVertexArray(vaoBeam);gl.uniform4f(uS_Color,color[0],color[1],color[2],.2);
+            gl.uniformMatrix4fv(uS_M,false,new F32([dx*width,0,dz*width,0, 0,1,0,0, 0,height,0,0, x-dx*width/2,-.1,z-dz*width/2,1]));gl.drawArrays(gl.TRIANGLES,0,6);
+            // outer filled disc
+            gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.useProgram(PDisc);gl.bindVertexArray(vaoH);gl.uniform1f(uWidthDisc,1);gl.uniform4f(uColDisc,color[0]*.2,color[1]*.2,color[2]*.2,1);
+            let radius=1.7*visual,ring=new DM().translate(x,0,z).rotate(90,0,0).scale(radius/.26,radius/.15,1).toFloat32Array();gl.uniformMatrix4fv(uMDisc,false,ring);gl.drawArrays(gl.TRIANGLES,0,6);
+            // inner beam
+            const inner=visual;gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.useProgram(PC);gl.bindVertexArray(vaoBeam);gl.uniform4f(uS_Color,color[0],color[1],color[2],.35);
+            gl.uniformMatrix4fv(uS_M,false,new F32([dx*inner,0,dz*inner,0, 0,1,0,0, 0,height,0,0, x-dx*inner/2,0,z-dz*inner/2,1]));gl.drawArrays(gl.TRIANGLES,0,6);
+            // inner filled disc
+            gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.useProgram(PDisc);gl.bindVertexArray(vaoH);gl.uniform4f(uColDisc,color[0]*.55,color[1]*.55,color[2]*.55,1);
+            radius=.5*visual;ring=new DM().translate(x,0,z).rotate(90,0,0).scale(radius/.26,radius/.15,1).toFloat32Array();gl.uniformMatrix4fv(uMDisc,false,ring);gl.drawArrays(gl.TRIANGLES,0,6);
+            // outer accent ring
+            gl.uniform1f(uWidthDisc,.115);gl.uniform4f(uColDisc,color[0],color[1],color[2],1);
+            radius=2.15*visual;ring=new DM().translate(x,0,z).rotate(90,0,0).scale(radius/.26,radius/.15,1).toFloat32Array();gl.uniformMatrix4fv(uMDisc,false,ring);gl.drawArrays(gl.TRIANGLES,0,6);
+            // Three copies rise from the boss beacon's ground ring at the same size.
+            if(boss)for(let i=3;i--;){const rise=(now/2e3+i/3)%1;ring=new DM().translate(x,height*rise,z).rotate(90,0,0).scale(radius/.26,radius/.15,1).toFloat32Array();gl.uniformMatrix4fv(uMDisc,false,ring);gl.drawArrays(gl.TRIANGLES,0,6);}
+            // inner accent ring
+            // gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.uniform1f(uWidthDisc,.1);gl.uniform4f(uColDisc,color[0],color[1],color[2],.99);
+            // radius=.55*visual;ring=new DOMMatrix().translate(x,0,z).rotate(90,0,0).scale(radius/.26,radius/.15,1).toFloat32Array();gl.uniformMatrix4fv(uMDisc,false,ring);gl.drawArrays(gl.TRIANGLES,0,6);
+        }
+        gl.disable(gl.BLEND);gl.depthMask(true);
+    }
+    // -- /PART: Beacon --
+
+    // -- /VR: Rendering --
+    
+    // Shared scene renderer. Desktop supplies one synthetic head view; WebXR
+    // supplies the headset's real eye views.
+    // -- PART: Character-Renderer --
+    const BLACK=[0,0,0], WHITE=[1,1,1];
+    // Armer 2 made from the existing sphere primitive to keep the packed build small.
+    function drawModel(x, y, z, yaw, anim, amp, col, shell=1, scale=1){
+        const cy=COS(yaw),sy=SIN(yaw);
+        function place(lx,ly,lz,radius,color=col,height){
+            drawSphere(x+(lx*cy+lz*sy)*scale,y-.6+(.4+ly)*scale,z+(lz*cy-lx*sy)*scale,radius*shell*scale,color,height&&height*shell*scale);
+        }
+        place(0,.08,0,.34); // Torso: the large central body sphere.
+        for(const side of[-1,1]){
+            place(side*.2,.06,0,.24); // Left/right head-and-shoulder mass.
+            place(side*.1,.2,.3,.05,shell==1?col==WHITE?BLACK:WHITE:col); // Eye on the forward face.
+            anim+=PI;const step=SIN(anim)*amp*2,lift=MAX(0,step);
+            place(side*.18,-.17+lift/2,step/2,.12,col,.2); // Amplified Armer2 midpoint motion beneath the shoulders.
+            place(side/3,.1,.1,.16); // Arm/hand sphere beside the upper body.
+        }
+    }
+    // -- /PART: Character-Renderer --
+
+    // -- PART: Damage-Numbers --
+    function drawDamageNumbers(W){
+        if(!damageNumbers.length)return;
+        const masks=[63,6,91,79,102,109,125,7,127,111],pos=[[0,2],[1,1],[1,-1],[0,-2],[-1,-1],[-1,1],[0,0]];
+        gl.useProgram(PC);gl.bindVertexArray(sphereVao);
+        gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+        for(const number of damageNumbers){
+            const text=''+number.n;
+            for(let j=0;j<text.length;j++)for(let segment=0;segment<7;segment++)if(masks[+text[j]]>>segment&1){
+                const vertical=segment%3,x=(j-(text.length-1)/2)*.35+pos[segment][0]*.15,y=pos[segment][1]*.15,
+                    wx=number.x+W[0]*x+W[4]*y,wy=number.y+W[1]*x+W[5]*y,wz=number.z+W[2]*x+W[6]*y,
+                    M=new F32([W[0]*(vertical?.035:.13),W[1]*(vertical?.035:.13),W[2]*(vertical?.035:.13),0,W[4]*(vertical?.13:.035),W[5]*(vertical?.13:.035),W[6]*(vertical?.13:.035),0,W[8]*.02,W[9]*.02,W[10]*.02,0,wx,wy,wz,1]);
+                gl.uniformMatrix4fv(uS_M,false,M);gl.uniform4f(uS_Color,1,1,1,MIN(1,number.t*2));gl.drawArrays(gl.TRIANGLES,0,sphereVerts.length/3);
+            }
+        }
+        gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);
+    }
+    // -- /PART: Damage-Numbers --
+
+    function drawWorld(V, P, W) {
+        const now=performance.now(),tt=now*.001,br=.144,live=enemy=>!enemy.dead&&now-enemy.last<15000;
+        drawCity(V,P);gl.bindVertexArray(sphereVao);
+        // -- PART: XP --
+        // Mesh and ghost loops intentionally remain separate: a shared pass helper is larger.
+        for(const item of items)if(item.r>0){const angle=tt*7+item.x*2+item.z,radius=.12+SIN(angle)*.025,dx=COS(angle)*.08,dz=-SIN(angle)*.08;item.t===2?(drawSphere(item.x-dx,item.y,item.z-dz,radius,POWER[0][1]),drawSphere(item.x+dx,item.y,item.z+dz,radius,POWER[5][1])):drawSphere(item.x,item.y,item.z,radius,item.t===1?POWER[3][1]:WHITE);}
+        // -- /PART: XP --
+        gl.depthMask(false);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+        // -- PART: XP --
+        for(const item of items)if(item.r>0){const angle=tt*7+item.x*2+item.z,color=item.t===1?[.05,.8,.12,.2]:item.t===2?[1,.7,.02,.25]:[1,1,1,.08+ABS(SIN(angle))*.18];drawSphere(item.x+COS(angle)*.06,item.y+.025,item.z+SIN(angle)*.06,.2+SIN(angle)/40,color);}
+        // -- /PART: XP --
+        // -- PART: Projectile --
+        // Intentional duplication: these similar loops produce a smaller PPMd ZIP than a shared helper.
+        for(const projectile of shots)for(let j=3;j--;){const trailStep=j+1,color=projectile.c<0?WHITE:POWER[projectile.c][1];drawSphere(projectile.x-projectile.vx*.065*trailStep,projectile.y,projectile.z-projectile.vz*.065*trailStep,br*(1-j*.12),[color[0],color[1],color[2],.2/trailStep]);}
+        for(const projectile of remoteShots)for(let j=3;j--;){const trailStep=j+1,color=projectile.c<0?WHITE:POWER[projectile.c][1];drawSphere(projectile.x-projectile.vx*.065*trailStep,projectile.y,projectile.z-projectile.vz*.065*trailStep,br*(1-j*.12),[color[0],color[1],color[2],.2/trailStep]);}
+        // -- /PART: Projectile --
+        // -- PART: Enemy --
+        // Local/remote passes and ghost offsets intentionally repeat: both shared helpers made the PPMd ZIP larger.
+        for(const enemy of enemies){const sway=SIN(tt*10+enemy.i)*.2,x=enemy.x-SIN(enemy.yaw)*.2+COS(enemy.yaw)*sway,z=enemy.z-COS(enemy.yaw)*.2-SIN(enemy.yaw)*sway;drawModel(x,enemy.y,z,enemy.yaw,enemy.anim||tt*8,.08,[...POWER[(enemy.mut<0?enemy.tier:enemy.mut)%7][1],.2],enemy.mut<0?1.12:1.4,enemy.scale);}
+        remoteEnemies.forEach(group=>group.forEach(enemy=>{if(live(enemy)){const sway=SIN(tt*10+enemy.i)*.2,x=enemy.x-SIN(enemy.yaw)*.2+COS(enemy.yaw)*sway,z=enemy.z-COS(enemy.yaw)*.2-SIN(enemy.yaw)*sway;drawModel(x,enemy.y,z,enemy.yaw,enemy.anim||tt*8,.08,[...POWER[(enemy.mut<0?enemy.tier:enemy.mut)%7][1],.2],enemy.mut<0?1.12:1.4,enemy.scale);}}));
+        gl.disable(gl.BLEND);
+        for(const enemy of enemies)drawModel(enemy.x,enemy.y,enemy.z,enemy.yaw,enemy.anim,.08+enemy.tier*.01,POWER[enemy.tier%7][1],1.16,enemy.scale);
+        remoteEnemies.forEach(group=>group.forEach(enemy=>live(enemy)&&drawModel(enemy.x,enemy.y,enemy.z,enemy.yaw,now*.008,.1,POWER[enemy.tier%7][1],1.16,enemy.scale)));
+        gl.depthMask(true);
+        for(const enemy of enemies)drawModel(enemy.x,enemy.y,enemy.z,enemy.yaw,enemy.anim,.08+enemy.tier*.01,BLACK,1,enemy.scale);
+        remoteEnemies.forEach(group=>group.forEach(enemy=>live(enemy)&&drawModel(enemy.x,enemy.y,enemy.z,enemy.yaw,now*.008,.1,BLACK,1,enemy.scale)));
+        // -- /PART: Enemy --
+        // -- PART: Projectile --
+        gl.depthMask(false);
+        for(const projectile of shots)drawSphere(projectile.x,projectile.y,projectile.z,br*(1.14+(projectile.d<0)),projectile.c<0?WHITE:POWER[projectile.c][1]);
+        for(const projectile of remoteShots)drawSphere(projectile.x,projectile.y,projectile.z,br*(1.14+(projectile.d<0)),projectile.c<0?WHITE:POWER[projectile.c][1]);
+        gl.depthMask(true);
+        for(const projectile of shots)drawSphere(projectile.x,projectile.y,projectile.z,br,BLACK);
+        for(const projectile of remoteShots)drawSphere(projectile.x,projectile.y,projectile.z,br,BLACK);
+        // -- /PART: Projectile --
+        // -- PART: Orb --
+        // Local and peer loops intentionally repeat: PPMd compresses them smaller than a shared renderer.
+        gl.depthMask(false);
+        for(let tier=-1;tier<7;tier++)for(let i=orbCounts[tier+1]||0;i--;){const angle=orbPhase(skillTime,tier)+i*PI*2/orbCounts[tier+1],radius=orbRadius(tier);drawSphere(player.x+COS(angle)*radius,player.y-.9,player.z+SIN(angle)*radius,.27,tier<0?WHITE:POWER[tier][1]);}
+        gl.depthMask(true);
+        for(let tier=-1;tier<7;tier++)for(let i=orbCounts[tier+1]||0;i--;){const angle=orbPhase(skillTime,tier)+i*PI*2/orbCounts[tier+1],radius=orbRadius(tier);drawSphere(player.x+COS(angle)*radius,player.y-.9,player.z+SIN(angle)*radius,.25,BLACK);}
+        // -- /PART: Orb --
+        if(peers.size){
+            const target=now-120;
+            peers.forEach(peer=>{
+                if(now-peer.last>=15000)return;
+                const sample=sampleMotion(peer,target);
+                peer.anim+=HYPOT(sample.x-peer.x,sample.z-peer.z)*3;peer.x=sample.x;peer.z=sample.z;
+                drawModel(sample.x,.6,sample.z,sample.yaw+PI,peer.anim,.1,WHITE);
+                // -- PART: Orb --
+                gl.depthMask(false);
+                for(let tier=-1;tier<7;tier++)for(let i=peer.orbs[tier+1]||0;i--;){const angle=orbPhase(peer.op,tier)+i*PI*2/peer.orbs[tier+1],radius=orbRadius(tier);drawSphere(sample.x+COS(angle)*radius,.7,sample.z+SIN(angle)*radius,.27,tier<0?WHITE:POWER[tier][1]);}
+                gl.depthMask(true);
+                for(let tier=-1;tier<7;tier++)for(let i=peer.orbs[tier+1]||0;i--;){const angle=orbPhase(peer.op,tier)+i*PI*2/peer.orbs[tier+1],radius=orbRadius(tier);drawSphere(sample.x+COS(angle)*radius,.7,sample.z+SIN(angle)*radius,.25,BLACK);}
+                // -- /PART: Orb --
+            });
+        }
+        // Transparent beacon comes after characters so the existing depth buffer
+        // correctly separates enemies in front of it from enemies behind it.
+        drawSpawnBeacons(V,P);
+        drawDamageNumbers(W);
+    }
+    // -- /MODULE: World-Renderer --
+    // -- /FEATURE: Scene --
+
+    // -- FEATURE: VR --
+    // -- PART: Input-Rendering --
+    // -- VR: Rendering --
+    // OPTIONAL VISUALS: remove with its call to hide controller discs and beams; HUD ray clicks still work.
+    function drawXRInput(session, frame, hudWH) {
+        // PC/PDisc retain this eye's camera uniforms from drawCity/drawSpawnBeacons.
+        for (const src of session.inputSources || []) {
+            const col = WHITE;
+            const target = src.targetRaySpace ? frame.getPose(src.targetRaySpace, ref) : null;
+            if (target) {
+                const matrix=MULTMAT4(xrM,target.transform.matrix),scale=.1-.02*(src.gamepad?.buttons[1]?.value||0);
+                const ring=new DM(matrix).scale(scale,scale*1.73,1).toFloat32Array();
+                gl.useProgram(PDisc); gl.bindVertexArray(vaoH);
+                gl.uniformMatrix4fv(uMDisc,false,ring);
+                gl.uniform4f(uColDisc,col[0],col[1],col[2],.95);
+                gl.uniform1f(uWidthDisc,.2);
+                gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+                gl.drawArrays(gl.TRIANGLES,0,6);
+                const hit=HUD_pick(hudWH,controllerRay(frame,src));
+                const width=.004+.01*(src.gamepad?.buttons[0]?.value||+selecting.has(src));
+                const M=new DM([width,0,0,0,0,width,0,0,0,0,-(hit?MIN(3,hit.t):3),0,0,0,0,1]);
+                const beam=new DM(matrix).multiply(M).toFloat32Array();
+                gl.useProgram(PC); gl.bindVertexArray(vaoBeam);
+                gl.uniformMatrix4fv(uS_M, false, beam);
+                gl.uniform4f(uS_Color, col[0], col[1], col[2], .8);
+                gl.drawArrays(gl.TRIANGLES, 0, 6); gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST);
+            }
+        }
+    }
+    // -- /VR: Rendering --
+    // -- /PART: Input-Rendering --
+
+    // -- PART: Session --
+    // -- VR: Session --
+    // --- WebXR ---
+
+    // OPTIONAL: preflights WebXR support for a startup status message; Enter VR already handles failure.
+    /*function initXR(){
+        if(!('xr'in navigator)){log('NO VR');return}
+        navigator.xr.isSessionSupported('immersive-vr').then(supported=>log(supported?'VR READY':'NO VR')).catch(error=>log('VR ERR '+error.message));
+    }*/
+    // if vr not avalable we split screen in to stereo view some day
+
+    // Toggles an immersive VR session
+    async function toggleXRFromUI() {
+        try {
+            if (xr) {
+                //cancelAnimationFrame(loop); // Stop desktop loop
+                await xr.end(); // End the current session
+                return;
+            }
+            // Request a new session
+            const hands=navigator.userAgent.includes('VR');
+            const features=['local-floor'];hands&&features.push('hand-tracking');
+            xr=await navigator.xr.requestSession('immersive-vr',{'optionalFeatures':features});
+
+            // OPTIONAL COMPATIBILITY: redundant when the context honors its existing xrCompatible:true flag.
+            // OPTIONAL compatibility disabled: await gl.makeXRCompatible();
+            // Set up the XRWebGLLayer for the session
+            // xr.updateRenderState({ baseLayer: new XRWebGLLayer(xr, gl)});
+            // xr.updateRenderState({baseLayer:new XRWebGLLayer(xr,gl),depthNear:.1,depthFar:1000}); // vr depth range
+            // xr.updateRenderState({baseLayer:new XRWebGLLayer(xr,gl),depthNear:.1,depthFar:1500}); // vr depth range
+            xr.updateRenderState({baseLayer:new XRWebGLLayer(xr,gl),depthNear:.2,depthFar:3000}); // vr depth range
+            try{ref=await xr.requestReferenceSpace('local-floor')}catch(_){ref=await xr.requestReferenceSpace('local')}
+
+            // WebXR select events cover controller triggers and hand pinches, including hand sources with no gamepad.
+            xr.addEventListener('select', event => {
+                const hit = HUD_pick(HUD_WH_world, controllerRay(event.frame,event.inputSource));
+                hit?.button&&activate(hit.button[5]);
+            });
+            xr.addEventListener('selectstart',event=>selecting.add(event.inputSource));
+            xr.addEventListener('selectend',event=>selecting.delete(event.inputSource));
+            // OPTIONAL DEBOUNCE CLEANUP: remove with pointStarted and its 100ms timing logic.
+            xr.addEventListener('inputsourceschange',event=>event.removed.forEach(source=>{pointStarted.delete(source);selecting.delete(source)}));
+            
+
+            xr.addEventListener('end', event => {
+                if (xr !== event.target) return;
+                // If the canvas holds pointer lock, release it when exiting VR
+                // OPTIONAL CLEANUP: entering VR normally leaves no desktop pointer lock.
+                document.exitPointerLock();
+                //cancelAnimationFrame(onXR); // Stop XR loop
+                xr = null;
+                ref = null;
+                xrHeight=null;xrHead=0;
+                // OPTIONAL DEBOUNCE CLEANUP: remove with pointStarted.
+                pointStarted.clear();
+                selecting.clear();
+                // OPTIONAL CLEANUP: the next desktop frame binds and sizes the framebuffer again.
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.viewport(0,0,canvas.width,canvas.height);
+                requestAnimationFrame(loop); // Resume desktop loop
+            });
+
+            last = 0;
+            xr.requestAnimationFrame(loop); // Start the shared render loop
+            resetEnemies();
+
+        } catch (error) {
+            // LOG disabled: log('XR failed: ' + error.message);
+            // OPTIONAL ROBUSTNESS: safely recovers if XR setup fails after creating a session.
+            // If setup failed after the session was created, close it and restart desktop rendering.
+            if (xr) {
+                const failed=xr;xr=null;
+                try { await failed.end(); } catch (_) {}
+                ref=null;last=0;requestAnimationFrame(loop);
+            }
+        }
+    }
+    // -- /VR: Session --
+    // -- /PART: Session --
+
+    // -- /FEATURE: VR --
+    
+    // -- FEATURE: Application --
+    // -- PART: Loop --
+    function loop(time, frame) {
+        // Rendering gate
+        // if (loop.rendered) return; // disable rendering
+        // loop.rendered = true; // disable rendering
+        
+        const session = frame && frame.session;
+        if (session ? session !== xr : xr) return;
+        session ? session.requestAnimationFrame(loop) : requestAnimationFrame(loop);
+
+        const dt=MIN(last?(time-last)/1000:0,.05);
+        last=time;
+        updateWorld(dt, session, frame);
+        let hudWH;
+        gl.clearColor(0, 0, 0, 1);
+        if (session) {
+            const pose = frame.getViewerPose(ref);
+            if (!pose) return;
+            xrHeight??=1.6-pose.transform.position.y;
+            xrHead=ATAN2(pose.transform.matrix[8],pose.transform.matrix[10]);
+            const cy=COS(player.yaw),sy=SIN(player.yaw);
+            xrM.set([cy,0,-sy,0, 0,1,0,0, sy,0,cy,0, player.x,xrHeight+player.y-1.6,player.z,1]);
+            const headW = MULTMAT4(xrM,pose.transform.matrix);
+            updateAudioListener(headW);
+            hudWH = new DM(headW).multiply(new DM(getHudTransform())).toFloat32Array();
+            HUD_WH_world = hudWH;
+            hoverBtn = null;
+            for (const src of session.inputSources || []) {
+                const hit = HUD_pick(hudWH, controllerRay(frame, src));
+                if (hit && hit.button) { hoverBtn = hit.button; break; }
+            }
+            drawHUDCanvas();
+            const layer = session.renderState.baseLayer;
+            gl.bindFramebuffer(gl.FRAMEBUFFER, layer.framebuffer);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            for (const view of pose.views) {
+                const vp = layer.getViewport(view), eyeW=MULTMAT4(xrM,view.transform.matrix),Veye=INV(eyeW),Peye=view.projectionMatrix;
+                gl.viewport(vp.x, vp.y, vp.width, vp.height);
+                drawWorld(Veye, Peye, eyeW);
+                drawHud(hudWH, Veye, Peye);
+                drawXRInput(session, frame, hudWH);
+            }
+        }
+        else {
+            // -- PART: Camera --
+            const cy=COS(player.yaw),sy=SIN(player.yaw),cp=COS(player.pitch),sp=SIN(player.pitch),eye=[player.x,player.y,player.z],center=[player.x-sy*cp,player.y-sp,player.z-cy*cp];
+            LOOKAT(V,eye,center,[0,1,0]);PERSP(P,60,canvas.width/canvas.height,.2,3000.);PV=MULTMAT4(P,V);invPV=INV(PV);
+            // -- /PART: Camera --
+            const W = INV(V);
+            updateAudioListener(W);
+            hudWH = new DM(W).multiply(new DM(getHudTransform())).toFloat32Array();
+            HUD_WH_world = hudWH;
+            hoverBtn = null;
+            if (lookId === null) {
+                const hit = HUD_pick(hudWH, rayFromScreen(pointerX,pointerY));
+                if (hit && hit.button) hoverBtn = hit.button;
+            }
+            drawHUDCanvas();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            drawWorld(V, P, W);
+            drawHud(hudWH, V, P);
+        }
+    }
+    // -- /PART: Loop --
+    // -- PART: Startup --
+    // --- Application Entry Point ---
+    //initXR(); // OPTIONAL WebXR startup status preflight.
+    requestAnimationFrame(loop);
+        // LOG disabled: log('Survive, collect XP, get upgrades');
+        // CHAT disabled: log('MENU H/X  C CHAT  Z SETTINGS');
+        // LOG disabled: log('MENU H/X  Z SETTINGS');
+        // LOG disabled: log('MOVE: WASD/QE or touch');
+    // -- /PART: Startup --
+    
+    // -- /FEATURE: Application --
+    </script>
+</body>
+</html>
