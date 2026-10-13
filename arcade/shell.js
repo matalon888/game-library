@@ -123,9 +123,12 @@
   // App Store-style home: featured carousel with gameplay video, shelves of square icons, ranked list per category
   const score = g => g.review ? g.review.depth + g.review.polish + (g.clip ? 1 : 0) : Math.min(16, Math.log10((g.stars || 0) + 1) * 4);
   const art = g => g.icon || g.cover || g.thumb;
-  const href = g => `play.html?g=${encodeURIComponent(g.slug)}`;
+  // link-out games (no licence to host or frame): open on the creator's own site, no RIFFCADE page around them
+  const href = g => g.linkout ? g.external : `play.html?g=${encodeURIComponent(g.slug)}`;
+  const tgt = g => g.linkout ? ' target="_blank" rel="noopener"' : '';
   // ratings first; public reception only when it says something (no '0 GitHub stars'); else the category
   const metaLine = (g, st) => {
+    if (g.linkout) return esc(g.category || 'Arcade') + ' · on ' + esc(g.host || 'creator site') + ' ↗';
     if (st && st.rating) return `<span class="star">${starsTxt(st)}</span> · ${esc(g.category || 'Arcade')}`;
     const p = praise(g).find(x => !/GitHub stars/.test(x.short) || ((g.public || {}).github || {}).stars >= 25);
     return p ? esc(p.short) : esc(g.category || 'Arcade') + (g.review && g.review.ai_built !== 'no' ? ' · AI-made' : '');
@@ -145,7 +148,7 @@
 
     // featured: the best games that have a gameplay clip
     const feat = gs.filter(g => g.clip).slice(0, 8);
-    $('feat').innerHTML = feat.map(g => `<a class="hero" href="${href(g)}">
+    $('feat').innerHTML = feat.map(g => `<a class="hero" href="${href(g)}"${tgt(g)}>
       <video muted loop playsinline preload="none" poster="${esc(art(g))}" data-src="${esc(g.clip)}"></video>
       <div class="hero-txt"><div class="eyebrow">${esc(g.category || 'Arcade')}</div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p></div>
       <span class="get">PLAY</span></a>`).join('');
@@ -161,9 +164,9 @@
     $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; store.set('cat', cat); draw(); };
     document.addEventListener('click', e => { const s = e.target.closest('[data-see]'); if (!s) return; e.preventDefault(); cat = s.dataset.see; store.set('cat', cat); draw(); $('cats').scrollIntoView({ behavior: 'smooth' }); });
 
-    const tile = (g, fresh) => `<a class="tile" href="${href(g)}"><img src="${esc(art(g))}" alt="" loading="lazy">
+    const tile = (g, fresh) => `<a class="tile" href="${href(g)}"${tgt(g)}><img src="${esc(art(g))}" alt="" loading="lazy">
       <b>${esc(g.name)}</b><span>${fresh ? `<span class="new">${madeTxt(g.made)}</span>` : metaLine(g, stats[g.slug])}</span></a>`;
-    const row = (g, i) => `<a class="row" href="${href(g)}"><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
+    const row = (g, i) => `<a class="row" href="${href(g)}"${tgt(g)}><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
       <div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p><span class="sub">${metaLine(g, stats[g.slug])}</span></div><span class="get">PLAY</span></a>`;
     const shelf = (title, list, see, fresh) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>
       <div class="rail">${list.slice(0, 15).map(g => tile(g, fresh)).join('')}</div></section>` : '';
@@ -185,7 +188,7 @@
     draw();
     getStats().then(s => { stats = s; draw(); });
     const last = gs.find(g => g.slug === store.get('last'));
-    if (last) $('cont').innerHTML = `<a class="continue" href="${href(last)}"><img src="${esc(art(last))}" alt="">
+    if (last) $('cont').innerHTML = `<a class="continue" href="${href(last)}"${tgt(last)}><img src="${esc(art(last))}" alt="">
       <div><div class="eyebrow">Continue</div><b>${esc(last.name)}</b></div><span class="go">Play</span></a>`;
     renderInstall();
     autoPrompt();
@@ -201,6 +204,7 @@
     const slug = new URLSearchParams(location.search).get('g');
     const g = (await games()).find(x => x.slug === slug);
     if (!g) { location.replace('./'); return; }
+    if (g.linkout) { location.replace(g.external); return; }
     document.title = g.name + ' · RIFFCADE';
     $('title').textContent = g.name;
     const stage = $('stage');

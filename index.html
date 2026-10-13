@@ -198,7 +198,7 @@ $('#homeBtn').onclick = async () => {
   document.body.classList.add('open');
 };
 
-fetch('games.json').then(r => r.json()).then(gs => { $('#sub').textContent = `${gs.length} free games in your chat. Tap yours.`; window.__covers = gs.filter(g => g.cover).map(g => g.cover); window.__onCovers && window.__onCovers(); }).catch(() => {});
+fetch('games.json').then(r => r.json()).then(gs => { $('#sub').textContent = `${gs.length} free games in your chat. Tap yours.`; window.__covers = [...gs.filter(g => g.clip && g.icon), ...gs.filter(g => !g.clip && g.cover)].map(g => g.icon || g.cover); window.__onCovers && window.__onCovers(); }).catch(() => {});
 
 // ---------------------------------------------------------------- 3D: matte game pieces, directional light, no glow
 (function () {
