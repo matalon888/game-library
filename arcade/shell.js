@@ -122,9 +122,11 @@
       const list = gs.filter(g => !cat || g.category === cat);
       $('grid').innerHTML = list.map(g => {
         const st = stats[g.slug];
-        return `<a class="card" href="play.html?g=${encodeURIComponent(g.slug)}">
+        // the cover already carries the name and category; under it go the players' numbers
+        const meta = [st && st.rating ? `<span class="star">${starsTxt(st)}</span> (${st.ratings})` : '', st && st.plays ? `${st.plays} plays` : ''].filter(Boolean).join(' · ');
+        return `<a class="card" href="play.html?g=${encodeURIComponent(g.slug)}" aria-label="${esc(g.name)}, ${esc(g.category || 'Arcade')}">
         <div class="shot"><img src="${g.cover || g.thumb}" alt="" loading="lazy">${g.added === latest ? '<span class="new">NEW</span>' : ''}${g.controls ? '<span class="badge">TOUCH CONTROLS</span>' : ''}</div>
-        <b>${esc(g.name)}</b><p class="meta">${esc(g.category || 'Arcade')}${st && st.rating ? ` · <span class="star">${starsTxt(st)}</span> (${st.ratings})` : ''}${st && st.plays ? ` · ${st.plays} plays` : ''}</p></a>`;
+        <p class="meta">${meta || 'Not rated yet'}</p></a>`;
       }).join('');
     }
     draw();
