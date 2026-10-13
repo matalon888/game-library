@@ -61,7 +61,7 @@ const MCP = 'https://arcade-api-production-bfdf.up.railway.app/mcp';
 const SAY = ['Show me the arcade', "What's new today?", 'Play a puzzle game'];
 const HOSTS = {
   claude: { open: 'https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Arcade&connectorUrl=' + encodeURIComponent(MCP), label: 'Add to Claude', prefill: true,
-    steps: ['Claude opens with <b>Arcade</b> already filled in. Tap <b>Add</b>.'],
+    steps: ['Claude opens with <b>Arcade</b> already filled in. Keep <b>No sign-in</b> and tap <b>Add</b>. The safety notice is normal for apps not yet in Claude\'s directory.'],
     note: 'Works on claude.ai, the desktop app and the phone app once added.' },
   chatgpt: { open: 'https://chatgpt.com/#settings/Connectors', label: 'Copy link & open ChatGPT',
     steps: ['Open <b>Apps → Advanced</b> and turn on <b>Developer mode</b>.', 'Tap <b>Create app</b>, name it <b>Arcade</b>, paste the link, choose <b>No authentication</b>, save.'],
