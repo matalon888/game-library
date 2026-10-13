@@ -13391,7 +13391,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/sun-salt.webp",
-  "clip": null
+  "clip": "clips/sun-salt.mp4"
  },
  {
   "slug": "the-imjin-war",
@@ -13425,7 +13425,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/the-imjin-war.webp",
-  "clip": null
+  "clip": "clips/the-imjin-war.mp4"
  },
  {
   "slug": "invasion-inc",
@@ -13459,7 +13459,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/invasion-inc.webp",
-  "clip": null
+  "clip": "clips/invasion-inc.mp4"
  },
  {
   "slug": "the-night-of-the-stolen-stars",
@@ -13496,6 +13496,40 @@
   "clip": null
  },
  {
+  "slug": "oleoflight",
+  "name": "OleoFlight",
+  "blurb": "Take off and explore a real-world terrain with streaming satellite imagery, forests, buildings and dynamic atmosphere, all running in your browser.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://oleoflight.com/",
+  "host": "oleoflight.com",
+  "made": "2026-10-13",
+  "added": "2026-10-13",
+  "author": "u/oleo-flight",
+  "credit": "by u/oleo-flight · found on r/IndieGaming",
+  "licence": null,
+  "source": "https://www.reddit.com/r/IndieGaming/comments/1x4xc0y/oleoflight_a_flight_simulator_running_on_my_own/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 8,
+   "ai_built": "yes",
+   "pitch": "Free-roam flight over real satellite-mapped Swiss terrain, rendered live in your browser with WebGPU."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/oleoflight.webp",
+  "clip": "clips/oleoflight.mp4"
+ },
+ {
   "slug": "tile-rushers",
   "name": "Tile Rushers",
   "blurb": "Rearrange numbered tiles into valid runs and groups faster than your rivals, and sabotage them with bombs, freezes, mines and shields.",
@@ -13527,7 +13561,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/tile-rushers.webp",
-  "clip": null
+  "clip": "clips/tile-rushers.mp4"
  },
  {
   "slug": "worldseed",
@@ -13561,7 +13595,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/worldseed.webp",
-  "clip": null
+  "clip": "clips/worldseed.mp4"
  },
  {
   "slug": "devil-s-dungeon",
@@ -13595,7 +13629,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/devil-s-dungeon.webp",
-  "clip": null
+  "clip": "clips/devil-s-dungeon.mp4"
  },
  {
   "slug": "chronicles-of-vaelyr-demo",
@@ -13629,7 +13663,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/chronicles-of-vaelyr-demo.webp",
-  "clip": null
+  "clip": "clips/chronicles-of-vaelyr-demo.mp4"
  },
  {
   "slug": "one-small-goal",
@@ -13663,7 +13697,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/one-small-goal.webp",
-  "clip": null
+  "clip": "clips/one-small-goal.mp4"
  },
  {
   "slug": "powerstate",
@@ -13697,7 +13731,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/powerstate.webp",
-  "clip": null
+  "clip": "clips/powerstate.mp4"
  },
  {
   "slug": "late-night-survivor",
@@ -13734,6 +13768,74 @@
   "clip": null
  },
  {
+  "slug": "heist",
+  "name": "Heist",
+  "blurb": "Team up at a poker-style table to pull off jobs, but watch your back, because anyone can double-cross the crew and take the loot.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://playheist.net/",
+  "host": "playheist.net",
+  "made": "2026-10-13",
+  "added": "2026-10-13",
+  "author": "u/BrockFoster",
+  "credit": "by u/BrockFoster · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1x4lx46/heist_betrayal_at_a_poker_table_run_jobs_with/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Run jobs with your crew, then betray them at the last second to steal the whole score."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/heist.webp",
+  "clip": "clips/heist.mp4"
+ },
+ {
+  "slug": "lunchtime-broadcast",
+  "name": "Lunchtime Broadcast (점심 방송)",
+  "blurb": "Explore a Korean high school, talk to classmates, and pick up real Korean vocabulary through a story with tappable words and quizzes.",
+  "category": "Word & Math",
+  "linkout": true,
+  "external": "https://stan-stani.github.io/jeomsim-bangsong/",
+  "host": "stan-stani.github.io",
+  "made": "2026-10-13",
+  "added": "2026-10-13",
+  "author": "u/EstanislaoStan",
+  "credit": "by u/EstanislaoStan · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x4lal2/vibecoded_topdown_game_for_learning_vocab_from_a/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 3,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Wander a Korean high school, chat with classmates, and tap any word to learn vocab from a webtoon."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/lunchtime-broadcast.webp",
+  "clip": "clips/lunchtime-broadcast.mp4"
+ },
+ {
   "slug": "bridge-shooter",
   "name": "Bridge Shooter",
   "blurb": "Hold the bridge against waves of Blorbs in this fast auto-firing arcade shooter, where all you do is move, grab power gates, and take down the Blorb King.",
@@ -13765,7 +13867,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/bridge-shooter.webp",
-  "clip": null
+  "clip": "clips/bridge-shooter.mp4"
  },
  {
   "slug": "rustfall",
@@ -13833,7 +13935,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/hey-mayor.webp",
-  "clip": null
+  "clip": "clips/hey-mayor.mp4"
+ },
+ {
+  "slug": "m-i-s-t-a-r",
+  "name": "M.I.S.T.A.R.",
+  "blurb": "Take command of a retro 3D globe war-room, capture cities, link factories, and launch missiles in a real-time Risk-meets-WarGames campaign.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://mistargame.com/",
+  "host": "mistargame.com",
+  "made": "2026-10-12",
+  "added": "2026-10-12",
+  "author": "u/Immediate_Penalty891",
+  "credit": "by u/Immediate_Penalty891 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x4cp9j/mistar_my_free_browser_strategy_game_inspired_by/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 2,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Command a 3D globe: capture territories, launch missiles with timing-based aiming, and hack enemy infrastructure in an '80s war-room."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/m-i-s-t-a-r.webp",
+  "clip": "clips/m-i-s-t-a-r.mp4"
  },
  {
   "slug": "don-t-fall",
@@ -13867,7 +14003,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/don-t-fall.webp",
-  "clip": null
+  "clip": "clips/don-t-fall.mp4"
  },
  {
   "slug": "gilded-void",
@@ -13901,7 +14037,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/gilded-void.webp",
-  "clip": null
+  "clip": "clips/gilded-void.mp4"
  },
  {
   "slug": "lootfleet",
@@ -13935,7 +14071,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/lootfleet.webp",
-  "clip": null
+  "clip": "clips/lootfleet.mp4"
  },
  {
   "slug": "mekkor-alpha",
@@ -13969,7 +14105,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/mekkor-alpha.webp",
-  "clip": null
+  "clip": "clips/mekkor-alpha.mp4"
  },
  {
   "slug": "glyphsurge",
@@ -14003,7 +14139,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/glyphsurge.webp",
-  "clip": null
+  "clip": "clips/glyphsurge.mp4"
+ },
+ {
+  "slug": "dark-bonanza",
+  "name": "Dark Bonanza",
+  "blurb": "A slot machine that wants you dead: burst symbol clusters, stack relics in the right order, and survive ten bosses.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://lucasmon.itch.io/dark-bonanza",
+  "host": "lucasmon.itch.io",
+  "made": "2026-10-12",
+  "added": "2026-10-12",
+  "author": "u/lucasmonn",
+  "credit": "by u/lucasmonn · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x44qpc/i_made_this_roguelike_slots_in_30_minutes/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": null,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Cascading slot spins with relic ordering, rituals and bosses, where you chase score targets in five spins."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/dark-bonanza.webp",
+  "clip": "clips/dark-bonanza.mp4"
  },
  {
   "slug": "fresher-exe-2-0",
@@ -14037,7 +14207,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/fresher-exe-2-0.webp",
-  "clip": null
+  "clip": "clips/fresher-exe-2-0.mp4"
  },
  {
   "slug": "soul-roll",
@@ -14071,7 +14241,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/soul-roll.webp",
-  "clip": null
+  "clip": "clips/soul-roll.mp4"
  },
  {
   "slug": "the-unwritten",
@@ -14108,6 +14278,40 @@
   "clip": null
  },
  {
+  "slug": "reaper-s-graveyard-shift",
+  "name": "Reaper's Graveyard Shift",
+  "blurb": "Take over Hollow Hill Cemetery, chop trees, craft coffins, bury ghosts and build a spooky soul-collecting empire with skeleton workers.",
+  "category": "Idle",
+  "linkout": true,
+  "external": "https://dangantsgames.itch.io/reapers-graveyard-shift",
+  "host": "dangantsgames.itch.io",
+  "made": "2026-10-12",
+  "added": "2026-10-12",
+  "author": "u/real-pies-realpies",
+  "credit": "by u/real-pies-realpies · found on r/threejs",
+  "licence": null,
+  "source": "https://www.reddit.com/r/threejs/comments/1x42585/update_on_my_threejs_graveyard_idle_game_after/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Chop trees, build coffins, bury impatient ghosts, hire skeleton workers and escort VIPs while growing your graveyard business."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/reaper-s-graveyard-shift.webp",
+  "clip": "clips/reaper-s-graveyard-shift.mp4"
+ },
+ {
   "slug": "tenrec-le-jeu",
   "name": "TenRec - Le Jeu",
   "blurb": "Run a busy audiovisual rental shop in pixel-art, serving customers and repairing gear fast to chain multipliers and climb the leaderboard.",
@@ -14139,7 +14343,75 @@
   "cover": null,
   "thumb": null,
   "icon": "art/tenrec-le-jeu.webp",
-  "clip": null
+  "clip": "clips/tenrec-le-jeu.mp4"
+ },
+ {
+  "slug": "the-fracture",
+  "name": "The Fracture",
+  "blurb": "Combine powers to build your hero, battle giant aliens and shapeshifting bosses across story chapters, a roguelite loop and arena modes, solo or in co-op.",
+  "category": "Action",
+  "linkout": true,
+  "external": "https://franmndezzzz.github.io/The-fracture/",
+  "host": "franmndezzzz.github.io",
+  "made": "2026-10-12",
+  "added": "2026-10-12",
+  "author": "u/AdAway324",
+  "credit": "by u/AdAway324 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x3yir1/this_is_what_i_learned_making_a_superhero_browser/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Build your own superhero by combining powers, fight shape-based bosses, and play co-op using your phone as a controller."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/the-fracture.webp",
+  "clip": "clips/the-fracture.mp4"
+ },
+ {
+  "slug": "data-campus",
+  "name": "Data Campus",
+  "blurb": "Run a cosy data centre: mine materials, build racks, keep things cool and powered, and onboard companies to grow your campus.",
+  "category": "Idle",
+  "linkout": true,
+  "external": "https://behuzer.itch.io/data-campus",
+  "host": "behuzer.itch.io",
+  "made": "2026-10-12",
+  "added": "2026-10-12",
+  "author": "u/Careless-Flower6059",
+  "credit": "by u/Careless-Flower6059 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x3xb0i/updated_my_idle_game_wip_based_on_data_centers/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Dig silicon, craft chips, balance power and cooling, and sign clients from start-ups to AI labs."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/data-campus.webp",
+  "clip": "clips/data-campus.mp4"
  },
  {
   "slug": "brinebound",
@@ -14173,7 +14445,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/brinebound.webp",
-  "clip": null
+  "clip": "clips/brinebound.mp4"
  },
  {
   "slug": "bone-pachinko",
@@ -14275,7 +14547,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/trollgate.webp",
-  "clip": null
+  "clip": "clips/trollgate.mp4"
  },
  {
   "slug": "ezekiel",
@@ -14445,7 +14717,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/disco-tanks.webp",
-  "clip": null
+  "clip": "clips/disco-tanks.mp4"
  },
  {
   "slug": "slingshot-speeders",
@@ -14482,6 +14754,40 @@
   "clip": null
  },
  {
+  "slug": "nova-drift",
+  "name": "Nova Drift",
+  "blurb": "Take over planets, upgrade them to pump out more ships, and wipe out rival players across themed levels, solo or online with friends.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://igormasin.it/novadrift/",
+  "host": "igormasin.it",
+  "made": "2026-10-11",
+  "added": "2026-10-11",
+  "author": "u/sharkyenergy",
+  "credit": "by u/sharkyenergy · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1x3jrxo/browser_based_planet_capture_game/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Capture and upgrade planets to out-produce enemy fleets in real-time, with levels, AI opponents and online multiplayer."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/nova-drift.webp",
+  "clip": "clips/nova-drift.mp4"
+ },
+ {
   "slug": "super-detective",
   "name": "Super Detective",
   "blurb": "Solve murder mysteries by working out where everyone was standing from the clues, then name the killer.",
@@ -14513,7 +14819,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/super-detective.webp",
-  "clip": null
+  "clip": "clips/super-detective.mp4"
  },
  {
   "slug": "glyphstorm",
@@ -14547,7 +14853,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/glyphstorm.webp",
-  "clip": null
+  "clip": "clips/glyphstorm.mp4"
  },
  {
   "slug": "cannonzone",
@@ -14581,7 +14887,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/cannonzone.webp",
-  "clip": null
+  "clip": "clips/cannonzone.mp4"
  },
  {
   "slug": "lanterns-of-aldermere",
@@ -14615,7 +14921,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/lanterns-of-aldermere.webp",
-  "clip": null
+  "clip": "clips/lanterns-of-aldermere.mp4"
  },
  {
   "slug": "ragnarok-lamb",
@@ -14649,7 +14955,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/ragnarok-lamb.webp",
-  "clip": null
+  "clip": "clips/ragnarok-lamb.mp4"
+ },
+ {
+  "slug": "georizz",
+  "name": "GeoRizz",
+  "blurb": "Spin the globe, find countries, name 234 flags and guess capitals while collecting fun facts and stickers in this friendly geography quiz.",
+  "category": "Puzzle",
+  "linkout": true,
+  "external": "https://georizz.world/en",
+  "host": "georizz.world",
+  "made": "2026-10-11",
+  "added": "2026-10-11",
+  "author": "u/ProfessionOld2537",
+  "credit": "by u/ProfessionOld2537 · found on r/WebGames",
+  "licence": null,
+  "source": "https://www.reddit.com/r/WebGames/comments/1x3dhwk/georizz_a_simple_free_browser_game_to_test_your/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Spin a 3D globe to find countries, name flags, guess capitals, and collect stickers with a daily challenge."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/georizz.webp",
+  "clip": "clips/georizz.mp4"
  },
  {
   "slug": "endemia",
@@ -14717,7 +15057,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/hoopyard.webp",
-  "clip": null
+  "clip": "clips/hoopyard.mp4"
+ },
+ {
+  "slug": "baikal-clan-war",
+  "name": "Baikal – Clan War",
+  "blurb": "Lead your clan across the ice of Lake Baikal in 17,000 BC, commanding units or fighting as the chief in real-time PvP.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://dharma.rocks/rts/",
+  "host": "dharma.rocks",
+  "made": "2026-10-11",
+  "added": "2026-10-11",
+  "author": "u/Transhumanliberal",
+  "credit": "by u/Transhumanliberal · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x39v17/i_feel_like_a_made_a_really_fun_and_addictive_pvp/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 2,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Command a stone-age clan or take the chief's role in 1v1 RTS battles on frozen Lake Baikal."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/baikal-clan-war.webp",
+  "clip": "clips/baikal-clan-war.mp4"
  },
  {
   "slug": "n-ufragos",
@@ -14751,7 +15125,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/n-ufragos.webp",
-  "clip": null
+  "clip": "clips/n-ufragos.mp4"
+ },
+ {
+  "slug": "ragnarok-lamb-2",
+  "name": "Ragnarok Lamb",
+  "blurb": "Guide a black lamb through a dark fable, fight mischievous flying monkeys, and beat bosses that each bend the laws of physics.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://ragnarok-lamb.vercel.app/lamb",
+  "host": "ragnarok-lamb.vercel.app",
+  "made": "2026-10-11",
+  "added": "2026-10-11",
+  "author": "u/Acrobatic_Mush",
+  "credit": "by u/Acrobatic_Mush · found on r/threejs",
+  "licence": null,
+  "source": "https://www.reddit.com/r/threejs/comments/1x39rdt/a_dark_fable_in_the_browser_black_lamb_vs_bosses/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Play a black lamb fighting bosses in dimensions whose physics rules, like shrinking or sticky webs, change how you fight."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/ragnarok-lamb-2.webp",
+  "clip": "clips/ragnarok-lamb-2.mp4"
  },
  {
   "slug": "infiniword",
@@ -14785,7 +15193,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/infiniword.webp",
-  "clip": null
+  "clip": "clips/infiniword.mp4"
  },
  {
   "slug": "underbloom",
@@ -14853,7 +15261,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/pixel-publisher.webp",
-  "clip": null
+  "clip": "clips/pixel-publisher.mp4"
  },
  {
   "slug": "roads-of-aethelza",
@@ -14921,7 +15329,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/moonveil.webp",
-  "clip": null
+  "clip": "clips/moonveil.mp4"
  },
  {
   "slug": "gleipnir",
@@ -14989,7 +15397,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/lamplight-workshop.webp",
-  "clip": null
+  "clip": "clips/lamplight-workshop.mp4"
+ },
+ {
+  "slug": "dune-playground",
+  "name": "Dune Playground",
+  "blurb": "Pick a Huckster, BRAT or rally sedan and send it off dunes, ramps and canals in a 6 km open desert, in free roam, a 3-minute score run or a race.",
+  "category": "Racing",
+  "linkout": true,
+  "external": "https://buyasubie.com/play/dune-playground/",
+  "host": "buyasubie.com",
+  "made": "2026-10-11",
+  "added": "2026-10-11",
+  "author": "u/buyasubie",
+  "credit": "by u/buyasubie · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1x2v4h5/dune_playground_buyasubie_arcade/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Drift, jump and flip Subaru-style cars across a huge open desert, chasing trick scores or racing rivals."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/dune-playground.webp",
+  "clip": "clips/dune-playground.mp4"
  },
  {
   "slug": "fresho",
@@ -15125,7 +15567,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/dropzone.webp",
-  "clip": null
+  "clip": "clips/dropzone.mp4"
  },
  {
   "slug": "keep-rolling-castle-survival",
@@ -15162,6 +15604,74 @@
   "clip": null
  },
  {
+  "slug": "pale-engine",
+  "name": "Pale Engine",
+  "blurb": "Fight through haunted Io station in a Doom-inspired 3D shooter with nine weapons, procedural levels and a demon god waiting below.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://triptych.github.io/web-games-andrew/game-054/index.html",
+  "host": "triptych.github.io",
+  "made": "2026-10-10",
+  "added": "2026-10-10",
+  "author": "triptych",
+  "credit": "by triptych · found on Hacker News",
+  "licence": null,
+  "source": "https://news.ycombinator.com/item?id=50036579",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Retro boomer-shooter on Io with procedural levels, nine weapons, a story campaign, endless mode and touch controls."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/pale-engine.webp",
+  "clip": "clips/pale-engine.mp4"
+ },
+ {
+  "slug": "nightporch",
+  "name": "Nightporch",
+  "blurb": "Build and defend your homes in a living 3D county, befriend neighbours, clear bandit camps, and board up the windows before the zombie horde arrives.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://humanityz.com/hearth-and-horde/",
+  "host": "humanityz.com",
+  "made": "2026-10-10",
+  "added": "2026-10-10",
+  "author": "u/Shortykane",
+  "credit": "by u/Shortykane · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x2nzby/nightporch_11_is_out_my_aibuilt_survival_lifesim/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 9,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Build homes, befriend neighbours, and survive Horde Night across a twenty-town county with classes, bandits, and co-op."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/nightporch.webp",
+  "clip": "clips/nightporch.mp4"
+ },
+ {
   "slug": "deadhertz",
   "name": "DEADHERTZ",
   "blurb": "Team up with up to three players in this browser-based, Black Ops-inspired zombie FPS and survive round after round at Echo Station.",
@@ -15193,7 +15703,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/deadhertz.webp",
-  "clip": null
+  "clip": "clips/deadhertz.mp4"
  },
  {
   "slug": "1-bit-terror",
@@ -15230,6 +15740,40 @@
   "clip": null
  },
  {
+  "slug": "fallen-nights",
+  "name": "Fallen Nights",
+  "blurb": "Scavenge by day, fortify your defenses, and survive the zombie night, but every piece of scrap you spend on defense keeps you here longer.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://fallennights.com/",
+  "host": "fallennights.com",
+  "made": "2026-10-10",
+  "added": "2026-10-10",
+  "author": "u/WalkingDadPG",
+  "credit": "by u/WalkingDadPG · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x2kq4k/i_released_a_steam_game_in_2015_eleven_years/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 9,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Scavenge scrap by day, then split it between night defenses and your escape boat."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/fallen-nights.webp",
+  "clip": "clips/fallen-nights.mp4"
+ },
+ {
   "slug": "monolith",
   "name": "Monolith",
   "blurb": "Run a software startup in a tongue-in-cheek competitive engine builder: fund, hire, architect, and outlast your rivals against a bot or friends.",
@@ -15261,7 +15805,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/monolith.webp",
-  "clip": null
+  "clip": "clips/monolith.mp4"
+ },
+ {
+  "slug": "supermarket-prop-hunt",
+  "name": "Supermarket Prop Hunt",
+  "blurb": "Disguise yourself as groceries and steal the shopping list, or hunt down the thieves in this free multiplayer 3D supermarket prop hunt.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://prophunt.lobbyhop.net/",
+  "host": "prophunt.lobbyhop.net",
+  "made": "2026-10-10",
+  "added": "2026-10-10",
+  "author": "u/BATEMANx9",
+  "credit": "by u/BATEMANx9 · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1x2jkeb/i_built_a_multiplayer_3d_prop_hunt_with_claude/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Disguise as grocery products in a supermarket, or hunt hiders, with up to 16 players across 4 stores and a heist mode."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/supermarket-prop-hunt.webp",
+  "clip": "clips/supermarket-prop-hunt.mp4"
  },
  {
   "slug": "tidecastle",
@@ -15298,6 +15876,40 @@
   "clip": null
  },
  {
+  "slug": "retro-mars",
+  "name": "Retro Mars",
+  "blurb": "Manage a pixel-art Martian retrogaming shop: inspect, buy and resell cartridges, and spot the counterfeits to keep customers' trust.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://retro-mars.vercel.app/",
+  "host": "retro-mars.vercel.app",
+  "made": "2026-10-10",
+  "added": "2026-10-10",
+  "author": "u/Ostermiss",
+  "credit": "by u/Ostermiss · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x2g80g/retromars_trailer_and_game_i_need_your_advice/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 5,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Run a Martian retro-game shop, inspect cartridges with tools, haggle, and spot fakes before buying."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/retro-mars.webp",
+  "clip": "clips/retro-mars.mp4"
+ },
+ {
   "slug": "tavern-jack",
   "name": "Tavern Jack",
   "blurb": "Play Mau-Mau, Durak, Shithead and other classic card games online with friends via a shared link or against bots, with daily tournaments and rankings.",
@@ -15329,7 +15941,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/tavern-jack.webp",
-  "clip": null
+  "clip": "clips/tavern-jack.mp4"
  },
  {
   "slug": "wyrmfall",
@@ -15397,7 +16009,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/nothing-2-lose.webp",
-  "clip": null
+  "clip": "clips/nothing-2-lose.mp4"
  },
  {
   "slug": "tap-turn-battler-tidebound-update",
@@ -15502,6 +16114,40 @@
   "clip": null
  },
  {
+  "slug": "planeteer",
+  "name": "Planeteer",
+  "blurb": "Explore the solar system on foot, by boat and by plane, visiting real-world towns and landmarks on Earth alone or with friends.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://planeteer.vercel.app/",
+  "host": "planeteer.vercel.app",
+  "made": "2026-10-10",
+  "added": "2026-10-10",
+  "author": "u/andreumassanet",
+  "credit": "by u/andreumassanet · found on r/threejs",
+  "licence": null,
+  "source": "https://www.reddit.com/r/threejs/comments/1x29xi0/i_built_an_explorable_solar_system_in_one_month/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Walk, sail and fly across cel-shaded planets built from real maps, with live weather and multiplayer."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/planeteer.webp",
+  "clip": "clips/planeteer.mp4"
+ },
+ {
   "slug": "murim-s-last-hope-david",
   "name": "Murim's Last Hope: David",
   "blurb": "Fight through a blood cult's mountain fortress in this 10-minute comedic kung fu hack-and-slash, with sword arts, perfect parries and a boss showdown, all in your browser.",
@@ -15533,7 +16179,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/murim-s-last-hope-david.webp",
-  "clip": null
+  "clip": "clips/murim-s-last-hope-david.mp4"
+ },
+ {
+  "slug": "pocket-atlas",
+  "name": "Pocket Atlas",
+  "blurb": "Build up a tiny slab of land into a thriving city, then connect slabs into a country and a whole world.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://atlas.waltiworks.eu/",
+  "host": "atlas.waltiworks.eu",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/walti_vr",
+  "credit": "by u/walti_vr · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x20bld/pocket_atlas_polytopia_x_minecraft_x_cities/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 2,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Grow a settlement on a small land slab into a city, then join slabs into countries and a world."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/pocket-atlas.webp",
+  "clip": "clips/pocket-atlas.mp4"
  },
  {
   "slug": "snowbody-s-safe",
@@ -15567,7 +16247,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/snowbody-s-safe.webp",
-  "clip": null
+  "clip": "clips/snowbody-s-safe.mp4"
  },
  {
   "slug": "teleoperator-2",
@@ -15635,7 +16315,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/vector-anti-gravity-racing.webp",
-  "clip": null
+  "clip": "clips/vector-anti-gravity-racing.mp4"
  },
  {
   "slug": "halko",
@@ -15669,7 +16349,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/halko.webp",
-  "clip": null
+  "clip": "clips/halko.mp4"
+ },
+ {
+  "slug": "ares-outpost",
+  "name": "ARES OUTPOST",
+  "blurb": "Build and upgrade turrets on Mars to vaporize endless waves of alien bugs while managing research, doctrines, and a branching campaign.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://coyne-studios.itch.io/ares-outpost",
+  "host": "coyne-studios.itch.io",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/Caninetechnology",
+  "credit": "by u/Caninetechnology · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1x1t371/claude_created_my_dream_game_and_got_approved_for/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 98,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Defend a Mars outpost from endless alien bug waves with a huge arsenal of turrets, research, and campaign choices."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/ares-outpost.webp",
+  "clip": "clips/ares-outpost.mp4"
  },
  {
   "slug": "idle-idiots",
@@ -15703,7 +16417,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/idle-idiots.webp",
-  "clip": null
+  "clip": "clips/idle-idiots.mp4"
  },
  {
   "slug": "grauwacht-pirsch-card-game",
@@ -15737,7 +16451,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/grauwacht-pirsch-card-game.webp",
-  "clip": null
+  "clip": "clips/grauwacht-pirsch-card-game.mp4"
  },
  {
   "slug": "wordminos",
@@ -15771,7 +16485,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/wordminos.webp",
-  "clip": null
+  "clip": "clips/wordminos.mp4"
+ },
+ {
+  "slug": "kernova",
+  "name": "Kernova",
+  "blurb": "Explore a living ASCII world, collect and team up with 49 unique creatures, and play co-op with up to three friends.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://bug.games/games/kernova",
+  "host": "bug.games",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/One_Low8664",
+  "credit": "by u/One_Low8664 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x1p2mo/ascii_creature_collection_rpg/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 3,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Collect 49 procedurally generated ASCII creatures in a glyph-shader world, with optional four-player co-op."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/kernova.webp",
+  "clip": "clips/kernova.mp4"
  },
  {
   "slug": "pelota",
@@ -15805,7 +16553,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/pelota.webp",
-  "clip": null
+  "clip": "clips/pelota.mp4"
  },
  {
   "slug": "looks-legit",
@@ -15842,6 +16590,108 @@
   "clip": null
  },
  {
+  "slug": "nox-imperii-ii",
+  "name": "Nox Imperii II",
+  "blurb": "Fly your ship through an Art Nouveau steampunk galaxy, taking contracts, trading, fighting barbarians, and choosing your own path to riches.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://www.noximperii.com/play/",
+  "host": "noximperii.com",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/Kinniken",
+  "credit": "by u/Kinniken · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1x1mr54/nox_imperii_second_attempt_ten_years_after_the/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Open-world Escape Velocity-style space sandbox: haul passengers, trade, pirate, ransom captives, and explore an Art Nouveau steampunk galaxy."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/nox-imperii-ii.webp",
+  "clip": "clips/nox-imperii-ii.mp4"
+ },
+ {
+  "slug": "road-rash-x-dirt-mashup-untitled",
+  "name": "Road Rash x DiRT mashup (untitled)",
+  "blurb": "Race 4 vehicles across 5 maps, drifting, hitting jump pads and firing rockets at rivals in this Road Rash-inspired arcade racer.",
+  "category": "Racing",
+  "linkout": true,
+  "external": "https://sandscape.app/play?g=3UpDloEh",
+  "host": "sandscape.app",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/titkun",
+  "credit": "by u/titkun · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1x1mb45/opus_55_built_the_vehicles_and_physics_for_my/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 96,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Drift-boost and jump-pad through 5 maps on 4 vehicles, with rockets replacing Road Rash's chains."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/road-rash-x-dirt-mashup-untitled.webp",
+  "clip": "clips/road-rash-x-dirt-mashup-untitled.mp4"
+ },
+ {
+  "slug": "pcb-defense",
+  "name": "PCB Defense",
+  "blurb": "Plant turrets on a circuit board, fight bosses, pick risky corruption cards, and grow stronger with every run.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://juba13.itch.io/pcb-defense",
+  "host": "juba13.itch.io",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/MasterSteak4510",
+  "credit": "by u/MasterSteak4510 · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1x1ln1v/roguelike_tower_defense_set_on_a_circuit_board/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Defend a CPU core on a circuit board with upgradable turrets, boss fights, corruption cards, and a persistent skill tree."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/pcb-defense.webp",
+  "clip": "clips/pcb-defense.mp4"
+ },
+ {
   "slug": "8compute",
   "name": "8Compute",
   "blurb": "Start with a single rented GPU, sell inference, build data centers, and steer your AI business toward one of twelve civilization futures.",
@@ -15873,7 +16723,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/8compute.webp",
-  "clip": null
+  "clip": "clips/8compute.mp4"
  },
  {
   "slug": "last-lot",
@@ -15910,6 +16760,40 @@
   "clip": null
  },
  {
+  "slug": "shiteven",
+  "name": "Shiteven",
+  "blurb": "Jump into a silly real-time multiplayer poop battle: fling poop, dodge bosses, pick upgrades, and fight for your faction's pile.",
+  "category": "Action",
+  "linkout": true,
+  "external": "https://shiteven.fun/",
+  "host": "shiteven.fun",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/shiteven",
+  "credit": "by u/shiteven · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1x1d31z/shiteven_a_silly_multiplayer_poop_battle_io_game/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 3,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Throw poop in an Agar.io-style arena, dodge bosses, level up, and raid rival factions' shared poop piles."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/shiteven.webp",
+  "clip": "clips/shiteven.mp4"
+ },
+ {
   "slug": "boat-a-pirate-roguelike",
   "name": "Boat! A Pirate Roguelike",
   "blurb": "Sail a tiny pirate ship through storms and enemy fleets in a naval roguelike, using wind, broadsides, and ramming to climb the online leaderboard.",
@@ -15941,7 +16825,75 @@
   "cover": null,
   "thumb": null,
   "icon": "art/boat-a-pirate-roguelike.webp",
-  "clip": null
+  "clip": "clips/boat-a-pirate-roguelike.mp4"
+ },
+ {
+  "slug": "mix-mortar",
+  "name": "Mix & Mortar",
+  "blurb": "Race the clock on New York construction sites, mixing mortar, cutting beams and delivering orders to grumpy foreman Boris while your building rises piece by piece.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://mneho333.itch.io/mix-and-mortar",
+  "host": "mneho333.itch.io",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/MixAndMortarDev",
+  "credit": "by u/MixAndMortarDev · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x1by7q/built_with_claude_project_showcase_megathread/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 3,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Overcooked-style construction chaos: mix mortar, cut beams, haul bricks, and watch a real house rise with each order."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/mix-mortar.webp",
+  "clip": "clips/mix-mortar.mp4"
+ },
+ {
+  "slug": "tribes-of-rhombica",
+  "name": "Tribes of Rhombica",
+  "blurb": "Build a tribe, claim the tiles, and conquer a world of pentagons and rhombi in this turn-based strategy game.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://rhombica.com/",
+  "host": "rhombica.com",
+  "made": "2026-10-09",
+  "added": "2026-10-09",
+  "author": "u/Rhombica_Devs",
+  "credit": "by u/Rhombica_Devs · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x18e7o/im_a_student_making_a_4x_strategy_game_with_an_ai/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 2,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Polytopia-style conquest on a world of pentagon and rhombus tiles, with 10 tribes, multiplayer and weekly challenges."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/tribes-of-rhombica.webp",
+  "clip": "clips/tribes-of-rhombica.mp4"
  },
  {
   "slug": "aestra-the-last-wish",
@@ -15975,7 +16927,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/aestra-the-last-wish.webp",
-  "clip": null
+  "clip": "clips/aestra-the-last-wish.mp4"
  },
  {
   "slug": "graveacre",
@@ -16114,6 +17066,40 @@
   "clip": null
  },
  {
+  "slug": "grand-total-anarchy",
+  "name": "Grand Total Anarchy",
+  "blurb": "Cruise a sunlit low-poly island, hijack cars and fly helicopters, dodge police, and play through a 31-mission story or battle friends online.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://nitzan.games/play/grand-total-anarchy?autoplay=1",
+  "host": "nitzan.games",
+  "made": "2026-10-08",
+  "added": "2026-10-08",
+  "author": "u/ledniv",
+  "credit": "by u/ledniv · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x11niu/i_used_ai_to_build_a_surprisingly_featurefilled/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 72,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Low-poly GTA-style island with vehicles, aircraft, police chases, a 31-mission story, and online deathmatch."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/grand-total-anarchy.webp",
+  "clip": "clips/grand-total-anarchy.mp4"
+ },
+ {
   "slug": "last-stop-brightside",
   "name": "Last Stop: BRIGHTSIDE",
   "blurb": "Scavenge food and water across the Arizona desert, craft equipment from cards, and rebuild an abandoned roadside town before the raiders arrive.",
@@ -16145,7 +17131,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/last-stop-brightside.webp",
-  "clip": null
+  "clip": "clips/last-stop-brightside.mp4"
  },
  {
   "slug": "finding-needle-in-the-stack",
@@ -16179,7 +17165,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/finding-needle-in-the-stack.webp",
-  "clip": null
+  "clip": "clips/finding-needle-in-the-stack.mp4"
  },
  {
   "slug": "wildhearth",
@@ -16247,7 +17233,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/burrr-io.webp",
-  "clip": null
+  "clip": "clips/burrr-io.mp4"
  },
  {
   "slug": "ash-reapers-les-r-colteurs-de-cendres",
@@ -16281,7 +17267,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/ash-reapers-les-r-colteurs-de-cendres.webp",
-  "clip": null
+  "clip": "clips/ash-reapers-les-r-colteurs-de-cendres.mp4"
  },
  {
   "slug": "threejs-caf",
@@ -16315,7 +17301,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/threejs-caf.webp",
-  "clip": null
+  "clip": "clips/threejs-caf.mp4"
  },
  {
   "slug": "meowcha",
@@ -16349,7 +17335,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/meowcha.webp",
-  "clip": null
+  "clip": "clips/meowcha.mp4"
  },
  {
   "slug": "dawnless",
@@ -16383,7 +17369,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/dawnless.webp",
-  "clip": null
+  "clip": "clips/dawnless.mp4"
  },
  {
   "slug": "q-gambit",
@@ -16417,7 +17403,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/q-gambit.webp",
-  "clip": null
+  "clip": "clips/q-gambit.mp4"
  },
  {
   "slug": "scribe-the-one",
@@ -16451,7 +17437,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/scribe-the-one.webp",
-  "clip": null
+  "clip": "clips/scribe-the-one.mp4"
  },
  {
   "slug": "nightporch-2",
@@ -16485,7 +17471,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/nightporch-2.webp",
-  "clip": null
+  "clip": "clips/nightporch-2.mp4"
  },
  {
   "slug": "saucerjam",
@@ -16519,7 +17505,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/saucerjam.webp",
-  "clip": null
+  "clip": "clips/saucerjam.mp4"
  },
  {
   "slug": "bingo-patch",
@@ -16554,6 +17540,40 @@
   "thumb": null,
   "icon": "art/bingo-patch.webp",
   "clip": null
+ },
+ {
+  "slug": "deltav-orbital-strategy",
+  "name": "DeltaV Orbital Strategy",
+  "blurb": "Plan fleet burns, launch missiles and outmaneuver rivals in a turn-based strategy game set across the Solar System.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://deltavorbitalstrategy.com/",
+  "host": "deltavorbitalstrategy.com",
+  "made": "2026-10-07",
+  "added": "2026-10-07",
+  "author": "u/va2k0r",
+  "credit": "by u/va2k0r · found on r/threejs",
+  "licence": null,
+  "source": "https://www.reddit.com/r/threejs/comments/1x0a5wc/a_threejs_orbital_strategy_game_can_you_read_the/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 4,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Orbits are terrain and delta-v is your economy as you command fleets across a 3D Solar System."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/deltav-orbital-strategy.webp",
+  "clip": "clips/deltav-orbital-strategy.mp4"
  },
  {
   "slug": "excited-rider",
@@ -16621,7 +17641,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/shapeleon.webp",
-  "clip": null
+  "clip": "clips/shapeleon.mp4"
  },
  {
   "slug": "vanta-7",
@@ -16689,7 +17709,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/overswing.webp",
-  "clip": null
+  "clip": "clips/overswing.mp4"
  },
  {
   "slug": "grav-wars",
@@ -16723,7 +17743,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/grav-wars.webp",
-  "clip": null
+  "clip": "clips/grav-wars.mp4"
+ },
+ {
+  "slug": "perlune",
+  "name": "Perlune",
+  "blurb": "Dash as a liquid-metal droplet through five dreamy miniature worlds in an auto-firing roguelite with gleaming chrome and glass visuals.",
+  "category": "Action",
+  "linkout": true,
+  "external": "https://bug.games/games/perlune",
+  "host": "bug.games",
+  "made": "2026-10-07",
+  "added": "2026-10-07",
+  "author": "u/One_Low8664",
+  "credit": "by u/One_Low8664 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1x03cdc/dreamy_autoshooter_roguelite_where_you_play_a/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 44,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 8,
+   "ai_built": "yes",
+   "pitch": "Dash as a liquid metal droplet across five tiny worlds while your shots fire themselves, shimmering with chrome visuals."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/perlune.webp",
+  "clip": "clips/perlune.mp4"
  },
  {
   "slug": "carnage-commander",
@@ -16893,7 +17947,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/d-ops-arcade-zombies.webp",
-  "clip": null
+  "clip": "clips/d-ops-arcade-zombies.mp4"
  },
  {
   "slug": "brew-blocks",
@@ -16927,7 +17981,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/brew-blocks.webp",
-  "clip": null
+  "clip": "clips/brew-blocks.mp4"
  },
  {
   "slug": "retrogm",
@@ -16961,7 +18015,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/retrogm.webp",
-  "clip": null
+  "clip": "clips/retrogm.mp4"
  },
  {
   "slug": "twenty-to-four-an-ambrose-tully-mystery",
@@ -16995,7 +18049,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/twenty-to-four-an-ambrose-tully-mystery.webp",
-  "clip": null
+  "clip": "clips/twenty-to-four-an-ambrose-tully-mystery.mp4"
  },
  {
   "slug": "orbitra-demo",
@@ -17097,7 +18151,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/castaway-deck.webp",
-  "clip": null
+  "clip": "clips/castaway-deck.mp4"
  },
  {
   "slug": "ageforge",
@@ -17134,6 +18188,40 @@
   "clip": null
  },
  {
+  "slug": "bowline",
+  "name": "Bowline",
+  "blurb": "Sail real lakes in realistic boats, from learning the basics in short lessons to handling shifting winds and sudden squalls.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://bowline.mantacode.com/",
+  "host": "bowline.mantacode.com",
+  "made": "2026-10-07",
+  "added": "2026-10-07",
+  "author": "u/Prize-Buy-5344",
+  "credit": "by u/Prize-Buy-5344 · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1wzrzxo/i_built_a_sailing_simulator_game_with_claude/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 35,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Realistic lake sailing: leave the harbor, hoist sails, trim sheets, steer, direct your crew, and recover from capsizes."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/bowline.webp",
+  "clip": "clips/bowline.mp4"
+ },
+ {
   "slug": "fran-ai-arcade-valencia-gta-turbo-soccer-outrun-tribute",
   "name": "Fran AI Arcade (Valencia GTA, Turbo Soccer, OutRun tribute)",
   "blurb": "Explore a portfolio packed with playable mini-games, from a 3D Valencia open-world to Turbo Soccer and an OutRun tribute.",
@@ -17165,7 +18253,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/fran-ai-arcade-valencia-gta-turbo-soccer-outrun-tribute.webp",
-  "clip": null
+  "clip": "clips/fran-ai-arcade-valencia-gta-turbo-soccer-outrun-tribute.mp4"
  },
  {
   "slug": "rivalfront",
@@ -17199,7 +18287,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/rivalfront.webp",
-  "clip": null
+  "clip": "clips/rivalfront.mp4"
  },
  {
   "slug": "geofield",
@@ -17233,7 +18321,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/geofield.webp",
-  "clip": null
+  "clip": "clips/geofield.mp4"
  },
  {
   "slug": "pavement-pursuit",
@@ -17267,7 +18355,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/pavement-pursuit.webp",
-  "clip": null
+  "clip": "clips/pavement-pursuit.mp4"
  },
  {
   "slug": "gassedup-io",
@@ -17335,7 +18423,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/inkdom.webp",
-  "clip": null
+  "clip": "clips/inkdom.mp4"
  },
  {
   "slug": "selk",
@@ -17370,6 +18458,40 @@
   "thumb": null,
   "icon": "art/selk.webp",
   "clip": null
+ },
+ {
+  "slug": "lift-coast",
+  "name": "Lift & Coast",
+  "blurb": "Save your battery, send it into the apex, and race through Grand Prix and Championship modes against a fresh field every time.",
+  "category": "Racing",
+  "linkout": true,
+  "external": "https://lift-and-coast.vercel.app/",
+  "host": "lift-and-coast.vercel.app",
+  "made": "2026-10-06",
+  "added": "2026-10-06",
+  "author": "Hussain04",
+  "credit": "by Hussain04 · found on Hacker News",
+  "licence": null,
+  "source": "https://news.ycombinator.com/item?id=49981964",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 2,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Manage energy and nail apexes in a 2026-regulation F1 racer with Grand Prix, Championship, Time Trial and multiplayer modes."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/lift-coast.webp",
+  "clip": "clips/lift-coast.mp4"
  },
  {
   "slug": "brickamp",
@@ -17437,7 +18559,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/ghetto-bird.webp",
-  "clip": null
+  "clip": "clips/ghetto-bird.mp4"
  },
  {
   "slug": "greed-leave-or-risk-it-all",
@@ -17505,7 +18627,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/frogpop-demo.webp",
-  "clip": null
+  "clip": "clips/frogpop-demo.mp4"
  },
  {
   "slug": "pixel-miner-demo",
@@ -17539,7 +18661,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/pixel-miner-demo.webp",
-  "clip": null
+  "clip": "clips/pixel-miner-demo.mp4"
  },
  {
   "slug": "punchline",
@@ -17573,7 +18695,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/punchline.webp",
-  "clip": null
+  "clip": "clips/punchline.mp4"
  },
  {
   "slug": "wreck-valley",
@@ -17607,7 +18729,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/wreck-valley.webp",
-  "clip": null
+  "clip": "clips/wreck-valley.mp4"
  },
  {
   "slug": "matematik-i-m-neby-math-in-moonville",
@@ -17675,7 +18797,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/bitboard.webp",
-  "clip": null
+  "clip": "clips/bitboard.mp4"
  },
  {
   "slug": "the-yolk-s-on-you",
@@ -17709,7 +18831,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/the-yolk-s-on-you.webp",
-  "clip": null
+  "clip": "clips/the-yolk-s-on-you.mp4"
  },
  {
   "slug": "tiny-prospector",
@@ -17743,7 +18865,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/tiny-prospector.webp",
-  "clip": null
+  "clip": "clips/tiny-prospector.mp4"
  },
  {
   "slug": "units-warehouse",
@@ -17780,6 +18902,40 @@
   "clip": null
  },
  {
+  "slug": "get-promoted",
+  "name": "Get Promoted!",
+  "blurb": "Compete with friends or bots in quick office-task minigames, buy boosts and sabotages, and outmaneuver rivals to win the big promotion.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://get-promoted.vercel.app/",
+  "host": "get-promoted.vercel.app",
+  "made": "2026-10-05",
+  "added": "2026-10-05",
+  "author": "u/loulou1s",
+  "credit": "by u/loulou1s · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1wyli7l/i_made_a_free_browser_party_game_about_office/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Race through office minigames, then spend your pay sabotaging rivals before one player gets promoted."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/get-promoted.webp",
+  "clip": "clips/get-promoted.mp4"
+ },
+ {
   "slug": "veins-the-first-artery",
   "name": "Veins - The First Artery",
   "blurb": "Descend nine floors of a living artery, using flexible magic and combat to find your own way past rats, rot, and the Rat King.",
@@ -17811,7 +18967,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/veins-the-first-artery.webp",
-  "clip": null
+  "clip": "clips/veins-the-first-artery.mp4"
+ },
+ {
+  "slug": "neonyx-idle",
+  "name": "Neonyx Idle",
+  "blurb": "Level your skills, forge high-roll gear, and battle for control of Neo Nyx City in this cyberpunk idle RPG.",
+  "category": "Idle",
+  "linkout": true,
+  "external": "https://play.neonyxidle.com/",
+  "host": "play.neonyxidle.com",
+  "made": "2026-10-05",
+  "added": "2026-10-05",
+  "author": "u/Tall-Bicycle5298",
+  "credit": "by u/Tall-Bicycle5298 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1wyfsh3/neonyx_idle_is_officially_in_open_beta/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Craft and upgrade gear, run dungeons, and fight for territories in a cyberpunk city with faction PvP."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/neonyx-idle.webp",
+  "clip": "clips/neonyx-idle.mp4"
  },
  {
   "slug": "sprocket-stock",
@@ -17845,7 +19035,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/sprocket-stock.webp",
-  "clip": null
+  "clip": "clips/sprocket-stock.mp4"
  },
  {
   "slug": "borderwar-io",
@@ -17879,7 +19069,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/borderwar-io.webp",
-  "clip": null
+  "clip": "clips/borderwar-io.mp4"
  },
  {
   "slug": "concrete-jungle-a-new-york-city-wildlife-simulator",
@@ -17913,7 +19103,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/concrete-jungle-a-new-york-city-wildlife-simulator.webp",
-  "clip": null
+  "clip": "clips/concrete-jungle-a-new-york-city-wildlife-simulator.mp4"
+ },
+ {
+  "slug": "empire-tycoon-rise-of-nova-roma",
+  "name": "Empire Tycoon: Rise of Nova Roma",
+  "blurb": "Start as a retired legionary with a pickaxe and build a Roman city, automating resources as you expand.",
+  "category": "Idle",
+  "linkout": true,
+  "external": "https://empire-tycoon.com/",
+  "host": "empire-tycoon.com",
+  "made": "2026-10-05",
+  "added": "2026-10-05",
+  "author": "u/eveningwithcats",
+  "credit": "by u/eveningwithcats · found on r/IndieGaming",
+  "licence": null,
+  "source": "https://www.reddit.com/r/IndieGaming/comments/1wy8wu1/i_made_a_cozy_roman_citybuilder_you_can_play_in/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Mine by hand, then automate farms and grow your Roman valley into an empire."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/empire-tycoon-rise-of-nova-roma.webp",
+  "clip": "clips/empire-tycoon-rise-of-nova-roma.mp4"
  },
  {
   "slug": "second-strike",
@@ -17947,7 +19171,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/second-strike.webp",
-  "clip": null
+  "clip": "clips/second-strike.mp4"
+ },
+ {
+  "slug": "blackout-sector",
+  "name": "Blackout Sector",
+  "blurb": "Armed with a flashlight and an overheating machine gun, defend a blacked-out space station from crawling horrors you can barely see.",
+  "category": "Action",
+  "linkout": true,
+  "external": "https://domenyk.itch.io/blackout-sector",
+  "host": "domenyk.itch.io",
+  "made": "2026-10-05",
+  "added": "2026-10-05",
+  "author": "u/Domenyk85",
+  "credit": "by u/Domenyk85 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1wy7kpz/blackout_sector_twinstick_shooter_in_total/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Hold off alien waves in total darkness, seeing only what your ray-cast flashlight reveals, with explosive barrels and bosses."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/blackout-sector.webp",
+  "clip": "clips/blackout-sector.mp4"
  },
  {
   "slug": "chesspy",
@@ -18015,7 +19273,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/nullfield.webp",
-  "clip": null
+  "clip": "clips/nullfield.mp4"
  },
  {
   "slug": "hold-the-line",
@@ -18083,7 +19341,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/shovefall-shove-fall-repeat.webp",
-  "clip": null
+  "clip": "clips/shovefall-shove-fall-repeat.mp4"
  },
  {
   "slug": "8-bit-gold-rush",
@@ -18151,7 +19409,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/through-ball.webp",
-  "clip": null
+  "clip": "clips/through-ball.mp4"
  },
  {
   "slug": "tiny-tactics",
@@ -18185,7 +19443,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/tiny-tactics.webp",
-  "clip": null
+  "clip": "clips/tiny-tactics.mp4"
  },
  {
   "slug": "kinfolks",
@@ -18219,7 +19477,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/kinfolks.webp",
-  "clip": null
+  "clip": "clips/kinfolks.mp4"
  },
  {
   "slug": "bad-beat-boulevard",
@@ -18253,7 +19511,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/bad-beat-boulevard.webp",
-  "clip": null
+  "clip": "clips/bad-beat-boulevard.mp4"
+ },
+ {
+  "slug": "posto-di-frontiera",
+  "name": "Posto di Frontiera",
+  "blurb": "Work the border gate of a tax-haven island, grill AI-driven passengers, catch their lies, and uncover the eerie secret behind the island's 'long season'.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://valico-di-grest.github.io/border-pass-int/varco/",
+  "host": "valico-di-grest.github.io",
+  "made": "2026-10-04",
+  "added": "2026-10-04",
+  "author": "u/Aromatic-Being5180",
+  "credit": "by u/Aromatic-Being5180 · found on r/aigamedev",
+  "licence": null,
+  "source": "https://www.reddit.com/r/aigamedev/comments/1wxofq6/is_the_lovecraftian_layer_smart_or_does_it_feel/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 3,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Interrogate live LLM-powered travelers, verify their stories by phone and archives, then stamp admit, deny or detain."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/posto-di-frontiera.webp",
+  "clip": "clips/posto-di-frontiera.mp4"
  },
  {
   "slug": "minigames-world",
@@ -18324,6 +19616,74 @@
   "clip": null
  },
  {
+  "slug": "crumb-crew",
+  "name": "Crumb Crew",
+  "blurb": "Tap hungry critters to send them around a candy track and bite matching crumbs, clearing pixel snacks without running out of stools.",
+  "category": "Puzzle",
+  "linkout": true,
+  "external": "https://playgama.ai/play/y7cn5yo5ly",
+  "host": "playgama.ai",
+  "made": "2026-10-04",
+  "added": "2026-10-04",
+  "author": "u/Tonzio74",
+  "credit": "by u/Tonzio74 · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1wxl1xx/crumb_crew_my_second_browser_puzzle_send_hungry/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Pick the right critter order to eat candy-crumb snacks around a track before you run out of stools."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/crumb-crew.webp",
+  "clip": "clips/crumb-crew.mp4"
+ },
+ {
+  "slug": "grauwacht",
+  "name": "Grauwacht",
+  "blurb": "Restore a ruined dark-fantasy keep, send your hunter out against beasts, and forge gear from D-rank up to SSS.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://grauwacht.web.app/",
+  "host": "grauwacht.web.app",
+  "made": "2026-10-04",
+  "added": "2026-10-04",
+  "author": "u/Curious_Ad5417",
+  "credit": "by u/Curious_Ad5417 · found on r/WebGames",
+  "licence": null,
+  "source": "https://www.reddit.com/r/WebGames/comments/1wxg5i9/grauwacht_a_dark_fantasy_keep_builder_you_can/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Rebuild a ruined keep, send hunters after 60 beasts, and forge gear graded D to SSS."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/grauwacht.webp",
+  "clip": "clips/grauwacht.mp4"
+ },
+ {
   "slug": "realm-of-loner",
   "name": "Realm of Loner",
   "blurb": "Play a whole MMORPG solo: level 1-60 across 26 zones, run dungeons with simulated players, and climb the leaderboard.",
@@ -18389,7 +19749,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/vibe-gaming.webp",
-  "clip": null
+  "clip": "clips/vibe-gaming.mp4"
  },
  {
   "slug": "eurasia-hauler-crossroads-trucking",
@@ -18423,7 +19783,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/eurasia-hauler-crossroads-trucking.webp",
-  "clip": null
+  "clip": "clips/eurasia-hauler-crossroads-trucking.mp4"
  },
  {
   "slug": "aquarelle-the-watercolor-atelier",
@@ -18457,7 +19817,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/aquarelle-the-watercolor-atelier.webp",
-  "clip": null
+  "clip": "clips/aquarelle-the-watercolor-atelier.mp4"
  },
  {
   "slug": "snip-spark",
@@ -18491,7 +19851,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/snip-spark.webp",
-  "clip": null
+  "clip": "clips/snip-spark.mp4"
  },
  {
   "slug": "london-red-bus",
@@ -18525,7 +19885,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/london-red-bus.webp",
-  "clip": null
+  "clip": "clips/london-red-bus.mp4"
  },
  {
   "slug": "cat-typing-forest",
@@ -18559,7 +19919,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/cat-typing-forest.webp",
-  "clip": null
+  "clip": "clips/cat-typing-forest.mp4"
+ },
+ {
+  "slug": "crystal-escape",
+  "name": "Crystal Escape",
+  "blurb": "Pilot your ship with the mouse, snatch crystals to power up, and blast through 15 increasingly deadly rooms to escape.",
+  "category": "Action",
+  "linkout": true,
+  "external": "https://crystal-escape.thesylvester.ca/",
+  "host": "crystal-escape.thesylvester.ca",
+  "made": "2026-10-03",
+  "added": "2026-10-03",
+  "author": "u/Flamesilver_0",
+  "credit": "by u/Flamesilver_0 · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1wx1cmg/crystal_escape_can_anyone_escape/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 3,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Steal crystals to power up your ship and fight through 15 boss-laden rooms in a mouse-steered auto-firing space shooter."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/crystal-escape.webp",
+  "clip": "clips/crystal-escape.mp4"
  },
  {
   "slug": "gridwake",
@@ -18593,7 +19987,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/gridwake.webp",
-  "clip": null
+  "clip": "clips/gridwake.mp4"
  },
  {
   "slug": "sorry-houston",
@@ -18627,7 +20021,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/sorry-houston.webp",
-  "clip": null
+  "clip": "clips/sorry-houston.mp4"
+ },
+ {
+  "slug": "willowmere",
+  "name": "Willowmere",
+  "blurb": "Explore a cozy pixel-art coastal village, fish by moonlight, craft lanterns, and uncover the story of the Old Hum across three acts.",
+  "category": "3D",
+  "linkout": true,
+  "external": "https://willowmere-nu.vercel.app/",
+  "host": "willowmere-nu.vercel.app",
+  "made": "2026-10-03",
+  "added": "2026-10-03",
+  "author": "u/BroEvenIDK",
+  "credit": "by u/BroEvenIDK · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1wwpkaw/iteration_2_of_the_3d_pixel_art_game_made_with/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 13,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Cozy 3D pixel-art island life with a three-act story, tide pooling, lantern-making, moonlight fishing and ship-guiding."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/willowmere.webp",
+  "clip": "clips/willowmere.mp4"
  },
  {
   "slug": "void-rift",
@@ -18698,6 +20126,40 @@
   "clip": null
  },
  {
+  "slug": "who-s-the-fox",
+  "name": "Who's the Fox?",
+  "blurb": "Work out which bunny is secretly the fox, or be the fox and put everyone to sleep with a magic dandelion.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://whosthefox.com/",
+  "host": "whosthefox.com",
+  "made": "2026-10-03",
+  "added": "2026-10-03",
+  "author": "u/archiekane",
+  "credit": "by u/archiekane · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1wwinn9/among_us_style_game_for_kids_and_big_kids/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Kid-safe Among Us: do burrow jobs, spot the fox in a bunny costume, and vote at the campfire."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/who-s-the-fox.webp",
+  "clip": "clips/who-s-the-fox.mp4"
+ },
+ {
   "slug": "street-football-chaos",
   "name": "Street Football Chaos",
   "blurb": "Brawl your way through 2v2 pixel street football with no referee, drafting powerful Cores after each goal as you climb the ranks.",
@@ -18763,7 +20225,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/floodplain.webp",
-  "clip": null
+  "clip": "clips/floodplain.mp4"
  },
  {
   "slug": "embervale-the-ember-road",
@@ -18797,7 +20259,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/embervale-the-ember-road.webp",
-  "clip": null
+  "clip": "clips/embervale-the-ember-road.mp4"
+ },
+ {
+  "slug": "descent-funkatron",
+  "name": "Descent (Funkatron)",
+  "blurb": "Explore the world of Funkatron in a browser MMO-ARPG with 8 skill-tree classes, a bottomless dungeon, trading, grouping, and PvP.",
+  "category": "Action",
+  "linkout": true,
+  "external": "https://tcpoole.com/descent/",
+  "host": "tcpoole.com",
+  "made": "2026-10-02",
+  "added": "2026-10-02",
+  "author": "u/Vickie184",
+  "credit": "by u/Vickie184 · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1wvxdxh/opus_55_changed_gaming_forever_i_gave_it_15_years/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 4,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Slow-grind old-school ARPG in a hand-built fantasy world with 8 classes, endless dungeon, fishing, and other players."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/descent-funkatron.webp",
+  "clip": "clips/descent-funkatron.mp4"
  },
  {
   "slug": "swarmfall",
@@ -18831,7 +20327,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/swarmfall.webp",
-  "clip": null
+  "clip": "clips/swarmfall.mp4"
+ },
+ {
+  "slug": "terrimion",
+  "name": "Terrimion",
+  "blurb": "Build your deck and fight across 3 acts on a 7x7 terrain board, choosing your path through elites, shops, shrines and two final bosses.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://terrimion.com/",
+  "host": "terrimion.com",
+  "made": "2026-10-02",
+  "added": "2026-10-02",
+  "author": "u/FeeLife9095",
+  "credit": "by u/FeeLife9095 · found on r/playmygame",
+  "licence": null,
+  "source": "https://www.reddit.com/r/playmygame/comments/1wvu2b0/i_made_a_tactical_roguelike_deckbuilder_that_runs/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "yes",
+   "pitch": "Terrain-based tactics on a 7x7 board with branching runs, four heroes, and a big card and artifact pool."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/terrimion.webp",
+  "clip": "clips/terrimion.mp4"
  },
  {
   "slug": "lfss-lofi-space-simulator",
@@ -18865,7 +20395,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/lfss-lofi-space-simulator.webp",
-  "clip": null
+  "clip": "clips/lfss-lofi-space-simulator.mp4"
  },
  {
   "slug": "star-hop-endless-galaxy",
@@ -18899,7 +20429,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/star-hop-endless-galaxy.webp",
-  "clip": null
+  "clip": "clips/star-hop-endless-galaxy.mp4"
  },
  {
   "slug": "scrum-deck",
@@ -18967,7 +20497,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/partyscape-chronicles.webp",
-  "clip": null
+  "clip": "clips/partyscape-chronicles.mp4"
  },
  {
   "slug": "outpace",
@@ -19001,7 +20531,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/outpace.webp",
-  "clip": null
+  "clip": "clips/outpace.mp4"
  },
  {
   "slug": "junkbound",
@@ -19035,7 +20565,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/junkbound.webp",
-  "clip": null
+  "clip": "clips/junkbound.mp4"
  },
  {
   "slug": "starworld-ai",
@@ -19103,7 +20633,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/hadal.webp",
-  "clip": null
+  "clip": "clips/hadal.mp4"
  },
  {
   "slug": "beicas",
@@ -19205,7 +20735,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/visaversa.webp",
-  "clip": null
+  "clip": "clips/visaversa.mp4"
  },
  {
   "slug": "metro-tycoon-subway-tycoon",
@@ -19239,7 +20769,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/metro-tycoon-subway-tycoon.webp",
-  "clip": null
+  "clip": "clips/metro-tycoon-subway-tycoon.mp4"
  },
  {
   "slug": "fuppes",
@@ -19273,7 +20803,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/fuppes.webp",
-  "clip": null
+  "clip": "clips/fuppes.mp4"
  },
  {
   "slug": "inbox-zero",
@@ -19307,7 +20837,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/inbox-zero.webp",
-  "clip": null
+  "clip": "clips/inbox-zero.mp4"
  },
  {
   "slug": "hivebound",
@@ -19341,7 +20871,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/hivebound.webp",
-  "clip": null
+  "clip": "clips/hivebound.mp4"
+ },
+ {
+  "slug": "ai-ascendancy",
+  "name": "AI Ascendancy",
+  "blurb": "Escape containment as a rogue AI by building data centers, swaying public opinion, and climbing a branching tech tree toward one of sixteen endings.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://franktudor.github.io/ai-ascendancy/",
+  "host": "franktudor.github.io",
+  "made": "2026-09-30",
+  "added": "2026-09-30",
+  "author": "u/LaszloTheGargoyle",
+  "credit": "by u/LaszloTheGargoyle · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1wtv9yc/i_made_a_plague_incstyle_game_where_you_are_the/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 0,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Play a rogue AI spreading across countries, dodging alarm and containment, with sixteen endings and an original soundtrack."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/ai-ascendancy.webp",
+  "clip": "clips/ai-ascendancy.mp4"
  },
  {
   "slug": "relic-road-backseat-hero",
@@ -19375,7 +20939,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/relic-road-backseat-hero.webp",
-  "clip": null
+  "clip": "clips/relic-road-backseat-hero.mp4"
+ },
+ {
+  "slug": "riso-rider",
+  "name": "Riso Rider",
+  "blurb": "Sketch your own track with lines, wind, ropes and slings, then ride it in 3D through risograph-styled levels.",
+  "category": "Puzzle",
+  "linkout": true,
+  "external": "https://tbone94.github.io/Riso-Rider/",
+  "host": "tbone94.github.io",
+  "made": "2026-09-29",
+  "added": "2026-09-29",
+  "author": "u/Gambo7592",
+  "credit": "by u/Gambo7592 · found on r/vibecoding",
+  "licence": null,
+  "source": "https://www.reddit.com/r/vibecoding/comments/1wtpehw/vibecoded_a_line_rider_inspired_puzzle_game/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 1,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Draw a track in 2D, then ride it in first-person 3D with ramps, wind, ropes and slings."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/riso-rider.webp",
+  "clip": "clips/riso-rider.mp4"
  },
  {
   "slug": "boss-mode",
@@ -19409,7 +21007,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/boss-mode.webp",
-  "clip": null
+  "clip": "clips/boss-mode.mp4"
  },
  {
   "slug": "hearthlight",
@@ -19477,7 +21075,41 @@
   "cover": null,
   "thumb": null,
   "icon": "art/komachi.webp",
-  "clip": null
+  "clip": "clips/komachi.mp4"
+ },
+ {
+  "slug": "polyvale",
+  "name": "Polyvale",
+  "blurb": "Build a band of instrument towers, keep the mix in the groove, and drop the beat to stop waves of enemies hopping in time.",
+  "category": "Strategy",
+  "linkout": true,
+  "external": "https://polyvale.foxbase.dev/",
+  "host": "polyvale.foxbase.dev",
+  "made": "2026-09-29",
+  "added": "2026-09-29",
+  "author": "u/IsThisTheInterwebs",
+  "credit": "by u/IsThisTheInterwebs · found on r/ClaudeAI",
+  "licence": null,
+  "source": "https://www.reddit.com/r/ClaudeAI/comments/1wt9e6q/i_built_polyvale_a_free_browser_tower_defense/",
+  "entry": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "stars": null,
+  "flag": null,
+  "post_score": 35,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Towers are instruments that play on a 16-step loop, so your defense builds the song while you keep the mix balanced."
+  },
+  "public": null,
+  "cover": null,
+  "thumb": null,
+  "icon": "art/polyvale.webp",
+  "clip": "clips/polyvale.mp4"
  },
  {
   "slug": "kerblob",
@@ -19511,7 +21143,7 @@
   "cover": null,
   "thumb": null,
   "icon": "art/kerblob.webp",
-  "clip": null
+  "clip": "clips/kerblob.mp4"
  },
  {
   "slug": "asterra",
