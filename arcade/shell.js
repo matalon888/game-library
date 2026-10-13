@@ -3,7 +3,6 @@
 (function () {
   const AD_MIN_PLAY_MS = 45 * 1000;   // no ad unless they played at least this long
   const AD_GAP_MS = 2 * 60 * 1000;    // and at most one ad per 2 minutes
-  const INSTALL_AFTER_PLAYS = 2;
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem('arcade.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
@@ -19,23 +18,87 @@
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   const games = () => fetch('games.json').then(r => r.json());
 
-  // ---------------------------------------------------------------- home
+  // ---------------------------------------------------------------- install prompt
+  // Android Chrome: real one-tap install. iPhone: Apple allows no install button, so we point at the exact
+  // Share button of the browser they're in and walk them through Add to Home Screen (opens with no browser bars).
+  const ua = navigator.userAgent;
+  const android = /Android/i.test(ua);
+  const browser = iOS
+    ? (/FBAN|FBAV|Instagram|Line\/|LinkedInApp|Snapchat|TikTok|musical_ly/.test(ua) ? 'inapp' : /CriOS/.test(ua) ? 'chrome-ios'
+      : /FxiOS|EdgiOS|OPiOS/.test(ua) ? 'other-ios' : 'safari')
+    : android ? (/FBAN|FBAV|Instagram|; wv\)/.test(ua) ? 'inapp' : /SamsungBrowser/.test(ua) ? 'samsung' : 'chrome-android') : 'desktop';
+  const SHARE = '<svg class="gl" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const ADD = '<svg class="gl" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8.5v7M8.5 12h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const DOTS = '<b class="glt">⋮</b>';
   let deferredInstall = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; renderInstall(); });
+  window.addEventListener('appinstalled', () => { store.set('installed', true); closeSheet(); renderInstall(); });
 
-  function renderInstall() {
-    const el = $('install'); if (!el) return;
-    if (standalone || store.get('plays', 0) < INSTALL_AFTER_PLAYS || store.get('installDismissed', false)) { el.innerHTML = ''; return; }
-    if (deferredInstall) {
-      el.innerHTML = `<div class="banner"><p><b>Install the arcade.</b> One tap from your home screen, fullscreen, works offline.</p>
-        <button class="btn" id="doInstall">Install</button><button class="btn ghost" id="noInstall" aria-label="Dismiss">✕</button></div>`;
-      $('doInstall').onclick = async () => { deferredInstall.prompt(); await deferredInstall.userChoice.catch(() => {}); deferredInstall = null; el.innerHTML = ''; };
-    } else if (iOS) {
-      el.innerHTML = `<div class="banner"><p><b>Add to Home Screen</b> for one-tap, fullscreen play: tap <b>Share</b> <span aria-hidden="true">⎙</span>, then <b>Add to Home Screen</b>.</p>
-        <button class="btn ghost" id="noInstall" aria-label="Dismiss">✕</button></div>`;
-    } else { el.innerHTML = ''; return; }
-    $('noInstall').onclick = () => { store.set('installDismissed', true); el.innerHTML = ''; };
+  const canPrompt = () => !standalone && !store.get('installed', false) && browser !== 'desktop';
+  const snoozed = () => Date.now() - store.get('installSnooze', 0) < 3 * 864e5;
+
+  function guide() {
+    const step = (n, html) => `<li><span class="n">${n}</span><span>${html}</span></li>`;
+    switch (browser) {
+      case 'chrome-android':
+        if (deferredInstall) return { arrow: null, one: true, steps: '' };
+        return { arrow: 'top-right', steps: step(1, `Tap ${DOTS} at the top right`) + step(2, `Tap <b>Add to Home screen</b> or <b>Install app</b>`) };
+      case 'samsung':
+        return { arrow: 'bottom-right', steps: step(1, 'Tap the menu ≡ at the bottom right') + step(2, 'Tap <b>Add page to</b> → <b>Home screen</b>') };
+      case 'chrome-ios':
+        return { arrow: 'top-right', steps: step(1, `Tap ${SHARE} <b>Share</b> at the right end of the address bar`) +
+          step(2, `Scroll down and tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Tap <b>Add</b>, then open <b>Arcade</b> from your home screen') };
+      case 'safari':
+        return { arrow: 'bottom', steps: step(1, `Tap ${SHARE} <b>Share</b> in the toolbar (on iOS 26 tap <b>⋯</b> first)`) +
+          step(2, `Tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Keep <b>Open as Web App</b> on and tap <b>Add</b>') };
+      case 'other-ios':
+        return { arrow: null, steps: step(1, `Open the browser menu and tap ${SHARE} <b>Share</b>`) + step(2, `Tap ${ADD} <b>Add to Home Screen</b>`) };
+      default: // in-app browsers (Instagram, Facebook, TikTok…) can't add to the home screen
+        return { arrow: 'top-right', inapp: true, steps: step(1, `Tap <b>⋯</b> and choose <b>Open in browser</b>`) + step(2, 'Then come back to this screen to add the Arcade') };
+    }
   }
+
+  function closeSheet() { $('installSheet')?.remove(); $('installArrow')?.remove(); }
+
+  function openSheet() {
+    closeSheet();
+    const gd = guide();
+    const sh = document.createElement('div');
+    sh.id = 'installSheet'; sh.className = 'isheet' + (gd.arrow === 'bottom' || gd.arrow === 'bottom-right' ? ' top' : '');
+    sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', 'Add the Arcade to your home screen');
+    sh.innerHTML = `<div class="icard">
+      <div class="ihead"><img src="icons/icon-192.png" alt=""><div><b>Play fullscreen</b><p>Add the Arcade to your home screen. It opens like an app: no browser bars, works offline.</p></div></div>
+      ${gd.one ? '<button class="btn big" id="doInstall">Install the Arcade</button>' : `<ol class="steps">${gd.steps}</ol>`}
+      ${gd.inapp ? '<button class="btn ghost" id="copyLink">Copy link</button>' : ''}
+      <button class="btn ghost" id="notNow">Not now</button></div>`;
+    document.body.appendChild(sh);
+    if (gd.arrow) {
+      const a = document.createElement('div');
+      a.id = 'installArrow'; a.className = 'iarrow ' + gd.arrow; a.setAttribute('aria-hidden', 'true');
+      a.textContent = gd.arrow.startsWith('bottom') ? '↓' : '↑';
+      document.body.appendChild(a);
+    }
+    $('notNow').onclick = () => { store.set('installSnooze', Date.now()); closeSheet(); renderInstall(); };
+    if (gd.one) $('doInstall').onclick = async () => {
+      deferredInstall.prompt();
+      const r = await deferredInstall.userChoice.catch(() => ({}));
+      deferredInstall = null; closeSheet();
+      if (r.outcome === 'accepted') store.set('installed', true);
+      renderInstall();
+    };
+    if (gd.inapp) $('copyLink').onclick = e => {
+      navigator.clipboard?.writeText(location.href).then(() => { e.target.textContent = 'Link copied'; }).catch(() => {});
+    };
+  }
+
+  // compact entry point on the home screen and the Play screen; full guide opens on first visit
+  function renderInstall() {
+    document.querySelectorAll('[data-install]').forEach(el => {
+      el.innerHTML = canPrompt() ? `<button class="ibtn" data-open-install>${ADD}<span><b>Play fullscreen</b> · add to Home Screen</span></button>` : '';
+    });
+  }
+  document.addEventListener('click', e => { if (e.target.closest('[data-open-install]')) openSheet(); });
+  function autoPrompt() { if (canPrompt() && !snoozed() && !store.get('promptedOnce', false)) { store.set('promptedOnce', true); setTimeout(openSheet, 900); } }
 
   async function home() {
     const gs = await games();
@@ -46,6 +109,7 @@
     if (last) $('cont').innerHTML = `<a class="continue" href="play.html?g=${encodeURIComponent(last.slug)}"><img src="${last.thumb}" alt="">
       <div><div class="eyebrow">Continue</div><b>${esc(last.name)}</b></div><span class="go">Play</span></a>`;
     renderInstall();
+    autoPrompt();
   }
 
   // ---------------------------------------------------------------- player
@@ -76,9 +140,10 @@
     ov.className = 'overlay';
     ov.innerHTML = `<div class="box"><div class="eyebrow">Ad-Safe Arcade</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>
       <div class="loadbar" id="lb"><i></i></div><button class="playbtn" id="go">PLAY</button>
-      ${iOS && !standalone ? '<p class="hint">For fullscreen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open the Arcade icon.</p>' : ''}
+      <div data-install></div>
       <div class="credit">${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
     stage.appendChild(ov);
+    renderInstall();
     frame.addEventListener('load', () => { $('lb').classList.add('done'); fit(); });
 
     function fit() {

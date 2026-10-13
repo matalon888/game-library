@@ -86,4 +86,28 @@ button { font: inherit; color: inherit }
 .player.playing .topbar { position: fixed; top: 0; left: 0; right: auto; z-index: 7; background: none; padding: calc(env(safe-area-inset-top, 0px) + 6px) 6px 0; gap: 6px }
 .player.playing .topbar .t { display: none }
 .player.playing .icon { width: 30px; height: 30px; font-size: 13px; background: rgba(13,16,23,.55); border-color: rgba(255,255,255,.18); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: .8 }
-.overlay .hint { font-size: 13px; color: var(--ink); background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px }
+.overlay .hint-old { font-size: 13px; color: var(--ink); background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px }
+
+/* install prompt */
+.ibtn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(240,180,41,.45); background: rgba(240,180,41,.10); color: var(--ink); font-size: 14px; text-align: left; cursor: pointer }
+.ibtn .gl { width: 22px; height: 22px; color: var(--coin); flex: none }
+.isheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding: 12px 12px calc(env(safe-area-inset-bottom, 0px) + 12px); background: linear-gradient(transparent, rgba(0,0,0,.55) 30%) }
+.isheet.top { bottom: auto; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 12px; background: linear-gradient(rgba(0,0,0,.55) 70%, transparent) }
+.icard { max-width: 460px; margin: 0 auto; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 16px; display: grid; gap: 12px; box-shadow: 0 20px 50px -20px #000 }
+.ihead { display: flex; gap: 12px; align-items: center }
+.ihead img { width: 48px; height: 48px; border-radius: 12px }
+.ihead b { font: 700 16px var(--display) }
+.ihead p { margin: 2px 0 0; font-size: 13px; color: var(--muted) }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.steps li { display: flex; gap: 10px; align-items: center; font-size: 14px; background: var(--raise); border-radius: 12px; padding: 10px 12px }
+.steps .n { width: 22px; height: 22px; flex: none; border-radius: 50%; background: var(--coin); color: #1a1300; display: grid; place-items: center; font: 700 12px var(--mono) }
+.steps .gl { width: 18px; height: 18px; vertical-align: -4px; color: var(--accent) }
+.steps .glt { color: var(--accent); font-size: 18px; line-height: 0 }
+.btn.big { padding: 14px; font-size: 16px; background: var(--coin); color: #1a1300 }
+.iarrow { position: fixed; z-index: 21; font: 700 40px/1 var(--body); color: var(--coin); text-shadow: 0 2px 10px #000; pointer-events: none; animation: nudge 1s ease-in-out infinite }
+.iarrow.top-right { top: calc(env(safe-area-inset-top, 0px) + 2px); right: 14px }
+.iarrow.bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); left: 50%; margin-left: -12px; animation-name: nudge-down }
+.iarrow.bottom-right { bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); right: 18px; animation-name: nudge-down }
+@keyframes nudge { 50% { transform: translateY(-8px) } }
+@keyframes nudge-down { 50% { transform: translateY(8px) } }
+@media (prefers-reduced-motion: reduce) { .iarrow { animation: none } }
