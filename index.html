@@ -132,7 +132,7 @@ const HOSTS = {
     // the ChatGPT app's Plugins screen has no Add button (tested on iPhone), so adding must happen on the website:
     // no_universal_links=1 is ChatGPT's own opt-out in its apple-app-site-association, so the app doesn't grab the link
     // phones: the app has no Add form, but its Work mode adds a plugin when asked, so one prefilled prompt does it (?q= is app-claimed and only prefills)
-    phone: { copy: false, addLabel: 'Add to ChatGPT', add: 'https://chatgpt.com/?q=' + encodeURIComponent('Add this MCP server to ChatGPT as a plugin: ' + MCP + ' . Name it RIFFCADE. No authentication.'),
+    phone: { copy: false, addLabel: 'Add to ChatGPT', add: 'https://chatgpt.com/?q=' + encodeURIComponent('Create a custom MCP server plugin right away, no directory search: name RIFFCADE, server URL ' + MCP + ' , no authentication. Then show me the arcade.'),
       steps: ['1. Tap <b>Work</b> at the top, then send the message', '2. Tap <b>Connect</b> when ChatGPT asks'],
       note: 'Work needs ChatGPT Plus. On the free plan, add it from a computer at chatgpt.com/plugins → Add → Add custom MCP server.' },
     steps: ['2. Tap <b>Add</b> (top right) → <b>Add custom MCP server</b>', '3. Name: <b>RIFFCADE</b>. Paste the link into <b>Server URL</b>', '4. Authentication: <b>No authentication</b>', '5. Tick <b>I understand</b> → <b>Create as a plugin</b>'] },
