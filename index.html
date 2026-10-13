@@ -134,7 +134,7 @@ const HOSTS = {
     // no_universal_links=1 is ChatGPT's own opt-out in its apple-app-site-association, so the app doesn't grab the link
     // phones: the app has no Add form, but its Work mode adds a plugin when asked, so one prefilled prompt does it (?q= is app-claimed and only prefills)
     phone: { copy: false, addLabel: 'Add to ChatGPT', add: 'https://chatgpt.com/?q=' + encodeURIComponent('🎮 RIFFCADE: add custom MCP plugin now, skip search. Name: 🎮 RIFFCADE. URL: ' + MCP + ' . No auth. Then open the arcade.'),
-      steps: ['1. Tap <b>Work</b>, send, tap <b>Connect</b>.', '2. Come back and tap <b>Start playing</b>: that\'s your 🎮 RIFFCADE chat.'],
+      steps: ['1. Tap <b>Work</b>, send. Wait about a minute.', '2. Tap the <b>RIFFCADE ↗</b> link it gives → <b>Connect</b>.', '3. Back here, tap <b>Start playing</b>.'],
       note: 'Needs Plus. Free plan: add it on a computer.' },
     steps: ['2. <b>Add</b> → <b>Add custom MCP server</b>', '3. Name <b>🎮 RIFFCADE</b>, paste the link', '4. <b>No authentication</b>', '5. Tick, <b>Create</b>'] },
   grok: { name: 'Grok', copy: true, add: 'https://grok.com/connectors', play: 'https://grok.com/?q=' + ASK, addLabel: 'Copy link & open Grok',
