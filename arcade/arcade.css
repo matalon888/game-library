@@ -80,3 +80,10 @@ button { font: inherit; color: inherit }
 .sheet p { margin: 0; font-size: 14px; color: var(--muted) }
 .sheet a { color: var(--accent) }
 @media (prefers-reduced-motion: reduce) { .loadbar i, .rotate { animation: none } }
+
+/* while playing, the title bar becomes two small floating buttons so the game gets the whole height */
+.player.playing { grid-template-rows: 1fr auto }
+.player.playing .topbar { position: fixed; top: 0; left: 0; right: auto; z-index: 7; background: none; padding: calc(env(safe-area-inset-top, 0px) + 6px) 6px 0; gap: 6px }
+.player.playing .topbar .t { display: none }
+.player.playing .icon { width: 30px; height: 30px; font-size: 13px; background: rgba(13,16,23,.55); border-color: rgba(255,255,255,.18); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: .8 }
+.overlay .hint { font-size: 13px; color: var(--ink); background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px }

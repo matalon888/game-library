@@ -68,20 +68,30 @@
     frame.title = g.name;
     frame.allow = 'autoplay; fullscreen; gamepad';
     frame.src = `games/${g.slug}/${g.entry}`;
-    if (g.fit) { frame.className = 'fit'; frame.style.width = g.fit.w + 'px'; frame.style.height = g.fit.h + 'px'; }
+    if (g.fit || g.minHeight) frame.className = 'fit';
+    if (g.fit) { frame.style.width = g.fit.w + 'px'; frame.style.height = g.fit.h + 'px'; }
     stage.appendChild(frame);
 
     const ov = document.createElement('div');
     ov.className = 'overlay';
     ov.innerHTML = `<div class="box"><div class="eyebrow">Ad-Safe Arcade</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>
       <div class="loadbar" id="lb"><i></i></div><button class="playbtn" id="go">PLAY</button>
+      ${iOS && !standalone ? '<p class="hint">For fullscreen on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>, and open the Arcade icon.</p>' : ''}
       <div class="credit">${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
     stage.appendChild(ov);
     frame.addEventListener('load', () => { $('lb').classList.add('done'); fit(); });
 
     function fit() {
-      if (!g.fit) return;
       const W = stage.clientWidth, H = stage.clientHeight;
+      if (g.minHeight && !g.fit) {
+        // the game was laid out for a taller phone than what's left under the browser bars:
+        // give it that height and zoom the whole thing out, so every menu button stays on screen
+        const s = Math.min(1, H / g.minHeight);
+        frame.style.width = (W / s) + 'px'; frame.style.height = (H / s) + 'px';
+        frame.style.transform = `scale(${s})`;
+        return;
+      }
+      if (!g.fit) return;
       const s = Math.min(W / g.fit.w, H / g.fit.h);
       const x = (W - g.fit.w * s) / 2, y = (H - g.fit.h * s) / 2;
       frame.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
@@ -107,6 +117,7 @@
       if (!standalone && de.requestFullscreen) await de.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
       if (g.orientation !== 'any' && screen.orientation && screen.orientation.lock) screen.orientation.lock(g.orientation).catch(() => {});
       ov.remove();
+      document.querySelector('.player').classList.add('playing');
       started = Date.now();
       store.set('last', g.slug);
       store.set('plays', store.get('plays', 0) + 1);

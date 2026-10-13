@@ -1,5 +1,66 @@
 [
- {"slug":"pshenok-server-survival","name":"Server Survival","blurb":"Tower defence where your towers are load balancers and caches.","author":"Kostyantyn Pshenychnyy","credit":"Copyright (c) 2025 Kostyantyn Pshenychnyy","licence":"MIT","source":"https://github.com/pshenok/server-survival","entry":"index.html","orientation":"any","controls":null,"fit":null,"thumb":"thumbs/pshenok-server-survival.webp"},
- {"slug":"ipel-ns-shaft","name":"NS-Shaft","blurb":"Drop down the shaft and dodge the spikes. Tap left or right half.","author":"iPel","credit":"Copyright (c) iPel and contributors","licence":"Apache-2.0","source":"https://github.com/iPel/NS-SHAFT","entry":"index.html","orientation":"portrait","controls":null,"fit":null,"thumb":"thumbs/ipel-ns-shaft.webp"},
- {"slug":"dmcinnes-html5-asteroids","name":"Asteroids","blurb":"Vector-arcade Asteroids. Keyboard-only originally; playable here with on-screen controls.","author":"Doug McInnes","credit":"Copyright (c) 2010 Doug McInnes","licence":"MIT","source":"https://github.com/dmcinnes/HTML5-Asteroids","entry":"index.html","orientation":"any","fit":{"w":800,"h":560},"controls":{"dpad":["left","up","right"],"labels":{"up":"Thrust"},"a":{"key":" ","label":"Fire"},"b":{"key":"p","label":"Pause"}},"thumb":"thumbs/dmcinnes-html5-asteroids.webp"}
+ {
+  "slug": "pshenok-server-survival",
+  "name": "Server Survival",
+  "blurb": "Tower defence where your towers are load balancers and caches.",
+  "author": "Kostyantyn Pshenychnyy",
+  "credit": "Copyright (c) 2025 Kostyantyn Pshenychnyy",
+  "licence": "MIT",
+  "source": "https://github.com/pshenok/server-survival",
+  "entry": "index.html",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "thumb": "thumbs/pshenok-server-survival.webp",
+  "minHeight": 780
+ },
+ {
+  "slug": "ipel-ns-shaft",
+  "name": "NS-Shaft",
+  "blurb": "Drop down the shaft and dodge the spikes. Tap left or right half.",
+  "author": "iPel",
+  "credit": "Copyright (c) iPel and contributors",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/iPel/NS-SHAFT",
+  "entry": "index.html",
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "thumb": "thumbs/ipel-ns-shaft.webp",
+  "minHeight": 700
+ },
+ {
+  "slug": "dmcinnes-html5-asteroids",
+  "name": "Asteroids",
+  "blurb": "Vector-arcade Asteroids. Keyboard-only originally; playable here with on-screen controls.",
+  "author": "Doug McInnes",
+  "credit": "Copyright (c) 2010 Doug McInnes",
+  "licence": "MIT",
+  "source": "https://github.com/dmcinnes/HTML5-Asteroids",
+  "entry": "index.html",
+  "orientation": "any",
+  "fit": {
+   "w": 800,
+   "h": 560
+  },
+  "controls": {
+   "dpad": [
+    "left",
+    "up",
+    "right"
+   ],
+   "labels": {
+    "up": "Thrust"
+   },
+   "a": {
+    "key": " ",
+    "label": "Fire"
+   },
+   "b": {
+    "key": "p",
+    "label": "Pause"
+   }
+  },
+  "thumb": "thumbs/dmcinnes-html5-asteroids.webp"
+ }
 ]
