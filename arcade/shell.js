@@ -25,6 +25,16 @@
     .then(r => r.ok ? r.json() : null).catch(() => null);
   const getStats = () => Promise.race([api('/api/stats'), new Promise(r => setTimeout(() => r(null), 2500))]).then(s => s || {});
   const starsTxt = st => st && st.rating ? `★ ${st.rating.toFixed(1)}` : '';
+  // reception elsewhere: real public numbers, always named and linked, never blended into our players' stars
+  const kNum = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k' : String(n);
+  const praise = g => {
+    const p = g.public || {}, out = [];
+    if (p.itch) out.push({ short: `★ ${p.itch.rating.toFixed(1)} on itch.io (${p.itch.count})`, long: `★ ${p.itch.rating.toFixed(1)} from ${p.itch.count} players on itch.io`, url: p.itch.url });
+    if (p.hn) out.push({ short: `▲ ${p.hn.points} on Hacker News`, long: `▲ ${p.hn.points} points, ${p.hn.comments} comments on Hacker News (${p.hn.year})`, url: p.hn.url });
+    if (p.github) out.push({ short: `${kNum(p.github.stars)} GitHub stars`, long: `${kNum(p.github.stars)} stars, ${kNum(p.github.forks)} forks on GitHub`, url: p.github.url });
+    return out;
+  };
+  const praiseList = g => { const l = praise(g); return l.length ? `<ul class="praise">${l.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.long)}</a></li>`).join('')}</ul>` : ''; };
 
   // ---------------------------------------------------------------- install prompt
   // Android Chrome: real one-tap install. iPhone: Apple allows no install button, so we point at the exact
@@ -127,7 +137,7 @@
         const meta = [st && st.rating ? `<span class="star">${starsTxt(st)}</span> (${st.ratings})` : '', st && st.plays ? `${st.plays} plays` : ''].filter(Boolean).join(' · ');
         return `<a class="card" href="play.html?g=${encodeURIComponent(g.slug)}" aria-label="${esc(g.name)}, ${esc(g.category || 'Arcade')}">
         <div class="shot"><img src="${g.cover || g.thumb}" alt="" loading="lazy">${g.added === latest ? '<span class="new">NEW</span>' : ''}${g.controls ? '<span class="badge">TOUCH CONTROLS</span>' : ''}</div>
-        <p class="meta">${meta || 'Not rated yet'}</p></a>`;
+        <p class="meta">${meta || (praise(g)[0] ? `<span class="ext">${esc(praise(g)[0].short)}</span>` : 'New here, be the first to rate')}</p></a>`;
       }).join('');
     }
     draw();
@@ -165,7 +175,7 @@
 
     const ov = document.createElement('div');
     ov.className = 'overlay';
-    ov.innerHTML = `<div class="box"><div class="eyebrow">Ad-Safe Arcade</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>
+    ov.innerHTML = `<div class="box"><div class="eyebrow">Ad-Safe Arcade</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>${praiseList(g)}
       <div class="loadbar" id="lb"><i></i></div><button class="playbtn" id="go">PLAY</button>
       <div data-install></div>
       <div class="credit"><span id="splashStats"></span>${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
@@ -290,7 +300,7 @@
       const sh = document.createElement('div'); sh.className = 'sheet'; sh.id = 'sheet';
       sh.innerHTML = `<h3>${esc(g.name)}</h3><p>By ${esc(g.author)}. ${esc(g.credit)}.</p>
         <p>Licensed under ${esc(g.licence)}. Played here unmodified; the original licence file ships with the game.</p>
-        <p><a href="${esc(g.source)}" target="_blank" rel="noopener">Source code</a></p><button class="btn" id="closeSheet">Close</button>`;
+        ${praise(g).length ? '<p>Elsewhere:</p>' + praiseList(g) : ''}<p><a href="${esc(g.source)}" target="_blank" rel="noopener">Source code</a></p><button class="btn" id="closeSheet">Close</button>`;
       stage.appendChild(sh);
       $('closeSheet').onclick = () => sh.remove();
     };

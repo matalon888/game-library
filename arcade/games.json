@@ -16,6 +16,13 @@
   "added": "2026-10-13",
   "stars": 6442,
   "flag": null,
+  "public": {
+   "github": {
+    "forks": 711,
+    "stars": 6442,
+    "url": "https://github.com/pshenok/server-survival"
+   }
+  },
   "cover": "covers/pshenok-server-survival.webp",
   "thumb": "covers/pshenok-server-survival.webp"
  },
@@ -36,6 +43,20 @@
   "added": "2026-10-13",
   "stars": 1749,
   "flag": "20 MB download; plays in landscape.",
+  "public": {
+   "github": {
+    "forks": 892,
+    "stars": 1749,
+    "url": "https://github.com/BKcore/HexGL"
+   },
+   "hn": {
+    "points": 22,
+    "comments": 3,
+    "title": "HexGL by BKcore",
+    "year": "2014",
+    "url": "https://news.ycombinator.com/item?id=8640249"
+   }
+  },
   "cover": "covers/bkcore-hexgl.webp",
   "thumb": "covers/bkcore-hexgl.webp"
  },
@@ -56,6 +77,20 @@
   "added": "2026-10-13",
   "stars": 551,
   "flag": null,
+  "public": {
+   "github": {
+    "forks": 143,
+    "stars": 551,
+    "url": "https://github.com/basicallydan/skifree.js"
+   },
+   "hn": {
+    "points": 157,
+    "comments": 61,
+    "title": "SkiFree in the Browser",
+    "year": "2013",
+    "url": "https://news.ycombinator.com/item?id=5247965"
+   }
+  },
   "cover": "covers/basicallydan-skifree-js.webp",
   "thumb": "covers/basicallydan-skifree-js.webp"
  },
@@ -76,8 +111,20 @@
   "added": "2026-10-13",
   "stars": 315,
   "flag": "Credits third-party music in-game; confirm the music licence before monetising.",
-  "cover": null,
-  "thumb": null
+  "public": {
+   "github": {
+    "forks": 46,
+    "stars": 315,
+    "url": "https://github.com/felixmariotto/Edelweiss"
+   },
+   "itch": {
+    "rating": 4.2,
+    "count": 6,
+    "url": "https://felixmrtt.itch.io/edelweiss"
+   }
+  },
+  "cover": "covers/felixmariotto-edelweiss.webp",
+  "thumb": "covers/felixmariotto-edelweiss.webp"
  },
  {
   "slug": "ramazancetinkaya-snake-game",
@@ -96,8 +143,15 @@
   "added": "2026-10-13",
   "stars": 184,
   "flag": null,
-  "cover": null,
-  "thumb": null
+  "public": {
+   "github": {
+    "forks": 75,
+    "stars": 184,
+    "url": "https://github.com/ramazancetinkaya/snake-game"
+   }
+  },
+  "cover": "covers/ramazancetinkaya-snake-game.webp",
+  "thumb": "covers/ramazancetinkaya-snake-game.webp"
  },
  {
   "slug": "gd4ark-linkup",
@@ -116,8 +170,15 @@
   "added": "2026-10-13",
   "stars": 85,
   "flag": "Fixed-size board; small on narrow phones.",
-  "cover": null,
-  "thumb": null
+  "public": {
+   "github": {
+    "forks": 28,
+    "stars": 85,
+    "url": "https://github.com/gd4Ark/linkup"
+   }
+  },
+  "cover": "covers/gd4ark-linkup.webp",
+  "thumb": "covers/gd4ark-linkup.webp"
  },
  {
   "slug": "ipel-ns-shaft",
@@ -136,6 +197,13 @@
   "added": "2026-10-13",
   "stars": 29,
   "flag": null,
+  "public": {
+   "github": {
+    "forks": 8,
+    "stars": 29,
+    "url": "https://github.com/iPel/NS-SHAFT"
+   }
+  },
   "cover": "covers/ipel-ns-shaft.webp",
   "thumb": "covers/ipel-ns-shaft.webp"
  },
@@ -156,8 +224,15 @@
   "added": "2026-10-13",
   "stars": 20,
   "flag": null,
-  "cover": null,
-  "thumb": null
+  "public": {
+   "github": {
+    "forks": 7,
+    "stars": 20,
+    "url": "https://github.com/mnito/factors-game"
+   }
+  },
+  "cover": "covers/mnito-factors-game.webp",
+  "thumb": "covers/mnito-factors-game.webp"
  },
  {
   "slug": "evedensity-mineworld",
@@ -176,8 +251,15 @@
   "added": "2026-10-13",
   "stars": 20,
   "flag": "UI text is in Chinese.",
-  "cover": null,
-  "thumb": null
+  "public": {
+   "github": {
+    "forks": 6,
+    "stars": 20,
+    "url": "https://github.com/EVEDensity/MineWorld"
+   }
+  },
+  "cover": "covers/evedensity-mineworld.webp",
+  "thumb": "covers/evedensity-mineworld.webp"
  },
  {
   "slug": "cheshire137-blicblock-js",
@@ -196,6 +278,13 @@
   "added": "2026-10-13",
   "stars": 18,
   "flag": null,
+  "public": {
+   "github": {
+    "forks": 7,
+    "stars": 18,
+    "url": "https://github.com/cheshire137/blicblock-js"
+   }
+  },
   "cover": "covers/cheshire137-blicblock-js.webp",
   "thumb": "covers/cheshire137-blicblock-js.webp"
  },
@@ -237,6 +326,13 @@
   "stars": null,
   "repo_dir": "dmcinnes-html5-asteroids",
   "external": null,
+  "public": {
+   "github": {
+    "forks": 336,
+    "stars": 355,
+    "url": "https://github.com/dmcinnes/HTML5-Asteroids"
+   }
+  },
   "cover": "covers/dmcinnes-html5-asteroids.webp"
  }
 ]

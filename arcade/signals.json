@@ -1,0 +1,98 @@
+{
+ "pshenok-server-survival": {
+  "github": {
+   "forks": 711,
+   "stars": 6442,
+   "url": "https://github.com/pshenok/server-survival"
+  }
+ },
+ "ramazancetinkaya-snake-game": {
+  "github": {
+   "forks": 75,
+   "stars": 184,
+   "url": "https://github.com/ramazancetinkaya/snake-game"
+  }
+ },
+ "basicallydan-skifree-js": {
+  "github": {
+   "forks": 143,
+   "stars": 551,
+   "url": "https://github.com/basicallydan/skifree.js"
+  },
+  "hn": {
+   "points": 157,
+   "comments": 61,
+   "title": "SkiFree in the Browser",
+   "year": "2013",
+   "url": "https://news.ycombinator.com/item?id=5247965"
+  }
+ },
+ "felixmariotto-edelweiss": {
+  "github": {
+   "forks": 46,
+   "stars": 315,
+   "url": "https://github.com/felixmariotto/Edelweiss"
+  },
+  "itch": {
+   "rating": 4.2,
+   "count": 6,
+   "url": "https://felixmrtt.itch.io/edelweiss"
+  }
+ },
+ "bkcore-hexgl": {
+  "github": {
+   "forks": 892,
+   "stars": 1749,
+   "url": "https://github.com/BKcore/HexGL"
+  },
+  "hn": {
+   "points": 22,
+   "comments": 3,
+   "title": "HexGL by BKcore",
+   "year": "2014",
+   "url": "https://news.ycombinator.com/item?id=8640249"
+  }
+ },
+ "ipel-ns-shaft": {
+  "github": {
+   "forks": 8,
+   "stars": 29,
+   "url": "https://github.com/iPel/NS-SHAFT"
+  }
+ },
+ "mnito-factors-game": {
+  "github": {
+   "forks": 7,
+   "stars": 20,
+   "url": "https://github.com/mnito/factors-game"
+  }
+ },
+ "evedensity-mineworld": {
+  "github": {
+   "forks": 6,
+   "stars": 20,
+   "url": "https://github.com/EVEDensity/MineWorld"
+  }
+ },
+ "gd4ark-linkup": {
+  "github": {
+   "forks": 28,
+   "stars": 85,
+   "url": "https://github.com/gd4Ark/linkup"
+  }
+ },
+ "cheshire137-blicblock-js": {
+  "github": {
+   "forks": 7,
+   "stars": 18,
+   "url": "https://github.com/cheshire137/blicblock-js"
+  }
+ },
+ "dmcinnes-html5-asteroids": {
+  "github": {
+   "forks": 336,
+   "stars": 355,
+   "url": "https://github.com/dmcinnes/HTML5-Asteroids"
+  }
+ }
+}
