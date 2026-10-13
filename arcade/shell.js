@@ -1,6 +1,8 @@
 // Ad-Safe Arcade shell: home screen, player, on-screen controls, fit-to-screen, ads, install prompts.
 // Games run unmodified in a same-origin iframe; everything mobile-specific lives here.
 (function () {
+  const API = 'https://arcade-api-production-bfdf.up.railway.app';
+  const EMBED = new URLSearchParams(location.search).get('embed') === 'chat'; // inside ChatGPT/Claude: no ads, no install prompts
   const AD_MIN_PLAY_MS = 45 * 1000;   // no ad unless they played at least this long
   const AD_GAP_MS = 2 * 60 * 1000;    // and at most one ad per 2 minutes
 
@@ -16,7 +18,12 @@
   const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  const games = () => fetch('games.json').then(r => r.json());
+  const games = () => fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('games.json').then(r => r.json()));
+  const cid = (() => { let c = store.get('cid'); if (!c) { c = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now(); store.set('cid', c); } return c; })();
+  const api = (p, body) => fetch(API + p, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true } : {})
+    .then(r => r.ok ? r.json() : null).catch(() => null);
+  const getStats = () => Promise.race([api('/api/stats'), new Promise(r => setTimeout(() => r(null), 2500))]).then(s => s || {});
+  const starsTxt = st => st && st.rating ? `★ ${st.rating.toFixed(1)}` : '';
 
   // ---------------------------------------------------------------- install prompt
   // Android Chrome: real one-tap install. iPhone: Apple allows no install button, so we point at the exact
@@ -34,7 +41,7 @@
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; renderInstall(); });
   window.addEventListener('appinstalled', () => { store.set('installed', true); closeSheet(); renderInstall(); });
 
-  const canPrompt = () => !standalone && !store.get('installed', false) && browser !== 'desktop';
+  const canPrompt = () => !EMBED && !standalone && !store.get('installed', false) && browser !== 'desktop';
   const snoozed = () => Date.now() - store.get('installSnooze', 0) < 3 * 864e5;
 
   function guide() {
@@ -102,11 +109,28 @@
 
   async function home() {
     const gs = await games();
-    $('grid').innerHTML = gs.map(g => `<a class="card" href="play.html?g=${encodeURIComponent(g.slug)}">
-      <div class="shot"><img src="${g.thumb}" alt="" loading="lazy">${g.controls ? '<span class="badge">TOUCH CONTROLS ADDED</span>' : ''}</div>
-      <b>${esc(g.name)}</b><p>${esc(g.blurb)}</p></a>`).join('');
+    const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
+    const fresh = gs.filter(g => g.added === latest).length;
+    const cats = [...new Set(gs.map(g => g.category || 'Arcade'))].sort();
+    let cat = store.get('cat', null), stats = {};
+    if (cat && !cats.includes(cat)) cat = null;
+    $('count').textContent = `${gs.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
+    $('cats').innerHTML = ['All', ...cats].map(c => `<button class="chip" data-c="${esc(c)}" aria-pressed="${(c === 'All' && !cat) || c === cat}">${esc(c)}</button>`).join('');
+    $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; store.set('cat', cat); draw(); };
+    function draw() {
+      $('cats').querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.c === 'All' && !cat) || b.dataset.c === cat)));
+      const list = gs.filter(g => !cat || g.category === cat);
+      $('grid').innerHTML = list.map(g => {
+        const st = stats[g.slug];
+        return `<a class="card" href="play.html?g=${encodeURIComponent(g.slug)}">
+        <div class="shot"><img src="${g.cover || g.thumb}" alt="" loading="lazy">${g.added === latest ? '<span class="new">NEW</span>' : ''}${g.controls ? '<span class="badge">TOUCH CONTROLS</span>' : ''}</div>
+        <b>${esc(g.name)}</b><p class="meta">${esc(g.category || 'Arcade')}${st && st.rating ? ` · <span class="star">${starsTxt(st)}</span> (${st.ratings})` : ''}${st && st.plays ? ` · ${st.plays} plays` : ''}</p></a>`;
+      }).join('');
+    }
+    draw();
+    getStats().then(s => { stats = s; draw(); });
     const last = gs.find(g => g.slug === store.get('last'));
-    if (last) $('cont').innerHTML = `<a class="continue" href="play.html?g=${encodeURIComponent(last.slug)}"><img src="${last.thumb}" alt="">
+    if (last) $('cont').innerHTML = `<a class="continue" href="play.html?g=${encodeURIComponent(last.slug)}"><img src="${last.cover || last.thumb}" alt="">
       <div><div class="eyebrow">Continue</div><b>${esc(last.name)}</b></div><span class="go">Play</span></a>`;
     renderInstall();
     autoPrompt();
@@ -131,7 +155,7 @@
     const frame = document.createElement('iframe');
     frame.title = g.name;
     frame.allow = 'autoplay; fullscreen; gamepad';
-    frame.src = `games/${g.slug}/${g.entry}`;
+    frame.src = g.external || `games/${g.slug}/${g.entry}`;
     frame.className = 'fit';
     stage.appendChild(frame);
     const player = document.querySelector('.player');
@@ -141,9 +165,10 @@
     ov.innerHTML = `<div class="box"><div class="eyebrow">Ad-Safe Arcade</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>
       <div class="loadbar" id="lb"><i></i></div><button class="playbtn" id="go">PLAY</button>
       <div data-install></div>
-      <div class="credit">${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
+      <div class="credit"><span id="splashStats"></span>${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
     stage.appendChild(ov);
     renderInstall();
+    getStats().then(st => { const x = st[g.slug]; if (x && $('splashStats')) $('splashStats').textContent = [starsTxt(x) && `${starsTxt(x)} (${x.ratings})`, x.plays && `${x.plays} plays`].filter(Boolean).join(' · ') + (x.plays || x.rating ? ' · ' : ''); });
 
     // ---- fitting. The stage already sits inside the phone's safe area (CSS env(safe-area-inset-*)),
     // so nothing lands under the clock, notch, Dynamic Island or home bar on any model.
@@ -251,7 +276,12 @@
     }
     addEventListener('resize', checkRotate);
 
-    const leave = () => adBreak(started, () => { location.href = './'; });
+    const goHome = () => adBreak(started, () => { location.href = './'; });
+    const leave = () => {
+      const rated = store.get('rated', {});
+      if (started && Date.now() - started > 30000 && !rated[g.slug]) return rateSheet(g, goHome);
+      goHome();
+    };
     const credits = () => {
       if ($('sheet')) { $('sheet').remove(); return; }
       const sh = document.createElement('div'); sh.className = 'sheet'; sh.id = 'sheet';
@@ -271,6 +301,7 @@
       started = Date.now();
       store.set('last', g.slug);
       store.set('plays', store.get('plays', 0) + 1);
+      api('/api/play', { slug: g.slug });
       try { frame.contentWindow.focus(); } catch (e) {}
       if (g.controls) controls(g.controls, frame);
       bubble(g, { leave, credits });
@@ -279,6 +310,31 @@
 
     $('info').onclick = credits;
     $('back').onclick = leave;
+  }
+
+  // ---------------------------------------------------------------- ratings (real players only)
+  function starRow(g) {
+    const mine = store.get('rated', {})[g.slug] || 0;
+    return `<div class="stars" role="group" aria-label="Rate ${esc(g.name)}">${[1, 2, 3, 4, 5].map(n =>
+      `<button data-n="${n}" class="${n <= mine ? 'on' : ''}" aria-label="${n} star${n > 1 ? 's' : ''}">★</button>`).join('')}</div>`;
+  }
+  function wireStars(root, g, after) {
+    root.querySelectorAll('.stars button').forEach(b => b.onclick = async () => {
+      const n = +b.dataset.n;
+      root.querySelectorAll('.stars button').forEach(x => x.classList.toggle('on', +x.dataset.n <= n));
+      const rated = store.get('rated', {}); rated[g.slug] = n; store.set('rated', rated);
+      api('/api/rate', { slug: g.slug, stars: n, client: cid });
+      if (after) setTimeout(after, 450);
+    });
+  }
+  function rateSheet(g, done) {
+    const m = document.createElement('div');
+    m.className = 'overlay pmenu';
+    m.innerHTML = `<div class="box"><div class="eyebrow">Before you go</div><h2>How was ${esc(g.name)}?</h2>${starRow(g)}
+      <button class="btn ghost" id="rsSkip">Skip</button></div>`;
+    $('stage').appendChild(m);
+    wireStars(m, g, done);
+    $('rsSkip').onclick = done;
   }
 
   // ---------------------------------------------------------------- pause bubble
@@ -326,13 +382,15 @@
       m.className = 'overlay pmenu'; m.id = 'pmenu';
       m.innerHTML = `<div class="box"><div class="eyebrow">Paused</div><h2>${esc(g.name)}</h2>
         <button class="btn big" id="pmResume">Resume</button>
-        <button class="btn" id="pmHome">Back to the Arcade</button>
+        ${EMBED ? '' : '<button class="btn" id="pmHome">Back to the Arcade</button>'}
+        ${starRow(g)}
         <div data-install></div>
         <button class="btn ghost" id="pmCredits">Credits · ${esc(g.licence)}</button></div>`;
       $('stage').appendChild(m);
       renderInstall();
       $('pmResume').onclick = () => m.remove();
-      $('pmHome').onclick = () => { m.remove(); act.leave(); };
+      if ($('pmHome')) $('pmHome').onclick = () => { m.remove(); act.leave(); };
+      wireStars(m, g);
       $('pmCredits').onclick = () => { m.remove(); act.credits(); };
       m.addEventListener('click', e => { if (e.target === m) m.remove(); });
     }
@@ -405,7 +463,7 @@
   // Uses Google's H5 Games Ads (window.adBreak) when the site has it; otherwise shows a labelled placeholder.
   function adBreak(started, done) {
     const now = Date.now();
-    if (!started || now - started < AD_MIN_PLAY_MS || now - sget('lastAd') < AD_GAP_MS) return done();
+    if (EMBED || !started || now - started < AD_MIN_PLAY_MS || now - sget('lastAd') < AD_GAP_MS) return done();
     sset('lastAd', now);
     if (typeof window.adBreak === 'function') {
       window.adBreak({ type: 'next', name: 'exit-game', adBreakDone: done });

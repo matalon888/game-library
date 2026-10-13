@@ -1,0 +1,47 @@
+{
+ "extra": [
+  {
+   "slug": "dmcinnes-html5-asteroids",
+   "name": "Asteroids",
+   "blurb": "Vector-arcade Asteroids. Keyboard-only originally; playable here with on-screen controls.",
+   "author": "Doug McInnes",
+   "credit": "Copyright (c) 2010 Doug McInnes",
+   "licence": "MIT",
+   "source": "https://github.com/dmcinnes/HTML5-Asteroids",
+   "entry": "index.html",
+   "orientation": "any",
+   "fit": {
+    "w": 800,
+    "h": 560
+   },
+   "controls": {
+    "dpad": [
+     "left",
+     "up",
+     "right"
+    ],
+    "labels": {
+     "up": "Thrust"
+    },
+    "a": {
+     "key": " ",
+     "label": "Fire"
+    },
+    "b": {
+     "key": "p",
+     "label": "Pause"
+    }
+   },
+   "thumb": "thumbs/dmcinnes-html5-asteroids.webp",
+   "category": "Retro",
+   "added": "2026-10-13",
+   "stars": null,
+   "repo_dir": "dmcinnes-html5-asteroids"
+  }
+ ],
+ "overrides": {
+  "felixmariotto-edelweiss": {
+   "cover_frame": "play"
+  }
+ }
+}

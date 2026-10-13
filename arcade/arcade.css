@@ -119,3 +119,16 @@ button { font: inherit; color: inherit }
 @keyframes nudge { 50% { transform: translateY(-8px) } }
 @keyframes nudge-down { 50% { transform: translateY(8px) } }
 @media (prefers-reduced-motion: reduce) { .iarrow { animation: none } }
+
+/* catalogue */
+.brand .eyebrow { margin-top: 6px }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px }
+.chips::-webkit-scrollbar { display: none }
+.chip { flex: none; font: 600 13px var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 7px 13px; cursor: pointer }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.card .shot .new { position: absolute; top: 8px; left: 8px; font: 700 10px/1 var(--mono); letter-spacing: .08em; padding: 5px 7px; border-radius: 6px; background: var(--coin); color: #1a1300 }
+.card .meta { font: 12px var(--mono); color: var(--muted) }
+.card .star, .stars button.on { color: var(--coin) }
+.stars { display: flex; gap: 6px; justify-content: center }
+.stars button { border: 0; background: none; font-size: 34px; line-height: 1; color: var(--line); cursor: pointer; padding: 2px }
+.stars button:hover { color: var(--coin) }
