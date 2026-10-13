@@ -1,4 +1,4 @@
-// Ad-Safe Arcade shell: home screen, player, on-screen controls, fit-to-screen, ads, install prompts.
+// RIFFCADE arcade shell: home screen, player, on-screen controls, fit-to-screen, ads, install prompts.
 // Games run unmodified in a same-origin iframe; everything mobile-specific lives here.
 (function () {
   const API = 'https://mcp.riffcade.com';
@@ -67,7 +67,7 @@
         return { arrow: 'bottom-right', steps: step(1, 'Tap the menu ≡ at the bottom right') + step(2, 'Tap <b>Add page to</b> → <b>Home screen</b>') };
       case 'chrome-ios':
         return { arrow: 'top-right', steps: step(1, `Tap ${SHARE} <b>Share</b> at the right end of the address bar`) +
-          step(2, `Scroll down and tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Tap <b>Add</b>, then open <b>Arcade</b> from your home screen') };
+          step(2, `Scroll down and tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Tap <b>Add</b>, then open <b>RIFFCADE</b> from your home screen') };
       case 'safari':
         return { arrow: 'bottom', steps: step(1, `Tap ${SHARE} <b>Share</b> in the toolbar (on iOS 26 tap <b>⋯</b> first)`) +
           step(2, `Tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Keep <b>Open as Web App</b> on and tap <b>Add</b>') };
@@ -85,10 +85,10 @@
     const gd = guide();
     const sh = document.createElement('div');
     sh.id = 'installSheet'; sh.className = 'isheet' + (gd.arrow === 'bottom' || gd.arrow === 'bottom-right' ? ' top' : '');
-    sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', 'Add the Arcade to your home screen');
+    sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', 'Add RIFFCADE to your home screen');
     sh.innerHTML = `<div class="icard">
-      <div class="ihead"><img src="icons/icon-192.png" alt=""><div><b>Play fullscreen</b><p>Add the Arcade to your home screen. It opens like an app: no browser bars, works offline.</p></div></div>
-      ${gd.one ? '<button class="btn big" id="doInstall">Install the Arcade</button>' : `<ol class="steps">${gd.steps}</ol>`}
+      <div class="ihead"><img src="icons/icon-192.png" alt=""><div><b>Play fullscreen</b><p>Add RIFFCADE to your home screen. It opens like an app: no browser bars, works offline.</p></div></div>
+      ${gd.one ? '<button class="btn big" id="doInstall">Install RIFFCADE</button>' : `<ol class="steps">${gd.steps}</ol>`}
       ${gd.inapp ? '<button class="btn ghost" id="copyLink">Copy link</button>' : ''}
       <button class="btn ghost" id="notNow">Not now</button></div>`;
     document.body.appendChild(sh);
@@ -161,7 +161,7 @@
     const slug = new URLSearchParams(location.search).get('g');
     const g = (await games()).find(x => x.slug === slug);
     if (!g) { location.replace('./'); return; }
-    document.title = g.name + ' · Ad-Safe Arcade';
+    document.title = g.name + ' · RIFFCADE';
     $('title').textContent = g.name;
     const stage = $('stage');
     let started = 0;
@@ -177,7 +177,7 @@
 
     const ov = document.createElement('div');
     ov.className = 'overlay';
-    ov.innerHTML = `<div class="box"><div class="eyebrow">Ad-Safe Arcade</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>${praiseList(g)}
+    ov.innerHTML = `<div class="box"><div class="eyebrow">RIFFCADE</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>${praiseList(g)}
       <div class="loadbar" id="lb"><i></i></div><button class="playbtn" id="go">PLAY</button>
       <div data-install></div>
       <div class="credit"><span id="splashStats"></span>${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
@@ -397,7 +397,7 @@
       m.className = 'overlay pmenu'; m.id = 'pmenu';
       m.innerHTML = `<div class="box"><div class="eyebrow">Paused</div><h2>${esc(g.name)}</h2>
         <button class="btn big" id="pmResume">Resume</button>
-        ${EMBED ? '' : '<button class="btn" id="pmHome">Back to the Arcade</button>'}
+        ${EMBED ? '' : '<button class="btn" id="pmHome">Back to RIFFCADE</button>'}
         ${starRow(g)}
         <div data-install></div>
         <button class="btn ghost" id="pmCredits">Credits · ${esc(g.licence)}</button></div>`;
