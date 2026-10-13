@@ -1,7 +1,7 @@
 // Ad-Safe Arcade shell: home screen, player, on-screen controls, fit-to-screen, ads, install prompts.
 // Games run unmodified in a same-origin iframe; everything mobile-specific lives here.
 (function () {
-  const API = 'https://arcade-api-production-bfdf.up.railway.app';
+  const API = 'https://mcp.riffcade.com';
   const EMBED = new URLSearchParams(location.search).get('embed') === 'chat'; // inside ChatGPT/Claude: no ads, no install prompts
   if (EMBED) document.documentElement.classList.add('embed');
   const AD_MIN_PLAY_MS = 45 * 1000;   // no ad unless they played at least this long
