@@ -76,8 +76,8 @@
   "added": "2026-10-13",
   "stars": 315,
   "flag": "Credits third-party music in-game; confirm the music licence before monetising.",
-  "cover": "covers/felixmariotto-edelweiss.webp",
-  "thumb": "covers/felixmariotto-edelweiss.webp"
+  "cover": null,
+  "thumb": null
  },
  {
   "slug": "ramazancetinkaya-snake-game",
@@ -96,8 +96,8 @@
   "added": "2026-10-13",
   "stars": 184,
   "flag": null,
-  "cover": "covers/ramazancetinkaya-snake-game.webp",
-  "thumb": "covers/ramazancetinkaya-snake-game.webp"
+  "cover": null,
+  "thumb": null
  },
  {
   "slug": "gd4ark-linkup",
@@ -116,8 +116,8 @@
   "added": "2026-10-13",
   "stars": 85,
   "flag": "Fixed-size board; small on narrow phones.",
-  "cover": "covers/gd4ark-linkup.webp",
-  "thumb": "covers/gd4ark-linkup.webp"
+  "cover": null,
+  "thumb": null
  },
  {
   "slug": "ipel-ns-shaft",
@@ -156,8 +156,8 @@
   "added": "2026-10-13",
   "stars": 20,
   "flag": null,
-  "cover": "covers/mnito-factors-game.webp",
-  "thumb": "covers/mnito-factors-game.webp"
+  "cover": null,
+  "thumb": null
  },
  {
   "slug": "evedensity-mineworld",
@@ -176,8 +176,8 @@
   "added": "2026-10-13",
   "stars": 20,
   "flag": "UI text is in Chinese.",
-  "cover": "covers/evedensity-mineworld.webp",
-  "thumb": "covers/evedensity-mineworld.webp"
+  "cover": null,
+  "thumb": null
  },
  {
   "slug": "cheshire137-blicblock-js",
