@@ -38,6 +38,47 @@ button { font: inherit; color: inherit }
 .btn.ghost { background: transparent; color: var(--muted); padding-inline: 6px }
 .foot { color: var(--muted); font-size: 12px }
 
+/* ---------- App Store-style home ---------- */
+.home { gap: 26px }
+.featured { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px;
+  margin-inline: -16px; padding: 4px 16px 18px; scrollbar-width: none }
+.featured .hero { flex: 0 0 88% }
+.featured::-webkit-scrollbar, .rail::-webkit-scrollbar { display: none }
+.hero { position: relative; aspect-ratio: 4 / 5; max-height: 520px; border-radius: 26px; overflow: hidden; background: var(--surface);
+  scroll-snap-align: start; text-decoration: none; color: var(--ink); box-shadow: 0 18px 40px rgba(0,0,0,.45); isolation: isolate }
+.hero video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2 }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(21,23,27,0) 45%, rgba(21,23,27,.92) 88%) }
+.hero-txt { position: absolute; left: 18px; right: 96px; bottom: 18px; display: grid; gap: 4px }
+.hero-txt .eyebrow { color: var(--coin) }
+.hero-txt b { font: 700 26px/1.05 var(--display); letter-spacing: -.01em; text-wrap: balance }
+.hero-txt p { margin: 0; font-size: 13px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.hero .get { position: absolute; right: 18px; bottom: 22px }
+.get { background: var(--coin); color: var(--on-coin); font: 700 13px/1 var(--display); letter-spacing: .04em; padding: 9px 16px; border-radius: 999px; white-space: nowrap }
+.shelf { display: grid; gap: 12px }
+.shelf header, .chart header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 14px }
+.shelf h2, .chart h2 { font: 700 21px/1.1 var(--display); margin: 0; letter-spacing: -.01em }
+.shelf header a { color: var(--accent); font-weight: 600; font-size: 14px; text-decoration: none }
+.rail { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px;
+  margin-inline: -16px; padding: 2px 16px 14px; scrollbar-width: none }
+.rail .tile { flex: 0 0 132px }
+.tile { display: grid; gap: 4px; text-decoration: none; color: inherit; scroll-snap-align: start; min-width: 0 }
+.tile img { width: 132px; height: 132px; border-radius: 30px; object-fit: cover; background: var(--surface);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 10px 22px rgba(0,0,0,.35) }
+.tile b { font: 600 14px/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px }
+.tile span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.chart { display: grid; gap: 4px }
+.row { display: grid; grid-template-columns: 22px 64px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; text-decoration: none; color: inherit;
+  border-bottom: 1px solid var(--line) }
+.row .rank { font: 700 15px var(--display); color: var(--muted); text-align: center }
+.row img { width: 64px; height: 64px; border-radius: 16px; object-fit: cover; background: var(--surface); box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset }
+.row div { min-width: 0; display: grid; gap: 2px }
+.row b { font: 600 15px/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.row p { margin: 0; font-size: 12.5px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden }
+.row .sub { font-size: 11.5px; color: var(--muted); opacity: .8 }
+.star { color: var(--coin) }
+@media (min-width: 700px) { .featured .hero { flex-basis: 46% } .rail .tile { flex-basis: 150px } .tile img { width: 150px; height: 150px; border-radius: 34px } }
+@media (prefers-reduced-motion: reduce) { .hero video { display: none } .hero { background-size: cover } }
+
 /* ---------- player ---------- */
 .player { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr auto; background: #000;
   padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px) }
@@ -151,3 +192,6 @@ button { font: inherit; color: inherit }
 .brand h1 { letter-spacing: .02em }
 .brand h1 span { color: inherit }
 .brand a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 12px }
+
+/* sticky category bar (after the base .chips rule so it wins) */
+.chips { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; margin-block: -8px }

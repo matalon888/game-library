@@ -120,32 +120,68 @@
   document.addEventListener('click', e => { if (e.target.closest('[data-open-install]')) openSheet(); });
   function autoPrompt() { if (canPrompt() && !snoozed() && !store.get('promptedOnce', false)) { store.set('promptedOnce', true); setTimeout(openSheet, 900); } }
 
+  // App Store-style home: featured carousel with gameplay video, shelves of square icons, ranked list per category
+  const score = g => g.review ? g.review.depth + g.review.polish + (g.clip ? 1 : 0) : Math.min(16, Math.log10((g.stars || 0) + 1) * 4);
+  const art = g => g.icon || g.cover || g.thumb;
+  const href = g => `play.html?g=${encodeURIComponent(g.slug)}`;
+  // ratings first; public reception only when it says something (no '0 GitHub stars'); else the category
+  const metaLine = (g, st) => {
+    if (st && st.rating) return `<span class="star">${starsTxt(st)}</span> · ${esc(g.category || 'Arcade')}`;
+    const p = praise(g).find(x => !/GitHub stars/.test(x.short) || ((g.public || {}).github || {}).stars >= 25);
+    return p ? esc(p.short) : esc(g.category || 'Arcade') + (g.review && g.review.ai_built !== 'no' ? ' · AI-made' : '');
+  };
+
   async function home() {
-    const gs = await games();
+    const gs = (await games()).slice().sort((a, b) => score(b) - score(a));
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
     const cats = [...new Set(gs.map(g => g.category || 'Arcade'))].sort();
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
     $('count').textContent = `${gs.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
+
+    // featured: the best games that have a gameplay clip
+    const feat = gs.filter(g => g.clip).slice(0, 8);
+    $('feat').innerHTML = feat.map(g => `<a class="hero" href="${href(g)}">
+      <video muted loop playsinline preload="none" poster="${esc(art(g))}" data-src="${esc(g.clip)}"></video>
+      <div class="hero-txt"><div class="eyebrow">${esc(g.category || 'Arcade')}</div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p></div>
+      <span class="get">PLAY</span></a>`).join('');
+    $('feat').hidden = !feat.length;
+    // play only the clips on screen (battery, data)
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+      const v = e.target;
+      if (e.isIntersecting) { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause();
+    }), { threshold: 0.6 }) : null;
+    document.querySelectorAll('#feat video').forEach(v => io ? io.observe(v) : (v.src = v.dataset.src));
+
     $('cats').innerHTML = ['All', ...cats].map(c => `<button class="chip" data-c="${esc(c)}" aria-pressed="${(c === 'All' && !cat) || c === cat}">${esc(c)}</button>`).join('');
     $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; store.set('cat', cat); draw(); };
+    document.addEventListener('click', e => { const s = e.target.closest('[data-see]'); if (!s) return; e.preventDefault(); cat = s.dataset.see; store.set('cat', cat); draw(); $('cats').scrollIntoView({ behavior: 'smooth' }); });
+
+    const tile = g => `<a class="tile" href="${href(g)}"><img src="${esc(art(g))}" alt="" loading="lazy">
+      <b>${esc(g.name)}</b><span>${metaLine(g, stats[g.slug])}</span></a>`;
+    const row = (g, i) => `<a class="row" href="${href(g)}"><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
+      <div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p><span class="sub">${metaLine(g, stats[g.slug])}</span></div><span class="get">PLAY</span></a>`;
+    const shelf = (title, list, see) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>
+      <div class="rail">${list.slice(0, 15).map(tile).join('')}</div></section>` : '';
+
     function draw() {
       $('cats').querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.c === 'All' && !cat) || b.dataset.c === cat)));
-      const list = gs.filter(g => !cat || g.category === cat);
-      $('grid').innerHTML = list.map(g => {
-        const st = stats[g.slug];
-        // the cover already carries the name and category; under it go the players' numbers
-        const meta = [st && st.rating ? `<span class="star">${starsTxt(st)}</span> (${st.ratings})` : '', st && st.plays ? `${st.plays} plays` : ''].filter(Boolean).join(' · ');
-        return `<a class="card" href="play.html?g=${encodeURIComponent(g.slug)}" aria-label="${esc(g.name)}, ${esc(g.category || 'Arcade')}">
-        <div class="shot"><img src="${g.cover || g.thumb}" alt="" loading="lazy">${g.added === latest ? '<span class="new">NEW</span>' : ''}${g.controls ? '<span class="badge">TOUCH CONTROLS</span>' : ''}</div>
-        <p class="meta">${meta || (praise(g)[0] ? `<span class="ext">${esc(praise(g)[0].short)}</span>` : 'New here, be the first to rate')}</p></a>`;
-      }).join('');
+      if (cat) {
+        const list = gs.filter(g => (g.category || 'Arcade') === cat);
+        $('shelves').innerHTML = `<section class="chart"><header><h2>Top ${esc(cat)}</h2><span class="eyebrow">${list.length} games</span></header>${list.map(row).join('')}</section>`;
+        return;
+      }
+      const recent = gs.filter(g => g.added === latest);
+      const byCat = cats.map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
+      $('shelves').innerHTML = shelf('New this week', recent) +
+        byCat.map(([c, l]) => shelf(c, l, c)).join('') +
+        `<section class="chart"><header><h2>Top games</h2></header>${gs.slice(0, 25).map(row).join('')}</section>`;
     }
     draw();
     getStats().then(s => { stats = s; draw(); });
     const last = gs.find(g => g.slug === store.get('last'));
-    if (last) $('cont').innerHTML = `<a class="continue" href="play.html?g=${encodeURIComponent(last.slug)}"><img src="${last.cover || last.thumb}" alt="">
+    if (last) $('cont').innerHTML = `<a class="continue" href="${href(last)}"><img src="${esc(art(last))}" alt="">
       <div><div class="eyebrow">Continue</div><b>${esc(last.name)}</b></div><span class="go">Play</span></a>`;
     renderInstall();
     autoPrompt();
