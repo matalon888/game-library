@@ -27,7 +27,7 @@
   "cover": "covers/pshenok-server-survival.webp",
   "thumb": "covers/pshenok-server-survival.webp",
   "icon": "art/pshenok-server-survival.webp",
-  "clip": null
+  "clip": "clips/pshenok-server-survival.mp4"
  },
  {
   "slug": "bkcore-hexgl",
@@ -149,7 +149,7 @@
   "cover": "covers/basicallydan-skifree-js.webp",
   "thumb": "covers/basicallydan-skifree-js.webp",
   "icon": "art/basicallydan-skifree-js.webp",
-  "clip": null
+  "clip": "clips/basicallydan-skifree-js.mp4"
  },
  {
   "slug": "jobtalle-koi",
@@ -220,7 +220,7 @@
   "cover": "covers/felixmariotto-edelweiss.webp",
   "thumb": "covers/felixmariotto-edelweiss.webp",
   "icon": "art/felixmariotto-edelweiss.webp",
-  "clip": null
+  "clip": "clips/felixmariotto-edelweiss.mp4"
  },
  {
   "slug": "mrzh7-scam-with-your-friends-web",
@@ -322,7 +322,7 @@
   "cover": "covers/ygpydh-space-game.webp",
   "thumb": "covers/ygpydh-space-game.webp",
   "icon": "art/ygpydh-space-game.webp",
-  "clip": null
+  "clip": "clips/ygpydh-space-game.mp4"
  },
  {
   "slug": "gd4ark-linkup",
@@ -352,7 +352,7 @@
   "cover": "covers/gd4ark-linkup.webp",
   "thumb": "covers/gd4ark-linkup.webp",
   "icon": "art/gd4ark-linkup.webp",
-  "clip": null
+  "clip": "clips/gd4ark-linkup.mp4"
  },
  {
   "slug": "lattymoy-daggerfall-js-source",
@@ -496,7 +496,7 @@
   "cover": "covers/yami-inc-ai-death-game.webp",
   "thumb": "covers/yami-inc-ai-death-game.webp",
   "icon": "art/yami-inc-ai-death-game.webp",
-  "clip": null
+  "clip": "clips/yami-inc-ai-death-game.mp4"
  },
  {
   "slug": "ipel-ns-shaft",
@@ -562,7 +562,7 @@
   "cover": "covers/daniele-cangi-civic-nightmare.webp",
   "thumb": "covers/daniele-cangi-civic-nightmare.webp",
   "icon": "art/daniele-cangi-civic-nightmare.webp",
-  "clip": null
+  "clip": "clips/daniele-cangi-civic-nightmare.mp4"
  },
  {
   "slug": "jonradoff-chessmata",
@@ -598,7 +598,7 @@
   "cover": "covers/jonradoff-chessmata.webp",
   "thumb": "covers/jonradoff-chessmata.webp",
   "icon": "art/jonradoff-chessmata.webp",
-  "clip": null
+  "clip": "clips/jonradoff-chessmata.mp4"
  },
  {
   "slug": "mnito-factors-game",
@@ -628,7 +628,7 @@
   "cover": "covers/mnito-factors-game.webp",
   "thumb": "covers/mnito-factors-game.webp",
   "icon": "art/mnito-factors-game.webp",
-  "clip": null
+  "clip": "clips/mnito-factors-game.mp4"
  },
  {
   "slug": "evedensity-mineworld",
@@ -658,7 +658,7 @@
   "cover": "covers/evedensity-mineworld.webp",
   "thumb": "covers/evedensity-mineworld.webp",
   "icon": "art/evedensity-mineworld.webp",
-  "clip": null
+  "clip": "clips/evedensity-mineworld.mp4"
  },
  {
   "slug": "simplyboys-tokaido-pixel",
@@ -694,7 +694,7 @@
   "cover": "covers/simplyboys-tokaido-pixel.webp",
   "thumb": "covers/simplyboys-tokaido-pixel.webp",
   "icon": "art/simplyboys-tokaido-pixel.webp",
-  "clip": null
+  "clip": "clips/simplyboys-tokaido-pixel.mp4"
  },
  {
   "slug": "cheshire137-blicblock-js",
@@ -724,7 +724,7 @@
   "cover": "covers/cheshire137-blicblock-js.webp",
   "thumb": "covers/cheshire137-blicblock-js.webp",
   "icon": "art/cheshire137-blicblock-js.webp",
-  "clip": null
+  "clip": "clips/cheshire137-blicblock-js.mp4"
  },
  {
   "slug": "playpip-pip-web",
@@ -832,7 +832,7 @@
   "cover": "covers/nyeinchan-lwin-wordguess.webp",
   "thumb": "covers/nyeinchan-lwin-wordguess.webp",
   "icon": "art/nyeinchan-lwin-wordguess.webp",
-  "clip": null
+  "clip": "clips/nyeinchan-lwin-wordguess.mp4"
  },
  {
   "slug": "imshota1009-bartender-jp",
@@ -868,7 +868,7 @@
   "cover": "covers/imshota1009-bartender-jp.webp",
   "thumb": "covers/imshota1009-bartender-jp.webp",
   "icon": "art/imshota1009-bartender-jp.webp",
-  "clip": null
+  "clip": "clips/imshota1009-bartender-jp.mp4"
  },
  {
   "slug": "tanuu5-nova-lancer",
@@ -904,7 +904,7 @@
   "cover": "covers/tanuu5-nova-lancer.webp",
   "thumb": "covers/tanuu5-nova-lancer.webp",
   "icon": "art/tanuu5-nova-lancer.webp",
-  "clip": null
+  "clip": "clips/tanuu5-nova-lancer.mp4"
  },
  {
   "slug": "gipppp121-buzzdrop",
@@ -940,7 +940,7 @@
   "cover": "covers/gipppp121-buzzdrop.webp",
   "thumb": "covers/gipppp121-buzzdrop.webp",
   "icon": "art/gipppp121-buzzdrop.webp",
-  "clip": null
+  "clip": "clips/gipppp121-buzzdrop.mp4"
  },
  {
   "slug": "rockbenben-thousand-lives",
@@ -976,7 +976,7 @@
   "cover": "covers/rockbenben-thousand-lives.webp",
   "thumb": "covers/rockbenben-thousand-lives.webp",
   "icon": "art/rockbenben-thousand-lives.webp",
-  "clip": null
+  "clip": "clips/rockbenben-thousand-lives.mp4"
  },
  {
   "slug": "wanikhawar-ferris-forge",
@@ -1048,7 +1048,7 @@
   "cover": "covers/mangelajo-microkarts-qwen3-8-27b.webp",
   "thumb": "covers/mangelajo-microkarts-qwen3-8-27b.webp",
   "icon": "art/mangelajo-microkarts-qwen3-8-27b.webp",
-  "clip": null
+  "clip": "clips/mangelajo-microkarts-qwen3-8-27b.mp4"
  },
  {
   "slug": "btsouth-typearchy",
@@ -1084,7 +1084,7 @@
   "cover": "covers/btsouth-typearchy.webp",
   "thumb": "covers/btsouth-typearchy.webp",
   "icon": "art/btsouth-typearchy.webp",
-  "clip": null
+  "clip": "clips/btsouth-typearchy.mp4"
  },
  {
   "slug": "orou500-cityflow",
@@ -1120,7 +1120,7 @@
   "cover": "covers/orou500-cityflow.webp",
   "thumb": "covers/orou500-cityflow.webp",
   "icon": "art/orou500-cityflow.webp",
-  "clip": null
+  "clip": "clips/orou500-cityflow.mp4"
  },
  {
   "slug": "vibezzzcoder-clawd-pop",
@@ -1156,7 +1156,7 @@
   "cover": "covers/vibezzzcoder-clawd-pop.webp",
   "thumb": "covers/vibezzzcoder-clawd-pop.webp",
   "icon": "art/vibezzzcoder-clawd-pop.webp",
-  "clip": null
+  "clip": "clips/vibezzzcoder-clawd-pop.mp4"
  },
  {
   "slug": "den-run-ai-snowglider",
@@ -1192,7 +1192,7 @@
   "cover": "covers/den-run-ai-snowglider.webp",
   "thumb": "covers/den-run-ai-snowglider.webp",
   "icon": "art/den-run-ai-snowglider.webp",
-  "clip": null
+  "clip": "clips/den-run-ai-snowglider.mp4"
  },
  {
   "slug": "triptych-web-games-andrew",
@@ -1264,7 +1264,7 @@
   "cover": "covers/reaperhulk-theruinsremember.webp",
   "thumb": "covers/reaperhulk-theruinsremember.webp",
   "icon": "art/reaperhulk-theruinsremember.webp",
-  "clip": null
+  "clip": "clips/reaperhulk-theruinsremember.mp4"
  },
  {
   "slug": "gallind-sky-combat",
@@ -1300,7 +1300,7 @@
   "cover": "covers/gallind-sky-combat.webp",
   "thumb": "covers/gallind-sky-combat.webp",
   "icon": "art/gallind-sky-combat.webp",
-  "clip": null
+  "clip": "clips/gallind-sky-combat.mp4"
  },
  {
   "slug": "amsanghi-gops",
@@ -1336,7 +1336,7 @@
   "cover": "covers/amsanghi-gops.webp",
   "thumb": "covers/amsanghi-gops.webp",
   "icon": "art/amsanghi-gops.webp",
-  "clip": null
+  "clip": "clips/amsanghi-gops.mp4"
  },
  {
   "slug": "pkolarov-cortexclash",
@@ -1372,7 +1372,7 @@
   "cover": "covers/pkolarov-cortexclash.webp",
   "thumb": "covers/pkolarov-cortexclash.webp",
   "icon": "art/pkolarov-cortexclash.webp",
-  "clip": null
+  "clip": "clips/pkolarov-cortexclash.mp4"
  },
  {
   "slug": "loosecannons-grid-wars",
@@ -1444,7 +1444,7 @@
   "cover": "covers/imshota1009-nyan-cororin.webp",
   "thumb": "covers/imshota1009-nyan-cororin.webp",
   "icon": "art/imshota1009-nyan-cororin.webp",
-  "clip": null
+  "clip": "clips/imshota1009-nyan-cororin.mp4"
  },
  {
   "slug": "eddiesanjuan-bonk-box",
@@ -1480,7 +1480,7 @@
   "cover": "covers/eddiesanjuan-bonk-box.webp",
   "thumb": "covers/eddiesanjuan-bonk-box.webp",
   "icon": "art/eddiesanjuan-bonk-box.webp",
-  "clip": null
+  "clip": "clips/eddiesanjuan-bonk-box.mp4"
  },
  {
   "slug": "phaethix-polished-arcade-shooter",
@@ -1516,7 +1516,7 @@
   "cover": "covers/phaethix-polished-arcade-shooter.webp",
   "thumb": "covers/phaethix-polished-arcade-shooter.webp",
   "icon": "art/phaethix-polished-arcade-shooter.webp",
-  "clip": null
+  "clip": "clips/phaethix-polished-arcade-shooter.mp4"
  },
  {
   "slug": "randynorthrup-ptype",
@@ -1588,7 +1588,7 @@
   "cover": "covers/dadonstyle-lullwood.webp",
   "thumb": "covers/dadonstyle-lullwood.webp",
   "icon": "art/dadonstyle-lullwood.webp",
-  "clip": null
+  "clip": "clips/dadonstyle-lullwood.mp4"
  },
  {
   "slug": "kovaldenys1-boardly",
@@ -1732,7 +1732,7 @@
   "cover": "covers/richardtheuws-cosmos-2026.webp",
   "thumb": "covers/richardtheuws-cosmos-2026.webp",
   "icon": "art/richardtheuws-cosmos-2026.webp",
-  "clip": null
+  "clip": "clips/richardtheuws-cosmos-2026.mp4"
  },
  {
   "slug": "joecool169-geeklabs-td",
@@ -1768,7 +1768,7 @@
   "cover": "covers/joecool169-geeklabs-td.webp",
   "thumb": "covers/joecool169-geeklabs-td.webp",
   "icon": "art/joecool169-geeklabs-td.webp",
-  "clip": null
+  "clip": "clips/joecool169-geeklabs-td.mp4"
  },
  {
   "slug": "miraculix95-the-etruscan-if",
@@ -1804,7 +1804,7 @@
   "cover": "covers/miraculix95-the-etruscan-if.webp",
   "thumb": "covers/miraculix95-the-etruscan-if.webp",
   "icon": "art/miraculix95-the-etruscan-if.webp",
-  "clip": null
+  "clip": "clips/miraculix95-the-etruscan-if.mp4"
  },
  {
   "slug": "williamjxj-whodunit-voice",
@@ -1876,7 +1876,7 @@
   "cover": "covers/stackloomdev-silent-meridian.webp",
   "thumb": "covers/stackloomdev-silent-meridian.webp",
   "icon": "art/stackloomdev-silent-meridian.webp",
-  "clip": null
+  "clip": "clips/stackloomdev-silent-meridian.mp4"
  },
  {
   "slug": "jessicaisleep-genshin-impact-travel",
@@ -1912,7 +1912,7 @@
   "cover": "covers/jessicaisleep-genshin-impact-travel.webp",
   "thumb": "covers/jessicaisleep-genshin-impact-travel.webp",
   "icon": "art/jessicaisleep-genshin-impact-travel.webp",
-  "clip": null
+  "clip": "clips/jessicaisleep-genshin-impact-travel.mp4"
  },
  {
   "slug": "stephanecot-typing-of-the-dev",
@@ -1948,7 +1948,7 @@
   "cover": "covers/stephanecot-typing-of-the-dev.webp",
   "thumb": "covers/stephanecot-typing-of-the-dev.webp",
   "icon": "art/stephanecot-typing-of-the-dev.webp",
-  "clip": null
+  "clip": "clips/stephanecot-typing-of-the-dev.mp4"
  },
  {
   "slug": "rushilbh27-hover-slam",
@@ -1984,7 +1984,7 @@
   "cover": "covers/rushilbh27-hover-slam.webp",
   "thumb": "covers/rushilbh27-hover-slam.webp",
   "icon": "art/rushilbh27-hover-slam.webp",
-  "clip": null
+  "clip": "clips/rushilbh27-hover-slam.mp4"
  },
  {
   "slug": "mmgrt-lawbox",
@@ -2020,7 +2020,7 @@
   "cover": "covers/mmgrt-lawbox.webp",
   "thumb": "covers/mmgrt-lawbox.webp",
   "icon": "art/mmgrt-lawbox.webp",
-  "clip": null
+  "clip": "clips/mmgrt-lawbox.mp4"
  },
  {
   "slug": "karinnielsen-strike-first",
@@ -2164,7 +2164,7 @@
   "cover": "covers/octobooth-4-buddy-rollback.webp",
   "thumb": "covers/octobooth-4-buddy-rollback.webp",
   "icon": "art/octobooth-4-buddy-rollback.webp",
-  "clip": null
+  "clip": "clips/octobooth-4-buddy-rollback.mp4"
  },
  {
   "slug": "southers-orbitbreak",
@@ -2200,7 +2200,7 @@
   "cover": "covers/southers-orbitbreak.webp",
   "thumb": "covers/southers-orbitbreak.webp",
   "icon": "art/southers-orbitbreak.webp",
-  "clip": null
+  "clip": "clips/southers-orbitbreak.mp4"
  },
  {
   "slug": "mmattia09-impostor",
@@ -2272,7 +2272,7 @@
   "cover": "covers/nihilistau-big-baby-company.webp",
   "thumb": "covers/nihilistau-big-baby-company.webp",
   "icon": "art/nihilistau-big-baby-company.webp",
-  "clip": null
+  "clip": "clips/nihilistau-big-baby-company.mp4"
  },
  {
   "slug": "naveenoid-vidhi",
@@ -2308,7 +2308,7 @@
   "cover": "covers/naveenoid-vidhi.webp",
   "thumb": "covers/naveenoid-vidhi.webp",
   "icon": "art/naveenoid-vidhi.webp",
-  "clip": null
+  "clip": "clips/naveenoid-vidhi.mp4"
  },
  {
   "slug": "diaow2331-ops-dungeon-echo",
@@ -2344,7 +2344,7 @@
   "cover": "covers/diaow2331-ops-dungeon-echo.webp",
   "thumb": "covers/diaow2331-ops-dungeon-echo.webp",
   "icon": "art/diaow2331-ops-dungeon-echo.webp",
-  "clip": null
+  "clip": "clips/diaow2331-ops-dungeon-echo.mp4"
  },
  {
   "slug": "tel-0s-sand-and-rust-public",
@@ -2416,7 +2416,7 @@
   "cover": "covers/token-gremlin-summer-haven.webp",
   "thumb": "covers/token-gremlin-summer-haven.webp",
   "icon": "art/token-gremlin-summer-haven.webp",
-  "clip": null
+  "clip": "clips/token-gremlin-summer-haven.mp4"
  },
  {
   "slug": "berochlu-astrafloor",
@@ -2524,7 +2524,7 @@
   "cover": "covers/sigmafier-ellaz-games.webp",
   "thumb": "covers/sigmafier-ellaz-games.webp",
   "icon": "art/sigmafier-ellaz-games.webp",
-  "clip": null
+  "clip": "clips/sigmafier-ellaz-games.mp4"
  },
  {
   "slug": "tanuu5-kaiju-dokan",
@@ -2560,7 +2560,7 @@
   "cover": "covers/tanuu5-kaiju-dokan.webp",
   "thumb": "covers/tanuu5-kaiju-dokan.webp",
   "icon": "art/tanuu5-kaiju-dokan.webp",
-  "clip": null
+  "clip": "clips/tanuu5-kaiju-dokan.mp4"
  },
  {
   "slug": "wcy4213-bullcamp",
@@ -2596,7 +2596,7 @@
   "cover": "covers/wcy4213-bullcamp.webp",
   "thumb": "covers/wcy4213-bullcamp.webp",
   "icon": "art/wcy4213-bullcamp.webp",
-  "clip": null
+  "clip": "clips/wcy4213-bullcamp.mp4"
  },
  {
   "slug": "merijnvanes-city-builder-3000",
@@ -2632,7 +2632,7 @@
   "cover": "covers/merijnvanes-city-builder-3000.webp",
   "thumb": "covers/merijnvanes-city-builder-3000.webp",
   "icon": "art/merijnvanes-city-builder-3000.webp",
-  "clip": null
+  "clip": "clips/merijnvanes-city-builder-3000.mp4"
  },
  {
   "slug": "hmarzban-fusegrid",
@@ -2668,7 +2668,7 @@
   "cover": "covers/hmarzban-fusegrid.webp",
   "thumb": "covers/hmarzban-fusegrid.webp",
   "icon": "art/hmarzban-fusegrid.webp",
-  "clip": null
+  "clip": "clips/hmarzban-fusegrid.mp4"
  },
  {
   "slug": "stmn-ramnevercomes",
@@ -2704,7 +2704,7 @@
   "cover": "covers/stmn-ramnevercomes.webp",
   "thumb": "covers/stmn-ramnevercomes.webp",
   "icon": "art/stmn-ramnevercomes.webp",
-  "clip": null
+  "clip": "clips/stmn-ramnevercomes.mp4"
  },
  {
   "slug": "augustosei-chopfirst",
@@ -2740,7 +2740,7 @@
   "cover": "covers/augustosei-chopfirst.webp",
   "thumb": "covers/augustosei-chopfirst.webp",
   "icon": "art/augustosei-chopfirst.webp",
-  "clip": null
+  "clip": "clips/augustosei-chopfirst.mp4"
  },
  {
   "slug": "08useok-colors",
@@ -2812,7 +2812,7 @@
   "cover": "covers/leks2000-hexkingdom.webp",
   "thumb": "covers/leks2000-hexkingdom.webp",
   "icon": "art/leks2000-hexkingdom.webp",
-  "clip": null
+  "clip": "clips/leks2000-hexkingdom.mp4"
  },
  {
   "slug": "endpx-rocket-arena",
@@ -2884,7 +2884,7 @@
   "cover": "covers/wafley-tembaku.webp",
   "thumb": "covers/wafley-tembaku.webp",
   "icon": "art/wafley-tembaku.webp",
-  "clip": null
+  "clip": "clips/wafley-tembaku.mp4"
  },
  {
   "slug": "sirkicker-kicker",
@@ -2920,7 +2920,7 @@
   "cover": "covers/sirkicker-kicker.webp",
   "thumb": "covers/sirkicker-kicker.webp",
   "icon": "art/sirkicker-kicker.webp",
-  "clip": null
+  "clip": "clips/sirkicker-kicker.mp4"
  },
  {
   "slug": "polmarza-afloat",
@@ -2956,7 +2956,7 @@
   "cover": "covers/polmarza-afloat.webp",
   "thumb": "covers/polmarza-afloat.webp",
   "icon": "art/polmarza-afloat.webp",
-  "clip": null
+  "clip": "clips/polmarza-afloat.mp4"
  },
  {
   "slug": "benjaminbreen-youngdarwin",
@@ -2992,7 +2992,7 @@
   "cover": "covers/benjaminbreen-youngdarwin.webp",
   "thumb": "covers/benjaminbreen-youngdarwin.webp",
   "icon": "art/benjaminbreen-youngdarwin.webp",
-  "clip": null
+  "clip": "clips/benjaminbreen-youngdarwin.mp4"
  },
  {
   "slug": "amaterus1125-celestfall",
@@ -3064,7 +3064,7 @@
   "cover": "covers/homie-wu-hideaway.webp",
   "thumb": "covers/homie-wu-hideaway.webp",
   "icon": "art/homie-wu-hideaway.webp",
-  "clip": null
+  "clip": "clips/homie-wu-hideaway.mp4"
  },
  {
   "slug": "lingikaushikreddy-settlement-village",
@@ -3100,7 +3100,7 @@
   "cover": "covers/lingikaushikreddy-settlement-village.webp",
   "thumb": "covers/lingikaushikreddy-settlement-village.webp",
   "icon": "art/lingikaushikreddy-settlement-village.webp",
-  "clip": null
+  "clip": "clips/lingikaushikreddy-settlement-village.mp4"
  },
  {
   "slug": "dusterbloom-skybloom",
@@ -3136,7 +3136,7 @@
   "cover": "covers/dusterbloom-skybloom.webp",
   "thumb": "covers/dusterbloom-skybloom.webp",
   "icon": "art/dusterbloom-skybloom.webp",
-  "clip": null
+  "clip": "clips/dusterbloom-skybloom.mp4"
  },
  {
   "slug": "fsc-01-fps-shooting-game",
@@ -3208,7 +3208,7 @@
   "cover": "covers/krbone14-world-capitals-game.webp",
   "thumb": "covers/krbone14-world-capitals-game.webp",
   "icon": "art/krbone14-world-capitals-game.webp",
-  "clip": null
+  "clip": "clips/krbone14-world-capitals-game.mp4"
  },
  {
   "slug": "killian01-claude-of-legends",
@@ -3244,7 +3244,7 @@
   "cover": "covers/killian01-claude-of-legends.webp",
   "thumb": "covers/killian01-claude-of-legends.webp",
   "icon": "art/killian01-claude-of-legends.webp",
-  "clip": null
+  "clip": "clips/killian01-claude-of-legends.mp4"
  },
  {
   "slug": "nickita-khylkouski-flatlander",
@@ -3280,7 +3280,7 @@
   "cover": "covers/nickita-khylkouski-flatlander.webp",
   "thumb": "covers/nickita-khylkouski-flatlander.webp",
   "icon": "art/nickita-khylkouski-flatlander.webp",
-  "clip": null
+  "clip": "clips/nickita-khylkouski-flatlander.mp4"
  },
  {
   "slug": "rakhimv-nullstern",
@@ -3316,7 +3316,7 @@
   "cover": "covers/rakhimv-nullstern.webp",
   "thumb": "covers/rakhimv-nullstern.webp",
   "icon": "art/rakhimv-nullstern.webp",
-  "clip": null
+  "clip": "clips/rakhimv-nullstern.mp4"
  },
  {
   "slug": "dairus01-blacksite",
@@ -3352,7 +3352,7 @@
   "cover": "covers/dairus01-blacksite.webp",
   "thumb": "covers/dairus01-blacksite.webp",
   "icon": "art/dairus01-blacksite.webp",
-  "clip": null
+  "clip": "clips/dairus01-blacksite.mp4"
  },
  {
   "slug": "dongsebastian86-lab-dsebastian-poker-game",
@@ -3388,7 +3388,7 @@
   "cover": "covers/dongsebastian86-lab-dsebastian-poker-game.webp",
   "thumb": "covers/dongsebastian86-lab-dsebastian-poker-game.webp",
   "icon": "art/dongsebastian86-lab-dsebastian-poker-game.webp",
-  "clip": null
+  "clip": "clips/dongsebastian86-lab-dsebastian-poker-game.mp4"
  },
  {
   "slug": "bubblewong-capture-quest",
@@ -3424,7 +3424,7 @@
   "cover": "covers/bubblewong-capture-quest.webp",
   "thumb": "covers/bubblewong-capture-quest.webp",
   "icon": "art/bubblewong-capture-quest.webp",
-  "clip": null
+  "clip": "clips/bubblewong-capture-quest.mp4"
  },
  {
   "slug": "j3vb-sanctuarys-end",
@@ -3460,7 +3460,7 @@
   "cover": "covers/j3vb-sanctuarys-end.webp",
   "thumb": "covers/j3vb-sanctuarys-end.webp",
   "icon": "art/j3vb-sanctuarys-end.webp",
-  "clip": null
+  "clip": "clips/j3vb-sanctuarys-end.mp4"
  },
  {
   "slug": "tech-firefish-delta-geometry",
@@ -3496,7 +3496,7 @@
   "cover": "covers/tech-firefish-delta-geometry.webp",
   "thumb": "covers/tech-firefish-delta-geometry.webp",
   "icon": "art/tech-firefish-delta-geometry.webp",
-  "clip": null
+  "clip": "clips/tech-firefish-delta-geometry.mp4"
  },
  {
   "slug": "nain9dev-orbe-runner-3d",
@@ -3532,7 +3532,7 @@
   "cover": "covers/nain9dev-orbe-runner-3d.webp",
   "thumb": "covers/nain9dev-orbe-runner-3d.webp",
   "icon": "art/nain9dev-orbe-runner-3d.webp",
-  "clip": null
+  "clip": "clips/nain9dev-orbe-runner-3d.mp4"
  },
  {
   "slug": "alexeygrigorev-cinderwake",
@@ -3568,7 +3568,7 @@
   "cover": "covers/alexeygrigorev-cinderwake.webp",
   "thumb": "covers/alexeygrigorev-cinderwake.webp",
   "icon": "art/alexeygrigorev-cinderwake.webp",
-  "clip": null
+  "clip": "clips/alexeygrigorev-cinderwake.mp4"
  },
  {
   "slug": "antoniomarreti-party-games",
@@ -3640,7 +3640,7 @@
   "cover": "covers/rukkhadevata123-piano-typing-game.webp",
   "thumb": "covers/rukkhadevata123-piano-typing-game.webp",
   "icon": "art/rukkhadevata123-piano-typing-game.webp",
-  "clip": null
+  "clip": "clips/rukkhadevata123-piano-typing-game.mp4"
  },
  {
   "slug": "rubikou-unirush-js13k",
@@ -3676,7 +3676,7 @@
   "cover": "covers/rubikou-unirush-js13k.webp",
   "thumb": "covers/rubikou-unirush-js13k.webp",
   "icon": "art/rubikou-unirush-js13k.webp",
-  "clip": null
+  "clip": "clips/rubikou-unirush-js13k.mp4"
  },
  {
   "slug": "justgibas-js13kgame2026",
@@ -3712,7 +3712,7 @@
   "cover": "covers/justgibas-js13kgame2026.webp",
   "thumb": "covers/justgibas-js13kgame2026.webp",
   "icon": "art/justgibas-js13kgame2026.webp",
-  "clip": null
+  "clip": "clips/justgibas-js13kgame2026.mp4"
  },
  {
   "slug": "radrael-unicornnight-js13k",
@@ -3748,7 +3748,7 @@
   "cover": "covers/radrael-unicornnight-js13k.webp",
   "thumb": "covers/radrael-unicornnight-js13k.webp",
   "icon": "art/radrael-unicornnight-js13k.webp",
-  "clip": null
+  "clip": "clips/radrael-unicornnight-js13k.mp4"
  },
  {
   "slug": "yers1-ballbrawl",
@@ -3784,7 +3784,7 @@
   "cover": "covers/yers1-ballbrawl.webp",
   "thumb": "covers/yers1-ballbrawl.webp",
   "icon": "art/yers1-ballbrawl.webp",
-  "clip": null
+  "clip": "clips/yers1-ballbrawl.mp4"
  },
  {
   "slug": "rahulg1999-neon-runner-game",
@@ -3928,7 +3928,7 @@
   "cover": "covers/terryrl-vectorbreach.webp",
   "thumb": "covers/terryrl-vectorbreach.webp",
   "icon": "art/terryrl-vectorbreach.webp",
-  "clip": null
+  "clip": "clips/terryrl-vectorbreach.mp4"
  },
  {
   "slug": "darkblad3z-hkmahjong",
@@ -4000,7 +4000,7 @@
   "cover": "covers/zakedwardscode-cartgame.webp",
   "thumb": "covers/zakedwardscode-cartgame.webp",
   "icon": "art/zakedwardscode-cartgame.webp",
-  "clip": null
+  "clip": "clips/zakedwardscode-cartgame.mp4"
  },
  {
   "slug": "kraewon7422-fallen-memoir",
@@ -4036,7 +4036,7 @@
   "cover": "covers/kraewon7422-fallen-memoir.webp",
   "thumb": "covers/kraewon7422-fallen-memoir.webp",
   "icon": "art/kraewon7422-fallen-memoir.webp",
-  "clip": null
+  "clip": "clips/kraewon7422-fallen-memoir.mp4"
  },
  {
   "slug": "vagnertxr-mahjongvibes",
@@ -4072,7 +4072,7 @@
   "cover": "covers/vagnertxr-mahjongvibes.webp",
   "thumb": "covers/vagnertxr-mahjongvibes.webp",
   "icon": "art/vagnertxr-mahjongvibes.webp",
-  "clip": null
+  "clip": "clips/vagnertxr-mahjongvibes.mp4"
  },
  {
   "slug": "pfeilbr-creature-chess",
@@ -4108,7 +4108,7 @@
   "cover": "covers/pfeilbr-creature-chess.webp",
   "thumb": "covers/pfeilbr-creature-chess.webp",
   "icon": "art/pfeilbr-creature-chess.webp",
-  "clip": null
+  "clip": "clips/pfeilbr-creature-chess.mp4"
  },
  {
   "slug": "wchenyinmethod-routesetters",
@@ -4180,7 +4180,7 @@
   "cover": "covers/ctbot000-ironhold-tower-defense.webp",
   "thumb": "covers/ctbot000-ironhold-tower-defense.webp",
   "icon": "art/ctbot000-ironhold-tower-defense.webp",
-  "clip": null
+  "clip": "clips/ctbot000-ironhold-tower-defense.mp4"
  },
  {
   "slug": "vanlil-webkick",
@@ -4216,7 +4216,7 @@
   "cover": "covers/vanlil-webkick.webp",
   "thumb": "covers/vanlil-webkick.webp",
   "icon": "art/vanlil-webkick.webp",
-  "clip": null
+  "clip": "clips/vanlil-webkick.mp4"
  },
  {
   "slug": "siliconvalley007-whack-a-mole",
@@ -4252,7 +4252,7 @@
   "cover": "covers/siliconvalley007-whack-a-mole.webp",
   "thumb": "covers/siliconvalley007-whack-a-mole.webp",
   "icon": "art/siliconvalley007-whack-a-mole.webp",
-  "clip": null
+  "clip": "clips/siliconvalley007-whack-a-mole.mp4"
  },
  {
   "slug": "alexalesha-fallingblocks",
@@ -4288,7 +4288,7 @@
   "cover": "covers/alexalesha-fallingblocks.webp",
   "thumb": "covers/alexalesha-fallingblocks.webp",
   "icon": "art/alexalesha-fallingblocks.webp",
-  "clip": null
+  "clip": "clips/alexalesha-fallingblocks.mp4"
  },
  {
   "slug": "alexalesha-jumpjump",
@@ -4324,7 +4324,7 @@
   "cover": "covers/alexalesha-jumpjump.webp",
   "thumb": "covers/alexalesha-jumpjump.webp",
   "icon": "art/alexalesha-jumpjump.webp",
-  "clip": null
+  "clip": "clips/alexalesha-jumpjump.mp4"
  },
  {
   "slug": "matdata-eu-game-wizard-duel",
@@ -4360,7 +4360,7 @@
   "cover": "covers/matdata-eu-game-wizard-duel.webp",
   "thumb": "covers/matdata-eu-game-wizard-duel.webp",
   "icon": "art/matdata-eu-game-wizard-duel.webp",
-  "clip": null
+  "clip": "clips/matdata-eu-game-wizard-duel.mp4"
  },
  {
   "slug": "rstibal-monster-shop-idle",
@@ -4396,7 +4396,7 @@
   "cover": "covers/rstibal-monster-shop-idle.webp",
   "thumb": "covers/rstibal-monster-shop-idle.webp",
   "icon": "art/rstibal-monster-shop-idle.webp",
-  "clip": null
+  "clip": "clips/rstibal-monster-shop-idle.mp4"
  },
  {
   "slug": "jessecmaddox3-mythic-motors",
@@ -4432,7 +4432,7 @@
   "cover": "covers/jessecmaddox3-mythic-motors.webp",
   "thumb": "covers/jessecmaddox3-mythic-motors.webp",
   "icon": "art/jessecmaddox3-mythic-motors.webp",
-  "clip": null
+  "clip": "clips/jessecmaddox3-mythic-motors.mp4"
  },
  {
   "slug": "kelvinbeh-dark-survivors",
@@ -4468,7 +4468,7 @@
   "cover": "covers/kelvinbeh-dark-survivors.webp",
   "thumb": "covers/kelvinbeh-dark-survivors.webp",
   "icon": "art/kelvinbeh-dark-survivors.webp",
-  "clip": null
+  "clip": "clips/kelvinbeh-dark-survivors.mp4"
  },
  {
   "slug": "j7f7vr5997-netizen-homeroom-hustle",
@@ -4504,7 +4504,7 @@
   "cover": "covers/j7f7vr5997-netizen-homeroom-hustle.webp",
   "thumb": "covers/j7f7vr5997-netizen-homeroom-hustle.webp",
   "icon": "art/j7f7vr5997-netizen-homeroom-hustle.webp",
-  "clip": null
+  "clip": "clips/j7f7vr5997-netizen-homeroom-hustle.mp4"
  },
  {
   "slug": "macikmir-glider2d",
@@ -4540,7 +4540,7 @@
   "cover": "covers/macikmir-glider2d.webp",
   "thumb": "covers/macikmir-glider2d.webp",
   "icon": "art/macikmir-glider2d.webp",
-  "clip": null
+  "clip": "clips/macikmir-glider2d.mp4"
  },
  {
   "slug": "stephanecot-typing-of-the-spec",
@@ -4576,7 +4576,7 @@
   "cover": "covers/stephanecot-typing-of-the-spec.webp",
   "thumb": "covers/stephanecot-typing-of-the-spec.webp",
   "icon": "art/stephanecot-typing-of-the-spec.webp",
-  "clip": null
+  "clip": "clips/stephanecot-typing-of-the-spec.mp4"
  },
  {
   "slug": "abc-wvc-hop-bot",
@@ -4612,7 +4612,7 @@
   "cover": "covers/abc-wvc-hop-bot.webp",
   "thumb": "covers/abc-wvc-hop-bot.webp",
   "icon": "art/abc-wvc-hop-bot.webp",
-  "clip": null
+  "clip": "clips/abc-wvc-hop-bot.mp4"
  },
  {
   "slug": "auggiepeery-flan-slam",
@@ -4648,7 +4648,7 @@
   "cover": "covers/auggiepeery-flan-slam.webp",
   "thumb": "covers/auggiepeery-flan-slam.webp",
   "icon": "art/auggiepeery-flan-slam.webp",
-  "clip": null
+  "clip": "clips/auggiepeery-flan-slam.mp4"
  },
  {
   "slug": "mrckilic-puzzle-nexus",
@@ -4684,7 +4684,7 @@
   "cover": "covers/mrckilic-puzzle-nexus.webp",
   "thumb": "covers/mrckilic-puzzle-nexus.webp",
   "icon": "art/mrckilic-puzzle-nexus.webp",
-  "clip": null
+  "clip": "clips/mrckilic-puzzle-nexus.mp4"
  },
  {
   "slug": "matdata-eu-game-football-duel",
@@ -4720,7 +4720,7 @@
   "cover": "covers/matdata-eu-game-football-duel.webp",
   "thumb": "covers/matdata-eu-game-football-duel.webp",
   "icon": "art/matdata-eu-game-football-duel.webp",
-  "clip": null
+  "clip": "clips/matdata-eu-game-football-duel.mp4"
  },
  {
   "slug": "ddmaster24-snakes",
@@ -4792,7 +4792,7 @@
   "cover": "covers/keithadler-dominoes27.webp",
   "thumb": "covers/keithadler-dominoes27.webp",
   "icon": "art/keithadler-dominoes27.webp",
-  "clip": null
+  "clip": "clips/keithadler-dominoes27.mp4"
  },
  {
   "slug": "marceld23-catapult-blade",
@@ -4828,7 +4828,7 @@
   "cover": "covers/marceld23-catapult-blade.webp",
   "thumb": "covers/marceld23-catapult-blade.webp",
   "icon": "art/marceld23-catapult-blade.webp",
-  "clip": null
+  "clip": "clips/marceld23-catapult-blade.mp4"
  },
  {
   "slug": "ehgzao-dungeonscoundrel",
@@ -4900,7 +4900,7 @@
   "cover": "covers/christianmocz-ece-city.webp",
   "thumb": "covers/christianmocz-ece-city.webp",
   "icon": "art/christianmocz-ece-city.webp",
-  "clip": null
+  "clip": "clips/christianmocz-ece-city.mp4"
  },
  {
   "slug": "tim-findlay-bellwether-brawlers",
@@ -4936,7 +4936,7 @@
   "cover": "covers/tim-findlay-bellwether-brawlers.webp",
   "thumb": "covers/tim-findlay-bellwether-brawlers.webp",
   "icon": "art/tim-findlay-bellwether-brawlers.webp",
-  "clip": null
+  "clip": "clips/tim-findlay-bellwether-brawlers.mp4"
  },
  {
   "slug": "ddallabenetta-seoul-crashers",
@@ -4972,7 +4972,7 @@
   "cover": "covers/ddallabenetta-seoul-crashers.webp",
   "thumb": "covers/ddallabenetta-seoul-crashers.webp",
   "icon": "art/ddallabenetta-seoul-crashers.webp",
-  "clip": null
+  "clip": "clips/ddallabenetta-seoul-crashers.mp4"
  },
  {
   "slug": "z-biz-game-z-biz-game-ashen-ring-cos",
@@ -5008,7 +5008,7 @@
   "cover": "covers/z-biz-game-z-biz-game-ashen-ring-cos.webp",
   "thumb": "covers/z-biz-game-z-biz-game-ashen-ring-cos.webp",
   "icon": "art/z-biz-game-z-biz-game-ashen-ring-cos.webp",
-  "clip": null
+  "clip": "clips/z-biz-game-z-biz-game-ashen-ring-cos.mp4"
  },
  {
   "slug": "jbum-cheesetoast",
@@ -5116,7 +5116,7 @@
   "cover": "covers/oliver-jig-sorting-machine.webp",
   "thumb": "covers/oliver-jig-sorting-machine.webp",
   "icon": "art/oliver-jig-sorting-machine.webp",
-  "clip": null
+  "clip": "clips/oliver-jig-sorting-machine.mp4"
  },
  {
   "slug": "alicerven-fener-bekcisi",
@@ -5152,7 +5152,7 @@
   "cover": "covers/alicerven-fener-bekcisi.webp",
   "thumb": "covers/alicerven-fener-bekcisi.webp",
   "icon": "art/alicerven-fener-bekcisi.webp",
-  "clip": null
+  "clip": "clips/alicerven-fener-bekcisi.mp4"
  },
  {
   "slug": "mywestlord-flappening",
@@ -5188,7 +5188,7 @@
   "cover": "covers/mywestlord-flappening.webp",
   "thumb": "covers/mywestlord-flappening.webp",
   "icon": "art/mywestlord-flappening.webp",
-  "clip": null
+  "clip": "clips/mywestlord-flappening.mp4"
  },
  {
   "slug": "obeskay-vertice",
@@ -5224,7 +5224,7 @@
   "cover": "covers/obeskay-vertice.webp",
   "thumb": "covers/obeskay-vertice.webp",
   "icon": "art/obeskay-vertice.webp",
-  "clip": null
+  "clip": "clips/obeskay-vertice.mp4"
  },
  {
   "slug": "agentic-commerce-lab-lightcone-webmcp-game",
@@ -5260,7 +5260,7 @@
   "cover": "covers/agentic-commerce-lab-lightcone-webmcp-game.webp",
   "thumb": "covers/agentic-commerce-lab-lightcone-webmcp-game.webp",
   "icon": "art/agentic-commerce-lab-lightcone-webmcp-game.webp",
-  "clip": null
+  "clip": "clips/agentic-commerce-lab-lightcone-webmcp-game.mp4"
  },
  {
   "slug": "ferdousbhai-splat-tanks",
@@ -5296,7 +5296,7 @@
   "cover": "covers/ferdousbhai-splat-tanks.webp",
   "thumb": "covers/ferdousbhai-splat-tanks.webp",
   "icon": "art/ferdousbhai-splat-tanks.webp",
-  "clip": null
+  "clip": "clips/ferdousbhai-splat-tanks.mp4"
  },
  {
   "slug": "elomar3-minijuegos-random-con-ia",
@@ -5332,7 +5332,7 @@
   "cover": "covers/elomar3-minijuegos-random-con-ia.webp",
   "thumb": "covers/elomar3-minijuegos-random-con-ia.webp",
   "icon": "art/elomar3-minijuegos-random-con-ia.webp",
-  "clip": null
+  "clip": "clips/elomar3-minijuegos-random-con-ia.mp4"
  },
  {
   "slug": "marvijo-code-leonida-stories-3d",
@@ -5368,7 +5368,7 @@
   "cover": "covers/marvijo-code-leonida-stories-3d.webp",
   "thumb": "covers/marvijo-code-leonida-stories-3d.webp",
   "icon": "art/marvijo-code-leonida-stories-3d.webp",
-  "clip": null
+  "clip": "clips/marvijo-code-leonida-stories-3d.mp4"
  },
  {
   "slug": "keithadler-spades27",
@@ -5404,7 +5404,7 @@
   "cover": "covers/keithadler-spades27.webp",
   "thumb": "covers/keithadler-spades27.webp",
   "icon": "art/keithadler-spades27.webp",
-  "clip": null
+  "clip": "clips/keithadler-spades27.mp4"
  },
  {
   "slug": "lucasdreyer-cubestrike-rio",
@@ -5476,7 +5476,7 @@
   "cover": "covers/jeiel85-submarine-depth.webp",
   "thumb": "covers/jeiel85-submarine-depth.webp",
   "icon": "art/jeiel85-submarine-depth.webp",
-  "clip": null
+  "clip": "clips/jeiel85-submarine-depth.mp4"
  },
  {
   "slug": "albertoit-23-meridian-line",
@@ -5512,7 +5512,7 @@
   "cover": "covers/albertoit-23-meridian-line.webp",
   "thumb": "covers/albertoit-23-meridian-line.webp",
   "icon": "art/albertoit-23-meridian-line.webp",
-  "clip": null
+  "clip": "clips/albertoit-23-meridian-line.mp4"
  },
  {
   "slug": "jaytee427-dbyf",
@@ -5548,7 +5548,7 @@
   "cover": "covers/jaytee427-dbyf.webp",
   "thumb": "covers/jaytee427-dbyf.webp",
   "icon": "art/jaytee427-dbyf.webp",
-  "clip": null
+  "clip": "clips/jaytee427-dbyf.mp4"
  },
  {
   "slug": "suprabhat-ai-paisa-pathshala",
@@ -5620,7 +5620,7 @@
   "cover": "covers/grgbrg-traveler-challange.webp",
   "thumb": "covers/grgbrg-traveler-challange.webp",
   "icon": "art/grgbrg-traveler-challange.webp",
-  "clip": null
+  "clip": "clips/grgbrg-traveler-challange.mp4"
  },
  {
   "slug": "aditya2022331060-space-game",
@@ -5692,7 +5692,7 @@
   "cover": "covers/hirosichen-ai-sky-rings-game.webp",
   "thumb": "covers/hirosichen-ai-sky-rings-game.webp",
   "icon": "art/hirosichen-ai-sky-rings-game.webp",
-  "clip": null
+  "clip": "clips/hirosichen-ai-sky-rings-game.mp4"
  },
  {
   "slug": "hirosichen-ai-f1-racing-game",
@@ -5728,7 +5728,7 @@
   "cover": "covers/hirosichen-ai-f1-racing-game.webp",
   "thumb": "covers/hirosichen-ai-f1-racing-game.webp",
   "icon": "art/hirosichen-ai-f1-racing-game.webp",
-  "clip": null
+  "clip": "clips/hirosichen-ai-f1-racing-game.mp4"
  },
  {
   "slug": "mridulsn-ruledrift",
@@ -5764,7 +5764,7 @@
   "cover": "covers/mridulsn-ruledrift.webp",
   "thumb": "covers/mridulsn-ruledrift.webp",
   "icon": "art/mridulsn-ruledrift.webp",
-  "clip": null
+  "clip": "clips/mridulsn-ruledrift.mp4"
  },
  {
   "slug": "frostburn-dead-slow",
@@ -5800,7 +5800,7 @@
   "cover": "covers/frostburn-dead-slow.webp",
   "thumb": "covers/frostburn-dead-slow.webp",
   "icon": "art/frostburn-dead-slow.webp",
-  "clip": null
+  "clip": "clips/frostburn-dead-slow.mp4"
  },
  {
   "slug": "wiverhome-empires",
@@ -5836,7 +5836,7 @@
   "cover": "covers/wiverhome-empires.webp",
   "thumb": "covers/wiverhome-empires.webp",
   "icon": "art/wiverhome-empires.webp",
-  "clip": null
+  "clip": "clips/wiverhome-empires.mp4"
  },
  {
   "slug": "jordyusa-star-shooter",
@@ -5872,7 +5872,7 @@
   "cover": "covers/jordyusa-star-shooter.webp",
   "thumb": "covers/jordyusa-star-shooter.webp",
   "icon": "art/jordyusa-star-shooter.webp",
-  "clip": null
+  "clip": "clips/jordyusa-star-shooter.mp4"
  },
  {
   "slug": "sburrell23-net-defence",
@@ -5908,7 +5908,7 @@
   "cover": "covers/sburrell23-net-defence.webp",
   "thumb": "covers/sburrell23-net-defence.webp",
   "icon": "art/sburrell23-net-defence.webp",
-  "clip": null
+  "clip": "clips/sburrell23-net-defence.mp4"
  },
  {
   "slug": "bcjack0125-escape-game",
@@ -5944,7 +5944,7 @@
   "cover": "covers/bcjack0125-escape-game.webp",
   "thumb": "covers/bcjack0125-escape-game.webp",
   "icon": "art/bcjack0125-escape-game.webp",
-  "clip": null
+  "clip": "clips/bcjack0125-escape-game.mp4"
  },
  {
   "slug": "lingfeiwang-game-emberforge",
@@ -5980,7 +5980,7 @@
   "cover": "covers/lingfeiwang-game-emberforge.webp",
   "thumb": "covers/lingfeiwang-game-emberforge.webp",
   "icon": "art/lingfeiwang-game-emberforge.webp",
-  "clip": null
+  "clip": "clips/lingfeiwang-game-emberforge.mp4"
  },
  {
   "slug": "ctbot000-chess",
@@ -6016,7 +6016,7 @@
   "cover": "covers/ctbot000-chess.webp",
   "thumb": "covers/ctbot000-chess.webp",
   "icon": "art/ctbot000-chess.webp",
-  "clip": null
+  "clip": "clips/ctbot000-chess.mp4"
  },
  {
   "slug": "vishc1-fungame",
@@ -6088,7 +6088,7 @@
   "cover": "covers/pbl64k-raincoil-game.webp",
   "thumb": "covers/pbl64k-raincoil-game.webp",
   "icon": "art/pbl64k-raincoil-game.webp",
-  "clip": null
+  "clip": "clips/pbl64k-raincoil-game.mp4"
  },
  {
   "slug": "eiioitsmin-tom-and-jerry-robochase",
@@ -6124,7 +6124,7 @@
   "cover": "covers/eiioitsmin-tom-and-jerry-robochase.webp",
   "thumb": "covers/eiioitsmin-tom-and-jerry-robochase.webp",
   "icon": "art/eiioitsmin-tom-and-jerry-robochase.webp",
-  "clip": null
+  "clip": "clips/eiioitsmin-tom-and-jerry-robochase.mp4"
  },
  {
   "slug": "yarisharis-cleanup-apk",
@@ -6160,7 +6160,7 @@
   "cover": "covers/yarisharis-cleanup-apk.webp",
   "thumb": "covers/yarisharis-cleanup-apk.webp",
   "icon": "art/yarisharis-cleanup-apk.webp",
-  "clip": null
+  "clip": "clips/yarisharis-cleanup-apk.mp4"
  },
  {
   "slug": "xlordtime-open-browser-game-lib",
@@ -6196,7 +6196,7 @@
   "cover": "covers/xlordtime-open-browser-game-lib.webp",
   "thumb": "covers/xlordtime-open-browser-game-lib.webp",
   "icon": "art/xlordtime-open-browser-game-lib.webp",
-  "clip": null
+  "clip": "clips/xlordtime-open-browser-game-lib.mp4"
  },
  {
   "slug": "slonce70-zombie-world-rescue",
@@ -6232,7 +6232,7 @@
   "cover": "covers/slonce70-zombie-world-rescue.webp",
   "thumb": "covers/slonce70-zombie-world-rescue.webp",
   "icon": "art/slonce70-zombie-world-rescue.webp",
-  "clip": null
+  "clip": "clips/slonce70-zombie-world-rescue.mp4"
  },
  {
   "slug": "wildrelation-backrooms-horror",
@@ -6268,7 +6268,7 @@
   "cover": "covers/wildrelation-backrooms-horror.webp",
   "thumb": "covers/wildrelation-backrooms-horror.webp",
   "icon": "art/wildrelation-backrooms-horror.webp",
-  "clip": null
+  "clip": "clips/wildrelation-backrooms-horror.mp4"
  },
  {
   "slug": "earino-assistant-flag-reveal",
@@ -6340,7 +6340,7 @@
   "cover": "covers/jmthecoder-colordice.webp",
   "thumb": "covers/jmthecoder-colordice.webp",
   "icon": "art/jmthecoder-colordice.webp",
-  "clip": null
+  "clip": "clips/jmthecoder-colordice.mp4"
  },
  {
   "slug": "kyhsa93-abyss",
@@ -6376,7 +6376,7 @@
   "cover": "covers/kyhsa93-abyss.webp",
   "thumb": "covers/kyhsa93-abyss.webp",
   "icon": "art/kyhsa93-abyss.webp",
-  "clip": null
+  "clip": "clips/kyhsa93-abyss.mp4"
  },
  {
   "slug": "sanchezsaul-boplicity",
@@ -6412,7 +6412,7 @@
   "cover": "covers/sanchezsaul-boplicity.webp",
   "thumb": "covers/sanchezsaul-boplicity.webp",
   "icon": "art/sanchezsaul-boplicity.webp",
-  "clip": null
+  "clip": "clips/sanchezsaul-boplicity.mp4"
  },
  {
   "slug": "atharva236723-ludochaos",
@@ -6448,7 +6448,7 @@
   "cover": "covers/atharva236723-ludochaos.webp",
   "thumb": "covers/atharva236723-ludochaos.webp",
   "icon": "art/atharva236723-ludochaos.webp",
-  "clip": null
+  "clip": "clips/atharva236723-ludochaos.mp4"
  },
  {
   "slug": "naveen-6802-game",
@@ -6484,7 +6484,7 @@
   "cover": "covers/naveen-6802-game.webp",
   "thumb": "covers/naveen-6802-game.webp",
   "icon": "art/naveen-6802-game.webp",
-  "clip": null
+  "clip": "clips/naveen-6802-game.mp4"
  },
  {
   "slug": "rishir123-dig-for-bharat",
@@ -6520,7 +6520,7 @@
   "cover": "covers/rishir123-dig-for-bharat.webp",
   "thumb": "covers/rishir123-dig-for-bharat.webp",
   "icon": "art/rishir123-dig-for-bharat.webp",
-  "clip": null
+  "clip": "clips/rishir123-dig-for-bharat.mp4"
  },
  {
   "slug": "matthew-kissinger-falling-sand-alchemy",
@@ -6556,7 +6556,7 @@
   "cover": "covers/matthew-kissinger-falling-sand-alchemy.webp",
   "thumb": "covers/matthew-kissinger-falling-sand-alchemy.webp",
   "icon": "art/matthew-kissinger-falling-sand-alchemy.webp",
-  "clip": null
+  "clip": "clips/matthew-kissinger-falling-sand-alchemy.mp4"
  },
  {
   "slug": "maninae-hole-foods",
@@ -6592,7 +6592,7 @@
   "cover": "covers/maninae-hole-foods.webp",
   "thumb": "covers/maninae-hole-foods.webp",
   "icon": "art/maninae-hole-foods.webp",
-  "clip": null
+  "clip": "clips/maninae-hole-foods.mp4"
  },
  {
   "slug": "merimenjason-dora-enzo-arcade",
@@ -6628,7 +6628,7 @@
   "cover": "covers/merimenjason-dora-enzo-arcade.webp",
   "thumb": "covers/merimenjason-dora-enzo-arcade.webp",
   "icon": "art/merimenjason-dora-enzo-arcade.webp",
-  "clip": null
+  "clip": "clips/merimenjason-dora-enzo-arcade.mp4"
  },
  {
   "slug": "egirardo-lunchbreak-civ",
@@ -6664,7 +6664,7 @@
   "cover": "covers/egirardo-lunchbreak-civ.webp",
   "thumb": "covers/egirardo-lunchbreak-civ.webp",
   "icon": "art/egirardo-lunchbreak-civ.webp",
-  "clip": null
+  "clip": "clips/egirardo-lunchbreak-civ.mp4"
  },
  {
   "slug": "tanuu5-out-of-the-box",
@@ -6700,7 +6700,7 @@
   "cover": "covers/tanuu5-out-of-the-box.webp",
   "thumb": "covers/tanuu5-out-of-the-box.webp",
   "icon": "art/tanuu5-out-of-the-box.webp",
-  "clip": null
+  "clip": "clips/tanuu5-out-of-the-box.mp4"
  },
  {
   "slug": "andrewmunn-ciws-command",
@@ -6736,7 +6736,7 @@
   "cover": "covers/andrewmunn-ciws-command.webp",
   "thumb": "covers/andrewmunn-ciws-command.webp",
   "icon": "art/andrewmunn-ciws-command.webp",
-  "clip": null
+  "clip": "clips/andrewmunn-ciws-command.mp4"
  },
  {
   "slug": "virgilvox-doot-doot-revolution",
@@ -6808,7 +6808,7 @@
   "cover": "covers/enzozon-soccer-car.webp",
   "thumb": "covers/enzozon-soccer-car.webp",
   "icon": "art/enzozon-soccer-car.webp",
-  "clip": null
+  "clip": "clips/enzozon-soccer-car.mp4"
  },
  {
   "slug": "warasugitewara-easy-cities-2d",
@@ -6844,7 +6844,7 @@
   "cover": "covers/warasugitewara-easy-cities-2d.webp",
   "thumb": "covers/warasugitewara-easy-cities-2d.webp",
   "icon": "art/warasugitewara-easy-cities-2d.webp",
-  "clip": null
+  "clip": "clips/warasugitewara-easy-cities-2d.mp4"
  },
  {
   "slug": "harshkuro-procedural-dungeon-hacker-cyberpunk-stealth-game",
@@ -6916,7 +6916,7 @@
   "cover": "covers/mattlo0546-bun-buns-carrot-run.webp",
   "thumb": "covers/mattlo0546-bun-buns-carrot-run.webp",
   "icon": "art/mattlo0546-bun-buns-carrot-run.webp",
-  "clip": null
+  "clip": "clips/mattlo0546-bun-buns-carrot-run.mp4"
  },
  {
   "slug": "bradyontech-uplandin",
@@ -6952,7 +6952,7 @@
   "cover": "covers/bradyontech-uplandin.webp",
   "thumb": "covers/bradyontech-uplandin.webp",
   "icon": "art/bradyontech-uplandin.webp",
-  "clip": null
+  "clip": "clips/bradyontech-uplandin.mp4"
  },
  {
   "slug": "kersex-elementis",
@@ -6988,7 +6988,7 @@
   "cover": "covers/kersex-elementis.webp",
   "thumb": "covers/kersex-elementis.webp",
   "icon": "art/kersex-elementis.webp",
-  "clip": null
+  "clip": "clips/kersex-elementis.mp4"
  },
  {
   "slug": "moth3d-hydro-rush",
@@ -7024,7 +7024,7 @@
   "cover": "covers/moth3d-hydro-rush.webp",
   "thumb": "covers/moth3d-hydro-rush.webp",
   "icon": "art/moth3d-hydro-rush.webp",
-  "clip": null
+  "clip": "clips/moth3d-hydro-rush.mp4"
  },
  {
   "slug": "ericrius1-coastlove",
@@ -7096,7 +7096,7 @@
   "cover": "covers/axel-pm-roadmap-raiders.webp",
   "thumb": "covers/axel-pm-roadmap-raiders.webp",
   "icon": "art/axel-pm-roadmap-raiders.webp",
-  "clip": null
+  "clip": "clips/axel-pm-roadmap-raiders.mp4"
  },
  {
   "slug": "eldermoraes-delta-strike",
@@ -7132,7 +7132,7 @@
   "cover": "covers/eldermoraes-delta-strike.webp",
   "thumb": "covers/eldermoraes-delta-strike.webp",
   "icon": "art/eldermoraes-delta-strike.webp",
-  "clip": null
+  "clip": "clips/eldermoraes-delta-strike.mp4"
  },
  {
   "slug": "alekholt-random-html-games",
@@ -7168,7 +7168,7 @@
   "cover": "covers/alekholt-random-html-games.webp",
   "thumb": "covers/alekholt-random-html-games.webp",
   "icon": "art/alekholt-random-html-games.webp",
-  "clip": null
+  "clip": "clips/alekholt-random-html-games.mp4"
  },
  {
   "slug": "gray0072-tanks",
@@ -7276,7 +7276,7 @@
   "cover": "covers/bunlongheng-country-defense.webp",
   "thumb": "covers/bunlongheng-country-defense.webp",
   "icon": "art/bunlongheng-country-defense.webp",
-  "clip": null
+  "clip": "clips/bunlongheng-country-defense.mp4"
  },
  {
   "slug": "kaanturan28-dedektif-app",
@@ -7312,7 +7312,7 @@
   "cover": "covers/kaanturan28-dedektif-app.webp",
   "thumb": "covers/kaanturan28-dedektif-app.webp",
   "icon": "art/kaanturan28-dedektif-app.webp",
-  "clip": null
+  "clip": "clips/kaanturan28-dedektif-app.mp4"
  },
  {
   "slug": "dgahagan-hollowdeep",
@@ -7348,7 +7348,7 @@
   "cover": "covers/dgahagan-hollowdeep.webp",
   "thumb": "covers/dgahagan-hollowdeep.webp",
   "icon": "art/dgahagan-hollowdeep.webp",
-  "clip": null
+  "clip": "clips/dgahagan-hollowdeep.mp4"
  },
  {
   "slug": "dragunovartem99-chess-animals",
@@ -7384,7 +7384,7 @@
   "cover": "covers/dragunovartem99-chess-animals.webp",
   "thumb": "covers/dragunovartem99-chess-animals.webp",
   "icon": "art/dragunovartem99-chess-animals.webp",
-  "clip": null
+  "clip": "clips/dragunovartem99-chess-animals.mp4"
  },
  {
   "slug": "farzinmirzaie-squirm",
@@ -7420,7 +7420,7 @@
   "cover": "covers/farzinmirzaie-squirm.webp",
   "thumb": "covers/farzinmirzaie-squirm.webp",
   "icon": "art/farzinmirzaie-squirm.webp",
-  "clip": null
+  "clip": "clips/farzinmirzaie-squirm.mp4"
  },
  {
   "slug": "veersaraf-kaleydo-world",
@@ -7456,7 +7456,7 @@
   "cover": "covers/veersaraf-kaleydo-world.webp",
   "thumb": "covers/veersaraf-kaleydo-world.webp",
   "icon": "art/veersaraf-kaleydo-world.webp",
-  "clip": null
+  "clip": "clips/veersaraf-kaleydo-world.mp4"
  },
  {
   "slug": "tanuu5-dystopia-meshi",
@@ -7492,7 +7492,7 @@
   "cover": "covers/tanuu5-dystopia-meshi.webp",
   "thumb": "covers/tanuu5-dystopia-meshi.webp",
   "icon": "art/tanuu5-dystopia-meshi.webp",
-  "clip": null
+  "clip": "clips/tanuu5-dystopia-meshi.mp4"
  },
  {
   "slug": "gryphonpy-arcade-retro",
@@ -7528,7 +7528,7 @@
   "cover": "covers/gryphonpy-arcade-retro.webp",
   "thumb": "covers/gryphonpy-arcade-retro.webp",
   "icon": "art/gryphonpy-arcade-retro.webp",
-  "clip": null
+  "clip": "clips/gryphonpy-arcade-retro.mp4"
  },
  {
   "slug": "victorlcampos-slop-games",
@@ -7564,7 +7564,7 @@
   "cover": "covers/victorlcampos-slop-games.webp",
   "thumb": "covers/victorlcampos-slop-games.webp",
   "icon": "art/victorlcampos-slop-games.webp",
-  "clip": null
+  "clip": "clips/victorlcampos-slop-games.mp4"
  },
  {
   "slug": "pasturl-monument-fighters",
@@ -7600,7 +7600,7 @@
   "cover": "covers/pasturl-monument-fighters.webp",
   "thumb": "covers/pasturl-monument-fighters.webp",
   "icon": "art/pasturl-monument-fighters.webp",
-  "clip": null
+  "clip": "clips/pasturl-monument-fighters.mp4"
  },
  {
   "slug": "appleweiping-hungry-fin",
@@ -7636,7 +7636,7 @@
   "cover": "covers/appleweiping-hungry-fin.webp",
   "thumb": "covers/appleweiping-hungry-fin.webp",
   "icon": "art/appleweiping-hungry-fin.webp",
-  "clip": null
+  "clip": "clips/appleweiping-hungry-fin.mp4"
  },
  {
   "slug": "seobuk-defense-game",
@@ -7672,7 +7672,7 @@
   "cover": "covers/seobuk-defense-game.webp",
   "thumb": "covers/seobuk-defense-game.webp",
   "icon": "art/seobuk-defense-game.webp",
-  "clip": null
+  "clip": "clips/seobuk-defense-game.mp4"
  },
  {
   "slug": "chanmeng666-css-tower-defense",
@@ -7744,7 +7744,7 @@
   "cover": "covers/markldn-forager.webp",
   "thumb": "covers/markldn-forager.webp",
   "icon": "art/markldn-forager.webp",
-  "clip": null
+  "clip": "clips/markldn-forager.mp4"
  },
  {
   "slug": "sivagamedev-my-mini-game-endless-runner-",
@@ -7780,7 +7780,7 @@
   "cover": "covers/sivagamedev-my-mini-game-endless-runner-.webp",
   "thumb": "covers/sivagamedev-my-mini-game-endless-runner-.webp",
   "icon": "art/sivagamedev-my-mini-game-endless-runner-.webp",
-  "clip": null
+  "clip": "clips/sivagamedev-my-mini-game-endless-runner-.mp4"
  },
  {
   "slug": "levsage-dilijump",
@@ -7852,7 +7852,7 @@
   "cover": "covers/ayomidealaka-wreck-the-web.webp",
   "thumb": "covers/ayomidealaka-wreck-the-web.webp",
   "icon": "art/ayomidealaka-wreck-the-web.webp",
-  "clip": null
+  "clip": "clips/ayomidealaka-wreck-the-web.mp4"
  },
  {
   "slug": "msinclair25-sector-lords",
@@ -7888,7 +7888,7 @@
   "cover": "covers/msinclair25-sector-lords.webp",
   "thumb": "covers/msinclair25-sector-lords.webp",
   "icon": "art/msinclair25-sector-lords.webp",
-  "clip": null
+  "clip": "clips/msinclair25-sector-lords.mp4"
  },
  {
   "slug": "niklas-heer-shoalow",
@@ -7924,7 +7924,7 @@
   "cover": "covers/niklas-heer-shoalow.webp",
   "thumb": "covers/niklas-heer-shoalow.webp",
   "icon": "art/niklas-heer-shoalow.webp",
-  "clip": null
+  "clip": "clips/niklas-heer-shoalow.mp4"
  },
  {
   "slug": "gatsby007max-astronaut-academy",
@@ -7960,7 +7960,7 @@
   "cover": "covers/gatsby007max-astronaut-academy.webp",
   "thumb": "covers/gatsby007max-astronaut-academy.webp",
   "icon": "art/gatsby007max-astronaut-academy.webp",
-  "clip": null
+  "clip": "clips/gatsby007max-astronaut-academy.mp4"
  },
  {
   "slug": "winchxyz-pudgy-torture-simulator",
@@ -7996,7 +7996,7 @@
   "cover": "covers/winchxyz-pudgy-torture-simulator.webp",
   "thumb": "covers/winchxyz-pudgy-torture-simulator.webp",
   "icon": "art/winchxyz-pudgy-torture-simulator.webp",
-  "clip": null
+  "clip": "clips/winchxyz-pudgy-torture-simulator.mp4"
  },
  {
   "slug": "llukehanna-mapped",
@@ -8032,7 +8032,7 @@
   "cover": "covers/llukehanna-mapped.webp",
   "thumb": "covers/llukehanna-mapped.webp",
   "icon": "art/llukehanna-mapped.webp",
-  "clip": null
+  "clip": "clips/llukehanna-mapped.mp4"
  },
  {
   "slug": "userjesus-ronin-game",
@@ -8068,7 +8068,7 @@
   "cover": "covers/userjesus-ronin-game.webp",
   "thumb": "covers/userjesus-ronin-game.webp",
   "icon": "art/userjesus-ronin-game.webp",
-  "clip": null
+  "clip": "clips/userjesus-ronin-game.mp4"
  },
  {
   "slug": "davutkmbr-seventeenskies",
@@ -8104,7 +8104,7 @@
   "cover": "covers/davutkmbr-seventeenskies.webp",
   "thumb": "covers/davutkmbr-seventeenskies.webp",
   "icon": "art/davutkmbr-seventeenskies.webp",
-  "clip": null
+  "clip": "clips/davutkmbr-seventeenskies.mp4"
  },
  {
   "slug": "franco-gh-space-shooter-game",
@@ -8176,7 +8176,7 @@
   "cover": "covers/kenduest-block-run.webp",
   "thumb": "covers/kenduest-block-run.webp",
   "icon": "art/kenduest-block-run.webp",
-  "clip": null
+  "clip": "clips/kenduest-block-run.mp4"
  },
  {
   "slug": "freudelaufet358358-a11y-cardgame",
@@ -8212,7 +8212,7 @@
   "cover": "covers/freudelaufet358358-a11y-cardgame.webp",
   "thumb": "covers/freudelaufet358358-a11y-cardgame.webp",
   "icon": "art/freudelaufet358358-a11y-cardgame.webp",
-  "clip": null
+  "clip": "clips/freudelaufet358358-a11y-cardgame.mp4"
  },
  {
   "slug": "thangluuquoc-splashcity",
@@ -8248,7 +8248,7 @@
   "cover": "covers/thangluuquoc-splashcity.webp",
   "thumb": "covers/thangluuquoc-splashcity.webp",
   "icon": "art/thangluuquoc-splashcity.webp",
-  "clip": null
+  "clip": "clips/thangluuquoc-splashcity.mp4"
  },
  {
   "slug": "emyotyyy-emyot-fun",
@@ -8284,7 +8284,7 @@
   "cover": "covers/emyotyyy-emyot-fun.webp",
   "thumb": "covers/emyotyyy-emyot-fun.webp",
   "icon": "art/emyotyyy-emyot-fun.webp",
-  "clip": null
+  "clip": "clips/emyotyyy-emyot-fun.mp4"
  },
  {
   "slug": "teddy4445-rl-course-game",
@@ -8320,7 +8320,7 @@
   "cover": "covers/teddy4445-rl-course-game.webp",
   "thumb": "covers/teddy4445-rl-course-game.webp",
   "icon": "art/teddy4445-rl-course-game.webp",
-  "clip": null
+  "clip": "clips/teddy4445-rl-course-game.mp4"
  },
  {
   "slug": "elijah-lin-dancer-jelly-fish-childen-game",
@@ -8356,7 +8356,7 @@
   "cover": "covers/elijah-lin-dancer-jelly-fish-childen-game.webp",
   "thumb": "covers/elijah-lin-dancer-jelly-fish-childen-game.webp",
   "icon": "art/elijah-lin-dancer-jelly-fish-childen-game.webp",
-  "clip": null
+  "clip": "clips/elijah-lin-dancer-jelly-fish-childen-game.mp4"
  },
  {
   "slug": "samuelasherrivello-babylon-lite-bomberman-clone",
@@ -8392,7 +8392,7 @@
   "cover": "covers/samuelasherrivello-babylon-lite-bomberman-clone.webp",
   "thumb": "covers/samuelasherrivello-babylon-lite-bomberman-clone.webp",
   "icon": "art/samuelasherrivello-babylon-lite-bomberman-clone.webp",
-  "clip": null
+  "clip": "clips/samuelasherrivello-babylon-lite-bomberman-clone.mp4"
  },
  {
   "slug": "inashra-gameok",
@@ -8428,7 +8428,7 @@
   "cover": "covers/inashra-gameok.webp",
   "thumb": "covers/inashra-gameok.webp",
   "icon": "art/inashra-gameok.webp",
-  "clip": null
+  "clip": "clips/inashra-gameok.mp4"
  },
  {
   "slug": "venuschd123-blobverse",
@@ -8464,7 +8464,7 @@
   "cover": "covers/venuschd123-blobverse.webp",
   "thumb": "covers/venuschd123-blobverse.webp",
   "icon": "art/venuschd123-blobverse.webp",
-  "clip": null
+  "clip": "clips/venuschd123-blobverse.mp4"
  },
  {
   "slug": "michalstankiewicz4-cell-space",
@@ -8572,7 +8572,7 @@
   "cover": "covers/nixocode-vietnam-65-lanes-of-war.webp",
   "thumb": "covers/nixocode-vietnam-65-lanes-of-war.webp",
   "icon": "art/nixocode-vietnam-65-lanes-of-war.webp",
-  "clip": null
+  "clip": "clips/nixocode-vietnam-65-lanes-of-war.mp4"
  },
  {
   "slug": "platret-caldera-minesweeper",
@@ -8608,7 +8608,7 @@
   "cover": "covers/platret-caldera-minesweeper.webp",
   "thumb": "covers/platret-caldera-minesweeper.webp",
   "icon": "art/platret-caldera-minesweeper.webp",
-  "clip": null
+  "clip": "clips/platret-caldera-minesweeper.mp4"
  },
  {
   "slug": "wellingtonhzt-lara-world-game",
@@ -8644,7 +8644,7 @@
   "cover": "covers/wellingtonhzt-lara-world-game.webp",
   "thumb": "covers/wellingtonhzt-lara-world-game.webp",
   "icon": "art/wellingtonhzt-lara-world-game.webp",
-  "clip": null
+  "clip": "clips/wellingtonhzt-lara-world-game.mp4"
  },
  {
   "slug": "aieatassam-inkbound-scroll",
@@ -8716,7 +8716,7 @@
   "cover": "covers/duyuanxi-bonjour-campus.webp",
   "thumb": "covers/duyuanxi-bonjour-campus.webp",
   "icon": "art/duyuanxi-bonjour-campus.webp",
-  "clip": null
+  "clip": "clips/duyuanxi-bonjour-campus.mp4"
  },
  {
   "slug": "gray0072-ivan",
@@ -8752,7 +8752,7 @@
   "cover": "covers/gray0072-ivan.webp",
   "thumb": "covers/gray0072-ivan.webp",
   "icon": "art/gray0072-ivan.webp",
-  "clip": null
+  "clip": "clips/gray0072-ivan.mp4"
  },
  {
   "slug": "oopslurp-immunostrat",
@@ -8860,7 +8860,7 @@
   "cover": "covers/kpax2049-qwen-outpost.webp",
   "thumb": "covers/kpax2049-qwen-outpost.webp",
   "icon": "art/kpax2049-qwen-outpost.webp",
-  "clip": null
+  "clip": "clips/kpax2049-qwen-outpost.mp4"
  },
  {
   "slug": "lkjsxc-cell-sphere-game",
@@ -8896,7 +8896,7 @@
   "cover": "covers/lkjsxc-cell-sphere-game.webp",
   "thumb": "covers/lkjsxc-cell-sphere-game.webp",
   "icon": "art/lkjsxc-cell-sphere-game.webp",
-  "clip": null
+  "clip": "clips/lkjsxc-cell-sphere-game.mp4"
  },
  {
   "slug": "albader94-maze-game-html",
@@ -8932,7 +8932,7 @@
   "cover": "covers/albader94-maze-game-html.webp",
   "thumb": "covers/albader94-maze-game-html.webp",
   "icon": "art/albader94-maze-game-html.webp",
-  "clip": null
+  "clip": "clips/albader94-maze-game-html.mp4"
  },
  {
   "slug": "soanssandha-placeless",
@@ -9112,7 +9112,7 @@
   "cover": "covers/jharek09-dev-dead-signal.webp",
   "thumb": "covers/jharek09-dev-dead-signal.webp",
   "icon": "art/jharek09-dev-dead-signal.webp",
-  "clip": null
+  "clip": "clips/jharek09-dev-dead-signal.mp4"
  },
  {
   "slug": "tanviaanand-spelling-bee-party",
@@ -9148,7 +9148,7 @@
   "cover": "covers/tanviaanand-spelling-bee-party.webp",
   "thumb": "covers/tanviaanand-spelling-bee-party.webp",
   "icon": "art/tanviaanand-spelling-bee-party.webp",
-  "clip": null
+  "clip": "clips/tanviaanand-spelling-bee-party.mp4"
  },
  {
   "slug": "kevinjcroke-ghost-protocol",
@@ -9184,7 +9184,7 @@
   "cover": "covers/kevinjcroke-ghost-protocol.webp",
   "thumb": "covers/kevinjcroke-ghost-protocol.webp",
   "icon": "art/kevinjcroke-ghost-protocol.webp",
-  "clip": null
+  "clip": "clips/kevinjcroke-ghost-protocol.mp4"
  },
  {
   "slug": "flomerboy-digi-fuze",
@@ -9220,7 +9220,7 @@
   "cover": "covers/flomerboy-digi-fuze.webp",
   "thumb": "covers/flomerboy-digi-fuze.webp",
   "icon": "art/flomerboy-digi-fuze.webp",
-  "clip": null
+  "clip": "clips/flomerboy-digi-fuze.mp4"
  },
  {
   "slug": "dhrubadc1-gridly",
@@ -9292,7 +9292,7 @@
   "cover": "covers/emrezdemir-echo-game-io.webp",
   "thumb": "covers/emrezdemir-echo-game-io.webp",
   "icon": "art/emrezdemir-echo-game-io.webp",
-  "clip": null
+  "clip": "clips/emrezdemir-echo-game-io.mp4"
  },
  {
   "slug": "matthewod11-stack-catrunner",
@@ -9328,7 +9328,7 @@
   "cover": "covers/matthewod11-stack-catrunner.webp",
   "thumb": "covers/matthewod11-stack-catrunner.webp",
   "icon": "art/matthewod11-stack-catrunner.webp",
-  "clip": null
+  "clip": "clips/matthewod11-stack-catrunner.mp4"
  },
  {
   "slug": "masabinhok-lettermancer",
@@ -9364,7 +9364,7 @@
   "cover": "covers/masabinhok-lettermancer.webp",
   "thumb": "covers/masabinhok-lettermancer.webp",
   "icon": "art/masabinhok-lettermancer.webp",
-  "clip": null
+  "clip": "clips/masabinhok-lettermancer.mp4"
  },
  {
   "slug": "henrik-me-guesswhatisnext",
@@ -9436,7 +9436,7 @@
   "cover": "covers/earino-assistant-geoparty.webp",
   "thumb": "covers/earino-assistant-geoparty.webp",
   "icon": "art/earino-assistant-geoparty.webp",
-  "clip": null
+  "clip": "clips/earino-assistant-geoparty.mp4"
  },
  {
   "slug": "jamalxcode-breakout-game-html",
@@ -9472,7 +9472,7 @@
   "cover": "covers/jamalxcode-breakout-game-html.webp",
   "thumb": "covers/jamalxcode-breakout-game-html.webp",
   "icon": "art/jamalxcode-breakout-game-html.webp",
-  "clip": null
+  "clip": "clips/jamalxcode-breakout-game-html.mp4"
  },
  {
   "slug": "salmonellasarduri-leap-or-keep",
@@ -9508,7 +9508,7 @@
   "cover": "covers/salmonellasarduri-leap-or-keep.webp",
   "thumb": "covers/salmonellasarduri-leap-or-keep.webp",
   "icon": "art/salmonellasarduri-leap-or-keep.webp",
-  "clip": null
+  "clip": "clips/salmonellasarduri-leap-or-keep.mp4"
  },
  {
   "slug": "88ckszgp9m-netizen-night-baseball-game",
@@ -9544,7 +9544,7 @@
   "cover": "covers/88ckszgp9m-netizen-night-baseball-game.webp",
   "thumb": "covers/88ckszgp9m-netizen-night-baseball-game.webp",
   "icon": "art/88ckszgp9m-netizen-night-baseball-game.webp",
-  "clip": null
+  "clip": "clips/88ckszgp9m-netizen-night-baseball-game.mp4"
  },
  {
   "slug": "sunnywell81-ai-generated-orbital-game",
@@ -9580,7 +9580,7 @@
   "cover": "covers/sunnywell81-ai-generated-orbital-game.webp",
   "thumb": "covers/sunnywell81-ai-generated-orbital-game.webp",
   "icon": "art/sunnywell81-ai-generated-orbital-game.webp",
-  "clip": null
+  "clip": "clips/sunnywell81-ai-generated-orbital-game.mp4"
  },
  {
   "slug": "fakejerell-underlore",
@@ -9688,7 +9688,7 @@
   "cover": "covers/ohnotnow-soladroid.webp",
   "thumb": "covers/ohnotnow-soladroid.webp",
   "icon": "art/ohnotnow-soladroid.webp",
-  "clip": null
+  "clip": "clips/ohnotnow-soladroid.mp4"
  },
  {
   "slug": "smkzz-humanerror",
@@ -9760,7 +9760,7 @@
   "cover": "covers/yahyazaghloul-emoji-decode.webp",
   "thumb": "covers/yahyazaghloul-emoji-decode.webp",
   "icon": "art/yahyazaghloul-emoji-decode.webp",
-  "clip": null
+  "clip": "clips/yahyazaghloul-emoji-decode.mp4"
  },
  {
   "slug": "umage-ai-spangame",
@@ -9796,7 +9796,7 @@
   "cover": "covers/umage-ai-spangame.webp",
   "thumb": "covers/umage-ai-spangame.webp",
   "icon": "art/umage-ai-spangame.webp",
-  "clip": null
+  "clip": "clips/umage-ai-spangame.mp4"
  },
  {
   "slug": "danielwjohnston-rxdrop",
@@ -9832,7 +9832,7 @@
   "cover": "covers/danielwjohnston-rxdrop.webp",
   "thumb": "covers/danielwjohnston-rxdrop.webp",
   "icon": "art/danielwjohnston-rxdrop.webp",
-  "clip": null
+  "clip": "clips/danielwjohnston-rxdrop.mp4"
  },
  {
   "slug": "krasimirkralev-harvest-hollow",
@@ -9940,7 +9940,7 @@
   "cover": "covers/kaimiewl-fishing-game.webp",
   "thumb": "covers/kaimiewl-fishing-game.webp",
   "icon": "art/kaimiewl-fishing-game.webp",
-  "clip": null
+  "clip": "clips/kaimiewl-fishing-game.mp4"
  },
  {
   "slug": "jdardash-alien-escape",
@@ -9976,7 +9976,7 @@
   "cover": "covers/jdardash-alien-escape.webp",
   "thumb": "covers/jdardash-alien-escape.webp",
   "icon": "art/jdardash-alien-escape.webp",
-  "clip": null
+  "clip": "clips/jdardash-alien-escape.mp4"
  },
  {
   "slug": "alexi5000-titanic-iceberg-run",
@@ -10012,7 +10012,7 @@
   "cover": "covers/alexi5000-titanic-iceberg-run.webp",
   "thumb": "covers/alexi5000-titanic-iceberg-run.webp",
   "icon": "art/alexi5000-titanic-iceberg-run.webp",
-  "clip": null
+  "clip": "clips/alexi5000-titanic-iceberg-run.mp4"
  },
  {
   "slug": "anubhavraj4u-strategic-chess-game",
@@ -10120,7 +10120,7 @@
   "cover": "covers/siddqamar-midnight-shuto.webp",
   "thumb": "covers/siddqamar-midnight-shuto.webp",
   "icon": "art/siddqamar-midnight-shuto.webp",
-  "clip": null
+  "clip": "clips/siddqamar-midnight-shuto.mp4"
  },
  {
   "slug": "bonitadreama-token-cart-tycoon",
@@ -10192,7 +10192,7 @@
   "cover": "covers/stephenbeale-waffley.webp",
   "thumb": "covers/stephenbeale-waffley.webp",
   "icon": "art/stephenbeale-waffley.webp",
-  "clip": null
+  "clip": "clips/stephenbeale-waffley.mp4"
  },
  {
   "slug": "maharajahu-spline-rush",
@@ -10264,7 +10264,7 @@
   "cover": "covers/aurph-the-soul-foundry.webp",
   "thumb": "covers/aurph-the-soul-foundry.webp",
   "icon": "art/aurph-the-soul-foundry.webp",
-  "clip": null
+  "clip": "clips/aurph-the-soul-foundry.mp4"
  },
  {
   "slug": "nscott9350-typinggames",
@@ -10300,7 +10300,7 @@
   "cover": "covers/nscott9350-typinggames.webp",
   "thumb": "covers/nscott9350-typinggames.webp",
   "icon": "art/nscott9350-typinggames.webp",
-  "clip": null
+  "clip": "clips/nscott9350-typinggames.mp4"
  },
  {
   "slug": "justinzyc271828-sys-red-storm",
@@ -10336,7 +10336,7 @@
   "cover": "covers/justinzyc271828-sys-red-storm.webp",
   "thumb": "covers/justinzyc271828-sys-red-storm.webp",
   "icon": "art/justinzyc271828-sys-red-storm.webp",
-  "clip": null
+  "clip": "clips/justinzyc271828-sys-red-storm.mp4"
  },
  {
   "slug": "edisontw-pepepow-auto-battleground",
@@ -10372,7 +10372,7 @@
   "cover": "covers/edisontw-pepepow-auto-battleground.webp",
   "thumb": "covers/edisontw-pepepow-auto-battleground.webp",
   "icon": "art/edisontw-pepepow-auto-battleground.webp",
-  "clip": null
+  "clip": "clips/edisontw-pepepow-auto-battleground.mp4"
  },
  {
   "slug": "kheechan04-shadow-mitts",
@@ -10480,7 +10480,7 @@
   "cover": "covers/schwerbelastung-helsingin-herra.webp",
   "thumb": "covers/schwerbelastung-helsingin-herra.webp",
   "icon": "art/schwerbelastung-helsingin-herra.webp",
-  "clip": null
+  "clip": "clips/schwerbelastung-helsingin-herra.mp4"
  },
  {
   "slug": "arbaig123-arkham-knights",
@@ -10588,7 +10588,7 @@
   "cover": "covers/alexalesha-gameroom.webp",
   "thumb": "covers/alexalesha-gameroom.webp",
   "icon": "art/alexalesha-gameroom.webp",
-  "clip": null
+  "clip": "clips/alexalesha-gameroom.mp4"
  },
  {
   "slug": "samuelasherrivello-babylon-lite-super-offroad-clone",
@@ -10660,7 +10660,7 @@
   "cover": "covers/tarang-tj-tycho.webp",
   "thumb": "covers/tarang-tj-tycho.webp",
   "icon": "art/tarang-tj-tycho.webp",
-  "clip": null
+  "clip": "clips/tarang-tj-tycho.mp4"
  },
  {
   "slug": "camster91-magic-type-quest",
