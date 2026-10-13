@@ -11,8 +11,7 @@
   "orientation": "any",
   "controls": null,
   "fit": null,
-  "thumb": "thumbs/pshenok-server-survival.webp",
-  "minHeight": 780
+  "thumb": "thumbs/pshenok-server-survival.webp"
  },
  {
   "slug": "ipel-ns-shaft",
@@ -26,8 +25,7 @@
   "orientation": "portrait",
   "controls": null,
   "fit": null,
-  "thumb": "thumbs/ipel-ns-shaft.webp",
-  "minHeight": 700
+  "thumb": "thumbs/ipel-ns-shaft.webp"
  },
  {
   "slug": "dmcinnes-html5-asteroids",

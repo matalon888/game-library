@@ -132,9 +132,9 @@
     frame.title = g.name;
     frame.allow = 'autoplay; fullscreen; gamepad';
     frame.src = `games/${g.slug}/${g.entry}`;
-    if (g.fit || g.minHeight) frame.className = 'fit';
-    if (g.fit) { frame.style.width = g.fit.w + 'px'; frame.style.height = g.fit.h + 'px'; }
+    frame.className = 'fit';
     stage.appendChild(frame);
+    const player = document.querySelector('.player');
 
     const ov = document.createElement('div');
     ov.className = 'overlay';
@@ -144,24 +144,98 @@
       <div class="credit">${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
     stage.appendChild(ov);
     renderInstall();
-    frame.addEventListener('load', () => { $('lb').classList.add('done'); fit(); });
 
+    // ---- fitting. The stage already sits inside the phone's safe area (CSS env(safe-area-inset-*)),
+    // so nothing lands under the clock, notch, Dynamic Island or home bar on any model.
+    // virtualH: the height the game believes it has. Starts at the real height; auto-fit raises it
+    // (= zooms the game out) when part of the game's UI falls outside the screen.
+    let virtualH = 0, lastSize = '';
+    const MIN_SCALE = 0.5;
     function fit() {
       const W = stage.clientWidth, H = stage.clientHeight;
-      if (g.minHeight && !g.fit) {
-        // the game was laid out for a taller phone than what's left under the browser bars:
-        // give it that height and zoom the whole thing out, so every menu button stays on screen
-        const s = Math.min(1, H / g.minHeight);
-        frame.style.width = (W / s) + 'px'; frame.style.height = (H / s) + 'px';
-        frame.style.transform = `scale(${s})`;
+      if (!W || !H) return;
+      if (g.fit) { // fixed-size canvas game: letterbox it
+        const s = Math.min(W / g.fit.w, H / g.fit.h);
+        frame.style.width = g.fit.w + 'px'; frame.style.height = g.fit.h + 'px';
+        frame.style.transform = `translate(${(W - g.fit.w * s) / 2}px, ${(H - g.fit.h * s) / 2}px) scale(${s})`;
         return;
       }
-      if (!g.fit) return;
-      const s = Math.min(W / g.fit.w, H / g.fit.h);
-      const x = (W - g.fit.w * s) / 2, y = (H - g.fit.h * s) / 2;
-      frame.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+      const size = W + 'x' + H;
+      if (size !== lastSize) { lastSize = size; virtualH = Math.max(H, g.minHeight || 0); } // rotation / new screen: start over
+      const s = Math.max(MIN_SCALE, Math.min(1, H / virtualH));
+      frame.style.width = (W / s) + 'px'; frame.style.height = (H / s) + 'px';
+      frame.style.transform = s < 1 ? `scale(${s})` : '';
     }
-    addEventListener('resize', fit);
+
+    // Measures the game's own layout: any visible element that ends below (or right of) the screen and can't be
+    // scrolled to means a button the player can't reach. Then zoom out just enough to bring it in.
+    function autoFit() {
+      if (g.fit) return;
+      let doc; try { doc = frame.contentDocument; } catch (e) { return; }
+      if (!doc || !doc.body) return;
+      const w = frame.contentWindow, vw = w.innerWidth, vh = w.innerHeight;
+      const css = el => w.getComputedStyle(el);
+      const pageScrolls = !/hidden|clip/.test(css(doc.documentElement).overflowY + css(doc.body).overflowY) && doc.documentElement.scrollHeight > vh + 4;
+      // an ancestor (below <body>) that scrolls or clips on that axis means the overflow is by design:
+      // a swipeable toolbar, a carousel, a scroll box. Only overflow clipped by the screen itself counts.
+      const handledByAncestor = (el, axis) => {
+        for (let p = el.parentElement; p && p !== doc.body && p !== doc.documentElement; p = p.parentElement) {
+          if (/auto|scroll|hidden|clip/.test(css(p)[axis])) return true;
+        }
+        return false;
+      };
+      let needH = vh, needW = vw;
+      const els = doc.body.getElementsByTagName('*');
+      for (let i = 0; i < els.length && i < 4000; i++) {
+        const el = els[i];
+        const r = el.getBoundingClientRect();
+        if (r.width < 8 || r.height < 8 || r.top >= vh || r.left >= vw || r.right <= 0 || r.bottom <= 0) continue;
+        const overY = r.bottom > vh + 1 || r.top < -1, overX = r.right > vw + 1;
+        if (!overY && !overX) continue;
+        const st = css(el);
+        if (st.visibility === 'hidden' || st.opacity === '0') continue;
+        if (r.height > vh * 3 || r.width > vw * 3) continue;        // a background layer, not UI
+        if (overY && !(pageScrolls && st.position !== 'fixed') && !handledByAncestor(el, 'overflowY')) {
+          // centred dialogs spill over the top as well as the bottom: they need their full height
+          needH = Math.max(needH, vh + Math.max(0, r.bottom - vh) + Math.max(0, -r.top) + 8);
+        }
+        if (overX && r.left >= -2 && !handledByAncestor(el, 'overflowX')) needW = Math.max(needW, r.right + 6);
+      }
+      const grow = Math.max(needH / vh, needW / vw);
+      if (grow > 1.01) {
+        const H = stage.clientHeight;
+        virtualH = Math.min(H / MIN_SCALE, virtualH * grow);
+        fit();
+      }
+    }
+    let afTimer = 0;
+    const scheduleAutoFit = (ms = 350) => { clearTimeout(afTimer); afTimer = setTimeout(autoFit, ms); };
+
+    // the strips around the safe area take the game's background colour so they read as part of the game
+    function matchBackground() {
+      try {
+        const w = frame.contentWindow, d = w.document;
+        let c = w.getComputedStyle(d.body).backgroundColor;
+        if (!c || c === 'rgba(0, 0, 0, 0)' || c === 'transparent') c = w.getComputedStyle(d.documentElement).backgroundColor;
+        if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') {
+          player.style.background = c;
+          document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c);
+        }
+      } catch (e) {}
+    }
+
+    frame.addEventListener('load', () => {
+      $('lb').classList.add('done');
+      fit(); matchBackground();
+      [300, 1200, 3000].forEach(t => setTimeout(autoFit, t));
+      try { // menus and dialogs usually open on a tap: re-measure after each one
+        const d = frame.contentDocument;
+        d.addEventListener('click', () => scheduleAutoFit(), true);
+        d.addEventListener('touchend', () => scheduleAutoFit(), true);
+        new frame.contentWindow.MutationObserver(() => scheduleAutoFit(600)).observe(d.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+      } catch (e) {}
+    });
+    addEventListener('resize', () => { fit(); scheduleAutoFit(); });
     fit();
 
     function checkRotate() {
@@ -177,22 +251,8 @@
     }
     addEventListener('resize', checkRotate);
 
-    $('go').onclick = async () => {
-      const de = document.documentElement;
-      if (!standalone && de.requestFullscreen) await de.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
-      if (g.orientation !== 'any' && screen.orientation && screen.orientation.lock) screen.orientation.lock(g.orientation).catch(() => {});
-      ov.remove();
-      document.querySelector('.player').classList.add('playing');
-      started = Date.now();
-      store.set('last', g.slug);
-      store.set('plays', store.get('plays', 0) + 1);
-      try { frame.contentWindow.focus(); } catch (e) {}
-      if (g.controls) controls(g.controls, frame);
-      setTimeout(() => { fit(); checkRotate(); }, 250);
-    };
-
-    // credits sheet
-    $('info').onclick = () => {
+    const leave = () => adBreak(started, () => { location.href = './'; });
+    const credits = () => {
       if ($('sheet')) { $('sheet').remove(); return; }
       const sh = document.createElement('div'); sh.className = 'sheet'; sh.id = 'sheet';
       sh.innerHTML = `<h3>${esc(g.name)}</h3><p>By ${esc(g.author)}. ${esc(g.credit)}.</p>
@@ -202,7 +262,80 @@
       $('closeSheet').onclick = () => sh.remove();
     };
 
-    $('back').onclick = () => adBreak(started, () => { location.href = './'; });
+    $('go').onclick = async () => {
+      const de = document.documentElement;
+      if (!standalone && de.requestFullscreen) await de.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+      if (g.orientation !== 'any' && screen.orientation && screen.orientation.lock) screen.orientation.lock(g.orientation).catch(() => {});
+      ov.remove();
+      player.classList.add('playing');
+      started = Date.now();
+      store.set('last', g.slug);
+      store.set('plays', store.get('plays', 0) + 1);
+      try { frame.contentWindow.focus(); } catch (e) {}
+      if (g.controls) controls(g.controls, frame);
+      bubble(g, { leave, credits });
+      setTimeout(() => { fit(); checkRotate(); autoFit(); }, 250);
+    };
+
+    $('info').onclick = credits;
+    $('back').onclick = leave;
+  }
+
+  // ---------------------------------------------------------------- pause bubble
+  // One small button instead of a toolbar: drag it to any edge (remembered per game), it fades when idle,
+  // and a tap opens the pause menu. Keeps the whole screen for the game on every device.
+  function bubble(g, act) {
+    const b = document.createElement('button');
+    b.className = 'bubble'; b.id = 'bubble'; b.setAttribute('aria-label', 'Pause menu');
+    b.innerHTML = '<span></span><span></span>';
+    document.body.appendChild(b);
+    const pos = store.get('bubble.' + g.slug, { side: 'right', y: 0.42 });
+    // env(safe-area-inset-*) only resolves inside real CSS properties, so read it off an invisible probe
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
+    document.body.appendChild(probe);
+    const place = () => {
+      const r = document.documentElement.getBoundingClientRect();
+      const safe = n => parseFloat(getComputedStyle(probe)['padding' + n[0].toUpperCase() + n.slice(1)]) || 0;
+      const top = safe('top') + 6, bottom = innerHeight - safe('bottom') - 6 - 44;
+      b.style.top = Math.min(bottom, Math.max(top, pos.y * innerHeight)) + 'px';
+      b.style.left = pos.side === 'left' ? (safe('left') + 4) + 'px' : (r.width - safe('right') - 4 - 44) + 'px';
+    };
+    place(); addEventListener('resize', place);
+    let fadeT = 0;
+    const wake = () => { b.classList.remove('idle'); clearTimeout(fadeT); fadeT = setTimeout(() => b.classList.add('idle'), 2500); };
+    wake();
+    let drag = null;
+    b.addEventListener('pointerdown', e => { b.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, moved: false }; wake(); });
+    b.addEventListener('pointermove', e => {
+      if (!drag) return;
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) drag.moved = true;
+      if (drag.moved) { b.classList.add('dragging'); b.style.left = (e.clientX - 22) + 'px'; b.style.top = (e.clientY - 22) + 'px'; }
+    });
+    b.addEventListener('pointerup', e => {
+      if (!drag) return;
+      const moved = drag.moved; drag = null; b.classList.remove('dragging');
+      if (moved) { pos.side = e.clientX < innerWidth / 2 ? 'left' : 'right'; pos.y = (e.clientY - 22) / innerHeight; store.set('bubble.' + g.slug, pos); place(); wake(); return; }
+      menu();
+    });
+    b.addEventListener('pointercancel', () => { drag = null; b.classList.remove('dragging'); place(); });
+
+    function menu() {
+      if ($('pmenu')) { $('pmenu').remove(); return; }
+      const m = document.createElement('div');
+      m.className = 'overlay pmenu'; m.id = 'pmenu';
+      m.innerHTML = `<div class="box"><div class="eyebrow">Paused</div><h2>${esc(g.name)}</h2>
+        <button class="btn big" id="pmResume">Resume</button>
+        <button class="btn" id="pmHome">Back to the Arcade</button>
+        <div data-install></div>
+        <button class="btn ghost" id="pmCredits">Credits · ${esc(g.licence)}</button></div>`;
+      $('stage').appendChild(m);
+      renderInstall();
+      $('pmResume').onclick = () => m.remove();
+      $('pmHome').onclick = () => { m.remove(); act.leave(); };
+      $('pmCredits').onclick = () => { m.remove(); act.credits(); };
+      m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+    }
   }
 
   // ---------------------------------------------------------------- on-screen controls

@@ -39,7 +39,8 @@ button { font: inherit; color: inherit }
 .foot { color: var(--muted); font-size: 12px }
 
 /* ---------- player ---------- */
-.player { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr auto; background: #000 }
+.player { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr auto; background: #000;
+  padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px) }
 .topbar { display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 6px) 10px 6px; background: var(--bg) }
 .topbar .t { font: 700 14px var(--display); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .icon { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; font-size: 16px }
@@ -81,11 +82,18 @@ button { font: inherit; color: inherit }
 .sheet a { color: var(--accent) }
 @media (prefers-reduced-motion: reduce) { .loadbar i, .rotate { animation: none } }
 
-/* while playing, the title bar becomes two small floating buttons so the game gets the whole height */
-.player.playing { grid-template-rows: 1fr auto }
-.player.playing .topbar { position: fixed; top: 0; left: 0; right: auto; z-index: 7; background: none; padding: calc(env(safe-area-inset-top, 0px) + 6px) 6px 0; gap: 6px }
-.player.playing .topbar .t { display: none }
-.player.playing .icon { width: 30px; height: 30px; font-size: 13px; background: rgba(13,16,23,.55); border-color: rgba(255,255,255,.18); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: .8 }
+/* while playing: no toolbar at all. The stage is the safe area; only the pause bubble floats. */
+.player.playing { grid-template-rows: 1fr auto; padding-top: env(safe-area-inset-top, 0px) }
+.player.playing .topbar { display: none }
+.player.playing:not(:has(.pad.on)) { padding-bottom: env(safe-area-inset-bottom, 0px) }
+.bubble { position: fixed; z-index: 15; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.28); background: rgba(13,16,23,.6);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; gap: 4px; align-items: center; justify-content: center; touch-action: none; cursor: pointer;
+  transition: opacity .4s, left .2s, top .2s; box-shadow: 0 4px 14px rgba(0,0,0,.4) }
+.bubble span { width: 4px; height: 14px; border-radius: 2px; background: #fff }
+.bubble.idle { opacity: .32 }
+.bubble.dragging { transition: none; opacity: 1 }
+.pmenu .box { width: min(300px, 90vw) }
+.pmenu .btn { width: 100% }
 .overlay .hint-old { font-size: 13px; color: var(--ink); background: var(--raise); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px }
 
 /* install prompt */
