@@ -1,0 +1,185 @@
+<meta charset="utf-8">
+<title>Ad-Safe Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a cartridge shelf. Run ledger on top, today's drop as a row of phone-shaped cabinets, older days below. */
+:root {
+  --bg: #eef0f4; --surface: #ffffff; --ink: #141826; --muted: #5b6275; --line: #d9dde6;
+  --accent: #3047ff; --coin: #b07a00; --good: #127a4b; --warn: #a15c00; --bad: #b3261e;
+  --screen: #10131c;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d1017; --surface: #161a24; --ink: #e9ecf3; --muted: #9aa2b6; --line: #262c3a;
+  --accent: #7d8cff; --coin: #f0b429; --good: #4cc38a; --warn: #f0a24a; --bad: #ff7a70; --screen: #05070b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0d1017; --surface: #161a24; --ink: #e9ecf3; --muted: #9aa2b6; --line: #262c3a;
+  --accent: #7d8cff; --coin: #f0b429; --good: #4cc38a; --warn: #f0a24a; --bad: #ff7a70; --screen: #05070b; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 36px }
+a { color: var(--accent) }
+a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+header { display: grid; gap: 14px }
+.eyebrow { font: 600 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted) }
+h1 { font: 700 clamp(30px, 6vw, 54px)/1 var(--display); letter-spacing: -.02em; margin: 0; text-wrap: balance }
+h1 span { color: var(--coin) }
+.lede { max-width: 62ch; color: var(--muted); margin: 0 }
+
+.ledger { display: flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden }
+.ledger div { flex: 1 1 120px; padding: 12px 14px; border-right: 1px solid var(--line); display: grid; gap: 2px }
+.ledger div:last-child { border-right: 0 }
+.ledger b { font: 600 22px/1.1 var(--mono); font-variant-numeric: tabular-nums }
+.ledger small { color: var(--muted); font-size: 12px }
+.ledger .hl b { color: var(--coin) }
+
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between }
+.bar h2 { font: 700 20px/1.2 var(--display); margin: 0 }
+.filters { display: flex; flex-wrap: wrap; gap: 8px }
+.chip { font: 500 13px var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+
+.day { display: grid; gap: 16px }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px }
+
+.game { display: grid; grid-template-rows: auto 1fr; gap: 12px; min-width: 0 }
+.cab { position: relative; aspect-ratio: 300 / 650; max-width: 100%; border-radius: 26px; padding: 8px; background: var(--screen);
+  box-shadow: 0 1px 0 var(--line), 0 14px 30px -18px rgba(0,0,0,.55); cursor: pointer; border: 0; display: block; width: 100% }
+.cab img { width: 100%; height: 100%; object-fit: cover; border-radius: 19px; display: block; background: #222 }
+.cab .live { position: absolute; left: 16px; top: 16px; font: 600 10px/1 var(--mono); letter-spacing: .1em; background: rgba(0,0,0,.66); color: #fff; padding: 5px 7px; border-radius: 5px }
+.cab .rank { position: absolute; right: 14px; top: 14px; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--coin); color: #1a1300; font: 700 13px/1 var(--display) }
+.info { display: grid; gap: 8px; align-content: start; min-width: 0 }
+.info h3 { margin: 0; font: 700 16px/1.2 var(--display); letter-spacing: -.01em }
+.info p { margin: 0; font-size: 14px; color: var(--muted) }
+.scores { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; font: 12px var(--mono) }
+.meter { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden }
+.meter i { display: block; height: 100%; background: var(--accent) }
+.meter.q i { background: var(--coin) }
+.scores b { font-variant-numeric: tabular-nums; font-weight: 600 }
+.tags { display: flex; flex-wrap: wrap; gap: 6px }
+.tag { font: 600 11px/1 var(--mono); padding: 5px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted) }
+.tag.High { color: var(--good); border-color: currentColor }
+.tag.Medium { color: var(--warn); border-color: currentColor }
+.tag.Low { color: var(--bad); border-color: currentColor }
+.tag.pass { color: var(--good) }
+.flag { font-size: 13px; color: var(--warn); margin: 0 }
+.actions { display: flex; gap: 8px; flex-wrap: wrap }
+.btn { font: 600 13px var(--body); text-decoration: none; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); color: var(--ink); background: var(--surface) }
+.btn.play { background: var(--accent); border-color: var(--accent); color: #fff }
+.credit { font: 11px/1.4 var(--mono); color: var(--muted); overflow-wrap: anywhere }
+details summary { cursor: pointer; font-size: 13px; color: var(--muted) }
+details ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--muted) }
+
+.method { border-top: 1px solid var(--line); padding-top: 22px; display: grid; gap: 10px; color: var(--muted); font-size: 14px; max-width: 75ch }
+.method h2 { font: 700 16px var(--display); color: var(--ink); margin: 0 }
+.method p { margin: 0 }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+@media (max-width: 520px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px } .cab { border-radius: 18px; padding: 5px } .cab img { border-radius: 14px } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="runline">Daily run</div>
+    <h1>Ad-Safe <span>Arcade</span></h1>
+    <p class="lede">Open-source browser games you can wrap in ads and ship. Every one is MIT, Apache, BSD, CC0 or Unlicense, was loaded as an iPhone and tapped in a headless browser, and keeps its author's copyright line. Tap a cabinet to watch the self-test clip.</p>
+    <div class="ledger" id="ledger"></div>
+  </header>
+
+  <section class="day" aria-labelledby="libh">
+    <div class="bar">
+      <h2 id="libh">Library</h2>
+      <div class="filters" id="filters">
+        <button class="chip" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" data-f="High" aria-pressed="false">High confidence</button>
+        <button class="chip" data-f="portrait" aria-pressed="false">Mobile 9+</button>
+        <button class="chip" data-f="small" aria-pressed="false">Under 2 MB</button>
+      </div>
+    </div>
+    <div id="days"></div>
+  </section>
+
+  <section class="method">
+    <h2>How a game gets in</h2>
+    <p><b>Licence:</b> only MIT, Apache-2.0, BSD, CC0, Unlicense (and MIT-0/0BSD). GPL, AGPL, LGPL, MPL, CC-BY-SA, CC-NC and repos with no licence are dropped. READMEs are scanned for separate non-commercial asset licences.</p>
+    <p><b>Mobile (0–10):</b> starts from static signals (viewport meta, touch handlers, responsive canvas, download size) and is then corrected by the self-test: Chrome as an iPhone at 390×844, ten taps and a swipe, with every input handler counted. Overflowing pages, JS errors and slow loads lose points.</p>
+    <p><b>Quality (0–10):</b> stars, forks, push recency and issue close-rate. "Thin signal" means under 25 stars and almost no issues.</p>
+    <p><b>Self-test pass:</b> the page rendered something and the picture changed while being tapped. Games with no live URL are mirrored, unmodified and with their licence file, to matalon888.github.io/game-library.</p>
+  </section>
+</div>
+
+<script id="lib" type="application/json">[{"slug": "pshenok-server-survival", "name": "Server Survival", "blurb": "Tower defence where the towers are load balancers, caches and databases and the creeps are traffic spikes.", "flag": null, "repo": "pshenok/server-survival", "repo_url": "https://github.com/pshenok/server-survival", "play_url": "https://pshenok.github.io/server-survival/", "self_hosted": false, "licence": "MIT", "credit": "Copyright (c) 2025 Kostyantyn Pshenychnyy", "mobile": 7, "quality": 9.8, "confidence": "High", "mobile_notes": ["mouse/click only (taps still register)", "16 MB download"], "mb": 15.91, "stars": 6442, "days_since_push": 5, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 12.8, "hits": {"touch": 2, "pointer": 0, "mouse": 9, "click": 10, "key": 0}, "load_ms": 4370, "fatal": null, "errors": []}, "thumb": "media/pshenok-server-survival.webp", "clip": "media/pshenok-server-survival-clip.webp", "added": "2026-10-13", "sources": ["list:bobeff/open-source-games"]}, {"slug": "ramazancetinkaya-snake-game", "name": "Snake Pro", "blurb": "Polished modern Snake with swipe steering, an on-screen D-pad, speed modes and badges.", "flag": null, "repo": "ramazancetinkaya/snake-game", "repo_url": "https://github.com/ramazancetinkaya/snake-game", "play_url": "https://ramazancetinkaya.github.io/snake-game/", "self_hosted": false, "licence": "MIT", "credit": "Copyright (c) 2026 Ramazan Çetinkaya", "mobile": 10, "quality": 8.5, "confidence": "High", "mobile_notes": [], "mb": 0.23, "stars": 184, "days_since_push": 15, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 41.8, "hits": {"touch": 1, "pointer": 0, "mouse": 0, "click": 6, "key": 0}, "load_ms": 610, "fatal": null, "errors": []}, "thumb": "media/ramazancetinkaya-snake-game.webp", "clip": "media/ramazancetinkaya-snake-game-clip.webp", "added": "2026-10-13", "sources": ["topic:browser-game"]}, {"slug": "basicallydan-skifree-js", "name": "SkiFree.js", "blurb": "The Windows 3.1 classic: steer the skier downhill with your finger and outrun the yeti.", "flag": null, "repo": "basicallydan/skifree.js", "repo_url": "https://github.com/basicallydan/skifree.js", "play_url": "https://basicallydan.github.io/skifree.js", "self_hosted": false, "licence": "MIT", "credit": "Copyright (C) 2013 Daniel Hough", "mobile": 10, "quality": 8.7, "confidence": "High", "mobile_notes": [], "mb": 0.88, "stars": 551, "days_since_push": 133, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 1.1, "hits": {"touch": 27, "pointer": 0, "mouse": 10, "click": 10, "key": 0}, "load_ms": 668, "fatal": null, "errors": []}, "thumb": "media/basicallydan-skifree-js.webp", "clip": "media/basicallydan-skifree-js-clip.webp", "added": "2026-10-13", "sources": ["list:leereilly/games", "list:michelpereira/awesome-open-source-games"]}, {"slug": "felixmariotto-edelweiss", "name": "Edelweiss", "blurb": "3D climbing platformer up an alpine mountain, with an on-screen joystick and jump button.", "flag": "Credits third-party music in-game; confirm the music licence before monetising.", "repo": "felixmariotto/Edelweiss", "repo_url": "https://github.com/felixmariotto/Edelweiss", "play_url": "https://matalon888.github.io/game-library/felixmariotto-edelweiss/", "self_hosted": true, "licence": "CC0-1.0", "credit": "Copyright (c) felixmariotto and contributors", "mobile": 9.0, "quality": 7.1, "confidence": "High", "mobile_notes": [], "mb": 3.75, "stars": 315, "days_since_push": 1401, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 99.7, "hits": {"touch": 11, "pointer": 0, "mouse": 0, "click": 2, "key": 0}, "load_ms": 3031, "fatal": null, "errors": []}, "thumb": "media/felixmariotto-edelweiss.webp", "clip": "media/felixmariotto-edelweiss-clip.webp", "added": "2026-10-13", "sources": ["itch.io"]}, {"slug": "bkcore-hexgl", "name": "HexGL", "blurb": "WipEout-style futuristic racer in WebGL with a touch control mode.", "flag": "20 MB download; plays in landscape.", "repo": "BKcore/HexGL", "repo_url": "https://github.com/BKcore/HexGL", "play_url": "http://hexgl.bkcore.com", "self_hosted": false, "licence": "MIT", "credit": "Copyright (c) 2015 Thibaut Despoulain", "mobile": 8.0, "quality": 8.3, "confidence": "Medium", "mobile_notes": ["20 MB download", "tap = mouse click (no touch gestures)"], "mb": 20.42, "stars": 1749, "days_since_push": 836, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 17.0, "hits": {"touch": 0, "pointer": 0, "mouse": 0, "click": 3, "key": 0}, "load_ms": 2880, "fatal": null, "errors": []}, "thumb": "media/bkcore-hexgl.webp", "clip": "media/bkcore-hexgl-clip.webp", "added": "2026-10-13", "sources": ["list:leereilly/games", "list:michelpereira/awesome-open-source-games"]}, {"slug": "ipel-ns-shaft", "name": "NS-Shaft", "blurb": "Fall down the shaft, land on platforms and dodge the spike ceiling. Tap left or right half to move.", "flag": null, "repo": "iPel/NS-SHAFT", "repo_url": "https://github.com/iPel/NS-SHAFT", "play_url": "https://matalon888.github.io/game-library/ipel-ns-shaft/", "self_hosted": true, "licence": "Apache-2.0", "credit": "Copyright (c) iPel and contributors", "mobile": 10, "quality": 4.4, "confidence": "High", "mobile_notes": [], "mb": 0.05, "stars": 29, "days_since_push": 2262, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 10.3, "hits": {"touch": 22, "pointer": 0, "mouse": 0, "click": 0, "key": 0}, "load_ms": 875, "fatal": null, "errors": []}, "thumb": "media/ipel-ns-shaft.webp", "clip": "media/ipel-ns-shaft-clip.webp", "added": "2026-10-13", "sources": ["topic:browser-game", "topic:html5-game", "topic:html5-games"]}, {"slug": "mnito-factors-game", "name": "Factors Game", "blurb": "Swipe a number through a grid of divisors to reach 1. A math puzzle that fits a phone perfectly.", "flag": null, "repo": "mnito/factors-game", "repo_url": "https://github.com/mnito/factors-game", "play_url": "https://mnito.github.io/factors-game/", "self_hosted": false, "licence": "MIT", "credit": "Copyright (c) 2016-2017 Michael P. Nitowski", "mobile": 10, "quality": 4.1, "confidence": "Medium", "mobile_notes": [], "mb": 0.28, "stars": 20, "days_since_push": 1842, "thin_signal": true, "selftest": {"pass": true, "rendered": true, "frame_change": 6.2, "hits": {"touch": 35, "pointer": 0, "mouse": 0, "click": 0, "key": 0}, "load_ms": 588, "fatal": null, "errors": []}, "thumb": "media/mnito-factors-game.webp", "clip": "media/mnito-factors-game-clip.webp", "added": "2026-10-13", "sources": ["topic:html5-game", "topic:javascript-game"]}, {"slug": "evedensity-mineworld", "name": "MineWorld", "blurb": "Voxel block world you can walk, dig and build in, with a virtual joystick on mobile.", "flag": "UI text is in Chinese.", "repo": "EVEDensity/MineWorld", "repo_url": "https://github.com/EVEDensity/MineWorld", "play_url": "https://evedensity.github.io/MineWorld/", "self_hosted": false, "licence": "MIT", "credit": "Copyright (c) 2026 EVEDensity", "mobile": 8.0, "quality": 5.5, "confidence": "Medium", "mobile_notes": ["6 MB download"], "mb": 6.01, "stars": 20, "days_since_push": 86, "thin_signal": true, "selftest": {"pass": true, "rendered": true, "frame_change": 31.3, "hits": {"touch": 25, "pointer": 0, "mouse": 20, "click": 1, "key": 0}, "load_ms": 2241, "fatal": null, "errors": []}, "thumb": "media/evedensity-mineworld.webp", "clip": "media/evedensity-mineworld-clip.webp", "added": "2026-10-13", "sources": ["topic:browser-game", "topic:javascript-game"]}, {"slug": "gd4ark-linkup", "name": "Link Up", "blurb": "Classic animal-tile connect game against a countdown. Tap two matching tiles to clear them.", "flag": "Fixed-size board; small on narrow phones.", "repo": "gd4Ark/linkup", "repo_url": "https://github.com/gd4Ark/linkup", "play_url": "https://4ark.me/linkup", "self_hosted": false, "licence": "MIT", "credit": "Copyright 2017 gd4ark <gd4ark@gmail.com>", "mobile": 6.5, "quality": 6.9, "confidence": "Medium", "mobile_notes": ["mouse/click only (taps still register)", "fixed-size canvas", "tap = mouse click (no touch gestures)"], "mb": 0.4, "stars": 85, "days_since_push": 1075, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 1.0, "hits": {"touch": 0, "pointer": 0, "mouse": 0, "click": 10, "key": 0}, "load_ms": 52, "fatal": null, "errors": []}, "thumb": "media/gd4ark-linkup.webp", "clip": "media/gd4ark-linkup-clip.webp", "added": "2026-10-13", "sources": ["topic:javascript-game"]}, {"slug": "cheshire137-blicblock-js", "name": "BlicBlock", "blurb": "The falling-block mini-game from The Sims 4: line up three of a colour to clear them.", "flag": null, "repo": "cheshire137/blicblock-js", "repo_url": "https://github.com/cheshire137/blicblock-js", "play_url": "https://matalon888.github.io/game-library/cheshire137-blicblock-js/", "self_hosted": true, "licence": "MIT", "credit": "Copyright (c) 2014 Sarah Vessels", "mobile": 9.0, "quality": 4.2, "confidence": "High", "mobile_notes": [], "mb": 2.27, "stars": 18, "days_since_push": 3103, "thin_signal": false, "selftest": {"pass": true, "rendered": true, "frame_change": 13.2, "hits": {"touch": 48, "pointer": 0, "mouse": 0, "click": 6, "key": 0}, "load_ms": 85, "fatal": null, "errors": []}, "thumb": "media/cheshire137-blicblock-js.webp", "clip": "media/cheshire137-blicblock-js-clip.webp", "added": "2026-10-13", "sources": ["list:leereilly/games", "list:michelpereira/awesome-open-source-games"]}]</script>
+<script id="runs" type="application/json">[{"date": "2026-10-13", "crawled": 4831, "ad_safe": 1370, "no_build": 307, "tested": 67, "passed": 30, "added": 10, "sources": ["GitHub topics (html5-games, html5-game, javascript-game, browser-game)", "leereilly/games", "awesome-open-source-games", "bobeff/open-source-games", "awesome-jsgames", "js13kGames org", "itch.io open-source HTML5"]}]</script>
+<script>
+const LIB = JSON.parse(document.getElementById('lib').textContent);
+const RUNS = JSON.parse(document.getElementById('runs').textContent);
+const last = RUNS[RUNS.length - 1];
+const fmt = n => n.toLocaleString('en-US');
+document.getElementById('runline').textContent = `Last run ${last.date} · ${RUNS.length} run${RUNS.length > 1 ? 's' : ''} · ${LIB.length} games`;
+document.getElementById('ledger').innerHTML = [
+  ['Repos crawled', last.crawled], ['Ad-safe licence', last.ad_safe], ['No build step', last.no_build],
+  ['Self-tested', last.tested], ['Passed on phone', last.passed], ['Added today', last.added, 'hl']
+].map(([l, v, c]) => `<div class="${c || ''}"><b>${fmt(v)}</b><small>${l}</small></div>`).join('');
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let filter = 'all';
+function card(g, i) {
+  return `<article class="game" data-conf="${g.confidence}">
+    <button class="cab" aria-label="Play self-test clip of ${esc(g.name)}" data-thumb="${g.thumb}" data-clip="${g.clip}">
+      <img src="${g.thumb}" alt="${esc(g.name)} on a phone" loading="lazy">
+      <span class="live">TAP FOR CLIP</span>${i < 3 ? `<span class="rank">${i + 1}</span>` : ''}
+    </button>
+    <div class="info">
+      <h3>${esc(g.name)}</h3>
+      <p>${esc(g.blurb)}</p>
+      <div class="scores">
+        <span>Mobile</span><span class="meter"><i style="width:${g.mobile * 10}%"></i></span><b>${g.mobile}</b>
+        <span>Quality</span><span class="meter q"><i style="width:${g.quality * 10}%"></i></span><b>${g.quality}</b>
+      </div>
+      <div class="tags">
+        <span class="tag">${esc(g.licence)}</span>
+        <span class="tag ${g.confidence}">${g.confidence}</span>
+        <span class="tag pass">Self-test ✓</span>
+        <span class="tag">★ ${fmt(g.stars)}${g.thin_signal ? ' · thin' : ''}</span>
+      </div>
+      ${g.flag ? `<p class="flag">${esc(g.flag)}</p>` : ''}
+      <div class="actions">
+        <a class="btn play" href="${esc(g.play_url)}" target="_blank" rel="noopener">Play</a>
+        <a class="btn" href="${esc(g.repo_url)}" target="_blank" rel="noopener">Source</a>
+      </div>
+      <div class="credit">${esc(g.credit)} · ${esc(g.licence)}</div>
+      ${g.mobile_notes.length ? `<details><summary>Mobile notes</summary><ul>${g.mobile_notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></details>` : ''}
+    </div>
+  </article>`;
+}
+function render() {
+  const keep = g => filter === 'all' || (filter === 'High' && g.confidence === 'High') || (filter === 'portrait' && g.mobile >= 9) || (filter === 'small' && g.mb < 2);
+  const days = [...new Set(LIB.map(g => g.added))];
+  document.getElementById('days').innerHTML = days.map((d, di) => {
+    const gs = LIB.filter(g => g.added === d && keep(g));
+    if (!gs.length) return '';
+    const label = di === 0 ? `New ${d}` : d;
+    return `<div class="day"><div class="eyebrow">${label} · ${gs.length} game${gs.length > 1 ? 's' : ''}</div><div class="grid">${gs.map((g, i) => card(g, di === 0 && filter === 'all' ? i : 99)).join('')}</div></div>`;
+  }).join('') || '<p class="lede">No games match this filter yet.</p>';
+}
+render();
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === b));
+  render();
+});
+document.getElementById('days').addEventListener('click', e => {
+  const c = e.target.closest('.cab'); if (!c) return;
+  const img = c.querySelector('img'), tag = c.querySelector('.live');
+  const on = img.getAttribute('src') === c.dataset.clip;
+  img.src = on ? c.dataset.thumb : c.dataset.clip;
+  tag.textContent = on ? 'TAP FOR CLIP' : 'SELF-TEST CLIP';
+});
+</script>
