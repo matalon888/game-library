@@ -3,98 +3,315 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Add the Arcade to your AI · Ad-Safe Arcade</title>
-<meta name="description" content="Play free open-source games inside Claude, ChatGPT or Grok. Two steps, under a minute.">
-<meta name="theme-color" content="#0d1017">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@600&display=swap">
-<link rel="stylesheet" href="arcade.css">
+<title>RIFFCADE · Play in your AI chat</title>
+<meta name="description" content="Free games inside Claude, ChatGPT and Grok. Add it once, keep it pinned, play in seconds.">
+<meta name="theme-color" content="#15171B">
+<meta property="og:title" content="RIFFCADE · Your AI chat just got an arcade">
+<meta property="og:description" content="Free games inside Claude, ChatGPT and Grok. Add it once. Pin it. Play.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2315171B'/%3E%3Cg fill='%23E5FF54'%3E%3Cpath d='M40 8H69L39 39L61 61H32L10 39Z'/%3E%3Cpath d='M68 39H39L61 61L31 92H60L90 61Z'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap">
 <style>
-  .cx { max-width: 640px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 26px) 16px calc(env(safe-area-inset-bottom, 0px) + 40px); display: grid; gap: 22px }
-  .cx h2 { font: 700 26px/1.15 var(--display); margin: 0; text-wrap: balance }
-  .cx h2 span { color: var(--coin) }
-  .lead { color: var(--muted); margin: 0; max-width: 52ch }
-  .covers { display: flex; gap: 8px; overflow: hidden; height: 120px }
-  .covers img { height: 100%; aspect-ratio: 3 / 5; border-radius: 10px; object-fit: cover; border: 1px solid var(--line) }
-  .tabs { display: flex; gap: 6px; flex-wrap: wrap }
-  .tab { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 600 }
-  .tab[aria-selected="true"] { background: var(--ink); color: var(--bg) }
-  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 16px }
-  .step { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start }
-  .n { width: 28px; height: 28px; border-radius: 50%; background: var(--raise); display: grid; place-items: center; font: 600 13px var(--mono); color: var(--coin) }
-  .step p { margin: 3px 0 0; color: var(--muted) }
-  .step b { color: var(--ink) }
-  .go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--coin); color: #1a1300; font-weight: 700; padding: 13px 18px; border-radius: 999px; text-decoration: none; border: 0; cursor: pointer; width: 100% }
-  .url { display: flex; gap: 8px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 12px; min-width: 0 }
-  .url code { font: 600 12px var(--mono); color: var(--ink); overflow-wrap: anywhere; flex: 1; min-width: 0; user-select: all }
-  .url button { border: 1px solid var(--line); background: var(--raise); border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: none }
-  .say { display: flex; flex-wrap: wrap; gap: 6px }
-  .say span { background: var(--raise); border-radius: 999px; padding: 5px 11px; font-size: 13px }
-  .note { font-size: 13px; color: var(--muted); margin: 0 }
-  .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none }
-  .toast.on { opacity: 1 }
-  .alt { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 18px }
-  .alt a { color: var(--accent) }
+/* RIFFCADE brand book v1: quiet canvas, loud little moments. Accents ~15%, one-colour marks, no glow. */
+:root {
+  --ink: #15171B; --paper: #F5F3E9; --acid: #E5FF54; --lilac: #AC9CFF; --coral: #FF785A; --surface: #23262D; --muted: #B5B7BE;
+  --line: #33363E; --acid-side: #A9BD2E; --lilac-side: #7A6BD0; --coral-side: #C4553C; --paper-side: #C9C6B8;
+  --font: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100% }
+body { margin: 0; background: var(--ink); color: var(--paper); font: 400 17px/1.55 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden }
+a { color: inherit }
+button { font: inherit; color: inherit }
+:focus-visible { outline: 3px solid var(--acid); outline-offset: 3px; border-radius: 6px }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px }
+
+/* top bar */
+.top { display: flex; align-items: center; justify-content: space-between; padding-block: calc(env(safe-area-inset-top, 0px) + 18px) 6px }
+.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; font-size: 19px; letter-spacing: .02em }
+.mark svg { width: 30px; height: 30px; color: var(--acid) }
+.top a.ghost { font-weight: 500; font-size: 15px; text-decoration: none; padding: 8px 14px; border: 1.5px solid var(--line); border-radius: 999px }
+.top a.ghost:hover { border-color: var(--paper) }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; align-items: center; padding-block: 28px 40px }
+.hero h1 { font-size: clamp(44px, 7.4vw, 92px); line-height: .94; letter-spacing: -.035em; margin: 0 0 20px; font-weight: 700; text-wrap: balance }
+.hero h1 .swap { display: inline-block; background: var(--acid); color: var(--ink); padding: 0 .14em; border-radius: .12em; transform: rotate(-2deg) }
+.hero p.lead { font-size: 19px; color: var(--muted); margin: 0 0 28px; max-width: 34ch }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center }
+.btn { display: inline-flex; align-items: center; gap: 10px; border: 0; cursor: pointer; text-decoration: none; font-weight: 700; font-size: 18px; padding: 16px 24px; border-radius: 16px;
+  background: var(--acid); color: var(--ink); box-shadow: 0 5px 0 var(--acid-side); transition: transform .14s var(--ease), box-shadow .14s var(--ease) }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--acid-side) }
+.btn:active { transform: translateY(5px); box-shadow: 0 0 0 var(--acid-side) }
+.btn svg { width: 22px; height: 22px }
+.btn.alt { background: var(--surface); color: var(--paper); box-shadow: 0 5px 0 #0c0d10 }
+.btn.alt:hover { box-shadow: 0 7px 0 #0c0d10 }
+.small { font-size: 14px; color: var(--muted) }
+
+/* illustration */
+.art { position: relative; aspect-ratio: 1 / .92; max-width: 100% }
+.art svg { width: 100%; height: 100%; overflow: visible }
+.piece { transform-box: fill-box; transform-origin: center }
+@media (prefers-reduced-motion: no-preference) {
+  .chev-a { animation: inA .7s var(--ease) both .1s }
+  .chev-b { animation: inB .7s var(--ease) both .1s }
+  .drop { animation: drop .55s var(--ease) both }
+  .d1 { animation-delay: .55s } .d2 { animation-delay: .65s } .d3 { animation-delay: .75s } .d4 { animation-delay: .85s } .d5 { animation-delay: .95s }
+  .bob { animation: bob 4.2s ease-in-out infinite 1.6s }
+  .bob2 { animation: bob 5s ease-in-out infinite 2s }
+}
+@keyframes inA { from { transform: translate(-60px, -30px); opacity: 0 } }
+@keyframes inB { from { transform: translate(60px, 30px); opacity: 0 } }
+@keyframes drop { from { transform: translateY(-26px) scale(.9); opacity: 0 } }
+@keyframes bob { 50% { transform: translateY(-7px) rotate(2deg) } }
+
+/* pick your AI */
+section { padding-block: 44px }
+h2 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.02; letter-spacing: -.025em; margin: 0 0 10px; font-weight: 700; text-wrap: balance }
+.sub { color: var(--muted); margin: 0 0 26px; max-width: 52ch }
+.ais { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px }
+.ai { position: relative; display: grid; justify-items: start; gap: 18px; text-align: left; cursor: pointer; padding: 20px; border-radius: 22px; background: var(--surface); border: 2px solid transparent;
+  transition: transform .16s var(--ease), border-color .16s var(--ease), background .16s var(--ease) }
+.ai:hover { transform: translateY(-3px) }
+.ai[aria-pressed="true"] { border-color: var(--acid); background: #2a2e1e }
+.ai svg { width: 44px; height: 44px; fill: var(--paper) }
+.ai b { font-size: 22px; font-weight: 700; letter-spacing: -.01em; display: block }
+.ai span { font-size: 14px; color: var(--muted) }
+.ai .tag { font-style: normal; position: absolute; top: 16px; right: 16px; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--acid); color: var(--ink) }
+.ai .tag.l { background: var(--lilac) }
+.soon { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin-top: 18px; color: var(--muted); font-size: 14px }
+.soon i { font-style: normal; display: inline-flex; align-items: center; gap: 8px; opacity: .6 }
+.soon svg { width: 20px; height: 20px; fill: var(--muted) }
+
+.panel { margin-top: 18px; padding: 22px; border-radius: 22px; background: var(--paper); color: var(--ink); display: grid; gap: 16px }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: s }
+.steps li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; counter-increment: s }
+.steps li::before { content: counter(s); width: 34px; height: 34px; border-radius: 10px; background: var(--ink); color: var(--acid); display: grid; place-items: center; font-weight: 700 }
+.steps li > div { padding-top: 4px; min-width: 0 }
+.panel .btn { box-shadow: 0 5px 0 var(--acid-side); width: 100%; justify-content: center }
+.panel .btn.dark { background: var(--ink); color: var(--paper); box-shadow: 0 5px 0 #000 }
+.url { display: flex; gap: 8px; align-items: center; margin-top: 10px; background: #fff; border: 1.5px solid #dcd9cc; border-radius: 12px; padding: 8px 8px 8px 12px; min-width: 0 }
+.url code { font: 500 13px var(--font); overflow-wrap: anywhere; flex: 1; min-width: 0; user-select: all }
+.url button { border: 0; background: var(--ink); color: var(--paper); border-radius: 9px; padding: 8px 12px; cursor: pointer; font-weight: 700; font-size: 14px; flex: none }
+.note { font-size: 14px; color: #5b5d63; margin: 0 }
+
+/* chat demo */
+.demo { display: grid; grid-template-columns: 1fr 1.1fr; gap: 36px; align-items: center }
+.chat { background: var(--surface); border-radius: 26px; padding: 18px; display: grid; gap: 12px; border: 1px solid var(--line) }
+.bubble { justify-self: end; background: var(--acid); color: var(--ink); font-weight: 500; padding: 11px 16px; border-radius: 18px 18px 4px 18px }
+.reply { display: grid; gap: 10px }
+.reply p { margin: 0; font-size: 15px; color: var(--muted) }
+.mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
+.mini a { display: grid; gap: 6px; text-decoration: none }
+.mini img { width: 100%; aspect-ratio: 3 / 5; object-fit: cover; border-radius: 12px; display: block; background: var(--ink) }
+.mini small { font-size: 12px; color: var(--muted); line-height: 1.3 }
+.facts { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px }
+.facts li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start }
+.facts svg { width: 44px; height: 44px }
+.facts b { display: block; font-size: 19px }
+.facts span { color: var(--muted); font-size: 15px }
+
+/* promise strip */
+.promise { display: flex; flex-wrap: wrap; gap: 10px }
+.promise span { padding: 10px 16px; border-radius: 999px; border: 1.5px solid var(--line); font-weight: 500 }
+.promise span:nth-child(1) { border-color: var(--acid); color: var(--acid) }
+.promise span:nth-child(2) { border-color: var(--lilac); color: var(--lilac) }
+.promise span:nth-child(3) { border-color: var(--coral); color: var(--coral) }
+
+footer { padding-block: 30px calc(env(safe-area-inset-bottom, 0px) + 36px); color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; border-top: 1px solid var(--line) }
+footer a { color: var(--paper) }
+
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); transform: translate(-50%, 20px); background: var(--acid); color: var(--ink); padding: 11px 18px; border-radius: 999px; font-weight: 700; opacity: 0; transition: opacity .18s, transform .18s var(--ease); pointer-events: none; z-index: 9 }
+.toast.on { opacity: 1; transform: translate(-50%, 0) }
+
+@media (max-width: 820px) {
+  .hero { grid-template-columns: 1fr; padding-top: 10px; gap: 6px }
+  .art { order: -1; max-width: 420px; width: 100%; justify-self: center; margin-bottom: -8px }
+  .demo { grid-template-columns: 1fr }
+  .ais { grid-template-columns: 1fr; gap: 10px }
+  .ai { grid-template-columns: 44px 1fr; align-items: center; gap: 14px; padding: 16px 18px }
+  .ai .tag { top: 50%; transform: translateY(-50%) }
+  .btn { width: 100%; justify-content: center }
+  section { padding-block: 32px }
+}
 </style>
 </head>
 <body>
-<main class="cx">
-  <div class="brand"><img src="icons/icon-192.png" alt=""><div><h1>Ad-Safe <span>Arcade</span></h1><div class="eyebrow" id="count">Free · open source · no sign-up</div></div></div>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="./" aria-label="RIFFCADE home"><svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><path d="M40 8H69L39 39L61 61H32L10 39Z"/><path d="M68 39H39L61 61L31 92H60L90 61Z"/></svg>RIFFCADE</a>
+    <a class="ghost" href="./">Play in browser</a>
+  </header>
 
-  <h2>Play games right inside <span>your AI chat</span></h2>
-  <p class="lead">Add the arcade to Claude, ChatGPT or Grok once. After that, just ask "show me the arcade" in any chat. New games arrive twice a day.</p>
-  <div class="covers" id="covers" aria-hidden="true"></div>
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Your AI chat just got an <span class="swap">arcade.</span></h1>
+        <p class="lead">Free games that open right inside Claude, ChatGPT and Grok. Add it once, pin the chat, and play in seconds.</p>
+        <div class="cta">
+          <a class="btn" id="heroGo" href="#pick"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Add to Claude</a>
+          <a class="btn alt" href="#pick">Other AIs</a>
+        </div>
+        <p class="small" id="count" style="margin-top:16px">No sign-up. No purchase. No ads mid-round.</p>
+      </div>
 
-  <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-t="claude">Claude</button>
-    <button class="tab" role="tab" data-t="chatgpt">ChatGPT</button>
-    <button class="tab" role="tab" data-t="grok">Grok</button>
-  </div>
-  <section class="panel" id="panel" aria-live="polite"></section>
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 400 370">
+          <!-- floor shadow of the exchange -->
+          <ellipse cx="205" cy="338" rx="128" ry="16" fill="#0c0d10"/>
+          <!-- chevron A: matte extruded piece, light from top-left -->
+          <g class="piece chev-a">
+            <path d="M152 50H226L148 128L204 184H130L74 128Z" fill="var(--acid-side)" transform="translate(12 14)"/>
+            <path d="M152 50H226L148 128L204 184H130L74 128Z" fill="var(--acid)"/>
+            <path d="M152 50H226L218 58H156L82 128L74 128Z" fill="#F4FFB0"/>
+          </g>
+          <!-- chevron B -->
+          <g class="piece chev-b">
+            <path d="M224 128H150L206 184L130 262H204L282 184Z" fill="var(--lilac-side)" transform="translate(12 14)"/>
+            <path d="M224 128H150L206 184L130 262H204L282 184Z" fill="var(--lilac)"/>
+            <path d="M224 128H150L158 136H220L274 184H282Z" fill="#D6CEFF"/>
+          </g>
+          <!-- chat bubble -->
+          <g class="piece drop d1"><g class="bob">
+            <path d="M262 22h112a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16h-70l-20 18v-18h-22a16 16 0 0 1-16-16V38a16 16 0 0 1 16-16z" fill="var(--paper-side)" transform="translate(6 7)"/>
+            <path d="M262 22h112a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16h-70l-20 18v-18h-22a16 16 0 0 1-16-16V38a16 16 0 0 1 16-16z" fill="var(--paper)"/>
+            <text x="318" y="52" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="15" fill="#15171B">show me</text>
+            <text x="318" y="71" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="15" fill="#15171B">the arcade</text>
+          </g></g>
+          <!-- d-pad -->
+          <g class="piece drop d2"><g class="bob2">
+            <path d="M34 214h22v-22h22v22h22v22H78v22H56v-22H34z" fill="var(--coral-side)" transform="translate(7 8)"/>
+            <path d="M34 214h22v-22h22v22h22v22H78v22H56v-22H34z" fill="var(--coral)"/>
+            <rect x="60" y="218" width="14" height="14" rx="3" fill="var(--coral-side)"/>
+          </g></g>
+          <!-- A button -->
+          <g class="piece drop d3">
+            <circle cx="322" cy="262" r="30" fill="var(--acid-side)" transform="translate(5 8)"/>
+            <circle cx="322" cy="262" r="30" fill="var(--acid)"/>
+            <text x="322" y="272" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="28" fill="#15171B">A</text>
+          </g>
+          <!-- die -->
+          <g class="piece drop d4"><g class="bob">
+            <rect x="300" y="146" width="48" height="48" rx="11" fill="var(--paper-side)" transform="translate(6 7)"/>
+            <rect x="300" y="146" width="48" height="48" rx="11" fill="var(--paper)"/>
+            <circle cx="313" cy="159" r="5" fill="#15171B"/><circle cx="324" cy="170" r="5" fill="#15171B"/><circle cx="335" cy="181" r="5" fill="#15171B"/>
+          </g></g>
+          <!-- pixel heart: extra life -->
+          <g class="piece drop d5">
+            <path d="M40 76h12v-8h16v8h8v-8h16v8h12v20h-8v8h-8v8h-8v8h-8v-8h-8v-8h-8v-8h-8z" fill="var(--lilac-side)" transform="translate(6 7)"/>
+            <path d="M40 76h12v-8h16v8h8v-8h16v8h12v20h-8v8h-8v8h-8v8h-8v-8h-8v-8h-8v-8h-8z" fill="var(--lilac)"/>
+            <rect x="52" y="76" width="8" height="8" fill="#D6CEFF"/>
+          </g>
+        </svg>
+      </div>
+    </div>
 
-  <div class="alt"><span class="note">No AI app? Play in your browser and add it to your home screen.</span><a href="./">Open the arcade →</a></div>
-  <p class="note">No accounts and no ads inside chats. <a href="privacy.html" style="color:var(--accent)">Privacy</a></p>
-</main>
-<div class="toast" id="toast">Link copied</div>
+    <section id="pick">
+      <h2>Pick your AI.</h2>
+      <p class="sub">One tap on Claude. A quick paste on ChatGPT and Grok. Do it once and the arcade is there every time you ask.</p>
+      <div class="ais" role="group" aria-label="Choose your AI app">
+        <button class="ai" data-k="claude" aria-pressed="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg><div><b>Claude</b><span>Games play inside the chat</span></div><em class="tag">1 tap</em></button>
+        <button class="ai" data-k="chatgpt" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg><div><b>ChatGPT</b><span>Games play inside the chat</span></div><em class="tag l">Paste link</em></button>
+        <button class="ai" data-k="grok" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><path d="M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815"></path></svg><div><b>Grok</b><span>Game list with play links</span></div><em class="tag l">Paste link</em></button>
+      </div>
+      <div class="soon"><span>Not open to apps yet:</span><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a6.624 6.624 0 0 0 .265.86 5.297 5.297 0 0 0 .371.761c.696 1.159 1.818 1.927 3.593 1.927 1.497 0 2.633-.671 3.965-2.444.76-1.012 1.144-1.626 2.663-4.32l.756-1.339.186-.325c.061.1.121.196.183.3l2.152 3.595c.724 1.21 1.665 2.556 2.47 3.314 1.046.987 1.992 1.22 3.06 1.22 1.075 0 1.876-.355 2.455-.843a3.743 3.743 0 0 0 .81-.973c.542-.939.861-2.127.861-3.745 0-2.72-.681-5.357-2.084-7.45-1.282-1.912-2.957-2.93-4.716-2.93-1.047 0-2.088.467-3.053 1.308-.652.57-1.257 1.29-1.82 2.05-.69-.875-1.335-1.547-1.958-2.056-1.182-.966-2.315-1.303-3.454-1.303zm10.16 2.053c1.147 0 2.188.758 2.992 1.999 1.132 1.748 1.647 4.195 1.647 6.4 0 1.548-.368 2.9-1.839 2.9-.58 0-1.027-.23-1.664-1.004-.496-.601-1.343-1.878-2.832-4.358l-.617-1.028a44.908 44.908 0 0 0-1.255-1.98c.07-.109.141-.224.211-.327 1.12-1.667 2.118-2.602 3.358-2.602zm-10.201.553c1.265 0 2.058.791 2.675 1.446.307.327.737.871 1.234 1.579l-1.02 1.566c-.757 1.163-1.882 3.017-2.837 4.338-1.191 1.649-1.81 1.817-2.486 1.817-.524 0-1.038-.237-1.383-.794-.263-.426-.464-1.13-.464-2.046 0-2.221.63-4.535 1.66-6.088.454-.687.964-1.226 1.533-1.533a2.264 2.264 0 0 1 1.088-.285z"/></svg>Meta AI</i><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg>Gemini</i><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.143 3.429v3.428h-3.429v3.429h-3.428V6.857H6.857V3.43H3.43v13.714H0v3.428h10.286v-3.428H6.857v-3.429h3.429v3.429h3.429v-3.429h3.428v3.429h-3.428v3.428H24v-3.428h-3.43V3.429z"/></svg>Le Chat</i></div>
+      <div class="panel" id="panel" aria-live="polite"></div>
+    </section>
+
+    <section>
+      <div class="demo">
+        <div class="chat" aria-label="What it looks like in a chat">
+          <div class="bubble">show me the arcade</div>
+          <div class="reply">
+            <p id="replyLine">Here are today's games. Tap one to play.</p>
+            <div class="mini" id="mini"></div>
+          </div>
+        </div>
+        <div>
+          <h2>New game. Strange rules. Your move.</h2>
+          <ul class="facts">
+            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--acid)"/><path d="M14 12h16l-9 10 9 10H14l9-10z" fill="#15171B"/></svg><div><b>Fresh drops twice a day</b><span>Open-source games, each tested on a real phone screen before it lands.</span></div></li>
+            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--lilac)"/><path d="M15 10h14v24l-7-5-7 5z" fill="#15171B"/></svg><div><b>Keep it pinned</b><span>Pin the chat, or just say "show me the arcade" in any new one.</span></div></li>
+            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--coral)"/><path d="m22 10 3.6 7.6 8.4 1-6.2 5.8 1.6 8.3L22 28.6l-7.4 4.1 1.6-8.3-6.2-5.8 8.4-1z" fill="#15171B"/></svg><div><b>Real ratings</b><span>Player stars, plus each game's track record on GitHub, Hacker News and itch.io.</span></div></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>More play. Less in the way.</h2>
+      <div class="promise" style="margin-top:18px"><span>No purchase required</span><span>No sign-up</span><span>No ads mid-round</span><span>Every game credited to its author</span></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>RIFFCADE. Open-source games, shown with their authors' licences.</span>
+    <span><a href="./">Play in browser</a> &nbsp; <a href="privacy.html">Privacy</a></span>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status">Link copied</div>
+
 <script>
 const MCP = 'https://arcade-api-production-bfdf.up.railway.app/mcp';
-const SAY = ['Show me the arcade', "What's new today?", 'Play a puzzle game'];
+const ASK = 'Show me the arcade';
+const LOGO = { claude: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>` };
 const HOSTS = {
-  claude: { open: 'https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=' + encodeURIComponent('🎮 Arcade') + '&connectorUrl=' + encodeURIComponent(MCP), label: 'Add to Claude', prefill: true, play: 'https://claude.ai/new?q=', app: 'Claude',
-    steps: ['Claude opens with <b>Arcade</b> already filled in. Keep <b>No sign-in</b> and tap <b>Add</b>. The safety notice is normal for apps not yet in Claude\'s directory.'],
-    note: 'Works on claude.ai, the desktop app and the phone app once added.' },
-  chatgpt: { open: 'https://chatgpt.com/#settings/Connectors', label: 'Copy link & open ChatGPT', play: 'https://chatgpt.com/?q=', app: 'ChatGPT',
-    steps: ['Open <b>Apps → Advanced</b> and turn on <b>Developer mode</b>.', 'Tap <b>Create app</b>, name it <b>Arcade</b>, paste the link, choose <b>No authentication</b>, save.'],
-    note: 'Needs ChatGPT on the web the first time. A one-tap listing in the ChatGPT app store is pending review.' },
-  grok: { open: 'https://grok.com/connectors', label: 'Copy link & open Grok', play: 'https://grok.com/?q=', app: 'Grok',
-    steps: ['Choose <b>Add connector</b> (custom MCP).', 'Paste the link and save.'],
-    note: 'Grok paid plans only. Grok lists the games with play links instead of a game grid.' }
+  claude: { name: 'Claude', prefill: true,
+    add: 'https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=' + encodeURIComponent('🎮 Arcade') + '&connectorUrl=' + encodeURIComponent(MCP),
+    play: 'https://claude.ai/new?q=',
+    steps: ['<a class="btn" id="go" target="_blank" rel="noopener">Add to Claude</a>',
+            'Claude opens with the arcade filled in. Keep <b>No sign-in</b> and tap <b>Add</b>. The safety notice is standard for apps that aren\'t in Claude\'s directory yet.',
+            '<a class="btn dark" id="play" target="_blank" rel="noopener">Start playing in Claude</a>'],
+    note: 'Works on claude.ai, the desktop app and the phone app.' },
+  chatgpt: { name: 'ChatGPT',
+    add: 'https://chatgpt.com/#settings/Connectors', play: 'https://chatgpt.com/?q=',
+    steps: ['<a class="btn" id="go" target="_blank" rel="noopener">Copy link and open ChatGPT</a><div class="url"><code>' + MCP + '</code><button id="cp">Copy</button></div>',
+            'Open <b>Apps</b>, then <b>Advanced</b>, and turn on <b>Developer mode</b>.',
+            'Tap <b>Create app</b>, name it <b>Arcade</b>, paste the link, pick <b>No authentication</b>, save.',
+            '<a class="btn dark" id="play" target="_blank" rel="noopener">Start playing in ChatGPT</a>'],
+    note: 'Do the first setup on chatgpt.com in a browser. A one-tap listing in ChatGPT\'s app directory is on the way.' },
+  grok: { name: 'Grok',
+    add: 'https://grok.com/connectors', play: 'https://grok.com/?q=',
+    steps: ['<a class="btn" id="go" target="_blank" rel="noopener">Copy link and open Grok</a><div class="url"><code>' + MCP + '</code><button id="cp">Copy</button></div>',
+            'Choose <b>Add connector</b>, paste the link and save.',
+            '<a class="btn dark" id="play" target="_blank" rel="noopener">Start playing in Grok</a>'],
+    note: 'Grok paid plans. Grok shows a list of games with play links rather than playing them in the chat.' }
 };
 const $ = s => document.querySelector(s);
-const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 1800); };
+const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800); };
 async function copy() {
-  try { await navigator.clipboard.writeText(MCP); toast('Link copied'); return true; }
-  catch (e) { const r = document.createRange(); r.selectNodeContents($('#mcp')); getSelection().removeAllRanges(); getSelection().addRange(r); toast('Link selected, copy it'); return false; }
+  try { await navigator.clipboard.writeText(MCP); toast('Link copied. Paste it in ' + cur.name); }
+  catch (e) { const c = $('.url code'); if (c) { const r = document.createRange(); r.selectNodeContents(c); getSelection().removeAllRanges(); getSelection().addRange(r); } toast('Link selected. Copy it'); }
 }
-function show(k) {
-  const h = HOSTS[k];
-  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.t === k));
-  $('#panel').innerHTML = `
-    <div class="step"><span class="n">1</span><div><a class="go" id="go" href="${h.open}" target="_blank" rel="noopener">${h.label}</a></div></div>
-    ${h.prefill ? '' : `<div class="url"><code id="mcp">${MCP}</code><button id="cp">Copy</button></div>`}
-    ${h.steps.map((s, i) => `<div class="step"><span class="n">${i + 2}</span><p>${s}</p></div>`).join('')}
-    <div class="step"><span class="n">${h.steps.length + 2}</span><div style="display:grid;gap:8px"><a class="go" style="background:var(--raise);color:var(--ink);border:1px solid var(--line)" href="${h.play + encodeURIComponent(SAY[0])}" target="_blank" rel="noopener">Start playing in ${h.app} →</a><p>Opens a chat that asks for the arcade. Later, just say:</p><div class="say">${SAY.map(s => `<span>${s}</span>`).join('')}</div></div></div>
-    <p class="note">${h.note}</p>`;
-  if (!h.prefill) { $('#go').addEventListener('click', copy); $('#cp').addEventListener('click', copy); }
-  try { localStorage.setItem('arcade.host', k); } catch (e) {}
+let cur;
+function show(k, scroll) {
+  cur = HOSTS[k];
+  document.querySelectorAll('.ai').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
+  $('#panel').innerHTML = `<ol class="steps">${cur.steps.map(s => `<li><div>${s}</div></li>`).join('')}</ol><p class="note">${cur.note}</p>`;
+  $('#go').href = cur.add;
+  $('#play').href = cur.play + encodeURIComponent(ASK);
+  if (!cur.prefill) { $('#go').addEventListener('click', copy); $('#cp').addEventListener('click', copy); }
+  const hero = $('#heroGo');
+  hero.innerHTML = (k === 'claude' ? LOGO.claude : '') + (cur.prefill ? 'Add to ' + cur.name : 'Set up ' + cur.name);
+  hero.href = cur.prefill ? cur.add : '#pick';
+  hero.target = cur.prefill ? '_blank' : '';
+  try { localStorage.setItem('riff.ai', k); } catch (e) {}
+  if (scroll) $('#panel').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
 }
-document.querySelectorAll('.tab').forEach(b => b.onclick = () => show(b.dataset.t));
+document.querySelectorAll('.ai').forEach(b => b.onclick = () => show(b.dataset.k, true));
 let start = 'claude';
-try { start = new URLSearchParams(location.search).get('ai') || localStorage.getItem('arcade.host') || start; } catch (e) {}
+try { start = new URLSearchParams(location.search).get('ai') || localStorage.getItem('riff.ai') || start; } catch (e) {}
 show(HOSTS[start] ? start : 'claude');
+
+// the chat preview uses the real catalogue: real covers, real public numbers
+const kNum = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k' : String(n);
+const badge = g => { const p = g.public || {}; return p.itch ? `★ ${p.itch.rating.toFixed(1)} on itch.io` : p.hn ? `▲ ${p.hn.points} on Hacker News` : p.github ? `${kNum(p.github.stars)} GitHub stars` : g.category; };
 fetch('games.json').then(r => r.json()).then(gs => {
-  $('#count').textContent = `${gs.length} games · free · no sign-up`;
-  $('#covers').innerHTML = gs.filter(g => g.cover).slice(0, 8).map(g => `<img src="${g.cover}" alt="">`).join('');
+  $('#count').textContent = `${gs.length} games so far. No sign-up. No purchase. No ads mid-round.`;
+  const pick = [...gs].filter(g => g.cover).sort((a, b) => ((b.public?.github?.stars || 0) - (a.public?.github?.stars || 0))).slice(0, 3);
+  $('#mini').innerHTML = pick.map(g => `<a href="play.html?g=${encodeURIComponent(g.slug)}"><img src="${g.cover}" alt="${g.name}"><small>${badge(g)}</small></a>`).join('');
 }).catch(() => {});
 </script>
 </body>
