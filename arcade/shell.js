@@ -213,7 +213,7 @@
 
     const ov = document.createElement('div');
     ov.className = 'overlay';
-    ov.innerHTML = `<div class="box"><div class="eyebrow">RIFFCADE</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>${praiseList(g)}
+    ov.innerHTML = `<div class="box"><div class="eyebrow">Your move</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>${praiseList(g)}
       <div class="loadbar" id="lb"><i></i></div><button class="playbtn" id="go">PLAY</button>
       <div data-install></div>
       <div class="credit"><span id="splashStats"></span>${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
@@ -381,7 +381,7 @@
   function rateSheet(g, done) {
     const m = document.createElement('div');
     m.className = 'overlay pmenu';
-    m.innerHTML = `<div class="box"><div class="eyebrow">Before you go</div><h2>How was ${esc(g.name)}?</h2>${starRow(g)}
+    m.innerHTML = `<div class="box"><div class="eyebrow">Good round</div><h2>How was ${esc(g.name)}?</h2>${starRow(g)}
       <button class="btn ghost" id="rsSkip">Skip</button></div>`;
     $('stage').appendChild(m);
     wireStars(m, g, done);

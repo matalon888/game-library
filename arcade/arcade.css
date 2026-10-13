@@ -195,3 +195,66 @@ button { font: inherit; color: inherit }
 
 /* sticky category bar (after the base .chips rule so it wins) */
 .chips { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; margin-block: -8px }
+
+/* ---------- Brand book moments: big type, matte game pieces, acid action, colour band ---------- */
+:root { --paper: #F5F3E9; --lilac: #AC9CFF; --ease: cubic-bezier(.2, .8, .2, 1) }
+.intro { position: relative; display: grid; gap: 10px; padding-top: 4px }
+.intro img { position: absolute; right: -16px; top: -18px; width: min(58%, 340px); height: auto; z-index: -1;
+  -webkit-mask-image: radial-gradient(closest-side, #000 62%, transparent); mask-image: radial-gradient(closest-side, #000 62%, transparent);
+  animation: bob 4.2s ease-in-out infinite }
+.intro h2 { margin: 0; font: 700 clamp(44px, 12.5vw, 88px)/.9 var(--display); letter-spacing: -.045em; text-wrap: balance; max-width: 9ch; padding-top: 40px }
+.intro p { margin: 0; color: var(--muted); font-size: 16px; max-width: 30ch }
+.home { isolation: isolate }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-1.5deg) } }
+
+/* shelves: louder section titles with the exchange chevron */
+.shelf h2, .chart h2 { font-size: 26px; letter-spacing: -.025em; display: flex; align-items: center; gap: 9px }
+.shelf h2::before, .chart h2::before { content: ""; width: 14px; height: 14px; flex: none; background: var(--coin);
+  clip-path: polygon(40% 0, 100% 0, 45% 50%, 100% 100%, 40% 100%, 0 50%) }
+.shelf header a { color: var(--lilac) }
+.shelf header, .chart header { border-top: 0; padding-top: 6px }
+
+/* top chart: big ranks, podium colours */
+.row .rank { font: 700 26px/1 var(--display); letter-spacing: -.04em; color: var(--muted) }
+.row:nth-of-type(1) .rank { color: var(--coin) }
+.row:nth-of-type(2) .rank { color: var(--lilac) }
+.row:nth-of-type(3) .rank { color: var(--coral) }
+.row { grid-template-columns: 30px 64px 1fr auto }
+
+/* everything tappable answers the finger (brand: 140–220 ms) */
+.tile img, .hero, .row, .continue, .get, .chip { transition: transform .16s var(--ease), box-shadow .16s var(--ease) }
+.tile:active img, .hero:active, .row:active, .continue:active { transform: scale(.965) }
+.get { box-shadow: 0 3px 0 #A9BD2E }
+.get:active, a:active > .get { transform: translateY(3px); box-shadow: 0 0 0 #A9BD2E }
+@media (hover: hover) { .tile:hover img { transform: translateY(-4px) rotate(-1deg) } .hero:hover { transform: translateY(-3px) } }
+.hero-txt b { font-size: 30px; letter-spacing: -.03em }
+.card .shot .new { transform: rotate(-4deg); font-size: 11px }
+
+/* the colour band from the brand book */
+.band { display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 22px; overflow: hidden; margin-top: 8px }
+.band span { font: 700 clamp(22px, 7vw, 40px)/1 var(--display); letter-spacing: -.03em; padding: 26px 14px; color: var(--bg) }
+.band span:nth-child(1) { background: var(--paper) }
+.band span:nth-child(2) { background: var(--coin) }
+.band span:nth-child(3) { background: var(--lilac) }
+
+/* game splash: the Play button breathes */
+.playbtn { animation: breathe 1.8s ease-in-out infinite; transition: transform .16s var(--ease) }
+.playbtn:active { transform: scale(.94) }
+@keyframes breathe { 50% { box-shadow: 0 0 0 18px rgba(229,255,84,.08) } }
+.overlay h2 { font-size: 30px; letter-spacing: -.03em }
+.overlay .box > .eyebrow { color: var(--coin) }
+
+/* reading pages (privacy, terms, support): Soft Paper canvas, ink text */
+body:has(> .doc) { background: var(--paper); color: var(--bg) }
+body .doc { gap: 16px; padding-bottom: 32px }
+body .doc .top { display: flex; align-items: center; gap: 10px; font: 700 17px var(--display); letter-spacing: .03em; color: var(--bg); text-decoration: none }
+body .doc .top svg { width: 30px; height: 30px }
+body .doc h1 { font: 700 clamp(48px, 13vw, 84px)/.9 var(--display); letter-spacing: -.045em; margin-top: 18px }
+body .doc h2 { font-size: 20px; letter-spacing: -.01em; color: var(--bg); margin-top: 14px }
+body .doc p, body .doc li { color: #3d4049 }
+body .doc a { color: var(--bg); text-decoration-color: var(--lilac); text-decoration-thickness: 3px; text-underline-offset: 3px }
+body .doc b { color: var(--bg) }
+body .doc .band { margin-top: 20px }
+
+@media (prefers-reduced-motion: reduce) { .intro img, .playbtn { animation: none } .tile img, .hero, .row, .continue, .get { transition: none } }
+body .doc .band span:nth-child(1) { background: var(--bg); color: var(--paper) }
