@@ -1,0 +1,3 @@
+felixmariotto/Edelweiss - https://github.com/felixmariotto/Edelweiss
+Copyright (c) felixmariotto and contributors
+Licence: CC0-1.0 (original licence file kept in this folder, unmodified game files)

@@ -1,0 +1,3 @@
+iPel/NS-SHAFT - https://github.com/iPel/NS-SHAFT
+Copyright (c) iPel and contributors
+Licence: Apache-2.0 (original licence file kept in this folder, unmodified game files)
