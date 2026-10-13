@@ -132,3 +132,7 @@ button { font: inherit; color: inherit }
 .stars { display: flex; gap: 6px; justify-content: center }
 .stars button { border: 0; background: none; font-size: 34px; line-height: 1; color: var(--line); cursor: pointer; padding: 2px }
 .stars button:hover { color: var(--coin) }
+
+/* inside a chat app the host card has its own title bar */
+.embed .topbar { display: none !important }
+.embed .player { grid-template-rows: 1fr auto }

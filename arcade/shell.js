@@ -3,6 +3,7 @@
 (function () {
   const API = 'https://arcade-api-production-bfdf.up.railway.app';
   const EMBED = new URLSearchParams(location.search).get('embed') === 'chat'; // inside ChatGPT/Claude: no ads, no install prompts
+  if (EMBED) document.documentElement.classList.add('embed');
   const AD_MIN_PLAY_MS = 45 * 1000;   // no ad unless they played at least this long
   const AD_GAP_MS = 2 * 60 * 1000;    // and at most one ad per 2 minutes
 
