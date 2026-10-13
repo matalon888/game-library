@@ -6,7 +6,7 @@
 <title>RIFFCADE · Play in your AI chat</title>
 <meta name="description" content="Free games inside Claude, ChatGPT and Grok. Add it once, keep it pinned, play in seconds.">
 <meta name="theme-color" content="#15171B">
-<meta property="og:title" content="RIFFCADE · Your AI chat just got an arcade">
+<meta property="og:title" content="RIFFCADE · The best arcade is the one already open">
 <meta property="og:description" content="Free games inside Claude, ChatGPT and Grok. Add it once. Pin it. Play.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2315171B'/%3E%3Cg fill='%23E5FF54'%3E%3Cpath d='M40 8H69L39 39L61 61H32L10 39Z'/%3E%3Cpath d='M68 39H39L61 61L31 92H60L90 61Z'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,8 +36,8 @@ button { font: inherit; color: inherit }
 .top a.ghost:hover { border-color: var(--paper) }
 
 /* hero */
-.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; align-items: center; padding-block: 28px 40px }
-.hero h1 { font-size: clamp(44px, 7.4vw, 92px); line-height: .94; letter-spacing: -.035em; margin: 0 0 20px; font-weight: 700; text-wrap: balance }
+.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; align-items: center; padding-block: 28px 40px }
+.hero h1 { font-size: clamp(42px, 6.2vw, 78px); line-height: .96; letter-spacing: -.035em; margin: 0 0 20px; font-weight: 700; text-wrap: balance }
 .hero h1 .swap { display: inline-block; background: var(--acid); color: var(--ink); padding: 0 .14em; border-radius: .12em; transform: rotate(-2deg) }
 .hero p.lead { font-size: 19px; color: var(--muted); margin: 0 0 28px; max-width: 34ch }
 .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center }
@@ -128,7 +128,9 @@ footer a { color: var(--paper) }
 
 @media (max-width: 820px) {
   .hero { grid-template-columns: 1fr; padding-top: 10px; gap: 6px }
-  .art { order: -1; max-width: 420px; width: 100%; justify-self: center; margin-bottom: -8px }
+  .hero p.lead { font-size: 16px; margin-bottom: 20px }
+  .art { margin-top: -6px }
+  .art { order: -1; max-width: 290px; width: 100%; justify-self: center; margin-bottom: -8px }
   .demo { grid-template-columns: 1fr }
   .ais { grid-template-columns: 1fr; gap: 10px }
   .ai { grid-template-columns: 44px 1fr; align-items: center; gap: 14px; padding: 16px 18px }
@@ -148,13 +150,13 @@ footer a { color: var(--paper) }
   <main>
     <div class="hero">
       <div>
-        <h1>Your AI chat just got an <span class="swap">arcade.</span></h1>
-        <p class="lead">Free games that open right inside Claude, ChatGPT and Grok. Add it once, pin the chat, and play in seconds.</p>
+        <h1>The best arcade is the one already <span class="swap">open.</span></h1>
+        <p class="lead">You spend hours a day in Claude, ChatGPT or Grok. So we put free games inside them. No new app to install, and none to forget about on page four of your home screen.</p>
         <div class="cta">
           <a class="btn" id="heroGo" href="#pick"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg>Add to Claude</a>
           <a class="btn alt" href="#pick">Other AIs</a>
         </div>
-        <p class="small" id="count" style="margin-top:16px">No sign-up. No purchase. No ads mid-round.</p>
+        <p class="small" id="count" style="margin-top:16px">No sign-up form. You have filled in enough of those.</p>
       </div>
 
       <div class="art" aria-hidden="true">
@@ -210,7 +212,7 @@ footer a { color: var(--paper) }
 
     <section id="pick">
       <h2>Pick your AI.</h2>
-      <p class="sub">One tap on Claude. A quick paste on ChatGPT and Grok. Do it once and the arcade is there every time you ask.</p>
+      <p class="sub">Claude takes one tap. ChatGPT and Grok take one paste. Either way it is the last setup you will do: after that, asking is the entire interface.</p>
       <div class="ais" role="group" aria-label="Choose your AI app">
         <button class="ai" data-k="claude" aria-pressed="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></svg><div><b>Claude</b><span>Games play inside the chat</span></div><em class="tag">1 tap</em></button>
         <button class="ai" data-k="chatgpt" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg><div><b>ChatGPT</b><span>Games play inside the chat</span></div><em class="tag l">Paste link</em></button>
@@ -232,9 +234,9 @@ footer a { color: var(--paper) }
         <div>
           <h2>New game. Strange rules. Your move.</h2>
           <ul class="facts">
-            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--acid)"/><path d="M14 12h16l-9 10 9 10H14l9-10z" fill="#15171B"/></svg><div><b>Fresh drops twice a day</b><span>Open-source games, each tested on a real phone screen before it lands.</span></div></li>
-            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--lilac)"/><path d="M15 10h14v24l-7-5-7 5z" fill="#15171B"/></svg><div><b>Keep it pinned</b><span>Pin the chat, or just say "show me the arcade" in any new one.</span></div></li>
-            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--coral)"/><path d="m22 10 3.6 7.6 8.4 1-6.2 5.8 1.6 8.3L22 28.6l-7.4 4.1 1.6-8.3-6.2-5.8 8.4-1z" fill="#15171B"/></svg><div><b>Real ratings</b><span>Player stars, plus each game's track record on GitHub, Hacker News and itch.io.</span></div></li>
+            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--acid)"/><path d="M14 12h16l-9 10 9 10H14l9-10z" fill="#15171B"/></svg><div><b>Two small drops a day</b><span>Not one giant library. Choice is lovely until there are four hundred options, at which point it becomes homework. Every game is tested on a phone screen before it lands.</span></div></li>
+            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--lilac)"/><path d="M15 10h14v24l-7-5-7 5z" fill="#15171B"/></svg><div><b>Pin it</b><span>Habits form around places, not intentions. A pinned chat is somewhere you go; a bookmark is something you meant to try.</span></div></li>
+            <li><svg viewBox="0 0 44 44"><rect width="44" height="44" rx="12" fill="var(--coral)"/><path d="m22 10 3.6 7.6 8.4 1-6.2 5.8 1.6 8.3L22 28.6l-7.4 4.1 1.6-8.3-6.2-5.8 8.4-1z" fill="#15171B"/></svg><div><b>Ratings we didn't write</b><span>Stars from players here, plus each game's record on GitHub, Hacker News and itch.io. A thumbs-up from a stranger with better things to do is worth more than anything we could say about it.</span></div></li>
           </ul>
         </div>
       </div>
@@ -242,12 +244,13 @@ footer a { color: var(--paper) }
 
     <section>
       <h2>More play. Less in the way.</h2>
-      <div class="promise" style="margin-top:18px"><span>No purchase required</span><span>No sign-up</span><span>No ads mid-round</span><span>Every game credited to its author</span></div>
+      <p class="sub">"Free" usually means you are paying somewhere you can't see. So here is exactly where we drew the lines.</p>
+      <div class="promise"><span>No purchase required</span><span>No sign-up</span><span>No ads mid-round</span><span>Every game credited to its author</span></div>
     </section>
   </main>
 
   <footer>
-    <span>RIFFCADE. Open-source games, shown with their authors' licences.</span>
+    <span>RIFFCADE. Every game is someone else's open-source work, credited and unmodified. Our only contribution is taste.</span>
     <span><a href="./">Play in browser</a> &nbsp; <a href="privacy.html">Privacy</a></span>
   </footer>
 </div>
@@ -262,7 +265,7 @@ const HOSTS = {
     add: 'https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=' + encodeURIComponent('🎮 Arcade') + '&connectorUrl=' + encodeURIComponent(MCP),
     play: 'https://claude.ai/new?q=',
     steps: ['<a class="btn" id="go" target="_blank" rel="noopener">Add to Claude</a>',
-            'Claude opens with the arcade filled in. Keep <b>No sign-in</b> and tap <b>Add</b>. The safety notice is standard for apps that aren\'t in Claude\'s directory yet.',
+            'Claude opens with the arcade filled in. Keep <b>No sign-in</b> and tap <b>Add</b>. Claude warns you about any app not yet in its directory. That is a good habit on Claude\'s part, not a problem on ours.',
             '<a class="btn dark" id="play" target="_blank" rel="noopener">Start playing in Claude</a>'],
     note: 'Works on claude.ai, the desktop app and the phone app.' },
   chatgpt: { name: 'ChatGPT',
@@ -309,7 +312,7 @@ show(HOSTS[start] ? start : 'claude');
 const kNum = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k' : String(n);
 const badge = g => { const p = g.public || {}; return p.itch ? `★ ${p.itch.rating.toFixed(1)} on itch.io` : p.hn ? `▲ ${p.hn.points} on Hacker News` : p.github ? `${kNum(p.github.stars)} GitHub stars` : g.category; };
 fetch('games.json').then(r => r.json()).then(gs => {
-  $('#count').textContent = `${gs.length} games so far. No sign-up. No purchase. No ads mid-round.`;
+  $('#count').textContent = `${gs.length} games so far. No sign-up form. You have filled in enough of those.`;
   const pick = [...gs].filter(g => g.cover).sort((a, b) => ((b.public?.github?.stars || 0) - (a.public?.github?.stars || 0))).slice(0, 3);
   $('#mini').innerHTML = pick.map(g => `<a href="play.html?g=${encodeURIComponent(g.slug)}"><img src="${g.cover}" alt="${g.name}"><small>${badge(g)}</small></a>`).join('');
 }).catch(() => {});
