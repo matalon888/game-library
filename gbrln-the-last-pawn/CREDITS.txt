@@ -1,0 +1,3 @@
+gbrln/the-last-pawn - https://github.com/gbrln/the-last-pawn
+Copyright (c) 2025 Gabriel Edradan
+Licence: MIT (original licence file kept in this folder, unmodified game files)
