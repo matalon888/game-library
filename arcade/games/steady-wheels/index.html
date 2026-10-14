@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Steady Wheels</title>
+<meta name="theme-color" content="#cfe9ff">
+<link rel="icon" href="data:,">
+<style>
+  body{background:linear-gradient(180deg,#bfe3ff,#eaf6ff)!important}
+  .sw-dash{position:fixed;left:0;right:0;bottom:0;height:min(31vh,270px);z-index:6;pointer-events:none}
+  .sw-dash svg.bg{position:absolute;inset:0;width:100%;height:100%}
+  .sw-wheel{position:absolute;left:50%;bottom:calc(min(31vh,270px)*.08);width:min(54vw,240px);aspect-ratio:1;transform:translateX(-50%);pointer-events:none}
+  .sw-wheel svg{width:100%;height:100%;transition:transform .05s linear}
+  .sw-gear{position:absolute;right:5%;bottom:22%;width:22%;max-width:96px;height:62%;pointer-events:auto;cursor:pointer}
+  .sw-horn{position:absolute;left:6%;bottom:40%;width:16%;max-width:70px;aspect-ratio:1;border-radius:50%;pointer-events:auto;cursor:pointer;background:radial-gradient(circle at 40% 35%,#ff7a59,#e2361b 60%,#9d1c0b);box-shadow:0 0 0 6px #2a2c31,0 5px 0 6px #1b1c20;display:flex;align-items:center;justify-content:center;font-size:24px}
+  .sw-horn:active{transform:translateY(3px)}
+  .sw-dmg{position:fixed;left:12px;top:calc(56px + env(safe-area-inset-top));display:flex;gap:4px;z-index:5;pointer-events:none;font-size:22px}
+  .sw-dmg span{filter:drop-shadow(0 2px 0 rgba(0,0,0,.2))}
+  .sw-dmg span.off{filter:grayscale(1) opacity(.35)}
+  body .hc-card h1{color:#fff;text-shadow:0 6px 0 #2f7fd8,0 10px 24px rgba(0,40,90,.25)}
+  body .hc-card .hint{margin-bottom:calc(min(31vh,270px) + 30px)}
+  body .hc-card p,body .hc-card .hint{color:#fff;text-shadow:0 2px 0 rgba(20,50,90,.6),0 0 12px rgba(20,50,90,.5)}
+  body .hc-pop{-webkit-text-stroke:2px rgba(20,50,90,.6);paint-order:stroke fill}
+  .hc-score{display:none}
+  body .hc-pill{background:rgba(20,40,80,.55);top:calc(56px + env(safe-area-inset-top))}
+  body .hc-card.dim{background:rgba(10,20,40,.35)}
+  body .hc-card.dim p,body .hc-card.dim .hint{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+</style>
+</head>
+<body>
+<script type="module" src="game.js"></script>
+</body>
+</html>

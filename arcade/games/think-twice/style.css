@@ -1,0 +1,70 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent; font-family: 'Baloo 2', system-ui, sans-serif; }
+body { background: #e7b27a repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 3px, transparent 3px 61px),
+  linear-gradient(180deg, #edbd88, #e2a86e); }
+#desk { position: fixed; inset: 0; display: flex; align-items: stretch; justify-content: center;
+  padding: calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom)); }
+#desk::before { content: ''; position: absolute; left: 50%; top: calc(16px + env(safe-area-inset-top)); bottom: calc(4px + env(safe-area-inset-bottom));
+  width: min(470px, calc(100% - 14px)); transform: translateX(-50%) rotate(1.6deg); background: #f4efe6; border-radius: 6px; box-shadow: 0 4px 10px rgba(80,40,0,.18); }
+#paper { position: relative; width: 100%; max-width: 460px; display: flex; flex-direction: column; border-radius: 6px;
+  background: #fffefb repeating-linear-gradient(180deg, transparent 0 33px, #dfeef7 33px 35px); background-position: 0 10px;
+  box-shadow: 0 6px 14px rgba(80,40,0,.25); overflow: hidden; }
+.holes { height: 30px; flex: none; background: radial-gradient(circle at 50% 14px, #e2ad73 0 7px, transparent 8px) 0 0 / 40px 30px repeat-x;
+  border-bottom: 1px dashed rgba(0,0,0,.05); }
+header { flex: none; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px;
+  border-bottom: 2.5px solid #f08a8a; background: #fffefb; position: relative; z-index: 2; }
+#lvl { font-family: 'Patrick Hand', 'Baloo 2', cursive; font-size: 34px; color: #2b2b2b; letter-spacing: 1px; line-height: 1; padding-top: 4px; }
+#hearts { width: 44px; display: flex; gap: 2px; justify-content: flex-end; font-size: 15px; }
+#hearts i { font-style: normal; color: #ff5d6c; transition: transform .3s, opacity .3s; }
+#hearts i.off { opacity: .2; transform: scale(.7); }
+.ib { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #2b2b2b; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.ib svg { width: 30px; height: 30px; }
+.yel { background: #ffd84d; } .blue { background: #7fe3ec; } .pink { background: #ff8a9a; }
+#q { flex: none; min-height: 62px; padding: 12px 18px 4px; text-align: center; font-family: 'Patrick Hand', 'Baloo 2', cursive; font-size: 25px; line-height: 1.15;
+  color: #2b2b2b; position: relative; z-index: 3; background: #fffefb; }
+#q .qw { display: inline-block; cursor: pointer; position: relative; touch-action: none; }
+#q .qw.gone { visibility: hidden; }
+#q .qw.balloon { color: #ff4f5e; font-weight: 700; }
+#q .qw.popped { visibility: hidden; }
+#stage { flex: 1; min-height: 0; position: relative; }
+#scene { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; touch-action: none; }
+footer { flex: none; height: 92px; display: flex; align-items: center; justify-content: space-around; padding: 0 8px 6px; position: relative; z-index: 3; }
+.rb { width: 62px; height: 62px; border-radius: 50%; border: 3.5px solid #2b2b2b; position: relative; cursor: pointer; padding: 0;
+  box-shadow: 0 4px 0 rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center; transition: transform .1s; }
+.rb:active { transform: translateY(3px) scale(.96); box-shadow: 0 1px 0 rgba(0,0,0,.15); }
+.rb svg { width: 44px; height: 44px; }
+.rb span { position: absolute; bottom: -19px; left: 50%; transform: translateX(-50%); font-weight: 800; font-size: 12px; color: #2b2b2b; letter-spacing: .5px; }
+#bHint.glow { animation: glow 1.2s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: 0 0 0 8px rgba(255,216,77,.55), 0 4px 0 rgba(0,0,0,.15); } }
+#bubble { position: absolute; left: 50%; bottom: 104px; transform: translateX(-50%); width: min(88%, 380px); background: #fff7c7; border: 3px solid #2b2b2b; border-radius: 18px;
+  padding: 10px 14px; font-family: 'Patrick Hand', 'Baloo 2', cursive; font-size: 21px; line-height: 1.15; color: #2b2b2b; text-align: center; z-index: 8;
+  box-shadow: 0 5px 0 rgba(0,0,0,.12); animation: bub .35s cubic-bezier(.3,1.6,.5,1); pointer-events: none; }
+#bubble b { color: #e0a400; }
+@keyframes bub { from { transform: translateX(-50%) scale(.5); opacity: 0; } }
+.hidden { display: none !important; }
+.shake { animation: shk .38s; }
+@keyframes shk { 20% { transform: translateX(-9px) rotate(-.6deg); } 40% { transform: translateX(8px) rotate(.5deg); } 60% { transform: translateX(-6px); } 80% { transform: translateX(4px); } }
+.ink { stroke: #2b2b2b; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.thin { stroke: #2b2b2b; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.hand { font-family: 'Patrick Hand', 'Baloo 2', cursive; }
+#scene .tapme, #scene .dragme { cursor: pointer; }
+.floatword { position: fixed; z-index: 30; font-family: 'Patrick Hand', 'Baloo 2', cursive; font-size: 30px; color: #2b2b2b; pointer-events: none;
+  transform: translate(-50%, -50%) scale(1.2); text-shadow: 0 4px 6px rgba(0,0,0,.2); }
+#grid { position: fixed; inset: 0; z-index: 40; background: rgba(60,30,10,.45); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.gpanel { background: #fffefb; border: 3.5px solid #2b2b2b; border-radius: 22px; padding: 16px 16px 20px; width: min(380px, 100%); text-align: center; box-shadow: 0 8px 0 rgba(0,0,0,.15); }
+.gpanel h2 { margin: 0 0 10px; font-family: 'Patrick Hand', cursive; font-size: 34px; color: #2b2b2b; }
+#gcells { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; margin-bottom: 16px; }
+#gcells button { aspect-ratio: 1; border-radius: 14px; border: 3px solid #2b2b2b; font: 800 20px 'Baloo 2', sans-serif; color: #2b2b2b; background: #ffd84d; cursor: pointer; padding: 0; }
+#gcells button.done { background: #8fe3a8; }
+#gcells button.cur { background: #ff8a9a; }
+#gcells button:disabled { background: #e9e4dc; color: #b5ada2; border-color: #c9c1b6; }
+#conf { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+/* kit cards: make them readable on paper */
+.hc-card { background: rgba(43,32,60,.62); backdrop-filter: blur(2px); }
+.hc-card h1 { color: #fff; }
+.hc-card.dim { background: rgba(60,20,30,.66); }
+.hc-card .hint { margin-bottom: 16vh; }
+#startArt { width: 230px; height: 260px; margin-top: 6px; }
+.hc-card .sub { font-size: 18px; opacity: .9; font-weight: 600; }
+.hc-card .badge { margin-top: 8px; font-family: 'Patrick Hand', cursive; font-size: 30px; color: #ffd84d; text-shadow: 0 3px 0 rgba(0,0,0,.25); }

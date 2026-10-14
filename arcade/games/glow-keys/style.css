@@ -1,0 +1,15 @@
+html,body{background:linear-gradient(180deg,#1b1250,#6a3df0 55%,#ff7ad9)}
+body .hc-card h1{letter-spacing:1px;background:linear-gradient(180deg,#fff,#ffe1ff 60%,#b9e9ff);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 4px 0 rgba(30,0,80,.35)) drop-shadow(0 0 18px rgba(160,120,255,.7))}
+body .hc-card p{text-shadow:0 2px 8px rgba(40,0,90,.5)}
+body .hc-score{font-size:46px;top:calc(52px + env(safe-area-inset-top));text-shadow:0 0 18px rgba(170,140,255,.9),0 3px 0 rgba(30,0,80,.3)}
+body .hc-sub{top:calc(102px + env(safe-area-inset-top));font-size:14px;letter-spacing:.5px;opacity:.85}
+body .hc-bar{position:relative;overflow:visible;height:8px;background:rgba(255,255,255,.22)}
+body .hc-bar i{background:linear-gradient(90deg,#ffe066,#ffffff);box-shadow:0 0 10px #ffe066}
+body .hc-lvl{background:rgba(255,255,255,.18);box-shadow:none;border:2px solid rgba(255,255,255,.6);font-size:15px;width:30px;height:30px}
+body .hc-lvl.next{background:rgba(255,255,255,.08);color:#fff}
+body .gk-star{position:absolute;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;font-size:20px;line-height:22px;text-align:center;color:rgba(255,255,255,.35);transition:transform .25s,color .25s;text-shadow:0 0 6px rgba(0,0,0,.25)}
+body .gk-star.on{color:#ffd84a;transform:scale(1.35);text-shadow:0 0 12px #ffcc00}
+body .hc-pop{font-style:italic;letter-spacing:1px}
+body .gk-song{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));text-align:center;font-weight:600;font-size:14px;opacity:.75;pointer-events:none;z-index:5;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+body .hc-card .song{font-size:18px;opacity:.9}
+body .hc-pop{text-shadow:0 0 14px rgba(255,255,255,.75),0 3px 0 rgba(40,0,90,.35)}

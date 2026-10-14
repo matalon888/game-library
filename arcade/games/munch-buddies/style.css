@@ -1,0 +1,15 @@
+html,body{background:linear-gradient(180deg,#fff3e2,#ffd9c2)}
+body{color:#6b3f35}
+body .hc-card h1{color:#fff;-webkit-text-stroke:0;text-shadow:0 5px 0 #e2728f,0 0 0 #000;letter-spacing:1px;filter:drop-shadow(0 6px 10px rgba(160,70,90,.25))}
+body .hc-card p{color:#7a4a3e;text-shadow:none}
+body .hc-card .hint{color:#7a4a3e;font-size:20px;line-height:1.15}
+body .hc-card.dim{background:rgba(255,240,230,.55)}
+body .hc-card .song{font-size:17px;opacity:.85}
+body .hc-score{color:#fff;text-shadow:0 4px 0 var(--ui),0 0 10px rgba(255,255,255,.6)}
+body .hc-sub{color:#9a6a5c;text-shadow:none}
+body .hc-pill{background:rgba(255,255,255,.7);color:#ff5d8f;letter-spacing:2px}
+body .hc-pop{text-shadow:0 3px 0 #fff,0 0 12px #fff}
+body .hc-bar{background:rgba(255,255,255,.75)}
+body .hc-lvl.next{background:#fff}
+body .hc-pill{top:calc(56px + env(safe-area-inset-top));font-size:20px}
+body .hc-card .hint{margin-bottom:5vh}

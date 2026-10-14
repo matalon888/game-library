@@ -163,7 +163,7 @@
   });
 
   async function home() {
-    const every = (await games()).slice().sort((a, b) => score(b) - score(a));
+    const every = (await games()).slice().sort((a, b) => (b.original ? 1 : 0) - (a.original ? 1 : 0) || score(b) - score(a));  // our originals lead every shelf and category
     const desk = every.filter(isDesk);
     const gs = PC ? every : every.filter(g => !isDesk(g));
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
@@ -258,7 +258,7 @@
     ov.innerHTML = `<div class="box"><div class="eyebrow">Your move</div><h2>${esc(g.name)}</h2><p>${esc(g.blurb)}</p>${praiseList(g)}
       <div class="loadbar" id="lb"><i></i></div><button class="playbtn" id="go">PLAY</button>
       <div data-install></div>
-      <div class="credit"><span id="splashStats"></span>${esc(g.credit)} · ${esc(g.licence)}</div></div>`;
+      <div class="credit"><span id="splashStats"></span>${esc(g.credit)}${g.original ? '' : ' · ' + esc(g.licence)}</div></div>`;
     stage.appendChild(ov);
     renderInstall();
     getStats().then(st => { const x = st[g.slug]; if (x && $('splashStats')) $('splashStats').textContent = [starsTxt(x) && `${starsTxt(x)} (${x.ratings})`, x.plays && `${x.plays} plays`].filter(Boolean).join(' · ') + (x.plays || x.rating ? ' · ' : ''); });
@@ -378,7 +378,7 @@
     const credits = () => {
       if ($('sheet')) { $('sheet').remove(); return; }
       const sh = document.createElement('div'); sh.className = 'sheet'; sh.id = 'sheet';
-      sh.innerHTML = `<h3>${esc(g.name)}</h3><p>By ${esc(g.author)}. ${esc(g.credit)}.</p>
+      sh.innerHTML = g.original ? `<h3>${esc(g.name)}</h3><p>${esc(g.credit)}, made for this arcade.</p><button class="btn" id="closeSheet">Close</button>` : `<h3>${esc(g.name)}</h3><p>By ${esc(g.author)}. ${esc(g.credit)}.</p>
         <p>Licensed under ${esc(g.licence)}. Played here unmodified; the original licence file ships with the game.</p>
         ${praise(g).length ? '<p>Elsewhere:</p>' + praiseList(g) : ''}<p><a href="${esc(g.source)}" target="_blank" rel="noopener">Source code</a></p><button class="btn" id="closeSheet">Close</button>`;
       stage.appendChild(sh);
@@ -478,7 +478,7 @@
         ${EMBED ? '' : '<button class="btn" id="pmHome">Back to RIFFCADE</button>'}
         ${starRow(g)}
         <div data-install></div>
-        <button class="btn ghost" id="pmCredits">Credits · ${esc(g.licence)}</button></div>`;
+        <button class="btn ghost" id="pmCredits">Credits${g.original ? '' : ' · ' + esc(g.licence)}</button></div>`;
       $('stage').appendChild(m);
       renderInstall();
       $('pmResume').onclick = () => m.remove();

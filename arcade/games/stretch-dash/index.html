@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Stretch Dash</title>
+<meta name="theme-color" content="#3fb8ff">
+<link rel="icon" href="data:,">
+<style>
+  .gems{position:fixed;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:6;background:rgba(0,0,0,.18);border-radius:16px;padding:2px 12px;font-weight:800;font-size:20px;pointer-events:none}
+  .size{position:fixed;left:12px;top:calc(56px + env(safe-area-inset-top));z-index:6;background:rgba(0,0,0,.18);border-radius:16px;padding:2px 12px;font-weight:800;font-size:16px;pointer-events:none;line-height:1.35}
+</style>
+</head>
+<body>
+<div class="gems" id="gems">💎 0</div>
+<div class="size" id="size"></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

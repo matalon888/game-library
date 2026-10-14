@@ -1,0 +1,11 @@
+html,body{background:linear-gradient(180deg,#07021a,#7a1fbf)}
+body .hc-card h1{font-style:italic;background:linear-gradient(180deg,#fff 20%,#ffb3f0 60%,#ff4fd8);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 14px rgba(255,79,216,.9)) drop-shadow(0 4px 0 rgba(40,0,60,.5))}
+body .hc-card p{text-shadow:0 2px 8px rgba(20,0,40,.7)}
+body .hc-card .song{font-size:18px;opacity:.9}
+body .hc-card.dim{background:rgba(10,0,30,.4)}
+body .hc-score{text-shadow:0 0 16px var(--ui),0 3px 0 rgba(20,0,40,.4)}
+body .hc-bar{height:8px;background:rgba(255,255,255,.2)}
+body .hc-bar i{box-shadow:0 0 10px var(--ui)}
+body .hc-lvl{box-shadow:0 0 12px var(--ui);color:#1a0638;font-size:15px;width:30px;height:30px}
+body .hc-lvl.next{background:rgba(255,255,255,.14);color:#fff;box-shadow:none}
+body .hc-pop{font-style:italic;text-shadow:0 0 14px var(--ui),0 3px 0 rgba(20,0,40,.4)}

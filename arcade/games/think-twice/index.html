@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Think Twice!</title>
+<meta name="theme-color" content="#e8b47e">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="desk">
+  <div id="paper">
+    <div class="holes"></div>
+    <header>
+      <button class="ib yel" id="bGrid" aria-label="levels"><svg viewBox="0 0 40 40"><g fill="#2b2b2b"><rect x="9" y="9" width="9" height="9" rx="2"/><rect x="22" y="9" width="9" height="9" rx="2"/><rect x="9" y="22" width="9" height="9" rx="2"/><rect x="22" y="22" width="9" height="9" rx="2"/></g></svg></button>
+      <div id="lvl">LEVEL 1</div>
+      <div id="hearts"></div>
+    </header>
+    <div id="q"></div>
+    <div id="stage"><svg id="scene" viewBox="0 0 360 440" preserveAspectRatio="xMidYMid meet"><defs id="defs"></defs><g id="root"></g><g id="fx"></g></svg></div>
+    <footer>
+      <button class="rb blue" id="bHint" aria-label="hint"><svg viewBox="0 0 60 60"><path class="bulb" d="M30 10c-9 0-15 7-15 15 0 6 4 9 6 12 1 2 1 4 1 6h16c0-2 0-4 1-6 2-3 6-6 6-12 0-8-6-15-15-15z" fill="#ffd84d" stroke="#2b2b2b" stroke-width="3" stroke-linejoin="round"/><path d="M23 47h14M24 52h12" stroke="#2b2b2b" stroke-width="3.5" stroke-linecap="round"/><path d="M25 26q5 -6 10 0" stroke="#fff6c0" stroke-width="3" fill="none" stroke-linecap="round"/></svg><span>HINT</span></button>
+      <button class="rb yel" id="bRestart" aria-label="restart"><svg viewBox="0 0 60 60"><path d="M42 22a14 14 0 1 0 2 14" fill="none" stroke="#2b2b2b" stroke-width="5" stroke-linecap="round"/><path d="M44 12v12H32" fill="none" stroke="#2b2b2b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>RETRY</span></button>
+      <button class="rb pink" id="bSkip" aria-label="skip"><svg viewBox="0 0 60 60"><path d="M18 16l16 14-16 14z" fill="#2b2b2b" stroke="#2b2b2b" stroke-width="3" stroke-linejoin="round"/><path d="M32 16l14 14-14 14" fill="none" stroke="#2b2b2b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/></svg><span>SKIP</span></button>
+    </footer>
+    <div id="bubble" class="hidden"></div>
+  </div>
+</div>
+<div id="grid" class="hidden"><div class="gpanel"><h2>Levels</h2><div id="gcells"></div><button class="hc-btn" id="gClose">Close</button></div></div>
+<canvas id="conf"></canvas>
+<script type="module" src="game.js"></script>
+</body>
+</html>

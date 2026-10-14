@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Dust Descent</title>
+<meta name="theme-color" content="#ffc58f">
+<link rel="icon" href="data:,">
+<style>
+  body{background:linear-gradient(180deg,#8fcbff,#ffd3a3)!important}
+  .dd-hud{position:fixed;left:0;right:0;top:calc(56px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:5;font-family:'Baloo 2',system-ui,sans-serif}
+  .dd-timer{background:rgba(20,22,34,.72);color:#fff;font-weight:800;font-size:17px;padding:1px 14px 0;border-radius:8px;letter-spacing:.5px;display:flex;gap:6px;align-items:center}
+  .dd-timer b{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #7dff6a}
+  .dd-boost{display:flex;align-items:center;gap:6px}
+  .dd-boost span{font-size:16px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.3))}
+  .dd-boost .bar{width:150px;height:12px;border-radius:3px;background:rgba(20,22,34,.6);overflow:hidden;transform:skewX(-14deg)}
+  .dd-boost .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1fa2ff,#5ee7ff);transition:width .12s}
+  .dd-board{position:fixed;left:8px;top:calc(130px + env(safe-area-inset-top));width:118px;pointer-events:none;z-index:5;font-family:'Baloo 2',system-ui,sans-serif}
+  .dd-row{position:absolute;left:0;height:22px;width:118px;display:flex;align-items:center;gap:5px;background:rgba(20,22,34,.55);border-radius:4px;padding:0 6px;font-weight:800;font-size:13px;color:#fff;transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+  .dd-row .n{width:12px;text-align:center}
+  .dd-row .c{width:12px;height:12px;border-radius:3px;border:2px solid #fff}
+  .dd-row.me{background:rgba(255,93,143,.92)}
+  .dd-pos{position:fixed;right:10px;top:calc(56px + env(safe-area-inset-top));font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:44px;line-height:1;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.2);pointer-events:none;z-index:5;text-align:right}
+  .dd-pos small{font-size:20px}
+  .dd-pos.bump{animation:ddb .35s ease-out}
+  @keyframes ddb{40%{transform:scale(1.35)}}
+  .dd-speed{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:0;transition:opacity .25s;background:radial-gradient(ellipse at 50% 55%,rgba(255,255,255,0) 45%,rgba(120,220,255,.35) 100%)}
+  body .hc-card h1{color:#fff;-webkit-text-stroke:2px #8a3418;paint-order:stroke fill;text-shadow:0 5px 0 #c4502e,0 8px 18px rgba(120,40,10,.35)}
+  body .hc-pop{-webkit-text-stroke:1.5px rgba(60,20,10,.55);paint-order:stroke fill}
+  body .hc-card .hint{text-shadow:0 2px 6px rgba(80,30,10,.5)}
+  .dd-ready .dd-board,.dd-ready .dd-pos,.dd-ready .dd-hud{opacity:0}
+  .dd-pos{background:rgba(20,22,34,.6);border-radius:10px;padding:4px 10px 0}
+</style>
+</head>
+<body>
+<div class="dd-speed" id="speedfx"></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
