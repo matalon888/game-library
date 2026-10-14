@@ -168,7 +168,10 @@
     const gs = PC ? every : every.filter(g => !isDesk(g));
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
-    const cats = [...new Set(gs.map(g => g.category || 'Arcade'))].sort().concat(desk.length ? ['Desktop'] : []);
+    const COLLS = ['Hyper-casual', 'Shooters'];
+    const inColl = (g, c) => (g.tags || []).includes(c);
+    const collList = c => (PC ? every : every.filter(g => !isDesk(g) || c === 'Shooters')).filter(g => inColl(g, c));
+    const cats = COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()).concat(desk.length ? ['Desktop'] : []);
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
     $('count').textContent = `${every.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
@@ -202,14 +205,16 @@
     function draw() {
       $('cats').querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.c === 'All' && !cat) || b.dataset.c === cat)));
       if (cat) {
-        const list = cat === 'Desktop' ? desk : gs.filter(g => (g.category || 'Arcade') === cat);
+        const list = cat === 'Desktop' ? desk : COLLS.includes(cat) ? collList(cat) : gs.filter(g => (g.category || 'Arcade') === cat);
         $('shelves').innerHTML = `<section class="chart"><header><h2>${cat === 'Desktop' ? (PC ? 'Desktop games' : 'Desktop games · play on your computer') : 'Top ' + esc(cat)}</h2><span class="eyebrow">${list.length} games</span></header>${list.map(row).join('')}</section>`;
         return;
       }
       // "Just made": newest creations first, whatever day we added them
       const recent = gs.filter(g => g.made && ago(g.made) <= 21).sort((a, b) => (b.made > a.made ? 1 : -1));
-      const byCat = cats.map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
-      $('shelves').innerHTML = shelf('Just made', recent, null, true) +
+      const byCat = cats.filter(c => !COLLS.includes(c) && c !== 'Desktop').map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
+      $('shelves').innerHTML = shelf('Hyper-casual · Voodoo-style', collList('Hyper-casual'), 'Hyper-casual') +
+        shelf('Shooters', collList('Shooters'), 'Shooters') +
+        shelf('Just made', recent, null, true) +
         shelf(PC ? 'Desktop games · keyboard & mouse' : 'Desktop games · play on your computer', desk, 'Desktop') +
         byCat.map(([c, l]) => shelf(c, l, c)).join('') +
         `<section class="chart"><header><h2>Top games</h2></header>${gs.slice(0, 25).map(row).join('')}</section>`;

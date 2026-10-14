@@ -1,0 +1,172 @@
+{
+ "cxong-peppertown": {
+  "verdict": "remove",
+  "reason": "Code is MIT, but the music is CC BY-NC-SA 3.0 (non-commercial) and some art is share-alike, so the game's assets can't be used on an ad-supported site.",
+  "date": "2026-10-14"
+ },
+ "bangtutorial-aether-clash": {
+  "verdict": "remove",
+  "reason": "Code is MIT, but the assets (including music) are CC BY-NC 4.0, which forbids commercial use.",
+  "date": "2026-10-14"
+ },
+ "amcolash-farming-game": {
+  "verdict": "remove",
+  "reason": "The game uses a GPL3 farm tileset, which is copyleft rather than permissive and not clearly usable commercially.",
+  "date": "2026-10-14"
+ },
+ "firetable-the-11th-forest": {
+  "verdict": "remove",
+  "reason": "The audio was generated on the ElevenLabs free tier, which is non-commercial only and not regenerated for commercial use.",
+  "date": "2026-10-14"
+ },
+ "opstiger-aiba-percent-battle": {
+  "verdict": "remove",
+  "reason": "The MIT grant covers code only; the voice-over, music, art and video are all rights reserved and not licensed for reuse.",
+  "date": "2026-10-14"
+ },
+ "nkzw-tech-athena-crisis": {
+  "verdict": "remove",
+  "reason": "No detected permissive licence; the README says assets are proprietary and any use of content needs a paid licence from Nakazawa Tech.",
+  "date": "2026-10-14"
+ },
+ "daniele-cangi-civic-nightmare": {
+  "verdict": "remove",
+  "reason": "The bundled Modern Interiors pack is non-commercial only, and the Ninja Adventure licence is unverified.",
+  "date": "2026-10-14"
+ },
+ "simplyboys-tokaido-pixel": {
+  "verdict": "remove",
+  "reason": "GitHub couldn't detect the LICENSE (NOASSERTION) and no permissive licence text is evident in the files provided.",
+  "date": "2026-10-14"
+ },
+ "den-run-ai-snowglider": {
+  "verdict": "remove",
+  "reason": "GitHub could not detect a licence and no permissive code licence is evident, and the bundled audio is CC BY-SA 3.0.",
+  "date": "2026-10-14"
+ },
+ "jessicaisleep-genshin-impact-travel": {
+  "verdict": "remove",
+  "reason": "This is a fan game built on Genshin Impact (miHoYo) IP, and no permissive licence was detected.",
+  "date": "2026-10-14"
+ },
+ "karinnielsen-strike-first": {
+  "verdict": "remove",
+  "reason": "This is a self-described non-commercial fan homage to The Karate Kid and Cobra Kai, so the third-party IP is not cleared for commercial use despite the MIT code.",
+  "date": "2026-10-14"
+ },
+ "augustosei-chopfirst": {
+  "verdict": "check",
+  "reason": "The code is MIT, but the speeder model is CC BY-SA; ask the author whether it has been swapped out or how it is licensed in the shipped build.",
+  "date": "2026-10-14"
+ },
+ "j3vb-sanctuarys-end": {
+  "verdict": "remove",
+  "reason": "The licence was not detected and no permissive code licence is evident; only the vendored three.js is clearly permissive.",
+  "date": "2026-10-14"
+ },
+ "rajgurung-warden-zero": {
+  "verdict": "remove",
+  "reason": "The licence was not detected and no permissive licence text is evident; the project also includes Unity and third-party generated art.",
+  "date": "2026-10-14"
+ },
+ "alicerven-fener-bekcisi": {
+  "verdict": "remove",
+  "reason": "Only the Kenney asset licence is evident, and no permissive licence for the game code was detected.",
+  "date": "2026-10-14"
+ },
+ "jmthecoder-colordice": {
+  "verdict": "remove",
+  "reason": "GitHub could not detect the licence, no permissive text is evident, and there are separate third-party model assets.",
+  "date": "2026-10-14"
+ },
+ "kyhsa93-abyss": {
+  "verdict": "remove",
+  "reason": "MIT code, but the bundled LPC art mixes CC-BY-SA and GPL 2.0/3.0 assets, which impose copyleft on the composite spritesheet.",
+  "date": "2026-10-14"
+ },
+ "rishir123-dig-for-bharat": {
+  "verdict": "remove",
+  "reason": "The licence is undetected with no permissive text evident, and the README discusses Minecraft-style textures with unclear provenance.",
+  "date": "2026-10-14"
+ },
+ "dragunovartem99-chess-animals": {
+  "verdict": "remove",
+  "reason": "Although the repo is MIT, it ships GPL-3 Stockfish and Maia engines in public/, and serving them to users triggers GPL obligations.",
+  "date": "2026-10-14"
+ },
+ "levsage-dilijump": {
+  "verdict": "remove",
+  "reason": "The licence is undetected and no permissive licence text is evident.",
+  "date": "2026-10-14"
+ },
+ "inashra-gameok": {
+  "verdict": "remove",
+  "reason": "The licence is undetected and no permissive licence text is evident.",
+  "date": "2026-10-14"
+ },
+ "venuschd123-blobverse": {
+  "verdict": "remove",
+  "reason": "The licence is undetected, and credits.html carries a placeholder '© [Your Name]. All rights reserved.' notice rather than a permissive licence.",
+  "date": "2026-10-14"
+ },
+ "michalstankiewicz4-cell-space": {
+  "verdict": "remove",
+  "reason": "The licence is undetected, no permissive text is evident, and there is a vendored third-party directory.",
+  "date": "2026-10-14"
+ },
+ "energon-a-secas-enjeu-site": {
+  "verdict": "remove",
+  "reason": "The licence is undetected, no permissive text is evident, and the art and credits suggest mixed-source assets.",
+  "date": "2026-10-14"
+ },
+ "nixocode-vietnam-65-lanes-of-war": {
+  "verdict": "remove",
+  "reason": "The licence is undetected and no permissive licence text is evident.",
+  "date": "2026-10-14"
+ },
+ "aieatassam-inkbound-scroll": {
+  "verdict": "remove",
+  "reason": "The licence is undetected and no permissive licence text is evident.",
+  "date": "2026-10-14"
+ },
+ "duyuanxi-bonjour-campus": {
+  "verdict": "remove",
+  "reason": "The licence is undetected and no permissive licence text is evident.",
+  "date": "2026-10-14"
+ },
+ "borisgiller-bombs-away": {
+  "verdict": "check",
+  "reason": "GitHub couldn't detect the licence and there is a separate ASSET-LICENSE.md; ask the author for the exact code and asset terms and whether commercial, ad-supported use is allowed.",
+  "date": "2026-10-14"
+ },
+ "fakejerell-underlore": {
+  "verdict": "check",
+  "reason": "The code LICENSE wasn't recognised as a standard licence and the third-party tilesets have their own terms; ask the author to confirm the code licence and that each asset licence permits commercial use.",
+  "date": "2026-10-14"
+ },
+ "jdardash-alien-escape": {
+  "verdict": "remove",
+  "reason": "The MIT licence excludes the Galaga-derived projectile, explosion and beam sprites, which are third-party copyrighted and used under a non-commercial tribute claim.",
+  "date": "2026-10-14"
+ },
+ "alexi5000-titanic-iceberg-run": {
+  "verdict": "check",
+  "reason": "The licence wasn't detected and no text is visible; ask the author which licence covers the code and assets, and whether any Titanic-related third-party material is used.",
+  "date": "2026-10-14"
+ },
+ "maharajahu-spline-rush": {
+  "verdict": "remove",
+  "reason": "No licence detected and no files listed, so there is no evident permissive grant.",
+  "date": "2026-10-14"
+ },
+ "aurph-the-soul-foundry": {
+  "verdict": "check",
+  "reason": "The licence wasn't detected and no text is visible; ask the author for the licence terms and whether commercial use is permitted for code and assets.",
+  "date": "2026-10-14"
+ },
+ "arbaig123-arkham-knights": {
+  "verdict": "check",
+  "reason": "The code is MIT, but the generated edge-tts speech files have no redistribution grant; ask the author whether they can be used commercially, or replace them.",
+  "date": "2026-10-14"
+ }
+}
