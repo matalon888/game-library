@@ -1,5 +1,169 @@
 [
  {
+  "slug": "victorqribeiro-isocity",
+  "name": "IsoCity",
+  "blurb": "Pick tiles, buildings and roads from a palette and place them on an isometric grid to build a city.",
+  "category": "Strategy",
+  "author": "victorqribeiro",
+  "credit": "by victorqribeiro · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/victorqribeiro/isocity",
+  "entry": null,
+  "external": "https://victorribeiro.com/isocity",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 3262,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "city builder / tycoon / life sim",
+   "app_store": [
+    "Sunday City: Life Simulator",
+    "My Supermarket Simulator 3D®",
+    "Police Chief"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "unknown",
+   "pitch": "Lay out roads and buildings to build an isometric city on a grid."
+  },
+  "made": "2019-12-31",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/victorqribeiro-isocity.webp",
+  "thumb": "covers/victorqribeiro-isocity.webp",
+  "icon": "art/victorqribeiro-isocity.webp",
+  "clip": null
+ },
+ {
+  "slug": "chrisheninger-matchimals-fun",
+  "name": "Matchimals",
+  "blurb": "Place animal cards on the board so their edges match neighboring animals, taking turns.",
+  "category": "Puzzle",
+  "author": "chrisheninger",
+  "credit": "by chrisheninger · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/chrisheninger/matchimals.fun",
+  "entry": null,
+  "external": "https://www.matchimals.com",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 196,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "card battler / deckbuilder",
+   "app_store": [
+    "Pokémon TCG Pocket",
+    "Clash Royale",
+    "DRAGON BALL Z DOKKAN BATTLE"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 7,
+   "ai_built": "unknown",
+   "pitch": "Find matching animal cards in a turn-based puzzle game."
+  },
+  "made": "2017-12-25",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/chrisheninger-matchimals-fun.webp",
+  "thumb": "covers/chrisheninger-matchimals-fun.webp",
+  "icon": "art/chrisheninger-matchimals-fun.webp",
+  "clip": "clips/chrisheninger-matchimals-fun.mp4"
+ },
+ {
+  "slug": "brianrisk-synthblast-threejs-game",
+  "name": "SYNTHBLAST",
+  "blurb": "Drive a tank through a synthwave 3D world and shoot enemies while managing armor and ammo.",
+  "category": "3D",
+  "author": "brianrisk",
+  "credit": "by brianrisk · Apache-2.0",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/brianrisk/SYNTHBLAST-threejs-game",
+  "entry": null,
+  "external": "https://synthblast.com",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 142,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "tank / mech / naval battle",
+   "app_store": [
+    "War Robots Multiplayer Battles",
+    "War Machines：Battle Tank Games",
+    "Steelborn: Tank Idle RPG"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Drive a tank through a synthwave 3D world and blast enemies."
+  },
+  "made": "2022-08-05",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/brianrisk-synthblast-threejs-game.webp",
+  "thumb": "covers/brianrisk-synthblast-threejs-game.webp",
+  "icon": "art/brianrisk-synthblast-threejs-game.webp",
+  "clip": "clips/brianrisk-synthblast-threejs-game.mp4"
+ },
+ {
+  "slug": "miktaew-yet-another-idle-rpg",
+  "name": "Yet Another Idle RPG",
+  "blurb": "Explore locations, fight enemies, train skills and manage gear as your hero progresses.",
+  "category": "Idle",
+  "author": "miktaew",
+  "credit": "by miktaew · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/miktaew/yet-another-idle-rpg",
+  "entry": null,
+  "external": "https://miktaew.github.io/yet-another-idle-rpg/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 114,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "idle RPG / merge idle",
+   "app_store": [
+    "Sword x Staff",
+    "MapleStory : Idle RPG",
+    "Treasure Masters"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 7,
+   "ai_built": "unknown",
+   "pitch": "Fight enemies, explore locations, train skills and progress an idle character."
+  },
+  "made": "2021-08-06",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/miktaew-yet-another-idle-rpg.webp",
+  "thumb": "covers/miktaew-yet-another-idle-rpg.webp",
+  "icon": "art/miktaew-yet-another-idle-rpg.webp",
+  "clip": "clips/miktaew-yet-another-idle-rpg.mp4"
+ },
+ {
   "slug": "ninest-typer",
   "name": "Typer",
   "blurb": "Type as many words as you can within 10 seconds.",
@@ -35,6 +199,167 @@
   "cover": "covers/ninest-typer.webp",
   "thumb": "covers/ninest-typer.webp",
   "icon": "art/ninest-typer.webp",
+  "clip": null
+ },
+ {
+  "slug": "19was85-old-school-racing",
+  "name": "Old School Racing",
+  "blurb": "Race a retro pseudo-3D car down the track, steering and braking to pass seven CPU cars.",
+  "category": "Racing",
+  "author": "19WAS85",
+  "credit": "by 19WAS85 · Apache-2.0",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/19WAS85/old-school-racing",
+  "entry": null,
+  "external": "http://19was85.github.io/old-school-racing/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 58,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "arcade racing (incl. drift)",
+   "app_store": [
+    "CarX Street",
+    "Need for Speed No Limits Game",
+    "Asphalt Legends - Racing Game"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Race a car down a pseudo-3D retro track."
+  },
+  "made": "2014-08-18",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/19was85-old-school-racing.webp",
+  "thumb": "covers/19was85-old-school-racing.webp",
+  "icon": "art/19was85-old-school-racing.webp",
+  "clip": "clips/19was85-old-school-racing.mp4"
+ },
+ {
+  "slug": "jackrugile-elematter-js13k",
+  "name": "Elematter",
+  "blurb": "Place elemental towers along a maze path to stop waves of enemies before they use up your lives.",
+  "category": "Strategy",
+  "author": "jackrugile",
+  "credit": "by jackrugile · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/jackrugile/elematter-js13k",
+  "entry": null,
+  "external": "http://js13kgames.com/entries/elematter",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 53,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "tower defense",
+   "app_store": [
+    "TDS - Tower Destiny Survive",
+    "The Tower - Idle Tower Defense",
+    "Raid Rush: Tower Defense TD"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 7,
+   "ai_built": "unknown",
+   "pitch": "Place elemental towers to stop waves of enemies in a game that fits in 13KB."
+  },
+  "made": "2014-08-20",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/jackrugile-elematter-js13k.webp",
+  "thumb": "covers/jackrugile-elematter-js13k.webp",
+  "icon": "art/jackrugile-elematter-js13k.webp",
+  "clip": "clips/jackrugile-elematter-js13k.mp4"
+ },
+ {
+  "slug": "cxong-peppertown",
+  "name": "PepperTown",
+  "blurb": "Click to buy and upgrade buildings, hire heroes and grow a town while heroes fight slimes.",
+  "category": "Idle",
+  "author": "cxong",
+  "credit": "by cxong · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/cxong/PepperTown",
+  "entry": null,
+  "external": "https://congusbongus.itch.io/peppertown",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 52,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "idle RPG / merge idle",
+   "app_store": [
+    "Sword x Staff",
+    "MapleStory : Idle RPG",
+    "Treasure Masters"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Grow an RPG-style town and hire adventurers in an idle game."
+  },
+  "made": "2019-02-22",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/cxong-peppertown.webp",
+  "thumb": "covers/cxong-peppertown.webp",
+  "icon": "art/cxong-peppertown.webp",
+  "clip": "clips/cxong-peppertown.mp4"
+ },
+ {
+  "slug": "primeau-larn",
+  "name": "Larn",
+  "blurb": "Descend through dungeon levels, fight monsters and collect treasure in a classic text-based roguelike.",
+  "category": "Retro",
+  "author": "primeau and contributors",
+  "credit": "Copyright (c) primeau and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/primeau/Larn",
+  "entry": "index.html",
+  "external": "https://larn.org",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 51,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 8,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Descend the dungeon and fight monsters in this port of the classic Larn."
+  },
+  "made": "2015-06-27",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 10,
+    "stars": 51,
+    "url": "https://github.com/primeau/Larn"
+   }
+  },
+  "cover": "covers/primeau-larn.webp",
+  "thumb": "covers/primeau-larn.webp",
+  "icon": "art/primeau-larn.webp",
   "clip": null
  },
  {
@@ -108,6 +433,47 @@
   "clip": null
  },
  {
+  "slug": "md-abu-kayser-drive-mad",
+  "name": "Drive Mad",
+  "blurb": "Drive a car up ramps and over obstacles while keeping it from flipping over.",
+  "category": "Racing",
+  "author": "md-abu-kayser",
+  "credit": "by md-abu-kayser · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/md-abu-kayser/drive-mad",
+  "entry": null,
+  "external": "https://drive-mad-car-game-71486c.netlify.app/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 24,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "arcade racing (incl. drift)",
+   "app_store": [
+    "CarX Street",
+    "Need for Speed No Limits Game",
+    "Asphalt Legends - Racing Game"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Drive a car at high speed with keyboard, gamepad or touch controls."
+  },
+  "made": "2025-10-25",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/md-abu-kayser-drive-mad.webp",
+  "thumb": "covers/md-abu-kayser-drive-mad.webp",
+  "icon": "art/md-abu-kayser-drive-mad.webp",
+  "clip": "clips/md-abu-kayser-drive-mad.mp4"
+ },
+ {
   "slug": "itaylayzer-monopoly",
   "name": "Property Tycoon",
   "blurb": "Roll dice, buy properties and collect rent from other players around the board.",
@@ -143,6 +509,167 @@
   "cover": "covers/itaylayzer-monopoly.webp",
   "thumb": "covers/itaylayzer-monopoly.webp",
   "icon": "art/itaylayzer-monopoly.webp",
+  "clip": null
+ },
+ {
+  "slug": "johntoopublic-cityclicker",
+  "name": "City Clicker",
+  "blurb": "Click to zone residential, commercial and industrial areas, then spend income on upgrades to grow your city.",
+  "category": "Idle",
+  "author": "johntoopublic",
+  "credit": "by johntoopublic · Unlicense",
+  "licence": "Unlicense",
+  "source": "https://github.com/johntoopublic/cityclicker",
+  "entry": null,
+  "external": "http://johntoopublic.github.io/cityclicker/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 23,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "idle RPG / merge idle",
+   "app_store": [
+    "Sword x Staff",
+    "MapleStory : Idle RPG",
+    "Treasure Masters"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Click to grow and build up a city through incremental upgrades."
+  },
+  "made": "2014-07-28",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/johntoopublic-cityclicker.webp",
+  "thumb": "covers/johntoopublic-cityclicker.webp",
+  "icon": "art/johntoopublic-cityclicker.webp",
+  "clip": "clips/johntoopublic-cityclicker.mp4"
+ },
+ {
+  "slug": "markliu2013-tank-war",
+  "name": "Tank War",
+  "blurb": "Drive your tank, shoot enemy tanks and defend your base in a top-down battle.",
+  "category": "Retro",
+  "author": "markliu2013",
+  "credit": "by markliu2013 · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/markliu2013/tank-war",
+  "entry": null,
+  "external": "https://markliu2013.github.io/tank-war/index.html",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 20,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "tank / mech / naval battle",
+   "app_store": [
+    "War Robots Multiplayer Battles",
+    "War Machines：Battle Tank Games",
+    "Steelborn: Tank Idle RPG"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Defend your base and destroy enemy tanks in a top-down arcade battle."
+  },
+  "made": "2014-02-18",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/markliu2013-tank-war.webp",
+  "thumb": "covers/markliu2013-tank-war.webp",
+  "icon": "art/markliu2013-tank-war.webp",
+  "clip": "clips/markliu2013-tank-war.mp4"
+ },
+ {
+  "slug": "daxchen-phaser-cat",
+  "name": "Phaser Cat",
+  "blurb": "Move a cat around an arena and shoot approaching rabbits with switchable weapons.",
+  "category": "Action",
+  "author": "DaxChen",
+  "credit": "by DaxChen · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/DaxChen/phaser-cat",
+  "entry": null,
+  "external": "https://game.daxchen.com",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 16,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "top-down twin-stick shooter",
+   "app_store": [
+    "Brawl Stars",
+    "Real War: Not Fake",
+    "Warpath: Ace Shooter"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Move and shoot in a 2D top-down arena with box2d physics."
+  },
+  "made": "2017-02-18",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/daxchen-phaser-cat.webp",
+  "thumb": "covers/daxchen-phaser-cat.webp",
+  "icon": "art/daxchen-phaser-cat.webp",
+  "clip": "clips/daxchen-phaser-cat.mp4"
+ },
+ {
+  "slug": "bangtutorial-aether-clash",
+  "name": "Aether Clash",
+  "blurb": "Choose one of 12 chibi fighters and battle a CPU opponent, using special ultimate attacks.",
+  "category": "Action",
+  "author": "bangtutorial and contributors",
+  "credit": "Copyright (c) bangtutorial and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/bangtutorial/aether-clash",
+  "entry": "index.html",
+  "external": "https://youtu.be/UN_0bNC2wTU",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 15,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Pick one of 12 chibi fighters (Mecha vs Demi-Human) and fight a CPU opponent, with ultimates and touch controls."
+  },
+  "made": "2026-09-30",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 6,
+    "stars": 15,
+    "url": "https://github.com/bangtutorial/aether-clash"
+   }
+  },
+  "cover": "covers/bangtutorial-aether-clash.webp",
+  "thumb": "covers/bangtutorial-aether-clash.webp",
+  "icon": "art/bangtutorial-aether-clash.webp",
   "clip": null
  },
  {
@@ -182,6 +709,44 @@
   "thumb": "covers/iamriskycahyan-asteroidgame.webp",
   "icon": "art/iamriskycahyan-asteroidgame.webp",
   "clip": "clips/iamriskycahyan-asteroidgame.mp4"
+ },
+ {
+  "slug": "furkan5e-zombie-js",
+  "name": "Zombie JS",
+  "blurb": "Move around a top-down arena and shoot approaching zombies.",
+  "category": "Action",
+  "author": "Furkan5E and contributors",
+  "credit": "Copyright (c) Furkan5E and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/Furkan5E/Zombie.JS",
+  "entry": "index.html",
+  "external": "https://furkan5e.github.io/Zombie.JS/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 14,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Move and shoot to fend off zombies in a top-down arena."
+  },
+  "made": "2024-11-28",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 14,
+    "url": "https://github.com/Furkan5E/Zombie.JS"
+   }
+  },
+  "cover": "covers/furkan5e-zombie-js.webp",
+  "thumb": "covers/furkan5e-zombie-js.webp",
+  "icon": "art/furkan5e-zombie-js.webp",
+  "clip": "clips/furkan5e-zombie-js.mp4"
  },
  {
   "slug": "srefsland-nyt-connections-clone",
@@ -260,6 +825,44 @@
   "clip": null
  },
  {
+  "slug": "pranshuparmar-downhill-mayhem",
+  "name": "Downhill Mayhem",
+  "blurb": "Race downhill at high speed, dodging obstacles on the way to the bottom.",
+  "category": "Racing",
+  "author": "Pranshu Parmar",
+  "credit": "Copyright 2026 Pranshu Parmar",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/pranshuparmar/downhill-mayhem",
+  "entry": "index.html",
+  "external": "https://pranshuparmar.github.io/downhill-mayhem/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 12,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Race downhill at breakneck speed in a tribute to Downhill Domination."
+  },
+  "made": "2026-07-10",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 3,
+    "stars": 12,
+    "url": "https://github.com/pranshuparmar/downhill-mayhem"
+   }
+  },
+  "cover": "covers/pranshuparmar-downhill-mayhem.webp",
+  "thumb": "covers/pranshuparmar-downhill-mayhem.webp",
+  "icon": "art/pranshuparmar-downhill-mayhem.webp",
+  "clip": "clips/pranshuparmar-downhill-mayhem.mp4"
+ },
+ {
   "slug": "muhashi-geodle",
   "name": "Geodle",
   "blurb": "Guess the mystery country, using distance and direction hints from each guess.",
@@ -296,6 +899,47 @@
   "thumb": "covers/muhashi-geodle.webp",
   "icon": "art/muhashi-geodle.webp",
   "clip": "clips/muhashi-geodle.mp4"
+ },
+ {
+  "slug": "msakuta-farmsim",
+  "name": "Farmsim",
+  "blurb": "Plow, plant, water and weed your garden, then harvest crops to earn cash.",
+  "category": "Strategy",
+  "author": "msakuta",
+  "credit": "by msakuta · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/msakuta/farmsim",
+  "entry": null,
+  "external": "https://msakuta.github.io/farmsim/farmsim.html",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 12,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "farming sim / cozy",
+   "app_store": [
+    "Hay Day",
+    "Township",
+    "Heartopia"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Plant, tend and harvest crops in a 2D garden."
+  },
+  "made": "2014-04-07",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/msakuta-farmsim.webp",
+  "thumb": "covers/msakuta-farmsim.webp",
+  "icon": "art/msakuta-farmsim.webp",
+  "clip": "clips/msakuta-farmsim.mp4"
  },
  {
   "slug": "jokude-react-nonogram",
@@ -374,6 +1018,123 @@
   "clip": null
  },
  {
+  "slug": "webermn15-scorch-a-scorched-earth-clone",
+  "name": "Scorch",
+  "blurb": "Set your cannon angle and power to lob shells at the enemy tank across destructible terrain.",
+  "category": "2-Player",
+  "author": "webermn15",
+  "credit": "by webermn15 · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/webermn15/Scorch_a-scorched-earth-clone",
+  "entry": null,
+  "external": "https://webermn15.github.io/Scorch_a-scorched-earth-clone",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 8,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "tank / mech / naval battle",
+   "app_store": [
+    "War Robots Multiplayer Battles",
+    "War Machines：Battle Tank Games",
+    "Steelborn: Tank Idle RPG"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Set angle and power to lob shells at the enemy tank across destructible terrain."
+  },
+  "made": "2017-12-24",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/webermn15-scorch-a-scorched-earth-clone.webp",
+  "thumb": "covers/webermn15-scorch-a-scorched-earth-clone.webp",
+  "icon": "art/webermn15-scorch-a-scorched-earth-clone.webp",
+  "clip": "clips/webermn15-scorch-a-scorched-earth-clone.mp4"
+ },
+ {
+  "slug": "amcolash-farming-game",
+  "name": "Farming Game",
+  "blurb": "Plant and harvest crops on a small farm.",
+  "category": "Strategy",
+  "author": "Andrew McOlash",
+  "credit": "Copyright (c) 2019 Andrew McOlash",
+  "licence": "MIT",
+  "source": "https://github.com/amcolash/farming-game",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 7,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Farm crops in a Phaser and TypeScript game."
+  },
+  "made": "2019-04-03",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 5,
+    "stars": 7,
+    "url": "https://github.com/amcolash/farming-game"
+   }
+  },
+  "cover": "covers/amcolash-farming-game.webp",
+  "thumb": "covers/amcolash-farming-game.webp",
+  "icon": "art/amcolash-farming-game.webp",
+  "clip": null
+ },
+ {
+  "slug": "devang-joshi-dj-life-simulator",
+  "name": "Life Simulator",
+  "blurb": "Control a character and make life decisions that shape their story.",
+  "category": "Strategy",
+  "author": "devang-joshi-dj and contributors",
+  "credit": "Copyright (c) devang-joshi-dj and contributors",
+  "licence": "Apache-2.0",
+  "source": "https://github.com/devang-joshi-dj/life-simulator",
+  "entry": "index.html",
+  "external": "https://life-simulator.netlify.app/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 6,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 3,
+   "ai_built": "unknown",
+   "pitch": "Control a character and make life decisions that shape their story."
+  },
+  "made": "2021-02-22",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 6,
+    "url": "https://github.com/devang-joshi-dj/life-simulator"
+   }
+  },
+  "cover": "covers/devang-joshi-dj-life-simulator.webp",
+  "thumb": "covers/devang-joshi-dj-life-simulator.webp",
+  "icon": "art/devang-joshi-dj-life-simulator.webp",
+  "clip": "clips/devang-joshi-dj-life-simulator.mp4"
+ },
+ {
   "slug": "raulr-darts",
   "name": "HTML5 Darts",
   "blurb": "Throw darts at a dartboard and score points based on where they land.",
@@ -410,6 +1171,44 @@
   "thumb": "covers/raulr-darts.webp",
   "icon": "art/raulr-darts.webp",
   "clip": "clips/raulr-darts.mp4"
+ },
+ {
+  "slug": "remarkablegames-rhythmism",
+  "name": "Rhythmism",
+  "blurb": "Press keys in time with the beat as notes scroll down the screen.",
+  "category": "Arcade",
+  "author": "remarkablegames and contributors",
+  "credit": "Copyright (c) remarkablegames and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/remarkablegames/rhythmism",
+  "entry": "index.html",
+  "external": "https://remarkablegames.itch.io/rhythmism",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 5,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Press keys in time with the beat as notes scroll by."
+  },
+  "made": "2024-02-17",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 5,
+    "url": "https://github.com/remarkablegames/rhythmism"
+   }
+  },
+  "cover": "covers/remarkablegames-rhythmism.webp",
+  "thumb": "covers/remarkablegames-rhythmism.webp",
+  "icon": "art/remarkablegames-rhythmism.webp",
+  "clip": "clips/remarkablegames-rhythmism.mp4"
  },
  {
   "slug": "ajlovechina-piano-tiles",
@@ -564,6 +1363,164 @@
   "clip": null
  },
  {
+  "slug": "atxgreene-ugh-guys-",
+  "name": "Ugh Guys",
+  "blurb": "Choose a faction, gather resources, train units and destroy an AI opponent through fog of war.",
+  "category": "Strategy",
+  "author": "atxgreene",
+  "credit": "by atxgreene · CC0-1.0",
+  "licence": "CC0-1.0",
+  "source": "https://github.com/atxgreene/Ugh-Guys-",
+  "entry": null,
+  "external": "https://atxgreene.github.io/Ugh-Guys-/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 5,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "4X / RTS / turn-based strategy",
+   "app_store": [
+    "Rise of Kingdoms",
+    "Foundation: Galactic Frontier",
+    "Age of Empires Mobile"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Pick one of three factions and fight an AI opponent through fog of war."
+  },
+  "made": "2026-06-12",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/atxgreene-ugh-guys-.webp",
+  "thumb": "covers/atxgreene-ugh-guys-.webp",
+  "icon": "art/atxgreene-ugh-guys-.webp",
+  "clip": "clips/atxgreene-ugh-guys-.mp4"
+ },
+ {
+  "slug": "georgewaraw-jady-deth",
+  "name": "Jady Deth",
+  "blurb": "Fight an opponent in a 3D arena by moving around and attacking.",
+  "category": "3D",
+  "author": "georgewaraw",
+  "credit": "by georgewaraw · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/georgewaraw/jady-deth",
+  "entry": null,
+  "external": "https://georgewaraw.github.io/jady-deth/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 5,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "fighting game (incl. boxing)",
+   "app_store": [
+    "Marvel Contest of Champions",
+    "DRAGON BALL LEGENDS",
+    "ONE PIECE Bounty Rush"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Fight an opponent in a react-three-fiber 3D arena."
+  },
+  "made": "2022-12-13",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/georgewaraw-jady-deth.webp",
+  "thumb": "covers/georgewaraw-jady-deth.webp",
+  "icon": "art/georgewaraw-jady-deth.webp",
+  "clip": "clips/georgewaraw-jady-deth.mp4"
+ },
+ {
+  "slug": "goncalojbsousa-farming-simulator-cabacos",
+  "name": "Cabacos Farm",
+  "blurb": "Explore, grow crops, manage your inventory and trade in a pixel-art farm.",
+  "category": "Strategy",
+  "author": "goncalojbsousa and contributors",
+  "credit": "Copyright (c) goncalojbsousa and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/goncalojbsousa/Farming-Simulator-Cabacos",
+  "entry": "index.html",
+  "external": "https://goncalojbsousa.github.io/Farming-Simulator-Cabacos/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 4,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Explore, grow crops, manage inventory and trade."
+  },
+  "made": "2026-05-14",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 4,
+    "url": "https://github.com/goncalojbsousa/Farming-Simulator-Cabacos"
+   }
+  },
+  "cover": "covers/goncalojbsousa-farming-simulator-cabacos.webp",
+  "thumb": "covers/goncalojbsousa-farming-simulator-cabacos.webp",
+  "icon": "art/goncalojbsousa-farming-simulator-cabacos.webp",
+  "clip": "clips/goncalojbsousa-farming-simulator-cabacos.mp4"
+ },
+ {
+  "slug": "imshota1009-dog-squad",
+  "name": "Dog Squad",
+  "blurb": "Defend your doghouse from squirrels armed with acorns in 3D.",
+  "category": "3D",
+  "author": "imshota1009 and contributors",
+  "credit": "Copyright (c) imshota1009 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/imshota1009/dog-squad",
+  "entry": "index.html",
+  "external": "https://dog-squad-game-app.web.app",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 4,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Defend your doghouse from an acorn-armed squirrel army."
+  },
+  "made": "2026-06-13",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 4,
+    "url": "https://github.com/imshota1009/dog-squad"
+   }
+  },
+  "cover": "covers/imshota1009-dog-squad.webp",
+  "thumb": "covers/imshota1009-dog-squad.webp",
+  "icon": "art/imshota1009-dog-squad.webp",
+  "clip": null
+ },
+ {
   "slug": "frandyjayr-tower-defense-game",
   "name": "MelonJS Tower Defense",
   "blurb": "Build towers along the path to stop enemies from reaching your base.",
@@ -713,6 +1670,82 @@
   "cover": "covers/enesbabekoglu-restaurant-game-canvas-js.webp",
   "thumb": "covers/enesbabekoglu-restaurant-game-canvas-js.webp",
   "icon": "art/enesbabekoglu-restaurant-game-canvas-js.webp",
+  "clip": null
+ },
+ {
+  "slug": "arjunemirchandani-skyward-flight-simulator",
+  "name": "Skyward Flight Simulator",
+  "blurb": "Fly over procedural islands through weather and traffic, complete missions and land for a score.",
+  "category": "3D",
+  "author": "Arjune Mirchandani",
+  "credit": "Copyright (c) 2026 Arjune Mirchandani",
+  "licence": "MIT",
+  "source": "https://github.com/arjunemirchandani/skyward-flight-simulator",
+  "entry": "index.html",
+  "external": "https://arjunemirchandani.github.io/skyward-flight-simulator/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 3,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Fly over procedural islands through weather and traffic, complete missions and land for a score."
+  },
+  "made": "2026-07-29",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 2,
+    "stars": 3,
+    "url": "https://github.com/arjunemirchandani/skyward-flight-simulator"
+   }
+  },
+  "cover": "covers/arjunemirchandani-skyward-flight-simulator.webp",
+  "thumb": "covers/arjunemirchandani-skyward-flight-simulator.webp",
+  "icon": "art/arjunemirchandani-skyward-flight-simulator.webp",
+  "clip": "clips/arjunemirchandani-skyward-flight-simulator.mp4"
+ },
+ {
+  "slug": "apoorvdarshan-zombie-game",
+  "name": "3D Zombie Survival FPS",
+  "blurb": "Shoot waves of zombies with two weapons and survive as long as possible in a 3D arena.",
+  "category": "Action",
+  "author": "Apoorv Darshan",
+  "credit": "Copyright (c) 2025 Apoorv Darshan",
+  "licence": "MIT",
+  "source": "https://github.com/apoorvdarshan/zombie-game",
+  "entry": "index.html",
+  "external": "https://zombie-game.apoorvdarshan.com",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 3,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Survive zombie waves using two weapons in a 3D arena."
+  },
+  "made": "2025-06-08",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 3,
+    "url": "https://github.com/apoorvdarshan/zombie-game"
+   }
+  },
+  "cover": "covers/apoorvdarshan-zombie-game.webp",
+  "thumb": "covers/apoorvdarshan-zombie-game.webp",
+  "icon": "art/apoorvdarshan-zombie-game.webp",
   "clip": null
  },
  {
@@ -904,6 +1937,161 @@
   "thumb": "covers/eckankar-henpen-vue.webp",
   "icon": "art/eckankar-henpen-vue.webp",
   "clip": "clips/eckankar-henpen-vue.mp4"
+ },
+ {
+  "slug": "kuroiakuma19-gridville",
+  "name": "GridVille",
+  "blurb": "Place roads, power plants and buildings on a grid, connecting power so your low-poly city grows.",
+  "category": "Strategy",
+  "author": "KuroiAkuma19",
+  "credit": "by KuroiAkuma19 · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/KuroiAkuma19/GridVille",
+  "entry": null,
+  "external": "https://KuroiAkuma19.github.io/GridVille/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 3,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "city builder / tycoon / life sim",
+   "app_store": [
+    "Sunday City: Life Simulator",
+    "My Supermarket Simulator 3D®",
+    "Police Chief"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Lay roads and connect the power grid to grow a low-poly city."
+  },
+  "made": "2026-05-24",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/kuroiakuma19-gridville.webp",
+  "thumb": "covers/kuroiakuma19-gridville.webp",
+  "icon": "art/kuroiakuma19-gridville.webp",
+  "clip": "clips/kuroiakuma19-gridville.mp4"
+ },
+ {
+  "slug": "thecraftman-dropzone",
+  "name": "Dropzone",
+  "blurb": "Loot, build and harvest while outlasting 23 bots as the storm circle closes in.",
+  "category": "Action",
+  "author": "Ore-Aruwaji Tola",
+  "credit": "Copyright (c) 2026 Ore-Aruwaji Tola",
+  "licence": "MIT",
+  "source": "https://github.com/thecraftman/dropzone",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 2,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Loot, build and harvest while outlasting 23 bots as the storm closes in."
+  },
+  "made": "2026-07-15",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 2,
+    "url": "https://github.com/thecraftman/dropzone"
+   }
+  },
+  "cover": "covers/thecraftman-dropzone.webp",
+  "thumb": "covers/thecraftman-dropzone.webp",
+  "icon": "art/thecraftman-dropzone.webp",
+  "clip": null
+ },
+ {
+  "slug": "codegirlsangita-animalcricketleague",
+  "name": "Animal Premier League",
+  "blurb": "Play a cricket match using animal characters.",
+  "category": "Arcade",
+  "author": "Sangita Manna",
+  "credit": "Copyright (c) 2025 Sangita Manna",
+  "licence": "MIT",
+  "source": "https://github.com/codegirlsangita/AnimalCricketLeague",
+  "entry": "index.html",
+  "external": "https://codegirlsangita.github.io/AnimalCricketLeague/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 2,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Play a cricket match with animal characters."
+  },
+  "made": "2025-04-27",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 2,
+    "url": "https://github.com/codegirlsangita/AnimalCricketLeague"
+   }
+  },
+  "cover": "covers/codegirlsangita-animalcricketleague.webp",
+  "thumb": "covers/codegirlsangita-animalcricketleague.webp",
+  "icon": "art/codegirlsangita-animalcricketleague.webp",
+  "clip": "clips/codegirlsangita-animalcricketleague.mp4"
+ },
+ {
+  "slug": "firetable-the-11th-forest",
+  "name": "The 11th Forest",
+  "blurb": "Shoot enemies as you move through an anime-styled pixel-art forest from above.",
+  "category": "Action",
+  "author": "FireTable and contributors",
+  "credit": "Copyright (c) FireTable and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/FireTable/the-11th-forest",
+  "entry": "index.html",
+  "external": "https://forest.firetable.tech",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 2,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Shoot your way through an anime-styled pixel forest."
+  },
+  "made": "2026-07-27",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 2,
+    "url": "https://github.com/FireTable/the-11th-forest"
+   }
+  },
+  "cover": "covers/firetable-the-11th-forest.webp",
+  "thumb": "covers/firetable-the-11th-forest.webp",
+  "icon": "art/firetable-the-11th-forest.webp",
+  "clip": "clips/firetable-the-11th-forest.mp4"
  },
  {
   "slug": "kabronero-mine-cart-carnage",
@@ -1169,6 +2357,360 @@
   "cover": "covers/walterlego-idlesoccer.webp",
   "thumb": "covers/walterlego-idlesoccer.webp",
   "icon": "art/walterlego-idlesoccer.webp",
+  "clip": null
+ },
+ {
+  "slug": "leaguestar-kritikshoot",
+  "name": "KritikShoot",
+  "blurb": "Fly a ship, aim with the mouse and shoot waves of enemies while picking upgrades.",
+  "category": "Action",
+  "author": "LeagueStar",
+  "credit": "by LeagueStar · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/LeagueStar/KritikShoot",
+  "entry": null,
+  "external": "https://leaguestar.github.io/KritikShoot/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 2,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "top-down twin-stick shooter",
+   "app_store": [
+    "Brawl Stars",
+    "Real War: Not Fake",
+    "Warpath: Ace Shooter"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Survive endless waves while stacking tactical upgrades."
+  },
+  "made": "2025-07-08",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/leaguestar-kritikshoot.webp",
+  "thumb": "covers/leaguestar-kritikshoot.webp",
+  "icon": "art/leaguestar-kritikshoot.webp",
+  "clip": "clips/leaguestar-kritikshoot.mp4"
+ },
+ {
+  "slug": "d4vucat-awesometanks",
+  "name": "Awesome Tanks",
+  "blurb": "Drive a tank, aim the turret and fight through levels with five weapons, buying upgrades between them.",
+  "category": "Action",
+  "author": "d4vucat",
+  "credit": "by d4vucat · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/d4vucat/AwesomeTanks",
+  "entry": null,
+  "external": "https://awesome-tanks-one.vercel.app",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 2,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "top-down twin-stick shooter",
+   "app_store": [
+    "Brawl Stars",
+    "Real War: Not Fake",
+    "Warpath: Ace Shooter"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Fight through levels with five weapon types and buy tank upgrades between them."
+  },
+  "made": "2026-07-03",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/d4vucat-awesometanks.webp",
+  "thumb": "covers/d4vucat-awesometanks.webp",
+  "icon": "art/d4vucat-awesometanks.webp",
+  "clip": "clips/d4vucat-awesometanks.mp4"
+ },
+ {
+  "slug": "carlossardo-hoops88",
+  "name": "HOOPS '88",
+  "blurb": "Drag and release to shoot baskets, scoring as many as you can in 60 seconds while chaining combos.",
+  "category": "Arcade",
+  "author": "CarlosSardo",
+  "credit": "by CarlosSardo · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/CarlosSardo/hoops88",
+  "entry": null,
+  "external": "https://carlossardo.github.io/hoops88/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 2,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "basketball arcade",
+   "app_store": [
+    "NBA 2K Mobile Basketball Game",
+    "Dunk City Dynasty",
+    "Kuroko's Basketball SR"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Play retro arcade basketball in vanilla JS."
+  },
+  "made": "2026-06-25",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/carlossardo-hoops88.webp",
+  "thumb": "covers/carlossardo-hoops88.webp",
+  "icon": "art/carlossardo-hoops88.webp",
+  "clip": "clips/carlossardo-hoops88.mp4"
+ },
+ {
+  "slug": "subchibeats-nba-trivia-1v1",
+  "name": "Basketball Trivia 1v1",
+  "blurb": "Answer NBA trivia questions against a CPU before the shot clock runs out to score points.",
+  "category": "Word & Math",
+  "author": "SubchiBeats",
+  "credit": "by SubchiBeats · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/SubchiBeats/nba-trivia-1v1",
+  "entry": null,
+  "external": "https://subchibeats.github.io/nba-trivia-1v1/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 2,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "basketball arcade",
+   "app_store": [
+    "NBA 2K Mobile Basketball Game",
+    "Dunk City Dynasty",
+    "Kuroko's Basketball SR"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Answer NBA trivia against a CPU under a shot clock to score buckets on a pixel court."
+  },
+  "made": "2026-06-04",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/subchibeats-nba-trivia-1v1.webp",
+  "thumb": "covers/subchibeats-nba-trivia-1v1.webp",
+  "icon": "art/subchibeats-nba-trivia-1v1.webp",
+  "clip": "clips/subchibeats-nba-trivia-1v1.mp4"
+ },
+ {
+  "slug": "ebinezer-cloud-torqueverse-3d",
+  "name": "TorqueVerse 3D",
+  "blurb": "Drive around open worlds, race AI opponents, drift, use nitro, perform stunts and collect stars.",
+  "category": "Racing",
+  "author": "Ebinezer",
+  "credit": "Copyright (c) 2026 Ebinezer",
+  "licence": "MIT",
+  "source": "https://github.com/Ebinezer-cloud/TorqueVerse-3D",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 6,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Explore open worlds, race AI opponents, drift, use nitro, perform stunts and collect stars."
+  },
+  "made": "2026-09-15",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/Ebinezer-cloud/TorqueVerse-3D"
+   }
+  },
+  "cover": "covers/ebinezer-cloud-torqueverse-3d.webp",
+  "thumb": "covers/ebinezer-cloud-torqueverse-3d.webp",
+  "icon": "art/ebinezer-cloud-torqueverse-3d.webp",
+  "clip": null
+ },
+ {
+  "slug": "tanmay-tiwari-20-unoverse",
+  "name": "Color Cards 3D",
+  "blurb": "Play UNO with friends around a real-time 3D table.",
+  "category": "3D",
+  "author": "tanmay-tiwari-20 and contributors",
+  "credit": "Copyright (c) tanmay-tiwari-20 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/tanmay-tiwari-20/Unoverse",
+  "entry": "index.html",
+  "external": "https://unoverse-3d.vercel.app/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 7,
+   "ai_built": "unknown",
+   "pitch": "Play UNO with friends in a real-time 3D table environment."
+  },
+  "made": "2026-06-28",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/tanmay-tiwari-20/Unoverse"
+   }
+  },
+  "cover": "covers/tanmay-tiwari-20-unoverse.webp",
+  "thumb": "covers/tanmay-tiwari-20-unoverse.webp",
+  "icon": "art/tanmay-tiwari-20-unoverse.webp",
+  "clip": null
+ },
+ {
+  "slug": "carlomigueldy-lowpoly-roguelike-moba",
+  "name": "Lowpoly Roguelike MOBA",
+  "blurb": "Control a low-poly hero and fight in a 3D arena, solo or with peer-to-peer multiplayer.",
+  "category": "3D",
+  "author": "Carlo Miguel Dy",
+  "credit": "Copyright (c) 2026 Carlo Miguel Dy",
+  "licence": "MIT",
+  "source": "https://github.com/carlomigueldy/lowpoly-roguelike-moba",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Fight as a low-poly hero in a 3D arena with roguelike elements, with P2P multiplayer."
+  },
+  "made": "2026-06-28",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/carlomigueldy/lowpoly-roguelike-moba"
+   }
+  },
+  "cover": "covers/carlomigueldy-lowpoly-roguelike-moba.webp",
+  "thumb": "covers/carlomigueldy-lowpoly-roguelike-moba.webp",
+  "icon": "art/carlomigueldy-lowpoly-roguelike-moba.webp",
+  "clip": null
+ },
+ {
+  "slug": "hayeon9826-lion-world-phaser",
+  "name": "Lion World",
+  "blurb": "Survive waves of enemies while your character fights automatically and collects upgrades.",
+  "category": "Action",
+  "author": "hayeon9826 and contributors",
+  "credit": "Copyright (c) hayeon9826 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/hayeon9826/lion-world-phaser",
+  "entry": "index.html",
+  "external": "https://hayeon9826.github.io/lion-world/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Survive waves of enemies in a Phaser 3 Vampire Survivors-inspired game."
+  },
+  "made": "2024-04-03",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/hayeon9826/lion-world-phaser"
+   }
+  },
+  "cover": "covers/hayeon9826-lion-world-phaser.webp",
+  "thumb": "covers/hayeon9826-lion-world-phaser.webp",
+  "icon": "art/hayeon9826-lion-world-phaser.webp",
+  "clip": "clips/hayeon9826-lion-world-phaser.mp4"
+ },
+ {
+  "slug": "devshareacademy-elemental-farm",
+  "name": "Elemental Farm",
+  "blurb": "Grow crops and manage an elemental-themed farm.",
+  "category": "Strategy",
+  "author": "devshareacademy and contributors",
+  "credit": "Copyright (c) devshareacademy and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/devshareacademy/elemental-farm",
+  "entry": "index.html",
+  "external": "https://galemius.itch.io/elemental-farm",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Grow and manage an elemental-themed farm in a Phaser 3 jam game."
+  },
+  "made": "2025-04-13",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 2,
+    "stars": 1,
+    "url": "https://github.com/devshareacademy/elemental-farm"
+   }
+  },
+  "cover": "covers/devshareacademy-elemental-farm.webp",
+  "thumb": "covers/devshareacademy-elemental-farm.webp",
+  "icon": "art/devshareacademy-elemental-farm.webp",
   "clip": null
  },
  {
@@ -1707,6 +3249,594 @@
   "thumb": "covers/ololx-hungry-tree-friends.webp",
   "icon": "art/ololx-hungry-tree-friends.webp",
   "clip": "clips/ololx-hungry-tree-friends.mp4"
+ },
+ {
+  "slug": "sgrprmnk-tabletennis",
+  "name": "Table Tennis",
+  "blurb": "Move your paddle with the mouse or arrow keys to rally the ball against the computer.",
+  "category": "Retro",
+  "author": "sgrprmnk",
+  "credit": "by sgrprmnk · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/sgrprmnk/tableTennis",
+  "entry": null,
+  "external": "https://game-tennis.netlify.app/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "tennis / volleyball / cricket / fishing",
+   "app_store": [
+    "Tennis Clash：Sports Stars Game",
+    "Fishing Clash: Sport Simulator",
+    "The Spike - Volleyball Story"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 2,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Play a canvas table tennis game against the computer with a scorecard."
+  },
+  "made": "2021-09-30",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/sgrprmnk-tabletennis.webp",
+  "thumb": "covers/sgrprmnk-tabletennis.webp",
+  "icon": "art/sgrprmnk-tabletennis.webp",
+  "clip": "clips/sgrprmnk-tabletennis.mp4"
+ },
+ {
+  "slug": "ctbot000-soccer-game",
+  "name": "Touchline",
+  "blurb": "Control a player in a six-a-side soccer match, passing and shooting to beat the AI team.",
+  "category": "Arcade",
+  "author": "ctbot000",
+  "credit": "by ctbot000 · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/ctbot000/soccer-game",
+  "entry": null,
+  "external": "https://ctbot000.github.io/soccer-game/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "soccer arcade (incl. head soccer)",
+   "app_store": [
+    "EA SPORTS FC Soccer Mobile 27",
+    "eFootball™",
+    "Dream League Soccer 2026"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Play a six-a-side arcade soccer match against AI in the browser."
+  },
+  "made": "2026-09-07",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/ctbot000-soccer-game.webp",
+  "thumb": "covers/ctbot000-soccer-game.webp",
+  "icon": "art/ctbot000-soccer-game.webp",
+  "clip": "clips/ctbot000-soccer-game.mp4"
+ },
+ {
+  "slug": "jason9075-skyline-rush",
+  "name": "Skyline Rush",
+  "blurb": "Fly a quadcopter drone through red gates in an endless white city before the timer runs out.",
+  "category": "3D",
+  "author": "jason9075",
+  "credit": "by jason9075 · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/jason9075/Skyline-Rush",
+  "entry": null,
+  "external": "https://jason9075.github.io/Skyline-Rush/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "flight sim / air combat",
+   "app_store": [
+    "Infinite Flight Simulator",
+    "RFS - Real Flight Simulator",
+    "Wing Fighter"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Fly a quadcopter through an infinite procedurally generated white city."
+  },
+  "made": "2026-07-02",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/jason9075-skyline-rush.webp",
+  "thumb": "covers/jason9075-skyline-rush.webp",
+  "icon": "art/jason9075-skyline-rush.webp",
+  "clip": "clips/jason9075-skyline-rush.mp4"
+ },
+ {
+  "slug": "js13kgames-gravity-golf",
+  "name": "Gravity Golf",
+  "blurb": "Drag to aim and shoot a ball toward the hole while planets' gravity bends its path.",
+  "category": "Puzzle",
+  "author": "js13kGames",
+  "credit": "by js13kGames · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/js13kGames/gravity-golf",
+  "entry": null,
+  "external": "https://js13kgames.com/2015/games/gravity-golf",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "golf",
+   "app_store": [
+    "Golf Clash - Golfing Simulator",
+    "Golf Rival - Multiplayer Game",
+    "Ultimate Golf!"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Shoot a ball toward the hole while planetary gravity bends its path."
+  },
+  "made": "2015-09-11",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/js13kgames-gravity-golf.webp",
+  "thumb": "covers/js13kgames-gravity-golf.webp",
+  "icon": "art/js13kgames-gravity-golf.webp",
+  "clip": "clips/js13kgames-gravity-golf.mp4"
+ },
+ {
+  "slug": "charjkl-war-game",
+  "name": "War Game",
+  "blurb": "Select settlers to gather wood, stone and berries, and construct buildings in a real-time strategy skirmish.",
+  "category": "Strategy",
+  "author": "charJKL",
+  "credit": "by charJKL · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/charJKL/war-game",
+  "entry": null,
+  "external": "https://pwsz-wargame.netlify.app/start.html",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "4X / RTS / turn-based strategy",
+   "app_store": [
+    "Rise of Kingdoms",
+    "Foundation: Galactic Frontier",
+    "Age of Empires Mobile"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 3,
+   "ai_built": "unknown",
+   "pitch": "Play a JavaScript RTS skirmish."
+  },
+  "made": "2017-07-13",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/charjkl-war-game.webp",
+  "thumb": "covers/charjkl-war-game.webp",
+  "icon": "art/charjkl-war-game.webp",
+  "clip": "clips/charjkl-war-game.mp4"
+ },
+ {
+  "slug": "pavanandrea-quadcopterflightsimulator",
+  "name": "Quadcopter Flight Simulator",
+  "blurb": "Pilot a quadcopter drone in a 3D scene, managing throttle, pitch, roll and battery.",
+  "category": "3D",
+  "author": "pavanandrea",
+  "credit": "by pavanandrea · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/pavanandrea/QuadcopterFlightSimulator",
+  "entry": null,
+  "external": "https://pavanandrea.github.io/QuadcopterFlightSimulator/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 1,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "flight sim / air combat",
+   "app_store": [
+    "Infinite Flight Simulator",
+    "RFS - Real Flight Simulator",
+    "Wing Fighter"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Pilot a quadcopter in a Three.js scene with physics running in C compiled to WASM."
+  },
+  "made": "2025-06-18",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/pavanandrea-quadcopterflightsimulator.webp",
+  "thumb": "covers/pavanandrea-quadcopterflightsimulator.webp",
+  "icon": "art/pavanandrea-quadcopterflightsimulator.webp",
+  "clip": "clips/pavanandrea-quadcopterflightsimulator.mp4"
+ },
+ {
+  "slug": "kumaralok49689-a11y-operation-bharat-battle-arena",
+  "name": "Operation Bharat: Battle Arena",
+  "blurb": "Fight other combatants in a procedurally built 3D arena and be the last one alive.",
+  "category": "3D",
+  "author": "kumaralok49689-a11y",
+  "credit": "Copyright (c) 2026 kumaralok49689-a11y",
+  "licence": "MIT",
+  "source": "https://github.com/kumaralok49689-a11y/operation-bharat-battle-arena",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Fight for survival in a procedurally built 3D arena."
+  },
+  "made": "2026-09-25",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/kumaralok49689-a11y/operation-bharat-battle-arena"
+   }
+  },
+  "cover": "covers/kumaralok49689-a11y-operation-bharat-battle-arena.webp",
+  "thumb": "covers/kumaralok49689-a11y-operation-bharat-battle-arena.webp",
+  "icon": "art/kumaralok49689-a11y-operation-bharat-battle-arena.webp",
+  "clip": null
+ },
+ {
+  "slug": "kimuraw20-byte-hide-and-seek-3d",
+  "name": "3D Hide & Seek",
+  "blurb": "Hide from other players or search for them in a 3D environment.",
+  "category": "3D",
+  "author": "kimuraw20-byte",
+  "credit": "Copyright (c) 2026",
+  "licence": "MIT",
+  "source": "https://github.com/kimuraw20-byte/hide-and-seek-3d",
+  "entry": "index.html",
+  "external": "https://kimuraw20-byte.github.io/hide-and-seek-3d/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 2,
+   "polish": 3,
+   "ai_built": "unknown",
+   "pitch": "Hide from or find others in a 3D three.js hide-and-seek game."
+  },
+  "made": "2026-08-24",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/kimuraw20-byte/hide-and-seek-3d"
+   }
+  },
+  "cover": "covers/kimuraw20-byte-hide-and-seek-3d.webp",
+  "thumb": "covers/kimuraw20-byte-hide-and-seek-3d.webp",
+  "icon": "art/kimuraw20-byte-hide-and-seek-3d.webp",
+  "clip": null
+ },
+ {
+  "slug": "bossmancom-scary-classroom-hide-seek",
+  "name": "Scary Classroom Hide & Seek",
+  "blurb": "Hide from a threat in a low-poly haunted classroom without being caught.",
+  "category": "3D",
+  "author": "BossmanCom",
+  "credit": "Copyright (c) 2026 BossmanCom",
+  "licence": "MIT",
+  "source": "https://github.com/BossmanCom/scary-classroom-hide-seek",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Hide from a threat in a low-poly haunted classroom, on desktop or mobile."
+  },
+  "made": "2026-08-05",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/BossmanCom/scary-classroom-hide-seek"
+   }
+  },
+  "cover": "covers/bossmancom-scary-classroom-hide-seek.webp",
+  "thumb": "covers/bossmancom-scary-classroom-hide-seek.webp",
+  "icon": "art/bossmancom-scary-classroom-hide-seek.webp",
+  "clip": null
+ },
+ {
+  "slug": "joaovictorvm-prototipo-autobattle",
+  "name": "AutoBattle Prototype",
+  "blurb": "Drag cards onto the board, collect XP orbs and merge cards while battles play out automatically.",
+  "category": "Strategy",
+  "author": "João Victor Ventura Martins",
+  "credit": "Copyright (c) 2026 João Victor Ventura Martins",
+  "licence": "MIT",
+  "source": "https://github.com/JoaoVictorVM/Prototipo-AutoBattle",
+  "entry": "index.html",
+  "external": "https://joaovictorvm.itch.io/autobattle",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Drag and drop cards, collect XP orbs and merge cards endlessly while battles resolve automatically."
+  },
+  "made": "2026-05-04",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 0,
+    "url": "https://github.com/JoaoVictorVM/Prototipo-AutoBattle"
+   }
+  },
+  "cover": "covers/joaovictorvm-prototipo-autobattle.webp",
+  "thumb": "covers/joaovictorvm-prototipo-autobattle.webp",
+  "icon": "art/joaovictorvm-prototipo-autobattle.webp",
+  "clip": "clips/joaovictorvm-prototipo-autobattle.mp4"
+ },
+ {
+  "slug": "sk090347-horizon-drift",
+  "name": "Horizon Drift",
+  "blurb": "Drive a car freely around an endless open 3D world with physics.",
+  "category": "3D",
+  "author": "SK090347 and contributors",
+  "credit": "Copyright (c) SK090347 and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/SK090347/horizon-drift",
+  "entry": "index.html",
+  "external": "https://sk090347.github.io/horizon-drift/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Drive freely through an endless 3D world with physics."
+  },
+  "made": "2026-09-09",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/SK090347/horizon-drift"
+   }
+  },
+  "cover": "covers/sk090347-horizon-drift.webp",
+  "thumb": "covers/sk090347-horizon-drift.webp",
+  "icon": "art/sk090347-horizon-drift.webp",
+  "clip": null
+ },
+ {
+  "slug": "swapkneel-false-lead",
+  "name": "False Lead",
+  "blurb": "Share clues and discuss with other players in real time to work out who the False Lead is.",
+  "category": "Strategy",
+  "author": "swapkneel and contributors",
+  "credit": "Copyright (c) swapkneel and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/swapkneel/False-Lead",
+  "entry": "index.html",
+  "external": "https://false-lead.vercel.app",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Use clues and discussion with other players in real time to find the False Lead."
+  },
+  "made": "2026-06-12",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/swapkneel/False-Lead"
+   }
+  },
+  "cover": "covers/swapkneel-false-lead.webp",
+  "thumb": "covers/swapkneel-false-lead.webp",
+  "icon": "art/swapkneel-false-lead.webp",
+  "clip": null
+ },
+ {
+  "slug": "helmedeiros-championship",
+  "name": "Championship",
+  "blurb": "Manage football teams and players and play matches in different competition formats.",
+  "category": "Strategy",
+  "author": "helmedeiros and contributors",
+  "credit": "Copyright (c) helmedeiros and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/helmedeiros/championship",
+  "entry": "index.html",
+  "external": "https://helmedeiros.github.io/championship/",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Manage teams and players and play through matches in several competition formats."
+  },
+  "made": "2026-06-21",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/helmedeiros/championship"
+   }
+  },
+  "cover": "covers/helmedeiros-championship.webp",
+  "thumb": "covers/helmedeiros-championship.webp",
+  "icon": "art/helmedeiros-championship.webp",
+  "clip": null
+ },
+ {
+  "slug": "prempastagia-triform-tactics",
+  "name": "TriForm Tactics",
+  "blurb": "Place square, ring and pin pieces on a 3x3 board against a friend or AI.",
+  "category": "Strategy",
+  "author": "PremPastagia and contributors",
+  "credit": "Copyright (c) PremPastagia and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/PremPastagia/TriForm-Tactics",
+  "entry": "index.html",
+  "external": "https://tritactics.vercel.app",
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Place square, ring and pin pieces on a 3x3 board against friends or an in-browser AI."
+  },
+  "made": "2026-05-04",
+  "platform": "phone",
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/PremPastagia/TriForm-Tactics"
+   }
+  },
+  "cover": "covers/prempastagia-triform-tactics.webp",
+  "thumb": "covers/prempastagia-triform-tactics.webp",
+  "icon": "art/prempastagia-triform-tactics.webp",
+  "clip": null
+ },
+ {
+  "slug": "wuisabel-gif-top-down-shooter",
+  "name": "Neon Breach",
+  "blurb": "Shoot enemies through neon cyberpunk rooms and pick up upgrades during each run.",
+  "category": "Action",
+  "author": "wuisabel-gif and contributors",
+  "credit": "Copyright (c) wuisabel-gif and contributors",
+  "licence": "MIT",
+  "source": "https://github.com/wuisabel-gif/Top-Down-Shooter",
+  "entry": "index.html",
+  "external": "https://wuisabel-gif.github.io/Top-Down-Shooter/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 0,
+  "flag": null,
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 5,
+   "ai_built": "unknown",
+   "pitch": "Fight through neon cyberpunk rooms, shooting enemies and picking up upgrades in a roguelike run."
+  },
+  "made": "2026-02-21",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/wuisabel-gif/Top-Down-Shooter"
+   }
+  },
+  "cover": "covers/wuisabel-gif-top-down-shooter.webp",
+  "thumb": "covers/wuisabel-gif-top-down-shooter.webp",
+  "icon": "art/wuisabel-gif-top-down-shooter.webp",
+  "clip": null
  },
  {
   "slug": "rahulatrkm-prism",
@@ -2543,6 +4673,236 @@
   "thumb": "covers/samuelasherrivello-babylon-lite-pixel-walker.webp",
   "icon": "art/samuelasherrivello-babylon-lite-pixel-walker.webp",
   "clip": null
+ },
+ {
+  "slug": "liyupi-binding-of-isaac-webgame",
+  "name": "THE BINDING â å°ä¸å®¤çæç¼",
+  "blurb": "Battle through 12 procedurally generated dungeon floors, 13 bosses and 55 items in a Binding of Isaac-style twin-stick roguelike.",
+  "category": "Action",
+  "author": "liyupi",
+  "credit": "by liyupi · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/liyupi/binding-of-isaac-webgame",
+  "entry": null,
+  "external": "https://yisa.codefather.cn/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": null,
+  "flag": null,
+  "desk_only": true,
+  "review": {
+   "by": "Claude",
+   "depth": 9,
+   "polish": 8,
+   "ai_built": "yes",
+   "pitch": "Battle through 12 procedurally generated dungeon floors, 13 bosses and 55 items in a Binding of Isaac-style twin-stick roguelike."
+  },
+  "made": "2026-07-30",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/liyupi-binding-of-isaac-webgame.webp",
+  "thumb": "covers/liyupi-binding-of-isaac-webgame.webp",
+  "icon": "art/liyupi-binding-of-isaac-webgame.webp",
+  "clip": "clips/liyupi-binding-of-isaac-webgame.mp4"
+ },
+ {
+  "slug": "mankydanky-web-racing",
+  "name": "web-racing",
+  "blurb": "Race friends in real-time 3D through multiple tracks with physics-driven cars, using a simple party code to join instantly.",
+  "category": "Racing",
+  "author": "MankyDanky",
+  "credit": "by MankyDanky · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/MankyDanky/web-racing",
+  "entry": null,
+  "external": "https://racez.io",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": null,
+  "flag": null,
+  "desk_only": true,
+  "review": {
+   "by": "Claude",
+   "depth": 7,
+   "polish": 7,
+   "ai_built": "no",
+   "pitch": "Race friends in real-time 3D through multiple tracks with physics-driven cars, using a simple party code to join instantly."
+  },
+  "made": "2025-04-01",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/mankydanky-web-racing.webp",
+  "thumb": "covers/mankydanky-web-racing.webp",
+  "icon": "art/mankydanky-web-racing.webp",
+  "clip": "clips/mankydanky-web-racing.mp4"
+ },
+ {
+  "slug": "robzombai-zephyr-reef-kart",
+  "name": "Zephyr Reef Grand Prix",
+  "blurb": "Race fantasy karts in 3D, steering around the track and collecting energy pickups for speed.",
+  "category": "Racing",
+  "author": "RobZombAI",
+  "credit": "by RobZombAI · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/RobZombAI/zephyr-reef-kart",
+  "entry": null,
+  "external": "https://robzombai.github.io/zephyr-reef-kart/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": null,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "kart racing",
+   "app_store": [
+    "Pocket Champs PVP Racing Games",
+    "Disney Speedstorm",
+    "Mario Kart Tour"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 5,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Race 3D fantasy-themed karts in the browser or on Android."
+  },
+  "made": "2026-09-17",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/robzombai-zephyr-reef-kart.webp",
+  "thumb": "covers/robzombai-zephyr-reef-kart.webp",
+  "icon": "art/robzombai-zephyr-reef-kart.webp",
+  "clip": "clips/robzombai-zephyr-reef-kart.mp4"
+ },
+ {
+  "slug": "jay-kj-woo-simple-vampire-survivor",
+  "name": "Simple Survivor",
+  "blurb": "Move around the arena while your character auto-attacks, and survive waves of oncoming enemies.",
+  "category": "Action",
+  "author": "jay-kj-woo",
+  "credit": "by jay-kj-woo · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/jay-kj-woo/simple-vampire-survivor",
+  "entry": null,
+  "external": "https://jay-kj-woo.github.io/simple-vampire-survivor/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": null,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "survivor roguelike / bullet heaven",
+   "app_store": [
+    "XP Hero",
+    "Cell Survivor - Shoot Defense",
+    "Shoot Die Repeat"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Move and survive enemy waves in a simple Phaser 3 clone."
+  },
+  "made": "2024-04-06",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/jay-kj-woo-simple-vampire-survivor.webp",
+  "thumb": "covers/jay-kj-woo-simple-vampire-survivor.webp",
+  "icon": "art/jay-kj-woo-simple-vampire-survivor.webp",
+  "clip": "clips/jay-kj-woo-simple-vampire-survivor.mp4"
+ },
+ {
+  "slug": "devapriyan-s-gesture-drive",
+  "name": "Gesture Drive",
+  "blurb": "Steer a car left and right with arrow keys or your webcam-tracked finger to dodge traffic.",
+  "category": "Racing",
+  "author": "Devapriyan-S",
+  "credit": "by Devapriyan-S · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/Devapriyan-S/gesture-drive",
+  "entry": null,
+  "external": "https://devapriyan-s.github.io/gesture-drive/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": null,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "drag racing",
+   "app_store": [
+    "CSR 2 - Realistic Drag Racing",
+    "No Limit Drag Racing 2",
+    "Top Drives - Car Race Battles"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 6,
+   "ai_built": "unknown",
+   "pitch": "Steer a car by moving your index finger in front of the webcam, or use the arrow keys."
+  },
+  "made": "2026-08-20",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/devapriyan-s-gesture-drive.webp",
+  "thumb": "covers/devapriyan-s-gesture-drive.webp",
+  "icon": "art/devapriyan-s-gesture-drive.webp",
+  "clip": "clips/devapriyan-s-gesture-drive.mp4"
+ },
+ {
+  "slug": "drummingcoder-thetrazemaze",
+  "name": "Trazemaze",
+  "blurb": "Run, jump, dash and ground pound through a maze platformer while shooting and managing your hearts.",
+  "category": "Action",
+  "author": "Drummingcoder",
+  "credit": "by Drummingcoder · MIT",
+  "licence": "MIT",
+  "source": "https://github.com/Drummingcoder/thetrazemaze",
+  "entry": null,
+  "external": "https://drummingcoder.github.io/thetrazemaze/",
+  "orientation": "landscape",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": null,
+  "flag": null,
+  "desk_only": true,
+  "similar_to": {
+   "mechanic": "tactics grid / turn-based tactics",
+   "app_store": [
+    "9 Kings",
+    "Warhammer 40,000: Tacticus ™",
+    "Fire Emblem Heroes"
+   ]
+  },
+  "review": {
+   "by": "Claude",
+   "depth": 3,
+   "polish": 3,
+   "ai_built": "unknown",
+   "pitch": "Run, jump and shoot through a maze platformer."
+  },
+  "made": "2023-07-09",
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/drummingcoder-thetrazemaze.webp",
+  "thumb": "covers/drummingcoder-thetrazemaze.webp",
+  "icon": "art/drummingcoder-thetrazemaze.webp",
+  "clip": "clips/drummingcoder-thetrazemaze.mp4"
  },
  {
   "slug": "pshenok-server-survival",
@@ -3716,7 +6076,7 @@
   "public": {
    "github": {
     "forks": 2,
-    "stars": 9,
+    "stars": 10,
     "url": "https://github.com/tanuu5/nova-lancer"
    }
   },
@@ -14417,13 +16777,7 @@
   },
   "made": "2026-09-20",
   "platform": null,
-  "public": {
-   "github": {
-    "forks": 1,
-    "stars": 0,
-    "url": "https://github.com/Maharajahu/Spline-Rush"
-   }
-  },
+  "public": null,
   "cover": "covers/maharajahu-spline-rush.webp",
   "thumb": "covers/maharajahu-spline-rush.webp",
   "icon": "art/maharajahu-spline-rush.webp",

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- Child-safety / privacy (meta fallbacks; host headers preferred) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Permissions-Policy" content="accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()" />
+
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+  <meta name="description" content="Single-player classroom hide-and-seek game. No chat, no accounts, no tracking." />
+  <meta name="color-scheme" content="dark" />
+
+  <!-- Do not leak rich previews with player info (there is none) -->
+  <meta property="og:title" content="HIDE — Classroom (single-player)" />
+  <meta property="og:description" content="Offline-capable single-player game. No chat. No accounts." />
+
+  <title>Hide — Classroom (single-player)</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Runtime locks before any game code (no inline scripts — CSP safe) -->
+  <script src="js/security-bootstrap.js"></script>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" aria-label="Game view"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="timer">03:00</div>
+      <div id="hide-phase" class="hidden">
+        <div id="hide-phase-label">Time to hide</div>
+        <div id="hide-phase-count">30</div>
+      </div>
+      <div id="hide-state" class="outside">OUTSIDE</div>
+      <canvas id="minimap" width="148" height="220" aria-label="Minimap"></canvas>
+      <div id="status-msg"></div>
+      <div id="hint">WASD · Mouse · Shift run · C sneak · Space crouch · E hide</div>
+      <div id="noise-meter" title="Noise">
+        <div id="noise-fill"></div>
+      </div>
+      <div id="locker-overlay" class="hidden">
+        <div class="locker-slats"></div>
+        <div class="locker-frame"></div>
+        <div class="locker-label">HIDDEN · IN LOCKER<br /><span>Press E / Action to exit</span></div>
+      </div>
+    </div>
+
+    <!-- Title / start -->
+    <div id="overlay" class="overlay">
+      <div class="panel">
+        <h1 class="title">HIDE</h1>
+        <p class="subtitle">Classroom · Single Player</p>
+        <p class="blurb">
+          <strong>30 seconds</strong> to hide, then it hunts. Sneak, crouch, lockers.
+        </p>
+
+        <div class="safety-box" role="note" aria-label="Safety information for parents">
+          <strong>Kid-safe by design</strong>
+          <ul>
+            <li>No chat · No accounts · No multiplayer</li>
+            <li>No ads, trackers, or personal data collection</li>
+          </ul>
+          <p class="safety-links">
+            <a href="PRIVACY.md" target="_blank" rel="noopener noreferrer">Privacy details</a>
+          </p>
+        </div>
+
+        <div class="play-row">
+          <button id="btn-start" class="btn primary btn-play" type="button" tabindex="0">
+            Click to Play
+          </button>
+        </div>
+        <p class="controls-note">Desktop: mouse look · Mobile: joystick after start</p>
+      </div>
+    </div>
+
+    <!-- Found / win screens -->
+    <div id="end-overlay" class="overlay hidden">
+      <div class="panel">
+        <h1 id="end-title" class="title danger">FOUND</h1>
+        <p id="end-msg" class="blurb"></p>
+        <button id="btn-restart" class="btn primary" type="button">Play Again</button>
+      </div>
+    </div>
+
+    <div id="jumpscare" class="hidden" aria-hidden="true"></div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

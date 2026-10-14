@@ -1,0 +1,9 @@
+{
+  "appId": "com.torqueverse.game",
+  "appName": "TorqueVerse 3D",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "es6",
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "files": [
+    "node_modules/phaser/types/phaser.d.ts",
+    "src/global.d.ts"
+  ]
+}

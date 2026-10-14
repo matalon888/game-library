@@ -1,0 +1,1454 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Stormfall Royale · dropzone
+  Open-source battle royale for the browser — vanilla JavaScript + HTML5 Canvas,
+  zero dependencies, single file. 24 drop in. One walks out.
+
+  Built with Claude Fable 5 (Anthropic) in Claude Code.
+  Source:  https://github.com/thecraftman/dropzone
+  License: MIT. Original fan-made game — no Epic Games assets or IP.
+-->
+<title>Stormfall Royale</title>
+<style>
+  :root {
+    --ink: #eef1f7;
+    --dim: #9aa0b4;
+    --panel: rgba(10, 8, 24, 0.78);
+    --line: rgba(137, 150, 190, 0.28);
+    --cyan: #59d7ff;
+    --gold: #ffb03a;
+    --danger: #ff5b5b;
+    --hp: #5ee06a;
+    --shield: #4aa8ff;
+    --storm: #8a3ffc;
+    --display: 'Avenir Next Condensed', 'Arial Narrow', Impact, system-ui, sans-serif;
+    --body: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #0e0b1e; }
+  body { font-family: var(--body); color: var(--ink); }
+  #stage { position: fixed; inset: 0; }
+  canvas#c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+  .hud { position: absolute; pointer-events: none; }
+  .display { font-family: var(--display); font-weight: 800; font-style: italic; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  #topbar {
+    top: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; align-items: stretch;
+  }
+  .pill {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 14px; text-align: center; min-width: 86px;
+  }
+  .pill .k { font-size: 10px; letter-spacing: 0.14em; color: var(--dim); text-transform: uppercase; }
+  .pill .v { font-size: 22px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  #stormPill .v { color: #c9a2ff; }
+  #stormPill.warn .v { color: var(--danger); }
+
+  #killfeed { top: 14px; left: 14px; display: flex; flex-direction: column; gap: 4px; max-width: 340px; }
+  #killfeed div {
+    background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--danger);
+    border-radius: 6px; padding: 4px 10px; font-size: 12px; opacity: 0.95;
+  }
+  #killfeed div.me { border-left-color: var(--gold); }
+
+  #mmWrap { top: 14px; right: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 6px; }
+  #mm { display: block; border-radius: 6px; }
+
+  #vitals { left: 16px; bottom: 16px; width: 300px; display: flex; flex-direction: column; gap: 6px; }
+  .bar { height: 20px; background: rgba(255,255,255,0.08); border: 1px solid var(--line); border-radius: 6px; position: relative; overflow: hidden; }
+  .bar .fill { position: absolute; inset: 0; transform-origin: left; transition: transform 0.15s ease-out; }
+  #hpFill { background: linear-gradient(180deg, #74eb7f, #3cbf49); }
+  #shFill { background: linear-gradient(180deg, #6cbcff, #2f8fe6); }
+  .bar .num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.6); font-variant-numeric: tabular-nums; }
+
+  #loadout { right: 16px; bottom: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  #slots { display: flex; gap: 8px; }
+  .slot {
+    background: var(--panel); border: 2px solid var(--line); border-radius: 8px;
+    padding: 8px 12px; min-width: 110px; text-align: center;
+  }
+  .slot.active { border-color: var(--cyan); box-shadow: 0 0 12px rgba(89, 215, 255, 0.35); }
+  .slot .key { font-size: 10px; color: var(--dim); letter-spacing: 0.12em; }
+  .slot .wname { font-size: 14px; font-weight: 700; }
+  .slot .sub { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  #resRow { display: flex; gap: 8px; font-size: 12px; }
+  #resRow .pill { min-width: 0; padding: 4px 12px; }
+  #resRow .v { font-size: 16px; }
+
+  #prompt, #toast {
+    left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600;
+    z-index: 5; /* above the menu/end overlays so the mute toast stays visible */
+  }
+  #prompt { bottom: 120px; } #prompt b { color: var(--cyan); }
+  #toast { bottom: 160px; color: var(--gold); }
+
+  #centerText {
+    top: 38%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 110px; color: var(--ink); text-shadow: 0 4px 30px rgba(138, 63, 252, 0.8);
+  }
+  #stormNotice { top: 22%; left: 50%; transform: translateX(-50%); font-size: 26px; color: #c9a2ff; text-shadow: 0 2px 12px rgba(0,0,0,0.7); }
+
+  .overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 35%, rgba(46, 26, 88, 0.88), rgba(8, 6, 20, 0.94));
+    pointer-events: auto;
+  }
+  .card { text-align: center; max-width: 660px; padding: 30px; }
+  .card h1 { font-family: var(--display); font-style: italic; font-weight: 800; text-transform: uppercase; font-size: 76px; line-height: 0.95; letter-spacing: 0.02em;
+    background: linear-gradient(180deg, #9ee7ff 20%, #59d7ff 45%, #b06bff 90%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 6px 24px rgba(89, 215, 255, 0.25)); text-wrap: balance; }
+  .card h1 .gold { background: linear-gradient(180deg, #ffe9b0, #ffb03a); -webkit-background-clip: text; background-clip: text; }
+  .card .tag { margin-top: 10px; color: var(--dim); font-size: 15px; }
+  .controls { margin: 26px auto 6px; display: grid; grid-template-columns: auto auto; gap: 6px 18px; width: fit-content; text-align: left; font-size: 14px; }
+  .controls .key { font-family: var(--display); font-style: normal; font-weight: 700; color: var(--cyan); text-align: right; letter-spacing: 0.06em; }
+  .bigbtn {
+    margin-top: 26px; font-family: var(--display); font-style: italic; font-weight: 800; text-transform: uppercase;
+    font-size: 26px; letter-spacing: 0.06em; color: #081018; background: linear-gradient(180deg, #8fe8ff, #45c8f5);
+    border: none; border-radius: 10px; padding: 14px 54px; cursor: pointer;
+    box-shadow: 0 6px 0 #1f7fa8, 0 12px 30px rgba(69, 200, 245, 0.35);
+  }
+  .bigbtn:hover { filter: brightness(1.08); }
+  .bigbtn:active { transform: translateY(3px); box-shadow: 0 3px 0 #1f7fa8; }
+  .bigbtn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  #endStats { margin-top: 14px; font-size: 17px; color: var(--ink); }
+  #endStats b { color: var(--gold); font-variant-numeric: tabular-nums; }
+  .foot { margin-top: 24px; font-size: 11px; color: var(--dim); }
+  .hidden { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { .bar .fill { transition: none; } }
+</style>
+
+<div id="stage">
+  <canvas id="c"></canvas>
+
+  <div class="hud" id="killfeed"></div>
+  <div class="hud" id="topbar">
+    <div class="pill"><div class="k">Alive</div><div class="v display" id="aliveNum">24</div></div>
+    <div class="pill" id="stormPill"><div class="k" id="stormK">Storm shrinks</div><div class="v display" id="stormV">0:00</div></div>
+    <div class="pill"><div class="k">Kills</div><div class="v display" id="killsNum">0</div></div>
+  </div>
+  <div class="hud" id="mmWrap"><canvas id="mm" width="160" height="160"></canvas></div>
+  <div class="hud" id="vitals">
+    <div class="bar"><div class="fill" id="shFill"></div><div class="num" id="shNum">0</div></div>
+    <div class="bar"><div class="fill" id="hpFill"></div><div class="num" id="hpNum">100</div></div>
+  </div>
+  <div class="hud" id="loadout">
+    <div id="resRow">
+      <div class="pill"><div class="k">Ammo</div><div class="v display" id="ammoNum">0</div></div>
+      <div class="pill"><div class="k">Mats</div><div class="v display" id="matsNum">0</div></div>
+    </div>
+    <div id="slots">
+      <div class="slot" id="slot1"><div class="key">1</div><div class="wname">Pickaxe</div><div class="sub">harvest</div></div>
+      <div class="slot" id="slot2"><div class="key">2</div><div class="wname" id="gunName">—</div><div class="sub" id="gunSub">find a weapon</div></div>
+    </div>
+  </div>
+  <div class="hud hidden" id="prompt"></div>
+  <div class="hud hidden" id="toast"></div>
+  <div class="hud display hidden" id="centerText"></div>
+  <div class="hud display hidden" id="stormNotice"></div>
+
+  <div class="overlay" id="menu">
+    <div class="card">
+      <h1>Stormfall<br>Royale</h1>
+      <div class="tag">A Fortnite-style battle royale in your browser. 24 drop in. One walks out.</div>
+      <div class="controls">
+        <div class="key">WASD</div><div>Move (hold Shift to sprint)</div>
+        <div class="key">Mouse</div><div>Aim — hold left click to fire / swing</div>
+        <div class="key">Space</div><div>Also fires (aim stays on the mouse)</div>
+        <div class="key">Q / Right click</div><div>Build a wall (costs 10 mats)</div>
+        <div class="key">1 / 2</div><div>Pickaxe / weapon</div>
+        <div class="key">E</div><div>Swap weapon on the ground</div>
+        <div class="key">P&nbsp;&nbsp;M</div><div>Pause &nbsp;·&nbsp; mute</div>
+      </div>
+      <button class="bigbtn" id="btnPlay">Drop in</button>
+      <div class="foot">Harvest trees and rocks with your pickaxe for mats. Stay inside the circle — the storm hurts. Original fan-made game, no Epic Games assets.</div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="end">
+    <div class="card">
+      <h1 id="endTitle">Eliminated</h1>
+      <div id="endStats"></div>
+      <button class="bigbtn" id="btnAgain">Play again</button>
+      <div class="foot">Press R to restart any time.</div>
+    </div>
+  </div>
+</div>
+
+<script id="pure-logic">
+'use strict';
+// ---- Pure game logic: no DOM, no timers. Unit-tested in Node. ----
+const WORLD = 3200;
+const GRID = 64;
+const AMMO_CAP = 240;
+const MATS_CAP = 500;
+const WALL_COST = 10;
+const WALL_HP = 150;
+
+const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+const RARITY_COLORS = { common: '#9aa3ad', uncommon: '#4ecb5e', rare: '#3fa9ff', epic: '#c66bff', legendary: '#ffb03a' };
+const RARITY_MULT = { common: 1, uncommon: 1.15, rare: 1.32, epic: 1.55, legendary: 1.85 };
+
+const WEAPONS = {
+  pickaxe: { name: 'Pickaxe', melee: true, damage: 20, harvest: 25, rate: 2.4, range: 74, pellets: 1, ammoCost: 0 },
+  pistol:  { name: 'Pistol',        damage: 24, rate: 3.4,  spread: 0.055, speed: 950,  pellets: 1, ammoCost: 1, range: 720 },
+  smg:     { name: 'SMG',           damage: 13, rate: 10,   spread: 0.115, speed: 880,  pellets: 1, ammoCost: 1, range: 540 },
+  shotgun: { name: 'Shotgun',       damage: 11, rate: 1.2,  spread: 0.26,  speed: 820,  pellets: 6, ammoCost: 2, range: 340 },
+  rifle:   { name: 'Assault Rifle', damage: 30, rate: 5,    spread: 0.05,  speed: 1150, pellets: 1, ammoCost: 1, range: 920 },
+  sniper:  { name: 'Sniper Rifle',  damage: 90, rate: 0.75, spread: 0.006, speed: 1600, pellets: 1, ammoCost: 2, range: 1500 },
+};
+
+const START_CIRCLE = { x: WORLD / 2, y: WORLD / 2, r: 1500 };
+const STORM_SCHEDULE = [
+  { wait: 22, shrink: 18, radius: 1050, dps: 1 },
+  { wait: 16, shrink: 15, radius: 700,  dps: 2 },
+  { wait: 13, shrink: 12, radius: 460,  dps: 4 },
+  { wait: 11, shrink: 10, radius: 290,  dps: 6 },
+  { wait: 9,  shrink: 9,  radius: 170,  dps: 9 },
+  { wait: 8,  shrink: 8,  radius: 80,   dps: 12 },
+];
+
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function dist(x1, y1, x2, y2) { const dx = x2 - x1, dy = y2 - y1; return Math.sqrt(dx * dx + dy * dy); }
+function lerp(a, b, k) { return a + (b - a) * k; }
+
+// Deterministic PRNG (seedable) — used for world gen and tests.
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function weightedPick(rng, entries) {
+  let total = 0;
+  for (const e of entries) total += e[1];
+  let x = rng() * total;
+  for (const e of entries) { x -= e[1]; if (x <= 0) return e[0]; }
+  return entries[entries.length - 1][0];
+}
+
+function rollRarity(rng) {
+  return weightedPick(rng, [['common', 38], ['uncommon', 28], ['rare', 18], ['epic', 11], ['legendary', 5]]);
+}
+
+function rollLoot(rng) {
+  const t = weightedPick(rng, [['gun', 38], ['ammo', 20], ['medkit', 12], ['shield', 14], ['mats', 16]]);
+  if (t === 'gun') {
+    const kind = weightedPick(rng, [['pistol', 25], ['smg', 22], ['shotgun', 22], ['rifle', 22], ['sniper', 9]]);
+    return { type: 'gun', kind, rarity: rollRarity(rng) };
+  }
+  if (t === 'ammo') return { type: 'ammo', n: 24 };
+  if (t === 'medkit') return { type: 'medkit', n: 50 };
+  if (t === 'shield') return { type: 'shield', n: 50 };
+  return { type: 'mats', n: 30 };
+}
+
+// Rough DPS score used to rank guns when swapping/looting.
+function gunScore(kind, rarity) {
+  const w = WEAPONS[kind];
+  return w.damage * w.pellets * w.rate * RARITY_MULT[rarity];
+}
+
+function gunDamage(kind, rarity) {
+  return Math.round(WEAPONS[kind].damage * RARITY_MULT[rarity]);
+}
+
+// Shield absorbs first; remainder hits health. Mutates ent. Returns outcome.
+function applyDamage(ent, dmg) {
+  const toShield = Math.min(ent.shield, dmg);
+  ent.shield -= toShield;
+  const toHealth = Math.min(ent.hp, dmg - toShield);
+  ent.hp -= toHealth;
+  return { died: ent.hp <= 0, toShield, toHealth };
+}
+
+// Storm bypasses shield and burns health directly.
+function applyStormDamage(ent, amount) {
+  ent.hp = Math.max(0, ent.hp - amount);
+  return ent.hp <= 0;
+}
+
+// Consumables/resources. Mutates p. Returns true if the item was consumed.
+function pickupApply(p, item) {
+  if (item.type === 'ammo')   { if (p.ammo >= AMMO_CAP) return false; p.ammo = Math.min(AMMO_CAP, p.ammo + item.n); return true; }
+  if (item.type === 'medkit') { if (p.hp >= 100) return false; p.hp = Math.min(100, p.hp + item.n); return true; }
+  if (item.type === 'shield') { if (p.shield >= 100) return false; p.shield = Math.min(100, p.shield + item.n); return true; }
+  if (item.type === 'mats')   { if (p.mats >= MATS_CAP) return false; p.mats = Math.min(MATS_CAP, p.mats + item.n); return true; }
+  return false;
+}
+
+// Each new circle is drawn fully inside the previous one.
+function computeCircles(rng, start, schedule) {
+  const circles = [start];
+  let prev = start;
+  for (const ph of schedule) {
+    const maxOff = Math.max(0, prev.r - ph.radius);
+    const ang = rng() * Math.PI * 2;
+    const off = Math.sqrt(rng()) * maxOff;
+    const c = { x: prev.x + Math.cos(ang) * off, y: prev.y + Math.sin(ang) * off, r: ph.radius };
+    circles.push(c);
+    prev = c;
+  }
+  return circles;
+}
+
+// Storm state at elapsed time t (seconds since match start).
+function stormAt(circles, schedule, t) {
+  let time = 0;
+  for (let i = 0; i < schedule.length; i++) {
+    const ph = schedule[i], from = circles[i], to = circles[i + 1];
+    if (t < time + ph.wait) {
+      return { x: from.x, y: from.y, r: from.r, dps: ph.dps, mode: 'wait', timeLeft: time + ph.wait - t, phase: i, target: to };
+    }
+    time += ph.wait;
+    if (t < time + ph.shrink) {
+      const k = (t - time) / ph.shrink;
+      return { x: lerp(from.x, to.x, k), y: lerp(from.y, to.y, k), r: lerp(from.r, to.r, k), dps: ph.dps, mode: 'shrink', timeLeft: time + ph.shrink - t, phase: i, target: to };
+    }
+    time += ph.shrink;
+  }
+  const last = circles[circles.length - 1];
+  return { x: last.x, y: last.y, r: last.r, dps: schedule[schedule.length - 1].dps * 1.5, mode: 'final', timeLeft: 0, phase: schedule.length, target: last };
+}
+
+// ---- Wall grid helpers ----
+function worldToCell(x, y) { return { cx: Math.floor(x / GRID), cy: Math.floor(y / GRID) }; }
+function cellKey(cx, cy) { return cx + ',' + cy; }
+function cellRect(cx, cy) { return { x: cx * GRID, y: cy * GRID, w: GRID, h: GRID }; }
+function pointInRect(x, y, rect) { return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h; }
+
+// Push a circle out of a rect. Returns {dx, dy} or null if not overlapping.
+function circleRectResolve(px, py, r, rect) {
+  const cx = clamp(px, rect.x, rect.x + rect.w);
+  const cy = clamp(py, rect.y, rect.y + rect.h);
+  const dx = px - cx, dy = py - cy;
+  const d2 = dx * dx + dy * dy;
+  if (d2 >= r * r) return null;
+  if (d2 > 1e-9) {
+    const d = Math.sqrt(d2);
+    const push = (r - d) / d;
+    return { dx: dx * push, dy: dy * push };
+  }
+  // Center is inside the rect: exit along the nearest face.
+  const left = px - rect.x, right = rect.x + rect.w - px;
+  const top = py - rect.y, bottom = rect.y + rect.h - py;
+  const m = Math.min(left, right, top, bottom);
+  if (m === left) return { dx: -(left + r), dy: 0 };
+  if (m === right) return { dx: right + r, dy: 0 };
+  if (m === top) return { dx: 0, dy: -(top + r) };
+  return { dx: 0, dy: bottom + r };
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    WORLD, GRID, AMMO_CAP, MATS_CAP, WALL_COST, WALL_HP,
+    RARITIES, RARITY_COLORS, RARITY_MULT, WEAPONS, START_CIRCLE, STORM_SCHEDULE,
+    clamp, dist, lerp, mulberry32, weightedPick, rollRarity, rollLoot,
+    gunScore, gunDamage, applyDamage, applyStormDamage, pickupApply,
+    computeCircles, stormAt, worldToCell, cellKey, cellRect, pointInRect, circleRectResolve,
+  };
+}
+</script>
+
+<script>
+'use strict';
+(function () {
+  // ---------- DOM ----------
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const mm = document.getElementById('mm');
+  const mctx = mm.getContext('2d');
+  const el = (id) => document.getElementById(id);
+  const ui = {
+    alive: el('aliveNum'), kills: el('killsNum'), stormK: el('stormK'), stormV: el('stormV'), stormPill: el('stormPill'),
+    hpFill: el('hpFill'), hpNum: el('hpNum'), shFill: el('shFill'), shNum: el('shNum'),
+    ammo: el('ammoNum'), mats: el('matsNum'), slot1: el('slot1'), slot2: el('slot2'),
+    gunName: el('gunName'), gunSub: el('gunSub'), killfeed: el('killfeed'),
+    prompt: el('prompt'), toast: el('toast'), centerText: el('centerText'), stormNotice: el('stormNotice'),
+    menu: el('menu'), end: el('end'), endTitle: el('endTitle'), endStats: el('endStats'),
+  };
+
+  let W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    mm.width = mm.height = Math.round(160 * DPR);
+    mm.style.width = mm.style.height = '160px';
+    mctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- Audio (WebAudio bleeps, no assets) ----------
+  let AC = null, master = null, muted = false;
+  function audioInit() {
+    if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      master = AC.createGain(); master.gain.value = 0.22; master.connect(AC.destination);
+    } catch (e) { AC = null; }
+  }
+  function beep(freq, dur, type, vol, slideTo) {
+    if (!AC || muted) return;
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), AC.currentTime + dur);
+    g.gain.value = vol || 0.5;
+    g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+    o.connect(g); g.connect(master);
+    o.start(); o.stop(AC.currentTime + dur + 0.02);
+  }
+  const sfx = {
+    shoot(kind) {
+      if (kind === 'shotgun') { beep(150, 0.16, 'sawtooth', 0.7, 60); beep(90, 0.2, 'square', 0.5, 40); }
+      else if (kind === 'sniper') { beep(420, 0.25, 'sawtooth', 0.7, 70); }
+      else if (kind === 'smg') { beep(300, 0.06, 'square', 0.35, 180); }
+      else if (kind === 'rifle') { beep(260, 0.09, 'square', 0.5, 130); }
+      else { beep(330, 0.08, 'square', 0.45, 160); }
+    },
+    swing() { beep(200, 0.09, 'triangle', 0.4, 90); },
+    chop() { beep(120, 0.08, 'square', 0.5, 70); },
+    hit() { beep(880, 0.05, 'sine', 0.4); },
+    hurt() { beep(160, 0.18, 'sawtooth', 0.5, 60); },
+    pickup() { beep(620, 0.09, 'sine', 0.4, 990); },
+    build() { beep(110, 0.1, 'square', 0.55, 220); },
+    denied() { beep(140, 0.12, 'sawtooth', 0.3, 100); },
+    storm() { beep(100, 0.15, 'sawtooth', 0.25, 80); },
+    elim() { beep(520, 0.1, 'square', 0.5); setTimeout(() => beep(780, 0.14, 'square', 0.5), 90); },
+    win() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.22, 'square', 0.5), i * 130)); },
+    lose() { [392, 330, 262, 196].forEach((f, i) => setTimeout(() => beep(f, 0.24, 'sawtooth', 0.4), i * 150)); },
+  };
+
+  // ---------- Input ----------
+  const keys = {};
+  const mouse = { x: W / 2, y: H / 2, down: false };
+  // Digit keys come from e.code so Shift (sprint) can't turn '1' into '!'.
+  function keyName(e) {
+    return /^(Digit|Numpad)\d$/.test(e.code) ? e.code.slice(-1) : e.key.toLowerCase();
+  }
+  window.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter'].includes(e.key)) e.preventDefault();
+    const k = keyName(e);
+    keys[k] = true;
+    handleKey(k);
+  });
+  window.addEventListener('keyup', (e) => { keys[keyName(e)] = false; });
+  canvas.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  canvas.addEventListener('mousedown', (e) => {
+    audioInit();
+    if (e.button === 0) mouse.down = true;
+    if (e.button === 2) tryBuild(player);
+  });
+  window.addEventListener('mouseup', (e) => { if (e.button === 0) mouse.down = false; });
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  window.addEventListener('blur', () => {
+    mouse.down = false;
+    for (const k in keys) keys[k] = false;
+  });
+
+  function handleKey(k) {
+    audioInit(); // keydown carries user activation; idempotent
+    if (state === 'menu' && (k === 'enter' || k === ' ')) { startGame(); return; }
+    if ((state === 'over' || state === 'win') && (k === 'r' || k === 'enter')) { startGame(); return; }
+    if (k === 'r' && (state === 'play' || state === 'countdown')) { startGame(); return; }
+    if (k === 'm') { muted = !muted; toast(muted ? 'Muted (M to unmute)' : 'Sound on'); return; }
+    if (state !== 'play') return;
+    if (k === 'p') { paused = !paused; ui.centerText.textContent = paused ? 'PAUSED' : ''; ui.centerText.classList.toggle('hidden', !paused); return; }
+    if (paused) return;
+    if (k === '1') player.slot = 1;
+    if (k === '2' && player.gun) player.slot = 2;
+    if (k === 'q') tryBuild(player);
+    if (k === 'e') trySwap();
+  }
+
+  // ---------- Game state ----------
+  const BOT_COUNT = 23;
+  const PLAYER_SPEED = 265, SPRINT_MULT = 1.32, BOT_SPEED = 235;
+  const NAMES = ['Raptor', 'Blaze', 'Nova', 'Wisp', 'Bandit', 'Echo', 'Frost', 'Viper', 'Comet', 'Drift',
+    'Havoc', 'Lumen', 'Onyx', 'Pyro', 'Quill', 'Rogue', 'Slate', 'Tempest', 'Umbra', 'Vortex', 'Zephyr', 'Gale', 'Ember'];
+  const BOT_COLORS = ['#e8734a', '#d94f6b', '#c66bff', '#4ecb5e', '#ffb03a', '#7f8ff0', '#5ad0b0', '#e0619e'];
+
+  let state = 'menu'; // menu | countdown | play | over | win
+  let paused = false;
+  let player, bots, bullets, items, obstacles, walls, particles, floats;
+  let circles, storm, gameT, countdownT, camX, camY, shakeT;
+  let rng = mulberry32((Math.random() * 2 ** 31) | 0);
+  let stormWasShrink = false, lastStormPhase = -1, stormSoundT = 0, noGunHintT = -10;
+
+  function makeFighter(x, y, name, color, isPlayer) {
+    return {
+      x, y, r: 18, aim: 0, hp: 100, shield: 0, alive: true, name, color, isPlayer: !!isPlayer,
+      slot: 1, gun: null, ammo: isPlayer ? 40 : 999, mats: 0, kills: 0,
+      fireT: 0, swingT: -1, stormAcc: 0, hurtT: 0,
+      // bot brain
+      thinkT: Math.random(), losT: 0, hasLOS: false, target: null, wp: null,
+      strafeDir: Math.random() < 0.5 ? 1 : -1, aimErr: 0.1 + Math.random() * 0.1,
+      speedMult: 0.92 + Math.random() * 0.12, shootDelay: 0,
+    };
+  }
+
+  function freeSpot(minD, tries, nearX, nearY, maxD) {
+    for (let i = 0; i < (tries || 60); i++) {
+      let x, y;
+      if (nearX !== undefined) {
+        const a = rng() * Math.PI * 2, d = minD + rng() * (maxD - minD);
+        x = nearX + Math.cos(a) * d; y = nearY + Math.sin(a) * d;
+      } else {
+        const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * (START_CIRCLE.r - 120);
+        x = START_CIRCLE.x + Math.cos(a) * d; y = START_CIRCLE.y + Math.sin(a) * d;
+      }
+      x = clamp(x, 60, WORLD - 60); y = clamp(y, 60, WORLD - 60);
+      let ok = true;
+      for (const o of obstacles) { if (dist(x, y, o.x, o.y) < o.r + 46) { ok = false; break; } }
+      if (ok) return { x, y };
+    }
+    return { x: START_CIRCLE.x, y: START_CIRCLE.y };
+  }
+
+  function startGame() {
+    rng = mulberry32((Math.random() * 2 ** 31) | 0);
+    bullets = []; items = []; particles = []; floats = []; walls = new Map();
+    obstacles = [];
+    ui.killfeed.innerHTML = '';
+    ui.menu.classList.add('hidden'); ui.end.classList.add('hidden');
+    ui.centerText.classList.add('hidden'); ui.stormNotice.classList.add('hidden');
+    ui.prompt.classList.add('hidden'); ui.toast.classList.add('hidden');
+    nearGun = null;
+    paused = false; stormWasShrink = false; lastStormPhase = -1; noGunHintT = -10;
+
+    // Obstacles: trees, rocks, crates.
+    for (let i = 0; i < 64; i++) {
+      const x = 90 + rng() * (WORLD - 180), y = 90 + rng() * (WORLD - 180);
+      obstacles.push({ type: 'tree', x, y, r: 20, canopy: 44 + rng() * 18, hp: 60, max: 60, alive: true, seed: rng() });
+    }
+    for (let i = 0; i < 34; i++) {
+      const x = 90 + rng() * (WORLD - 180), y = 90 + rng() * (WORLD - 180);
+      obstacles.push({ type: 'rock', x, y, r: 26 + rng() * 10, hp: 90, max: 90, alive: true, seed: rng() });
+    }
+    for (let i = 0; i < 26; i++) {
+      const x = 90 + rng() * (WORLD - 180), y = 90 + rng() * (WORLD - 180);
+      obstacles.push({ type: 'crate', x, y, r: 22, hp: 40, max: 40, alive: true, seed: rng() });
+    }
+
+    // Player + bots.
+    const ps = freeSpot();
+    player = makeFighter(ps.x, ps.y, 'You', '#59d7ff', true);
+    bots = [];
+    for (let i = 0; i < BOT_COUNT; i++) {
+      let s, attempts = 0;
+      do { s = freeSpot(); attempts++; } while (dist(s.x, s.y, player.x, player.y) < 420 && attempts < 40);
+      const b = makeFighter(s.x, s.y, NAMES[i % NAMES.length] + (i >= NAMES.length ? '_' + i : ''), BOT_COLORS[i % BOT_COLORS.length]);
+      const kind = weightedPick(rng, [['pistol', 30], ['smg', 24], ['shotgun', 22], ['rifle', 18], ['sniper', 6]]);
+      b.gun = { kind, rarity: rollRarity(rng) };
+      b.slot = 2;
+      b.shield = rng() < 0.4 ? 50 : 0;
+      bots.push(b);
+    }
+
+    // Ground loot; guarantee two guns near the player's spawn.
+    for (let i = 0; i < 95; i++) {
+      const p = freeSpot();
+      items.push({ ...rollLoot(rng), x: p.x, y: p.y, bob: rng() * Math.PI * 2 });
+    }
+    for (let i = 0; i < 2; i++) {
+      const p = freeSpot(90, 40, player.x, player.y, 240);
+      const kind = weightedPick(rng, [['pistol', 30], ['smg', 25], ['rifle', 25], ['shotgun', 20]]);
+      items.push({ type: 'gun', kind, rarity: rollRarity(rng), x: p.x, y: p.y, bob: rng() * Math.PI * 2 });
+    }
+
+    circles = computeCircles(rng, START_CIRCLE, STORM_SCHEDULE);
+    storm = stormAt(circles, STORM_SCHEDULE, 0);
+    gameT = 0; countdownT = 3; shakeT = 0;
+    camX = player.x; camY = player.y;
+    state = 'countdown';
+    updateHUD();
+  }
+
+  // ---------- Movement & collision ----------
+  function moveEntity(ent, dx, dy, speed, dt) {
+    const len = Math.hypot(dx, dy);
+    if (len > 1e-6) { dx /= len; dy /= len; }
+    else return;
+    let nx = ent.x + dx * speed * dt;
+    let ny = ent.y + dy * speed * dt;
+    nx = clamp(nx, ent.r + 6, WORLD - ent.r - 6);
+    ny = clamp(ny, ent.r + 6, WORLD - ent.r - 6);
+    for (let pass = 0; pass < 2; pass++) {
+      for (const o of obstacles) {
+        if (!o.alive) continue;
+        const d = dist(nx, ny, o.x, o.y);
+        const minD = ent.r + o.r;
+        if (d < minD && d > 1e-6) {
+          nx = o.x + ((nx - o.x) / d) * minD;
+          ny = o.y + ((ny - o.y) / d) * minD;
+        }
+      }
+      const c = worldToCell(nx, ny);
+      for (let gx = c.cx - 1; gx <= c.cx + 1; gx++) {
+        for (let gy = c.cy - 1; gy <= c.cy + 1; gy++) {
+          const w = walls.get(cellKey(gx, gy));
+          if (!w) continue;
+          const push = circleRectResolve(nx, ny, ent.r, cellRect(gx, gy));
+          if (push) { nx += push.dx; ny += push.dy; }
+        }
+      }
+    }
+    ent.x = clamp(nx, ent.r + 6, WORLD - ent.r - 6);
+    ent.y = clamp(ny, ent.r + 6, WORLD - ent.r - 6);
+  }
+
+  function blockedAt(x, y, pad) {
+    const c = worldToCell(x, y);
+    if (walls.has(cellKey(c.cx, c.cy))) return 'wall';
+    for (const o of obstacles) {
+      if (o.alive && dist(x, y, o.x, o.y) < o.r + (pad || 0)) return o.type;
+    }
+    return null;
+  }
+
+  function hasLineOfSight(x1, y1, x2, y2) {
+    const d = dist(x1, y1, x2, y2);
+    const steps = Math.ceil(d / 26);
+    for (let i = 1; i < steps; i++) {
+      const t = i / steps;
+      if (blockedAt(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, 4)) return false;
+    }
+    return true;
+  }
+
+  // ---------- Combat ----------
+  function allFighters() { return [player, ...bots]; }
+  function aliveCount() { let n = 0; for (const f of allFighters()) if (f.alive) n++; return n; }
+
+  function fireWeapon(ent, angle) {
+    const gun = ent.gun;
+    if (!gun) return;
+    const w = WEAPONS[gun.kind];
+    if (ent.isPlayer) {
+      if (ent.ammo < w.ammoCost) { toast('Out of ammo — grab the yellow boxes'); sfx.denied(); return; }
+      ent.ammo -= w.ammoCost;
+    }
+    const dmg = gunDamage(gun.kind, gun.rarity);
+    for (let i = 0; i < w.pellets; i++) {
+      const a = angle + (Math.random() - 0.5) * 2 * w.spread;
+      bullets.push({
+        x: ent.x + Math.cos(a) * (ent.r + 8), y: ent.y + Math.sin(a) * (ent.r + 8),
+        vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed,
+        dmg, owner: ent, range: w.range, traveled: 0, kind: gun.kind,
+      });
+    }
+    ent.muzzleT = 0.05;
+    if (ent.isPlayer || dist(ent.x, ent.y, player.x, player.y) < 900) sfx.shoot(gun.kind);
+    if (ent.isPlayer) shakeT = Math.max(shakeT, gun.kind === 'shotgun' || gun.kind === 'sniper' ? 0.12 : 0.05);
+  }
+
+  function swingPickaxe(ent) {
+    ent.swingT = 0;
+    sfx.swing();
+  }
+
+  function resolveSwing(ent) {
+    const w = WEAPONS.pickaxe;
+    let hitSomething = false;
+    for (const o of obstacles) {
+      if (!o.alive) continue;
+      const d = dist(ent.x, ent.y, o.x, o.y);
+      if (d > w.range + o.r) continue;
+      const angTo = Math.atan2(o.y - ent.y, o.x - ent.x);
+      let da = Math.abs(angTo - ent.aim);
+      if (da > Math.PI) da = Math.PI * 2 - da;
+      if (da > 1.05) continue;
+      o.hp -= w.harvest;
+      hitSomething = true;
+      const gain = o.type === 'tree' ? 12 : o.type === 'rock' ? 15 : 10;
+      if (ent.mats < MATS_CAP) {
+        ent.mats = Math.min(MATS_CAP, ent.mats + gain);
+        if (ent.isPlayer) addFloat(o.x, o.y - o.r - 8, '+' + gain, '#c9f0ff');
+      }
+      spawnChips(o);
+      if (o.hp <= 0) destroyObstacle(o, ent);
+      break;
+    }
+    // Walls can be pickaxed down (~3 swings) so you can never brick yourself in.
+    if (!hitSomething) {
+      const tx = ent.x + Math.cos(ent.aim) * GRID * 0.95;
+      const ty = ent.y + Math.sin(ent.aim) * GRID * 0.95;
+      const cw = worldToCell(tx, ty);
+      const wk = cellKey(cw.cx, cw.cy);
+      const wall = walls.get(wk);
+      if (wall) {
+        wall.hp -= 55;
+        if (wall.hp <= 0) walls.delete(wk);
+        spark(tx, ty, '#c9a06a');
+        hitSomething = true;
+      }
+    }
+    for (const f of allFighters()) {
+      if (f === ent || !f.alive) continue;
+      const d = dist(ent.x, ent.y, f.x, f.y);
+      if (d > w.range + f.r) continue;
+      const angTo = Math.atan2(f.y - ent.y, f.x - ent.x);
+      let da = Math.abs(angTo - ent.aim);
+      if (da > Math.PI) da = Math.PI * 2 - da;
+      if (da > 1.05) continue;
+      dealDamage(ent, f, w.damage);
+      hitSomething = true;
+      break;
+    }
+    if (hitSomething) sfx.chop();
+  }
+
+  function destroyObstacle(o, by) {
+    o.alive = false;
+    if (by && by.mats < MATS_CAP) by.mats = Math.min(MATS_CAP, by.mats + 15);
+    if (o.type === 'crate') {
+      const n = 1 + (rng() < 0.6 ? 1 : 0);
+      for (let i = 0; i < n; i++) {
+        const a = rng() * Math.PI * 2;
+        items.push({ ...rollLoot(rng), x: o.x + Math.cos(a) * 20, y: o.y + Math.sin(a) * 20, bob: rng() * Math.PI * 2 });
+      }
+    }
+    for (let i = 0; i < 10; i++) spawnChips(o);
+  }
+
+  function dealDamage(attacker, victim, dmg) {
+    if (!victim.alive) return;
+    if (attacker && !attacker.isPlayer && victim.isPlayer) dmg = Math.round(dmg * 0.75); // bots pull punches vs you
+    const res = applyDamage(victim, dmg);
+    victim.hurtT = 0.25;
+    addFloat(victim.x, victim.y - victim.r - 12, String(Math.round(dmg)), res.toShield > 0 ? '#7fc4ff' : '#ffd35e');
+    if (attacker === player) sfx.hit();
+    if (victim.isPlayer) { sfx.hurt(); shakeT = Math.max(shakeT, 0.15); }
+    if (res.died) onDeath(victim, attacker);
+  }
+
+  function onDeath(victim, killer) {
+    victim.alive = false;
+    if (killer && killer !== victim) {
+      killer.kills++; // in-flight bullets still count after the shooter dies
+      if (killer === player && state !== 'play') bakeEndStats();
+    }
+    const who = killer ? killer.name : 'The storm';
+    feed(who + ' eliminated ' + victim.name, killer === player || victim.isPlayer);
+    if (killer === player) sfx.elim();
+    // Death drops.
+    if (victim.gun) items.push({ type: 'gun', kind: victim.gun.kind, rarity: victim.gun.rarity, x: victim.x, y: victim.y, bob: 0 });
+    items.push({ type: 'ammo', n: 24, x: victim.x + 24, y: victim.y + 10, bob: 1 });
+    if (rng() < 0.5) items.push({ type: 'shield', n: 50, x: victim.x - 22, y: victim.y + 14, bob: 2 });
+    for (let i = 0; i < 12; i++) {
+      particles.push({ x: victim.x, y: victim.y, vx: (Math.random() - 0.5) * 260, vy: (Math.random() - 0.5) * 260, t: 0, life: 0.6, color: victim.color, size: 4 });
+    }
+    checkEnd();
+  }
+
+  let playerPlacement = 0;
+  function bakeEndStats() {
+    const elims = '<b>' + player.kills + '</b> elimination' + (player.kills === 1 ? '' : 's');
+    if (state === 'over') ui.endStats.innerHTML = 'You placed <b>#' + playerPlacement + '</b> of 24 &nbsp;·&nbsp; ' + elims;
+    else if (state === 'win') ui.endStats.innerHTML = 'Last one standing out of 24 &nbsp;·&nbsp; ' + elims;
+  }
+  function checkEnd() {
+    const n = aliveCount();
+    if (!player.alive && state === 'play') {
+      state = 'over';
+      playerPlacement = n + 1;
+      ui.endTitle.textContent = 'Eliminated';
+      bakeEndStats();
+      ui.end.classList.remove('hidden');
+      sfx.lose();
+    } else if (player.alive && n === 1 && state === 'play') {
+      state = 'win';
+      ui.endTitle.innerHTML = '<span class="gold">#1 Champion</span>';
+      bakeEndStats();
+      ui.end.classList.remove('hidden');
+      sfx.win();
+    }
+  }
+
+  // ---------- Building ----------
+  function tryBuild(p) {
+    if (state !== 'play' || paused || !p.alive) return;
+    if (p.mats < WALL_COST) { toast('Need ' + WALL_COST + ' mats — hit trees with your pickaxe'); sfx.denied(); return; }
+    const tx = p.x + Math.cos(p.aim) * GRID * 0.95;
+    const ty = p.y + Math.sin(p.aim) * GRID * 0.95;
+    const { cx, cy } = worldToCell(tx, ty);
+    if (cx < 0 || cy < 0 || cx * GRID >= WORLD || cy * GRID >= WORLD) return;
+    const key = cellKey(cx, cy);
+    if (walls.has(key)) { toast('Wall already there'); return; }
+    const rect = cellRect(cx, cy);
+    for (const f of allFighters()) {
+      if (f.alive && circleRectResolve(f.x, f.y, f.r, rect)) { toast('Blocked'); sfx.denied(); return; }
+    }
+    for (const o of obstacles) {
+      if (o.alive && pointInRect(o.x, o.y, rect)) { toast('Blocked'); sfx.denied(); return; }
+    }
+    for (const it of items) {
+      if (pointInRect(it.x, it.y, rect)) { toast('Blocked — loot in the way'); sfx.denied(); return; }
+    }
+    walls.set(key, { cx, cy, hp: WALL_HP, max: WALL_HP });
+    p.mats -= WALL_COST;
+    sfx.build();
+  }
+
+  // ---------- Loot ----------
+  let nearGun = null;
+  function trySwap() {
+    if (!nearGun || !player.alive) return;
+    const idx = items.indexOf(nearGun);
+    if (idx < 0) { nearGun = null; return; }
+    const old = player.gun;
+    player.gun = { kind: nearGun.kind, rarity: nearGun.rarity };
+    items.splice(idx, 1);
+    if (old) items.push({ type: 'gun', kind: old.kind, rarity: old.rarity, x: player.x, y: player.y, bob: 0 });
+    player.slot = 2;
+    sfx.pickup();
+    updateHUD();
+  }
+
+  function updateLoot(dt) {
+    nearGun = null;
+    let nearGunD = 52;
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i];
+      it.bob += dt * 3;
+      // Player pickup.
+      if (player.alive) {
+        const d = dist(it.x, it.y, player.x, player.y);
+        if (it.type === 'gun') {
+          if (d < nearGunD) { nearGun = it; nearGunD = d; }
+          if (d < 34 && !player.gun) {
+            player.gun = { kind: it.kind, rarity: it.rarity };
+            player.slot = 2;
+            items.splice(i, 1); sfx.pickup(); continue;
+          }
+        } else if (d < 34 && pickupApply(player, it)) {
+          addFloat(player.x, player.y - 30, itemLabel(it), '#b7ffbf');
+          items.splice(i, 1); sfx.pickup(); continue;
+        }
+      }
+      // Bot pickup (cheap: only when close).
+      for (const b of bots) {
+        if (!b.alive) continue;
+        const d = dist(it.x, it.y, b.x, b.y);
+        if (d > 30) continue;
+        if (it.type === 'gun') {
+          if (!b.gun || gunScore(it.kind, it.rarity) > gunScore(b.gun.kind, b.gun.rarity) * 1.1) {
+            const old = b.gun;
+            b.gun = { kind: it.kind, rarity: it.rarity };
+            items.splice(i, 1);
+            if (old) items.push({ type: 'gun', kind: old.kind, rarity: old.rarity, x: b.x, y: b.y, bob: 0 });
+          }
+        } else if ((it.type === 'medkit' || it.type === 'shield') && pickupApply(b, it)) {
+          items.splice(i, 1);
+        }
+        break;
+      }
+    }
+    if (nearGun && player.alive) {
+      const better = !player.gun || gunScore(nearGun.kind, nearGun.rarity) > gunScore(player.gun.kind, player.gun.rarity);
+      ui.prompt.innerHTML = '<b>E</b> — take ' + WEAPONS[nearGun.kind].name + ' <span style="color:' + RARITY_COLORS[nearGun.rarity] + '">(' + nearGun.rarity + ')</span>' + (better ? ' ▲' : '');
+      ui.prompt.classList.remove('hidden');
+    } else {
+      ui.prompt.classList.add('hidden');
+    }
+  }
+
+  function itemLabel(it) {
+    if (it.type === 'ammo') return '+' + it.n + ' ammo';
+    if (it.type === 'medkit') return '+HP';
+    if (it.type === 'shield') return '+Shield';
+    if (it.type === 'mats') return '+' + it.n + ' mats';
+    return '';
+  }
+
+  // ---------- Bots ----------
+  function nearestEnemy(b, range) {
+    let best = null, bd = range;
+    for (const f of allFighters()) {
+      if (f === b || !f.alive) continue;
+      const d = dist(b.x, b.y, f.x, f.y);
+      if (d < bd) { bd = d; best = f; }
+    }
+    return best;
+  }
+
+  function updateBot(b, dt) {
+    if (!b.alive) return;
+    b.thinkT -= dt;
+    const outside = dist(b.x, b.y, storm.x, storm.y) > storm.r - 70;
+    if (b.thinkT <= 0) {
+      b.thinkT = 0.3 + Math.random() * 0.3;
+      b.target = nearestEnemy(b, 560);
+      if (outside) {
+        const a = Math.atan2(storm.y - b.y, storm.x - b.x) + (Math.random() - 0.5) * 0.5;
+        b.wp = { x: b.x + Math.cos(a) * 420, y: b.y + Math.sin(a) * 420 };
+      } else if (!b.wp || dist(b.x, b.y, b.wp.x, b.wp.y) < 50 || Math.random() < 0.12) {
+        const a = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * Math.max(80, storm.r - 120);
+        b.wp = { x: storm.x + Math.cos(a) * rr, y: storm.y + Math.sin(a) * rr };
+      }
+    }
+    let mvx = 0, mvy = 0;
+    const t = b.target;
+    if (t && t.alive && !outside) {
+      const d = dist(b.x, b.y, t.x, t.y);
+      const w = WEAPONS[b.gun.kind];
+      const want = Math.min(w.range * 0.55, 320);
+      const ang = Math.atan2(t.y - b.y, t.x - b.x);
+      b.aim = ang;
+      const sa = ang + (Math.PI / 2) * b.strafeDir;
+      mvx = Math.cos(sa) * 0.8; mvy = Math.sin(sa) * 0.8;
+      if (d > want + 50) { mvx += Math.cos(ang); mvy += Math.sin(ang); }
+      else if (d < want - 60) { mvx -= Math.cos(ang); mvy -= Math.sin(ang); }
+      if (Math.random() < dt * 0.8) b.strafeDir *= -1;
+      b.losT -= dt;
+      if (b.losT <= 0) { b.losT = 0.2; b.hasLOS = hasLineOfSight(b.x, b.y, t.x, t.y); }
+      b.fireT -= dt;
+      if (b.hasLOS && d < w.range * 0.85 && b.fireT <= 0) {
+        b.fireT = 1 / (w.rate * 0.7) + Math.random() * 0.2;
+        const err = (Math.random() - 0.5) * 2 * b.aimErr * (0.6 + d / 600);
+        fireWeapon(b, ang + err);
+      }
+    } else if (b.wp) {
+      const ang = Math.atan2(b.wp.y - b.y, b.wp.x - b.x);
+      b.aim = ang;
+      mvx = Math.cos(ang); mvy = Math.sin(ang);
+      // Nudge around obstacles.
+      const px = b.x + mvx * 40, py = b.y + mvy * 40;
+      if (blockedAt(px, py, b.r)) { const s = Math.random() < 0.5 ? 1 : -1; mvx = Math.cos(ang + s * 1.1); mvy = Math.sin(ang + s * 1.1); }
+    }
+    moveEntity(b, mvx, mvy, BOT_SPEED * b.speedMult * (outside ? 1.22 : 1), dt);
+  }
+
+  // ---------- Bullets ----------
+  function updateBullets(dt) {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const bl = bullets[i];
+      let dead = false;
+      const SUB = 2;
+      for (let s = 0; s < SUB && !dead; s++) {
+        bl.x += bl.vx * dt / SUB;
+        bl.y += bl.vy * dt / SUB;
+        bl.traveled += Math.hypot(bl.vx, bl.vy) * dt / SUB;
+        if (bl.x < 0 || bl.y < 0 || bl.x > WORLD || bl.y > WORLD || bl.traveled > bl.range) { dead = true; break; }
+        // Walls.
+        const c = worldToCell(bl.x, bl.y);
+        const wk = cellKey(c.cx, c.cy);
+        const wall = walls.get(wk);
+        if (wall) {
+          wall.hp -= bl.dmg;
+          if (wall.hp <= 0) walls.delete(wk);
+          spark(bl.x, bl.y, '#c9a06a'); dead = true; break;
+        }
+        // Obstacles.
+        for (const o of obstacles) {
+          if (!o.alive) continue;
+          if (dist(bl.x, bl.y, o.x, o.y) < o.r) {
+            o.hp -= bl.dmg;
+            if (o.hp <= 0) destroyObstacle(o, bl.owner);
+            spark(bl.x, bl.y, o.type === 'rock' ? '#9aa3ad' : '#8a6a48'); dead = true; break;
+          }
+        }
+        if (dead) break;
+        // Fighters.
+        for (const f of allFighters()) {
+          if (!f.alive || f === bl.owner) continue;
+          if (dist(bl.x, bl.y, f.x, f.y) < f.r + 2) {
+            dealDamage(bl.owner, f, bl.dmg);
+            spark(bl.x, bl.y, '#ffd35e'); dead = true; break;
+          }
+        }
+      }
+      if (dead) bullets.splice(i, 1);
+    }
+  }
+
+  // ---------- Particles / floats / feed ----------
+  function spark(x, y, color) {
+    for (let i = 0; i < 4; i++) {
+      particles.push({ x, y, vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200, t: 0, life: 0.25, color, size: 2.5 });
+    }
+  }
+  function spawnChips(o) {
+    const color = o.type === 'tree' ? '#7fbf6a' : o.type === 'rock' ? '#aab3bd' : '#d0a468';
+    particles.push({ x: o.x + (Math.random() - 0.5) * o.r, y: o.y + (Math.random() - 0.5) * o.r, vx: (Math.random() - 0.5) * 180, vy: -60 - Math.random() * 120, t: 0, life: 0.5, color, size: 3 });
+  }
+  function addFloat(x, y, txt, color) {
+    floats.push({ x, y, txt, color, t: 0 });
+  }
+  function feed(msg, highlight) {
+    const d = document.createElement('div');
+    d.textContent = msg;
+    if (highlight) d.className = 'me';
+    ui.killfeed.prepend(d);
+    while (ui.killfeed.children.length > 5) ui.killfeed.removeChild(ui.killfeed.lastChild);
+    setTimeout(() => { if (d.parentNode) d.parentNode.removeChild(d); }, 5000);
+  }
+  let toastTimer = null;
+  function toast(msg) {
+    ui.toast.textContent = msg;
+    ui.toast.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => ui.toast.classList.add('hidden'), 1600);
+  }
+
+  // ---------- Update ----------
+  function update(dt) {
+    gameT += dt;
+    storm = stormAt(circles, STORM_SCHEDULE, gameT);
+
+    // Storm phase announcements.
+    if (storm.mode === 'shrink' && !stormWasShrink) {
+      ui.stormNotice.textContent = 'STORM SHRINKING';
+      ui.stormNotice.classList.remove('hidden');
+      setTimeout(() => ui.stormNotice.classList.add('hidden'), 2200);
+    }
+    stormWasShrink = storm.mode === 'shrink';
+
+    // Player.
+    if (player.alive) {
+      let dx = 0, dy = 0;
+      if (keys['w'] || keys['arrowup']) dy -= 1;
+      if (keys['s'] || keys['arrowdown']) dy += 1;
+      if (keys['a'] || keys['arrowleft']) dx -= 1;
+      if (keys['d'] || keys['arrowright']) dx += 1;
+      const sprint = (keys['shift']) ? SPRINT_MULT : 1;
+      moveEntity(player, dx, dy, PLAYER_SPEED * sprint, dt);
+      player.aim = Math.atan2(mouse.y - (player.y - camY + H / 2), mouse.x - (player.x - camX + W / 2));
+      if (dist(player.x, player.y, storm.x, storm.y) > storm.r) {
+        stormSoundT -= dt;
+        if (stormSoundT <= 0) { sfx.storm(); stormSoundT = 0.9; }
+      }
+
+      player.fireT -= dt;
+      if (player.swingT >= 0) {
+        player.swingT += dt;
+        if (player.swingT > 0.12 && !player.swingHit) { player.swingHit = true; resolveSwing(player); }
+        if (player.swingT > 0.28) { player.swingT = -1; player.swingHit = false; }
+      }
+      const firing = mouse.down || keys[' ']; // Space fires too, so you can move and shoot from the keyboard
+      if (firing && !paused) {
+        if (player.slot === 1) {
+          if (!player.gun && gameT - noGunHintT > 4) { noGunHintT = gameT; toast('No gun yet! Walk over one on the ground (glowing rings) to pick it up'); }
+          if (player.swingT < 0 && player.fireT <= 0) { swingPickaxe(player); player.fireT = 1 / WEAPONS.pickaxe.rate; }
+        } else if (player.gun && player.fireT <= 0) {
+          fireWeapon(player, player.aim);
+          player.fireT = 1 / WEAPONS[player.gun.kind].rate;
+        }
+      }
+    }
+
+    // Bots.
+    for (const b of bots) updateBot(b, dt);
+
+    // Storm damage.
+    for (const f of allFighters()) {
+      if (!f.alive) continue;
+      if (dist(f.x, f.y, storm.x, storm.y) > storm.r) {
+        f.stormAcc += storm.dps * dt;
+        if (f.stormAcc >= 1) {
+          const dmg = Math.floor(f.stormAcc);
+          f.stormAcc -= dmg;
+          if (f.isPlayer) addFloat(f.x, f.y - 30, '-' + dmg, '#c9a2ff');
+          if (applyStormDamage(f, dmg)) onDeath(f, null);
+        }
+      } else {
+        f.stormAcc = 0;
+      }
+      if (f.hurtT > 0) f.hurtT -= dt;
+      if (f.muzzleT > 0) f.muzzleT -= dt;
+    }
+
+    updateBullets(dt);
+    updateLoot(dt);
+
+    // Particles & floats.
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.t += dt;
+      if (p.t > p.life) { particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vx *= 0.92; p.vy *= 0.92;
+    }
+    for (let i = floats.length - 1; i >= 0; i--) {
+      const f = floats[i];
+      f.t += dt;
+      if (f.t > 0.9) floats.splice(i, 1);
+    }
+
+    // Camera follows player.
+    camX += (player.x - camX) * Math.min(1, dt * 7);
+    camY += (player.y - camY) * Math.min(1, dt * 7);
+    const loX = W / 2 - 200, hiX = WORLD - W / 2 + 200;
+    const loY = H / 2 - 200, hiY = WORLD - H / 2 + 200;
+    camX = loX > hiX ? WORLD / 2 : clamp(camX, loX, hiX);
+    camY = loY > hiY ? WORLD / 2 : clamp(camY, loY, hiY);
+
+    updateHUD();
+  }
+
+  // ---------- HUD ----------
+  function fmtTime(s) {
+    s = Math.max(0, Math.ceil(s));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  function updateHUD() {
+    ui.alive.textContent = aliveCount();
+    ui.kills.textContent = player.kills;
+    ui.hpFill.style.transform = 'scaleX(' + (player.hp / 100) + ')';
+    ui.shFill.style.transform = 'scaleX(' + (player.shield / 100) + ')';
+    ui.hpNum.textContent = Math.max(0, Math.ceil(player.hp));
+    ui.shNum.textContent = Math.ceil(player.shield);
+    ui.ammo.textContent = player.ammo;
+    ui.mats.textContent = player.mats;
+    ui.slot1.classList.toggle('active', player.slot === 1);
+    ui.slot2.classList.toggle('active', player.slot === 2);
+    if (player.gun) {
+      const w = WEAPONS[player.gun.kind];
+      ui.gunName.textContent = w.name;
+      ui.gunName.style.color = RARITY_COLORS[player.gun.rarity];
+      ui.gunSub.textContent = player.gun.rarity + ' · ' + gunDamage(player.gun.kind, player.gun.rarity) + ' dmg';
+    } else {
+      ui.gunName.textContent = '—';
+      ui.gunName.style.color = '';
+      ui.gunSub.textContent = 'find a weapon';
+    }
+    const inStorm = player.alive && dist(player.x, player.y, storm.x, storm.y) > storm.r;
+    if (storm.mode === 'wait') { ui.stormK.textContent = 'Storm shrinks in'; ui.stormV.textContent = fmtTime(storm.timeLeft); }
+    else if (storm.mode === 'shrink') { ui.stormK.textContent = 'Storm shrinking'; ui.stormV.textContent = fmtTime(storm.timeLeft); }
+    else { ui.stormK.textContent = 'Final storm'; ui.stormV.textContent = '—'; }
+    ui.stormPill.classList.toggle('warn', inStorm);
+    if (inStorm) ui.stormK.textContent = 'You are in the storm';
+  }
+
+  // ---------- Render ----------
+  // Pre-rendered grass tile.
+  const tile = document.createElement('canvas');
+  tile.width = tile.height = 256;
+  (function makeTile() {
+    const t = tile.getContext('2d');
+    t.fillStyle = '#4c9e55';
+    t.fillRect(0, 0, 256, 256);
+    const trng = mulberry32(1234);
+    for (let i = 0; i < 220; i++) {
+      t.fillStyle = trng() < 0.5 ? 'rgba(61,132,70,0.55)' : 'rgba(94,178,104,0.5)';
+      const x = trng() * 256, y = trng() * 256, r = 1 + trng() * 2.6;
+      t.beginPath(); t.arc(x, y, r, 0, Math.PI * 2); t.fill();
+    }
+    for (let i = 0; i < 8; i++) {
+      t.fillStyle = 'rgba(120,190,110,0.14)';
+      t.beginPath(); t.arc(trng() * 256, trng() * 256, 26 + trng() * 40, 0, Math.PI * 2); t.fill();
+    }
+  })();
+  let grassPattern = null;
+  const BODY_FONT = "-apple-system, 'Segoe UI', system-ui, sans-serif";
+
+  function render() {
+    if (!grassPattern) grassPattern = ctx.createPattern(tile, 'repeat');
+    ctx.clearRect(0, 0, W, H);
+
+    let ox = 0, oy = 0;
+    if (shakeT > 0) { ox = (Math.random() - 0.5) * 8 * shakeT * 8; oy = (Math.random() - 0.5) * 8 * shakeT * 8; }
+    ctx.save();
+    ctx.translate(Math.round(-camX + W / 2 + ox), Math.round(-camY + H / 2 + oy));
+
+    // Water beyond the island.
+    ctx.fillStyle = '#1b3a5c';
+    ctx.fillRect(camX - W, camY - H, W * 2, H * 2);
+    // Island.
+    ctx.fillStyle = '#c8b273';
+    ctx.fillRect(-14, -14, WORLD + 28, WORLD + 28);
+    ctx.fillStyle = grassPattern;
+    ctx.fillRect(0, 0, WORLD, WORLD);
+
+    // Loot items.
+    for (const it of items) {
+      if (!onScreen(it.x, it.y, 40)) continue;
+      const bobY = Math.sin(it.bob) * 3;
+      if (it.type === 'gun') {
+        ctx.strokeStyle = RARITY_COLORS[it.rarity];
+        ctx.globalAlpha = 0.5 + 0.2 * Math.sin(it.bob * 1.7);
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(it.x, it.y, 17, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = RARITY_COLORS[it.rarity];
+        ctx.fillRect(it.x - 11, it.y - 4 + bobY, 22, 7);
+        ctx.fillRect(it.x + 2, it.y - 8 + bobY, 8, 5);
+        ctx.fillStyle = '#1a1626';
+        ctx.fillRect(it.x - 6, it.y + 1 + bobY, 4, 6);
+      } else if (it.type === 'ammo') {
+        ctx.fillStyle = '#e6c84e'; ctx.fillRect(it.x - 8, it.y - 6 + bobY, 16, 12);
+        ctx.fillStyle = '#8f7a22'; ctx.fillRect(it.x - 8, it.y - 6 + bobY, 16, 3);
+      } else if (it.type === 'medkit') {
+        ctx.fillStyle = '#f2f5f7'; ctx.fillRect(it.x - 9, it.y - 7 + bobY, 18, 14);
+        ctx.fillStyle = '#e05252';
+        ctx.fillRect(it.x - 2, it.y - 5 + bobY, 4, 10); ctx.fillRect(it.x - 6, it.y - 1 + bobY, 12, 4);
+      } else if (it.type === 'shield') {
+        ctx.fillStyle = '#4aa8ff';
+        ctx.beginPath(); ctx.arc(it.x, it.y + 2 + bobY, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(it.x - 3, it.y - 9 + bobY, 6, 6);
+        ctx.fillStyle = '#8fd0ff'; ctx.fillRect(it.x - 3, it.y - 11 + bobY, 6, 3);
+      } else if (it.type === 'mats') {
+        ctx.fillStyle = '#b08348'; ctx.fillRect(it.x - 10, it.y - 3 + bobY, 20, 5);
+        ctx.fillStyle = '#8a6538'; ctx.fillRect(it.x - 10, it.y + 2 + bobY, 20, 4);
+      }
+    }
+
+    // Obstacles (trunks/rocks/crates below fighters).
+    for (const o of obstacles) {
+      if (!o.alive || !onScreen(o.x, o.y, 80)) continue;
+      if (o.type === 'tree') {
+        ctx.fillStyle = '#6b4a2e';
+        ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#57381f';
+        ctx.beginPath(); ctx.arc(o.x - 4, o.y - 4, o.r * 0.5, 0, Math.PI * 2); ctx.fill();
+      } else if (o.type === 'rock') {
+        ctx.fillStyle = '#8d97a3';
+        ctx.beginPath();
+        for (let i = 0; i < 7; i++) {
+          const a = (i / 7) * Math.PI * 2;
+          const rr = o.r * (0.85 + 0.3 * Math.abs(Math.sin(a * 3 + o.seed * 9)));
+          const px = o.x + Math.cos(a) * rr, py = o.y + Math.sin(a) * rr;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.14)';
+        ctx.beginPath(); ctx.arc(o.x - o.r * 0.3, o.y - o.r * 0.3, o.r * 0.42, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillStyle = '#a8804e';
+        ctx.fillRect(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2);
+        ctx.strokeStyle = '#7c5c34'; ctx.lineWidth = 3;
+        ctx.strokeRect(o.x - o.r + 2, o.y - o.r + 2, o.r * 2 - 4, o.r * 2 - 4);
+        ctx.fillStyle = '#ffb03a';
+        ctx.fillRect(o.x - o.r, o.y - 3, o.r * 2, 6);
+      }
+      if (o.hp < o.max) {
+        const vr = o.type === 'tree' ? o.canopy : o.r; // above the canopy, not under it
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(o.x - 20, o.y - vr - 12, 40, 5);
+        ctx.fillStyle = '#c9f0ff';
+        ctx.fillRect(o.x - 20, o.y - vr - 12, 40 * Math.max(0, o.hp / o.max), 5);
+      }
+    }
+
+    // Walls.
+    for (const w of walls.values()) {
+      const r = cellRect(w.cx, w.cy);
+      if (!onScreen(r.x + GRID / 2, r.y + GRID / 2, GRID)) continue;
+      ctx.fillStyle = '#b08348';
+      ctx.fillRect(r.x + 2, r.y + 2, r.w - 4, r.h - 4);
+      ctx.strokeStyle = '#7c5c34'; ctx.lineWidth = 3;
+      ctx.strokeRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8);
+      ctx.beginPath();
+      ctx.moveTo(r.x + 4, r.y + r.h / 2); ctx.lineTo(r.x + r.w - 4, r.y + r.h / 2);
+      ctx.stroke();
+      const frac = w.hp / w.max;
+      if (frac < 1) {
+        ctx.fillStyle = 'rgba(0,0,0,' + (0.45 * (1 - frac)) + ')';
+        ctx.fillRect(r.x + 2, r.y + 2, r.w - 4, r.h - 4);
+      }
+    }
+
+    // Fighters.
+    for (const f of allFighters()) {
+      if (!f.alive || !onScreen(f.x, f.y, 60)) continue;
+      // Shadow.
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.beginPath(); ctx.ellipse(f.x, f.y + f.r * 0.65, f.r * 0.9, f.r * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+      // Body.
+      ctx.fillStyle = f.hurtT > 0 ? '#ffffff' : f.color;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.stroke();
+      // Weapon.
+      const wcolor = f.slot === 1 || !f.gun ? '#8a93a1' : RARITY_COLORS[f.gun.rarity];
+      let aimA = f.aim;
+      if (f.isPlayer && f.swingT >= 0) aimA += Math.sin(f.swingT / 0.28 * Math.PI) * 1.2 - 0.6;
+      ctx.strokeStyle = wcolor;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(f.x + Math.cos(aimA) * f.r * 0.4, f.y + Math.sin(aimA) * f.r * 0.4);
+      ctx.lineTo(f.x + Math.cos(aimA) * (f.r + 14), f.y + Math.sin(aimA) * (f.r + 14));
+      ctx.stroke();
+      if (f.muzzleT > 0) {
+        ctx.fillStyle = '#ffe08a';
+        ctx.beginPath(); ctx.arc(f.x + Math.cos(f.aim) * (f.r + 18), f.y + Math.sin(f.aim) * (f.r + 18), 6, 0, Math.PI * 2); ctx.fill();
+      }
+      // Name + health (bots only; the player has the HUD).
+      if (!f.isPlayer) {
+        ctx.font = '600 11px ' + BODY_FONT;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fillText(f.name, f.x, f.y - f.r - 16);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(f.x - 17, f.y - f.r - 12, 34, 4);
+        if (f.shield > 0) { ctx.fillStyle = '#4aa8ff'; ctx.fillRect(f.x - 17, f.y - f.r - 12, 34 * (f.shield / 100), 4); }
+        else { ctx.fillStyle = '#5ee06a'; ctx.fillRect(f.x - 17, f.y - f.r - 12, 34 * (f.hp / 100), 4); }
+      } else {
+        // Direction chevron so you always spot yourself.
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Tree canopies (semi-transparent, drawn above fighters).
+    for (const o of obstacles) {
+      if (!o.alive || o.type !== 'tree' || !onScreen(o.x, o.y, 100)) continue;
+      ctx.fillStyle = 'rgba(47,112,60,0.8)';
+      ctx.beginPath(); ctx.arc(o.x, o.y, o.canopy, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(88,158,88,0.55)';
+      ctx.beginPath(); ctx.arc(o.x - o.canopy * 0.25, o.y - o.canopy * 0.25, o.canopy * 0.55, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Bullets.
+    ctx.fillStyle = '#ffe9a8';
+    for (const bl of bullets) {
+      if (!onScreen(bl.x, bl.y, 20)) continue;
+      ctx.save();
+      ctx.translate(bl.x, bl.y);
+      ctx.rotate(Math.atan2(bl.vy, bl.vx));
+      ctx.fillRect(-7, -1.6, 14, 3.2);
+      ctx.restore();
+    }
+
+    // Particles.
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, 1 - p.t / p.life);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+
+    // Damage floats.
+    ctx.textAlign = 'center';
+    ctx.font = '800 16px ' + BODY_FONT;
+    for (const f of floats) {
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 0.9);
+      ctx.fillStyle = f.color;
+      ctx.fillText(f.txt, f.x, f.y - f.t * 44);
+    }
+    ctx.globalAlpha = 1;
+
+    // Storm overlay (purple outside the safe circle).
+    ctx.beginPath();
+    ctx.rect(camX - W, camY - H, W * 2, H * 2);
+    ctx.arc(storm.x, storm.y, storm.r, 0, Math.PI * 2, true);
+    ctx.fillStyle = 'rgba(122, 63, 242, 0.36)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(186, 128, 255, 0.9)';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(storm.x, storm.y, storm.r, 0, Math.PI * 2); ctx.stroke();
+
+    // Build preview cell when holding mats and pickaxe... always show faint cell ahead.
+    if (state === 'play' && player.alive && player.mats >= WALL_COST) {
+      const tx = player.x + Math.cos(player.aim) * GRID * 0.95;
+      const ty = player.y + Math.sin(player.aim) * GRID * 0.95;
+      const cc = worldToCell(tx, ty);
+      if (!walls.has(cellKey(cc.cx, cc.cy))) {
+        const r = cellRect(cc.cx, cc.cy);
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.strokeRect(r.x + 3, r.y + 3, r.w - 6, r.h - 6);
+        ctx.setLineDash([]);
+      }
+    }
+
+    ctx.restore();
+
+    // Player-in-storm vignette.
+    if (state === 'play' && player.alive && dist(player.x, player.y, storm.x, storm.y) > storm.r) {
+      const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.7);
+      g.addColorStop(0, 'rgba(122,63,242,0)');
+      g.addColorStop(1, 'rgba(122,63,242,0.5)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+    // Hurt flash.
+    if (state === 'play' && !paused && player.hurtT > 0) {
+      ctx.fillStyle = 'rgba(255,60,60,' + (0.28 * player.hurtT / 0.25) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    renderMinimap();
+  }
+
+  function onScreen(x, y, pad) {
+    return x > camX - W / 2 - pad && x < camX + W / 2 + pad && y > camY - H / 2 - pad && y < camY + H / 2 + pad;
+  }
+
+  function renderMinimap() {
+    const S = 160 / WORLD;
+    mctx.clearRect(0, 0, 160, 160);
+    mctx.fillStyle = '#28563a';
+    mctx.fillRect(0, 0, 160, 160);
+    // Storm shading outside current circle.
+    mctx.beginPath();
+    mctx.rect(0, 0, 160, 160);
+    mctx.arc(storm.x * S, storm.y * S, storm.r * S, 0, Math.PI * 2, true);
+    mctx.fillStyle = 'rgba(122,63,242,0.55)';
+    mctx.fill();
+    mctx.strokeStyle = '#c9a2ff';
+    mctx.lineWidth = 1.5;
+    mctx.beginPath(); mctx.arc(storm.x * S, storm.y * S, storm.r * S, 0, Math.PI * 2); mctx.stroke();
+    // Next circle.
+    if (storm.target && storm.mode !== 'final') {
+      mctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      mctx.lineWidth = 1;
+      mctx.beginPath(); mctx.arc(storm.target.x * S, storm.target.y * S, storm.target.r * S, 0, Math.PI * 2); mctx.stroke();
+    }
+    // Player.
+    if (player.alive) {
+      mctx.fillStyle = '#ffffff';
+      mctx.beginPath(); mctx.arc(player.x * S, player.y * S, 3, 0, Math.PI * 2); mctx.fill();
+    }
+  }
+
+  // ---------- Main loop ----------
+  let lastT = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    if (shakeT > 0) shakeT -= dt; // decays in every state, not just unpaused play
+    if (state === 'countdown') {
+      countdownT -= dt;
+      ui.centerText.classList.remove('hidden');
+      ui.centerText.textContent = countdownT > 0 ? String(Math.ceil(countdownT)) : 'GO!';
+      if (countdownT < -0.6) { ui.centerText.classList.add('hidden'); state = 'play'; }
+      render();
+    } else if (state === 'play') {
+      if (!paused) update(dt);
+      render();
+    } else {
+      // Menu and end cards keep the world visible behind them.
+      render();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  el('btnPlay').addEventListener('click', () => { audioInit(); startGame(); });
+  el('btnAgain').addEventListener('click', () => { audioInit(); startGame(); });
+
+  // Boot: build a world behind the menu so it isn't a black screen.
+  startGame();
+  state = 'menu';
+  ui.menu.classList.remove('hidden');
+  ui.centerText.classList.add('hidden');
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</html>

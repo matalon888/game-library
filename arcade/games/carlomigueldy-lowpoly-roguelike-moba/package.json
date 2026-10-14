@@ -1,0 +1,14 @@
+{
+  "name": "lowpoly-roguelike-moba",
+  "version": "1.0.0",
+  "description": "3D low-poly rigged HTML5 roguelike DOTA2-style MOBA with browser p2p multiplayer (WebGPU/WebGL + Three.js)",
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes http-server . -p 5173 -c-1",
+    "dev": "npx --yes http-server . -p 5173 -c-1",
+    "check": "node --check src/main.js && node --check src/game.js && node --check src/hero.js && node --check src/net.js && node --check src/ui.js && node --check scripts/agent-harness.mjs",
+    "harness": "node scripts/agent-harness.mjs"
+  },
+  "keywords": ["threejs", "webgpu", "webgl", "moba", "roguelike", "webrtc", "p2p", "game"],
+  "license": "MIT"
+}

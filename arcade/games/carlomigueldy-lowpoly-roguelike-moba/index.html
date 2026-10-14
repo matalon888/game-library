@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Lowpoly Roguelike MOBA</title>
+<link rel="stylesheet" href="./src/styles.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.webgpu.js",
+    "three/webgl": "https://unpkg.com/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/",
+    "peerjs": "https://esm.sh/peerjs@1.5.4?bundle",
+    "qrcode": "https://esm.sh/qrcode@1.5.4?bundle"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="topbar">
+    <div class="stat" id="stat-gold">Gold: 0</div>
+    <div class="stat" id="stat-wave">Wave: 0</div>
+    <div class="stat" id="stat-level">Lv 1</div>
+    <div class="stat" id="stat-net">Solo</div>
+  </div>
+  <div id="bars">
+    <div class="bar"><div id="hpbar" class="fill hp"></div><span id="hptext">100/100</span></div>
+    <div class="bar"><div id="manabar" class="fill mana"></div><span id="manatext">100/100</span></div>
+    <div class="bar small"><div id="xpbar" class="fill xp"></div></div>
+  </div>
+  <div id="abilities">
+    <div class="ability" data-key="Q"><span class="kb">Q</span><span class="cd"></span><span class="aname">Bolt</span></div>
+    <div class="ability" data-key="W"><span class="kb">W</span><span class="cd"></span><span class="aname">Dash</span></div>
+    <div class="ability" data-key="E"><span class="kb">E</span><span class="cd"></span><span class="aname">Nova</span></div>
+    <div class="ability" data-key="R"><span class="kb">R</span><span class="cd"></span><span class="aname">Storm</span></div>
+  </div>
+  <div id="log"></div>
+</div>
+
+<!-- Upgrade picker (roguelike) -->
+<div id="upgrade" class="overlay hidden">
+  <h2>Level Up — choose a boon</h2>
+  <div id="upgrade-cards"></div>
+</div>
+
+<!-- Death / run over -->
+<div id="gameover" class="overlay hidden">
+  <h2 id="gameover-title">You Fell</h2>
+  <p id="gameover-sub"></p>
+  <button id="btn-restart">New Run</button>
+</div>
+
+<!-- Main menu / lobby -->
+<div id="menu" class="overlay">
+  <h1>LOWPOLY <span>ROGUELIKE</span> MOBA</h1>
+  <p class="tag">Top-down hero brawler · procedural waves · WebGPU/WebGL · browser p2p</p>
+
+  <div class="menu-cols">
+    <div class="panel">
+      <h3>Solo / Host</h3>
+      <button id="btn-solo">Play Solo Run</button>
+      <button id="btn-host">Host Co-op Run</button>
+      <div id="host-info" class="hidden">
+        <div class="invite-row"><label>Invite link</label><input id="invite-link" readonly /><button class="copy" data-copy="invite-link">Copy</button></div>
+        <div class="invite-row"><label>Room code</label><input id="invite-code" readonly /><button class="copy" data-copy="invite-code">Copy</button></div>
+        <div class="qr-wrap"><canvas id="invite-qr"></canvas><small>Scan to join</small></div>
+        <div class="peers" id="peer-list">Waiting for players…</div>
+        <button id="btn-start" class="primary">Start Run</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Join a Friend</h3>
+      <div class="invite-row"><label>Enter code</label><input id="join-code" placeholder="e.g. BRAVE-FOX-42" /></div>
+      <button id="btn-join">Join Run</button>
+      <p id="join-status" class="muted"></p>
+    </div>
+  </div>
+  <p class="hint">Move: right-click / left-click ground · Abilities: Q W E R on cursor · Last-hit creeps for gold.</p>
+</div>
+
+<div id="boot" class="overlay">Loading engine…</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
