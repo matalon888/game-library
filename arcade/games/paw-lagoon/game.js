@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex, puff, starShape } from './geo.js';
 import { makeCat } from './cat.js';
+import { flow } from './kit/flow.js';
 
 const N = 8, HALF = (N - 1) / 2;
 const cx = c => c - HALF, cz = r => r - HALF;
@@ -13,6 +14,7 @@ renderer.localClippingEnabled = true;
 sun.position.set(-3, 16, 7); sun.intensity = 1.5; hemi.intensity = 1.25; sun.shadow.bias = -0.0008; sun.shadow.mapSize.set(1024, 1024);
 const ui = createUI({ title: 'PAW<br>LAGOON', hint: 'Swipe a fruit to match 3', hand: '👆', score: false });
 const save = store('pawlagoon');
+const F = flow('pawlagoon');
 let level = save.get('level', 1);
 
 // ---------------------------------------------------------------- tile kinds
@@ -301,6 +303,7 @@ function levelDef(L) {
   else if (type === 'ice') { icePat(L === 3 ? 14 : 18 + Math.floor(hard * 10)); d.goals.push({ t: 'ice', n: d.ice.length }); d.moves = L === 3 ? 18 : 20; }
   else if (type === 'col2') { d.goals.push({ t: 'col', k: k1, n: 14 + Math.floor(hard * 12) }, { t: 'col', k: k2, n: 14 + Math.floor(hard * 12) }); d.moves = 20; }
   else { crateRows(1, false); d.goals.push({ t: 'col', k: k1, n: 12 + Math.floor(hard * 10) }, { t: 'crate', n: d.crates.length }); d.moves = 20; }
+  const fk = F.k(); d.moves = Math.max(8, Math.round(d.moves / fk)); for (const g of d.goals) if (g.t === 'col') g.n = Math.round(g.n * fk);
   return d;
 }
 function hasMatchAt(r, c) {
@@ -627,12 +630,12 @@ async function winSeq() {
   const best = save.get('stars', {}); best[level] = Math.max(best[level] || 0, stars); save.set('stars', best);
   save.set('level', level + 1); save.set('best', Math.max(save.get('best', 0), score));
   starsEl.innerHTML = [0, 1, 2].map(i => `<i class="${i < stars ? 'on' : ''}" style="animation-delay:${0.15 + i * 0.2}s">★</i>`).join('');
-  state = 'won'; ui.flash(0.5);
+  state = 'won'; F.level(true); ui.flash(0.5);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3((i - 1) * 2.5, 3, 0), 60), i * 160);
   ui.win(level, `Score ${score}`);
 }
 function lose() {
-  state = 'lost'; sfx.fail(); buzz([40, 30, 60]); hero.sad(); pal1.sad(); pal2.sad(); shake = 0.5;
+  state = 'lost'; F.level(false, goals.reduce((a, g) => a + Math.min(1, g.have / g.n), 0) / goals.length); sfx.fail(); buzz([40, 30, 60]); hero.sad(); pal1.sad(); pal2.sad(); shake = 0.5;
   const left = goals.filter(g => g.have < g.n).map(g => `${g.n - g.have} ${g.t === 'col' ? KINDS[g.k].n + (g.n - g.have > 1 ? 's' : '') : g.t === 'crate' ? 'crates' : 'ice'}`).join(' + ');
   ui.lose('OUT OF MOVES', `Just ${left} to go!`);
 }

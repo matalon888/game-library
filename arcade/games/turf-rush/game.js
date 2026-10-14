@@ -1,8 +1,11 @@
 // Turf Rush — original game. Glide out of your turf, draw a loop, close it to claim the land. Don't get your trail cut.
 import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, clamp, lerp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const save = store('turfrush');
+const F = flow('turfrush');
+let fk = 1;
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 42, shadowSize: 16 });
 hemi.intensity = 1.35; sun.intensity = 1.2;
@@ -101,7 +104,7 @@ function makeAvatar(id) {
 // ---------------------------------------------------------------- level
 let goal = 0.15, r = rng(1), elapsed = 0;
 function buildLevel() {
-  r = rng(level * 3301 + 5);
+  r = rng(level * 3301 + 5); fk = F.k();
   G = Math.min(132, 50 + level * 8);
   buildArena();
   for (const p of players) scene.remove(p.g);
@@ -116,8 +119,8 @@ function buildLevel() {
   camPos.set(players[0].x, 26, players[0].z + 13);
 }
 function newPlayer(id) {
-  return { id, g: makeAvatar(id), x: 0, z: 0, h: 0, want: 0, speed: id === 1 ? 6.4 : 4.6 + Math.min(level, 8) * 0.07, cell: -1, out: false, trailCells: [], dead: false, respawn: 0, count: 0,
-    ai: { wps: [], k: 0, think: 0, daring: 0.3 + r() * 0.4 + level * 0.06 }, squash: 0, isP: id === 1 };
+  return { id, g: makeAvatar(id), x: 0, z: 0, h: 0, want: 0, speed: id === 1 ? 6.4 : (4.6 + Math.min(level, 8) * 0.07) * fk, cell: -1, out: false, trailCells: [], dead: false, respawn: 0, count: 0,
+    ai: { wps: [], k: 0, think: 0, daring: (0.3 + r() * 0.4 + level * 0.06) * fk }, squash: 0, isP: id === 1 };
 }
 function spawn(p) {
   const R0 = 4;
@@ -143,7 +146,7 @@ function kill(p, by) {
   dirtyO = true; p.trailCells = []; recount();
   const pos = new THREE.Vector3(p.x, 0.6, p.z);
   burst(scene, pos, [COLORS[p.id], '#ffffff'], 30, { speed: 0.22, up: 0.18, size: 1.3 });
-  if (p.isP) { window.__why = by ? 'bot' + by.id : 'self'; state = 'lost'; sfx.fail(); buzz([50, 30, 80]); ui.flash(0.5); shake = 0.6; ui.lose('CUT OFF!', by ? `${NAMES[by.id - 1]} got you` : 'You hit your own trail'); }
+  if (p.isP) { window.__why = by ? 'bot' + by.id : 'self'; if (state === 'play') F.level(false, Math.min(1, p.count / (G * G) / goal)); state = 'lost'; sfx.fail(); buzz([50, 30, 80]); ui.flash(0.5); shake = 0.6; ui.lose('CUT OFF!', by ? `${NAMES[by.id - 1]} got you` : 'You hit your own trail'); }
   else if (by && by.isP) { score += 50; ui.pop('KILL!', '#ff4fa3', 50, 26); sfx.smash(); buzz([30, 20, 40]); shake = 0.35; }
   else if (Math.hypot(p.x - players[0].x, p.z - players[0].z) < 14) tone(240, 0.12, 'triangle', 0.06, 0.6);
 }
@@ -294,7 +297,7 @@ loop((dt, t) => {
     ui.progress(pct / goal); ui.score((pct * 100).toFixed(1) + '%');
     const rank = 1 + players.filter(q => q !== me && q.count > me.count).length; ui.sub(`Rank ${ord(rank)} · goal ${Math.round(goal * 100)}%`);
     if (state === 'play' && pct >= goal) {
-      state = 'won'; score += Math.round(pct * 1000) + level * 20; best = Math.max(best, score); save.set('best', best);
+      state = 'won'; F.level(true); score += Math.round(pct * 1000) + level * 20; best = Math.max(best, score); save.set('best', best);
       sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, new THREE.Vector3(me.x, 1.5, me.z), 90);
       ui.pop('TURF CLAIMED!', '#ff4fa3', 46, 26); ui.win(level, `${(pct * 100).toFixed(1)}% of the map · rank ${ord(rank)}`);
     }

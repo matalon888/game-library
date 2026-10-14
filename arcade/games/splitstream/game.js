@@ -1,8 +1,10 @@
 // Splitstream — original game. Roller-skate along twin rails above a sunset city: drag to stretch your legs apart or
 // snap them together so each skate stays on its rail; straddle blocks on wide decks, squeeze onto single beams.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('splitstream');
+const F = flow('splitstream');
 let level = ST.get('level', 1), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
 const ui = createUI({ title: 'SPLIT<br>STREAM', hint: 'Drag ← → to stretch your legs', hand: '👆', score: false });
@@ -96,11 +98,11 @@ function buildLevel() {
   scene.fog = new THREE.Fog(th.fog, 30, 120);
   buildScenery(th);
   segs = []; blocks = []; gems = 0; offT = 0; fall = null; endT = 0;
-  speed = SPEED_0 + Math.min(4, level * 0.35);
+  const fk = F.k(); speed = (SPEED_0 + Math.min(4, level * 0.35)) * fk;
   let z = 8, c = 0, g = 1.6;
   const push = (type, len, g1, c1, extra = {}) => { segs.push({ type, z0: z, z1: z - len, g0: g, g1, c0: c, c1, ...extra }); z -= len; g = g1; c = c1; };
   push('twin', 22, 1.6, 0);
-  const L = Math.min(380, 150 + level * 22); const maxG = Math.min(6.2, 3.4 + level * 0.35);
+  const L = Math.min(440, (150 + level * 22) * fk); const maxG = Math.min(6.2, 3.4 + level * 0.35);
   while (z > -L) {
     const r = R(), nc = clamp(c + (R() - 0.5) * 3, -2.5, 2.5);
     if (r < 0.5) push('twin', 9 + R() * 8 - Math.min(4, level * 0.3), 0.9 + R() * (maxG - 0.9), nc);
@@ -171,8 +173,9 @@ function ok(A, s) {
   if (A.type === 'deck') return s > A.s.b + 0.2 && s < A.s.W - 0.05;
   return Math.abs(s - A.g) < RW + 0.12;
 }
-function lose() { state = 'lost'; sfx.fail(); buzz([50, 30, 80]); ui.lose('WIPEOUT!', `${gems} 💎 this run`); }
+function lose() { if (state === 'play') F.level(false, clamp(K.z / endZ, 0, 1)); state = 'lost'; sfx.fail(); buzz([50, 30, 80]); ui.lose('WIPEOUT!', `${gems} 💎 this run`); }
 function win() {
+  if (state === 'play') F.level(true);
   state = 'won'; total += gems; ST.set('gems', total); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   confetti(world, new THREE.Vector3(K.c, 3, K.z - 2), 120); setTimeout(() => confetti(world, new THREE.Vector3(K.c, 3, K.z - 2), 80), 300);
   ui.win(level, `${gems} 💎 collected`);

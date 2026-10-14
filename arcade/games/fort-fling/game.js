@@ -1,6 +1,7 @@
 // Fort Fling — original game. Pull back the wooden slingshot, fling fruit at the greedy raccoons hiding in
 // block forts of wood, glass and stone, and knock every last bandit out before you run out of fruit.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { World, makeBox, makeCircle } from './physics.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 14 });
@@ -18,6 +19,8 @@ css.textContent = `body{--bg1:#5fb8f0;--bg2:#ffe6c2;--ui:#ff7a2f}
 @keyframes fltup{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-170%) scale(1)}}`;
 document.head.appendChild(css);
 const save = store('fortfling');
+const F = flow('fortfling');
+let fk = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0);
 let state = 'ready', score = 0, shots = 3, totalRac = 1;
 
@@ -145,7 +148,7 @@ let world, ents = [], fruit = null, fruitMeshes = [], queue = [], phase = 'aim',
 let pull = new THREE.Vector2(), aiming = false, fortMin = 8, fortMax = 12, slowT = 0, shake = 0, shotIdx = 0, flyT = 0, slowFruitT = 0;
 const R0 = new THREE.Vector2();
 
-function addEnt(body, mesh, kind) { scene.add(mesh); const e = { body, mesh, kind, hp: kind === 'rac' ? 1.0 : MATS[kind].hp, thr: kind === 'rac' ? 0.55 : MATS[kind].thr, alive: true }; body.user = e; world.add(body); ents.push(e); return e; }
+function addEnt(body, mesh, kind) { scene.add(mesh); const e = { body, mesh, kind, hp: (kind === 'rac' ? 1.0 : MATS[kind].hp) * fk, thr: kind === 'rac' ? 0.55 : MATS[kind].thr, alive: true }; body.user = e; world.add(body); ents.push(e); return e; }
 function addBlock(kind, x, y, w, h) {
   const m = MATS[kind], b = makeBox(x, y, w, h, { density: m.density, fric: m.fric, rest: m.rest });
   const mesh = new THREE.Mesh(blockGeo(w, h), blockMat(kind)); mesh.castShadow = mesh.receiveShadow = true;
@@ -160,7 +163,7 @@ function buildLevel() {
   world = new World({ gravity: GRAV, iterations: 12 });
   world.add(makeBox(30, -5, 200, 10, { isStatic: true, fric: 0.8 }));
   world.onHit = onHit;
-  const r = rng(level * 7919 + 13);
+  const r = rng(level * 7919 + 13); fk = F.k();
   const nT = level === 1 ? 1 : level <= 3 ? 1 + (level === 3 ? 1 : 0) : Math.min(3, 2 + Math.floor(r() * Math.min(2, (level - 2) / 3)));
   const maxF = level === 1 ? 1 : level === 2 ? 2 : Math.min(3, 1 + Math.floor(r() * Math.min(3, 1 + level / 3)));
   const pickMat = () => { if (level <= 2) return r() < 0.75 ? 'wood' : 'glass'; const x = r(); return x < 0.45 ? 'wood' : x < 0.75 ? 'glass' : 'stone'; };
@@ -290,7 +293,7 @@ function syncMeshes(t = 0) {
       e.mesh.rotation.z = b.a * 0.25;   // keep faces mostly upright while rolling
       if (e.hit) e.hit = Math.max(0, e.hit - 0.05);
     } else if (e.hit !== undefined) {
-      const m = MATS[e.kind], dmg = 1 - Math.max(0, e.hp) / m.hp; e.mesh.material.color.copy(e.base).multiplyScalar(1 - dmg * 0.35);
+      const m = MATS[e.kind], dmg = 1 - Math.max(0, e.hp) / (m.hp * fk); e.mesh.material.color.copy(e.base).multiplyScalar(1 - dmg * 0.35);
     }
   }
 }
@@ -313,12 +316,12 @@ ui.onTap(w => {
   else if (w === 'lose') { state = 'play'; buildLevel(); }
 });
 function win() {
-  state = 'won'; const bonus = shots * 10000; score += bonus; ui.score(score); sfx.win(); buzz([20, 40, 20]);
+  state = 'won'; F.level(true); const bonus = shots * 10000; score += bonus; ui.score(score); sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3((fortMin + fortMax) / 2, 5, 0), 90);
   if (score > best) { best = score; save.set('best', best); }
   ui.win(level, `${score.toLocaleString()} pts${bonus ? ' · +' + bonus.toLocaleString() + ' spare fruit' : ''}`);
 }
-function lose() { state = 'lost'; sfx.fail(); buzz([40, 30, 60]); const n = racLeft(); ui.lose('OUT OF FRUIT!', `${n} raccoon${n > 1 ? 's' : ''} still snacking`); }
+function lose() { state = 'lost'; F.level(false, 1 - racLeft() / totalRac); sfx.fail(); buzz([40, 30, 60]); const n = racLeft(); ui.lose('OUT OF FRUIT!', `${n} raccoon${n > 1 ? 's' : ''} still snacking`); }
 
 // ------------------------------------------------------------------ main loop
 let acc = 0, T = 0;

@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, rng, clamp, ler
 import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, sparks, skyDome, starField, ease } from './_music/fx.js';
+import { flow } from './kit/flow.js';
 
 const ORDER = ['twinkle', 'neon', 'ode', 'starlight', 'cancan', 'saints', 'mountain', 'minuet', 'turkish', 'elise', 'canon'];
 const COLORS = ['#ff3fa4', '#ffd23f', '#35d6ff', '#9b6bff', '#45f59a', '#ff7a35'];
@@ -20,6 +21,7 @@ const cy = (z) => 1.1 * Math.sin(z * 0.022) + 0.4 * Math.sin(z * 0.061);
 
 const S = store('colorgroove');
 let level = S.get('level', 1), best = S.get('best', 0);
+const F = flow('colorgroove');
 const stage = createStage({ fov: 60, shadows: false });
 const { scene, camera } = stage;
 stage.hemi.intensity = 1.0; stage.sun.intensity = 1.3;
@@ -98,7 +100,7 @@ function buildLevel() {
   sky_ = SKIES[(level - 1) % SKIES.length];
   sky.setColors(sky_.top, sky_.hor, sky_.bot); scene.fog.color.set(sky_.hor); roadMat.uniforms.base.value.set(sky_.road); roadMat.uniforms.edge.value.set(sky_.edge); railMat.color.set(sky_.edge);
   document.body.style.background = `linear-gradient(180deg,${sky_.top},${sky_.hor})`;
-  const hs = hits(track, clamp(0.34 - level * 0.01, 0.24, 0.34)), r = rng(level * 6151 + 5);
+  const fk = F.k(), hs = hits(track, clamp((0.34 - level * 0.01) / fk, 0.22, 0.38)), r = rng(level * 6151 + 5);
   const palette = [0, 1, 2, 3, 4, 5].sort(() => r() - 0.5).slice(0, level < 3 ? 2 : 3);
   // colour sections every 4 bars, each starting with a gate
   const secBars = 4, secOf = (t) => Math.max(0, track.barTimes.findLastIndex(bt => bt <= t + 0.05)) / secBars | 0;
@@ -110,7 +112,7 @@ function buildLevel() {
     lane = clamp(lane + (h.dur < 0.42 ? step : 0), 0, 2); if (h.dur >= 0.42) lane = Math.floor(r() * 3);
     if (i > 0 && h.midi !== hs[i - 1].midi && r() < 0.55) lane = clamp(lane + Math.sign(h.midi - hs[i - 1].midi), 0, 2);
     const balls = [{ lane, col, good: true }];
-    const pWrong = clamp(0.2 + level * 0.07, 0.2, 0.7);
+    const pWrong = clamp((0.2 + level * 0.07) * fk, 0.18, 0.8);
     for (const l of [0, 1, 2]) if (l !== lane && i > 1 && r() < pWrong) balls.push({ lane: l, col: palette[(sec + 1 + Math.floor(r() * (palette.length - 1))) % palette.length], good: false });
     rows.push({ ...h, z: -h.t * VZ, balls, sec, col, done: false });
   });
@@ -165,14 +167,14 @@ function passRow(row, now) {
 }
 const waves = [];
 function crash(b) {
-  state = 'lost'; failAt = clock; player.stop(0.3); synth.fail(); buzz([50, 30, 70]); ui.flash(0.6);
+  state = 'lost'; F.level(false, collected / Math.max(1, targets)); failAt = clock; player.stop(0.3); synth.fail(); buzz([50, 30, 70]); ui.flash(0.6);
   fx.emit(playerBall.position, [COLORS[color], '#ffffff', COLORS[b.col]], 34, { speed: 0.18, up: 0.1, size: 0.6, gravity: 0.006 });
   playerBall.visible = false; pGlow.visible = false;
   best = Math.max(best, score); S.set('best', best);
   ui.lose('WRONG COLOR!', `${Math.round(collected / Math.max(1, targets) * 100)}% · ${score} pts`);
 }
 function win() {
-  state = 'won'; best = Math.max(best, score); S.set('best', best);
+  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 5; k++) fx.emit(playerBall.position.clone().add(new THREE.Vector3((k - 2) * 0.9, 1.5, -3)), [...COLORS, '#ffffff'], 18, { speed: 0.17, up: 0.12, size: 0.6 });
   ui.flash(0.5); buzz([20, 40, 30]); ui.win(level, `${score} pts · ${Math.round(collected / Math.max(1, targets) * 100)}% notes`);
   level++; S.set('level', level);

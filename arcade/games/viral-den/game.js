@@ -1,5 +1,6 @@
 // Viral Den — original idle-vlogger clicker. Tap to film content, grow followers before the trend fades, buy gear that rebuilds your room.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, PALETTES } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { part, merge, canvasTex } from './geo.js';
 
 const S = createStage({ fov: 30, shadowSize: 7 });
@@ -7,6 +8,8 @@ const { scene, camera, sun, hemi, renderer } = S;
 sun.position.set(6, 12, 9); sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0008;
 const ui = createUI({ title: 'VIRAL<br>DEN', hint: 'Tap to film content', hand: '👆' });
 const save = store('vden');
+const F = flow('vden');
+let fk = 1;
 
 // ---------------------------------------------------------------- economy
 const CATS = [
@@ -339,14 +342,15 @@ input({ onDown: () => film() });
 
 // ---------------------------------------------------------------- level flow
 function startLevel() {
-  gained = 0; timeLeft = timeOf(level); hype = 0; viralT = 0;
+  fk = F.k(); gained = 0; timeLeft = timeOf(level) / fk; hype = 0; viralT = 0;
   const P = PALETTES[(level - 1) % PALETTES.length];
   document.body.style.setProperty('--bg1', P.bg[0]); document.body.style.setProperty('--bg2', P.bg[1]); document.body.style.setProperty('--ui', P.ui);
   ui.levels(level); ui.progress(0); ui.sub(`followers · goal ${fmt(goalOf(level))}`); ui.score(fmt(total));
   applyTiers(); refreshHUD();
 }
 function win() {
-  state = 'won'; save.set('level', level + 1); save.set('cash', Math.floor(cash)); save.set('total', Math.floor(total));
+  if (state !== 'play') return;
+  state = 'won'; F.level(true); save.set('level', level + 1); save.set('cash', Math.floor(cash)); save.set('total', Math.floor(total));
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(kai.position.x, 2.6, kai.position.z), 60), i * 160);
   emote('🏆', new THREE.Vector3(kai.position.x, 2.4, kai.position.z), 3);
@@ -354,7 +358,8 @@ function win() {
   refreshHUD();
 }
 function lose() {
-  state = 'lost'; sfx.fail(); buzz([40, 30, 60]);
+  if (state !== 'play') return;
+  state = 'lost'; F.level(false, gained / goalOf(level)); sfx.fail(); buzz([40, 30, 60]);
   save.set('cash', Math.floor(cash)); save.set('total', Math.floor(total));
   ui.lose('TREND OVER', `${Math.round(gained / goalOf(level) * 100)}% of the goal · upgrade your gear!`);
   refreshHUD();
@@ -384,7 +389,7 @@ loop((dt, t) => {
     timeLeft -= sec;
     const p = passive() * sec * (viralT > 0 ? 2 : 1);
     if (p > 0) { gained += p; total += p; cash += p * CASH; passAcc += sec; if (passAcc > 0.5) { passAcc = 0; refreshHUD(); } }
-    hype = Math.max(0, hype - sec * (viralT > 0 ? 0 : 0.28 - Math.min(tiers[3], MAXT) * 0.03));
+    hype = Math.max(0, hype - sec * (viralT > 0 ? 0 : (0.28 - Math.min(tiers[3], MAXT) * 0.03) * fk));
     if (viralT > 0) { viralT -= sec; hype = viralT / 4; if (viralT <= 0) { hype = 0.3; hypeEl.classList.remove('viral'); } }
     ui.progress(gained / goalOf(level)); ui.score(fmt(total));
     const low = timeLeft < 8; timeEl.classList.toggle('low', low); if (low && !wasLow) tone(880, 0.08, 'square', 0.06); wasLow = low;

@@ -1,11 +1,13 @@
 // Drip Doodle — original game. Draw lines with limited ink so the water from the pipe ends up in the glass.
 // Fill it to the dashed line and the glass grins. 2D canvas rendering, own position-based water (physics.js).
 import { createUI, input, loop, sfx, tone, buzz, store, clamp, lerp } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { Water } from './physics.js';
 import { W, H, GLASS, makeLevel, staticSegs, inGlass, glassPts, blockPoly, insideBlocks, pipeBox, emit } from './levels.js';
 
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const save = store('dripdoodle');
+const F = flow('dripdoodle');
 let level = save.get('level', 1), stars = save.get('stars', 0);
 const ui = createUI({ title: 'DRIP<br>DOODLE', hint: 'Draw a line to fill the glass', hand: '✏️', progress: false, score: false });
 const starP = ui.els.win.querySelector('[data-x]'); starP.style.cssText = 'font-size:48px;letter-spacing:6px;color:#ffd23f;text-shadow:0 4px 0 rgba(0,0,0,.2)';
@@ -35,7 +37,7 @@ const toWorld = (cx, cy) => [(cx - ox) / s, (cy - oy) / s];
 let L, sim, state = 'ready', strokes = [], cur = null, inkUsed = 0, tapOpen = false, tapT = 0, emitted = 0, full = 0, endT = 0, frame = 0;
 let fill = 0, shownFill = 0, happyT = 0, glassBounce = 0, pencil = null, botI = 0, botDone = false, fx = [], lastSplash = 0, shake = 0, scratch = 0;
 function startLevel() {
-  L = makeLevel(level);
+  L = makeLevel(level); L.water = Math.max(Math.round(L.target * 1.55), Math.round(L.water / F.k()));   // flow: spare water shrinks for players on a streak
   sim = new Water({ r: 4 }); staticSegs(L, sim);
   strokes = []; cur = null; inkUsed = 0; tapOpen = false; tapT = 0; emitted = 0; full = 0; endT = 0; fill = 0; shownFill = 0; happyT = 0;
   glassBounce = 0; pencil = null; botI = 0; botDone = false; fx = []; frame = 0;
@@ -139,7 +141,7 @@ function update() {
   fx = fx.filter(p => p.life > 0 && p.y < H + 60);
 }
 function win() {
-  state = 'won';
+  state = 'won'; F.level(true);
   const st = starsFor(inkLeft()); stars += st; save.set('stars', stars);
   sfx.win(); buzz([20, 40, 30]); ui.flash(0.45);
   ui.pop(st === 3 ? 'PERFECT!' : st === 2 ? 'GREAT!' : 'NICE!', '#ffd23f', 46, 20);
@@ -147,7 +149,7 @@ function win() {
   glassBounce = 1.4;
   ui.win(level, '★'.repeat(st) + '☆'.repeat(3 - st));
 }
-function lose() { state = 'lost'; sfx.fail(); buzz([40, 30, 40]); shake = 1; ui.lose('SO THIRSTY!', 'Fill it to the dashed line'); }
+function lose() { state = 'lost'; F.level(false, clamp(fill, 0, 1)); sfx.fail(); buzz([40, 30, 40]); shake = 1; ui.lose('SO THIRSTY!', 'Fill it to the dashed line'); }
 
 // ---------------------------------------------------------------- render
 const TEAL = '#5aaca1', TEAL_D = '#3f8a80';

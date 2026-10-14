@@ -3,11 +3,14 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, lerp, clamp, mat, rounded, burst, confetti } from './kit/hc.js';
 import { createSim, stepSim, MATS } from './sim.js';
 import { makeLevel, solution, budgetFor, designCost } from './levels.js';
+import { flow } from './kit/flow.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 16 });
 const { scene, camera, sun, renderer } = stage;
 const ui = createUI({ title: 'GIRDER<br>GO', hint: 'Drag from a red anchor to build', hand: '👆', score: false });
 const save = store('girdergo');
+const F = flow('girdergo');
+let runProg = 0;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = save.get('score', 0);
 const bot = { i: 0, cleared: false, wait: 0 };
 let state = 'ready', mode = 'build', lv, design, sim = null, budget = 0, material = 'road', undoStack = [];
@@ -189,7 +192,7 @@ function buildLevel(keepDesign = false) {
   gridPts = [];
   for (let x = lv.L - 1; x <= lv.R + 1; x++) for (let y = -lv.cliffDepth + 1; y <= 4; y++) if (!inRock(x, y)) gridPts.push([x, y]);
   dotIM.count = gridPts.length; gridPts.forEach(([x, y], i) => { _o.position.set(x, y, 0.95); _o.rotation.set(0, 0, 0); _o.scale.setScalar(1); _o.updateMatrix(); dotIM.setMatrixAt(i, _o.matrix); }); dotIM.instanceMatrix.needsUpdate = true;
-  budget = budgetFor(lv);
+  budget = Math.max(Math.ceil(designCost(solution(lv)) / 100) * 100, Math.ceil(budgetFor(lv) / F.k() / 100) * 100); runProg = 0;
   if (!keepDesign || !design) { design = { nodes: lv.anchors.map(a => ({ x: a.x, y: a.y, fixed: true })), beams: [] }; undoStack = []; }
   buildVehicle(lv.vehicle);
   flag.position.set(lv.R + 1.7, 0, -1.0);
@@ -319,6 +322,7 @@ function carPos(x0, x1, y0, y1, roll = 0) {
 }
 let roll = 0;
 function win() {
+  if (state !== 'won' && state !== 'lost') F.level(true);
   state = 'won'; mode = 'done'; sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3(lv.R + 1.7, 2.5, 0), 90);
   const c = cost(), saved = Math.max(0, budget - c), pts = 100 + Math.round(saved / 10) - broken * 10;
@@ -329,6 +333,7 @@ function win() {
   ui.win(level, `$${c.toLocaleString()} spent · ${broken ? broken + ' beams snapped' : 'nothing snapped'}`);
 }
 function lose(why) {
+  if (state !== 'won' && state !== 'lost') F.level(false, runProg);
   state = 'lost'; mode = 'done'; sfx.fail(); buzz([40, 30, 60]);
   ui.lose(why === 'stuck' ? 'STUCK!' : 'SPLASH!', why === 'stuck' ? 'The car can\'t get across' : 'Add triangles to stiffen it');
 }
@@ -368,7 +373,7 @@ loop((dt60, ts) => {
     nodes = sim.nodes; beams = sim.beams; stress = true;
     const [w0, w1] = sim.wheels; roll += (w1.vx * dt) / lv.vehicle.r;
     carPos(w0.x, w1.x, w0.y, w1.y, roll);
-    const prog = clamp((w0.x - (lv.L - 3.2)) / (lv.R + 0.9 - (lv.L - 3.2)), 0, 1); ui.progress(prog);
+    const prog = clamp((w0.x - (lv.L - 3.2)) / (lv.R + 0.9 - (lv.L - 3.2)), 0, 1); ui.progress(prog); runProg = Math.max(runProg, prog);
     if (w1.x - lastX > 0.3) { lastX = w1.x; stuckT = 0; } else stuckT += dt;
     if (state === 'play') {
       if (w0.x > lv.R + 0.9) win();

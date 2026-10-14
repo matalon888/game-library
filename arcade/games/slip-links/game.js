@@ -1,8 +1,10 @@
 // Slip Links — original game. Chains are knotted over a board of pegs; tap the chain lying on top to slip it free.
 // Inspired by the mechanic of Go Knots 3D (Rollic). All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, mat, rounded, sfx, tone, buzz, burst, confetti, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('sliplinks');
+const F = flow('sliplinks');
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const stage = createStage({ fov: 44, shadowSize: 9 });
 const { scene, camera, sun, renderer } = stage;
@@ -91,7 +93,7 @@ function crossings(a, b) {
   return out;
 }
 function generate() {
-  const r = rng(level * 7919 + 13);
+  const r = rng(level * 7919 + 13), fk = F.k();
   const n = Math.min(7, 2 + Math.floor((level + 1) / 2) - (level === 2 ? 0 : 0));
   const grid = pegGrid(n); S = grid.size;
   const half = S / 2 - 0.35;
@@ -102,7 +104,7 @@ function generate() {
     const cs = [];
     for (let c = 0; c < n; c++) {
       const A = grid.pts[ends[c * 2]], B = grid.pts[ends[c * 2 + 1]];
-      const allowWrap = level >= 3 && r() < Math.min(0.5, 0.15 + level * 0.04);
+      const allowWrap = level >= 3 && r() < Math.min(0.58, (0.15 + level * 0.04) * fk);
       const plan = planPath(A, B, r, grid.pts, used, allowWrap);
       if (plan.wrap >= 0) used.add(plan.wrap);
       cs.push({ a: ends[c * 2], b: ends[c * 2 + 1], wrap: plan.wrap, pts: samplePath(plan.ctrl, half) });
@@ -127,7 +129,7 @@ function generate() {
         if (xs.length > 2) sc -= 2 * (xs.length - 2);
       }
     }
-    const target = n - 1 + Math.floor(level / 3);
+    const target = Math.round((n - 1 + Math.floor(level / 3)) * fk);
     sc -= Math.abs(total - target) * 1.5;
     sc -= touched.filter(t => t === 0).length * 3;
     if (sc > bestScore) { bestScore = sc; bestC = cs; bestC.used = used; }
@@ -288,7 +290,7 @@ function attempt(ch) {
   strikes++; drawStrikes(); combo = 0;
   buzz([30, 40, 30]); tone(180, 0.16, 'square', 0.09, 0.7); setTimeout(() => tone(1400, 0.05, 'triangle', 0.05, 0.9), 40);
   ui.pop(strikes >= 3 ? 'TANGLED!' : 'STUCK!', '#ff4d5e', 40, 24);
-  if (strikes >= 3) { state = 'lost'; setTimeout(() => sfx.fail(), 200); ui.lose('TANGLED!', `${Math.round(cleared / chains.length * 100)}% untied`); }
+  if (strikes >= 3) { state = 'lost'; F.level(false, cleared / chains.length); setTimeout(() => sfx.fail(), 200); ui.lose('TANGLED!', `${Math.round(cleared / chains.length * 100)}% untied`); }
 }
 function slip(ch) {
   ch.removed = true; ch.rem = nowT; cleared++;
@@ -306,7 +308,7 @@ function slip(ch) {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; spin = nowT; score += 25 * level; best = Math.max(best, score); ST.set('best', best);
+  state = 'won'; F.level(true); spin = nowT; score += 25 * level; best = Math.max(best, score); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3((i - 1) * 2, 1.5, 0), 50), i * 150);
   ui.win(level, strikes === 0 ? 'PERFECT UNTIE!' : '');

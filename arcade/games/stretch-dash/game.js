@@ -1,8 +1,10 @@
 // Stretch Dash — original game. Steer a jelly runner through gates that make it taller, shorter, wider or thinner;
 // beams and narrow gaps slice off whatever doesn't fit; spend your size climbing the multiplier stairs at the end.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('stretchdash');
+const F = flow('stretchdash'); let fk = 1;
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 52, shadowSize: 12 });
 const ui = createUI({ title: 'STRETCH<br>DASH', hint: 'Drag to steer', hand: '👆', score: false });
@@ -47,7 +49,7 @@ let camUp = 0, world, rows, gemsArr, gemMesh, stairs, stairZ, finZ, runner, stat
 function buildLevel() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
-  R = rng(level * 613 + 5);
+  R = rng(level * 613 + 5); fk = F.k();
   rows = []; gems = 0; chunks = []; climbStep = -1; endT = 0; mult = 1;
   const nRows = Math.min(14, 5 + level);
   let z = -16;
@@ -73,7 +75,7 @@ function buildLevel() {
       for (const sx of [-1, 1]) { const post = new THREE.Mesh(new THREE.BoxGeometry(0.32, row.h + 0.32, 0.32), mat('#23232e')); post.position.set(sx * (TW / 2 + 0.3), (row.h + 0.32) / 2, z); post.castShadow = true; world.add(post); }
       row.m = bar;
     } else {
-      row.gw = clamp(1.6 - level * 0.05 + R() * 0.8, 0.9, 2.4); row.gx = (R() - 0.5) * (TW - row.gw - 0.6);
+      row.gw = clamp((1.6 - level * 0.05 + R() * 0.8) / fk, 0.8, 2.6); row.gx = (R() - 0.5) * (TW - row.gw - 0.6);
       row.blocks = [];
       for (const sd of [-1, 1]) {
         const x0 = sd < 0 ? -TW / 2 : row.gx + row.gw / 2, x1 = sd < 0 ? row.gx - row.gw / 2 : TW / 2, w = x1 - x0;
@@ -137,9 +139,9 @@ function chop(kind, amount) {
   burst(world, piece.position, ['#ff8a1a', '#ffb347', '#ff5a00'], 16, { speed: 0.12, up: 0.1, size: 0.9, shape: 'sphere' });
   sfx.smash(); buzz([25, 20, 25]); ui.flash(0.25);
 }
-function lose(t) { state = 'lost'; sfx.fail(); buzz([40, 30, 60]); ui.lose(t, `${gems} 💎 collected`); }
+function lose(t) { state = 'lost'; F.level(false, rows.filter(r => r.done).length / rows.length); sfx.fail(); buzz([40, 30, 60]); ui.lose(t, `${gems} 💎 collected`); }
 function win() {
-  state = 'won'; const pts = Math.round(gems * mult); total += pts; ST.set('gems', total); best = Math.max(best, pts); ST.set('best', best);
+  state = 'won'; F.level(true); const pts = Math.round(gems * mult); total += pts; ST.set('gems', total); best = Math.max(best, pts); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   confetti(world, new THREE.Vector3(P.x, P.y + 3, P.z - 1), 110); setTimeout(() => confetti(world, new THREE.Vector3(P.x, P.y + 3, P.z - 1), 70), 300);
   ui.win(level, `x${mult.toFixed(1)}  ·  ${pts} 💎`);
@@ -154,7 +156,7 @@ loop((dt, t) => {
   const s = dt / 60;
   if (state === 'play') {
     if (climbStep < 0) {
-      P.z -= SPEED * s;
+      P.z -= SPEED * fk * s;
       if (botX !== null && !dragging) P.tx = botX;
       P.x = lerp(P.x, P.tx, 0.2 * dt);
       const halfW = 0.36 * P.W;

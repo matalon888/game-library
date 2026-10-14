@@ -1,5 +1,6 @@
 // Rack Attack — original top-down 8-ball. Touch the table to aim (guide line + ghost ball), pull the cue in the bottom panel for power, release to shoot.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { canvasTex } from './geo.js';
 
 const S = createStage({ fov: 30, shadowSize: 7 });
@@ -7,6 +8,8 @@ const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.25; hemi.intensity = 1.25;
 const ui = createUI({ title: 'RACK<br>ATTACK', hint: 'Touch to aim · pull the cue to shoot', hand: '🎱', score: false });
 const save = store('rackattack');
+const F = flow('rackattack');
+let fk = 1;
 let level = save.get('level', 1);
 document.body.style.setProperty('--bg1', '#3b4f8f'); document.body.style.setProperty('--bg2', '#1d2547'); document.body.style.setProperty('--ui', '#ffb627');
 
@@ -198,10 +201,10 @@ function predict(ox, oz, dx, dz, ignore = null) {
 // ---------------------------------------------------------------- match state
 const RIVALS = [['REX', '🤖'], ['MIA', '🦊'], ['DUKE', '🐻'], ['LUNA', '🐱'], ['ACE', '🐯'], ['ZOE', '🐼'], ['MAX', '🦁']];
 let state = 'ready', phase = 'aim', turn = 0, groups = [null, null], aim = -Math.PI / 2, power = 0, pulling = false, pullX = 0, aiPlan = null, aiT = 0, strikeT = 0, pendingShot = null, myPots = 0, combo = 0, msgT = 0, totalGroup = 3;
-const aiErr = () => Math.max(0.012, 0.1 - level * 0.012);
+const aiErr = () => Math.max(0.01, (0.1 - level * 0.012) / fk);
 function startLevel() {
   rack(); turn = 0; groups = [null, null]; phase = 'aim'; aim = -Math.PI / 2; power = 0; myPots = 0; combo = 0; shot = null; aiPlan = null;
-  totalGroup = Math.min(7, 1 + level);
+  totalGroup = Math.min(7, 1 + level); fk = F.k();
   const rv = RIVALS[(level - 1) % RIVALS.length];
   hud.querySelector('[data-nm]').textContent = rv[0]; hud.querySelector('[data-av]').textContent = rv[1];
   ui.levels(level); ui.progress(0); refreshHud(); say('YOUR BREAK!');
@@ -258,6 +261,7 @@ function respotCue() {
   cue.x = x; cue.z = z; cue.vx = cue.vz = 0;
 }
 function finish(winner, line) {
+  if (phase !== 'over') F.level(winner === 0, Math.min(1, myPots / (totalGroup + 1)));
   phase = 'over';
   if (winner === 0) { state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, 1.5, 0), 90); ui.pop('8-BALL!', '#ffd23f', 52, 30); ui.win(level, `You beat ${hud.querySelector('[data-nm]').textContent}!`); }
   else { state = 'lost'; sfx.fail(); ui.lose('MATCH LOST', line || `${hud.querySelector('[data-nm]').textContent} cleared the table`); }

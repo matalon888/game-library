@@ -2,6 +2,7 @@
 // spots at the stop; passengers board vehicles of their own colour in queue order; full vehicles leave.
 // Jammed vehicles bump and back up. Spots full with no matching colour = jam (lose). Board everyone = win.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, clamp, lerp } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // rounded() grows by its bevel; this keeps exact outer size
 
 const COLORS = { red: '#ff4757', blue: '#2e86ff', yellow: '#ffc312', green: '#2ed573', purple: '#a55eea', orange: '#ff7f2a', pink: '#ff6bcb', cyan: '#1fd1d6' };
@@ -20,6 +21,7 @@ const SLOTS = 5, SLOT_DX = 1.24;
 const stage = createStage({ fov: 40, shadowSize: 11 });
 const { scene, camera, sun } = stage;
 const save = store('honkout');
+const F = flow('honkout');
 let level = save.get('level', 1), score = save.get('riders', 0), state = 'ready';
 const ui = createUI({ title: 'HONK<br>OUT!', hint: 'Tap a car to drive it out', hand: '👆', score: false });
 
@@ -87,7 +89,7 @@ const slotX = (i) => (i - (SLOTS - 1) / 2) * SLOT_DX;
 
 // ---------------------------------------------------------------- procedural design (seeded) + greedy verifier
 function design(n) {
-  const R = rng(n * 4241 + 77), ri = (a, b) => a + Math.floor(R() * (b - a + 1));
+  const fk = F.k(), R = rng(n * 4241 + 77), ri = (a, b) => a + Math.floor(R() * (b - a + 1));
   const W_ = clamp(3 + Math.ceil(n * 0.55), 4, 7), H_ = clamp(4 + Math.ceil(n * 0.55), 5, 9);
   const shape = n < 3 ? 'rect' : ['rect', 'circle', 'heart', 'diamond'][n % 4];
   const cx = (W_ - 1) / 2, cz = (H_ - 1) / 2;
@@ -98,7 +100,7 @@ function design(n) {
     if (shape === 'heart') { const X = x * 1.1, Y = -y * 1.15 + 0.25; return Math.pow(X * X + Y * Y - 1, 3) - X * X * Y * Y * Y < 0.15; }
     return true;
   };
-  const maxV = Math.min(4 + n * 2, 20), nc = clamp(n + 1, 2, 7);
+  const maxV = Math.min(Math.round((4 + n * 2) * fk), 22), nc = clamp(n + 1, 2, 7);
   const pal = [...CKEYS].sort(() => R() - 0.5).slice(0, nc);
   for (let attempt = 0; attempt < 60; attempt++) {
     const g = Array.from({ length: W_ }, () => new Array(H_).fill(-1)); const vs = [];
@@ -127,7 +129,7 @@ function design(n) {
     pal.forEach((c, k) => { if (!L.some((v) => v.color === c) && L[ord[k]]) L[ord[k]].color = c; });
     // passenger queue in peel order, then mixed for difficulty
     const q = []; for (const id of ord) for (let k = 0; k < L[id].cap; k++) q.push(L[id].color);
-    const mixW = n === 1 ? 0 : Math.min(10, 2 + n), base = q.slice();
+    const mixW = n === 1 ? 0 : Math.min(12, Math.round((2 + n) * fk)), base = q.slice();
     for (let tries = 0; tries < 12; tries++) {
       const qq = base.slice(); const p = tries < 9 ? 0.5 : 0;
       for (let i = 0; i < qq.length; i++) if (R() < p) { const j = Math.min(qq.length - 1, i + ri(1, mixW)); [qq[i], qq[j]] = [qq[j], qq[i]]; }
@@ -346,8 +348,8 @@ function startLevel() {
   ui.levels(level); ui.progress(0); ui.pill(`👥 ${queue.length}`);
 }
 let endT = 0;
-function win() { state = 'won'; endT = performance.now(); level++; save.set('level', level); save.set('riders', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 2, zSlot), 90); ui.win(level - 1, `${totalRiders} riders home!`); }
-function lose() { state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('JAMMED!', 'No spot left for the right colour.'); }
+function win() { state = 'won'; F.level(true); endT = performance.now(); level++; save.set('level', level); save.set('riders', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 2, zSlot), 90); ui.win(level - 1, `${totalRiders} riders home!`); }
+function lose() { state = 'lost'; F.level(false, qi / totalRiders); sfx.fail(); buzz([60, 40, 90]); ui.lose('JAMMED!', 'No spot left for the right colour.'); }
 ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();

@@ -2,8 +2,11 @@
 // spots in an isometric dollhouse room; every sticker brings the room's colour back.
 // Inspired by the mechanic of My Sticker Room (SayGames). All code and art original (drawn live with canvas 2D).
 import { createUI, input, loop, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('stickynook');
+const F = flow('stickynook');
+let fk = 1;
 let level = ST.get('level', 1);
 const ui = createUI({ title: 'STICKY<br>NOOK', hint: 'Drag stickers onto their spots', hand: '👆', score: false });
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
@@ -172,9 +175,9 @@ function drawShell(c, p, grey) {
 }
 function buildLevel() {
   const r = rng(level * 131 + 7), th = THEMES[(level - 1) % THEMES.length], pick = a => a[Math.floor(r() * a.length)];
-  theme = th; const wi = Math.floor(r() * 2);
+  theme = th; const wi = Math.floor(r() * 2); fk = F.k();
   look = { wallL: th.walls[wi][1], wallR: th.walls[wi][0], floor: pick(th.floor), pattern: th.pattern, accent: pick(th.accent), accent2: pick(th.accent2), furn: pick(th.furn), rug: pick(th.rug) };
-  const n = Math.min(th.items.length, 5 + level);
+  const n = Math.min(th.items.length, Math.max(4, Math.round((5 + level) * fk)));
   const chosen = new Set(); const pool = [...th.items]; while (chosen.size < n) chosen.add(pool.splice(Math.floor(r() * pool.length), 1)[0]);
   stickers = th.items.filter(k => chosen.has(k)).map(k => ({ key: k, placed: false, pop: 0, fade: 0 }));
   fixed = th.items.filter(k => !chosen.has(k));
@@ -231,11 +234,11 @@ input({
   onUp: () => { if (!drag) return; drop(drag); drag = null; },
 });
 function drop(d) {
-  const it = d.s.it, dist = Math.hypot(d.x - it.cx, d.y - it.cy), snap = Math.max(46, Math.min(it.w, it.h) * 0.45);
+  const it = d.s.it, dist = Math.hypot(d.x - it.cx, d.y - it.cy), snap = Math.max(40, Math.min(it.w, it.h) * 0.45 / fk);
   if (dist < snap) return place(d.s);
   const other = stickers.find(o => !o.placed && o !== d.s && Math.hypot(d.x - o.it.cx, d.y - o.it.cy) < Math.max(40, Math.min(o.it.w, o.it.h) * 0.35));
   if (other) { mistakes++; hearts(); buzz([30, 30, 30]); tone(180, 0.18, 'square', 0.08, 0.7); ui.pop('Not there!', '#fff', 30, 24); shakeT = 0.4;
-    if (mistakes >= 3) { state = 'lost'; sfx.fail(); ui.lose('OOPS!', 'Three stickers in the wrong spot'); } }
+    if (mistakes >= 3 && state === 'play') { state = 'lost'; F.level(false, placedN / stickers.length); sfx.fail(); ui.lose('OOPS!', 'Three stickers in the wrong spot'); } }
   else tone(330, 0.07, 'sine', 0.06, 0.8);
   d.s.back = { x: d.x, y: d.y, t: 0 };
 }
@@ -249,8 +252,8 @@ function place(s) {
   for (let i = 0; i < 16; i++) { const a = Math.random() * 6.28, v = 1.5 + Math.random() * 3; sparks.push({ x: s.it.cx, y: s.it.cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.5, life: 1, c: ['#ffd23f', '#ff8fab', '#8ad6ff', '#ffffff', '#9be38f'][i % 5], star: i % 3 === 0 }); }
   if (placedN % 2 === 0 || placedN === stickers.length) ui.pop(PRAISE[Math.floor(Math.random() * PRAISE.length)], '#fff', 30, 24);
   ui.progress(placedN / stickers.length);
-  if (placedN === stickers.length) {
-    state = 'won'; winT = 0.001;
+  if (placedN === stickers.length && state === 'play') {
+    state = 'won'; F.level(true); winT = 0.001;
     setTimeout(() => { sfx.win(); buzz([20, 40, 20]); for (let i = 0; i < 90; i++) { const a = Math.random() * 6.28, v = 2 + Math.random() * 6; sparks.push({ x: W / 2, y: R.y + 6 * R.s, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 4, life: 1.6, c: ['#ffd23f', '#ff8fab', '#8ad6ff', '#9be38f', '#b39ddb'][i % 5], conf: true, rot: Math.random() * 6 }); } }, 250);
     ui.win(level, `${theme.name} decorated!`); level++; ST.set('level', level);
   }

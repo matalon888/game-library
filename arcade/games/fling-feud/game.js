@@ -1,12 +1,14 @@
 // Fling Feud — original side-view throwing duel. Drag back to aim (angle + power), release to fling. Headshots hit double. No gore: hits pop with stars.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
+import { flow } from './kit/flow.js';
 
 const S = createStage({ fov: 24, shadows: false });
 const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.25; hemi.intensity = 1.55; sun.position.set(-4, 10, 12);
 const ui = createUI({ title: 'FLING<br>FEUD', hint: 'Drag back to aim · release to throw', hand: '👈', score: false });
 const save = store('flingfeud');
+const F = flow('flingfeud'); let fk = 1;
 let level = save.get('level', 1);
 
 // ---------------------------------------------------------------- HUD
@@ -170,7 +172,7 @@ function startLevel() {
   const foeSpec = CAST[1 + (level - 1) % (CAST.length - 1)];
   you = fighter(CAST[0], 1); foe = fighter(foeSpec, -1);
   you.x = -arenaD / 2; foe.x = arenaD / 2; you.y = hillF(you.x); foe.y = hillF(foe.x);
-  foe.maxHp = 100 + Math.min(60, (level - 1) * 10); foe.hp = foe.maxHp; you.maxHp = 100; you.hp = 100;
+  fk = F.k(); foe.maxHp = Math.round((100 + Math.min(60, (level - 1) * 10)) * fk); foe.hp = foe.maxHp; you.maxHp = 100; you.hp = 100;
   hud.querySelector('[data-a1]').textContent = foeSpec.av; names.querySelector('[data-n1]').textContent = foeSpec.name; names.querySelector('[data-n0]').textContent = 'JACK (YOU)';
   phase = 'aim'; proj = null; drag = null; hits = 0; slow = 1; slowT = 0; endT = 0; aiPlan = null;
   camX = you.x + camW * 0.28; camY = you.y + 4;
@@ -227,8 +229,8 @@ function onHit(p, kind) {
 function nextTurn() {
   if (proj) { const p = proj; setTimeout(() => { p.m.removeFromParent(); }, p.stuck ? 900 : 0); proj = null; }
   you.wpn.visible = foe.wpn.visible = true;
-  if (foe.hp <= 0) { phase = 'over'; state = 'won'; save.set('level', level + 1); sfx.win(); confetti(scene, new THREE.Vector3(foe.x, foe.y + 3, 0.5), 90); ui.win(level, `${foe.spec.name} is down · ${hits} hit${hits > 1 ? 's' : ''}`); return; }
-  if (you.hp <= 0) { phase = 'over'; state = 'lost'; sfx.fail(); ui.lose('K.O.!', `${foe.spec.name} had ${Math.max(0, foe.hp)} HP left`); return; }
+  if (foe.hp <= 0) { phase = 'over'; state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); confetti(scene, new THREE.Vector3(foe.x, foe.y + 3, 0.5), 90); ui.win(level, `${foe.spec.name} is down · ${hits} hit${hits > 1 ? 's' : ''}`); return; }
+  if (you.hp <= 0) { phase = 'over'; state = 'lost'; F.level(false, 1 - Math.max(0, foe.hp) / foe.maxHp); sfx.fail(); ui.lose('K.O.!', `${foe.spec.name} had ${Math.max(0, foe.hp)} HP left`); return; }
   if (lastShooter === you) { phase = 'foe'; turnT = 0; aiPlan = null; say(`${foe.spec.name}'S TURN`); }
   else { phase = 'aim'; say('YOUR TURN'); }
 }
@@ -285,7 +287,7 @@ loop((dtRaw, t) => {
   let foeAim = null;
   if (state === 'play' && phase === 'foe') {
     turnT += real;
-    if (!aiPlan) { const b = bestShot(foe, you), err = Math.max(0.035, 0.2 - level * 0.022); aiPlan = { ang: b.ang + (Math.random() - 0.5) * 2 * err, pw: clamp(b.pw * (1 + (Math.random() - 0.5) * err * 1.4), 0.1, 1) }; }
+    if (!aiPlan) { const b = bestShot(foe, you), err = Math.max(0.03, (0.2 - level * 0.022) / fk); aiPlan = { ang: b.ang + (Math.random() - 0.5) * 2 * err, pw: clamp(b.pw * (1 + (Math.random() - 0.5) * err * 1.4), 0.1, 1) }; }
     const k = clamp((turnT - 0.5) / 0.7, 0, 1); foeAim = (Math.PI - aiPlan.ang) * k;
     if (turnT > 1.35) { throwFrom(foe, aiPlan.ang, aiPlan.pw); }
   }

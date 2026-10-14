@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, buzz, rng, clamp, lerp, roun
 import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, sparks, ease } from './_music/fx.js';
+import { flow } from './kit/flow.js';
 
 const ORDER = ['twinkle', 'ode', 'saints', 'minuet', 'cancan', 'canon', 'neon', 'elise', 'starlight', 'mountain', 'turkish'];
 const THEMES = [
@@ -18,6 +19,7 @@ const LANE_X = [-1.42, 1.42], MOUTH_Y = -1.6, TOP_Y = 6.4;
 
 const S = store('munch');
 let level = S.get('level', 1), best = S.get('best', 0);
+const F = flow('munch');
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 6 });
 const { scene, camera, sun } = stage;
 stage.hemi.intensity = 1.25; sun.intensity = 1.5; sun.position.set(3, 9, 9);
@@ -103,8 +105,8 @@ function buildLevel() {
   itemGroup.clear(); fx.clear();
   const plan = levelPlan(level, ORDER);
   track = arrange(plan.song, { bars: plan.bars, tempo: plan.tempo, ramp: 0.06, density: 0.7 });
-  lookahead = clamp(1.7 - (level - 1) * 0.05, 1.1, 1.7); speed = (TOP_Y - MOUTH_Y) / lookahead;
-  const hs = hits(track, clamp(0.3 - level * 0.006, 0.22, 0.3)), r = rng(level * 1777 + 9);
+  const fk = F.k(); lookahead = clamp((1.7 - (level - 1) * 0.05) / fk, 1.0, 1.85); speed = (TOP_Y - MOUTH_Y) / lookahead;
+  const hs = hits(track, clamp((0.3 - level * 0.006) / fk, 0.2, 0.33)), r = rng(level * 1777 + 9);
   const gaps = hs.map(h => h.dur).sort((a, b) => a - b), median = gaps[Math.floor(gaps.length / 2)] || 0.5;
   items = []; let lane = 0, run = 0;
   hs.forEach((h, i) => {
@@ -114,7 +116,7 @@ function buildLevel() {
     items.push({ kind: 'food', t: h.t, lane, notes: h.notes, noteDur: h.noteDur, long, len: long ? Math.min(h.dur, h.noteDur) * 0.9 : 0, snack: Math.floor(r() * SNACKS.length), state: 'wait' });
   });
   // bombs on the other lane where nothing is due there (they teach "don't tap")
-  const bombP = clamp(0.06 + level * 0.03, 0.06, 0.32);
+  const bombP = clamp((0.06 + level * 0.03) * fk, 0.05, 0.36);
   for (const f of items.slice()) {
     if (f.kind !== 'food' || f.t < 1.2 || r() > bombP) continue;
     const other = 1 - f.lane, clear = !items.some(o => o.lane === other && Math.abs(o.t - f.t) < 0.45 || (o.long && o.lane === other && f.t > o.t - 0.3 && f.t < o.t + o.len + 0.3));
@@ -192,11 +194,11 @@ function missFood(it) {
 }
 function lose(title) {
   if (state !== 'play') return;
-  state = 'lost'; player.stop(0.4); synth.fail(); best = Math.max(best, score); S.set('best', best);
+  state = 'lost'; F.level(false, eaten / Math.max(1, foodCount)); player.stop(0.4); synth.fail(); best = Math.max(best, score); S.set('best', best);
   ui.lose(title, `${Math.round(eaten / Math.max(1, foodCount) * 100)}% · ${score} pts`);
 }
 function win() {
-  state = 'won'; best = Math.max(best, score); S.set('best', best);
+  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   kits.forEach(k => { k.bounce = 1; k.open = 1; });
   for (let i = 0; i < 4; i++) fx.emit(new THREE.Vector3((i - 1.5) * 1.2, 1.5, 1), ['#ff8fae', '#ffd84a', '#8fd3ff', '#ffffff'], 16, { speed: 0.14, up: 0.1, size: 0.5 });
   hearts3d(new THREE.Vector3(LANE_X[0], 0, 1.2), 3); hearts3d(new THREE.Vector3(LANE_X[1], 0, 1.2), 3);

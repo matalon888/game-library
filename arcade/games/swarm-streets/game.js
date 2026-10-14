@@ -2,9 +2,11 @@
 // swallow smaller rival mobs, dodge bigger ones. Biggest mob when the clock hits zero wins.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, store, lerp, clamp, rng } from './kit/hc.js';
 import { bake, vcMat, crowdMesh } from './people.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('swarmstreets');
 let level = ST.get('level', 1), best = ST.get('best', 0);
+const F = flow('swarmstreets'); let fk = 1;
 const { scene, camera, sun, followLight } = createStage({ fov: 40, shadowSize: 46 });
 sun.shadow.camera.far = 120;
 const ui = createUI({ title: 'SWARM<br>STREETS', hint: 'Hold & drag to lead your mob', hand: '👆', score: false });
@@ -168,7 +170,7 @@ function drawLabel(L, name, n) {
 function rr(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
 const ringGeo = new THREE.RingGeometry(0.86, 1, 48);
 function newCrowd(k, at, size) {
-  const c = { k, color: COLORS[k], name: NAMES[k], x: at.x, z: at.z, dx: 0, dz: 1, tx: 0, tz: 1, members: [], alive: true, think: 0, eat: 0, smart: k === 0 ? 1 : clamp(0.1 + level * 0.1, 0.2, 0.95), speed: k === 0 ? 7.2 : Math.min(6.9, 5.2 + level * 0.25), moving: true, bump: 0 };
+  const c = { k, color: COLORS[k], name: NAMES[k], x: at.x, z: at.z, dx: 0, dz: 1, tx: 0, tz: 1, members: [], alive: true, think: 0, eat: 0, smart: k === 0 ? 1 : clamp((0.1 + level * 0.1) * fk, 0.2, 0.98), speed: k === 0 ? 7.2 : Math.min(7.05, (5.2 + level * 0.25) * fk), moving: true, bump: 0 };
   crowds.push(c);
   for (let j = 0; j < size; j++) { const i = addPerson(at.x + (R() - 0.5) * 2, at.z + (R() - 0.5) * 2, k); c.members.push(i); }
   c.label = labelSprite(c.color);
@@ -181,7 +183,7 @@ function slot(k) { if (k === 0) return [0, 0]; const r = 0.62 * Math.sqrt(k + 0.
 
 let edges = [];
 function buildLevel() {
-  R = rng(level * 977 + 13);
+  R = rng(level * 977 + 13); fk = F.k();
   for (const c of crowds) { scene.remove(c.label.s); scene.remove(c.ring); c.label.tex.dispose(); }
   for (const e of edges) e.remove(); edges = [];
   crowds = []; N = 0; kills = 0; T = 0; endT = 0; spawnAcc = 0;
@@ -259,16 +261,17 @@ function steer(c, goal) {
 function finish(why) {
   if (state !== 'play') return;
   const me = crowds[0];
-  if (why === 'dead') { state = 'lost'; sfx.fail(); buzz([60, 40, 80]); ui.flash(0.5); ui.lose('SWALLOWED!', `A bigger mob ate yours · ☠ ${kills}`); return; }
+  if (why === 'dead') { state = 'lost'; F.level(false, clamp(T / dur, 0, 1)); sfx.fail(); buzz([60, 40, 80]); ui.flash(0.5); ui.lose('SWALLOWED!', `A bigger mob ate yours · ☠ ${kills}`); return; }
   const r = rankOf(me);
   if (r === 1) {
-    state = 'won'; best = Math.max(best, me.members.length); ST.set('best', best);
+    state = 'won'; F.level(true); best = Math.max(best, me.members.length); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20, 40]); ui.flash(0.7); ui.progress(1);
     for (let k = 0; k < 3; k++) setTimeout(() => confetti(scene, new THREE.Vector3(me.x, 4, me.z), 90), k * 260);
     ui.win(level, `Biggest mob · ${me.members.length} people · ☠ ${kills}`);
   } else {
     state = 'lost'; sfx.fail(); buzz([40, 30, 60]);
     const top = crowds.filter(o => o.alive).sort((a, b) => b.members.length - a.members.length)[0];
+    F.level(false, clamp(me.members.length / Math.max(1, top.members.length), 0, 1));
     ui.lose(`#${r} PLACE`, `${top.name} had ${top.members.length} · you had ${me.members.length}`);
   }
 }

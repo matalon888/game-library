@@ -1,8 +1,10 @@
 // Brick Climb — original game. Grab bricks of your colour, lay them as stair steps, climb to the top before your rivals.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, palette, applyPalette, mat, glossy, rounded, stickman, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('brickclimb');
 let level = ST.get('level', 1), best = ST.get('best', 0);
+const F = flow('brickclimb'); let fk = 1;
 const { scene, camera, followLight, renderer } = createStage({ fov: 48, shadowSize: 16 });
 const ui = createUI({ title: 'BRICK<br>CLIMB', hint: 'Drag to run', hand: '👆', score: false });
 
@@ -33,7 +35,7 @@ function buildLevel() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
   const pal = palette(level); applyPalette(pal); ui.levels(level); ui.progress(0);
-  R = rng(level * 7919 + 3);
+  R = rng(level * 7919 + 3); fk = F.k();
   nF = level === 1 ? 1 : level < 4 ? 2 : 3;
   S = Math.min(16, 9 + level);
   stepD = BL / S; stepH = RISE / S;
@@ -123,7 +125,7 @@ function buildLevel() {
     g.head.material = g.body.material;
     const stackMesh = new THREE.InstancedMesh(STACK_G, blockMats[ci], 48); stackMesh.count = 0; stackMesh.castShadow = true; g.add(stackMesh);
     const ch = { ci, g, stackMesh, stack: 0, x: startX[ci], z: zc(0) + FD / 2 - 1.1, y: 0, floor: 0, lane: -1, p: 0, vx: 0, vz: 0, face: Math.PI, lean: 0, stun: 0,
-      blocked: false, mode: 'collect', want: 0, aLane: 0, done: false, pop: 0, speed: ci === 0 ? SPEED : SPEED * Math.min(0.93, 0.64 + level * 0.035), think: 0, tgt: null, cool: 0 };
+      blocked: false, mode: 'collect', want: 0, aLane: 0, done: false, pop: 0, speed: ci === 0 ? SPEED : SPEED * Math.min(1.03, (0.64 + level * 0.035) * fk), think: 0, tgt: null, cool: 0 };
     g.position.set(ch.x, 0, ch.z); g.rotation.y = Math.PI; world.add(g);
     chars.push(ch);
   }
@@ -277,14 +279,14 @@ function knock(a, b) {   // a has more bricks; b drops its stack
 }
 
 function win() {
-  state = 'won'; winT = 0; score += 20 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
+  state = 'won'; F.level(true); winT = 0; score += 20 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
   const p = new THREE.Vector3(player.x, player.y + 2, player.z);
   confetti(world, p, 90); setTimeout(() => confetti(world, p, 70), 300);
   ui.win(level, '1st place!');
 }
 function lose(ch) {
-  state = 'lost'; winT = 0; sfx.fail(); buzz([40, 30, 60]);
+  state = 'lost'; F.level(false, (player.floor + (player.lane >= 0 ? player.p / BL : 0)) / nF); winT = 0; sfx.fail(); buzz([40, 30, 60]);
   ui.lose(NAMES[ch.ci] + ' WON', 'So close! Grab more bricks.');
 }
 

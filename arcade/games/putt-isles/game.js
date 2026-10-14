@@ -1,5 +1,6 @@
 // Putt Isles — original sky mini-golf battle. Drag back like a slingshot to aim + power, release to putt. Beat the rivals to the cup.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { part, merge, canvasTex } from './geo.js';
 
 const S = createStage({ fov: 55, shadowSize: 16 });
@@ -7,6 +8,8 @@ const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.8; hemi.intensity = 1.2;
 const ui = createUI({ title: 'PUTT<br>ISLES', hint: 'Drag back · release to putt', hand: '👇', score: false });
 const save = store('puttisles');
+const F = flow('puttisles');
+let fk = 1;
 let level = save.get('level', 1);
 const THEMES = [
   { sky: ['#62b8ff', '#e3f4ff'], g1: '#74d64e', g2: '#62c43f', side: '#8a5a36', rock: '#a9845f', rail: '#a8693a', decor: 'pine', fog: '#d6eefc' },
@@ -143,12 +146,12 @@ function buildCourse() {
     } else if (t.obst === 'slider') {
       const [dx, dz] = DIRS[t.d], w = 1.5, m = new THREE.Mesh(rounded(dx ? 0.8 : w, 0.8, dx ? w : 0.8, 0.12), glossy('#ff6b5b')); m.castShadow = true; world.add(m);
       const stripe = new THREE.Mesh(new THREE.BoxGeometry(dx ? 0.82 : w + 0.02, 0.18, dx ? w + 0.02 : 0.82), mat('#ffffff')); stripe.position.y = 0.1; m.add(stripe);
-      sliders.push({ m, cx, cz, ax: -dz, az: dx, hw: dx ? 0.4 : w / 2, hd: dx ? w / 2 : 0.4, amp: T / 2 - w / 2 - 0.2, sp: 1.2 + level * 0.08 + r() * 0.4, ph: r() * 6, x: cx, z: cz, vx: 0, vz: 0 });
+      sliders.push({ m, cx, cz, ax: -dz, az: dx, hw: dx ? 0.4 : w / 2, hd: dx ? w / 2 : 0.4, amp: T / 2 - w / 2 - 0.2, sp: (1.2 + level * 0.08 + r() * 0.4) * fk, ph: r() * 6, x: cx, z: cz, vx: 0, vz: 0 });
     } else if (t.obst === 'spinner') {
       const g = new THREE.Group(); g.position.set(cx, 0, cz); world.add(g);
       const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 1.0, 14), glossy('#ffd23f')); post.position.y = 0.5; post.castShadow = true; g.add(post);
       const bar = new THREE.Mesh(rounded(3.0, 0.32, 0.3, 0.1), glossy('#7b5cff')); bar.position.y = 0.32; bar.castShadow = true; g.add(bar);
-      spinners.push({ g, bar, cx, cz, len: 1.5, ang: r() * 6, w: (r() < 0.5 ? -1 : 1) * (1.1 + level * 0.06) });
+      spinners.push({ g, bar, cx, cz, len: 1.5, ang: r() * 6, w: (r() < 0.5 ? -1 : 1) * (1.1 + level * 0.06) * fk });
     }
   }
   const turfM = new THREE.Mesh(merge(turf.map(g => part(g, '#ffffff'))), new THREE.MeshStandardMaterial({ map: checker(TH.g1, TH.g2), vertexColors: true, roughness: 0.85 }));
@@ -323,15 +326,15 @@ const dots = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 8, 6), new 
 const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.45, 3), new THREE.MeshBasicMaterial({ color: '#ffffff' })); scene.add(arrow);
 const ring = new THREE.Mesh(new THREE.RingGeometry(0.32, 0.4, 28), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.8 })); ring.rotation.x = -Math.PI / 2; scene.add(ring);
 function startLevel() {
-  buildCourse();
+  fk = F.k(); buildCourse();
   const tee = tiles[0];
   balls.forEach((b, i) => {
     const off = [0, -1.1, 1.1, 0][i], back = i === 3 ? 1.1 : 0.2;
     Object.assign(b, { x: tee.cx + off, y: BR, z: tee.cz + back + (i ? 0.5 : 0), vx: 0, vy: 0, vz: 0, air: false, strokes: 0, done: false, sinkT: 0, place: 0, trail: [] });
     b.lastSafe = { x: b.x, z: b.z }; b.m.visible = true; b.m.scale.setScalar(1); b.lbl.style.display = '';
-    if (!b.isPlayer) { b.nextShot = 0.9 + i * 0.5 + Math.random() * 0.6; b.aimErr = Math.max(0.03, 0.16 - level * 0.012) + i * 0.02; b.powErr = 0.22 - Math.min(0.12, level * 0.012); }
+    if (!b.isPlayer) { b.nextShot = 0.9 + i * 0.5 + Math.random() * 0.6; b.aimErr = Math.max(0.025, (0.16 - level * 0.012) / fk) + i * 0.02; b.powErr = Math.max(0.08, (0.22 - Math.min(0.12, level * 0.012)) / fk); }
   });
-  finished = 0; timeLeft = 28 + tiles.length * 2.5; drag = null; endT = 0;
+  finished = 0; timeLeft = (28 + tiles.length * 2.5) / fk; drag = null; endT = 0;
   hud.querySelector('[data-s]').textContent = 0; hud.querySelector('[data-p]').textContent = par;
   ui.levels(level); ui.progress(0);
   const p = planShot(player); aimDir.set(Math.cos(p.ang), 0, Math.sin(p.ang));
@@ -353,7 +356,7 @@ function sink(b) {
   if (b.isPlayer) {
     const diff = b.strokes - par, word = b.strokes === 1 ? 'HOLE IN ONE!' : diff <= -2 ? 'EAGLE!' : diff === -1 ? 'BIRDIE!' : diff === 0 ? 'PAR!' : diff === 1 ? 'BOGEY' : 'IN THE HOLE!';
     ui.pop(word, '#ffd23f', 48, 30); sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(cup.x, 1.5, cup.z), 80); ui.flash(0.3);
-    state = 'won'; save.set('level', level + 1);
+    if (state === 'play') F.level(true); state = 'won'; save.set('level', level + 1);
     ui.win(level, `${ord(b.place)} place · ${b.strokes} stroke${b.strokes > 1 ? 's' : ''} (par ${par})`);
   } else tone(880, 0.1, 'triangle', 0.06, 1);
 }
@@ -386,8 +389,8 @@ loop((dtRaw, t) => {
   // timer
   if (state === 'play') {
     timeLeft -= real; const tl = Math.max(0, Math.ceil(timeLeft)); timerEl.textContent = tl; timerEl.classList.toggle('warn', tl <= 5);
-    if (timeLeft <= 0) { state = 'lost'; sfx.fail(); ui.lose("TIME'S UP", `${ord(updatePlace())} place · ${player.strokes} strokes`); }
-    else if (player.strokes >= par + 4 && atRest(player) && !player.done) { state = 'lost'; sfx.fail(); ui.lose('OUT OF STROKES', `Par ${par} · max ${par + 4} strokes`); }
+    if (timeLeft <= 0) { state = 'lost'; F.level(false, nearestIdx(player) / Math.max(1, tiles.length - 1)); sfx.fail(); ui.lose("TIME'S UP", `${ord(updatePlace())} place · ${player.strokes} strokes`); }
+    else if (player.strokes >= par + 4 && atRest(player) && !player.done) { state = 'lost'; F.level(false, nearestIdx(player) / Math.max(1, tiles.length - 1)); sfx.fail(); ui.lose('OUT OF STROKES', `Par ${par} · max ${par + 4} strokes`); }
   }
   // physics
   const sub = 6, h = real / sub;

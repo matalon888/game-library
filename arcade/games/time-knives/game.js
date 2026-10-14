@@ -1,6 +1,7 @@
 // Time Knives — original game. Hold to freeze time, trace a line of knives, release to let them all fly.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp } from './kit/hc.js';
 import { createBloom, neonMat } from './bloom.js';
+import { flow } from './kit/flow.js';
 
 const stage = createStage({ fov: 46, shadows: false, clear: '#04040c' });
 const { scene, camera, renderer } = stage;
@@ -10,6 +11,7 @@ const bloom = createBloom(renderer, scene, camera, { strength: 1.25, threshold: 
 const ui = createUI({ title: 'TIME<br>KNIVES', hint: 'Hold · draw · release', hand: '☝️' });
 document.body.style.setProperty('--bg1', '#04040c'); document.body.style.setProperty('--bg2', '#0b0b26'); document.body.style.setProperty('--ui', '#2f7bff');
 const save = store('timeknives');
+const F = flow('timeknives'); let fk = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ DOM extras: slow-mo vignette + time meter
@@ -147,7 +149,7 @@ const TYPES = {
   ufo: { mat: 'yellow', speed: 1.2, hp: 1, s: 1 },
 };
 function spawnEnemy(type, x, z) {
-  const T = TYPES[type], e = { type, hp: T.hp, x, z, y: 0, t: Math.random() * 6, speed: T.speed * (1 + Math.min(0.6, (level - 1) * 0.04)), s: T.s, alive: true, leap: 0, flash: 0, kb: 0 };
+  const T = TYPES[type], e = { type, hp: T.hp, x, z, y: 0, t: Math.random() * 6, speed: T.speed * (1 + Math.min(0.7, (level - 1) * 0.04)) * fk, s: T.s, alive: true, leap: 0, flash: 0, kb: 0 };
   e.mat = T.hp > 1 ? M[T.mat].clone() : M[T.mat];
   if (type === 'ufo') {
     const g = new THREE.Group(); const sauc = new THREE.Mesh(G.saucer, e.mat); sauc.scale.set(1, 0.28, 1); const dome = new THREE.Mesh(G.dome, e.mat); dome.position.y = 0.12;
@@ -197,7 +199,7 @@ function clearWorld() {
 }
 function buildLevel() {
   clearWorld();
-  plan = genLevel(level); waveIdx = 0; spawnT = 0; killed = 0; cine = 0;
+  fk = F.k(); plan = genLevel(level); waveIdx = 0; spawnT = 0; killed = 0; cine = 0;
   total = plan.reduce((a, w) => a + w.list.length, 0);
   ui.levels(level); ui.progress(0); ui.score(score); ui.sub(best ? 'BEST ' + best : '');
   spawnWave();
@@ -321,12 +323,12 @@ const camBase = new THREE.Vector3(0, 2.0, 6.5), camLook = new THREE.Vector3(0, 1
 let camPos = camBase.clone(), camAt = camLook.clone();
 function lose() {
   if (state !== 'play') return;
-  state = 'lost'; release(); sfx.fail(); buzz([60, 40, 80]); shake = 0.8;
+  state = 'lost'; F.level(false, killed / total); release(); sfx.fail(); buzz([60, 40, 80]); shake = 0.8;
   ui.flash(0.5); document.querySelector('.hc-flash').style.background = '#ff3355'; setTimeout(() => document.querySelector('.hc-flash').style.background = '#fff', 400);
   ui.lose('TOO CLOSE!', `${Math.round(killed / total * 100)}% cleared`);
 }
 function win() {
-  state = 'won'; sfx.win(); buzz([20, 40, 20]);
+  state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]);
   for (let i = 0; i < 4; i++) setTimeout(() => sparks(cineTarget.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, 1 + Math.random() * 2, 0)), ['#ffd23f', '#4aa8ff', '#ff4fd8', '#19e0c8'][i], 60, 9, { up: 6 }), i * 120);
   addScore(50 * level);
   ui.win(level, `${score} pts`);
@@ -345,8 +347,8 @@ loop((dt60) => {
   const dt = state === 'ready' ? rdt * 0.4 : rdt * timeScale;
 
   if (stroke && state === 'play') {
-    const el = (performance.now() - stroke.t0) / 1000; meter.firstChild.style.width = Math.max(0, 1 - el / STROKE_TIME) * 100 + '%';
-    if (el > STROKE_TIME || stroke.count >= MAX_STROKE_KNIVES && el > 0.25) release();
+    const el = (performance.now() - stroke.t0) / 1000; meter.firstChild.style.width = Math.max(0, 1 - el / (STROKE_TIME / fk)) * 100 + '%';
+    if (el > STROKE_TIME / fk || stroke.count >= MAX_STROKE_KNIVES && el > 0.25) release();
   }
 
   // ---- waves

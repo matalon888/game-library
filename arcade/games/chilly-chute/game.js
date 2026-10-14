@@ -1,6 +1,7 @@
 // Chilly Chute — original endless-lane sled runner. Swipe left/right to change lanes, up to jump, down to duck.
 import { THREE, createStage, createUI, input, loop, glossy, mat, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
+import { flow } from './kit/flow.js';
 
 const S = createStage({ fov: 54, shadowSize: 16 });
 const { scene, camera, sun, hemi } = S;
@@ -9,6 +10,8 @@ hemi.color.set('#ffffff'); hemi.groundColor.set('#b9d9f2'); hemi.intensity = 1.2
 sun.shadow.mapSize.set(1024, 1024);
 const ui = createUI({ title: 'CHILLY<br>CHUTE', hint: 'Swipe to steer, jump &amp; duck', hand: '👆' });
 const save = store('chute');
+const F = flow('chute');
+let fk = 1;
 const css = document.createElement('style'); css.textContent = `
 .cc-coins{position:fixed;top:calc(62px + env(safe-area-inset-top));right:14px;z-index:6;display:flex;align-items:center;gap:6px;background:rgba(10,60,110,.28);border-radius:20px;padding:3px 12px 3px 5px;font-weight:800;font-size:20px;pointer-events:none}
 .cc-coins i{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3a8,#ffc83d 45%,#d98e00);box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
@@ -290,13 +293,13 @@ function buildLevel() {
   document.body.style.setProperty('--bg1', T.sky[0]); document.body.style.setProperty('--bg2', T.sky[1]); document.body.style.setProperty('--ui', T.ui);
   scene.fog = new THREE.Fog(T.fog, 45, 175);
   tubeMat.color.set(T.tube); coatMat.color.set(T.coat); hatMat.color.set(T.hat);
-  goal = level === 1 ? 210 : Math.min(1400, 200 + level * 70);
+  goal = level === 1 ? 210 : Math.min(1400, 200 + level * 70); fk = F.k();
   finishZ = -goal;
   rnd = rng(level * 7919 + 3);
   buildGround(40, -goal - 190);
   buildScenery(30, -goal - 150);
   // obstacles: rows of patterns with breathing room
-  const gap = Math.max(15, 30 - level * 1.6);
+  const gap = Math.max(13, (30 - level * 1.6) / fk);
   const blocks = ['snowman', 'crates', 'rock'];
   const pickBlock = () => blocks[Math.floor(rnd() * blocks.length)];
   let d = 40, lastFree = 0;
@@ -339,7 +342,7 @@ function buildLevel() {
 // ---------------------------------------------------------------- run state
 const P = { lane: 0, x: 0, y: 0, vy: 0, duck: 0, flip: 0, air: false, lean: 0, laneT: 9, ramp: null };
 let state = 'ready', dist = 0, speed = 16, boost = 0, coinsGot = 0, dead = false, crashT = 0, winT = 0, combo = 0, shake = 0, fovKick = 0;
-const baseSpeed = () => Math.min(25, 16.5 + level * 0.7);
+const baseSpeed = () => Math.min(28, (16.5 + level * 0.7) * fk);
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
 let squash = 0;
 
@@ -371,7 +374,7 @@ ui.onTap(w => {
 
 function crash(o) {
   if (dead) return;
-  dead = true; o.hit = true; state = 'lost'; crashT = 0; shake = 1;
+  dead = true; o.hit = true; if (state === 'play') F.level(false, clamp(dist / goal, 0, 1)); state = 'lost'; crashT = 0; shake = 1;
   sfx.smash(); buzz([50, 30, 80]); ui.flash(0.55);
   burst(scene, sled.position.clone().add(new THREE.Vector3(0, 0.8, -0.6)), ['#ffffff', '#e6f6ff', T.tube], 26, { speed: 0.16, up: 0.14, size: 1.1, shape: 'sphere' });
   P.vy = 7; o.wob = 1;
@@ -379,6 +382,7 @@ function crash(o) {
   ui.lose('WIPEOUT!', `${Math.round(dist)} m · ${pct}% of the run`);
 }
 function win() {
+  if (state === 'play') F.level(true);
   state = 'won'; winT = 0;
   const m = Math.round(goal); best = Math.max(best, m); save.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);

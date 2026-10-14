@@ -1,8 +1,11 @@
 // Horde Blast — original game. Hold to fire a stream of little blue fighters, aim them through multiplier gates, overrun the red fortress.
 import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, clamp, lerp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const save = store('hordeblast');
+const F = flow('hordeblast');
+let fk = 1;
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 50, shadowSize: 30 });
 sun.position.set(8, 20, 6); sun.shadow.camera.far = 90; hemi.intensity = 1.2; sun.intensity = 1.6;
@@ -109,7 +112,7 @@ function makeGate(mult, cx, w, z, move) {
 // ---------------------------------------------------------------- level
 let baseHP = 100, baseMax = 100, bossOn = false, bossHPv = 0, bossMax = 0, bossZ = 0, waveT = 0, fireT = 0, elapsed = 0, aimX = 0, firing = false, botOn = false, killed = 0, rnd = rng(1);
 function buildLevel() {
-  rnd = rng(level * 7717 + 3);
+  rnd = rng(level * 7717 + 3); fk = F.k();
   gateGroup.clear(); gates = []; blues = []; reds = [];
   const rows = [-10, -18, -26];
   for (const z of rows) {
@@ -149,7 +152,7 @@ function step(sec) {
   // fire
   if (firing) { fireT -= sec; while (fireT <= 0) { fireT += 1 / 9; spawnBlue(cannon.position.x + (Math.random() - 0.5) * 0.4, 0.6); recoil = 1; if (Math.random() < 0.5) tone(700 + Math.random() * 80, 0.03, 'triangle', 0.035, 0.7); } }
   // enemy waves from the fortress door (stop once it's destroyed)
-  if (baseHP > 0) { waveT -= sec; if (waveT <= 0) { const n = 5 + Math.min(30, level * 2) + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) spawnRed((Math.random() - 0.5) * 3.4, BASEZ + 2 + Math.random() * 2.5); waveT = Math.max(1.6, 3.6 - level * 0.12); } }
+  if (baseHP > 0) { waveT -= sec; if (waveT <= 0) { const n = Math.round((5 + Math.min(30, level * 2)) * fk) + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) spawnRed((Math.random() - 0.5) * 3.4, BASEZ + 2 + Math.random() * 2.5); waveT = Math.max(1.4, (3.6 - level * 0.12) / fk); } }
   // gates move
   for (const g of gates) { if (g.move) { g.cx = Math.sin(elapsed * 0.9 + g.ph) * (W - g.w / 2 - 0.2); g.g.position.x = g.cx; } g.pulse = Math.max(0, g.pulse - sec * 4); g.g.scale.setScalar(1 + g.pulse * 0.08); }
   // move blues
@@ -162,7 +165,7 @@ function step(sec) {
     }
   }
   // move reds toward the cannon, drifting toward the nearest blue cluster a little
-  const RSP = 3.6 + Math.min(level, 10) * 0.12;
+  const RSP = (3.6 + Math.min(level, 10) * 0.12) * fk;
   for (const e of reds) { e.z += RSP * sec; e.t += sec; e.x += (cannon.position.x * 0.15 - e.x * 0.15) * sec; }
   // collisions via spatial hash: each red kills one blue and dies
   hash.clear();
@@ -193,9 +196,10 @@ function step(sec) {
   if (baseHP <= 0) win();
 }
 let bossHit = 0, fortHit = 0;
-function lose(t, line) { state = 'lost'; firing = false; sfx.fail(); buzz([60, 40, 80]); ui.flash(0.6); shake = 1; burst(scene, cannon.position.clone().setY(1), ['#2f86ff', '#ffffff', '#555'], 30, { speed: 0.25, up: 0.2 }); ui.lose(t, line); }
+function lose(t, line) { if (state !== 'play') return; state = 'lost'; F.level(false, 1 - Math.max(0, baseHP) / baseMax); firing = false; sfx.fail(); buzz([60, 40, 80]); ui.flash(0.6); shake = 1; burst(scene, cannon.position.clone().setY(1), ['#2f86ff', '#ffffff', '#555'], 30, { speed: 0.25, up: 0.2 }); ui.lose(t, line); }
 function win() {
-  state = 'won'; firing = false; score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
+  if (state !== 'play') return;
+  state = 'won'; F.level(true); firing = false; score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
   sfx.smash(); setTimeout(() => sfx.win(), 200); buzz([40, 30, 80]); ui.flash(0.8); shake = 1.5;
   for (let i = 0; i < 4; i++) setTimeout(() => burst(scene, new THREE.Vector3((Math.random() - 0.5) * 8, 3 + Math.random() * 3, BASEZ), ['#e8394d', '#ff5266', '#fff1f1', '#ffd23f'], 30, { speed: 0.35, up: 0.3, size: 2 }), i * 120);
   confetti(scene, new THREE.Vector3(0, 6, BASEZ + 4), 120); collapse = 1; fortHP.visible = false;

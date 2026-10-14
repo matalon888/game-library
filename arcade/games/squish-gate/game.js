@@ -2,8 +2,11 @@
 // short and wide, and squeeze through every cut-out gate. Snug fits build combos and fever; the finish ladder pays out.
 // Inspired by the mechanic of Jelly Shift (SayGames). All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng, palette, applyPalette } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('squishgate');
+const F = flow('squishgate');
+let fk = 1;
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const { scene, camera, sun, followLight } = createStage({ fov: 50, shadowSize: 9 });
 const ui = createUI({ title: '<span class="sg-title"><b>SQUISH</b><i>GATE</i></span>', hint: 'Drag up & down to squish', hand: '↕️' });
@@ -60,14 +63,14 @@ function wallBox(w, h, x, y, zz, m = gateMat) {
 
 function buildLevel() {
   const p = palette(level); applyPalette(p);
-  const r = rng(level * 7919 + 13);
+  const r = rng(level * 7919 + 13); fk = F.k();
   for (const g of gates) world.remove(g.group); for (const c of cakes) world.remove(c.g); for (const sh of shards) world.remove(sh.m);
   gates = []; cakes = []; shards = []; drops.forEach(d => world.remove(d.m)); drops = [];
   if (posts) world.remove(posts); if (ladder) world.remove(ladder);
   [...world.children].filter(o => o.userData.track).forEach(o => world.remove(o));
 
   const nGates = Math.min(6 + level, 18), gap = Math.max(8.5, 12 - level * 0.35);
-  const tol = Math.max(0.1, 0.34 - level * 0.025);
+  const tol = Math.max(0.085, (0.34 - level * 0.025) / fk);
   levelLen = 9 + nGates * gap + 4; finishZ = -levelLen;
   // track: lilac body + white top, then the finish ladder
   const total = levelLen + 30;
@@ -200,7 +203,7 @@ function crash(g) {
   burst(scene, new THREE.Vector3(0, Math.min(hD, g.hh) * 0.6, z - 0.5), jellyMat.color.getStyle(), 22, { speed: 0.13, up: 0.1, shape: 'sphere', size: 0.8 });
   squish(-0.9);
   if (hearts <= 0) {
-    state = 'lost';
+    state = 'lost'; F.level(false, clamp((2 - z) / (2 - finishZ), 0, 1));
     ui.lose('SPLAT!', `${Math.round(clamp((2 - z) / (2 - finishZ), 0, 1) * 100)}% completed`);
   } else ui.pop('OUCH!', '#ff4f7b', 42, 24);
 }
@@ -218,7 +221,7 @@ function finish() {
 }
 function settle() {
   multiplier = clamp(Math.floor((finishZ - 1.2 - z) / 2.2) + 1, 1, 10);
-  state = 'won'; const total = score * multiplier; score = total; best = Math.max(best, total); ST.set('best', best);
+  state = 'won'; F.level(true); const total = score * multiplier; score = total; best = Math.max(best, total); ST.set('best', best);
   ui.score(score); ui.pop('x' + multiplier + '!', '#fff', 64, 30);
   [60, 64, 67, 72, 76].forEach((m, i) => setTimeout(() => note(m + Math.min(multiplier, 8), 0.3, 0.15), i * 80));
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(0, 2.5, z - 1), 40), i * 160);
@@ -251,7 +254,7 @@ loop((dt, t) => {
   if (state === 'play') {
     if (!finishing) {
       if (crashT > 0) { crashT -= dt; speed += (0 - speed) * 0.08 * dt; if (crashT <= 0) speed = 0.02; }
-      else { const target = baseSpeed * (fever > 0 ? 1.7 : 1) + Math.min(level, 10) * 0.004; speed += (target - speed) * 0.05 * dt; }
+      else { const target = (baseSpeed * (fever > 0 ? 1.7 : 1) + Math.min(level, 10) * 0.004) * fk; speed += (target - speed) * 0.05 * dt; }
       const prevZ = z; z -= speed * dt;
       // gates
       for (const g of gates) {

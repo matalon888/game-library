@@ -1,5 +1,6 @@
 // Twist Drop — original game. Twist the tower, drop the ball through the gaps, never touch the dark slices.
 import * as THREE from './three.module.min.js';
+import { flow } from './kit/flow.js';
 
 const $ = (id) => document.getElementById(id);
 const SEG = 12, SEGA = Math.PI * 2 / SEG, GAP = 3.2, R_OUT = 2.25, R_IN = 0.55, THICK = 0.36, BALL_R = 0.3, BALL_D = 1.45;
@@ -63,6 +64,7 @@ function makeMats(p) {
 
 // ---------- world state
 const tower = new THREE.Group(); scene.add(tower);
+const F = flow('twist');
 let pole, rings = [], ball, ballShadowCaster, level = +(localStorage.getItem('twist_level') || 1), best = +(localStorage.getItem('twist_best') || 0);
 let score = 0, combo = 0, fire = false, state = 'ready', vy = 0, by = 0, squash = 0, camY = 0, shards = [], trail = [], passed = 0;
 
@@ -74,7 +76,7 @@ function buildLevel() {
   for (const r of rings) tower.remove(r.group);
   if (pole) tower.remove(pole);
   rings = []; shards.forEach(s => scene.remove(s.m)); shards = [];
-  const r = rng(level * 9973 + 17), count = 10 + Math.min(level * 2, 26);
+  const r = rng(level * 9973 + 17), count = 10 + Math.min(level * 2, 26), fk = F.k();
   pole = new THREE.Mesh(new THREE.CylinderGeometry(R_IN + 0.02, R_IN + 0.02, count * GAP + 12, 32), mats.pole);
   pole.position.y = -(count * GAP) / 2 + 2; pole.receiveShadow = true; tower.add(pole);
   for (let i = 0; i <= count; i++) {
@@ -83,9 +85,9 @@ function buildLevel() {
       const gLen = 1 + Math.floor(r() * (level < 3 ? 3 : 2)), gStart = Math.floor(r() * SEG);
       for (let k = 0; k < gLen; k++) kinds[(gStart + k) % SEG] = 'gap';
       if (i > 0) {
-        const nd = Math.min(5, Math.floor(r() * (1.2 + level * 0.45) + (i / count) * 1.6));
+        const nd = Math.min(6, Math.floor((r() * (1.2 + level * 0.45) + (i / count) * 1.6) * fk));
         for (let k = 0; k < nd; k++) { const s = Math.floor(r() * SEG); if (kinds[s] === 'safe') kinds[s] = 'danger'; }
-        if (level > 2 && r() < 0.18 + level * 0.02) {                       // a run of dark slices: the "wall"
+        if (level > 2 && r() < (0.18 + level * 0.02) * fk) {                       // a run of dark slices: the "wall"
           const s = Math.floor(r() * SEG); for (let k = 0; k < 3; k++) if (kinds[(s + k) % SEG] === 'safe') kinds[(s + k) % SEG] = 'danger';
         }
       }
@@ -194,7 +196,7 @@ function tapped() {
 }
 
 function lose() {
-  state = 'lost'; buzz([40, 30, 60]); tone(140, 0.35, 'square', 0.12); burst(pal.ball, 22); ball.visible = false;
+  state = 'lost'; F.level(false, passed / (rings.length - 1)); buzz([40, 30, 60]); tone(140, 0.35, 'square', 0.12); burst(pal.ball, 22); ball.visible = false;
   setTimeout(() => {
     const pct = Math.round(passed / (rings.length - 1) * 100);
     $('losePct').textContent = `${pct}% completed`;
@@ -202,7 +204,7 @@ function lose() {
   }, 700);
 }
 function win() {
-  state = 'won'; score += 50 * level; best = Math.max(best, score); localStorage.setItem('twist_best', best);
+  state = 'won'; F.level(true); score += 50 * level; best = Math.max(best, score); localStorage.setItem('twist_best', best);
   $('score').textContent = score; $('winLv').textContent = level; tone(660, 0.12); setTimeout(() => tone(880, 0.18), 120);
   buzz([20, 40, 20]); $('flash').style.opacity = 0.7; setTimeout(() => $('flash').style.opacity = 0, 120);
   for (let i = 0; i < 3; i++) setTimeout(() => burst(['#ffd23f', pal.safe, '#ffffff'][i], 26), i * 140);

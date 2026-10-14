@@ -1,12 +1,14 @@
 // Latte Jam — original cup-sorting puzzle. Tap trays to park them in the slots; matching cups hop off the belt into them.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
+import { flow } from './kit/flow.js';
 
 const S = createStage({ fov: 40, shadowSize: 10 });
 const { scene, camera, sun, hemi, renderer } = S;
 sun.position.set(4, 14, 7); sun.intensity = 1.55; hemi.intensity = 1.2; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0006;
 const ui = createUI({ title: 'LATTE<br>JAM', hint: 'Tap a tray · fill it with matching cups', hand: '👆', score: false });
 const save = store('lattejam');
+const F = flow('lattejam');
 let level = save.get('level', 1);
 
 // ---------------------------------------------------------------- colours
@@ -113,11 +115,11 @@ let state = 'ready', trays = [], queue = [], cups = [], served = 0, total = 0, j
 const trayGroup = new THREE.Group(); scene.add(trayGroup);
 
 function genLevel() {
-  const r = rng(level * 7349 + 11);
+  const r = rng(level * 7349 + 11), fk = F.k();
   TH = THEMES[(level - 1) % THEMES.length];
   document.body.style.setProperty('--bg1', TH.bg[0]); document.body.style.setProperty('--bg2', TH.bg[1]); document.body.style.setProperty('--ui', TH.frame);
   frameMat.color.set(TH.frame); boardMat.color.set(TH.board); deckMat.color.set(TH.board); floorMat.color.set('#ffffff');
-  const C = Math.min(7, level <= 2 ? 3 : 2 + Math.floor((level + 1) / 2)), K = level === 1 ? 2 : level <= 3 ? 3 : 4;
+  const C = Math.min(8, Math.round((level <= 2 ? 3 : 2 + Math.floor((level + 1) / 2)) * fk)), K = level === 1 ? 2 : level <= 3 ? 3 : 4;
   NSLOT = 4; buildSlots();
   const N = C * K;
   // --- place trays: layer 0 compact around the centre, upper layers fully supported by the layer below
@@ -170,7 +172,7 @@ function genLevel() {
   const active = order.slice(0, ACT).map(t => ({ t, left: 6 })); let nextI = ACT, last = null;
   queue = [];
   while (active.length) {
-    let a = (last && active.includes(last) && r() < 0.62) ? last : active[Math.floor(r() * active.length)];
+    let a = (last && active.includes(last) && r() < Math.min(0.9, 0.62 / fk)) ? last : active[Math.floor(r() * active.length)];
     queue.push(a.t.col); a.left--; last = a;
     if (a.left === 0) { active.splice(active.indexOf(a), 1); if (nextI < order.length) active.push({ t: order[nextI++], left: 6 }); }
   }
@@ -212,12 +214,12 @@ ui.onTap(w => { if (w === 'win') level++; genLevel(); state = 'play'; });
 function studPos(t, k) { const i = k % 3, j = Math.floor(k / 3); return new THREE.Vector3(t.m.position.x + (i - 1) * CELL, t.m.position.y + TRAY_H + 0.07, t.m.position.z + (j - 0.5) * CELL); }
 function frontCup() { return cups.find(c => c.st === 'queue' && c.q === 0); }
 function win() {
-  state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5);
+  state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(0, 2, -1), 70), i * 170);
   ui.win(level, `All ${total} cups served!`);
 }
 function lose() {
-  state = 'lost'; sfx.fail(); buzz([40, 30, 60]); shake = 1; ui.flash(0.3);
+  state = 'lost'; F.level(false, served / total); sfx.fail(); buzz([40, 30, 60]); shake = 1; ui.flash(0.3);
   ui.lose('JAMMED!', `${served}/${total} cups served — keep a slot free!`);
 }
 

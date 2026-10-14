@@ -3,6 +3,7 @@
 // Empty spools vanish; spools with yarn left after a lap park in one of 5 holding slots. Unravel everything to win.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, clamp, lerp } from './kit/hc.js';
 import { YARN, PICTURES, patternPicture } from './pictures.js';
+import { flow } from './kit/flow.js';
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);
 
 const HOLD = 5, BELT_MAX = 5, PIC = 5.0, GAP = 0.62, CR = 0.55, SPEED = 8.5, SPACING = 1.1;
@@ -10,6 +11,7 @@ const stage = createStage({ fov: 40, shadowSize: 8 });
 const { scene, camera, sun } = stage;
 sun.intensity = 1.5;
 const save = store('knitflow');
+const F = flow('knitflow');
 let level = save.get('level', 1), score = save.get('stitches', 0), state = 'ready';
 const ui = createUI({ title: 'KNIT<br>FLOW', hint: 'Tap a spool to unravel', hand: '👆', score: false });
 
@@ -89,7 +91,7 @@ function solve(g0, rack) {
   return true;
 }
 function designLevel(n) {
-  const R = rng(n * 977 + 31), pic = pictureFor(n); N = pic.n;
+  const R = rng(n * 977 + 31), pic = pictureFor(n), fk = F.k(); N = pic.n;
   const g = new Array(N * N), keys = [];
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { const k = pic.f((c + 0.5) / N, (r + 0.5) / N); let i = keys.indexOf(k); if (i < 0) { keys.push(k); i = keys.length - 1; } g[r * N + c] = i; }
   // tiny colour islands make silly 1-stitch spools: fold them into the most common colour
@@ -116,8 +118,8 @@ function designLevel(n) {
       const l = lap(gg, b.color, b.left); if (l) hd.push({ color: b.color, left: l });
     }
     for (const p of pool) order.push(...p);
-    const shuf = attempt < 20 ? Math.min(3, Math.floor(n / 3)) : 0;
-    for (let i = 0; i < order.length && shuf; i++) if (R() < 0.35) { const j = Math.min(order.length - 1, i + 1 + Math.floor(R() * shuf)); [order[i], order[j]] = [order[j], order[i]]; }
+    const shuf = attempt < 20 ? Math.min(4, Math.floor(n / 3 * fk)) : 0;
+    for (let i = 0; i < order.length && shuf; i++) if (R() < 0.35 * fk) { const j = Math.min(order.length - 1, i + 1 + Math.floor(R() * shuf)); [order[i], order[j]] = [order[j], order[i]]; }
     const rack = Array.from({ length: C }, () => []); order.forEach((b, i) => rack[i % C].push({ ...b, left: b.cap }));
     if (solve(g, rack)) return { g, keys, rack, pic };
   }
@@ -263,8 +265,8 @@ function startLevel() {
   document.body.style.setProperty('--bg1', bg[0]); document.body.style.setProperty('--bg2', bg[1]); document.body.style.setProperty('--ui', '#ff7aa8');
 }
 let wonAt = 0;
-function win() { state = 'won'; wonAt = performance.now(); level++; save.set('level', level); save.set('stitches', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.4); confetti(scene, new THREE.Vector3(0, 2, 0), 90); ui.win(level - 1, `"${D.pic.name}" unravelled!`); }
-function lose() { if (state !== 'play') return; state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TANGLED!', 'No free slot for that spool.'); }
+function win() { state = 'won'; F.level(true); wonAt = performance.now(); level++; save.set('level', level); save.set('stitches', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.4); confetti(scene, new THREE.Vector3(0, 2, 0), 90); ui.win(level - 1, `"${D.pic.name}" unravelled!`); }
+function lose() { if (state !== 'play') return; state = 'lost'; F.level(false, totalSt ? 1 - leftSt / totalSt : 0); sfx.fail(); buzz([60, 40, 90]); ui.lose('TANGLED!', 'No free slot for that spool.'); }
 ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
 function placeCamera() {
   const tilt = THREE.MathUtils.degToRad(66), fovV = THREE.MathUtils.degToRad(camera.fov);

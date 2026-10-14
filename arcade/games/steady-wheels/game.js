@@ -2,8 +2,10 @@
 // reverse; follow the road and stop the vehicle inside the green bay without scraping anything.
 // Inspired by the mechanic of Vehicle Masters (SayGames). All code and art original.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const S = store('steadywheels');
+const F = flow('steadywheels');
 let level = S.get('level', 1), coinsTotal = S.get('coins', 0);
 const stage = createStage({ fov: 42, shadowSize: 26 });
 const { scene, camera, renderer, sun, hemi } = stage;
@@ -108,8 +110,8 @@ const FACADES = BUILD_COLS.map(facadeTex);
 
 function buildLevel() {
   world.traverse(o => { if (o.geometry) o.geometry.dispose(); }); scene.remove(world); world = new THREE.Group(); scene.add(world);
-  const r = rng(level * 977 + 3); spec = VEH[(level - 1) % VEH.length];
-  roadHW = 3.6 + (spec.wid - 2) * 1.2 + Math.max(0, 1.4 - level * 0.08);
+  const r = rng(level * 977 + 3), fk = F.k(); spec = VEH[(level - 1) % VEH.length];
+  roadHW = (3.6 + (spec.wid - 2) * 1.2 + Math.max(0, 1.4 - level * 0.08)) / fk;
   // turtle-walk road
   path = []; let x = 0, z = 0, h = 0;
   const step = (len, turn, R) => { const n = Math.ceil(len); for (let i = 0; i < n; i++) { if (turn) h += turn / n; x += Math.sin(h) * len / n; z -= Math.cos(h) * len / n; path.push({ x, z, h }); } };
@@ -117,7 +119,7 @@ function buildLevel() {
   const pieces = 4 + Math.min(4, Math.floor(level / 2)), minR = 9 + spec.len * 0.9;
   let total = 0;
   for (let k = 0; k < pieces; k++) {
-    let a = (0.6 + r() * 0.9) * (r() < 0.5 ? -1 : 1) * Math.min(1, 0.7 + level * 0.06);
+    let a = (0.6 + r() * 0.9) * (r() < 0.5 ? -1 : 1) * Math.min(1.15, (0.7 + level * 0.06) * fk);
     if (Math.abs(h + a) > 1.9) a = -a;
     const R = minR + r() * 8; step(R * Math.abs(a), a, R); step(5 + r() * 9, 0);
   }
@@ -281,7 +283,7 @@ loop((dt, t) => {
       damage++; updDamage(); veh.inv = 0.9; shake = 1; ui.flash(0.35); sfx.smash(); buzz([40, 30, 40]);
       ui.pop(damage >= 3 ? 'WRECKED!' : 'SCRATCH!', '#ff4d6d', 40, 32);
       burst(scene, V(nx, 1.2, nz).addScaledVector(fwd(veh.th), Math.sign(veh.v) * spec.len / 2), ['#ffd23f', '#ffffff', '#ff8c42'], 14, { speed: 0.12, up: 0.12, size: 0.6 });
-      if (damage >= 3) { state = 'lost'; holding = false; ui.lose('WRECKED!', 'Three scrapes and you\'re out'); sfx.fail(); }
+      if (damage >= 3) { state = 'lost'; F.level(false, maxIdx / (path.length - 1)); holding = false; ui.lose('WRECKED!', 'Three scrapes and you\'re out'); sfx.fail(); }
     }
     veh.v = -veh.v * 0.25;
   } else { veh.th = nth; veh.x = nx; veh.z = nz; }
@@ -303,7 +305,7 @@ loop((dt, t) => {
     zone.g.userData.fill.material.opacity = inside ? 0.6 + Math.sin(t * 10) * 0.1 : 0.42;
     if (inside && !drive && Math.abs(veh.v) < 0.25) {
       parkT += sec; if (parkT > 0.35) {
-        state = 'won'; const ang = Math.abs(((veh.th - zone.h) % Math.PI + Math.PI * 1.5) % Math.PI - Math.PI / 2);
+        state = 'won'; F.level(true); const ang = Math.abs(((veh.th - zone.h) % Math.PI + Math.PI * 1.5) % Math.PI - Math.PI / 2);
         const perfect = ang < 0.12 && damage === 0; ui.progress(1);
         ui.pop(perfect ? 'PERFECT PARK!' : 'PARKED!', '#7dff9a', 44, 30); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5);
         for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, V(zone.x, 2, zone.z), 60), i * 180);

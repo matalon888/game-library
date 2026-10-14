@@ -1,12 +1,15 @@
 // Tube Rush — original game. Race down a twisting water slide on an inflatable; fly off the curves to cut corners.
 import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, store, clamp, lerp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const R = 3.0;            // half-pipe radius
 const RIM = 1.62;         // fly-off angle (rad from bottom)
 const WALL = 1.78;        // geometry wall extent
 const G = 9.8;
 const save = store('tuberush');
+const FL = flow('tuberush'); let recd = false;
+const rec = (won, c) => { if (!recd) { recd = true; FL.level(won, c); } };
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 58, shadowSize: 22 });
@@ -238,7 +241,7 @@ function surf(s, th, rr, out) { frameAt(s, F2); return out.copy(F2.c).addScaledV
 function spawnRiders(r) {
   for (const rd of riders) scene.remove(rd.g);
   riders = [];
-  const nb = 6, botBase = 15.2 + Math.min(level, 12) * 0.22;
+  const nb = 6, botBase = (15.2 + Math.min(level, 12) * 0.22) * FL.k();
   for (let i = 0; i <= nb; i++) {
     const isP = i === nb, skin = isP ? PLAYER_SKIN : SKINS[i % SKINS.length];
     const rd = { g: makeRider(skin), isP, s: isP ? 2 : 4 + (nb - i) * 2.6 + r() * 1.5, th: isP ? 0 : (i % 3 - 1) * 0.55, om: 0, v: 0,
@@ -261,7 +264,7 @@ function placeOnSlide(rd) {
 function buildLevel() {
   const r = rng(level * 7919 + 13);
   buildPath(r); buildSlide(); buildScenery(r); spawnRiders(r);
-  finished = 0; raceT = 0; ui.levels(level); ui.progress(0); ui.score(''); ui.sub(best ? 'BEST ' + best : '');
+  finished = 0; raceT = 0; recd = false; ui.levels(level); ui.progress(0); ui.score(''); ui.sub(best ? 'BEST ' + best : '');
   camPos.copy(player.P).add(new THREE.Vector3(0, 6, 9)); camLook.copy(player.P);
 }
 
@@ -392,7 +395,7 @@ function launch(rd) {
 function wipeout(rd) {
   rd.out = true; rd.air = false; rd.V.set(rd.V.x * 0.2, 0, rd.V.z * 0.2);
   burst(scene, new THREE.Vector3(rd.P.x, 0.5, rd.P.z), ['#ffffff', '#9be7ff', '#5fd6ff'], 26, { speed: 0.2, up: 0.25, shape: 'sphere', size: 1.6 });
-  if (rd.isP) { state = 'lost'; sfx.fail(); buzz([40, 30, 60]); ui.flash(0.5); ui.lose('SPLASH!', 'You flew off the slide'); }
+  if (rd.isP) { state = 'lost'; rec(false, player.s / L); sfx.fail(); buzz([40, 30, 60]); ui.flash(0.5); ui.lose('SPLASH!', 'You flew off the slide'); }
   else if (Math.hypot(rd.P.x - player.P.x, rd.P.z - player.P.z) < 40) { tone(300, 0.1, 'sine', 0.06, 0.5); }
 }
 function finish(rd) {
@@ -401,12 +404,12 @@ function finish(rd) {
   if (rd.isP) {
     const p = rd.place; ui.score(ord(p)); ui.progress(1);
     if (p <= 3) {
-      state = 'won'; score += [0, 300, 200, 120][p] + level * 10; best = Math.max(best, score); save.set('best', best);
+      state = 'won'; rec(true); score += [0, 300, 200, 120][p] + level * 10; best = Math.max(best, score); save.set('best', best);
       sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, rd.P.clone().add(new THREE.Vector3(0, 3, 0)), 90);
       setTimeout(() => confetti(scene, rd.P.clone().add(new THREE.Vector3(0, 4, 0)), 60), 300);
       ui.pop(p === 1 ? '1ST PLACE!' : ord(p).toUpperCase() + ' PLACE!', '#ffd23f', 52, 30);
       ui.win(level, `You finished ${ord(p)}!`);
-    } else { state = 'lost'; sfx.fail(); ui.lose(ord(p).toUpperCase() + '...', 'Top 3 to clear the level'); }
+    } else { state = 'lost'; rec(false, (7 - p) / 4); sfx.fail(); ui.lose(ord(p).toUpperCase() + '...', 'Top 3 to clear the level'); }
   }
 }
 function botTarget(rd) {        // the QA bot: hug the inside of curves a bit, dodge riders just ahead

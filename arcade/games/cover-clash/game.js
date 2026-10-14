@@ -1,6 +1,7 @@
 // Cover Clash — original timing shooter. Hold to pop out and fire, release to duck before the enemy's shot lands.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
+import { flow } from './kit/flow.js';
 
 const S = createStage({ fov: 50, shadowSize: 18 });
 const { scene, camera, sun, hemi } = S;
@@ -8,6 +9,8 @@ sun.position.set(8, 16, 6); sun.intensity = 1.8; hemi.intensity = 1.15; sun.shad
 scene.add(camera);
 const ui = createUI({ title: 'COVER<br>CLASH', hint: 'Hold to shoot · release to hide', hand: '👆', score: false });
 const save = store('cclash');
+const F = flow('cclash');
+let fk = 1;
 let level = save.get('level', 1);
 
 // ---------------------------------------------------------------- HUD
@@ -175,7 +178,7 @@ function spawnWave() {
     const laser = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1, 6), laserMat.clone()); laser.visible = false; scene.add(laser);
     const ring = new THREE.Sprite(new THREE.SpriteMaterial({ map: alertTex, transparent: true, depthTest: false })); ring.scale.setScalar(0.9); ring.visible = false; scene.add(ring);
     const hpMax = 3 + Math.floor((level - 1) / 2);
-    enemies.push({ g, cover, laser, ring, home: new THREE.Vector3(s.x, 0, s.z), st: 'run', t: 0, up: 0, hp: hpMax, hpMax, hide: 0.3 + r() * 1.0 + i * 0.6, aimDur: Math.max(0.6, 1.25 - level * 0.06), dead: false, rag: null, flash: 0 });
+    enemies.push({ g, cover, laser, ring, home: new THREE.Vector3(s.x, 0, s.z), st: 'run', t: 0, up: 0, hp: hpMax, hpMax, hide: 0.3 + r() * 1.0 + i * 0.6, aimDur: Math.max(0.52, (1.25 - level * 0.06) / fk), dead: false, rag: null, flash: 0 });
   });
   showWave(`WAVE ${wave + 1}`);
 }
@@ -185,7 +188,7 @@ function showWave(t) { waveEl.textContent = t; waveEl.animate([{ opacity: 0, tra
 // ---------------------------------------------------------------- game state
 let state = 'ready', hp = 3, maxHP = 3, holding = false, botHold = false, up = 0, fireT = 0, target = null, slow = 1, slowT = 0, killCam = null, shake = 0, hurtT = 0, winPending = false;
 function startLevel() {
-  buildArena();
+  buildArena(); fk = F.k();
   const nw = 2 + Math.floor((level - 1) / 2);
   waves = []; for (let i = 0; i < nw; i++) waves.push(Math.min(5, (level === 1 ? 2 : 2 + Math.floor(level / 2)) + (i === nw - 1 ? 1 : 0)));
   totalEnemies = waves.reduce((a, b) => a + b, 0); wave = 0; killed = 0; hp = maxHP; up = 0; slow = 1; slowT = 0; killCam = null; winPending = false;
@@ -251,6 +254,7 @@ function playerHit(e) {
   hp--; setHP(); hurtT = 1; shake = 0.7; ui.flash(0.25); sfx.fail(); buzz([40, 30, 40]);
   vign.style.boxShadow = 'inset 0 0 120px 50px rgba(255,0,40,.55)'; setTimeout(() => vign.style.boxShadow = 'inset 0 0 120px 40px rgba(255,0,40,0)', 250);
   ui.pop('OUCH!', '#ff4d6d', 40, 40);
+  if (hp <= 0 && state === 'play') F.level(false, killed / totalEnemies);
   if (hp <= 0) { state = 'lost'; player.dying = 0.001; ui.lose('TAKEN DOWN', `Wave ${wave + 1} · ${killed}/${totalEnemies} cleared — hide when the laser locks!`); }
 }
 
@@ -258,7 +262,7 @@ function playerHit(e) {
 const camPos = new THREE.Vector3(1.3, 3.5, 5.0), camLook = new THREE.Vector3(0, 0.3, -11);
 loop((dtRaw, t) => {
   const real = dtRaw / 60;
-  if (slowT > 0) { slowT -= real; if (slowT <= 0) { slow = 1; if (winPending && state === 'play') { state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); confetti(scene, player.position.clone().add(new THREE.Vector3(0, 2.5, -3)), 70); ui.win(level, `All ${totalEnemies} enemies down · ${hp}/${maxHP} armour left`); } } }
+  if (slowT > 0) { slowT -= real; if (slowT <= 0) { slow = 1; if (winPending && state === 'play') { F.level(true); state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); confetti(scene, player.position.clone().add(new THREE.Vector3(0, 2.5, -3)), 70); ui.win(level, `All ${totalEnemies} enemies down · ${hp}/${maxHP} armour left`); } } }
   const sec = real * slow;
   const wantUp = state === 'play' && (holding || botHold) && !winPending;
   up = clamp(up + (wantUp ? 8 : -9) * sec, 0, 1);

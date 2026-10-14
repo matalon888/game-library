@@ -1,6 +1,7 @@
 // Bumpy Buggy — original game. Hold GAS / BRAKE to drive a toy jeep over endless seeded hills.
 // Reach the flag, grab fuel cans and coins, and don't land on the driver's head.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { makeTerrain, DX, X0 } from './terrain.js';
 import { createCar, stepCar, headPos, WHEEL_R } from './car.js';
 
@@ -39,7 +40,8 @@ const gaugeI = hudFuel.querySelector('i'), coinsEl = hudCoins.querySelector('spa
 
 const save = store('bumpybuggy');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), state = 'ready';
-let coins = 0, fuel = 100, D = 200, T, car, world = null, flagX = 0, lowFuelT = 0, stuckT = 0, endT = 0, shake = 0, slow = 0;
+const F = flow('bumpybuggy');
+let fk = 1, coins = 0, fuel = 100, D = 200, T, car, world = null, flagX = 0, lowFuelT = 0, stuckT = 0, endT = 0, shake = 0, slow = 0;
 const ctl = { gas: false, brake: false, noFuel: false };
 
 // ------------------------------------------------------------------ static backdrop (far hills + clouds, follow camera loosely)
@@ -138,7 +140,7 @@ function buildLevel() {
   if (world) { scene.remove(world); world.traverse(o => { o.geometry && o.geometry.dispose(); }); }
   world = new THREE.Group(); scene.add(world);
   D = 170 + (level - 1) * 110; flagX = D;
-  T = makeTerrain(level, D + 80);
+  fk = F.k(); T = makeTerrain(level, D + 80, fk);
   world.add(terrainMesh());
   const r = rng(level * 131 + 5);
   // trees (round blobs + pines), instanced
@@ -246,7 +248,7 @@ function tip(text, x, y, size = 26, color = '#fff') {
 function addCoins(n) { coins += n; coinsEl.textContent = coins; }
 function finish(won, why) {
   if (state !== 'play') return;
-  state = won ? 'won' : 'lost'; held.clear(); refreshCtl(); engineUpdate(0, false);
+  state = won ? 'won' : 'lost'; F.level(won, clamp(car.p.x / D, 0, 1)); held.clear(); refreshCtl(); engineUpdate(0, false);
   const dist = Math.max(0, Math.round(car.p.x));
   if (dist > best) { best = dist; save.set('best', best); }
   if (won) { sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(car.p.x + 1, car.p.y + 3, 0), 90); ui.flash(0.5); slow = 1; ui.win(level, `${coins} coins · ${dist} m`); }
@@ -276,7 +278,7 @@ loop((dt60) => {
     acc += rdt; let n = 0;
     while (acc >= 1 / 480 && n < 20) { stepCar(car, T, c2, 1 / 480); acc -= 1 / 480; n++; }
     // fuel
-    fuel = Math.max(0, fuel - rdt * (c2.gas ? 2.4 : 0.9));
+    fuel = Math.max(0, fuel - rdt * (c2.gas ? 2.4 : 0.9) * fk);
     gaugeI.style.width = fuel + '%'; hudFuel.querySelector('.bb-gauge').classList.toggle('low', fuel < 22);
     if (fuel < 22 && (lowFuelT -= rdt) < 0) { lowFuelT = 0.8; tone(880, 0.08, 'square', 0.05, 1); }
     pedGas.classList.toggle('on', c2.gas); pedBrake.classList.toggle('on', c2.brake);

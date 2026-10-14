@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, rng, clamp, ler
 import { levelPlan, arrange } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, skyDome, ease } from './_music/fx.js';
+import { flow } from './kit/flow.js';
 
 const ORDER = ['twinkle', 'canon', 'ode', 'neon', 'minuet', 'starlight', 'saints', 'elise', 'cancan', 'mountain', 'turkish'];
 const MOODS = [
@@ -17,6 +18,7 @@ const COLS = [-3, -1.5, 0, 1.5, 3], TILE = 1.42, STEP = 1.5;
 
 const S = store('cloudleap');
 let level = S.get('level', 1), best = S.get('best', 0);
+const F = flow('cloudleap');
 const stage = createStage({ fov: 55, shadows: true, shadowSize: 9 });
 const { scene, camera, sun } = stage;
 stage.hemi.intensity = 1.1; sun.intensity = 1.4;
@@ -74,7 +76,7 @@ function buildLevel() {
   // one row of pillars per beat; a winding safe path with decoys and spikes on the sides
   rows = [{ t: -99, z: STEP, plats: COLS.map((x, c) => ({ c, x, spike: false })), start: true }];
   let p = 2;
-  const pSpike = clamp(0.12 + level * 0.05, 0.12, 0.5), pExtra = clamp(0.55 - level * 0.03, 0.25, 0.55);
+  const fk = F.k(), pSpike = clamp((0.12 + level * 0.05) * fk, 0.1, 0.58), pExtra = clamp((0.55 - level * 0.03) / fk, 0.22, 0.62);
   beats.forEach((b, i) => {
     if (i > 1) p = clamp(p + (r() < 0.55 ? (r() < 0.5 ? -1 : 1) : 0), 0, 4);
     const plats = [{ c: p, x: COLS[p], spike: false, path: true }];
@@ -138,14 +140,14 @@ function land(ri, now) {
   return true;
 }
 function fail(why, q, row) {
-  state = 'lost'; failT = clock; fallV = why === 'fall' ? 0.0 : -0.12; player.stop(0.3); synth.fail(); buzz([50, 30, 70]);
+  state = 'lost'; F.level(false, landed / Math.max(1, rows.length - 1)); failT = clock; fallV = why === 'fall' ? 0.0 : -0.12; player.stop(0.3); synth.fail(); buzz([50, 30, 70]);
   if (why === 'spike') { fx.emit(ball.position, ['#ff2d55', '#ffffff'], 26, { speed: 0.15, up: 0.1, size: 0.5 }); ball.visible = false; ui.flash(0.5); }
   best = Math.max(best, score); S.set('best', best);
   ui.lose(why === 'spike' ? 'OUCH!' : 'OOPS!', `${Math.round(landed / (rows.length - 1) * 100)}% · ${score} pts · ${starsGot} ★`);
   return false;
 }
 function win() {
-  state = 'won'; best = Math.max(best, score); S.set('best', best);
+  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 5; k++) fx.emit(new THREE.Vector3(bx + (k - 2), 1.6, bz - 1), ['#ffd84a', '#ffffff', '#' + cur.tile.getHexString(), '#ff9be8'], 18, { speed: 0.16, up: 0.12, size: 0.55 });
   ui.flash(0.5); buzz([20, 40, 30]); ui.win(level, `${score} pts · ${starsGot} ★`);
   level++; S.set('level', level);

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, lerp
 import { DT, swipe, press, botStroke } from './rope.js';
 import { generate, buildSim, act } from './level.js';
 import { makeHedgehog } from './creature.js';
+import { flow } from './kit/flow.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 12 });
 const { scene, camera, sun } = stage;
@@ -22,6 +23,7 @@ css.textContent = `.hc-card h1{color:#fff;text-shadow:0 6px 0 #c2456b,0 10px 18p
 document.head.appendChild(css);
 const starHud = document.createElement('div'); starHud.className = 'ss-stars'; starHud.innerHTML = '<b>★</b><b>★</b><b>★</b>'; document.body.appendChild(starHud);
 const save = store('snipsnack');
+const F = flow('snipsnack');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), totalStars = save.get('stars', 0), state = 'ready';
 
 // ------------------------------------------------------------------ cardboard box backdrop
@@ -94,7 +96,7 @@ let L, sim, lvl = new THREE.Group(), starObjs = [], bubbleObj = null, cushObjs =
 scene.add(lvl);
 function buildLevel() {
   scene.remove(lvl); lvl = new THREE.Group(); scene.add(lvl);
-  L = generate(level); sim = buildSim(L);
+  L = generate(level, F.k()); sim = buildSim(L);
   starObjs = L.stars.map(s => { const m = new THREE.Mesh(STAR_G, STAR_M); m.position.set(s.x, s.y, 0); m.castShadow = true; const gl = new THREE.Sprite(GLOW_M); gl.scale.setScalar(1.5); gl.position.set(s.x, s.y, -0.2); lvl.add(m, gl); return { m, gl, x: s.x, y: s.y, got: false }; });
   pinObjs = L.pins.map(p => { const g = new THREE.Group(); const b = new THREE.Mesh(PIN_G, PIN_M); b.rotation.x = Math.PI / 2; b.castShadow = true; const r = new THREE.Mesh(RING_G, RING_M); r.position.z = 0.08; const dot = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), glossy('#2f3f74')); dot.position.z = 0.14; g.add(b, r, dot); g.position.set(p.x, p.y, 0); lvl.add(g); return g; });
   bubbleObj = null;
@@ -147,7 +149,7 @@ function onStar(s, i) {
   ui.pop(['NICE!', 'SWEET!', 'PERFECT!'][got - 1], '#ffd23f', 34 + got * 4, 30);
 }
 function win() {
-  caught = true; state = 'won'; candy.visible = false; pip.chomp();
+  caught = true; state = 'won'; F.level(true); candy.visible = false; pip.chomp();
   const mp = V(L.mouth.x, L.mouth.y + 0.2, 1);
   sfx.win(); tone(160, 0.12, 'square', 0.1, 0.6); buzz([20, 40, 30]); ui.flash(0.45); shake = 0.3;
   burst(scene, mp, ['#ff3d6e', '#ff9bb7', '#ffffff'], 22, { speed: 0.12, up: 0.08, size: 0.5, shape: 'sphere' });
@@ -158,7 +160,7 @@ function win() {
   setTimeout(() => { const x = ui.els.win.querySelector('[data-x]'); x.classList.add('ss-win'); }, 0);
 }
 function lose() {
-  state = 'lost'; pip.setSad(true); sfx.fail(); buzz([40, 30, 60]);
+  state = 'lost'; F.level(false, bestP); pip.setSad(true); sfx.fail(); buzz([40, 30, 60]);
   ui.lose('MISSED!', 'Pip is still hungry…');
 }
 ui.onTap(w => {

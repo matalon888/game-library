@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, buzz, rng, clamp } from './k
 import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, ease } from './_music/fx.js';
+import { flow } from './kit/flow.js';
 
 const ORDER = ['twinkle', 'ode', 'minuet', 'saints', 'canon', 'elise', 'cancan', 'neon', 'mountain', 'starlight', 'turkish'];
 const THEMES = [   // background gradient (top, middle, bottom) + glow colour of hits
@@ -18,6 +19,7 @@ const H = 10, JY = -2.9, TOP = H / 2;   // world: visible height is always 10 un
 
 const S = store('glowkeys');
 let level = S.get('level', 1), best = S.get('best', 0);
+const F = flow('glowkeys');
 const stage = createStage({ fov: 40, shadows: false });
 const { scene, camera } = stage;
 stage.hemi.intensity = 0.55; stage.sun.intensity = 1.0; stage.sun.position.set(-3, 6, 10);
@@ -109,7 +111,7 @@ function buildLevel() {
   fx.clear(); failInfo = null; combo = 0; stars = 0; doneCount = 0; score = 0;
   const plan = levelPlan(level, ORDER);
   track = arrange(plan.song, { bars: plan.bars, tempo: plan.tempo, ramp: 0.1, density: 0.6 });
-  lookahead = clamp(1.6 - (level - 1) * 0.045, 1.05, 1.6); speed = (TOP - JY) / lookahead;
+  lookahead = clamp((1.6 - (level - 1) * 0.045) / F.k(), 0.9, 1.85); speed = (TOP - JY) / lookahead;
   const minGap = Math.max(0.17, 1.05 / speed);
   const hs = hits(track, minGap), gaps = hs.map(h => h.dur).sort((a, b) => a - b), median = gaps[Math.floor(gaps.length / 2)] || 0.5;
   const r = rng(level * 7919 + 3); let lane = Math.floor(r() * 4), prevMidi = hs[0] ? hs[0].midi : 60;
@@ -179,7 +181,7 @@ function releaseHold(t, now) {
 }
 function fail(reason, t, lane, y) {
   if (state !== 'play') return;
-  state = 'lost'; player.stop(0.25); synth.fail(); buzz([40, 30, 60]);
+  state = 'lost'; F.level(false, doneCount / Math.max(1, tiles.length)); player.stop(0.25); synth.fail(); buzz([40, 30, 60]);
   failInfo = { t0: player.time(), tile: t, lane, y, k: 0 };
   if (t && t.mesh) t.mesh.body.material = missMat;
   if (!t) { const m = new THREE.Mesh(roundedRect(laneW - 0.09, 1.6, 0.14, 0.12), missMat.clone()); m.position.set(laneX(lane), y, 0.05); scene.add(m); failInfo.mesh = m; }
@@ -188,7 +190,8 @@ function fail(reason, t, lane, y) {
   ui.lose(reason, `${pct}% · ${'★'.repeat(stars)}${'☆'.repeat(3 - stars)} · ${score} pts`);
 }
 function win() {
-  state = 'won'; best = Math.max(best, score); S.set('best', best);
+  if (state !== 'play') return;
+  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 4; k++) fx.emit(new THREE.Vector3((k - 1.5) * 1.4, 1 + k * 0.4, 0.5), ['#ffd84a', '#ffffff', theme.glow, '#ff9be8'], 22, { speed: 0.16, size: 0.6, up: 0.05 });
   ui.flash(0.5); buzz([20, 40, 30]);
   [72, 76, 79, 84].forEach((m, k) => synth.chime(m, player.at(player.time()) + 0.05 + k * 0.09, 0.14));

@@ -1,6 +1,7 @@
 // Smash Dummy — original game. Grab the wooden dummy, fling it into swinging balls, spinning paddles,
 // passing cars and stairs. Every bump scores damage; reach the goal before you run out of throws.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { createRagdoll, placeRagdoll, stepRagdoll, syncCollider } from './ragdoll.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 9 });
@@ -18,6 +19,7 @@ css.textContent = `.hc-score{color:#ff8a1f;text-shadow:0 4px 0 rgba(120,60,0,.18
 @keyframes dmgup{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.25)}100%{opacity:0;transform:translate(-50%,-190%) scale(1)}}`;
 document.head.appendChild(css);
 const save = store('smashdummy');
+const F = flow('smashdummy');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), state = 'ready';
 let damage = 0, goal = 100, throws = 3, total = 0;
 
@@ -160,7 +162,7 @@ function buildLevel() {
   for (const k of kinds) { const info = T[k](x); if (!first) first = info; x += info.span + 1.5; }
   startAt.set(first.start, first.startY || 0, 0); aimAt.set(first.aim[0], first.aim[1], 0);
   camCenter.set((x - 1.5) / 2 - 0.6, 0, 0);
-  goal = level === 1 ? 100 : Math.round((110 + level * 30) * (kinds.length > 1 ? 1.15 : 1) / 10) * 10;
+  goal = Math.round((level === 1 ? 100 : (110 + level * 30) * (kinds.length > 1 ? 1.15 : 1)) * F.k() / 10) * 10;
   throws = 3; damage = 0; dummyLive = false; settleT = 0; grab = null; total = 0;
   placeRagdoll(rd, startAt); drawDummy();
   for (const t of things) t.update && t.update(0, 0);
@@ -246,12 +248,14 @@ ui.onTap(w => {
   else if (w === 'lose') { state = 'play'; buildLevel(); }
 });
 function win() {
+  if (state === 'play') F.level(true);
   state = 'won'; sfx.win(); buzz([20, 40, 20]);
   confetti(scene, rd.P[rd.IDX.chest].p.clone().add(new THREE.Vector3(0, 1.5, 0)), 80);
   if (damage > best) { best = damage; save.set('best', best); }
   ui.win(level, `${damage} damage`);
 }
 function lose() {
+  if (state === 'play') F.level(false, Math.min(1, damage / goal));
   state = 'lost'; sfx.fail(); buzz([40, 30, 60]);
   ui.lose('NOT BROKEN!', `${damage} / ${goal} damage`);
 }

@@ -1,6 +1,7 @@
 // Untwine — original game. Ropes hang between a top peg bar and a bottom peg bar, all tangled up.
 // Drag a rope plug to an empty peg in the same row; when no rope crosses another, the knot is solved.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const COLORS = ['#ff4b5c', '#ffc93c', '#3ccf6e', '#3b8bff', '#a66bff', '#ff8a2b'];
 const Y_TOP = 2.75, Z_PEG = 0.16, R_ROPE = 0.155, SAMPLES = 22;
@@ -13,6 +14,7 @@ camera.position.set(0, 0.9, 10.2); camera.lookAt(0, 0.05, 0);
 sun.position.set(3.5, 9, 10); sun.intensity = 1.9; hemi.intensity = 1.0; hemi.color.set('#e8fffb'); hemi.groundColor.set('#30585a');
 sun.shadow.mapSize.set(1024, 1024); sun.shadow.radius = 4;
 const save = store('untwine');
+const F = flow('untwine'); let fk = 1;
 let level = save.get('level', 1), total = save.get('freed', 0), state = 'ready';
 const ui = createUI({ title: 'UN<br>TWINE', hint: 'Drag the plugs to untangle', hand: '👆', score: false });
 
@@ -139,7 +141,8 @@ function makeRope(i) {
 
 function startLevel() {
   for (const r of ropes) { scene.remove(r.mesh); r.mesh.geometry.dispose(); r.mat.dispose(); r.tex.dispose(); for (const e of r.ends) scene.remove(e.g); }
-  const P = levelParams(level), rnd = rng(level * 7919 + 13);
+  fk = F.k(); const P = levelParams(level), rnd = rng(level * 7919 + 13);
+  P.target = Math.max(1, Math.min(P.R * (P.R - 1) / 2, Math.round(P.target * fk)));
   R = P.R; S = P.S; SP = Math.min(0.66, 3.7 / (S - 1));
   { const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), halfW = ((S - 1) * SP) / 2 + 1.05;
     CAM_D = Math.max(halfW / (tanV * camera.aspect), 4.4 / tanV); const h = CAM_D * tanV;
@@ -157,7 +160,7 @@ function startLevel() {
   // colour order follows top sockets so palette reads left→right nicely
   ropes = []; for (let i = 0; i < R; i++) ropes.push(makeRope(i));
   const sol = solve(pos); par = sol ? sol.length : R;
-  movesLeft = par + (level <= 2 ? 3 : level <= 8 ? 2 : 1); movesUsed = 0;
+  movesLeft = par + Math.max(1, Math.round((level <= 2 ? 3 : level <= 8 ? 2 : 1) / fk)); movesUsed = 0;
   startCross = Math.max(1, crossings(pos));
   for (const r of ropes) for (let k = 0; k < 2; k++) { const e = 2 * r.i + k; r.ends[k].cur.copy(sockPos(e, pos[e])); }
   for (const r of ropes) r.free = ropeCrosses(pos, r.i) === 0;
@@ -230,7 +233,7 @@ function endDrag(toSock) {
   updateHud(true); botPlan = null;
   const c = crossings(pos);
   if (c === 0) win();
-  else if (movesLeft <= 0) { state = 'lost'; sfx.fail(); buzz([60, 40, 60]); ui.lose('OUT OF MOVES', `${c} tangle${c > 1 ? 's' : ''} left`); }
+  else if (movesLeft <= 0) { state = 'lost'; F.level(false, Math.max(0, 1 - c / startCross)); sfx.fail(); buzz([60, 40, 60]); ui.lose('OUT OF MOVES', `${c} tangle${c > 1 ? 's' : ''} left`); }
 }
 let freedCount = 0;
 function freed(r) {
@@ -240,7 +243,7 @@ function freed(r) {
   if (crossings(pos) > 0) ui.pop(['FREE!', 'NICE!', 'UNTIED!'][freedCount % 3], '#c9ffe0', 34, 24);
 }
 function win() {
-  state = 'won'; winT = 1; total += R; save.set('freed', total);
+  state = 'won'; F.level(true); winT = 1; total += R; save.set('freed', total);
   sfx.win(); buzz([30, 30, 60]); ui.flash(0.45);
   confetti(scene, new THREE.Vector3(0, 1.5, 1), 70);
   ui.pop(movesLeft > 0 && movesUsed <= par ? 'PERFECT!' : 'UNTANGLED!', '#fff', 42, 22);

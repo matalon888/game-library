@@ -1,6 +1,7 @@
 // Gulp Garden — original game. Slide a hole around a tiny diorama, swallow the small stuff to grow,
 // then gulp the big target treats before the timer runs out.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, store, rng, lerp, clamp, mat, glossy, rounded, confetti } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { buildModels, THEMES } from './models.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 13 });
@@ -27,6 +28,7 @@ const timeEl = Object.assign(document.createElement('div'), { className: 'gg-tim
 const lvEl = Object.assign(document.createElement('div'), { className: 'gg-lv' });
 document.body.append(goalsEl, timeEl, lvEl);
 const save = store('gulpgarden');
+const F = flow('gulpgarden');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), state = 'ready';
 
 // ------------------------------------------------------------------ models (one InstancedMesh per type)
@@ -129,7 +131,7 @@ function genLevel(n) {
   const smallKs = Object.keys(counts).filter(k => k !== bigK && MODELS[k].r < 0.35).sort((a, b) => counts[b] - counts[a]);
   if (smallKs.length && (n === 1 || r() < 0.8)) g.push(smallKs[0]);
   const xpAll = list.reduce((a, o) => a + xpOf(o.r), 0);
-  return { list, goals: g, counts, time: Math.round(clamp(22 + list.length * 0.08 + nBig * 5, 28, 65)), xpAll };
+  return { list, goals: g, counts, time: Math.round(clamp((22 + list.length * 0.08 + nBig * 5) / F.k(), 24, 75)), xpAll };
 }
 const xpOf = (r) => Math.max(1, Math.round(r * r * 14));
 
@@ -200,11 +202,11 @@ function swallowed(o) {
   if (combo === 15 || combo === 30 || combo === 60) ui.pop(combo === 15 ? 'YUMMY!' : combo === 30 ? 'GULP x30!' : 'UNSTOPPABLE!', '#ffe14d', 36, 24);
 }
 function win() {
-  state = 'won'; sfx.win(); buzz([20, 40, 20]); ui.flash(0.4);
+  state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]); ui.flash(0.4);
   confetti(scene, new THREE.Vector3(HOLE.x, 1.5, HOLE.z), 90);
   const t = Math.ceil(timeLeft); ui.win(level, `${eaten} gulped · ${t}s left`);
 }
-function lose() { state = 'lost'; sfx.fail(); buzz([40, 30, 60]); ui.lose("TIME'S UP!", `${goalTotal() - goalLeft()} / ${goalTotal()} targets`); }
+function lose() { state = 'lost'; F.level(false, (goalTotal() - goalLeft()) / goalTotal()); sfx.fail(); buzz([40, 30, 60]); ui.lose("TIME'S UP!", `${goalTotal() - goalLeft()} / ${goalTotal()} targets`); }
 
 // ------------------------------------------------------------------ main loop
 let shake = 0;

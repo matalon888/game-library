@@ -2,6 +2,7 @@
 // Big legs vault walls and stairs, tiny legs fit under low roofs. Redraw any time. Beat three rivals to the flag.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
 import { makeRacer, setShape, step, course, floorAt, HALF } from './physics.js';
+import { flow } from './kit/flow.js';
 
 const OMEGA = -2 * Math.PI * 0.9;            // player motor (rad/s, negative = forward)
 const LANE_Z = [0, -1.75, -3.5, -5.25], LANE_D = 1.0;
@@ -14,6 +15,7 @@ const stage = createStage({ fov: 40, shadowSize: 9 });
 const { scene, camera, renderer, sun } = stage;
 const save = store('doodlelegs');
 let level = save.get('level', 1), wins = save.get('wins', 0), state = 'ready';
+const F = flow('doodlelegs');
 const ui = createUI({ title: 'DOODLE<br>LEGS', hint: 'Draw legs. Race. Climb!', hand: '✍️', score: false });
 
 // ---------------------------------------------------------------- shared assets
@@ -140,14 +142,14 @@ function startLevel() {
   const bg = BGS[(level - 1) % BGS.length]; document.body.style.setProperty('--bg1', bg[0]); document.body.style.setProperty('--bg2', bg[1]); document.body.style.setProperty('--ui', '#ff5d8f');
   C = course(level); finishX = C.finish;
   buildTrack();
-  const r = rng(level * 131 + 7), names = NAMES.slice().sort(() => r() - 0.5);
+  const r = rng(level * 131 + 7), fk = F.k(), names = NAMES.slice().sort(() => r() - 0.5);
   racers = [];
   for (let i = 0; i < LANE_Z.length; i++) {
     const sim = makeRacer(-3.2, floorAt(C, -3.2) + HALF + 0.02), view = makeRacerView(i);
     const R = { sim, view, lane: i, me: i === 0, name: i ? names[i] : 'YOU', omega: OMEGA, stuck: 0, lastX: sim.x, done: false, pop: 0, contactT: 0, sq: 0 };
     if (!R.me) {
-      R.omega = OMEGA * (0.72 + Math.min(0.14, level * 0.018) + r() * 0.06);
-      R.ai = { think: 0.5 + r() * 0.6, wait: 0.4 + r() * 0.9, mode: '', bigI: Math.floor(r() * BIG.length), smallI: Math.floor(r() * SMALL.length), dumb: r() < 0.35 };
+      R.omega = OMEGA * Math.min(0.97, (0.72 + Math.min(0.14, level * 0.018) + r() * 0.06) * fk);
+      R.ai = { think: (0.5 + r() * 0.6) / fk, wait: 0.4 + r() * 0.9, mode: '', bigI: Math.floor(r() * BIG.length), smallI: Math.floor(r() * SMALL.length), dumb: r() < 0.35 / fk };
       R.tag = document.createElement('div'); R.tag.className = 'tag'; R.tag.innerHTML = `<i style="background:${CUBE_COLS[i]}"></i>${R.name}`; document.body.appendChild(R.tag);
       giveShape(R, (R.ai.dumb ? SMALL : BIG)[R.ai.bigI % (R.ai.dumb ? SMALL.length : BIG.length)]());
     }
@@ -245,7 +247,7 @@ const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), tmp = new THR
 let shake = 0;
 function finish(won) {
   if (state !== 'play') return;
-  state = won ? 'won' : 'lost';
+  state = won ? 'won' : 'lost'; F.level(won, clamp((racers[0].sim.x + 3.2) / (finishX + 3.2), 0, 1));
   if (won) {
     wins++; level++; save.set('level', level); save.set('wins', wins);
     sfx.win(); buzz([30, 40, 60]); ui.flash(0.55);

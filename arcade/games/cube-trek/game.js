@@ -2,8 +2,10 @@
 // columns burst. Quest levels: free every gem on the board (or hit a score target). Game over when nothing fits.
 // Inspired by the mechanic of Blocky Quest (SayGames). All code and art original.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const S = store('cubetrek');
+const F = flow('cubetrek'); let fk = 1;
 let level = S.get('level', 1), best = S.get('best', 0);
 const stage = createStage({ fov: 34, shadowSize: 12 });
 const { scene, camera, renderer, sun, hemi } = stage;
@@ -89,16 +91,16 @@ function pickShape(guarantee) {
   return [[0, 0]];
 }
 function dealTray() {
-  const hard = Math.min(1, (level - 1) / 10);
+  const hard = Math.min(1, (level - 1) / 10 * fk);
   tray = [0, 1, 2].map(i => ({ cells: pickShape(i === 0 || rand() > hard * 0.7), color: COLORS[Math.floor(rand() * COLORS.length)], slot: i, used: false, pop: 0 }));
   tray.forEach((p, i) => p.pop = -i * 0.08);
   sfx.pick(2);
 }
 function buildLevel() {
-  rand = rng(level * 4513 + 7); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; botMove = null;
+  rand = rng(level * 4513 + 7); fk = F.k(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; botMove = null;
   const isScore = level % 3 === 0;
   // a seeded "mess": columns of rubble rising from the bottom, never a full line
-  const fill = 0.4 + Math.min(0.25, level * 0.025), heights = [];
+  const fill = Math.min(0.75, (0.4 + Math.min(0.25, level * 0.025)) * fk), heights = [];
   for (let c = 0; c < N; c++) heights.push(Math.floor(rand() * (2 + fill * 8)));
   for (let c = 0; c < N; c++) for (let r = N - 1; r >= N - heights[c]; r--) if (rand() < 0.86) board[r][c] = { color: COLORS[Math.floor(rand() * COLORS.length)], gem: false, pop: 0 };
   for (let r = 0; r < N; r++) if (board[r].every(Boolean)) board[r][Math.floor(rand() * N)] = null;
@@ -176,13 +178,13 @@ function place(p, r0, c0) {
 }
 function checkEnd() {
   if (goal.type === 'gems' ? goal.got >= goal.need : score >= goal.need) {
-    state = 'won'; setTimeout(() => { sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, BOARD_Y + 2, 2), 60); confetti(scene, new THREE.Vector3(-3, BOARD_Y, 2), 30); confetti(scene, new THREE.Vector3(3, BOARD_Y, 2), 30); }, 450);
+    state = 'won'; F.level(true); setTimeout(() => { sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, BOARD_Y + 2, 2), 60); confetti(scene, new THREE.Vector3(-3, BOARD_Y, 2), 30); confetti(scene, new THREE.Vector3(3, BOARD_Y, 2), 30); }, 450);
     best = Math.max(best, score); S.set('best', best); ui.win(level, `Score ${score}`); level++; S.set('level', level);
     return;
   }
   const live = tray.filter(t => !t.used);
   if (!live.some(t => anyFit(board, t.cells))) {
-    state = 'lost'; setTimeout(() => { sfx.fail(); buzz([60, 40, 60]); }, 300);
+    state = 'lost'; F.level(false, goal.type === 'gems' ? goal.got / goal.need : Math.min(1, score / goal.need)); setTimeout(() => { sfx.fail(); buzz([60, 40, 60]); }, 300);
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c]) board[r][c].dead = (N - r) * 0.05;
     ui.lose('NO SPACE!', goal.type === 'gems' ? `${goal.need - goal.got} gems left` : `${goal.need - score} points to go`);
   }

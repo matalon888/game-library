@@ -2,8 +2,11 @@
 // scoop up the cash stacks and pour them into upgrade pads (new rooms, a receptionist, a housekeeper).
 // Inspired by the mechanic of My Perfect Hotel (SayGames). All code and art original.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded, stickman, palette, applyPalette } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const S = store('bellhopboss');
+const F = flow('bellhopboss');
+let fk = 1;
 let level = S.get('level', 1);
 const stage = createStage({ fov: 46, shadowSize: 22 });
 const { scene, camera, sun, hemi } = stage;
@@ -108,7 +111,7 @@ function makePad(kind, x, z, cost, title, icon, extra = {}) {
 
 function buildLevel() {
   world.traverse(o => { if (o.geometry && !RINGS.includes(o.geometry)) o.geometry.dispose(); }); scene.remove(world); world = new THREE.Group(); scene.add(world);
-  for (const g of guests) { scene.remove(g.g); scene.remove(g.icon); } for (const s of staff) scene.remove(s.g); guests = []; staff = []; pads = []; rooms = []; walls = []; billsL = []; cash = 0; served = 0; spawnT = 0.5; angry = 0; updHearts();
+  for (const g of guests) { scene.remove(g.g); scene.remove(g.icon); } for (const s of staff) scene.remove(s.g); guests = []; staff = []; pads = []; rooms = []; walls = []; billsL = []; cash = 0; served = 0; spawnT = 0.5; angry = 0; fk = F.k(); updHearts();
   theme = THEMES[(level - 1) % THEMES.length]; const pal = palette(level); applyPalette(pal); outside.material.color.set(theme.out); outside.material.map = GRASS;
   const nRooms = Math.min(8, 1 + level), rowsN = Math.ceil(nRooms / 2); topZ = rowZ(rowsN - 1) - ROOM_D / 2;
   // floors: lobby tiles, corridor carpet, room wood
@@ -262,12 +265,12 @@ loop((dt, t) => {
       const spot = queueSpot(qi); if (qi === 0) gu.st = 'desk'; qi++;
       gu.path = [spot]; walk(gu, dt, sec);
       gu.icon.visible = gu.st === 'desk' && near(gu, spot, 0.1);
-      const patience = Math.max(12, 24 - level * 1.2); if (state === 'play') gu.wait = (gu.wait || 0) + sec;
+      const patience = Math.max(10, (24 - level * 1.2) / fk); if (state === 'play') gu.wait = (gu.wait || 0) + sec;
       if (gu.wait > patience * 0.55) { gu.icon.visible = true; gu.icon.material.map = ICONS.angry; gu.icon.scale.setScalar(1 + Math.sin(t * 12) * 0.08); }
       if (gu.wait > patience) {
         gu.st = 'leave'; gu.icon.material.map = ICONS.angry; gu.path = [{ x: gu.x + 1.2, z: gu.z + 0.5 }, { x: 4.2, z: gu.z + 0.5 }, { x: 4.2, z: LOBBY_Z1 + 3 }];
         angry++; updHearts(); ui.pop('GUEST WALKED OUT!', '#ff6b6b', 30, 30); sfx.fail(); buzz([40, 30, 40]);
-        if (angry >= 3 && state === 'play') { state = 'lost'; ui.lose('BAD REVIEWS!', 'Three guests walked out'); }
+        if (angry >= 3 && state === 'play') { state = 'lost'; F.level(false, pads.filter(x => x.done).length / Math.max(1, pads.length)); ui.lose('BAD REVIEWS!', 'Three guests walked out'); }
         continue;
       }
       if (gu.st === 'desk' && near(gu, spot, 0.1)) {
@@ -381,8 +384,8 @@ function unlock(p) {
   // push the manager off walls that just appeared
   collide(mgr);
   updGoal();
-  if (pads.every(x => x.done)) {
-    state = 'won'; setTimeout(() => { for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, V(camX, 2, camZ), 45), i * 160); }, 200);
+  if (pads.every(x => x.done) && state === 'play') {
+    state = 'won'; F.level(true); setTimeout(() => { for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, V(camX, 2, camZ), 45), i * 160); }, 200);
     ui.win(level, `${theme.name} complete · ${served} guests`); level++; S.set('level', level);
   }
 }

@@ -1,9 +1,11 @@
 // Shelf Snap — original game. Unpack the shopping baskets and snap every grocery into its outlined spot on the fridge
 // shelves. Inspired by the mechanic of Fill The Fridge! (Rollic). All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('shelfsnap');
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
+const F = flow('shelfsnap'); let fk = 1, HMAX = 3;
 const { scene, camera, renderer, sun, hemi } = createStage({ fov: 45, shadowSize: 9 });
 sun.position.set(4, 14, 12); sun.intensity = 1.5; hemi.intensity = 1.25;
 const ui = createUI({ title: 'SHELF<br>SNAP', hint: 'Drag groceries into the fridge', hand: '👆', score: false });
@@ -177,7 +179,8 @@ function makeItem(type, color) {
   levelGroup.add(g); return it;
 }
 function buildLevel() {
-  levelGroup.clear(); items = []; slots = []; drag = null; hover = null; botBusy = false; placedN = 0; combo = 0; hearts = 3; winT = 0;
+  fk = F.k(); HMAX = Math.max(2, Math.round(3 / fk));
+  levelGroup.clear(); items = []; slots = []; drag = null; hover = null; botBusy = false; placedN = 0; combo = 0; hearts = HMAX; winT = 0;
   const r = rng(level * 7919 + 13), p = { bg: [['#ffe1ea', '#fff3f7'], ['#dff3ff', '#f2faff'], ['#e3f8e9', '#f5fff8'], ['#fff1d6', '#fffaf0'], ['#ece4ff', '#f8f4ff'], ['#d9f7f3', '#f1fffd']][(level - 1) % 6], ui: ['#ff5d8f', '#2f80ff', '#22b573', '#ff8c42', '#7b5cff', '#14b8a6'][(level - 1) % 6] };
   document.body.style.setProperty('--bg1', p.bg[0]); document.body.style.setProperty('--bg2', p.bg[1]); document.body.style.setProperty('--ui', p.ui);
   setWall(p); bodyMat.color.set(BODYCOLS[(level - 1) % BODYCOLS.length]); trimMat.color.set(['#ff9f43', '#ffffff', '#ffd166', '#ff7aa2'][(level - 1) % 4]);
@@ -194,7 +197,7 @@ function buildLevel() {
   for (let row = 0; row < ROWS; row++) {
     const isActive = activeRows.has(row), segs = [];
     if (isActive) {
-      const split = level >= 4 && r() < 0.35 + level * 0.03 && pool.length - pi >= 2;
+      const split = level >= 4 && r() < Math.min(0.9, (0.35 + level * 0.03) * fk) && pool.length - pi >= 2;
       if (split) { const a = pool[pi++ % pool.length], b = pool[pi++ % pool.length]; segs.push([a, 2 + Math.floor(r() * 2)], [b, 2 + Math.floor(r() * 2)]); }
       else { const a = pool[pi++ % pool.length]; segs.push([a, 99]); }
     } else segs.push([['can', 'yogurt', 'orange', 'jar'][(row + level) % 4], 99]);
@@ -289,12 +292,12 @@ function sendHome(it, arc = 0.8) {
   it.anim = { from: it.g.position.clone(), fr: it.g.rotation.clone(), to: it.home.p.clone(), tr: it.home.r.clone(), t: 0, dur: 18, arc, done: () => { it.sq = 0.35; tone(260, 0.07, 'sine', 0.1, 0.7); } };
 }
 function wrong(it, s) {
-  hearts--; ui.pill(hearts > 0 ? '❤️'.repeat(hearts) + '🤍'.repeat(3 - hearts) : '🤍🤍🤍'); combo = 0;
+  hearts--; ui.pill(hearts > 0 ? '❤️'.repeat(hearts) + '🤍'.repeat(HMAX - hearts) : '🤍'.repeat(HMAX)); combo = 0;
   sfx.fail(); buzz([30, 30, 50]); ui.flash(0.25); document.querySelector('.hc-flash').style.background = '#ff4d6d'; setTimeout(() => document.querySelector('.hc-flash').style.background = '#fff', 300);
   ui.pop('WRONG SHELF', '#ff4d6d', 30, 22);
   if (s.ghost) { s.ghost.material = badMat; setTimeout(() => { if (s.ghost && hover !== s) s.ghost.material = ghostMat; }, 350); }
   sendHome(it, 1.6);
-  if (hearts <= 0) { state = 'lost'; doorTarget = 0; ui.lose('OOPS!', 'Wrong shelf three times'); }
+  if (hearts <= 0) { state = 'lost'; F.level(false, placedN / Math.max(1, slots.length)); doorTarget = 0; ui.lose('OOPS!', `Wrong shelf ${HMAX} times`); }
 }
 const SND = {
   metal: () => { tone(1900, 0.05, 'sine', 0.07, 1); tone(640, 0.1, 'triangle', 0.12, 0.75); },
@@ -322,7 +325,7 @@ function place(it, s) {
   if (placedN === slots.length) win();
 }
 function win() {
-  state = 'won'; best = Math.max(best, score); ST.set('best', best); winT = 1;
+  state = 'won'; F.level(true); best = Math.max(best, score); ST.set('best', best); winT = 1;
   setTimeout(() => { if (state === 'won') doorTarget = 0; }, 350);
   setTimeout(() => { if (state !== 'won') return; sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, V(0, 5, 2), 70); burst(scene, V(0, 4, 2), ['#ffffff', '#ffd23f'], 20, { speed: 0.16, up: 0.12, size: 0.5, shape: 'sphere' }); }, 700);
   ui.win(level, `Fridge stocked! ${score} pts`);

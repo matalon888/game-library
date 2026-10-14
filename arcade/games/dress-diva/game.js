@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { canvasTex } from './geo.js';
 import { createDoll, buildItem, cloth } from './doll.js';
+import { flow } from './kit/flow.js';
 
 const S = createStage({ fov: 30, shadowSize: 6 });
 const { scene, camera, sun, hemi, renderer } = S;
@@ -10,6 +11,7 @@ const fill = new THREE.DirectionalLight('#ffe8f4', 0.55); fill.position.set(-5, 
 const ui = createUI({ title: 'DRESS<br>DIVA', hint: 'Style the look · walk the runway', hand: '👗', score: false });
 const save = store('diva');
 let level = save.get('level', 1);
+const F = flow('diva');
 
 // ---------------------------------------------------------------- catalogue
 const T = (s) => s.split(' ');
@@ -224,7 +226,7 @@ function setupLevel() {
   for (const st of STEPS) { const pool = ITEMS.filter(i => i.cat === st.cat && affinity(i, theme) >= 1); const it = pool[Math.floor(r() * pool.length)] || ITEMS.find(i => i.cat === st.cat); if (st.cat === 'makeup') { rivalDoll.makeup = [it.lip, it.shadow]; rivalDoll.setMakeup(it.lip, it.shadow); } else if (!(st.cat === 'bottom' && rivalDoll.dress)) { rivalDoll.wear(st.cat, it); if (st.cat === 'top') rivalDoll.dress = it.dress; } }
   if (rivalDoll.dress) rivalDoll.wear('bottom', null);
   rivalDoll.root.position.set(1.15, 0.3, 0.5); rivalDoll.root.rotation.y = -0.25;
-  rivalScore = Math.min(9.5, 6.4 + level * 0.32 + r() * 0.25);
+  rivalScore = Math.min(9.5, (6.4 + level * 0.32 + r() * 0.25) * F.k());
   themeEl.querySelector('.who').textContent = `${client[0]} needs a look for`;
   themeEl.querySelector('.nm').textContent = `${theme.icon} ${theme.name}`;
   themeEl.querySelector('.tags').innerHTML = theme.tags.map(t => `<i>${t}</i>`).join('');
@@ -317,11 +319,11 @@ function judge() {
   rivalDoll.root.visible = true; rivalDoll.root.scale.setScalar(0.01); rivalPop = 0;
   setTimeout(() => {
     if (myScore >= rivalScore) {
-      state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
+      state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
       for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(RX, 3.5, 1.5), 70), i * 170);
       ui.win(level, `${myScore.toFixed(1)} vs ${rivalScore.toFixed(1)} — the crowd loves it!`);
     } else {
-      state = 'lost'; sfx.fail(); buzz([40, 30, 60]);
+      state = 'lost'; F.level(false, clamp((myScore - 5.2) / Math.max(0.1, rivalScore - 5.2), 0, 1)); sfx.fail(); buzz([40, 30, 60]);
       ui.lose('SO LAST SEASON', `${myScore.toFixed(1)} vs ${rivalScore.toFixed(1)} — match the ${theme.name} vibe!`);
     }
     setTimeout(() => { vsEl.classList.add('off'); judgesEl.classList.add('off'); }, 700);

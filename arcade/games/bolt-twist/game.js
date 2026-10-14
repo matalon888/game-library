@@ -1,6 +1,7 @@
 // Bolt Twist — original game. Tap coloured bolts to spin them out of a 3D toy; they fly into boxes of the same colour
 // (3 per box) or into a 5-slot tray. Plates with no bolts left fall off. Clear every bolt to win; a full tray loses.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // rounded() grows by its bevel; this keeps exact outer size
 
 const COLORS = { red: '#ff4d5e', blue: '#3a8dff', yellow: '#ffc61a', green: '#35c96a', purple: '#9b62ff', orange: '#ff8a2a', pink: '#ff6fc3', cyan: '#22cfd6' };
@@ -13,6 +14,7 @@ const { scene, camera, renderer, sun } = stage;
 scene.add(camera);
 sun.position.set(4, 12, 9);
 const save = store('bolttwist');
+const FL = flow('bolttwist');   // (F is the face table inside design)
 let level = save.get('level', 1), total = save.get('bolts', 0), state = 'ready';
 const ui = createUI({ title: 'BOLT<br>TWIST', hint: 'Tap the bolts!', hand: '👆', score: false });
 
@@ -107,7 +109,7 @@ function overlaps(a, b) {
 }
 
 // ---------------------------------------------------------------- procedural level design
-function design(n) {
+function design(n, fk = 1) {
   const R = rng(n * 7919 + 101);
   const ri = (a, b) => a + Math.floor(R() * (b - a + 1)), rf = (a, b) => a + R() * (b - a);
   const themes = ['crate', 'house', 'robot', 'gift', 'crate'];
@@ -165,7 +167,7 @@ function design(n) {
     const tri = []; let prev = null;
     for (let t = 0; t < order.length / 3; t++) { let c; do c = pal[ri(0, nc - 1)]; while (c === prev && nc > 1); prev = c; tri.push(c); }
     order.forEach((sid, i) => S[sid].color = tri[Math.floor(i / 3)]);
-    const p = attempt < 30 ? 0.35 : 0;
+    const p = attempt < 30 ? Math.min(0.5, 0.35 * fk) : 0;
     if (win) for (let i = 0; i < order.length; i++) if (R() < p) { const j = Math.min(order.length - 1, i + ri(3, 3 * win)); const a = S[order[i]], b = S[order[j]]; [a.color, b.color] = [b.color, a.color]; }
     // box queue = colours in triple order, rebalanced so every colour count is a multiple of 3
     const cnt = {}; S.forEach((s) => cnt[s.color] = (cnt[s.color] || 0) + 1);
@@ -425,17 +427,18 @@ function startLevel() {
   for (const f of fallers) scene.remove(f.m); fallers = [];
   for (const f of allFlyers) f.parent && f.parent.remove(f); allFlyers.length = 0;
   const bg = BGS[(level - 1) % BGS.length]; document.body.style.setProperty('--bg1', bg[0]); document.body.style.setProperty('--bg2', bg[1]); document.body.style.setProperty('--ui', '#3a7bff');
-  L = design(level); buildToy(L); setupBoxes(L);
+  L = design(level, FL.k()); buildToy(L); setupBoxes(L);
   ground.position.y = -L.H / 2 - 0.01; toy.position.y = 0;
   cleared = 0; rotY = level === 1 ? -0.25 : -0.55; rotV = 0; tilt = 0.12; botFace = null;
   ui.levels(level); ui.progress(0);
 }
 function win() {
+  if (state === 'play') FL.level(true);
   state = 'won'; wonAt = performance.now(); save.set('bolts', total); level++; save.set('level', level);
   sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 1.5, 0), 90);
   ui.win(level - 1, `${screws.length} bolts out!`);
 }
-function lose() { state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TRAY FULL!', 'No room left for that bolt.'); }
+function lose() { if (state === 'play') FL.level(false, screws.length ? screws.filter((s) => s.gone).length / screws.length : 0); state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TRAY FULL!', 'No room left for that bolt.'); }
 ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
 
 // ---------------------------------------------------------------- input: drag to spin, tap a bolt

@@ -2,6 +2,7 @@
 // Shoot every red gun in the arena, dodge their fire, don't fall out the bottom.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { particles } from './fx.js';
+import { flow } from './kit/flow.js';
 
 const stage = createStage({ fov: 30, shadows: true, shadowSize: 11 });
 const { scene, camera, sun } = stage;
@@ -11,6 +12,8 @@ const css = document.createElement('style');
 css.textContent = `.hc-card h1{letter-spacing:1px}.hc-score{font-size:44px}.hc-card{padding-top:calc(190px + env(safe-area-inset-top))}.hc-pop{text-shadow:0 3px 0 rgba(0,0,0,.45),0 0 12px rgba(0,0,0,.35)!important}`;
 document.head.appendChild(css);
 const save = store('kickback');
+const F = flow('kickback');
+let fk = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ arena (world units: x -4.5..4.5, y 0..15)
@@ -113,7 +116,7 @@ function genLevel(n) {
   const L = { enemies: [], solids: [], coins: [], start: { x: -2.4, y: 8.5 } };
   if (n === 1) { L.enemies.push({ k: 'gun', x: 2.4, y: 8.5, passive: true }); L.coins.push([0, 11.5]); return L; }
   if (n === 2) { L.enemies.push({ k: 'gun', x: 2.6, y: 11, passive: true }, { k: 'gun', x: 2.2, y: 5.5, fire: 4.5 }); L.coins.push([0, 12], [-1, 5]); return L; }
-  const ne = Math.min(2 + Math.floor(n / 3), 6);
+  const ne = Math.max(2, Math.min(7, Math.round((2 + Math.floor(n / 3)) * fk)));
   const occupied = [[L.start.x, L.start.y]];
   const free = (x, y, d = 2.2) => occupied.every(([a, b]) => Math.hypot(a - x, b - y) > d);
   // a gold ricochet ceiling or floor plate, or a small floating one
@@ -126,7 +129,7 @@ function genLevel(n) {
     const x = -3.4 + r() * 6.8, y = 3 + r() * (AH - 4.5);
     if (!free(x, y, k === 'robot' ? 2.8 : 2.2) || Math.abs(x - L.start.x) < 1.8 && Math.abs(y - L.start.y) < 3) continue;
     if (k === 'robot') { L.solids.push({ x, y: y - 0.15, w: 1.5, h: 0.3 }); L.enemies.push({ k, x, y: y }); occupied.push([x, y + 1]); }
-    else { L.enemies.push({ k, x, y, fire: Math.max(1.7, 4 - n * 0.15) }); occupied.push([x, y]); }
+    else { L.enemies.push({ k, x, y, fire: Math.max(1.45, (4 - n * 0.15) / fk) }); occupied.push([x, y]); }
   }
   if (n >= 4 && r() < 0.5) { const x = (r() - 0.5) * 6, y = 4 + r() * 7; if (free(x, y, 2)) L.solids.push({ x, y, w: 1.6 + r(), h: 0.32 }); }
   for (let i = 0; i < 2 + Math.floor(r() * 3); i++) { const x = (r() - 0.5) * 7, y = 3 + r() * 10; if (free(x, y, 1.4)) { L.coins.push([x, y]); occupied.push([x, y]); } }
@@ -140,7 +143,7 @@ function fitArena() {   // portrait phones get a taller arena so it fills the sc
 }
 function buildLevel() {
   clearWorld(); fitArena();
-  const L = genLevel(level);
+  fk = F.k(); const L = genLevel(level);
   for (const s of L.solids) addSolid(s.x, s.y, s.w, s.h, s.gold);
   for (const e of L.enemies) addEnemy(e.k, e.x, e.y, { passive: !!e.passive, rate: e.fire || 3 });
   for (const [x, y] of L.coins) { const m = new THREE.Mesh(coinGeo, coinMat); m.rotation.x = Math.PI / 2; m.position.set(x, y, 0); m.castShadow = true; scene.add(m); coins.push({ m, x, y, t: Math.random() * 6 }); }
@@ -214,13 +217,14 @@ function hitEnemy(e, b) {
 }
 function lose(why) {
   if (state !== 'play') return;
-  state = 'lost'; player.alive = false; window.__why = why;
+  state = 'lost'; F.level(false, killed / Math.max(1, total)); player.alive = false; window.__why = why;
   shatter(player.g, '#2f8dff', new THREE.Vector3(player.x, player.y, 0.3), new THREE.Vector3(player.vx, player.vy, 0).normalize());
   sfx.fail(); buzz([60, 40, 80]); shake = 0.6; ui.flash(0.45);
   ui.lose(why === 'fell' ? 'FELL OUT!' : 'SHOT DOWN!', `${killed}/${total} guns down`);
 }
 function win() {
-  state = 'won'; sfx.win(); buzz([20, 40, 20]);
+  if (state !== 'play') return;
+  state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3(0, 10, 1), 70);
   addScore(25 * level);
   ui.win(level, `${score} pts`);
@@ -311,7 +315,7 @@ loop((dt60) => {
       if (state === 'play' && player.live) {
         e.cd -= dt;
         if (e.cd <= 0) {
-          e.cd = Math.max(2.4, 4 - level * 0.08);
+          e.cd = Math.max(2.1, (4 - level * 0.08) / fk);
           const ang = e.g.barrel.rotation.z + Math.PI / 2, mz = new THREE.Vector3(e.x + Math.cos(ang) * 1.1, e.y + 0.55 + Math.sin(ang) * 1.1, 0);
           const m = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), glossy('#ff7ab0')); m.castShadow = true; scene.add(m);
           const dx = player.x - mz.x, dy = player.y - mz.y, T = clamp(Math.hypot(dx, dy) / 7, 0.9, 1.8);

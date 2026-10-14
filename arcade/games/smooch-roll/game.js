@@ -1,11 +1,14 @@
 // Smooch Roll — original game. Draw ink lines that turn into real falling objects so the blue ball and the pink ball roll together and kiss.
 import { createUI, input, loop, sfx, tone, buzz, store, clamp } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { StrokeBuilder, makeInk, INK_R, BALL_R } from './physics.js';
 import { makeLevel, buildWorld, outOfWorld, WW, WH } from './levels.js';
 
 const TEAL = '#17a096', BLUE = '#33c3de', PINK = '#ff4f8e', INK = '#1d1d22';
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const save = store('smoochroll');
+const F = flow('smoochroll');
+let inkB = 600;                                    // ink budget: the validated solution plus a spare margin that flow scales
 let level = save.get('level', 1), stars = save.get('stars', 0), state = 'ready';
 const ui = createUI({ title: 'SMOOCH<br><b>ROLL</b>', hint: 'Draw a line so they meet', hand: '✏️', score: false });
 ui.els.win.classList.add('lb-win');
@@ -32,7 +35,7 @@ let L, world, balls, inks, inkUsed, running, sb = null, drawing = false, pen = n
 let hearts = [], rings = [], dust = [], botI = 0, botOn = false, firstDraw = true, doodles = [], lastTick = 0, inkShake = 0;
 
 function loadLevel() {
-  L = getLevel(level);
+  L = getLevel(level); inkB = Math.round(L.solUsed + (L.budget - L.solUsed) / F.k());
   world = buildWorld(L); balls = world.balls; inks = [];
   for (const b of balls) { b.sq = 0; b.sqa = 0; b.mood = 'idle'; b.trail = []; b.blink = Math.random() * 3; }
   world.touch = () => { touched = true; };
@@ -47,8 +50,8 @@ function loadLevel() {
   makeDoodles();
   prefetch(level + 1); prefetch(level + 2);     // pre-solve upcoming levels off the main thread
 }
-const inkLeft = () => Math.max(0, L.budget - inkUsed - (sb ? sb.used : 0));
-function starCount() { const f = inkLeft() / L.budget; return f >= 0.3 ? 3 : f >= 0.12 ? 2 : 1; }
+const inkLeft = () => Math.max(0, inkB - inkUsed - (sb ? sb.used : 0));
+function starCount() { const f = inkLeft() / inkB; return f >= 0.3 ? 3 : f >= 0.12 ? 2 : 1; }
 function setStars(n) { starEls.forEach((e, i) => e.classList.toggle('off', i >= n)); }
 
 // ---------------------------------------------------------------- drawing
@@ -64,7 +67,7 @@ function addPoint(x, y) {
   const before = sb.used; sb.add(x, y); pen = { x, y };
   scratch += sb.used - before;
   if (scratch > 26) { scratch = 0; tone(1500 + Math.random() * 500, 0.018, 'square', 0.018, 0.7); }
-  ui.progress(inkLeft() / L.budget); setStars(starCount());
+  ui.progress(inkLeft() / inkB); setStars(starCount());
   if (inkLeft() < 1) endStroke();
 }
 function endStroke() {
@@ -76,7 +79,7 @@ function endStroke() {
     else sfx.pick(1);
     buzz(10);
   }
-  sb = null; ui.progress(inkLeft() / L.budget); setStars(starCount());
+  sb = null; ui.progress(inkLeft() / inkB); setStars(starCount());
 }
 input({
   onDown: (e) => { const p = toWorld(e.clientX, e.clientY); beginStroke(p.x, p.y); },
@@ -89,7 +92,8 @@ document.getElementById('retry').addEventListener('pointerdown', (e) => {
 
 // ---------------------------------------------------------------- outcomes
 function win() {
-  state = 'won'; running = false;
+  if (state !== 'play') return;
+  state = 'won'; running = false; F.level(true);
   const [a, b] = balls, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, ang = Math.atan2(b.y - a.y, b.x - a.x);
   for (const q of balls) { q.mood = 'love'; q.sq = 0.22; }
   a.sqa = ang; b.sqa = ang;
@@ -104,7 +108,8 @@ function win() {
   ui.win(level - 1, '★'.repeat(n) + '☆'.repeat(3 - n));
 }
 function lose(line) {
-  state = 'lost'; running = false;
+  if (state !== 'play') return;
+  state = 'lost'; running = false; F.level(false, 0);
   for (const q of balls) q.mood = 'sad';
   sfx.fail(); buzz([40, 30, 40]);
   ui.lose('OOPS!', line);
@@ -142,7 +147,7 @@ function tick(dt) {
     for (let i = inks.length - 1; i >= 0; i--) if (inks[i].y > WH + 400) { world.remove(inks[i]); inks.splice(i, 1); }
     if (state === 'play') {
       rest = world.energy() < 8 ? rest + dt / 60 : 0;
-      if ((rest > 2.5 && inkLeft() < L.budget * 0.15) || rest > 6) lose('So close! Try another line');
+      if ((rest > 2.5 && inkLeft() < inkB * 0.15) || rest > 6) lose('So close! Try another line');
     }
   }
   for (const b of balls) {

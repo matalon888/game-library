@@ -1,9 +1,11 @@
 // Sky Evolve — original game. Sling your plane off the ramp, fly through power gates, evolve from paper plane to jet, smash the target.
 import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, store, clamp, lerp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const save = store('skyevolve');
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
+const F = flow('skyevolve');
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 55, shadowSize: 26 });
 sun.shadow.camera.far = 120; sun.intensity = 1.9; hemi.intensity = 1.1; hemi.groundColor.set('#d8f0c0');
 document.body.style.setProperty('--bg1', '#62c3ff'); document.body.style.setProperty('--bg2', '#ffe7c2'); document.body.style.setProperty('--ui', '#ff8c42');
@@ -153,7 +155,7 @@ let rows = [], towers = [], D = 300, target = null, blocks = null, blockData = [
 function applyOp(p, op) { return op.t === '+' ? p + op.v : op.t === '-' ? p - op.v : op.t === 'x' ? p * op.v : op.t === '÷' ? p / op.v : p; }
 
 function buildLevel() {
-  const r = rng(level * 4241 + 7);
+  const r = rng(level * 4241 + 7), fk = F.k();
   gateGroup.clear(); rows = []; towers = [];
   D = Math.min(900, 250 + (level - 1) * 45);
   // course rows
@@ -173,7 +175,7 @@ function buildLevel() {
       rows.push({ z, type: 'gates', gates: [makeGate(pair[0], -WID, split, z), makeGate(pair[1], split, WID, z)] });
     } else {
       // obstacle row: towers leaving one or two gaps
-      const nT = level < 2 ? 1 : 1 + Math.floor(r() * Math.min(3, 1 + level / 3));
+      const nT = level < 2 ? 1 : 1 + Math.floor(r() * Math.min(3, (1 + level / 3) * fk));
       const row = { z, type: 'towers', list: [] };
       const lanes = [-5.2, -1.7, 1.7, 5.2]; const pick = lanes.sort(() => r() - 0.5).slice(0, nT);
       for (const x of pick) { const t = { x, z, w: 2.8 + r() * 1.2, d: 2.8 + r() * 1.5, h: ALT + 6 + r() * 14, skin: Math.floor(r() * 4) }; towers.push(t); row.list.push(t); }
@@ -204,7 +206,7 @@ function buildLevel() {
   const road = new THREE.Mesh(new THREE.PlaneGeometry(4, D + 120), roadMat); road.rotation.x = -Math.PI / 2; road.position.set(0, 0.02, -D / 2 + 20); road.receiveShadow = true; level0.add(road);
   for (let zz = 0; zz > -D - 40; zz -= 6) { const d = new THREE.Mesh(GEO.box, dashMat); d.scale.set(0.2, 0.02, 2.4); d.position.set(0, 0.04, zz); level0.add(d); if (level0.children.length > 70) break; }
   // the target: a stacked block wall with a bullseye
-  targetHP = Math.round(40 + level * 36 + Math.pow(level, 1.6) * 8);
+  targetHP = Math.round((40 + level * 36 + Math.pow(level, 1.6) * 8) * fk);
   buildTarget(-D);
   // reset plane
   smashT = 0; slowmo = 1; plane.visible = true;
@@ -261,7 +263,7 @@ function evolve() {
 }
 let evoPunch = 0; const gatePops = [];
 function crash(why) {
-  crashed = true; state = 'lost'; sfx.smash(); sfx.fail(); buzz([60, 40, 80]); ui.flash(0.7); shake = 1.2;
+  crashed = true; state = 'lost'; F.level(false, clamp(-plane.position.z / D, 0, 1) * 0.5); sfx.smash(); sfx.fail(); buzz([60, 40, 80]); ui.flash(0.7); shake = 1.2;
   burst(scene, plane.position, ['#ff8c42', '#ffd23f', '#555', '#ffffff'], 40, { speed: 0.3, up: 0.2, size: 1.6 });
   plane.visible = false;
   ui.lose(why, `${Math.round(clamp(-plane.position.z / D, 0, 1) * 100)}% of the way`);
@@ -278,11 +280,11 @@ function smash() {
   sfx.smash(); buzz([40, 30, 80]); ui.flash(0.8);
   score += dmg; ui.score(dmg);
   if (dmg >= targetHP) {
-    state = 'won'; best = Math.max(best, score); save.set('best', best);
+    state = 'won'; F.level(true); best = Math.max(best, score); save.set('best', best);
     setTimeout(() => { sfx.win(); confetti(scene, new THREE.Vector3(0, ALT + 3, -D + 4), 120); }, 250);
     ui.pop('SMASHED!', '#ff3b5c', 60, 22); ui.win(level, `${dmg} damage · ${TIERS[tier].name.toLowerCase()}`);
   } else {
-    state = 'lost'; ui.pop(`${Math.round(frac * 100)}%`, '#fff', 54, 24); ui.lose('SO CLOSE!', `${dmg} / ${targetHP} damage — evolve more!`);
+    state = 'lost'; F.level(false, 0.5 + frac * 0.5); ui.pop(`${Math.round(frac * 100)}%`, '#fff', 54, 24); ui.lose('SO CLOSE!', `${dmg} / ${targetHP} damage — evolve more!`);
   }
   plane.visible = false; target.visible = false;
 }

@@ -1,6 +1,7 @@
 // Skyline Scope — original rooftop sniper. Hold to scope in, drag to aim, release to fire. Take down the marked targets, spare the civilians.
 import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
+import { flow } from './kit/flow.js';
 
 const S = createStage({ fov: 62, shadowSize: 90 });
 const { scene, camera, sun, hemi } = S;
@@ -10,6 +11,7 @@ scene.add(camera);
 const ui = createUI({ title: 'SKYLINE<br>SCOPE', hint: 'Hold to scope · drag to aim · release to fire', hand: '🎯', score: false });
 const save = store('skyscope');
 let level = save.get('level', 1);
+const F = flow('skyscope'); let fk = 1;
 document.body.style.setProperty('--bg1', '#4aa8f0'); document.body.style.setProperty('--bg2', '#dff2ff'); document.body.style.setProperty('--ui', '#ff7a1a');
 scene.fog = new THREE.Fog('#cfe9fb', 140, 420);
 
@@ -286,7 +288,7 @@ const BASE_FOV = 62, SCOPE_FOV = 19;
 function renderAmmo() { ammoEl.innerHTML = Array.from({ length: ammoMax }, (_, i) => `<b class="${i >= ammo ? 'used' : ''}"></b>`).join(''); }
 function setHud() { hud.querySelector('[data-k]').textContent = `${killed}/${nT}`; ui.progress(killed / nT); }
 function startLevel() {
-  buildCity(); nT = spawnPeople(); killed = 0; ammoMax = ammo = nT + 3; timeLeft = 32 + nT * 8; mode = 'aim'; cam = null; ts = 1; scope = 0; endT = 0;
+  fk = F.k(); buildCity(); nT = spawnPeople(); killed = 0; ammoMax = ammo = nT + 3; timeLeft = (32 + nT * 8) / fk; mode = 'aim'; cam = null; ts = 1; scope = 0; endT = 0;
   yaw = 0; pitch = -0.5; holding = botHold = wasHold = false;
   ui.levels(level); setHud(); renderAmmo(); bullet.visible = trail.visible = false; rifle.visible = true;
   const names = ['RED CAP', 'RED CAPS'];
@@ -340,7 +342,7 @@ function fire() {
     if (ammo <= 0) lose('OUT OF AMMO', `${killed}/${nT} targets down`);
   }
 }
-function lose(t, line) { if (state !== 'play') return; state = 'lost'; mode = 'aim'; ui.lose(t, line); }
+function lose(t, line) { if (state !== 'play') return; state = 'lost'; F.level(false, killed / nT); mode = 'aim'; ui.lose(t, line); }
 function startCam(h, o, d) {
   mode = 'cam'; ts = 0.06;
   cam = { t: 0, from: o.clone().addScaledVector(d, 1.5), to: h.point.clone(), d: d.clone(), p: h.p, head: h.head, hit: false, dur: 1.7, side: Math.random() < 0.5 ? -1 : 1 };
@@ -391,7 +393,7 @@ loop((dtRaw, t) => {
     p.panic = Math.max(0, p.panic - sec);
     if (p.wait > 0) { p.wait -= sec; p.legL.rotation.x = lerp(p.legL.rotation.x, 0, 0.2); p.legR.rotation.x = lerp(p.legR.rotation.x, 0, 0.2); continue; }
     tv.copy(p.dest).sub(g.position).setY(0); const dist = tv.length();
-    const tgtMul = p.kind === 'target' ? Math.min(1.6, 0.6 + level * 0.12) : 1;
+    const tgtMul = p.kind === 'target' ? Math.min(1.85, (0.6 + level * 0.12) * fk) : 1;
     const sp = (p.panic > 0 ? 5.2 : 1.3 * p.sp) * tgtMul;
     if (dist < 0.3) { p.dest = pickDest(p); p.wait = p.panic > 0 ? 0 : 0.5 + Math.random() * 2.5; continue; }
     g.position.addScaledVector(tv.normalize(), Math.min(dist, sp * sec));
@@ -403,7 +405,7 @@ loop((dtRaw, t) => {
   if (fountainWater) fountainWater.scale.setScalar(1 + Math.sin(t * 3) * 0.01);
   // camera
   recoil = Math.max(0, recoil - real * 5); shake = Math.max(0, shake - real * 3);
-  const swayAmp = (0.0045 + Math.min(0.004, level * 0.0004)) * (1 - 0.8 * steady) * se + 0.0006;
+  const swayAmp = (0.0045 + Math.min(0.004, level * 0.0004)) * fk * (1 - 0.8 * steady) * se + 0.0006;
   const sx = (Math.sin(t * 0.9) * 0.6 + Math.sin(t * 1.73 + 1) * 0.4) * swayAmp, sy = (Math.sin(t * 1.21 + 2) * 0.6 + Math.sin(t * 0.67) * 0.4) * swayAmp;
   window.__sway = { sx, sy };
   if (mode === 'cam' && cam) {
@@ -430,7 +432,7 @@ loop((dtRaw, t) => {
       camera.position.set(P.x + Math.sin(cam.orbit) * 4.2, P.y + 7, P.z + Math.cos(cam.orbit) * 4.2);
       camera.lookAt(P.x, P.y + 0.8, P.z);
       if (cam.t2 > 1.6 && state === 'play') {
-        state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]);
+        state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]);
         confetti(scene, P.clone().add(new THREE.Vector3(0, 4, 0)), 80);
         ui.win(level, `${nT} target${nT > 1 ? 's' : ''} down · ${ammo} round${ammo === 1 ? '' : 's'} left`);
       }

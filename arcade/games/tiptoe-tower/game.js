@@ -1,9 +1,11 @@
 // Tiptoe Tower — original game. Strut down a rooftop runway, grab shoes to stack your heels sky-high, step over brick
 // walls (they eat heel blocks), do the splits across rooftop rails, then spend what's left climbing the multiplier podium.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { bake, vcMat } from './bake.js';
 
 const ST = store('tiptoetower');
+const F = flow('tiptoetower');
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 14 });
 const ui = createUI({ title: 'TIPTOE<br>TOWER', hint: 'Drag to strut', hand: '👆', score: false });
@@ -69,7 +71,7 @@ let pickMesh, gemMesh;
 function buildLevel() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
-  R = rng(level * 4231 + 9);
+  R = rng(level * 4231 + 9); const fk = F.k();
   const sky = SKIES[(level - 1) % SKIES.length];
   document.body.style.setProperty('--bg1', sky[0]); document.body.style.setProperty('--bg2', sky[1]); document.body.style.setProperty('--ui', sky[2]);
   items = []; walls = []; rails = []; steps = []; debris = []; gems = 0; mult = 1; endT = 0;
@@ -86,11 +88,11 @@ function buildLevel() {
       gemRow(z - 9, Math.floor(R() * 3), 3);
       z -= 14;
     } else if (kind === 'wall') {
-      if (R() < 0.45) { const k = 1 + Math.floor(R() * Math.min(4, 1 + level * 0.5)); addWall(z, -TW / 2, TW / 2, k); heelBudget -= k; }
-      else { const free = Math.floor(R() * 3); for (let l = 0; l < 3; l++) if (l !== free) addWall(z, LANES[l] - 0.85, LANES[l] + 0.85, 3 + Math.floor(R() * (3 + level))); pickRow(z + 3, free, 2); }
+      if (R() < 0.45) { const k = Math.max(1, Math.round((1 + Math.floor(R() * Math.min(4, 1 + level * 0.5))) * fk)); addWall(z, -TW / 2, TW / 2, k); heelBudget -= k; }
+      else { const free = Math.floor(R() * 3); for (let l = 0; l < 3; l++) if (l !== free) addWall(z, LANES[l] - 0.85, LANES[l] + 0.85, Math.round((3 + Math.floor(R() * (3 + level))) * fk)); pickRow(z + 3, free, 2); }
       z -= 10;
     } else {
-      const need = Math.min(heelBudget - 2, 2 + Math.floor(R() * (2 + level * 0.6))), gap = 2 * (0.98 + need * BH) - 0.25, len = 10 + R() * 6;
+      const need = Math.min(heelBudget - 2, Math.round((2 + Math.floor(R() * (2 + level * 0.6))) * fk)), gap = 2 * (0.98 + need * BH) - 0.25, len = 10 + R() * 6;
       rails.push({ z0: z, z1: z - len, gap, need });
       for (let k = 0; k < 4; k++) items.push({ kind: 'gem', x: (k % 2 ? 1 : -1) * gap / 2, z: z - 2 - k * 2.4, got: false, rail: true });
       z -= len + 4;
@@ -159,9 +161,10 @@ ui.onTap(w => {
 function shed(k, z, fx = 0) {      // k blocks fall off each heel
   for (let s = 0; s < 2; s++) for (let j = 0; j < k; j++) debris.push({ x: G.x + (s ? 0.13 : -0.13), y: BH * (j + 0.5), z: z + 0.3, vx: (s ? 0.03 : -0.03) + fx, vy: 0.05 + Math.random() * 0.05, vz: 0.05, r: 0, s: (Math.random() - 0.5) * 0.3, c: j % 2 });
 }
-function lose(t) { if (state !== 'play') return; state = 'lost'; sfx.fail(); buzz([50, 30, 80]); ui.flash(0.4); ui.lose(t, `${gems} 💎 this run`); }
+function lose(t) { if (state !== 'play') return; state = 'lost'; F.level(false, clamp(G.z / podiumZ, 0, 1)); sfx.fail(); buzz([50, 30, 80]); ui.flash(0.4); ui.lose(t, `${gems} 💎 this run`); }
 function win() {
-  state = 'won'; const pts = Math.round(gems * mult) + Math.round(mult * 10); total += pts; ST.set('gems', total); best = Math.max(best, mult); ST.set('best', best);
+  if (state !== 'play') return;
+  state = 'won'; F.level(true); const pts = Math.round(gems * mult) + Math.round(mult * 10); total += pts; ST.set('gems', total); best = Math.max(best, mult); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1); hud();
   confetti(world, new THREE.Vector3(G.x, G.y + 3, G.z - 1), 120); setTimeout(() => confetti(world, new THREE.Vector3(G.x, G.y + 3, G.z - 1), 80), 300);
   ui.win(level, `x${mult.toFixed(1)} podium · +${pts} 💎`);

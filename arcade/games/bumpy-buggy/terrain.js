@@ -1,11 +1,11 @@
 // Bumpy Buggy — seeded hilly heightfield (our own code). Samples every DX metres from X0.
 import { rng } from './kit/hc.js';
 export const DX = 0.25, X0 = -40;
-export function makeTerrain(level, length) {
+export function makeTerrain(level, length, fk = 1) {
   const r = rng(level * 7919 + 13);
   const n = Math.ceil((length - X0) / DX) + 1, H = new Float32Array(n);
   const waves = [[64, 1], [29, 0.42], [13, 0.16], [6.5, 0.045]].map(([wl, a]) => ({ k: 2 * Math.PI / (wl * (0.85 + r() * 0.3)), a, ph: r() * 6.283 }));
-  const amp = Math.min(5.5, 2.4 + (level - 1) * 0.4), trend = 0.015 + Math.min(0.05, level * 0.006);
+  const amp = Math.min(6.3, (2.4 + (level - 1) * 0.4) * fk), trend = 0.015 + Math.min(0.05, level * 0.006);
   for (let i = 0; i < n; i++) {
     const x = i * DX + X0;
     const ramp = x < 12 ? 0 : x > 80 ? 1 : (t => t * t * (3 - 2 * t))((x - 12) / 68);

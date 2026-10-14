@@ -1,12 +1,15 @@
 // Flip Agent — original game. The agent runs and somersaults over gaps in slow motion; his laser sight sweeps with the spin.
 // Tap = one bullet along the laser. Clear every masked goon before he lands, never hit a hostage. Steel ricochets, barrels explode.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { particles } from './fx.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 14 });
 const { scene, camera, renderer } = stage;
 const ui = createUI({ title: 'FLIP<br>AGENT', hint: 'Tap to shoot mid-flip', hand: '👆' });
 const save = store('flipagent');
+const FL = flow('flipagent');
+let fk = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ themes (sky gradient, rooftop colours, sea)
@@ -156,7 +159,7 @@ function buildLevel() {
   world = []; solids = []; actors = []; barrels = []; bullets = []; tracers = []; flashes = []; plat = []; stages = [];
   totalEnemies = 0; kills = 0; stageIdx = 0; flipKills = 0;
   applyTheme(level);
-  const r = rng(level * 977 + 31), pick = (a) => a[Math.floor(r() * a.length)];
+  fk = FL.k(); const r = rng(level * 977 + 31), pick = (a) => a[Math.floor(r() * a.length)];
   const nst = level <= 2 ? 2 : level <= 5 ? 3 : 4;
   let x = -14, top = 0, len = 14;
   plat.push({ a: x, b: x + len, top }); block(x, x + len, -16, top);
@@ -165,7 +168,7 @@ function buildLevel() {
     const ntop = clamp(prev.top + pick([-1.4, -0.8, 0, 0.8, 1.4]), -2.5, 2.5), nlen = s === nst - 1 ? 14 : 7 + r() * 2.5;
     const a = prev.b + gap, b = a + nlen; plat.push({ a, b, top: ntop }); block(a, b, -16, ntop);
     const H = prev.top, T = ntop, J = prev.b, mid = J + gap / 2, hi = Math.max(H, T);
-    const n = clamp(2 + Math.floor((level - 1) / 2) + (r() < 0.35 && level > 2 ? 1 : 0), 2, 5);
+    const n = clamp(Math.round((2 + Math.floor((level - 1) / 2) + (r() < 0.35 && level > 2 ? 1 : 0)) * fk), 2, 6);
     const slots = ['far', 'far2', 'girder', 'below', 'crate', 'high'];
     if (level === 1) slots.splice(3);       // gentle start: ground + one girder
     const used = new Set(), spots = [];
@@ -336,7 +339,7 @@ function updateProgress() { const done = stages.filter(s => s.cleared).length; u
 // ------------------------------------------------------------------ win / lose
 function win() {
   if (state !== 'play') return;
-  state = 'won'; score += ammo * 5; ui.score(score);
+  state = 'won'; FL.level(true); score += ammo * 5; ui.score(score);
   best = Math.max(best, score); save.set('best', best); level++; save.set('level', level);
   sfx.win(); buzz([30, 40, 30]);
   const p = v3(agent.x, agent.y + 2, 0);
@@ -345,7 +348,7 @@ function win() {
 }
 function lose(why) {
   if (state !== 'play') return;
-  state = 'lost'; timeScale = tsTarget = 0.35;
+  state = 'lost'; FL.level(false, totalEnemies ? kills / totalEnemies : 0); timeScale = tsTarget = 0.35;
   best = Math.max(best, score); save.set('best', best);
   sfx.fail(); buzz([60, 40, 80]); shake = 0.6;
   if (why === 'hostage') { ui.flash(0.5); ui.lose('HOSTAGE HIT!', 'Never shoot the pink ones'); }
@@ -394,7 +397,7 @@ loop((dt60) => {
       const st = stages[stageIdx];
       A.phase = 'flip'; A.t = 0; flipKills = 0;
       A.jump = { x0: A.x, y0: A.y, x1: st.L + 0.9, y1: st.T, apex: Math.max(st.H, st.T) + 2.7 };
-      tsTarget = 0.24; tone(300, 0.25, 'sine', 0.1, 2.2); buzz(15);
+      tsTarget = clamp(0.24 * fk, 0.2, 0.3); tone(300, 0.25, 'sine', 0.1, 2.2); buzz(15);
       fx.emit(v3(A.x, A.y + 0.1, 0), { color: '#ffffff', n: 8, speed: 2, size: 0.4, size1: 0.9, life: 0.6, alpha: 0.7 });
       ui.pop(stageIdx === 0 && level === 1 ? 'TAP TO SHOOT!' : 'SLOW-MO', '#ffffff', 28, 30);
     }

@@ -1,9 +1,11 @@
 // Squad Surge — original game. Run down a sky track, recruit idle stick-buddies into your yellow squad, dodge saws,
 // spinners, spike pads and spiked posts, then crash into the rival gang and topple the boss at the castle gate.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, stickman, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { bake, vcMat, crowdMesh } from './people.js';
 
 const ST = store('squadsurge');
+const F = flow('squadsurge');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 16 });
 const ui = createUI({ title: 'SQUAD<br>SURGE', hint: 'Drag to steer your squad', hand: '👆', score: false });
@@ -45,7 +47,7 @@ function addP(x, z, team) { if (P.length >= MAX) return null; const p = { x, z, 
 function buildLevel() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
-  R = rng(level * 7919 + 3); theme = THEMES[(level - 1) % THEMES.length];
+  const fk = F.k(); R = rng(level * 7919 + 3); theme = THEMES[(level - 1) % THEMES.length];
   document.body.style.setProperty('--bg1', theme.bg[0]); document.body.style.setProperty('--bg2', theme.bg[1]); document.body.style.setProperty('--ui', theme.ui);
   sea.material.color.set(theme.sea);
   P = []; obst = []; splatN = 0; splats.count = 0; phase = 'run'; endT = 0; swing = 1.6; recruitAcc = 0;
@@ -72,7 +74,7 @@ function buildLevel() {
     if (kind === 'saw') {
       const g = new THREE.Group(); const m = new THREE.Mesh(SAW, VC); m.castShadow = true; m.position.y = 0.55; g.add(m); g.position.z = z; world.add(g);
       const slot = new THREE.Mesh(new THREE.BoxGeometry(TW - 0.6, 0.06, 0.3), mat('#7d86a6')); slot.position.set(0, 0.02, z); world.add(slot);
-      obst.push({ kind, z, g, m, A: TW / 2 - 1.3, w: 0.9 + R() * 0.5 + level * 0.06, ph: R() * 6, r: 1.05 });
+      obst.push({ kind, z, g, m, A: TW / 2 - 1.3, w: (0.9 + R() * 0.5 + level * 0.06) * fk, ph: R() * 6, r: 1.05 });
     } else if (kind === 'posts') {
       const xs = level > 2 && R() < 0.5 ? [-2.8, 0.2, 3.0] : R() < 0.5 ? [-1.5, 1.6] : [R() < 0.5 ? -1.2 : 1.2]; const g = new THREE.Group(); g.position.z = z; world.add(g); const ms = [];
       for (const x of xs) { const m = new THREE.Mesh(POST, VC); m.position.x = x + (R() - 0.5) * 0.6; m.castShadow = true; g.add(m); ms.push(m); }
@@ -81,7 +83,7 @@ function buildLevel() {
       const g = new THREE.Group(); g.position.set((R() - 0.5) * 2, 0, z); world.add(g);
       const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.6, 1.2, 16), mat('#1d6fe0')); hub.position.y = 0.6; hub.castShadow = true; g.add(hub);
       const arm = new THREE.Mesh(rounded(7.4, 0.5, 0.5, 0.2), glossy('#ff4d6d')); arm.position.y = 0.75; arm.castShadow = true; g.add(arm);
-      obst.push({ kind, z, g, arm, len: 3.7, w: (1.6 + level * 0.06) * (R() < 0.5 ? 1 : -1), ph: R() * 6 });
+      obst.push({ kind, z, g, arm, len: 3.7, w: (1.6 + level * 0.06) * fk * (R() < 0.5 ? 1 : -1), ph: R() * 6 });
     } else {
       const x0 = R() < 0.5 ? -TW / 2 : -0.4, x1 = x0 + TW / 2 + 0.4; const g = new THREE.Group(); g.position.z = z; world.add(g);
       const pad = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.1, 3.2), mat('#ff4d6d')); pad.position.set((x0 + x1) / 2, 0.03, 0); g.add(pad);
@@ -91,13 +93,13 @@ function buildLevel() {
     }
   }
   // enemy gang + castle + boss
-  const ne = 3 + Math.floor(level * 1.8 + R() * 3);
+  const ne = Math.round((3 + Math.floor(level * 1.8 + R() * 3)) * fk);
   for (let k = 0; k < ne; k++) { const a = k * 2.4, r = 0.55 * Math.sqrt(k); addP(Math.cos(a) * r * 1.3, enemyZ - 2 + Math.sin(a) * r * 0.7, 2); }
   castle = buildCastle(); castle.position.set(0, 0, endZ - 27); world.add(castle);
   boss = stickman(PINK, PINK, 3.1); boss.position.set(0, 0, bossZ); boss.rotation.y = 0; world.add(boss);
   const hat = new THREE.Group(); const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.04, 20), mat('#22223b')); const top = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.34, 20), mat('#22223b')); top.position.y = 0.17; const band = new THREE.Mesh(new THREE.CylinderGeometry(0.225, 0.225, 0.07, 20), mat('#ffd21f')); band.position.y = 0.06; hat.add(brim, top, band); hat.position.y = 1.72; boss.add(hat);
   const club = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.12, 0.9, 10), mat('#7b4a2a')); club.position.set(0, -0.75, 0.2); club.rotation.x = 0.6; club.castShadow = true; boss.armR.add(club);
-  hpMax = hp = Math.round(20 + level * 10); boss.hpBar = hpSprite(); boss.hpBar.position.set(0, 6.6, bossZ); world.add(boss.hpBar); drawHp();
+  hpMax = hp = Math.round((20 + level * 10) * fk); boss.hpBar = hpSprite(); boss.hpBar.position.set(0, 6.6, bossZ); world.add(boss.hpBar); drawHp();
   C = { x: 0, z: 2, tx: 0 };
   addP(0, 2, 0);
   ui.levels(level); ui.progress(0); setCount(); camD = 10;
@@ -146,9 +148,9 @@ function kill(p, color, fling = 1) {
   burst(world, new THREE.Vector3(p.x, 0.9, p.z), [color, '#ffffff'], 7, { speed: 0.1, up: 0.08, size: 0.6, shape: 'sphere' });
   splat(p.x, p.z, color);
 }
-function lose() { if (state !== 'play') return; state = 'lost'; sfx.fail(); buzz([40, 30, 60]); ui.lose('SQUAD WIPED!', phase === 'boss' ? `Boss had ${Math.ceil(hp)} HP left` : 'Recruit more buddies on the way'); }
+function lose() { if (state !== 'play') return; state = 'lost'; F.level(false, phase === 'boss' ? 0.75 + 0.25 * clamp(1 - hp / hpMax, 0, 1) : 0.75 * clamp(C.z / endZ, 0, 1)); sfx.fail(); buzz([40, 30, 60]); ui.lose('SQUAD WIPED!', phase === 'boss' ? `Boss had ${Math.ceil(hp)} HP left` : 'Recruit more buddies on the way'); }
 function win() {
-  state = 'won'; const n = mine().length; best = Math.max(best, n); ST.set('best', best);
+  state = 'won'; F.level(true); const n = mine().length; best = Math.max(best, n); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20, 40]); ui.flash(0.7); ui.progress(1); flag.material.color.set(YEL);
   for (let k = 0; k < 3; k++) setTimeout(() => confetti(world, new THREE.Vector3(0, 6, bossZ - 4), 90), k * 250);
   ui.win(level, `Castle captured with ${n} survivors`);

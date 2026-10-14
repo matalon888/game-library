@@ -1,6 +1,7 @@
 // Ring Peel — original game. Hold to pour balls down the pier into a striped tower; every hit peels off a ring.
 // Orbiting guard walls circle the tower: a ball that hits one ends the run.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const stage = createStage({ fov: 34, shadows: true, shadowSize: 9 });
 const { scene, camera, sun, hemi } = stage;
@@ -12,6 +13,7 @@ css.textContent = `.hc-card h1{letter-spacing:1px;color:#fff}.hc-score{font-size
 document.head.appendChild(css);
 const save = store('ringpeel');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
+const F = flow('ringpeel');
 
 // ------------------------------------------------------------------ themes (sea, sky, tower stripes, guard walls)
 const THEMES = [
@@ -168,7 +170,7 @@ function blocked(t, margin = 0) {   // is the path (angle 0) covered at guard-ti
 }
 
 // ------------------------------------------------------------------ level gen (seeded)
-function genLevel(n) {
+function genLevel(n, fk = 1) {
   const r = rng(n * 104729 + 7), stages = n === 1 ? 2 : n < 5 ? 3 : 3 + (r() < 0.4 ? 1 : 0), out = [];
   for (let s = 0; s < stages; s++) {
     const d = (n - 1) + s * 0.6, rings = Math.min(MAXR, Math.round(15 + d * 2.4 + r() * 4));
@@ -179,10 +181,10 @@ function genLevel(n) {
     for (let k = 0; k < ng; k++) {
       const modes = d < 2 ? ['spin'] : d < 4 ? ['spin', 'swing'] : ['spin', 'swing', 'surge'];
       const mode = ng > 1 ? (k === 0 ? modes[Math.floor(r() * modes.length)] : gs[0].mode) : modes[Math.floor(r() * modes.length)];
-      const w = clamp(0.55 + r() * 0.35 + d * 0.03, 0.5, 1.15);
+      const w = clamp((0.55 + r() * 0.35 + d * 0.03) * fk, 0.45, 1.3);
       const base = mode === 'swing' ? 0 : k * (Math.PI * 2 / ng) + 1.2;
       gs.push({
-        mode, w, a0: mode === 'swing' ? (k - (ng - 1) / 2) * 1.6 : base, sp: mode === 'swing' ? 1.1 + d * 0.08 + r() * 0.4 : dir * (1.0 + d * 0.11 + r() * 0.35),
+        mode, w, a0: mode === 'swing' ? (k - (ng - 1) / 2) * 1.6 : base, sp: (mode === 'swing' ? 1.1 + d * 0.08 + r() * 0.4 : dir * (1.0 + d * 0.11 + r() * 0.35)) * fk,
         amp: 1.0 + r() * 0.6, ph: r() * 6, sp2: 1.5 + r(),
       });
       if (mode === 'swing' && ng > 1) gs[k].ph = gs[0].ph + k * 1.4;
@@ -218,7 +220,7 @@ function buildLevel() {
   document.body.style.setProperty('--bg1', T.sky[0]); document.body.style.setProperty('--bg2', T.sky[1]); document.body.style.setProperty('--ui', T.ui);
   seaMat.color.set(T.sea); scene.fog.color.set(T.sky[1]); rockMat.color.set(T.rock); glow.material.color.set(T.a);
   hemi.groundColor.set(T.sea).lerp(new THREE.Color('#ffffff'), 0.6);
-  plan = genLevel(level); totalRings = plan.reduce((a, s) => a + s.rings, 0); doneRings = 0; stageIdx = 0;
+  plan = genLevel(level, F.k()); totalRings = plan.reduce((a, s) => a + s.rings, 0); doneRings = 0; stageIdx = 0;
   buildPier(plan.length); balls = []; travel = 0;
   cannonZ = 8; camZ = cannonZ;
   setupStage(0); ui.levels(level); ui.progress(0); score = 0; ui.score(0);
@@ -244,11 +246,11 @@ function stageClear() {
   for (const b of balls) if (!b.dead) { b.hit = true; burst(scene, new THREE.Vector3(b.x, b.y, b.z), '#ffffff', 2, { speed: 0.04, up: 0.04, size: 0.5, shape: 'sphere' }); }
   holding = false;
   if (stageIdx + 1 < plan.length) { stageIdx++; travel = 1; state = 'travel'; setTimeout(() => { setupStage(stageIdx); }, 450); }
-  else { state = 'won'; level++; save.set('level', level); best = Math.max(best, score); save.set('best', best); setTimeout(sfx.win, 200); ui.win(level - 1, 'Score ' + score); }
+  else { state = 'won'; F.level(true); level++; save.set('level', level); best = Math.max(best, score); save.set('best', best); setTimeout(sfx.win, 200); ui.win(level - 1, 'Score ' + score); }
 }
 function fail(g, b) {
   if (state !== 'play') return;
-  state = 'lost'; holding = false;
+  state = 'lost'; F.level(false, doneRings / Math.max(1, totalRings)); holding = false;
   b.vz = 9; b.vy = 7; b.vx = (Math.random() - 0.5) * 6; b.dead = true;
   g.flash = 1; shake = 0.9; ui.flash(0.4); sfx.fail(); buzz([60, 40, 90]);
   burst(scene, new THREE.Vector3(0, 0.5, towerZ + OR), [T.ob, '#ffffff'], 16, { speed: 0.12, up: 0.12, size: 0.8 });

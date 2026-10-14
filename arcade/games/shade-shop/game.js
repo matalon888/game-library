@@ -1,7 +1,9 @@
 // Shade Shop — original game. Look at the object, mix drops of paint until your shade matches, then spray it on.
 import { THREE, createStage, createUI, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('shadeshop');
+const F = flow('shadeshop');
 let level = ST.get('level', 1), best = ST.get('best', 0), score = ST.get('score', 0);
 const { scene, camera, renderer, sun } = createStage({ fov: 38, shadowSize: 8 });
 renderer.localClippingEnabled = true;
@@ -148,9 +150,9 @@ let state = 'ready', phase = 'mix', obj, target, recipe, counts, cur = null, sho
 const targetMat = mat('#fff', { roughness: 0.35 }), baseMat = mat('#f7f5fb', { roughness: 0.45 }), paintMat = mat('#fff', { roughness: 0.35, clippingPlanes: [clipPlane] });
 
 function makeRecipe() {
-  R = rng(level * 4111 + 7);
-  const nCol = level <= 2 ? 2 : level <= 5 ? 2 + (R() < 0.5 ? 1 : 0) : 3 + (R() < 0.35 ? 1 : 0);
-  const maxEach = level <= 2 ? 1 : level <= 4 ? 2 : 3;
+  R = rng(level * 4111 + 7); const fk = F.k();
+  const nCol = level <= 2 ? 2 : level <= 5 ? 2 + (R() < Math.min(0.75, 0.5 * fk) ? 1 : 0) : 3 + (R() < Math.min(0.6, 0.35 * fk) ? 1 : 0);
+  const maxEach = Math.max(1, Math.round((level <= 2 ? 1 : level <= 4 ? 2 : 3) * fk));
   const pool = level <= 3 ? [0, 1, 2, 3] : [0, 1, 2, 3, 4];
   for (let tries = 0; tries < 50; tries++) {
     const cols = []; while (cols.length < nCol) { const c = pool[Math.floor(R() * pool.length)]; if (!cols.includes(c)) cols.push(c); }
@@ -238,12 +240,12 @@ function finish() {
   const b = $('banner'); b.textContent = resultPct + '% ACCURATE'; b.className = 'banner on' + (ok ? '' : ' bad');
   can.visible = false;
   if (ok) {
-    state = 'won'; score += resultPct; best = Math.max(best, resultPct); ST.set('score', score); ST.set('best', best);
+    state = 'won'; F.level(true); score += resultPct; best = Math.max(best, resultPct); ST.set('score', score); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20]); ui.flash(0.5); ui.progress(1);
     confetti(scene, objRoot.position.clone().add(new THREE.Vector3(0, 1.5, 1)), 90);
     ui.win(level, resultPct >= 97 ? 'Perfect shade!' : 'Nice eye!');
   } else {
-    state = 'lost'; sfx.fail(); buzz([40, 30, 60]);
+    state = 'lost'; F.level(false, resultPct / 100); sfx.fail(); buzz([40, 30, 60]);
     ui.lose('NOT QUITE', `${resultPct}% — need 90%`);
   }
 }

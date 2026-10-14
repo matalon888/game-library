@@ -1,8 +1,10 @@
 // Gulp City — original game. Be the hole: glide around a toy city, swallow anything smaller than you, grow, out-eat the rival holes.
 import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, clamp, lerp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const save = store('gulpcity');
+const F = flow('gulpcity');
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 48, shadowSize: 22 });
 sun.shadow.camera.far = 90; hemi.intensity = 1.25; sun.intensity = 1.55;
@@ -121,7 +123,7 @@ function placeHole(h) { h.well.scale.set(h.r, 4 + h.r * 2.5, h.r); h.bottom.scal
 // ---------------------------------------------------------------- level build
 let goal = 60, timeLeft = ROUND, cars = [], people = [];
 function buildLevel() {
-  const r = rng(level * 6151 + 11);
+  const r = rng(level * 6151 + 11), fk = F.k();
   N = Math.min(6, 3 + Math.floor((level + 1) / 2)); M = N * (BLK + ST) + ST;
   for (const T of Object.values(TYPES)) T.count = 0;
   props = []; cars = []; people = [];
@@ -159,8 +161,8 @@ function buildLevel() {
   for (const T of Object.values(TYPES)) { T.mesh.count = T.count; T.mesh.instanceMatrix.needsUpdate = true; if (T.mesh.instanceColor) T.mesh.instanceColor.needsUpdate = true; }
   // holes start in different street intersections
   const spots = [[1, 1], [N - 1, N - 1], [N - 1, 1], [1, N - 1]].map(([i, j]) => [i * (BLK + ST) + ST / 2, j * (BLK + ST) + ST / 2]);
-  holes.forEach((h, k) => { h.x = spots[k][0]; h.z = spots[k][1]; h.eaten = 0; h.r = h.rv = radiusFor(0); h.dead = false; h.g.visible = h.tag.visible = true; h.vx = h.vz = 0; h.punch = 0; h.ai.t = 0; h.skill = k ? 0.6 + Math.min(level, 10) * 0.04 + k * 0.03 : 1; placeHole(h); });
-  goal = Math.round(230 + (level - 1) * 95 * (1 + level * 0.06));   // ~35-50 s for a good player on level 1
+  holes.forEach((h, k) => { h.x = spots[k][0]; h.z = spots[k][1]; h.eaten = 0; h.r = h.rv = radiusFor(0); h.dead = false; h.g.visible = h.tag.visible = true; h.vx = h.vz = 0; h.punch = 0; h.ai.t = 0; h.skill = k ? Math.min(1.25, (0.6 + Math.min(level, 10) * 0.04 + k * 0.03) * fk) : 1; placeHole(h); });
+  goal = Math.round((230 + (level - 1) * 95 * (1 + level * 0.06)) * fk);   // ~35-50 s for a good player on level 1
   timeLeft = ROUND;
   ui.levels(level); ui.progress(0); ui.score(0); ui.sub(`Grow to ${goal} · or be biggest at the end`); ui.pill('1:30');
   camPos.set(holes[0].x, 14, holes[0].z + 10);
@@ -239,7 +241,7 @@ function holeVsHole(sec) {
     if (d < a.r - b.r * 0.3) {
       b.dead = true; b.g.visible = b.tag.visible = false; a.eaten += Math.round(b.eaten * 0.5) + 10; a.punch = 1;
       burst(scene, new THREE.Vector3(b.x, 0.4, b.z), [HCOL[b.id], '#ffffff', '#222'], 30, { speed: 0.22, up: 0.2, size: 1.2 });
-      if (b.isP) { state = 'lost'; sfx.fail(); buzz([60, 40, 80]); ui.flash(0.6); ui.lose('GULPED!', `${HNAMES[a.id]} swallowed you`); }
+      if (b.isP) { state = 'lost'; F.level(false, clamp(b.eaten / goal, 0, 1)); sfx.fail(); buzz([60, 40, 80]); ui.flash(0.6); ui.lose('GULPED!', `${HNAMES[a.id]} swallowed you`); }
       else if (a.isP) { score += 50; ui.pop('ATE ' + HNAMES[b.id].toUpperCase() + '!', '#ff4d6d', 40, 26); sfx.smash(); buzz([40, 30, 60]); shake = 1; }
       else b.respawn = 4;
     }
@@ -294,7 +296,7 @@ loop((dt, t) => {
       const tl = Math.max(0, Math.ceil(timeLeft)); ui.pill(`${Math.floor(tl / 60)}:${String(tl % 60).padStart(2, '0')}`);
       if (Math.floor(t * 2) % 2 === 0) ui.sub(`Rank #${rank} · goal ${goal}`);
       if (me.eaten >= goal) winNow('BIG ENOUGH!', `Size ${me.eaten} in ${Math.round(ROUND - timeLeft)}s`);
-      else if (timeLeft <= 0) { if (rank === 1) winNow('BIGGEST HOLE!', `Rank #1 with ${me.eaten}`); else { state = 'lost'; sfx.fail(); ui.lose('TIME UP!', `Rank #${rank} — be #1 or hit ${goal}`); } }
+      else if (timeLeft <= 0) { if (rank === 1) winNow('BIGGEST HOLE!', `Rank #1 with ${me.eaten}`); else { state = 'lost'; F.level(false, clamp(me.eaten / goal, 0, 1)); sfx.fail(); ui.lose('TIME UP!', `Rank #${rank} — be #1 or hit ${goal}`); } }
     }
   }
   propsUpdate(state === 'play' ? sec : sec * 0.6, t);
@@ -309,7 +311,7 @@ loop((dt, t) => {
   followLight(new THREE.Vector3(me.x, 0, me.z - 2));
 });
 function winNow(t, line) {
-  state = 'won'; score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
+  state = 'won'; F.level(true); score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, new THREE.Vector3(holes[0].x, 2, holes[0].z), 100);
   ui.pop(t, '#ff4d6d', 46, 26); ui.win(level, line);
 }

@@ -2,6 +2,7 @@
 // land on your wheels. Reach the finish gate of each seeded track.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, confetti } from './kit/hc.js';
 import { createBloom } from './bloom.js';
+import { flow } from './kit/flow.js';
 
 const stage = createStage({ fov: 40, shadows: false, clear: '#141a3a' });
 const { scene, camera, renderer } = stage;
@@ -9,6 +10,7 @@ stage.autoRender = false;
 const bloom = createBloom(renderer, scene, camera, { strength: 1.15, threshold: 0.6 });
 const ui = createUI({ title: 'FLIP<br>VOLT', hint: 'Hold to ride · hold in air to flip', hand: '👆' });
 const save = store('flipvolt');
+const F = flow('flipvolt');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ themes (dark bg, neon track, contrasting bike)
@@ -185,11 +187,11 @@ const wrap = a => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a
 const inLoop = (P, s) => P.loopS.some(([a, b]) => s > a - 0.5 && s < b + 0.3);
 
 function genLevel(n) {
-  const r = rng(n * 9973 + 17);
+  const r = rng(n * 9973 + 17), fk = F.k();
   pieces = []; diamonds = []; saws = [];
   TH = THEMES[(n - 1) % THEMES.length];
   let P = newPiece(0, 0); arc(P, 14, 0);
-  const target = n === 1 ? 100 : Math.min(150 + n * 26, 460);
+  const target = (n === 1 ? 100 : Math.min(150 + n * 26, 460)) * fk;
   const vBot = 14.5;
   const ground = (count = 3, h = 1.25) => { const [x, y] = tail(P); for (let i = 0; i < count; i++) diamonds.push({ x: x + 1.2 + i * 1.3, y: y + h + 0.2 * Math.sin(i), alive: true }); };
   const feats = n === 1 ? ['hill', 'jump', 'kicker', 'jump'] : null;
@@ -221,7 +223,7 @@ function genLevel(n) {
       const vx = Math.cos(A) * vBot, vy = Math.sin(A) * vBot, ly = y0 - drop - 1.5, T = (vy + Math.sqrt(vy * vy + 2 * G * (y0 - ly))) / G;
       const nd = big ? 5 : 3;
       for (let i = 0; i < nd; i++) { const t = T * (0.3 + 0.4 * i / (nd - 1)); diamonds.push({ x: x0 + vx * t, y: y0 + vy * t - G * t * t / 2 + 0.25, alive: true }); }
-      if ((n >= 2 && r() < 0.55) || big) saws.push({ x: x0 + gap * 0.5, y: y0 - drop - 2.7, r: 2.0 + r() * 0.5 });
+      if ((n >= 2 && r() < Math.min(0.66, 0.55 * fk)) || big) saws.push({ x: x0 + gap * 0.5, y: y0 - drop - 2.7, r: 2.0 + r() * 0.5 });
       P = newPiece(x0 + gap, y0 - drop, -0.34); P.pts.push([x0 + gap + 0.3 * Math.cos(-0.34), y0 - drop + 0.3 * Math.sin(-0.34)]);
       arc(P, 4, 0); arc(P, 4, 0.34); arc(P, big ? 14 : 9, 0);
     }
@@ -357,6 +359,7 @@ function plus(t) { plusEl.textContent = t; plusEl.style.opacity = 1; clearTimeou
 let debris = [];
 function crash(why) {
   if (state !== 'play') return;
+  F.level(false, clamp(B.x / gateX, 0, 1));
   state = 'lost'; bike.visible = false; hold = false; engine(false, 60);
   sparks(B.x, B.y, TH.bike, 90, 11, { up: 4, size: 0.11 }); sparks(B.x, B.y, '#ffffff', 30, 7, { up: 3, size: 0.07 });
   for (const ch of bike.children) {   // the bike shatters: every neon part flies off
@@ -368,6 +371,7 @@ function crash(why) {
   ui.lose('CRASHED!', `${why}  ·  ${score} pts`);
 }
 function win() {
+  if (state === 'play') F.level(true);
   state = 'won'; engine(true, 70);
   confetti(scene, new THREE.Vector3(B.x + 2, B.y + 2, 0), 70);
   for (let i = 0; i < 4; i++) setTimeout(() => sparks(B.x + 3 + Math.random() * 3, B.y + 3 + Math.random() * 3, [TH.bike, TH.track, '#ffffff', '#ffe23a'][i], 50, 8, { up: 3, size: 0.1 }), i * 140);

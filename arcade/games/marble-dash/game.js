@@ -1,7 +1,9 @@
 // Marble Dash — original game. Hold to roll, slide your finger to steer a glossy ball along a floating obstacle course.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('marbledash');
+const F = flow('marbledash');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
 const ui = createUI({ title: 'MARBLE<br>DASH', hint: 'Hold to roll · slide to steer', hand: '👆', score: false });
@@ -47,7 +49,7 @@ let world, segs, obs, pads, cps, finishZ, totalLen, R;
 function buildTrack() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
-  R = rng(level * 1777 + 9);
+  R = rng(level * 1777 + 9); const fk = F.k();
   segs = []; obs = []; pads = []; cps = [];
   let z = 6, x = 0, y = 0;
   const seg = (len, w, dx = 0, dy = 0, o = {}) => { const s = { z0: z, z1: z - len, x0: x, x1: x + dx, y0: y, y1: y + dy, w, ...o }; segs.push(s); z -= len; x += dx; y += dy; return s; };
@@ -64,17 +66,17 @@ function buildTrack() {
     if (level === 1 && i === 1) k = 'jump';
     if (level === 1 && i === 3) k = 'slider';
     if (i > 0 && i % 4 === 0) { const s = seg(3, 3, 0, 0, { cp: true }); cps.push(s); }
-    const w = clamp(2.7 - level * 0.05, 2.1, 2.7);
+    const w = clamp((2.7 - level * 0.05) / fk, 1.85, 3.0);
     switch (k) {
       case 'straight': seg(7 + R() * 3, w, (R() - 0.5) * 3); break;
-      case 'narrow': seg(2, w); seg(6 + R() * 3, clamp(1.45 - level * 0.04, 1.05, 1.45), (R() - 0.5) * 1.2, 0, { narrow: true }); seg(2, w); break;
+      case 'narrow': seg(2, w); seg(6 + R() * 3, clamp((1.45 - level * 0.04) / fk, 0.95, 1.6), (R() - 0.5) * 1.2, 0, { narrow: true }); seg(2, w); break;
       case 'down': seg(8, w + 0.4, 0, -2.6, { rails: true }); break;
       case 'jump': { seg(4, w, 0, 1.0, { ramp: true }); gap(clamp(2.2 + level * 0.15, 2.2, 3.6)); y -= 0.5; seg(7, w + 0.6); break; }
-      case 'slider': { const s = seg(10, w + 0.2); obs.push({ type: 'slide', seg: s, zc: (s.z0 + s.z1) / 2, amp: (s.w / 2 - 0.5), sp: 1.6 + level * 0.12, ph: R() * 6 }); break; }
+      case 'slider': { const s = seg(10, w + 0.2); obs.push({ type: 'slide', seg: s, zc: (s.z0 + s.z1) / 2, amp: (s.w / 2 - 0.5), sp: (1.6 + level * 0.12) * fk, ph: R() * 6 }); break; }
       case 'boost': { const s = seg(9, w + 0.3, 0, -0.6, { rails: true }); pads.push({ seg: s, z: s.z0 - 2.5 }); break; }
       case 'zig': { const d = (R() < 0.5 ? -1 : 1) * 2.2; seg(6, w, d); seg(6, w, -d); break; }
-      case 'sweeper': { const s = seg(10, w + 0.3); obs.push({ type: 'sweep', seg: s, zc: (s.z0 + s.z1) / 2, side: R() < 0.5 ? -1 : 1, sp: 1.6 + level * 0.1, ph: R() * 6 }); break; }
-      case 'spinner': { const s = seg(10, w + 0.6); obs.push({ type: 'spin', seg: s, zc: (s.z0 + s.z1) / 2, sp: (R() < 0.5 ? -1 : 1) * (1.2 + level * 0.08), ph: R() * 6 }); break; }
+      case 'sweeper': { const s = seg(10, w + 0.3); obs.push({ type: 'sweep', seg: s, zc: (s.z0 + s.z1) / 2, side: R() < 0.5 ? -1 : 1, sp: (1.6 + level * 0.1) * fk, ph: R() * 6 }); break; }
+      case 'spinner': { const s = seg(10, w + 0.6); obs.push({ type: 'spin', seg: s, zc: (s.z0 + s.z1) / 2, sp: (R() < 0.5 ? -1 : 1) * (1.2 + level * 0.08) * fk, ph: R() * 6 }); break; }
       case 'bridge': { for (let j = 0; j < 4; j++) seg(2.2, 1.4, (R() - 0.5) * 0.8, 0, { narrow: true, plank: true }); break; }
     }
   }
@@ -159,11 +161,11 @@ ui.onTap(w => {
 
 function fell() {
   lives--; setLives(); buzz([40, 30, 40]); sfx.fail();
-  if (lives <= 0) { state = 'lost'; ui.lose('FELL OFF!', Math.round(Math.min(1, (6 - B.p.z) / totalLen) * 100) + '% of the track'); return; }
+  if (lives <= 0) { state = 'lost'; F.level(false, Math.min(1, (6 - B.p.z) / totalLen)); ui.lose('FELL OFF!', Math.round(Math.min(1, (6 - B.p.z) / totalLen) * 100) + '% of the track'); return; }
   ui.pop('CHECKPOINT', '#fff', 34, 30); spawnAt(cpZ); camY = B.p.y;
 }
 function win() {
-  state = 'won'; finishT = 0; const secs = (performance.now() - t0) / 1000;
+  state = 'won'; F.level(true); finishT = 0; const secs = (performance.now() - t0) / 1000;
   best = best ? Math.min(best, secs) : secs; ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   confetti(world, B.p.clone().add(new THREE.Vector3(0, 1.5, -2)), 110);

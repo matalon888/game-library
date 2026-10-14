@@ -1,8 +1,10 @@
 // Pose Rush — original game. Run, and when time slows, drag your fighter's limbs into the perfect pose: kick, punch, dodge bullets.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const ST = store('poserush');
 let level = ST.get('level', 1), best = ST.get('best', 0);
+const F = flow('poserush'); let fk = 1;
 const { scene, camera, followLight, sun } = createStage({ fov: 50, shadowSize: 10 });
 const ui = createUI({ title: 'POSE<br>RUSH', hint: 'Drag limbs in slow-mo', hand: '👆', score: true });
 document.body.style.setProperty('--bg1', '#14cfff'); document.body.style.setProperty('--bg2', '#c4f5ff'); document.body.style.setProperty('--ui', '#ff7a1a');
@@ -108,7 +110,7 @@ const BULLET_G = new THREE.CapsuleGeometry(0.05, 0.14, 4, 8); BULLET_G.rotateX(M
 function buildLevel() {
   if (worldG) scene.remove(worldG);
   worldG = new THREE.Group(); scene.add(worldG);
-  R = rng(level * 337 + 11);
+  R = rng(level * 337 + 11); fk = F.k();
   runner = makePerson({ shirt: '#8e44ff', pants: '#2f6fe4', hair: '#2b2d42', bulk: 1.05 });
   runner.g.rotation.y = Math.PI; runner.g.position.set(0, 0, 0); worldG.add(runner.g);
   runner.cur = runCycle(runner, 0); runner.dead = false; runner.vel = null;
@@ -174,7 +176,7 @@ ui.onTap(w => {
 
 // ---------------------------------------------------------------- encounters
 function startSlow(ev, tip) {
-  active = ev; ev.phase = 'slow'; tsT = ev.type === 'gun' && !ev.dodged ? 0.09 : 0.12;
+  active = ev; ev.phase = 'slow'; tsT = (ev.type === 'gun' && !ev.dodged ? 0.09 : 0.12) * fk;
   $('slow').classList.add('on'); $('tip').textContent = tip; $('tip').classList.add('on');
   handles.forEach(h => h.classList.add('on'));
   tone(180, 0.5, 'sine', 0.14, 0.5); buzz(10);
@@ -196,13 +198,13 @@ function hitEnemy(ev, at) {
 }
 function die(reason, push) {
   if (state !== 'play') return;
-  state = 'lost'; runner.dead = true; runner.vel = push; runner.spin = -0.1; endSlow(); tsT = 0.35;
+  state = 'lost'; F.level(false, events.filter(x => x.st === 'done').length / events.length); runner.dead = true; runner.vel = push; runner.spin = -0.1; endSlow(); tsT = 0.35;
   sfx.fail(); buzz([60, 40, 80]); ui.flash(0.4); camShake = 1;
   best = Math.max(best, score); ST.set('best', best);
   ui.lose(reason, `${events.filter(x => x.st === 'done').length} / ${events.length} enemies`);
 }
 function win() {
-  state = 'won'; tsT = 1; score += 50 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
+  state = 'won'; F.level(true); tsT = 1; score += 50 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   const p = runner.g.position.clone().add(new THREE.Vector3(0, 2, -1)); confetti(worldG, p, 100); setTimeout(() => confetti(worldG, p, 70), 300);
   ui.win(level, `${score} points`);
@@ -235,7 +237,7 @@ loop((dt, t) => {
           ev.bullet = bm; ev.trail = trail; ev.bz0 = bm.position.z; sfx.smash(); burst(worldG, bm.position, ['#ffe14d', '#ff7a1a'], 8, { speed: 0.05, up: 0.02, size: 0.5 });
         }
         if (ev.bullet) {
-          const prevZ = ev.bullet.position.z; ev.bullet.position.z += 17 * wdt;
+          const prevZ = ev.bullet.position.z; ev.bullet.position.z += 17 * fk * wdt;
           ev.trail.position.set(0, 1.72, (ev.bullet.position.z + ev.bz0) / 2 - 0.0); ev.trail.scale.y = Math.min(6, ev.bullet.position.z - ev.bz0); ev.trail.position.z = ev.bullet.position.z - ev.trail.scale.y / 2;
           if (!active && r.g.position.z - ev.bullet.position.z < 6) startSlow(ev, 'DRAG TO DODGE!');
           if (prevZ < r.g.position.z && ev.bullet.position.z >= r.g.position.z) {

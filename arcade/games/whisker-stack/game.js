@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { part, merge, canvasTex } from './geo.js';
 import { makeCat } from './cat.js';
 import { ICONS, iconCanvas } from './icons.js';
+import { flow } from './kit/flow.js';
 
 const S = createStage({ fov: 34, shadowSize: 9 });
 const { scene, camera, sun, hemi, renderer } = S;
@@ -12,6 +13,7 @@ sun.position.set(-4, 16, 9); sun.intensity = 1.35; hemi.intensity = 1.35; sun.sh
 const ui = createUI({ title: 'WHISKER<br>STACK', hint: 'Tap tiles · match 3 alike', hand: '👆', score: false });
 const save = store('whiskerstack');
 let level = save.get('level', 1);
+const F = flow('whiskerstack');
 
 const TW = 1.0, TD = 1.2, TH = 0.36, SLOTS = 7, SP = 0.84, TRAY_S = 0.78;
 let TZ = 4.75;
@@ -84,9 +86,9 @@ ui.els.start.style.background = 'radial-gradient(circle at 50% 45%,rgba(120,40,8
 // ---------------------------------------------------------------- level
 let state = 'ready', tiles = [], trayL = [], total = 0, cleared = 0, shake = 0, streak = 0, streakT = 0, score = 0, busyT = 0;
 function genLevel() {
-  const r = rng(level * 4099 + 13);
+  const r = rng(level * 4099 + 13), fk = F.k();
   const layers = Math.min(4, 2 + Math.floor(level / 4)), c0 = Math.min(7, 5 + Math.floor(level / 4)), r0 = Math.min(7, 4 + Math.floor(level / 3));
-  const nTypes = Math.min(ICONS.length, 5 + Math.floor(level * 0.8)), K = level <= 3 ? 2 : 3;
+  const nTypes = Math.min(ICONS.length, Math.max(4, Math.round((5 + Math.floor(level * 0.8)) * fk))), K = Math.max(2, Math.round((level <= 3 ? 2 : 3) * fk));
   const pos = [];
   for (let L = 0; L < layers; L++) {
     const cols = Math.max(1, c0 - L), rows = Math.max(1, r0 - L);
@@ -160,12 +162,13 @@ function resolveTrio(trio) {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5); kitty.party(true);
+  state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5); kitty.party(true);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3((i - 1) * 2.5, 3, 0), 70), i * 170);
   ui.win(level, `${total} tiles cleared!`);
 }
 function lose() {
-  state = 'lost'; sfx.fail(); buzz([40, 30, 60]); shake = 0.6; kitty.sad(); warnT = 1;
+  if (state !== 'play') return;
+  state = 'lost'; F.level(false, cleared / Math.max(1, total)); sfx.fail(); buzz([40, 30, 60]); shake = 0.6; kitty.sad(); warnT = 1;
   ui.lose('TRAY FULL!', `${total - cleared} tiles to go — plan your triples!`);
 }
 

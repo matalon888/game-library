@@ -1,9 +1,11 @@
 // Swirl Tee — original tie-dye game. Pick the fold, bind the shirt, squirt dye into each section, unfold for the reveal.
 // Inspired by the mechanic of Tie Dye (CrazyLabs). All code and art original (three.js primitives + canvas-painted fabric).
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const $ = (id) => document.getElementById(id);
 const ST = store('swirltee');
+const F = flow('swirltee');
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const ui = createUI({ title: 'SWIRL<br>TEE', hint: 'Fold · dye · reveal!', hand: '👆', score: false });
 const stage = createStage({ fov: 38, shadowSize: 6 });
@@ -127,7 +129,7 @@ const patTex = new THREE.CanvasTexture(patC); patTex.colorSpace = THREE.SRGBColo
 // ------------------------------------------------------------------ level
 const FOLDS = ['spiral', 'rings', 'stripes'];
 function genLevel(lv) {
-  const r = rng(lv * 7919 + 13);
+  const r = rng(lv * 7919 + 13), fk = F.k();
   const fold = lv <= 3 ? FOLDS[lv - 1] : ['spiral', 'rings', 'stripes', 'spiral'][Math.floor(r() * 4)];
   const N = fold === 'spiral' ? Math.min(8, 3 + Math.floor((lv + 1) / 2)) : fold === 'rings' ? Math.min(5, 2 + Math.floor(lv / 3)) : Math.min(6, 3 + Math.floor(lv / 3));
   const order = DYES.map((_, i) => i); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
@@ -139,7 +141,7 @@ function genLevel(lv) {
   }
   const btns = order.slice(0, Math.min(6, nCol + (lv >= 2 ? 1 : 0) + (lv >= 5 ? 1 : 0)));
   for (let i = btns.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [btns[i], btns[j]] = [btns[j], btns[i]]; }
-  return { fold, N, cols, btns, thr: Math.min(0.82, 0.7 + (lv - 1) * 0.012), twist: 4.6 + r() * 2.2, seed: r() * 100, brush: Math.max(0.24, 0.34 - lv * 0.008) };
+  return { fold, N, cols, btns, thr: Math.min(0.9, (0.7 + (lv - 1) * 0.012) * fk), twist: 4.6 + r() * 2.2, seed: r() * 100, brush: Math.max(0.21, (0.34 - lv * 0.008) / fk) };
 }
 
 // bundle space: nx, nz in [-1, 1]; the bound shirt is an ellipse nx² + (nz/Q)² <= 1, world = n * EXT
@@ -372,11 +374,11 @@ function finish() {
   $('banner').classList.toggle('bad', !ok); $('banner').classList.add('on');
   ui.progress(1); ui.flash(0.55);
   if (ok) {
-    state = 'won'; score += pct; best = Math.max(best, score); ST.set('best', best);
+    state = 'won'; F.level(true); score += pct; best = Math.max(best, score); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, 2.5, 0), 80); setTimeout(() => confetti(scene, new THREE.Vector3(0, 2.5, -1), 60), 250);
     ui.win(level, stars === 3 ? 'Flawless swirl!' : `${pct}% match`);
   } else {
-    state = 'lost'; sfx.fail(); buzz([40, 30, 60]);
+    state = 'lost'; F.level(false, Math.min(1, match / L.thr)); sfx.fail(); buzz([40, 30, 60]);
     ui.lose('SO CLOSE!', `${pct}% match · need ${Math.round(L.thr * 100)}%`);
   }
 }

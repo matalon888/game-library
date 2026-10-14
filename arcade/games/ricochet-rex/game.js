@@ -1,6 +1,7 @@
 // Ricochet Rex — original game. Drag to aim the agent's pistol, release to fire. Bullets ricochet off walls,
 // pass through goons, blow up TNT, cut ropes and shove crates. Clear the room with 3 bullets; never hit a hostage.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, rounded, burst, confetti } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 // ------------------------------------------------------------------ stage: orthographic side view
 const stage = createStage({ shadows: true, shadowSize: 15 });
@@ -37,6 +38,8 @@ const ammoEl = Object.assign(document.createElement('div'), { className: 'rr-amm
 document.body.appendChild(ammoEl);
 
 const save = store('ricochetrex');
+const F = flow('ricochetrex');
+let fkL = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ themes
@@ -264,7 +267,7 @@ function layout(lv, n, r) {
   const enemies = [], hostages = [], bodies = [], barrels = [];
   for (let i = 0; i < n; i++) { const p = place(1.0, 2.05); if (p) enemies.push(p); }
   if (enemies.length < Math.min(2, n)) return null;
-  if (lv >= 3 && r() < 0.4) { const p = place(0.85, 2.05); if (p) hostages.push(p); }
+  if (lv >= 3 && r() < Math.min(0.55, 0.4 * fkL)) { const p = place(0.85, 2.05); if (p) hostages.push(p); }
   if (lv >= 2 && r() < 0.55) {      // TNT beside a goon
     const e = enemies[Math.floor(r() * enemies.length)];
     for (const dx of r() < 0.5 ? [0.95, -0.95] : [-0.95, 0.95]) { const x = e.x + dx; if (free(x - 0.4, e.y, x + 0.4, e.y + 0.9)) { ents.push({ x0: x - 0.4, y0: e.y, x1: x + 0.4, y1: e.y + 0.9 }); barrels.push({ x, y: e.y + 0.45, w: 0.8, h: 0.9 }); break; } }
@@ -285,7 +288,7 @@ function simWorld(L) {
     bodies: L.bodies.map(b => ({ ...b })), barrels: L.barrels.map(b => ({ ...b, alive: true })) };
 }
 function genLevel(lv) {
-  const n = Math.min(2 + Math.floor(lv / 3), 6);
+  const n = Math.max(2, Math.min(7, Math.round((2 + Math.floor(lv / 3)) * fkL)));
   let fallback = null;
   for (let att = 0; att < 70; att++) {
     const r = rng(lv * 9973 + att * 131 + 7), L = layout(lv, n, r); if (!L) continue;
@@ -363,7 +366,7 @@ function buildLevel() {
   theme = THEMES[(level - 1) % THEMES.length];
   const bs = document.body.style; bs.setProperty('--bg1', theme.bg[0]); bs.setProperty('--bg2', theme.bg[1]); bs.setProperty('--ui', theme.ui); bs.background = theme.bg[1];
   scenery(theme, levelGroup);
-  lvl = genLevel(level);
+  fkL = F.k(); lvl = genLevel(level);
   W = simWorld(lvl);
   for (const s of W.statics) {
     const x0 = Math.max(s.x0, -14), x1 = Math.min(s.x1, 14), y0 = Math.max(s.y0, -20), w = x1 - x0, h = s.y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + s.y1) / 2;
@@ -468,12 +471,13 @@ function explode(o) {
 }
 function lose(t, line) {
   if (state !== 'play') return;
-  state = 'lost'; slowT = 0; timeScale = 1;
+  state = 'lost'; F.level(false, killed / Math.max(1, total)); slowT = 0; timeScale = 1;
   sfx.fail(); buzz([60, 40, 80]); shake = Math.max(shake, 0.4);
   ui.lose(t, line);
 }
 function win() {
-  state = 'won'; timeScale = 1;
+  if (state !== 'play') return;
+  state = 'won'; F.level(true); timeScale = 1;
   const bonus = 150 * bullets; addScore(bonus);
   sfx.win(); buzz([20, 40, 20]);
   confetti(scene, V(0, 15, 1), 80);

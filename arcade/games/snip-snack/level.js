@@ -18,16 +18,16 @@ export function act(sim, a) {
   if (a.type === 'blow') { const k = sim.cushions[0]; press(sim, k.x, k.y); return [k.x, k.y]; }
 }
 
-export function generate(level) {
+export function generate(level, fk = 1) {
   for (let att = 0; att < 600; att++) {
-    const L = tryLevel(level, rng(level * 9973 + att * 7919 + 17));
+    const L = tryLevel(level, rng(level * 9973 + att * 7919 + 17), fk);
     if (L) { L.attempt = att; return L; }
   }
   return null;
 }
 
-function tryLevel(level, r) {
-  const nR = level === 1 ? 1 : level <= 3 ? 2 : (r() < 0.55 ? 2 : 3);
+function tryLevel(level, r, fk = 1) {
+  const nR = level === 1 ? 1 : level <= 3 ? 2 : (r() < Math.min(0.85, Math.max(0.25, 1 - 0.45 * fk)) ? 2 : 3);
   const candy = { x: (r() * 2 - 1) * 2.3, y: 0.6 + r() * 4.2 };
   const pins = [];
   for (let i = 0; i < nR; i++) {
@@ -43,7 +43,7 @@ function tryLevel(level, r) {
     if (!ok) return null;
   }
   const hasBubble = level >= 3 && (level === 3 || r() < 0.5);
-  const hasCush = level >= 5 && r() < (hasBubble ? 0.4 : 0.6);
+  const hasCush = level >= 5 && r() < Math.min(0.8, (hasBubble ? 0.4 : 0.6) * fk);
   const order = pins.map((_, i) => i).sort(() => r() - 0.5);
   const plan = []; let t = 70 + Math.floor(r() * 80);
   for (const i of order) { plan.push({ step: t, type: 'cut', rope: i }); t += 35 + Math.floor(r() * 100); }

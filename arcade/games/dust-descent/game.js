@@ -1,8 +1,10 @@
 // Dust Descent — original downhill MTB racer. First-person handlebars, canyon trail, rivals, boost pads, kickers.
 // Inspired by the mechanic of RUSH: Xtreme (SayGames). All code and art original (three.js primitives + canvas textures).
 import { THREE, createStage, createUI, input, loop, confetti, burst, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const S = store('dustdescent');
+const F = flow('dustdescent');
 let level = S.get('level', 1), best = S.get('best', 0);
 const stage = createStage({ fov: 64, shadowSize: 16 });
 const { scene, camera, renderer, sun, hemi } = stage;
@@ -341,11 +343,11 @@ let riders = [], state = 'ready', t0 = 0, raceT = 0, score = 0, steerVel = 0, sh
 function buildLevel() {
   buildWorld();
   riders.forEach(r => scene.remove(r.g)); riders = [];
-  const r = rng(level * 31 + 5), base = 21 + Math.min(level, 15) * 0.3;
+  const r = rng(level * 31 + 5), base = 21 + Math.min(level, 15) * 0.3, fk = 1 + (F.k() - 1) * 0.5;   // half-strength: rival top speed is a sharp knob
   NAMES.forEach((n, i) => {
     const g = makeRider(RCOL[i], ['#ffffff', '#222', '#ffd23f', '#ff5d8f', '#5ee7ff'][i], ['#2b2d42', '#ff8c42', '#3a86ff', '#e63946', '#52b788'][i], ['#3d405b', '#f4f1de', '#2b2d42', '#6d597a', '#e9c46a'][i], SKIN[i]);
     scene.add(g);
-    riders.push({ g, name: n, color: RCOL[i], s: 6 + i * 5 + r() * 3, lat: ((i % 3) - 1) * 2.4 + (r() - 0.5), v: 0, vmax: base * (0.83 + i * 0.03 + Math.min(level, 14) * 0.008 + r() * 0.015), h: 0, vy: 0, air: false, ramp: null, boost: 0, wob: 0, tl: 0, ph: r() * 6, finished: false, ftime: 0 });
+    riders.push({ g, name: n, color: RCOL[i], s: 6 + i * 5 + r() * 3, lat: ((i % 3) - 1) * 2.4 + (r() - 0.5), v: 0, vmax: base * (0.83 + i * 0.03 + Math.min(level, 14) * 0.008 + r() * 0.015) * fk, h: 0, vy: 0, air: false, ramp: null, boost: 0, wob: 0, tl: 0, ph: r() * 6, finished: false, ftime: 0 });
   });
   Object.assign(me, { glide: 0, s: 0, lat: 0, v: 0, h: 0, vy: 0, air: false, ramp: null, boost: 0, wob: 0, finished: false, vmax: base * 1.0 });
   raceT = 0; score = 0; boostMeter = 0; lastPos = 6; fovKick = 0;
@@ -472,6 +474,7 @@ function updateCamera(dt, t) {
 // ------------------------------------------------------------------ flow
 function finishRace() {
   const st = standings(), p = st.indexOf(me) + 1;
+  F.level(p <= 3, (st.length - p) / (st.length - 1));
   score += Math.max(0, (4 - p)) * 100;
   if (p <= 3) {
     state = 'won'; best = Math.max(best, score); S.set('best', best); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
