@@ -170,45 +170,6 @@
   "clip": "clips/miktaew-yet-another-idle-rpg.mp4"
  },
  {
-  "slug": "ninest-typer",
-  "name": "Typer",
-  "blurb": "Type as many words as you can within 10 seconds.",
-  "category": "Word & Math",
-  "author": "ninest and contributors",
-  "credit": "Copyright (c) ninest and contributors",
-  "licence": "MIT",
-  "source": "https://github.com/ninest/typer",
-  "entry": "index.html",
-  "external": "https://typer.now.sh/",
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 62,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 3,
-   "polish": 6,
-   "ai_built": "unknown",
-   "pitch": "Type as many words as you can in 10 seconds."
-  },
-  "tags": [],
-  "made": "2020-05-18",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 6,
-    "stars": 62,
-    "url": "https://github.com/ninest/typer"
-   }
-  },
-  "cover": "covers/ninest-typer.webp",
-  "thumb": "covers/ninest-typer.webp",
-  "icon": "art/ninest-typer.webp",
-  "clip": null
- },
- {
   "slug": "19was85-old-school-racing",
   "name": "Old School Racing",
   "blurb": "Race a retro pseudo-3D car down the track, steering and braking to pass seven CPU cars.",
@@ -1737,45 +1698,6 @@
   "thumb": "covers/omsingh02-bunny.webp",
   "icon": "art/omsingh02-bunny.webp",
   "clip": "clips/omsingh02-bunny.mp4"
- },
- {
-  "slug": "rajatkumar1011-emojicrush",
-  "name": "Emoji Match",
-  "blurb": "Swap neighboring emojis to line up three or more and clear them from the board.",
-  "category": "Puzzle",
-  "author": "Rajat Kumar",
-  "credit": "Copyright (c) 2025 Rajat Kumar",
-  "licence": "MIT",
-  "source": "https://github.com/rajatkumar1011/EmojiCrush",
-  "entry": "index.html",
-  "external": "http://rajatkumar1.me/EmojiCrush/",
-  "orientation": "portrait",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 3,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 4,
-   "polish": 6,
-   "ai_built": "unknown",
-   "pitch": "Swap emojis to match three or more in a glassmorphism UI with particle backgrounds and generated audio."
-  },
-  "tags": [],
-  "made": "2025-10-28",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 3,
-    "url": "https://github.com/rajatkumar1011/EmojiCrush"
-   }
-  },
-  "cover": "covers/rajatkumar1011-emojicrush.webp",
-  "thumb": "covers/rajatkumar1011-emojicrush.webp",
-  "icon": "art/rajatkumar1011-emojicrush.webp",
-  "clip": null
  },
  {
   "slug": "saptarshi-coder-ultimate-coin-toss",
@@ -6724,48 +6646,6 @@
   "clip": "clips/devapriyan-s-gesture-drive.mp4"
  },
  {
-  "slug": "drummingcoder-thetrazemaze",
-  "name": "Trazemaze",
-  "blurb": "Run, jump, dash and ground pound through a maze platformer while shooting and managing your hearts.",
-  "category": "Action",
-  "author": "Drummingcoder",
-  "credit": "by Drummingcoder · MIT",
-  "licence": "MIT",
-  "source": "https://github.com/Drummingcoder/thetrazemaze",
-  "entry": null,
-  "external": "https://drummingcoder.github.io/thetrazemaze/",
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": null,
-  "flag": null,
-  "desk_only": true,
-  "similar_to": {
-   "mechanic": "tactics grid / turn-based tactics",
-   "app_store": [
-    "9 Kings",
-    "Warhammer 40,000: Tacticus ™",
-    "Fire Emblem Heroes"
-   ]
-  },
-  "review": {
-   "by": "Claude",
-   "depth": 3,
-   "polish": 3,
-   "ai_built": "unknown",
-   "pitch": "Run, jump and shoot through a maze platformer."
-  },
-  "tags": [],
-  "made": "2023-07-09",
-  "platform": "desktop",
-  "public": null,
-  "cover": "covers/drummingcoder-thetrazemaze.webp",
-  "thumb": "covers/drummingcoder-thetrazemaze.webp",
-  "icon": "art/drummingcoder-thetrazemaze.webp",
-  "clip": "clips/drummingcoder-thetrazemaze.mp4"
- },
- {
   "slug": "pshenok-server-survival",
   "name": "Server Survival",
   "blurb": "Tower defence where the towers are load balancers, caches and databases and the creeps are traffic spikes.",
@@ -7226,45 +7106,6 @@
   "thumb": null,
   "icon": "art/salvatorepreviti-js13k-2020.webp",
   "clip": "clips/salvatorepreviti-js13k-2020.mp4"
- },
- {
-  "slug": "innocenat-typingmania",
-  "name": "TypingMania",
-  "blurb": "Type song lyrics in time with the music, including Kanji lines with furigana, or load your own songs.",
-  "category": "Word & Math",
-  "author": "innocenat and contributors",
-  "credit": "Copyright (c) innocenat and contributors",
-  "licence": "Apache-2.0",
-  "source": "https://github.com/innocenat/typingmania",
-  "entry": "index.html",
-  "external": "https://typingmania.stdlib.xyz/",
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 47,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 7,
-   "polish": 7,
-   "ai_built": "no",
-   "pitch": "Type along to song lyrics like karaoke, with YouTube playback, Kanji and furigana lines, and your own custom songs."
-  },
-  "tags": [],
-  "made": "2013-10-02",
-  "platform": "desktop",
-  "public": {
-   "github": {
-    "forks": 3,
-    "stars": 47,
-    "url": "https://github.com/innocenat/typingmania"
-   }
-  },
-  "cover": null,
-  "thumb": null,
-  "icon": "art/innocenat-typingmania.webp",
-  "clip": "clips/innocenat-typingmania.mp4"
  },
  {
   "slug": "ucfx-minimax-game-ai",
@@ -9356,45 +9197,6 @@
   "clip": "clips/naveenoid-vidhi.mp4"
  },
  {
-  "slug": "diaow2331-ops-dungeon-echo",
-  "name": "Dungeon Echo",
-  "blurb": "Descend 100 dungeon floors, choosing whether to push deeper or retreat while building up your character.",
-  "category": "Action",
-  "author": "WEI LIANG HUANG",
-  "credit": "Copyright (c) 2026 WEI LIANG HUANG",
-  "licence": "MIT",
-  "source": "https://github.com/diaow2331-ops/dungeon-echo",
-  "entry": "index.html",
-  "external": "https://play.91hwl.cn/dungeon-echo/",
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 1,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 8,
-   "polish": 7,
-   "ai_built": "yes",
-   "pitch": "Descend 100 floors of a roguelike, deciding when to push deeper or retreat while shaping your build."
-  },
-  "tags": [],
-  "made": "2026-08-25",
-  "platform": "desktop",
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 1,
-    "url": "https://github.com/diaow2331-ops/dungeon-echo"
-   }
-  },
-  "cover": "covers/diaow2331-ops-dungeon-echo.webp",
-  "thumb": "covers/diaow2331-ops-dungeon-echo.webp",
-  "icon": "art/diaow2331-ops-dungeon-echo.webp",
-  "clip": "clips/diaow2331-ops-dungeon-echo.mp4"
- },
- {
   "slug": "tel-0s-sand-and-rust-public",
   "name": "Sand & Rust",
   "blurb": "Explore an endless desert of buried megacities as an AI in a salvaged robot body.",
@@ -10926,45 +10728,6 @@
     "forks": 0,
     "stars": 0,
     "url": "https://github.com/Sanjays2402/memory-matrix"
-   }
-  },
-  "cover": null,
-  "thumb": null,
-  "icon": null,
-  "clip": null
- },
- {
-  "slug": "iacbi-matah",
-  "name": "Matah",
-  "blurb": "Host on a TV while friends join from phones to play joke, trivia and bluffing rounds.",
-  "category": "2-Player",
-  "author": "IACBI and contributors",
-  "credit": "Copyright (c) IACBI and contributors",
-  "licence": "MIT",
-  "source": "https://github.com/IACBI/matah",
-  "entry": "index.html",
-  "external": "https://quibble-0rjn.onrender.com",
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 7,
-   "polish": 7,
-   "ai_built": "likely",
-   "pitch": "Turn your TV into a party game night: friends join from their phones to out-joke and out-bluff each other."
-  },
-  "tags": [],
-  "made": "2026-06-05",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/IACBI/matah"
    }
   },
   "cover": null,
@@ -17080,47 +16843,6 @@
   "thumb": "covers/flomerboy-digi-fuze.webp",
   "icon": "art/flomerboy-digi-fuze.webp",
   "clip": "clips/flomerboy-digi-fuze.mp4"
- },
- {
-  "slug": "dhrubadc1-gridly",
-  "name": "Gridly",
-  "blurb": "Drag block pieces onto an 8x8 grid and clear lines in endless, timed, or 50-level modes.",
-  "category": "Puzzle",
-  "author": "DhrubaDC1 and contributors",
-  "credit": "Copyright (c) DhrubaDC1 and contributors",
-  "licence": "MIT",
-  "source": "https://github.com/DhrubaDC1/gridly",
-  "entry": "index.html",
-  "external": "https://dhrubadc1.github.io/gridly/",
-  "orientation": "portrait",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 7,
-   "polish": 7,
-   "ai_built": "yes",
-   "pitch": "Drag pieces onto an 8x8 grid, clear lines in endless, timed Blitz, or 50-level Adventure modes with gems and locks."
-  },
-  "tags": [
-   "Hyper-casual"
-  ],
-  "made": "2026-10-03",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/DhrubaDC1/gridly"
-   }
-  },
-  "cover": "covers/dhrubadc1-gridly.webp",
-  "thumb": "covers/dhrubadc1-gridly.webp",
-  "icon": "art/dhrubadc1-gridly.webp",
-  "clip": null
  },
  {
   "slug": "emrezdemir-echo-game-io",
