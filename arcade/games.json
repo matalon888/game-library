@@ -38,6 +38,38 @@
   "clip": null
  },
  {
+  "slug": "gbrln-the-last-pawn",
+  "name": "The Last Pawn",
+  "blurb": "You are the last black pawn on the board: swipe to dodge the white army's chess moves and capture pieces to rack up a high score.",
+  "category": "Strategy",
+  "author": "Gabriel Edradan",
+  "credit": "Copyright (c) 2025 Gabriel Edradan",
+  "licence": "MIT",
+  "source": "https://github.com/gbrln/the-last-pawn",
+  "entry": "__build/index.html",
+  "external": null,
+  "orientation": "any",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-14",
+  "stars": 51,
+  "flag": null,
+  "review": null,
+  "made": "2025-02-11",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 9,
+    "stars": 51,
+    "url": "https://github.com/gbrln/the-last-pawn"
+   }
+  },
+  "cover": "covers/gbrln-the-last-pawn.webp",
+  "thumb": "covers/gbrln-the-last-pawn.webp",
+  "icon": "art/gbrln-the-last-pawn.webp",
+  "clip": null
+ },
+ {
   "slug": "bitcraft3r-0xventure-capitalist",
   "name": "Idle Business Tycoon",
   "blurb": "Buy businesses and upgrades to grow your passive income, with accounts and saved progress.",
