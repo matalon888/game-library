@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Tiptoe Tower</title>
+<meta name="theme-color" content="#3fa9ff">
+<link rel="icon" href="data:,">
+<style>
+  .gems{position:fixed;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:6;background:rgba(0,0,0,.2);border-radius:16px;padding:2px 12px;font-weight:800;font-size:18px;pointer-events:none}
+  .heels{position:fixed;left:12px;top:calc(56px + env(safe-area-inset-top));z-index:6;background:#ff4fa3;border-radius:16px;padding:2px 12px;font-weight:800;font-size:18px;pointer-events:none;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<div class="heels" id="heels">👠 0</div>
+<div class="gems" id="gems">💎 0</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

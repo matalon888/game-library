@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Swirl Tee</title>
+<meta name="theme-color" content="#e8cfa4">
+<link rel="icon" href="data:,">
+<style>
+  .tgt{position:fixed;left:calc(50% - 48px);top:calc(54px + env(safe-area-inset-top));width:96px;z-index:6;background:#fff;border-radius:18px;padding:6px 6px 2px;box-shadow:0 5px 0 rgba(0,0,0,.14);text-align:center;pointer-events:none;transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+  .tgt canvas{width:84px;height:84px;display:block}
+  .tgt b{display:block;color:#ff3d8b;font-size:13px;letter-spacing:1px;line-height:1.2}
+  .tgt.big{transform:scale(1.25)}
+  .row{position:fixed;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px;z-index:6;transition:opacity .25s,transform .25s}
+  .row.off{opacity:0;pointer-events:none;transform:translateY(30px)}
+  .dye{width:54px;height:54px;border-radius:50%;border:5px solid #fff;padding:0;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.18),inset 0 -8px 12px rgba(0,0,0,.18),inset 0 8px 10px rgba(255,255,255,.4);transition:transform .12s}
+  .dye.on{transform:translateY(-10px) scale(1.12);box-shadow:0 0 0 4px rgba(255,255,255,.55),0 9px 0 rgba(0,0,0,.18),inset 0 -8px 12px rgba(0,0,0,.18),inset 0 8px 10px rgba(255,255,255,.4)}
+  .fold{width:96px;height:104px;border-radius:22px;border:0;background:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit;font-weight:800;font-size:15px;color:#7b5cff;transition:transform .1s}
+  .fold svg{width:54px;height:54px}
+  .fold:active{transform:translateY(4px)}
+  .fold.bad{animation:shake .4s;background:#ffd0d8}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  .ask{position:fixed;left:0;right:0;bottom:calc(146px + env(safe-area-inset-bottom));text-align:center;font-weight:800;font-size:24px;z-index:6;text-shadow:0 3px 0 rgba(0,0,0,.16);pointer-events:none;transition:opacity .25s}
+  .ask.off{opacity:0}
+  .ctl{position:fixed;width:52px;height:52px;border-radius:50%;border:4px solid #fff;z-index:6;cursor:pointer;font-size:26px;font-weight:800;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.16);bottom:calc(108px + env(safe-area-inset-bottom));transition:opacity .25s,transform .15s;padding:0;line-height:1}
+  .ctl.off{opacity:0;pointer-events:none}
+  #reset{left:calc(50% - 120px);background:#7b5cff}
+  #done{left:calc(50% + 68px);background:#22c55e}
+  #done.go{animation:dop .9s ease-in-out infinite}
+  @keyframes dop{50%{transform:scale(1.18)}}
+  .banner{position:fixed;left:50%;top:61%;transform:translateX(-50%) scale(0);z-index:8;background:linear-gradient(#ff7eb6,#ff3d8b);border:4px solid #fff;border-radius:20px;padding:2px 26px 6px;font-weight:800;text-align:center;box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .4s cubic-bezier(.3,1.6,.5,1);pointer-events:none;white-space:nowrap}
+  .banner.on{transform:translateX(-50%) scale(1)}
+  .banner.bad{background:linear-gradient(#a3a3c2,#6d6d8f)}
+  .banner .st{font-size:30px;letter-spacing:4px;color:#ffe066;text-shadow:0 3px 0 rgba(0,0,0,.18)}
+  .banner .st i{font-style:normal;color:rgba(255,255,255,.35)}
+  .banner b{display:block;font-size:34px;line-height:1}
+</style>
+</head>
+<body>
+<div class="tgt" id="tgt"><b>TARGET</b><canvas id="tgtc" width="168" height="168"></canvas></div>
+<div class="ask off" id="ask">Pick the fold!</div>
+<div class="row off" id="folds"></div>
+<div class="row off" id="dyes"></div>
+<button class="ctl off" id="reset" aria-label="wash">↺</button>
+<button class="ctl off" id="done" aria-label="unfold">✓</button>
+<div class="banner" id="banner"><div class="st" id="stars">★★★</div><b id="pct">0%</b></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

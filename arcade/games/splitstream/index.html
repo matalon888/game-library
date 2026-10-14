@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Splitstream</title>
+<meta name="theme-color" content="#ff9a3c">
+<link rel="icon" href="data:,">
+<style>
+  .gems{position:fixed;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:6;background:rgba(0,0,0,.18);border-radius:16px;padding:2px 12px;font-weight:800;font-size:18px;pointer-events:none}
+  .span{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;pointer-events:none;width:min(240px,62vw);height:10px;border-radius:6px;background:rgba(255,255,255,.45)}
+  .span i{position:absolute;top:-6px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+</style>
+</head>
+<body>
+<div class="gems" id="gems">💎 0</div>
+<div class="span" id="span"><i id="knob"></i></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

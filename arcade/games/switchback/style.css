@@ -1,0 +1,7 @@
+body .hc-score{color:#3b3f55;text-shadow:none;font-weight:600}
+body .hc-sub{color:#3b3f55;text-shadow:none}
+body .hc-card h1{color:#3b3f55;text-shadow:0 5px 0 rgba(0,0,0,.08);font-weight:600;letter-spacing:1px}
+body .hc-card p,body .hc-card .hint{color:#3b3f55;text-shadow:none}
+body .hc-card.dim{background:rgba(255,255,255,.35)}
+body .hc-card.dim h1{font-size:96px}
+body .hc-pop{text-shadow:0 2px 0 rgba(0,0,0,.08)}

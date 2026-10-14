@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Slip Links</title>
+<meta name="theme-color" content="#9ee8f5">
+<link rel="icon" href="data:,">
+<style>
+  .finger{position:fixed;font-size:46px;z-index:7;pointer-events:none;transform:translate(-30%,-10%);transition:left .18s ease-out,top .18s ease-out,opacity .2s;opacity:0;filter:drop-shadow(0 4px 2px rgba(0,0,0,.2))}
+  .finger.tap{animation:ftap .22s ease-in-out}
+  @keyframes ftap{50%{transform:translate(-30%,-10%) scale(.82)}}
+  .strikes{position:fixed;top:calc(56px + env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:5;pointer-events:none}
+  .strikes i{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 3px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:15px;color:#fff;transition:transform .25s cubic-bezier(.3,1.8,.5,1),background .2s}
+  .strikes i.x{background:#ff4d5e;transform:scale(1.25)}
+</style>
+</head>
+<body>
+<div class="strikes" id="strikes"><i></i><i></i><i></i></div>
+<div class="finger" id="finger">👆</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

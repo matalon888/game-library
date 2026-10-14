@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Smooch Roll</title>
+<meta name="theme-color" content="#fbfcfc">
+<link rel="icon" href="data:,">
+<style>
+  html, body { background: #fbfcfc; }
+  #cv { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  body .hc-lvl { background: #17a096; }
+  body .hc-lvl.next { background: #e4f1f0; color: #17a096; }
+  body .hc-bar { background: #e4eef0; height: 14px; width: min(190px, 46vw); box-shadow: inset 0 2px 0 rgba(0,0,0,.06); }
+  body .hc-bar i { background: linear-gradient(90deg, #26b3a8, #17a096); }
+  body .hc-sub { color: #3b4a52; text-shadow: none; top: calc(84px + env(safe-area-inset-top)); font-size: 17px; opacity: .75; }
+  body .hc-card { color: #2f3d45; }
+  body .hc-card h1 { color: #ff4d8d; text-shadow: 0 5px 0 rgba(160, 20, 70, .14); }
+  body .hc-card h1 b { color: #2fbfd9; font-weight: 800; text-shadow: 0 5px 0 rgba(10, 90, 120, .14); }
+  body .hc-card p, body .hc-card .hint { text-shadow: none; }
+  body .hc-card.lb-win { background: rgba(255, 255, 255, .42); }
+  body .hc-card.dim { background: rgba(40, 55, 70, .42); color: #fff; }
+  body .hc-card.dim h1 { color: #fff; text-shadow: 0 5px 0 rgba(0,0,0,.18); }
+  body .hc-card [data-x] { font-size: 40px; color: #ffbf1f; letter-spacing: 4px; text-shadow: 0 3px 0 rgba(150, 90, 0, .25); }
+  body .hc-card.dim [data-x] { font-size: 20px; color: #fff; letter-spacing: 0; }
+  body .hc-pop { text-shadow: 0 3px 0 rgba(0,0,0,.12); }
+  #stars { position: fixed; top: calc(52px + env(safe-area-inset-top)); left: 0; right: 0; display: flex; justify-content: center; gap: 4px;
+    pointer-events: none; z-index: 5; font-size: 20px; line-height: 1; }
+  #stars i { font-style: normal; color: #ffc21a; text-shadow: 0 2px 0 rgba(150, 90, 0, .25); transition: color .25s, transform .25s; }
+  #stars i.off { color: #d9e2e4; text-shadow: none; transform: scale(.82); }
+  #retry { position: fixed; top: calc(10px + env(safe-area-inset-top)); left: 12px; width: 42px; height: 42px; border-radius: 50%; border: 0;
+    background: #fff; box-shadow: 0 3px 0 rgba(0,0,0,.08), 0 0 0 2px #e3ecee inset; z-index: 7; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+  #retry svg { width: 24px; height: 24px; }
+  #retry:active { transform: translateY(2px); }
+  .shake { animation: shk .35s; }
+  @keyframes shk { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="stars"><i>★</i><i>★</i><i>★</i></div>
+<button id="retry" aria-label="restart level"><svg viewBox="0 0 24 24"><path d="M18.5 8.5A7.5 7.5 0 1 0 19.5 14" fill="none" stroke="#17a096" stroke-width="2.8" stroke-linecap="round"/><path d="M19.5 3.5v5.5H14" fill="none" stroke="#17a096" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<script type="module" src="game.js"></script>
+</body>
+</html>

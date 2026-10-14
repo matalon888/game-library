@@ -1,0 +1,5 @@
+html,body{background:linear-gradient(180deg,#d9577f,#f2a07b)}
+body .hc-score{font-weight:600;font-size:64px;top:calc(110px + env(safe-area-inset-top));text-shadow:0 3px 0 rgba(0,0,0,.08)}
+body .hc-sub{top:calc(178px + env(safe-area-inset-top))}
+body .hc-card.dim{background:rgba(0,0,0,.06)}
+body .hc-card.dim h1{font-size:96px;font-weight:600}

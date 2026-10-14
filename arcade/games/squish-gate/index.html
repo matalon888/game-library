@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Squish Gate</title>
+<meta name="theme-color" content="#ffd1dc">
+<link rel="icon" href="data:,">
+<style>
+  body .hc-score{font-size:30px;top:calc(52px + env(safe-area-inset-top))}
+  body .hc-score{text-shadow:0 3px 0 rgba(0,0,0,.18),0 0 12px rgba(0,0,0,.12)}
+  body .hc-pop{-webkit-text-stroke:2px rgba(60,40,90,.55);paint-order:stroke fill}
+  body .hc-sub{top:calc(132px + env(safe-area-inset-top));font-size:13px}
+  .hc-card h1{color:#fff;-webkit-text-stroke:3px rgba(0,0,0,.08)}
+  .sg-title{display:flex;flex-direction:column;align-items:center;line-height:.86}
+  .sg-title b{display:block;font-size:clamp(54px,17vw,92px);color:#ff4f7b;text-shadow:0 6px 0 #c22a55,0 12px 24px rgba(0,0,0,.18);transform:rotate(-4deg)}
+  .sg-title i{display:block;font-style:normal;font-size:clamp(46px,14vw,78px);color:#3b3f78;text-shadow:0 6px 0 #22244d,0 12px 24px rgba(0,0,0,.15);transform:rotate(2deg)}
+  .sg-hearts{position:fixed;left:14px;top:calc(58px + env(safe-area-inset-top));font-size:20px;z-index:6;pointer-events:none;letter-spacing:1px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.15))}
+  .sg-fever{position:fixed;left:50%;top:calc(94px + env(safe-area-inset-top));transform:translateX(-50%);z-index:6;pointer-events:none;width:140px;height:30px;border-radius:16px;background:rgba(60,40,90,.22);border:3px solid #fff;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+  .sg-fever i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ff4f7b,#ffb800,#3ad07a,#3a86ff,#b05cff);transition:width .25s}
+  .sg-fever span{position:relative;display:block;color:#fff;-webkit-text-stroke:1px rgba(60,40,90,.35);paint-order:stroke fill;text-align:center;font-weight:800;font-size:17px;line-height:24px;letter-spacing:1px;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .sg-fever.on{animation:fv .35s ease-in-out infinite alternate}
+  @keyframes fv{to{transform:translateX(-50%) scale(1.12)}}
+  .sg-gauge{position:fixed;right:14px;top:50%;transform:translateY(-50%);width:16px;height:150px;border-radius:10px;background:rgba(255,255,255,.45);border:3px solid rgba(255,255,255,.9);z-index:5;pointer-events:none}
+  .sg-gauge i{position:absolute;left:50%;width:26px;height:10px;margin-left:-13px;border-radius:6px;background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.18);transition:top .05s}
+  .sg-gauge:before,.sg-gauge:after{position:absolute;left:50%;transform:translateX(-50%);font-size:14px;font-weight:800;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .sg-gauge:before{content:'▲';top:-24px}.sg-gauge:after{content:'▼';bottom:-24px}
+</style>
+</head>
+<body>
+<div class="sg-hearts" id="hearts">❤️❤️❤️</div>
+<div class="sg-fever" id="fever"><i id="feverBar"></i><span>FEVER</span></div>
+<div class="sg-gauge" id="gauge"><i id="gaugeK"></i></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
