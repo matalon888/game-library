@@ -1,6 +1,7 @@
 // Core Crusher — original tower smasher. The ring tower spins on its own; press and hold to drive the ball down,
 // crushing coloured rings one by one. Black slices shatter the ball — unless you have held long enough to catch fire.
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, rng, lerp, clamp } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const SEG = 12, SEGA = Math.PI * 2 / SEG, GAP = 0.3, THICK = 0.25, R_OUT = 2.0, R_IN = 0.42, BALL_R = 0.3, BALL_D = 1.3;
 const GRAV = 0.0125, BOUNCE = 0.165, SMASH = 0.11;
@@ -15,6 +16,7 @@ const THEMES = [
 
 const S = store('corecrusher');
 let level = S.get('level', 1), best = S.get('best', 0);
+const F = flow('corecrusher');
 const stage = createStage({ fov: 46, shadowSize: 4 });
 const { scene, camera, sun } = stage;
 stage.hemi.intensity = 1.05; sun.intensity = 1.55;
@@ -75,10 +77,10 @@ function buildLevel() {
   theme = THEMES[(level - 1) % THEMES.length];
   const bs = document.body.style; bs.setProperty('--bg1', theme.bg[0]); bs.setProperty('--bg2', theme.bg[1]); bs.setProperty('--ui', theme.ui);
   safeMat.color.set(theme.ring); ballMat.color.set(theme.ball); trailMat.color.set('#ffffff');
-  const r = rng(level * 7717 + 3);
+  const r = rng(level * 7717 + 3), fk = F.k();
   style = (level - 1) % 3;
   total = Math.min(26 + level * 6, 110);
-  omega = (1.0 + Math.min(level, 10) * 0.07) * (r() < 0.5 ? 1 : -1);
+  omega = (1.0 + Math.min(level, 10) * 0.07) * fk * (r() < 0.5 ? 1 : -1);
   if (safeI) { tower.remove(safeI, darkI); safeI.dispose(); darkI.dispose(); }
   safeI = new THREE.InstancedMesh(SLICES[style], safeMat, total * SEG); darkI = new THREE.InstancedMesh(SLICES[style], darkMat, total * SEG);
   for (const m of [safeI, darkI]) { m.castShadow = false; m.receiveShadow = true; m.frustumCulled = false; tower.add(m); }
@@ -87,7 +89,7 @@ function buildLevel() {
   for (let i = 0; i < total; i++) {
     if (sectionLeft <= 0) {               // the tower is built from sections with their own spiral + danger amount
       sectionLeft = 5 + Math.floor(r() * 8);
-      const hard = Math.min(0.9, 0.25 + level * 0.07);
+      const hard = Math.min(0.92, (0.25 + level * 0.07) * fk);
       nd = i < 4 ? 0 : r() < hard ? 1 + Math.floor(r() * Math.min(5, 2 + level * 0.5)) : (r() < 0.5 ? 0 : 1);
       twistStep = (r() < 0.5 ? 1 : -1) * (0.06 + r() * 0.16);
       twist += r() * Math.PI * 2;
@@ -162,13 +164,13 @@ function bounceOn(y) {
   }
 }
 function die() {
-  state = 'lost'; deadT = 0; hold = false; ball.visible = false; best = Math.max(best, score); S.set('best', best);
+  state = 'lost'; F.level(false, top / total); deadT = 0; hold = false; ball.visible = false; best = Math.max(best, score); S.set('best', best);
   burst(scene, ball.position.clone(), [theme.ball, '#ffffff', '#1b1b24'], 26, { speed: 0.12, up: 0.1, size: 0.9, shape: 'sphere', gravity: 0.006 });
   tone(140, 0.4, 'sawtooth', 0.12, 0.4); buzz([40, 30, 80]); ui.flash(0.5);
   ui.lose('CRASHED!', `${Math.round(top / total * 100)}% crushed`);
 }
 function win() {
-  state = 'won'; hold = false; best = Math.max(best, score); S.set('best', best);
+  state = 'won'; F.level(true); hold = false; best = Math.max(best, score); S.set('best', best);
   level++; S.set('level', level);
   confetti(scene, new THREE.Vector3(0, finishY + 1, BALL_D), 90); ui.flash(0.4); buzz([20, 40, 30]);
   [0, 4, 7, 12, 16].forEach((s, i) => setTimeout(() => note(67 + s, 0.4, 0.16), i * 90));

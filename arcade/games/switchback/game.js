@@ -1,11 +1,13 @@
 // Switchback — original endless runner on a cliff-edge path. The ball rolls along a zig-zag wall of columns;
 // tap to switch direction at every corner. Gems are bonus, the path crumbles behind you, and it keeps getting faster.
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, lerp, clamp, rng } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const COLH = 16, CAP = 170, AHEAD = 46, BALL_R = 0.2, TIER = 40;
 const HUES = [212, 268, 330, 18, 160, 190, 45];                 // path hue per tier (blue → purple → pink → ...)
 const S = store('switchback');
 let best = S.get('best', 0), plays = S.get('plays', 0);
+const F = flow('switchback', { par: 60, warmup: 15 });
 
 const stage = createStage({ fov: 19, shadows: false });
 const { scene, camera } = stage;
@@ -68,7 +70,7 @@ function extend() {          // append path cells until we are AHEAD cells past 
 }
 function reset() {
   tiles = []; map.clear(); path = []; gemList = []; R = rng(Date.now() % 100000 + 7);
-  score = 0; gemsGot = 0; tier = 1; speed = 3.4; dir = 1; pathIdx = -1; botPending = false; squash = 0;
+  score = 0; gemsGot = 0; tier = 1; speed = 3.4 * F.k(0); dir = 1; pathIdx = -1; botPending = false; squash = 0;
   for (let x = -1; x <= 1; x++) for (let z = -1; z <= 1; z++) addTile(x, z, -1, false);
   genX = 0; genZ = 1; genDir = 1; genRun = 3; path.push([0, 1]); map.get(key(0, 1)).idx = 0;   // platform edge cell is path[0]
   extend();
@@ -89,7 +91,7 @@ function turn() {
   dir = 1 - dir; squash = 1; tone(dir ? 620 : 540, 0.04, 'sine', 0.09, 1.1); buzz(6);
 }
 function lose() {
-  state = 'lost'; plays++; S.set('plays', plays); best = Math.max(best, score); S.set('best', best);
+  state = 'lost'; F.endless(score); plays++; S.set('plays', plays); best = Math.max(best, score); S.set('best', best);
   tone(220, 0.25, 'triangle', 0.12, 0.4); buzz([30, 30, 60]);
   ui.lose(String(score), `BEST ${best} · 💎 ${gemsGot}`);
   setTimeout(() => state === 'lost' && ui.els.sc.classList.add('hc-hidden'), 650);
@@ -112,7 +114,7 @@ loop((dt, t) => {
       else {
         if (here.idx > pathIdx) {                       // reached a new tile: score + speed up
           const gained = here.idx - pathIdx; pathIdx = here.idx; score += Math.max(0, gained); ui.score(score);
-          speed = Math.min(7.2, 3.4 + score * 0.018);
+          speed = Math.min(7.6, (3.4 + score * 0.018) * F.k(score));
           const nt = Math.floor(score / TIER) + 1;
           if (nt > tier) { tier = nt; ui.levels(tier); hueT = HUES[(tier - 1) % HUES.length]; ui.pop(`LEVEL ${tier}!`, '#fff', 38, 30); [0, 4, 7, 12].forEach((s, i) => setTimeout(() => note(72 + s, 0.35, 0.14), i * 80)); confetti(scene, new THREE.Vector3(bx, 1, bz), 40); }
           ui.progress((score % TIER) / TIER);

@@ -1,6 +1,7 @@
 // Neon Hop — original rhythm hopper. A glowing ball bounces forward from tile to tile on every note of the song.
 // Drag left/right to put it on the next tile. Centre landings score PERFECT, gems are bonus, a miss drops you into the void.
 import { THREE, createStage, createUI, store, loop, input, buzz, rng, clamp, lerp, rounded } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, skyDome, starField, ease } from './_music/fx.js';
@@ -17,6 +18,7 @@ const VZ = 7.2, BALL_R = 0.34, TILE = 1.5;
 
 const S = store('neonhop');
 let level = S.get('level', 1), best = S.get('best', 0);
+const F = flow('neonhop');
 const stage = createStage({ fov: 58, shadows: false });
 const { scene, camera } = stage;
 stage.hemi.intensity = 0.9; stage.sun.intensity = 0.8;
@@ -80,14 +82,14 @@ function buildLevel() {
   sky.setColors(theme.top, theme.hor, theme.bot); scene.fog.color.set(theme.hor); sunMat.map = sunTex(theme.sun[0], theme.sun[1]); sunMat.needsUpdate = true; sunGlow.material.color.set(theme.hor);
   grid.material.color.set(theme.tile); decoMat.color.set(theme.acc);
   document.body.style.background = `linear-gradient(180deg,${theme.top},${theme.hor})`; document.body.style.setProperty('--ui', theme.tile);
-  const minGap = clamp(0.36 - (level - 1) * 0.012, 0.24, 0.36), maxDx = clamp(2.2 + level * 0.15, 2.2, 3.4);
+  const fk = F.k(), minGap = clamp((0.36 - (level - 1) * 0.012) / fk, 0.22, 0.38), maxDx = clamp((2.2 + level * 0.15) * fk, 2, 3.6);
   const hs = hits(track, minGap), r = rng(level * 4231 + 11);
   let x = 0;
   tiles = [{ t: -99, x: 0, z: 1.2, start: true }];
   hs.forEach((h, i) => {
     const step = (r() - 0.5) * 2 * maxDx * Math.min(1, 0.45 + h.dur);
     x = clamp(x + step, -2.6, 2.6); if (Math.abs(step) < 0.5 && r() < 0.5) x = clamp(x + Math.sign(r() - 0.5) * 1.2, -2.6, 2.6);
-    const moving = level >= 3 && i > 6 && r() < Math.min(0.3, 0.06 * (level - 2)) ? (r() < 0.5 ? -1 : 1) : 0;
+    const moving = level >= 3 && i > 6 && r() < Math.min(0.34, 0.06 * (level - 2) * fk) ? (r() < 0.5 ? -1 : 1) : 0;
     tiles.push({ ...h, x, z: -h.t * VZ, gem: i > 2 && r() < 0.22, moving, phase: r() * 6 });
   });
   for (const t of tiles) {
@@ -126,12 +128,12 @@ function land(i, now) {
 }
 const waves = [];
 function fail() {
-  state = 'lost'; failT = clock; fallV = 0.02; player.stop(0.3); synth.fail(); buzz([40, 30, 60]);
+  state = 'lost'; F.level(false, landed / (tiles.length - 1)); failT = clock; fallV = 0.02; player.stop(0.3); synth.fail(); buzz([40, 30, 60]);
   best = Math.max(best, score); S.set('best', best);
   ui.lose('OOPS!', `${Math.round(landed / (tiles.length - 1) * 100)}% · ${score} pts`);
 }
 function win() {
-  state = 'won'; best = Math.max(best, score); S.set('best', best);
+  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 5; k++) fx.emit(new THREE.Vector3(bx + (k - 2) * 0.8, 1.2, bz - 2), ['#ffffff', theme.tile, theme.acc, '#ffe66d'], 18, { speed: 0.16, up: 0.12, size: 0.6 });
   ui.flash(0.5); buzz([20, 40, 30]); ui.win(level, `${score} pts · ${gems} 💎`);
   level++; S.set('level', level);

@@ -1,10 +1,12 @@
 // Slab Up — original endless stacker. A slab slides across the top of the tower; tap to drop it.
 // Whatever hangs over the edge is sliced off and tumbles away; perfect drops keep the full size and climb a chime scale.
 import { THREE, createStage, createUI, store, loop, input, buzz, note, tone, burst, confetti, lerp, clamp } from './kit/hc.js';
+import { flow } from './kit/flow.js';
 
 const H = 0.36, W0 = 3, RANGE = 4.6, TIER = 20, PERFECT = 0.09;
 const S = store('slabup');
 let best = S.get('best', 0);
+const F = flow('slabup', { par: 25, warmup: 8 });
 
 const stage = createStage({ fov: 19, shadows: false });
 const { scene, camera } = stage;
@@ -52,7 +54,7 @@ function writeInstance(i) {
   towerMesh.instanceMatrix.needsUpdate = true; towerMesh.instanceColor.needsUpdate = true;
 }
 function reset() {
-  hue0 = Math.random() * 360; blocks = []; score = 0; combo = 0; speed = 0.062; tier = 1; botPending = false;
+  hue0 = Math.random() * 360; blocks = []; score = 0; combo = 0; speed = 0.062 * F.k(0); tier = 1; botPending = false;
   falling.forEach(f => scene.remove(f.m)); falling = [];
   for (let k = 0; k < MAXI; k++) { _m.makeScale(0, 0, 0); towerMesh.setMatrixAt(k, _m); }
   towerMesh.count = MAXI;
@@ -111,7 +113,7 @@ function drop() {
   }
   blocks.push(b); writeInstance(blocks.length - 1);
   score = blocks.length - 1; ui.score(score); squash = 1; shake = 0.06;
-  speed = Math.min(0.16, 0.062 + score * 0.0011);
+  speed = Math.min(0.17, (0.062 + score * 0.0011) * F.k(score));
   const t = Math.floor(score / TIER) + 1;
   if (t > tier) { tier = t; ui.levels(tier); confetti(scene, new THREE.Vector3(b.x, b.y + 1, b.z), 50); [0, 4, 7, 12].forEach((s, i) => setTimeout(() => note(72 + s, 0.4, 0.15), i * 90)); ui.pop(`LEVEL ${tier}!`, '#fff', 40, 30); }
   ui.progress((score % TIER) / TIER);
@@ -119,7 +121,7 @@ function drop() {
   setBg(); spawn();
 }
 function lose() {
-  state = 'lost'; best = Math.max(best, score); S.set('best', best);
+  state = 'lost'; F.endless(score); best = Math.max(best, score); S.set('best', best);
   tone(180, 0.35, 'sawtooth', 0.1, 0.5); buzz([30, 40, 60]); shake = 0.25;
   camDistT = clamp(40 + blocks.length * H * 2.2, 40, 110);           // zoom out to admire the tower
   ui.lose(String(score), best ? 'BEST ' + best : '');
