@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Crackle Pick: Honeycomb Carving Game</title>
+<meta name="description" content="Trace the shape with a pin and carve it out of a honeycomb toffee disc before time runs out, without cracking it: a free carving game in your browser.">
+<meta property="og:title" content="Crackle Pick: Honeycomb Carving Game">
+<meta property="og:description" content="Steady hands only: carve the shape out of a honeycomb toffee disc before it cracks. Free browser carving game, no download.">
+<meta name="theme-color" content="#ffd6a5">
+<link rel="icon" href="data:,">
+<style>
+  .crack{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:6;pointer-events:none;font-weight:800;font-size:16px;text-shadow:0 2px 0 rgba(0,0,0,.15);transition:opacity .3s}
+  .crack.off{opacity:0}
+  .crack .cb{width:min(190px,46vw);height:14px;border-radius:9px;background:rgba(255,255,255,.6);overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+  .crack .cb i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,#ffb347,#ff4d4d);transition:width .15s}
+  .crack.hot .cb{animation:hot .25s linear infinite}
+  @keyframes hot{50%{transform:translateX(3px)}}
+  body .hc-pill{top:calc(64px + env(safe-area-inset-top));left:14px;right:auto;font-size:22px;padding:4px 14px;background:rgba(90,40,0,.25)}
+  body .hc-pill.low{background:#ff4d4d;animation:hot .3s linear infinite}
+</style>
+</head>
+<body>
+<div class="crack off" id="crack"><span>CRACK</span><div class="cb"><i id="crackFill"></i></div></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

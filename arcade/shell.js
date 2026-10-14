@@ -168,10 +168,10 @@
     const gs = PC ? every : every.filter(g => !isDesk(g));
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
-    const COLLS = ['Hyper-casual', 'Shooters'];
+    const COLLS = ['Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
     const inColl = (g, c) => (g.tags || []).includes(c);
     const collList = c => (PC ? every : every.filter(g => !isDesk(g) || c === 'Shooters')).filter(g => inColl(g, c));
-    const cats = COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()).concat(desk.length ? ['Desktop'] : []);
+    const cats = [...new Set(COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()))].concat(desk.length ? ['Desktop'] : []);
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
     $('count').textContent = `${every.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
@@ -213,7 +213,12 @@
       const recent = gs.filter(g => g.made && ago(g.made) <= 21).sort((a, b) => (b.made > a.made ? 1 : -1));
       const byCat = cats.filter(c => !COLLS.includes(c) && c !== 'Desktop').map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
       $('shelves').innerHTML = shelf('Hyper-casual · Voodoo-style', collList('Hyper-casual'), 'Hyper-casual') +
+        shelf('Endless runners', collList('Endless runners'), 'Endless runners') +
+        shelf('Daily puzzles · a new one every day', collList('Daily puzzles'), 'Daily puzzles') +
+        shelf('Makeover & DIY', collList('Makeover'), 'Makeover') +
+        shelf('Kids · no reading needed', collList('Kids'), 'Kids') +
         shelf('Shooters', collList('Shooters'), 'Shooters') +
+        shelf('Casino · free play, fair odds, no real money', collList('Casino'), 'Casino') +
         shelf('Just made', recent, null, true) +
         shelf(PC ? 'Desktop games · keyboard & mouse' : 'Desktop games · play on your computer', desk, 'Desktop') +
         byCat.map(([c, l]) => shelf(c, l, c)).join('') +

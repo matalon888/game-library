@@ -54,7 +54,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Endless runners"
    ],
    "original": true,
    "repo_dir": "twist-drop"
@@ -201,7 +202,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Kids"
    ],
    "original": true,
    "repo_dir": "shade-shop"
@@ -369,7 +371,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Makeover"
    ],
    "original": true,
    "repo_dir": "sticky-nook"
@@ -432,7 +435,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Makeover"
    ],
    "original": true,
    "repo_dir": "dress-diva"
@@ -792,7 +796,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Kids"
    ],
    "original": true,
    "repo_dir": "paint-glide"
@@ -919,7 +924,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Makeover"
    ],
    "original": true,
    "repo_dir": "swirl-tee"
@@ -1045,7 +1051,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Endless runners"
    ],
    "original": true,
    "repo_dir": "slab-up"
@@ -1066,7 +1073,8 @@
    "added": "2026-10-14",
    "stars": null,
    "tags": [
-    "Hyper-casual"
+    "Hyper-casual",
+    "Endless runners"
    ],
    "original": true,
    "repo_dir": "switchback"
@@ -1389,6 +1397,1012 @@
    ],
    "original": true,
    "repo_dir": "whisker-stack"
+  },
+  {
+   "slug": "crackle-pick-honeycomb-carving-game",
+   "name": "Crackle Pick: Honeycomb Carving Game",
+   "blurb": "Carve the shape out of the honeycomb before it cracks.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "crackle-pick-honeycomb-carving-game"
+  },
+  {
+   "slug": "bonk-brawl-dodgeball-arena",
+   "name": "Bonk Brawl: Dodgeball Arena",
+   "blurb": "Dodge, grab and throw. Last bean standing wins.",
+   "category": "Action",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "bonk-brawl-dodgeball-arena"
+  },
+  {
+   "slug": "swish-street-basketball-shooting",
+   "name": "Swish Street: Basketball Shooting",
+   "blurb": "Time the meter and sink the shot. Three in a row lights it up.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "swish-street-basketball-shooting"
+  },
+  {
+   "slug": "thrill-loop-roller-coaster-ride",
+   "name": "Thrill Loop: Roller Coaster Ride",
+   "blurb": "Hold for speed, let go to brake. Keep every rider on board.",
+   "category": "Racing",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "thrill-loop-roller-coaster-ride"
+  },
+  {
+   "slug": "oche-ace-darts-duel",
+   "name": "Oche Ace: Darts Duel",
+   "blurb": "Aim through the sway and outscore your rival at the oche.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "oche-ace-darts-duel"
+  },
+  {
+   "slug": "rubber-reach-climb-puzzle",
+   "name": "Rubber Reach: Climb Puzzle",
+   "blurb": "Stretch each arm and leg to climb past saws and spikes.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "rubber-reach-climb-puzzle"
+  },
+  {
+   "slug": "bloop-stack-block-tower-runner",
+   "name": "Bloop Stack: Block Tower Runner",
+   "blurb": "Tap to stack blocks under the blob and hop every wall.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "bloop-stack-block-tower-runner"
+  },
+  {
+   "slug": "wand-rush-magic-element-runner",
+   "name": "Wand Rush: Magic Element Runner",
+   "blurb": "Run through fire, frost and spark gates. Match the element to win.",
+   "category": "Action",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "wand-rush-magic-element-runner"
+  },
+  {
+   "slug": "coil-pop-color-sort-puzzle",
+   "name": "Coil Pop: Color Sort Puzzle",
+   "blurb": "Sort the springy coils so every peg holds one colour.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "coil-pop-color-sort-puzzle"
+  },
+  {
+   "slug": "goo-patrol-spot-the-impostor",
+   "name": "Goo Patrol: Spot the Impostor",
+   "blurb": "Sweep the x-ray lens over the crowd and zap the impostor.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "goo-patrol-spot-the-impostor"
+  },
+  {
+   "slug": "sticky-mitts-draw-line-heist",
+   "name": "Sticky Mitts: Draw Line Heist",
+   "blurb": "Draw the stretchy arm past the lasers and grab the loot.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "sticky-mitts-draw-line-heist"
+  },
+  {
+   "slug": "comet-tee-golf-long-drive",
+   "name": "Comet Tee: Golf Long Drive",
+   "blurb": "Time the swing and slingshot the ball around the planets.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "comet-tee-golf-long-drive"
+  },
+  {
+   "slug": "hex-hand-telekinesis-brawl",
+   "name": "Hex Hand: Telekinesis Brawl",
+   "blurb": "Grab imps and barrels with your magic glove and fling them.",
+   "category": "Action",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "hex-hand-telekinesis-brawl"
+  },
+  {
+   "slug": "backyard-plop-bean-bag-toss",
+   "name": "Backyard Plop: Bean Bag Toss",
+   "blurb": "Toss the bean bags in the hole and beat your rival.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "backyard-plop-bean-bag-toss"
+  },
+  {
+   "slug": "zip-vault-neon-maze-dash",
+   "name": "Zip Vault: Neon Maze Dash",
+   "blurb": "Dash wall to wall up the neon maze before the goo rises.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "zip-vault-neon-maze-dash"
+  },
+  {
+   "slug": "fletch-arrow-dungeon-roguelite",
+   "name": "Fletch: Arrow Dungeon Roguelite",
+   "blurb": "Move to dodge, stop to shoot. Pick a new skill every room.",
+   "category": "Action",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Shooters"
+   ],
+   "original": true,
+   "repo_dir": "fletch-arrow-dungeon-roguelite"
+  },
+  {
+   "slug": "glowkeep-monster-horde-arena",
+   "name": "Glowkeep: Monster Horde Arena",
+   "blurb": "Survive the monster horde. Level up and pick your weapons.",
+   "category": "Action",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Shooters"
+   ],
+   "original": true,
+   "repo_dir": "glowkeep-monster-horde-arena"
+  },
+  {
+   "slug": "noodle-rumble-snake-battle-arena",
+   "name": "Noodle Rumble: Snake Battle Arena",
+   "blurb": "Grow your snake, swallow smaller ones, beat the boss.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "noodle-rumble-snake-battle-arena"
+  },
+  {
+   "slug": "porch-toss-newspaper-bike-ride",
+   "name": "Porch Toss: Newspaper Bike Ride",
+   "blurb": "Ride the route and toss papers right at the mailbox.",
+   "category": "Racing",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "porch-toss-newspaper-bike-ride"
+  },
+  {
+   "slug": "bolt-out-ball-drop-puzzle",
+   "name": "Bolt Out: Ball Drop Puzzle",
+   "blurb": "Pull the bolts in the right order and fill the jar.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "bolt-out-ball-drop-puzzle"
+  },
+  {
+   "slug": "blokko-3d-block-puzzle",
+   "name": "Blokko: 3D Block Puzzle",
+   "blurb": "Spin the shape and tap the blocks out in the right order.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "blokko-3d-block-puzzle"
+  },
+  {
+   "slug": "loaf-flip-food-puzzle",
+   "name": "Loaf Flip: Food Puzzle",
+   "blurb": "Flip the stacks so bread ends up on top and bottom.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "loaf-flip-food-puzzle"
+  },
+  {
+   "slug": "letterloom-anagram-crossword-puzzle",
+   "name": "Letterloom: Anagram Crossword Puzzle",
+   "blurb": "Swipe the letters to fill the crossword. New puzzle daily.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "letterloom-anagram-crossword-puzzle"
+  },
+  {
+   "slug": "ridgeline-tripeaks-solitaire",
+   "name": "Ridgeline: TriPeaks Solitaire",
+   "blurb": "Clear the three peaks one card higher or lower.",
+   "category": "Cards",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "ridgeline-tripeaks-solitaire"
+  },
+  {
+   "slug": "lantern-pairs-mahjong-solitaire",
+   "name": "Lantern Pairs: Mahjong Solitaire",
+   "blurb": "Match free tile pairs and clear the whole stack.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "lantern-pairs-mahjong-solitaire"
+  },
+  {
+   "slug": "ninefold-daily-sudoku-puzzle",
+   "name": "Ninefold: Daily Sudoku Puzzle",
+   "blurb": "Classic sudoku with notes, hints and a daily puzzle.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "ninefold-daily-sudoku-puzzle"
+  },
+  {
+   "slug": "boop-board-pop-it-fidget-game",
+   "name": "Boop Board: Pop It Fidget Game",
+   "blurb": "Pop every bubble on the rainbow critters.",
+   "category": "Kids",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Kids"
+   ],
+   "original": true,
+   "repo_dir": "boop-board-pop-it-fidget-game"
+  },
+  {
+   "slug": "peekaboo-pals-animal-memory-match",
+   "name": "Peekaboo Pals: Animal Memory Match",
+   "blurb": "Flip the cards and find the animal pairs.",
+   "category": "Kids",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Kids"
+   ],
+   "original": true,
+   "repo_dir": "peekaboo-pals-animal-memory-match"
+  },
+  {
+   "slug": "froggle-bubble-shooter",
+   "name": "Froggle: Bubble Shooter",
+   "blurb": "Aim, match three bubbles and free the ladybugs.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Kids"
+   ],
+   "original": true,
+   "repo_dir": "froggle-bubble-shooter"
+  },
+  {
+   "slug": "sudsy-lane-kids-car-wash-game",
+   "name": "Sudsy Lane: Kids Car Wash Game",
+   "blurb": "Soap, rinse, dry and sticker the friendly trucks.",
+   "category": "Kids",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Kids"
+   ],
+   "original": true,
+   "repo_dir": "sudsy-lane-kids-car-wash-game"
+  },
+  {
+   "slug": "tip-top-nail-salon-makeover",
+   "name": "Tip Top: Nail Salon Makeover",
+   "blurb": "Shape, polish and decorate nails to the client's order.",
+   "category": "Makeover",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Makeover"
+   ],
+   "original": true,
+   "repo_dir": "tip-top-nail-salon-makeover"
+  },
+  {
+   "slug": "spin-bakes-cake-decorating-game",
+   "name": "Spin Bakes: Cake Decorating Game",
+   "blurb": "Pipe the icing layers and top the cake to order.",
+   "category": "Makeover",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Makeover"
+   ],
+   "original": true,
+   "repo_dir": "spin-bakes-cake-decorating-game"
+  },
+  {
+   "slug": "snip-studio-hair-salon-makeover",
+   "name": "Snip Studio: Hair Salon Makeover",
+   "blurb": "Wash, cut, dye and style the hair just right.",
+   "category": "Makeover",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Makeover"
+   ],
+   "original": true,
+   "repo_dir": "snip-studio-hair-salon-makeover"
+  },
+  {
+   "slug": "goo-lab-slime-simulator-asmr",
+   "name": "Goo Lab: Slime Simulator ASMR",
+   "blurb": "Mix the colour, add activator, then squish your slime.",
+   "category": "Makeover",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Makeover"
+   ],
+   "original": true,
+   "repo_dir": "goo-lab-slime-simulator-asmr"
+  },
+  {
+   "slug": "nugget-rush-mine-cart-runner",
+   "name": "Nugget Rush: Mine Cart Runner",
+   "blurb": "Dash the canyon rails, ride the wagons, outrun the boulder.",
+   "category": "Racing",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Endless runners"
+   ],
+   "original": true,
+   "repo_dir": "nugget-rush-mine-cart-runner"
+  },
+  {
+   "slug": "stormchase-endless-turn-runner",
+   "name": "Stormchase: Endless Turn Runner",
+   "blurb": "Swipe to turn, jump and slide. The storm is right behind you.",
+   "category": "Racing",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Endless runners"
+   ],
+   "original": true,
+   "repo_dir": "stormchase-endless-turn-runner"
+  },
+  {
+   "slug": "boltpack-jetpack-runner",
+   "name": "Boltpack: Jetpack Runner",
+   "blurb": "Hold to fly through the lab. Dodge zappers and rockets.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Endless runners"
+   ],
+   "original": true,
+   "repo_dir": "boltpack-jetpack-runner"
+  },
+  {
+   "slug": "capy-hop-endless-road-hopper",
+   "name": "Capy Hop: Endless Road Hopper",
+   "blurb": "Hop the capybara across roads, rivers and rails.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Endless runners"
+   ],
+   "original": true,
+   "repo_dir": "capy-hop-endless-road-hopper"
+  },
+  {
+   "slug": "pulse-prism-rhythm-runner",
+   "name": "Pulse Prism: Rhythm Runner",
+   "blurb": "Jump on the beat across the neon runway.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Endless runners"
+   ],
+   "original": true,
+   "repo_dir": "pulse-prism-rhythm-runner"
+  },
+  {
+   "slug": "velvet-ace-blackjack-21",
+   "name": "Velvet Ace: Blackjack 21",
+   "blurb": "Classic blackjack 21 with free chips and fair odds.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "velvet-ace-blackjack-21"
+  },
+  {
+   "slug": "ivory-ball-european-roulette",
+   "name": "Ivory Ball: European Roulette",
+   "blurb": "European single-zero roulette. Free play, fair odds.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "ivory-ball-european-roulette"
+  },
+  {
+   "slug": "hold-five-video-poker",
+   "name": "Hold Five: Video Poker",
+   "blurb": "Jacks or Better video poker, full-pay table, free chips.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "hold-five-video-poker"
+  },
+  {
+   "slug": "river-night-texas-hold-em",
+   "name": "River Night: Texas Hold'em",
+   "blurb": "Texas Hold'em sit-and-go against the table.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "river-night-texas-hold-em"
+  },
+  {
+   "slug": "pearl-tide-slots-casino",
+   "name": "Pearl Tide: Slots Casino",
+   "blurb": "Undersea slots with free spins. 96.4% return, shown in full.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "pearl-tide-slots-casino"
+  },
+  {
+   "slug": "pip-duel-five-dice-game",
+   "name": "Pip Duel: Five Dice Game",
+   "blurb": "Roll five dice, fill the scorecard, beat your rival.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "pip-duel-five-dice-game"
+  },
+  {
+   "slug": "pegfall-ball-drop-casino",
+   "name": "Pegfall: Ball Drop Casino",
+   "blurb": "Drop the ball through the pegs and land a multiplier.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "pegfall-ball-drop-casino"
+  },
+  {
+   "slug": "shimmer-scratch-cards",
+   "name": "Shimmer: Scratch Cards",
+   "blurb": "Scratch the card and reveal your prize. Free play.",
+   "category": "Casino",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-14",
+   "stars": null,
+   "tags": [
+    "Casino"
+   ],
+   "original": true,
+   "repo_dir": "shimmer-scratch-cards"
   }
  ],
  "overrides": {

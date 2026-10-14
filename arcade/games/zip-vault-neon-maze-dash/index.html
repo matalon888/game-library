@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Zip Vault: Neon Maze Dash</title>
+<meta name="description" content="Swipe to dash wall to wall up an endless neon maze, grab the dots and outrun the rising goo. Free in your browser.">
+<meta property="og:title" content="Zip Vault: Neon Maze Dash">
+<meta property="og:description" content="Swipe to dash wall to wall up an endless neon maze, grab the dots and outrun the rising goo.">
+<meta name="theme-color" content="#1d1838">
+<link rel="icon" href="data:,">
+<style>
+  html,body{background:#1d1838}
+  body .hc-card h1{color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.35),0 0 28px var(--ui)}
+  body .hc-card.dim{background:rgba(10,6,30,.45)}
+  body .hc-score{text-shadow:0 4px 0 rgba(0,0,0,.35)}
+  body .hc-bar{background:rgba(255,255,255,.22)}
+  body .hc-lvl.next{background:rgba(255,255,255,.22);color:#fff}
+  .hc-card .hand{animation:zipswipe 1.6s ease-in-out infinite!important}
+  @keyframes zipswipe{0%,100%{transform:translateY(20px)}50%{transform:translateY(-30px)}}
+</style>
+</head>
+<body>
+<script type="module" src="game.js"></script>
+</body>
+</html>

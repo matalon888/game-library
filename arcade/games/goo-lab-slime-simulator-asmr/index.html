@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Goo Lab: Slime Simulator ASMR</title>
+<meta name="description" content="Mix glue and dye, add activator and toppings, then squish, poke and stretch your slime — a free DIY slime simulator that scores how close you get to the recipe.">
+<meta property="og:title" content="Goo Lab: Slime Simulator ASMR">
+<meta property="og:description" content="A free DIY slime simulator: mix the colour, nail the stretch, add the beads, then squish it.">
+<meta name="theme-color" content="#8fe3d0">
+<link rel="icon" href="data:,">
+<style>
+  .tgt{position:fixed;left:14px;top:calc(60px + env(safe-area-inset-top));width:104px;z-index:6;background:#fff;border-radius:20px;padding:6px 6px 4px;box-shadow:0 5px 0 rgba(0,0,0,.14);text-align:center;pointer-events:none;transition:transform .3s cubic-bezier(.3,1.6,.5,1);transform-origin:0 0}
+  .tgt canvas{width:92px;height:124px;display:block}
+  .tgt b{display:block;color:#13a58a;font-size:12px;letter-spacing:1px;line-height:1.3}
+  .tgt.big{transform:scale(1.3)}
+  .bub{position:fixed;left:126px;top:calc(68px + env(safe-area-inset-top));z-index:6;background:#fff;color:#7b3b6b;border-radius:16px;padding:4px 12px;font-weight:800;font-size:15px;box-shadow:0 4px 0 rgba(0,0,0,.12);pointer-events:none;max-width:56vw}
+  .bub:before{content:'';position:absolute;left:-8px;top:12px;border:8px solid transparent;border-right-color:#fff;border-left:0}
+  .row{position:fixed;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:9px;z-index:6;transition:opacity .25s,transform .25s;padding:0 10px}
+  .row.off{opacity:0;pointer-events:none;transform:translateY(30px)}
+  .opt{width:62px;height:72px;border-radius:18px;border:0;background:#fff;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;font:inherit;font-weight:800;font-size:11px;color:#c2477e;padding:4px 0 0;transition:transform .12s}
+  .opt svg{width:40px;height:44px}
+  .opt.on{transform:translateY(-10px) scale(1.08);box-shadow:0 0 0 4px rgba(255,255,255,.6),0 9px 0 rgba(0,0,0,.16)}
+  .pol{width:50px;height:74px;border:0;background:none;padding:0;cursor:pointer;transition:transform .12s;filter:drop-shadow(0 5px 0 rgba(0,0,0,.16))}
+  .pol svg{width:50px;height:74px}
+  .pol.on{transform:translateY(-12px) scale(1.12)}
+  .ask{position:fixed;left:0;right:0;bottom:calc(122px + env(safe-area-inset-bottom));text-align:center;font-weight:800;font-size:24px;z-index:6;text-shadow:0 3px 0 rgba(0,0,0,.18);pointer-events:none;transition:opacity .25s}
+  .ask.off{opacity:0}
+  .ctl{position:fixed;right:16px;width:58px;height:58px;border-radius:50%;border:4px solid #fff;z-index:7;cursor:pointer;font-size:28px;font-weight:800;color:#fff;background:#22c55e;box-shadow:0 5px 0 rgba(0,0,0,.16);bottom:calc(160px + env(safe-area-inset-bottom));transition:opacity .25s,transform .15s;padding:0;line-height:1}
+  .ctl.off{opacity:0;pointer-events:none}
+  .ctl.go{animation:dop .9s ease-in-out infinite}
+  @keyframes dop{50%{transform:scale(1.18)}}
+  .banner{position:fixed;left:50%;top:60%;transform:translateX(-50%) scale(0);z-index:8;background:linear-gradient(#ff7eb6,#ff3d8b);border:4px solid #fff;border-radius:20px;padding:2px 26px 6px;font-weight:800;text-align:center;box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .4s cubic-bezier(.3,1.6,.5,1);pointer-events:none;white-space:nowrap}
+  .banner.on{transform:translateX(-50%) scale(1)}
+  .banner.bad{background:linear-gradient(#a3a3c2,#6d6d8f)}
+  .banner .st{font-size:30px;letter-spacing:4px;color:#ffe066;text-shadow:0 3px 0 rgba(0,0,0,.18)}
+  .banner .st i{font-style:normal;color:rgba(255,255,255,.35)}
+  .banner b{display:block;font-size:30px;line-height:1}
+  .meter{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(168px + env(safe-area-inset-bottom));z-index:6;font-weight:800;font-size:18px;background:rgba(0,0,0,.2);padding:2px 14px;border-radius:14px;pointer-events:none;transition:opacity .25s}
+  .meter.off{opacity:0}
+  .drop{width:52px;height:72px;border:0;background:none;padding:0;cursor:pointer;transition:transform .1s;filter:drop-shadow(0 5px 0 rgba(0,0,0,.16))}
+  .drop svg{width:52px;height:72px}
+  .drop:active{transform:translateY(4px) scale(.95)}
+  .drop b{position:absolute;margin:-22px 0 0 -6px;font-size:13px;color:#fff;background:rgba(0,0,0,.35);border-radius:9px;padding:0 6px}
+  .mix{position:fixed;right:14px;top:calc(124px + env(safe-area-inset-top));z-index:6;background:#fff;border-radius:16px;padding:6px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.12);color:#13a58a;font-weight:800;font-size:18px;pointer-events:none;transition:opacity .25s}
+  .mix i{display:block;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 -4px 6px rgba(0,0,0,.2)}
+  .mix.off,.gauge.off{opacity:0}
+  .gauge{position:fixed;left:24px;right:24px;bottom:calc(178px + env(safe-area-inset-bottom));height:26px;border-radius:14px;background:rgba(255,255,255,.75);z-index:6;overflow:hidden;pointer-events:none;display:flex;justify-content:space-between;align-items:center;padding:0 10px;font-weight:800;font-size:11px;color:#3a6b62;box-shadow:0 4px 0 rgba(0,0,0,.12);transition:opacity .25s}
+  .gauge .zone{position:absolute;top:0;bottom:0;background:#9be15d;opacity:.8}
+  .gauge .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(19,165,138,.55);border-right:4px solid #0b7d68}
+  .gauge span{position:relative}
+</style>
+</head>
+<body>
+<div class="tgt" id="tgt"><b id="tgtName">RECIPE</b><canvas id="tgtc" width="184" height="248"></canvas></div>
+<div class="bub" id="bub">Hi!</div>
+<div class="mix off" id="mix"><i id="mixSw"></i><span id="mixPct">0%</span></div>
+<div class="gauge off" id="gauge"><div class="zone" id="zone"></div><div class="fill" id="gfill"></div><span>STICKY</span><span>STRETCHY</span><span>RUBBERY</span></div>
+<div class="ask off" id="ask">Tap the dyes</div>
+<div class="row off" id="dyes"></div>
+<div class="row off" id="addins"></div>
+<button class="ctl off" id="done" aria-label="done">✓</button>
+<div class="banner" id="banner"><div class="st" id="stars">★★★</div><b id="pct">0%</b></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

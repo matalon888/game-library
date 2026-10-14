@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Swish Street: Basketball Shooting</title>
+<meta name="description" content="Hold to power up, release in the green zone and sink the shot: a free street basketball shooting game in your browser.">
+<meta property="og:title" content="Swish Street: Basketball Shooting">
+<meta property="og:description" content="Hold to power up, release in the green zone and sink the shot. Free basketball shooting game, no download.">
+<meta name="theme-color" content="#ffb88c">
+<link rel="icon" href="data:,">
+<style>
+  .meter{position:fixed;right:22px;top:50%;transform:translateY(-50%);width:30px;height:min(300px,40vh);border-radius:18px;background:rgba(255,255,255,.55);box-shadow:0 5px 0 rgba(0,0,0,.14),inset 0 0 0 4px #fff;z-index:6;overflow:hidden;pointer-events:none;transition:opacity .25s}
+  .meter.off{opacity:0}
+  .meter .zone{position:absolute;left:4px;right:4px;background:#2ee59d;border-radius:4px;box-shadow:0 0 12px #2ee59d}
+  .meter .zone b{position:absolute;left:0;right:0;top:35%;bottom:35%;background:#fff36b;border-radius:3px}
+  .meter .fill{position:absolute;left:4px;right:4px;bottom:4px;border-radius:14px;background:linear-gradient(0deg,#ff7a59,#ffb36b);opacity:.85}
+  .meter .tick{position:absolute;left:-2px;right:-2px;height:6px;margin-top:-3px;background:#2b2d42;border-radius:3px;box-shadow:0 0 0 2px #fff}
+  .mlabel{position:fixed;right:8px;width:58px;text-align:center;z-index:6;font-weight:800;font-size:15px;pointer-events:none;text-shadow:0 2px 0 rgba(0,0,0,.18);top:calc(50% - min(150px,20vh) - 30px)}
+  .rack{position:fixed;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:7px;z-index:6;pointer-events:none}
+  .rack i{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb36b,#f0642b 70%);box-shadow:0 3px 0 rgba(0,0,0,.18),inset 0 0 0 2px rgba(80,30,0,.35);transition:transform .25s,opacity .25s}
+  .rack i.used{opacity:.28;transform:scale(.7)}
+  .rack i.made{background:radial-gradient(circle at 35% 30%,#a6ffcf,#20c477 70%)}
+</style>
+</head>
+<body>
+<div class="meter off" id="meter"><div class="zone" id="zone"><b></b></div><div class="fill" id="fill"></div><div class="tick" id="tick"></div></div>
+<div class="mlabel" id="mlabel"></div>
+<div class="rack" id="rack"></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

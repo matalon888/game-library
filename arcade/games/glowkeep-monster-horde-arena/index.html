@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Glowkeep: Monster Horde Arena</title>
+<meta name="description" content="Drag to move while your lantern magic fights on its own: hold out against a monster horde, grab XP gems and stack one-of-three upgrades until the timer runs out. Free in your browser.">
+<meta property="og:title" content="Glowkeep: Monster Horde Arena">
+<meta property="og:description" content="Drag to move, your lantern fights on its own: outlast the monster horde and stack one-of-three upgrades.">
+<meta name="theme-color" content="#bfe8a8">
+<link rel="icon" href="data:,">
+<style>
+  .gk-hp{position:fixed;left:0;top:0;width:58px;height:9px;margin-left:-29px;border-radius:6px;background:rgba(40,20,40,.55);border:2px solid #fff;overflow:hidden;z-index:3;pointer-events:none}
+  .gk-hp i{display:block;height:100%;width:100%;background:linear-gradient(#ff8fa3,#ff3b5c);transition:width .12s}
+  .gk-joy{position:fixed;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.6);pointer-events:none;z-index:3}
+  .gk-joy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+  .gk-xp{position:fixed;left:14px;right:14px;top:calc(56px + env(safe-area-inset-top));height:16px;border-radius:10px;background:rgba(30,40,60,.35);border:2px solid rgba(255,255,255,.85);overflow:hidden;z-index:5;pointer-events:none}
+  .gk-xp i{display:block;height:100%;width:0;background:linear-gradient(#7fe3ff,#2f9bff);transition:width .15s}
+  .gk-xp b{position:absolute;left:0;right:0;top:-3px;text-align:center;font-size:13px;font-weight:800;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+  body .hc-score{top:calc(80px + env(safe-area-inset-top));font-size:40px}
+  body .hc-sub{top:calc(122px + env(safe-area-inset-top))}
+  body .hc-pill{top:calc(80px + env(safe-area-inset-top));font-size:20px;background:rgba(30,40,60,.35)}
+  .gk-kill{position:fixed;left:12px;top:calc(80px + env(safe-area-inset-top));z-index:6;background:rgba(30,40,60,.35);border-radius:16px;padding:2px 12px;font-weight:800;font-size:20px;pointer-events:none}
+  .gk-pick{position:fixed;inset:0;z-index:12;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(20,25,50,.55);padding:20px}
+  .gk-pick h2{margin:0 0 6px;font-size:34px;font-weight:800;text-shadow:0 4px 0 rgba(0,0,0,.2)}
+  .gk-cards{display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px}
+  .gk-card{display:flex;align-items:center;gap:12px;background:#fff;color:#2e3350;border-radius:18px;padding:10px 14px;box-shadow:0 6px 0 rgba(0,0,0,.2);cursor:pointer;animation:gkin .35s cubic-bezier(.2,1.6,.4,1) both;text-align:left}
+  .gk-card:nth-child(2){animation-delay:.07s}.gk-card:nth-child(3){animation-delay:.14s}
+  .gk-card:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .gk-card b{font-size:38px;line-height:1;width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:#f1f3ff;border-radius:14px;flex:none}
+  .gk-card u{display:block;text-decoration:none;font-weight:800;font-size:19px;line-height:1.05;color:var(--ui)}
+  .gk-card small{display:block;font-weight:600;font-size:14px;line-height:1.15;margin-top:3px;opacity:.75}
+  .gk-card em{font-style:normal;font-size:12px;font-weight:800;color:#ffb703;margin-left:6px}
+  .gk-card.new u::after{content:' NEW';font-size:12px;color:#ff5d8f}
+  @keyframes gkin{0%{opacity:0;transform:translateX(60px) scale(.8)}100%{opacity:1;transform:none}}
+  .gk-wpn{position:fixed;left:10px;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:4px;z-index:5;pointer-events:none;flex-wrap:wrap;max-width:80vw}
+  .gk-wpn span{background:rgba(255,255,255,.8);border-radius:10px;padding:1px 6px;font-size:17px;font-weight:800;color:#2e3350;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+</style>
+</head>
+<body>
+<script type="module" src="game.js"></script>
+</body>
+</html>

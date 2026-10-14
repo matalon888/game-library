@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Bolt Out: Ball Drop Puzzle</title>
+<meta name="description" content="Pull the bolts in the right order so every coloured ball drops into the jar, without letting a grey ball or a bomb in first.">
+<meta property="og:title" content="Bolt Out: Ball Drop Puzzle">
+<meta property="og:description" content="A free physics ball drop puzzle: pull the bolts in the right order and fill the jar.">
+<meta name="theme-color" content="#ffd1dc">
+<link rel="icon" href="data:,">
+<style>
+  .bo-pct{position:fixed;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.22);border-radius:14px;padding:0 16px;font-weight:800;font-size:22px;pointer-events:none;z-index:5;transition:transform .12s}
+  .bo-hint{position:fixed;font-size:42px;pointer-events:none;z-index:6;transform:translate(-50%,-10%);animation:bohand 1s ease-in-out infinite}
+  @keyframes bohand{50%{margin-top:14px}}
+</style>
+</head>
+<body>
+<script type="module" src="game.js"></script>
+</body>
+</html>
