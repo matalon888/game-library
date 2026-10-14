@@ -1,0 +1,66 @@
+# ChargeFishing — production Apache config for Hostinger / shared hosting.
+# Place this file alongside index.html in the deployment folder.
+
+# --- WordPress isolation ---
+# Disable inherited rewrite rules from the parent (root) install so that
+# /charge-fishing/ requests are served as static files, not handed to WP.
+RewriteEngine Off
+DirectoryIndex index.html
+
+# --- MIME types ---
+# Ensure ES module .js files are served with the correct content type.
+AddType application/javascript .js
+AddType text/css .css
+AddType image/svg+xml .svg
+AddType application/manifest+json .webmanifest
+
+# --- Security headers ---
+<IfModule mod_headers.c>
+  # No-sniff: browsers must honour the Content-Type header we send.
+  Header set X-Content-Type-Options "nosniff"
+
+  # Disallow embedding in iframes (clickjacking protection).
+  Header set X-Frame-Options "DENY"
+
+  # Strict referrer policy.
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Lock down browser feature access we don't need.
+  Header set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(), usb=(), magnetometer=(), gyroscope=(self), accelerometer=(self), fullscreen=(self)"
+
+  # CSP: only same-origin scripts/styles. No inline scripts, no remote hosts.
+  # 'unsafe-inline' for style is needed because the game sets inline styles
+  # on the calibrate button programmatically (calibrateButton.style.x = …).
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+  # Force HTTPS for one year (only safe to enable when HTTPS is permanent).
+  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
+
+  # Cache rules
+  <FilesMatch "\.(js|css|html)$">
+    Header set Cache-Control "max-age=3600, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(png|jpg|jpeg|svg|webp|ico)$">
+    Header set Cache-Control "max-age=2592000, public"
+  </FilesMatch>
+</IfModule>
+
+# --- Block sensitive files ---
+# Never expose dev artifacts, certificates, or source archives publicly.
+<FilesMatch "\.(pem|key|crt|md|py|zip|tar|gz|env|log)$">
+  Require all denied
+</FilesMatch>
+
+# --- Block dotfiles ---
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# --- Disable directory listing ---
+Options -Indexes -MultiViews
+
+# --- Fallback: deny on Apache 2.2 syntax (some shared hosts) ---
+<FilesMatch "\.(pem|key|crt|md|py|zip|tar|gz|env|log)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>

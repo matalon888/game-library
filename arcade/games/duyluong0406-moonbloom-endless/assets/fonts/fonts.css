@@ -1,0 +1,62 @@
+@font-face {
+  font-family: "Moonbloom Display";
+  src: url("./Baloo2-Variable.ttf") format("truetype-variations");
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Moonbloom UI";
+  src: url("./Nunito-Variable.ttf") format("truetype-variations");
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+:root {
+  --font-display: "Moonbloom Display", system-ui, sans-serif;
+  --font-ui: "Moonbloom UI", system-ui, sans-serif;
+  --text-moon: #fff1bd;
+  --text-lavender: #c9bcff;
+  --text-soft: #b8ccec;
+  --text-outline: #26325f;
+}
+
+.text-title {
+  color: var(--text-moon);
+  font: 750 clamp(2.5rem, 10vw, 5.5rem) / 0.9 var(--font-display);
+  letter-spacing: 0.02em;
+  text-shadow: 0 4px 0 #80551f, 0 9px 18px rgb(3 10 30 / 65%);
+}
+
+.text-subtitle {
+  color: var(--text-lavender);
+  font: 650 clamp(1rem, 4vw, 1.6rem) / 1.1 var(--font-display);
+  letter-spacing: 0.12em;
+}
+
+.text-button,
+.text-hud,
+.text-body {
+  font-family: var(--font-ui);
+}
+
+.text-button {
+  color: var(--text-moon);
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-shadow: 0 2px 0 var(--text-outline);
+}
+
+.text-hud {
+  color: var(--text-moon);
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-body {
+  color: var(--text-soft);
+  font-weight: 600;
+}

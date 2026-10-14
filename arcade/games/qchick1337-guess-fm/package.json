@@ -1,0 +1,27 @@
+{
+  "name": "guess-fm",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">\r    <img src=\"logo.svg\" alt=\"Guess FM logo\" width=\"160\" />\r </div>",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QCHICK1337/guess-fm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/QCHICK1337/guess-fm/issues"
+  },
+  "homepage": "https://github.com/QCHICK1337/guess-fm#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.0.0"
+  }
+}

@@ -1,0 +1,17 @@
+dist/
+release/
+.DS_Store
+Thumbs.db
+*.log
+
+# Internal production workflow and large non-runtime source renders
+.agents/
+.game-ai/
+inputs/
+AGENTS.md
+assets/source/
+assets/generated/
+
+# Local editor settings
+.idea/
+.vscode/

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Games 🎭</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎭 Mood Games</h1>
+            <p>Pick your mood and play a game made just for you!</p>
+        </header>
+
+        <!-- Mood Selection Screen -->
+        <section id="mood-selection" class="mood-selection active">
+            <div class="mood-grid">
+                <button class="mood-btn bored" data-game="bored">
+                    <span class="emoji">😴</span>
+                    <span class="label">Bored</span>
+                </button>
+                <button class="mood-btn angry" data-game="angry">
+                    <span class="emoji">😡</span>
+                    <span class="label">Angry</span>
+                </button>
+                <button class="mood-btn happy" data-game="happy">
+                    <span class="emoji">😊</span>
+                    <span class="label">Happy</span>
+                </button>
+                <button class="mood-btn confused" data-game="confused">
+                    <span class="emoji">😕</span>
+                    <span class="label">Confused</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Game Screens -->
+        <section id="bored-game" class="game-screen">
+            <div class="game-content">
+                <h2>🎯 Number Guessing Game</h2>
+                <p class="instructions">Guess a number between 1-100. You have 7 tries!</p>
+                <div class="game-ui">
+                    <input type="number" id="guess-input" min="1" max="100" placeholder="Enter your guess">
+                    <button id="guess-btn">Guess!</button>
+                    <p id="feedback">Good luck! 🎲</p>
+                    <p id="attempts">Attempts left: 7</p>
+                </div>
+                <button class="reset-btn" onclick="resetGame('bored')">🔄 New Game</button>
+            </div>
+        </section>
+
+        <section id="angry-game" class="game-screen">
+            <div class="game-content">
+                <h2>⚡ Fast Click Challenge</h2>
+                <p class="instructions">Click the button as FAST as you can for 5 seconds!</p>
+                <div class="game-ui">
+                    <button id="click-btn" class="big-click-btn">CLICK ME! 👊</button>
+                    <div id="click-stats">
+                        <p>Clicks: <span id="click-count">0</span></p>
+                        <p>Time: <span id="time-left">5</span>s</p>
+                    </div>
+                </div>
+                <button class="reset-btn" onclick="resetGame('angry')">🔄 New Game</button>
+            </div>
+        </section>
+
+        <section id="happy-game" class="game-screen">
+            <div class="game-content">
+                <h2>😄 Emoji Guessing Game</h2>
+                <p class="instructions">What emotion does this emoji show?</p>
+                <div class="game-ui">
+                    <div id="emoji-display" class="emoji-display">🤔</div>
+                    <div class="options-grid">
+                        <button class="option-btn" data-answer="happy">Happy 😊</button>
+                        <button class="option-btn" data-answer="sad">Sad 😢</button>
+                        <button class="option-btn" data-answer="angry">Angry 😡</button>
+                        <button class="option-btn" data-answer="surprised">Surprised 😲</button>
+                    </div>
+                    <p id="emoji-feedback"></p>
+                </div>
+                <button class="reset-btn" onclick="resetGame('happy')">🔄 New Emoji</button>
+            </div>
+        </section>
+
+        <section id="confused-game" class="game-screen">
+            <div class="game-content">
+                <h2>🧠 Riddle Time</h2>
+                <p class="instructions">Solve the riddle and type your answer!</p>
+                <div class="game-ui">
+                    <div id="riddle-text" class="riddle">
+                        I speak without a mouth and hear without ears. I have no body, but I come alive with the wind. What am I?
+                    </div>
+                    <input type="text" id="riddle-input" placeholder="Your answer...">
+                    <button id="riddle-btn">Submit Answer</button>
+                    <p id="riddle-feedback"></p>
+                </div>
+                <button class="reset-btn" onclick="resetGame('confused')">🔄 New Riddle</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

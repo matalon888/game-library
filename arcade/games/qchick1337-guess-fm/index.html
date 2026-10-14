@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Play Guess FM: A free music quiz game. Identify songs by listening to artist previews and test your music knowledge."
+    />
+    <meta name="theme-color" content="#1ed760" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Guess FM - Music Quiz Game</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg" />
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Google Fonts: Open Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Plyr CSS for audio player styling -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <!-- Main Header -->
+    <header class="header">
+      <div class="header__center">
+        <a class="brand" href="./" aria-label="Go to Guess FM home">
+          <img src="logo.svg" width="40" alt="Guess FM Logo" />
+          <h1>Guess FM</h1>
+        </a>
+      </div>
+      <!-- Help Button -->
+      <div class="header__right">
+        <button
+          class="help-btn"
+          id="help-btn"
+          type="button"
+          aria-label="Help"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Help Modal -->
+    <div class="modal" id="help-modal" aria-hidden="true">
+      <div
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <div class="modal-header">
+          <h2 id="modal-title">How to Play</h2>
+          <p class="modal-lead">
+            A music quiz. Listen, guess, and build a streak.
+          </p>
+        </div>
+        <ol class="modal-steps">
+          <li>
+            <span class="step-icon"
+              ><i class="fa-solid fa-magnifying-glass"></i
+            ></span>
+            Search an artist.
+          </li>
+          <li>
+            <span class="step-icon"
+              ><i class="fa-solid fa-headphones"></i
+            ></span>
+            Listen to the 30-second preview.
+          </li>
+          <li>
+            <span class="step-icon"><i class="fa-solid fa-keyboard"></i></span>
+            Type the track title and submit.
+          </li>
+          <li>
+            <span class="step-icon"><i class="fa-solid fa-fire"></i></span>
+            Keep your streak going for bonus points.
+          </li>
+        </ol>
+        <div class="modal-meta">
+          <div class="modal-card">
+            <h3>Scoring</h3>
+            <p>
+              Base 100 minus time and wrong guesses. Skip costs 10 points.
+              Streak adds a bonus.
+            </p>
+          </div>
+          <div class="modal-card">
+            <h3>Tips</h3>
+            <ul class="modal-tips">
+              <li>Press <kbd>Enter</kbd> to submit quickly.</li>
+              <li>Skipping costs points and resets your streak.</li>
+            </ul>
+          </div>
+        </div>
+        <button
+          class="close-btn"
+          id="modal-close-btn"
+          type="button"
+          aria-label="Close Help Modal"
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content">
+      <!-- Scoreboard -->
+      <div id="scoreboard" class="scoreboard is-hidden">
+        <div class="score-item">
+          <div id="points-notification" class="points-notification"></div>
+          <span class="score-label"
+            ><i class="fa-solid fa-star" aria-hidden="true"></i>Score:</span
+          >
+          <span id="score-total" class="score-value">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label"
+            ><i class="fa-solid fa-fire" aria-hidden="true"></i>Streak:</span
+          >
+          <span id="score-streak" class="score-value">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label"
+            ><i class="fa-solid fa-repeat" aria-hidden="true"></i>Round:</span
+          >
+          <span id="score-rounds" class="score-value">0</span>
+        </div>
+      </div>
+
+      <!-- Introduction Section -->
+      <section id="intro-section">
+        <h2>Test your music knowledge</h2>
+        <p class="text-secondary">
+          Search for an artist, listen to a snippet, and guess the song.
+        </p>
+      </section>
+
+      <!-- Artist Search Form -->
+      <form id="search-container" class="control-container">
+        <label class="visually-hidden" for="artist-input">Artist name</label>
+        <input
+          id="artist-input"
+          type="text"
+          placeholder="Enter artist name (e.g. The Weeknd)"
+          required
+        />
+        <button id="search-btn" type="submit">
+          <i
+            class="fa-solid fa-magnifying-glass"
+            id="search-icon"
+            aria-hidden="true"
+          ></i
+          >Search
+        </button>
+        <p
+          id="status-msg"
+          class="is-hidden"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></p>
+      </form>
+
+      <!-- Game Interface -->
+      <div id="game-container" class="control-container">
+        <h3 id="current-artist-header">
+          <i class="fa-solid fa-chart-simple fa-beat" aria-hidden="true"></i>
+          <span id="artist-name"></span>
+        </h3>
+
+        <!-- Audio Player -->
+        <div class="audio-container">
+          <audio id="audio-player" controls></audio>
+          <button id="skip-btn" class="btn-secondary" type="button">
+            <i class="fa-solid fa-angles-right" aria-hidden="true"></i>Skip Song
+          </button>
+        </div>
+
+        <!-- Song Guess Input -->
+        <label class="visually-hidden" for="guess-input"
+          >Song title guess</label
+        >
+        <input
+          id="guess-input"
+          type="text"
+          placeholder="Guess the song..."
+          list="song-suggestions"
+        />
+        <datalist id="song-suggestions"></datalist>
+
+        <!-- Game Action Buttons -->
+        <div class="button-container">
+          <button id="submit-btn" type="button">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>Submit Guess
+          </button>
+        </div>
+
+        <!-- Feedback and Results -->
+        <p
+          id="feedback-txt"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></p>
+        <img id="album-art" alt="Album artwork" />
+        <p id="song-artist" class="text-secondary"></p>
+        <p id="song-title"></p>
+
+        <section id="end-game-screen" class="end-game-card">
+          <h2>Final Results</h2>
+          <div class="end-game-score-display">
+            <div class="score-badge">
+              <span class="score-label">Score</span>
+              <span id="final-score" class="score-display">0</span>
+            </div>
+          </div>
+          <div class="end-game-stats">
+            <div class="stat-item">
+              <span class="stat-icon"
+                ><i class="fa-solid fa-fire" aria-hidden="true"></i
+              ></span>
+              <span class="stat-label">Best Streak</span>
+              <span id="final-streak" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon"
+                ><i class="fa-solid fa-repeat" aria-hidden="true"></i
+              ></span>
+              <span class="stat-label">Rounds</span>
+              <span id="final-rounds" class="stat-value">0</span>
+            </div>
+          </div>
+          <button id="new-game-btn" type="button">Play Again</button>
+        </section>
+
+        <!-- Next Button -->
+        <button id="next-btn" type="button">
+          <i class="fa-solid fa-angles-right" aria-hidden="true"></i>Next song
+        </button>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        Made by QCHICK1337 |
+        <a
+          href="https://github.com/QCHICK1337"
+          target="_blank"
+          rel="noopener noreferrer"
+          ><i class="fa-brands fa-github" aria-hidden="true"></i>GitHub</a
+        >
+      </p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script type="module" src="app.js"></script>
+    <script
+      src="https://kit.fontawesome.com/6069831745.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

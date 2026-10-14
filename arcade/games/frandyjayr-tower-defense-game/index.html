@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Elemental TD</title>
+        <!--<link rel="stylesheet" type="text/css" media="screen" href="index.css">-->
+        <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon" href="icons/touch-icon-iphone-60x60.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="icons/touch-icon-ipad-76x76.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="icons/touch-icon-iphone-retina-120x120.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="icons/touch-icon-ipad-retina-152x152.png">
+        <!--<link rel="manifest" href="manifest.json">-->
+		<link rel="shortcut icon" href="#">
+		
+		<style>
+			body {
+				background-color: #000;
+				color: #fff;
+
+				/* Allow mouse dragging. */
+				-moz-user-select: none;
+				-ms-user-select: none;
+				-o-user-select: none;
+				-webkit-user-select: none;
+				user-select: none;
+
+				/* disable touch panning/zooming */
+				-ms-touch-action: none;
+				touch-action: none;
+
+				/*  Allow the event to go "through" the element and target whatever is "underneath" that element instead. */
+				pointer-events: none;
+
+				/* Allow canvas to hit the edges of the browser viewport. */
+				margin: 0;
+			}
+
+			#screen canvas {
+				margin: auto;
+
+				/* Hide the gap for font descenders. */
+				display: block;
+
+				/* disable scaling interpolation */
+				image-rendering: optimizeSpeed;
+				image-rendering: -moz-crisp-edges;
+				image-rendering: -o-crisp-edges;
+				image-rendering: -webkit-optimize-contrast;
+				image-rendering: optimize-contrast;
+				image-rendering: pixelated;
+				-ms-interpolation-mode: nearest-neighbor;
+			}
+
+		</style>
+		
+    </head>
+    <body>
+        <!-- Canvas placeholder -->
+        <div id="screen"></div>
+
+        <!-- es5/es6 shim for legacy browsers" -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.11/es5-shim.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.11/es5-sham.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-shim.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-sham.min.js"></script>
+
+        <!-- melonJS Library -->
+        <!-- build:js js/app.min.js -->
+        <script type="text/javascript" src="lib/melonjs.js"></script>
+
+        <!-- Plugin(s) -->
+        <script type="text/javascript" src="lib/plugins/debug/debugPanel.js"></script>
+
+        <!-- Game Scripts -->
+        <script type="text/javascript" src="js/game.js"></script>
+        <script type="text/javascript" src="build/js/resources.js"></script>
+		<script type="text/javascript" src="js/Enemies/enemy.js"></script>
+		<script type="text/javascript" src="js/end.js"></script>
+		<script type="text/javascript" src="js/Enemies/wavemanager.js"></script>
+		<script type="text/javascript" src="js/towers/missiles.js"></script>
+		<script type="text/javascript" src="js/Interface/buttons.js"></script>
+		<script type="text/javascript" src="js/towers/spawntowers.js"></script>
+		<script type="text/javascript" src="js/Interface/HUD.js"></script>
+		<script type="text/javascript" src="js/Interface/inGameMenu.js"></script>
+        <script type="text/javascript" src="js/screens/title.js"></script>
+        <script type="text/javascript" src="js/screens/play.js"></script>
+		<script type="text/javascript" src="js/screens/loss.js"></script>
+        <script type="text/javascript" src="js/Resources/maps.js"></script>
+        <script type="text/javascript" src="js/Resources/enemySettings.js"></script>
+        <script type="text/javascript" src="js/Resources/waves.js"></script>
+        <script type="text/javascript" src="js/towers/towermanager.js"></script>
+        <script type="text/javascript" src="js/towers/towers.js"></script>
+		
+        <!-- /build -->
+        <!-- Bootstrap -->
+        <script type="text/javascript">
+			console.log("loaded1")
+            me.device.onReady(function onReady() {
+				console.log("loaded2")
+                game.onload();
+            });
+        </script>
+    </body>
+</html>

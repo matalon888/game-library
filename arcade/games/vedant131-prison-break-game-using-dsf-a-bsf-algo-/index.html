@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AI PRISON BREAK — CINEMATIC</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div id="ui-overlay">
+
+  <!-- TITLE -->
+  <div id="title-screen">
+    <div class="scanlines"></div>
+    <h1>AI PRISON BREAK</h1>
+    <p class="subtitle">CINEMATIC EDITION</p>
+    <div class="algo-badges">
+      <span class="badge green">DFS PATROL</span>
+      <span class="badge red">A* CHASE</span>
+      <span class="badge orange">BFS SEARCH</span>
+      <span class="badge pink">BOIDS SQUAD</span>
+    </div>
+
+    <!-- DIFFICULTY SELECTOR -->
+    <div class="diff-title">SELECT DIFFICULTY</div>
+    <div class="diff-selector">
+      <div class="diff-card" id="diff-1" onclick="selectDiff(1)">
+        <div class="diff-label">LEVEL 1</div>
+        <div class="diff-name green">ROOKIE</div>
+        <div class="diff-stats">
+          <span>2 Guards</span>
+          <span>Low Speed</span>
+          <span>Short Vision</span>
+        </div>
+        <div class="diff-algo">A* recalc: slow</div>
+      </div>
+      <div class="diff-card active" id="diff-2" onclick="selectDiff(2)">
+        <div class="diff-label">LEVEL 2</div>
+        <div class="diff-name orange">OFFICER</div>
+        <div class="diff-stats">
+          <span>3 Guards</span>
+          <span>Med Speed</span>
+          <span>Med Vision</span>
+        </div>
+        <div class="diff-algo">A* recalc: normal</div>
+      </div>
+      <div class="diff-card" id="diff-3" onclick="selectDiff(3)">
+        <div class="diff-label">LEVEL 3</div>
+        <div class="diff-name red">WARDEN</div>
+        <div class="diff-stats">
+          <span>3 Guards</span>
+          <span>High Speed</span>
+          <span>Wide Vision</span>
+        </div>
+        <div class="diff-algo">A* recalc: fast</div>
+      </div>
+    </div>
+
+    <div class="instructions">
+      <span>WASD — MOVE</span>
+      <span>Reach the <b class="exit-hint">EXIT</b></span>
+      <span>Avoid guards</span>
+    </div>
+    <button id="start-btn">INITIATE ESCAPE</button>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="alert-bar" class="hidden">⚠ GUARD PURSUIT — A* PATHFINDING ACTIVE</div>
+    <div id="status-bar">
+      <span id="state-display">STATUS: EVADING</span>
+      <span id="diff-badge">LVL 2 — OFFICER</span>
+    </div>
+    <div id="slowmo-ind">⏱ SLOW MOTION</div>
+
+    <!-- AI PANEL -->
+    <div id="ai-panel">
+      <div class="ai-panel-title">🧠 AI ENGINE — LIVE</div>
+
+      <div class="ai-section">
+        <div class="ai-section-title">FINITE STATE MACHINE</div>
+        <div id="fsm-diagram">
+          <div class="fsm-node" id="fsm-patrol">PATROL<br><span class="fsm-algo">DFS</span></div>
+          <div class="fsm-arrow" id="arr-pc">→</div>
+          <div class="fsm-node" id="fsm-chase">CHASE<br><span class="fsm-algo">A*</span></div>
+          <div class="fsm-arrow" id="arr-cs">→</div>
+          <div class="fsm-node" id="fsm-search">SEARCH<br><span class="fsm-algo">BFS</span></div>
+        </div>
+        <div class="fsm-back-row"><span class="fsm-back-label">← timeout → PATROL ←</span></div>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-section-title">GUARD STATUS</div>
+        <div class="ai-stat-row"><span class="ai-label">Algorithm:</span><span id="ai-algo">DFS PATROL</span></div>
+        <div class="ai-stat-row"><span class="ai-label">State:</span><span id="ai-state">PATROL</span></div>
+        <div class="ai-stat-row"><span class="ai-label">Detection:</span><span id="ai-vis">🟢 SAFE</span></div>
+        <div class="ai-stat-row"><span class="ai-label">A* Nodes:</span><span id="ai-path">—</span></div>
+        <div class="ai-stat-row"><span class="ai-label">DFS Stack:</span><span id="ai-stack">—</span></div>
+        <div class="ai-stat-row"><span class="ai-label">BFS Queue:</span><span id="ai-bfs">—</span></div>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-section-title">COMPLEXITY</div>
+        <div class="ai-stat-row"><span class="ai-label">DFS:</span><span class="complexity">O(V+E) / O(V)</span></div>
+        <div class="ai-stat-row"><span class="ai-label">A*:</span><span class="complexity">O(E log V) / O(V)</span></div>
+        <div class="ai-stat-row"><span class="ai-label">BFS:</span><span class="complexity">O(V+E) / O(V)</span></div>
+        <div class="ai-stat-row"><span class="ai-label">Boids:</span><span class="complexity">O(n²) / O(n)</span></div>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-section-title">LIVE NOTE</div>
+        <div class="ai-note-text" id="ai-note">Guard patrolling via DFS stack traversal.</div>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-section-title">SHOW/HIDE</div>
+        <div class="ai-toggle-row">
+          <label><input type="checkbox" id="toggle-path"  checked> A* Path</label>
+          <label><input type="checkbox" id="toggle-dfs"   checked> DFS Trail</label>
+          <label><input type="checkbox" id="toggle-bfs"   checked> BFS Wave</label>
+          <label><input type="checkbox" id="toggle-boids" checked> Boid Forces</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div id="gameover-screen" class="hidden">
+    <div class="scanlines"></div>
+    <h2 id="gameover-title">CAPTURED</h2>
+    <p id="gameover-sub">The AI found you.</p>
+    <div class="diff-selector small" style="margin:16px 0;">
+      <div class="diff-card" onclick="selectDiff(1);restartGame()">
+        <div class="diff-name green" style="font-size:.7rem">ROOKIE</div>
+      </div>
+      <div class="diff-card" onclick="selectDiff(2);restartGame()">
+        <div class="diff-name orange" style="font-size:.7rem">OFFICER</div>
+      </div>
+      <div class="diff-card" onclick="selectDiff(3);restartGame()">
+        <div class="diff-name red" style="font-size:.7rem">WARDEN</div>
+      </div>
+    </div>
+    <button id="restart-btn">TRY AGAIN</button>
+  </div>
+
+</div>
+<canvas id="game-canvas"></canvas>
+
+<script>
+  let selectedDiff = 2;
+  function selectDiff(n){
+    selectedDiff = n;
+    document.querySelectorAll('.diff-card').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('#diff-'+n).forEach(c=>c.classList.add('active'));
+  }
+  function restartGame(){
+    document.getElementById('restart-btn').click();
+  }
+</script>
+
+<script src="utils.js"></script>
+<script src="map.js"></script>
+<script src="astar.js"></script>
+<script src="fsm.js"></script>
+<script src="vision.js"></script>
+<script src="lighting.js"></script>
+<script src="effects.js"></script>
+<script src="boids.js"></script>
+<script src="player.js"></script>
+<script src="guard.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

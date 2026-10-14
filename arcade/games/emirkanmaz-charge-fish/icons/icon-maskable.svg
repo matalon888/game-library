@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Maskable: keep all content inside the 80% safe zone (centered) -->
+  <rect width="512" height="512" fill="#0a3a5a"/>
+  <g transform="translate(102 102) scale(0.6)">
+    <ellipse cx="256" cy="256" rx="180" ry="110" fill="#f4b860"/>
+    <polygon points="76,256 12,180 12,332" fill="#a8521a"/>
+    <ellipse cx="240" cy="220" rx="120" ry="28" fill="rgba(255,255,255,0.35)"/>
+    <circle cx="320" cy="240" r="28" fill="white"/>
+    <circle cx="328" cy="240" r="14" fill="#1a1a1a"/>
+  </g>
+</svg>

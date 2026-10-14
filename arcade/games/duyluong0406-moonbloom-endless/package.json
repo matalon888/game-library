@@ -1,0 +1,16 @@
+{
+  "name": "moonbloom-endless",
+  "version": "1.0.0-rc.9",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/serve.mjs . 4173",
+    "assets:optimize": "python tools/optimize-assets.py",
+    "test": "node --test",
+    "build": "node tools/build.mjs",
+    "preview": "node tools/serve.mjs dist 4174"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

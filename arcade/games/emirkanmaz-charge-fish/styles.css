@@ -1,0 +1,519 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0a3a5a;
+  color: #e8f4ff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+#game-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+/* --- Shared overlay --- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: rgba(10, 58, 90, 0.94);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.overlay h1 {
+  font-size: 2.4rem;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.overlay h2 {
+  font-size: 1.6rem;
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.tagline {
+  font-size: 1.05rem;
+  margin: 0;
+  opacity: 0.85;
+  max-width: 32ch;
+}
+
+.explainer {
+  font-size: 0.95rem;
+  margin: 0;
+  opacity: 0.85;
+  max-width: 36ch;
+  line-height: 1.45;
+}
+
+.warning {
+  color: #ff9a8b;
+  font-size: 0.9rem;
+  max-width: 32ch;
+  margin: 0.5rem 0 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --- Mode selection cards --- */
+
+.mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 0.5rem;
+}
+
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.1rem 1.2rem;
+  background: rgba(232, 244, 255, 0.08);
+  border: 1px solid rgba(232, 244, 255, 0.18);
+  border-radius: 14px;
+  color: #e8f4ff;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.mode-card:active {
+  transform: scale(0.98);
+  background: rgba(244, 184, 96, 0.18);
+  border-color: rgba(244, 184, 96, 0.6);
+}
+
+.mode-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f4b860;
+  letter-spacing: 0.02em;
+}
+
+.mode-card-desc {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+/* --- Calibration screen --- */
+
+.gamma-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 340px;
+  margin-top: 0.5rem;
+}
+
+.gamma-side-label {
+  font-size: 0.75rem;
+  opacity: 0.65;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-width: 2rem;
+}
+
+.gamma-track {
+  flex: 1;
+  position: relative;
+  height: 36px;
+  background: rgba(232, 244, 255, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.gamma-center-line {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: rgba(244, 184, 96, 0.55);
+  transform: translateX(-50%);
+}
+
+.gamma-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f4b860;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%);
+  transition: left 0.06s linear;
+}
+
+/* --- Primary action button (shared) --- */
+
+#calib-start-button,
+#over-again-button,
+#mode-free-button,
+#mode-survival-button {
+  /* mode buttons override their own styling via .mode-card */
+}
+
+#calib-start-button,
+#over-again-button {
+  font-size: 1.05rem;
+  padding: 0.85rem 2rem;
+  background: #f4b860;
+  color: #0a3a5a;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  margin-top: 0.5rem;
+  font-family: inherit;
+}
+
+#calib-start-button:active,
+#over-again-button:active {
+  transform: scale(0.97);
+}
+
+button.secondary {
+  font-size: 0.95rem;
+  padding: 0.7rem 1.6rem;
+  background: transparent;
+  color: rgba(232, 244, 255, 0.85);
+  border: 1px solid rgba(232, 244, 255, 0.35);
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button.secondary:active {
+  background: rgba(232, 244, 255, 0.08);
+}
+
+/* --- Game over stats --- */
+
+.over-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 320px;
+  margin: 0.5rem 0;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.65rem 1rem;
+  background: rgba(232, 244, 255, 0.06);
+  border-radius: 10px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.stat-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f4b860;
+}
+
+.over-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+  width: 100%;
+  max-width: 280px;
+  margin-top: 0.5rem;
+}
+
+/* --- Mode actions row (settings / upgrades / install) --- */
+
+.mode-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+.ghost-button {
+  background: transparent;
+  color: rgba(232, 244, 255, 0.85);
+  border: 1px solid rgba(232, 244, 255, 0.35);
+  border-radius: 999px;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ghost-button:active {
+  background: rgba(232, 244, 255, 0.1);
+  transform: scale(0.97);
+}
+
+/* --- Daily quest card --- */
+
+.quest-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 0.85rem 1rem;
+  background: rgba(232, 244, 255, 0.08);
+  border: 1px solid rgba(244, 184, 96, 0.4);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.quest-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 0.35rem;
+}
+
+.quest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+}
+.quest-title { font-size: 0.95rem; font-weight: 600; }
+.quest-reward { font-size: 0.8rem; color: #f4b860; }
+
+.quest-progress {
+  height: 6px;
+  background: rgba(232, 244, 255, 0.18);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.quest-progress-fill {
+  height: 100%;
+  background: #f4b860;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.quest-status {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.3rem;
+}
+.quest-card.completed { border-color: rgba(110, 220, 130, 0.65); }
+.quest-card.completed .quest-progress-fill { background: #6edc82; }
+
+/* --- Settings overlay --- */
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 340px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0.9rem;
+  background: rgba(232, 244, 255, 0.06);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.setting-row.stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+.setting-row.stacked .setting-value {
+  text-align: right;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.setting-row input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: #f4b860;
+}
+.setting-row input[type="range"] {
+  width: 100%;
+  accent-color: #f4b860;
+}
+
+/* --- Upgrades overlay --- */
+
+.upg-coins {
+  font-size: 1.1rem;
+  color: #f4b860;
+  font-weight: 700;
+}
+
+.upg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.upg-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.3rem 0.6rem;
+  padding: 0.85rem 1rem;
+  background: rgba(232, 244, 255, 0.06);
+  border: 1px solid rgba(232, 244, 255, 0.15);
+  border-radius: 12px;
+}
+.upg-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f4b860;
+}
+.upg-card-level {
+  align-self: start;
+  justify-self: end;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.upg-card-desc {
+  grid-column: 1 / -1;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+.upg-card-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.upg-cost {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f4b860;
+}
+.upg-buy {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  background: #f4b860;
+  color: #0a3a5a;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+.upg-buy:disabled {
+  background: rgba(232, 244, 255, 0.18);
+  color: rgba(232, 244, 255, 0.5);
+  cursor: not-allowed;
+}
+
+/* --- In-game floating buttons --- */
+
+.ingame-back {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0.5rem) + 0.5rem);
+  left: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(10, 58, 90, 0.7);
+  color: #e8f4ff;
+  border: 1px solid rgba(232, 244, 255, 0.35);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  z-index: 15;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ingame-back:active {
+  transform: scale(0.95);
+  background: rgba(232, 244, 255, 0.18);
+}
+
+.calibrate {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0.5rem) + 0.5rem);
+  right: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  background: rgba(10, 58, 90, 0.7);
+  color: #e8f4ff;
+  border: 1px solid rgba(232, 244, 255, 0.35);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  z-index: 15;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.calibrate:active {
+  transform: scale(0.95);
+  background: rgba(244, 184, 96, 0.85);
+  color: #0a3a5a;
+}
+
+/* --- Debug overlay --- */
+
+.debug {
+  position: fixed;
+  top: env(safe-area-inset-top, 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.6rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #9eff9e;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 20;
+  white-space: pre;
+}

@@ -1,0 +1,736 @@
+/* ========================================
+   DESIGN TOKENS
+   ======================================== */
+
+:root {
+  /* Color Palette */
+  --color-primary: #1ed760;
+  --color-primary-hover: #20ee6c;
+  --color-background: #0a0a0a;
+  --color-surface: #181818;
+  --color-surface-elevated: #1f1f1f;
+  --color-border: #282828;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b3b3b3;
+  --color-error: #f87171;
+  --color-streak-active: #f59e0b;
+  --color-backdrop: rgba(0, 0, 0, 0.6);
+
+  /* Spacing Scale */
+  --space-xs: 0.5rem; /* 8px */
+  --space-sm: 0.625rem; /* 10px */
+  --space-md: 0.9375rem; /* 15px */
+  --space-lg: 1.5rem; /* 24px */
+  --space-xl: 2rem; /* 32px */
+  --space-2xl: 3rem; /* 48px */
+  --space-input: 0.75rem; /* 12px */
+  --space-icon: 0.1875rem; /* 3px */
+
+  /* Border Radius */
+  --radius-default: 12px;
+
+  /* Typography */
+  --font-family-base: "Open Sans", sans-serif;
+  --font-size-base: 1rem;
+  --font-size-sm: 0.85rem;
+  --letter-spacing-tight: 0.5px;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+
+  /* Layout */
+  --container-max-width: 700px;
+  --container-width-mobile: 95%;
+  --layout-main-offset: 10vh;
+  --size-control: 2.5rem; /* 40px */
+  --size-album-max: 22.5rem; /* 360px */
+  --size-modal-max: 25rem; /* 400px */
+  --breakpoint-sm: 32.5rem; /* 520px */
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Typography Reset */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 var(--space-sm);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+p {
+  margin: 0;
+}
+
+/* Icon Spacing */
+i {
+  margin-right: var(--space-icon);
+}
+
+.skip-link {
+  position: absolute;
+  top: -2.5rem;
+  left: var(--space-sm);
+  z-index: 1000;
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-default);
+  text-decoration: none;
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: var(--space-sm);
+}
+
+/* ========================================
+   LAYOUT
+   ======================================== */
+
+header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  max-width: min(var(--container-width-mobile), var(--container-max-width));
+}
+
+.header__center {
+  grid-column: 2;
+  justify-self: center;
+}
+
+.header__right {
+  grid-column: 3;
+  justify-self: end;
+  width: var(--size-control);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand img {
+  display: block;
+}
+
+.brand:focus-visible {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-default);
+}
+
+main {
+  width: 100%;
+  max-width: min(var(--container-width-mobile), var(--container-max-width));
+  margin-top: var(--layout-main-offset);
+  margin-bottom: auto;
+  padding: var(--space-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-default);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+footer {
+  margin-top: var(--space-xl);
+  padding-bottom: var(--font-size-base);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+footer a {
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+footer a:hover {
+  color: var(--color-primary);
+}
+
+/* ========================================
+   FORM COMPONENTS
+   ======================================== */
+
+input,
+button {
+  padding: var(--space-input);
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-default);
+  text-align: center;
+  width: 100%;
+  font-family: inherit;
+}
+
+input {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* Button Base Styles */
+button {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color var(--transition-base);
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Button Variants */
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-border);
+}
+
+.help-btn {
+  margin-right: var(--space-sm);
+  width: var(--size-control);
+  height: var(--size-control);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background-color: transparent;
+  padding: 0;
+  font-size: 1.5rem;
+  border: none;
+}
+
+.help-btn i {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.help-btn:hover:not(:disabled) {
+  background-color: transparent;
+}
+
+.help-btn:hover i {
+  color: var(--color-primary-hover);
+}
+
+/* ========================================
+   GAME COMPONENTS
+   ======================================== */
+
+/* Container Layouts */
+.control-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.audio-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.button-container {
+  display: flex;
+  gap: var(--space-md);
+}
+
+/* Scoreboard */
+.scoreboard {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-default);
+}
+
+.score-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Points Notification */
+.points-notification {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -30px);
+  font-size: 1.5rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s ease;
+}
+
+.points-notification.show {
+  opacity: 1;
+  transform: translate(-50%, -40px);
+}
+
+.points-notification.positive {
+  color: var(--color-primary);
+}
+
+.points-notification.negative {
+  color: var(--color-error);
+}
+
+.score-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.score-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.score-item.is-streak-active .score-value {
+  color: var(--color-streak-active);
+}
+
+/* Album Artwork */
+#album-art {
+  width: 60%;
+  max-width: var(--size-album-max);
+  margin: 0 auto;
+  border-radius: var(--radius-default);
+  display: block;
+  aspect-ratio: 1 / 1;
+}
+
+#album-art.is-placeholder {
+  background-color: var(--color-border);
+}
+
+/* Skip Button */
+#skip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 30%;
+}
+
+/* Status Message */
+#status-msg {
+  font-size: var(--font-size-sm);
+}
+
+/* Song Information */
+#song-title {
+  margin-bottom: var(--space-2xl);
+}
+
+/* Artist Header Icon */
+#current-artist-header i {
+  color: var(--color-primary);
+}
+
+/* End Game Screen */
+#end-game-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-xl) var(--space-lg);
+  background: linear-gradient(
+    135deg,
+    var(--color-surface-elevated) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-default);
+  animation: end-game-fade-in 0.5s ease;
+}
+
+#end-game-screen h2 {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.end-game-score-display {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-md);
+}
+
+.score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-xl);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-default);
+  min-width: 180px;
+}
+
+.score-badge .score-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.score-badge .score-display {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.end-game-stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  padding: var(--space-lg) 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.stat-icon {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.stat-icon i {
+  margin: 0;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+#new-game-btn {
+  width: 100%;
+  margin-top: var(--space-md);
+}
+
+@keyframes end-game-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   MODAL STYLES
+   ======================================== */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: var(--color-backdrop);
+  display: none;
+  place-items: center;
+  z-index: 1000;
+  padding: var(--space-lg);
+}
+
+.modal.is-open {
+  display: grid;
+}
+
+.modal-content {
+  background-color: var(--color-surface);
+  padding: var(--space-lg);
+  border-radius: var(--radius-default);
+  border: 1px solid var(--color-border);
+  max-width: var(--size-modal-max);
+  width: 90%;
+  text-align: left;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  animation: modal-fade-in 0.2s ease;
+}
+
+.modal-header {
+  text-align: left;
+  margin-bottom: var(--space-md);
+}
+
+.modal-lead {
+  color: var(--color-text-secondary);
+}
+
+.modal-steps {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-md) 0 var(--space-lg);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.modal-steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  line-height: 1.35;
+}
+
+.step-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.95rem;
+  flex: 0 0 34px;
+  line-height: 1;
+}
+
+.step-icon i {
+  margin: 0;
+  line-height: 1;
+}
+
+.modal-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.modal-card {
+  padding: var(--space-md);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.modal-card h3 {
+  margin-bottom: var(--space-xs);
+  font-size: 1rem;
+}
+
+.modal-card p {
+  color: var(--color-text-secondary);
+}
+
+.modal-tips {
+  margin: 0;
+  padding-left: var(--space-lg);
+  color: var(--color-text-secondary);
+}
+
+kbd {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.close-btn {
+  width: 100%;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Display Utilities */
+.is-hidden {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Text Color Utilities */
+.text-secondary,
+.is-info {
+  color: var(--color-text-secondary);
+}
+
+.text-error,
+.is-error {
+  color: var(--color-error);
+}
+
+.text-success,
+.is-success {
+  color: var(--color-primary);
+}
+
+/* ========================================
+   THIRD-PARTY OVERRIDES
+   ======================================== */
+
+/* Plyr Audio Player Customization */
+.plyr {
+  --plyr-color-main: var(--color-primary);
+  --plyr-audio-controls-background: var(--color-background);
+  --plyr-audio-control-color: var(--color-text-secondary);
+  flex: 1 1 70%;
+}
+
+.plyr--audio {
+  border-radius: var(--radius-default);
+  border: 1px solid var(--color-border);
+}
+
+/* Mobile layout tweaks to stop the Skip button wrapping */
+@media (max-width: 32.5rem) {
+  .audio-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+  }
+
+  .plyr {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #skip-btn {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .modal-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   STATE-DEPENDENT VISIBILITY
+   ======================================== */
+
+/* Initially Hidden Elements */
+#game-container,
+#next-btn,
+#album-art,
+#song-title,
+#song-artist,
+#end-game-screen {
+  display: none;
+}

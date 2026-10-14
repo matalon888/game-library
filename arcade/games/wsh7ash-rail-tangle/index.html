@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rail Tangle — a train track puzzle</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Rail Tangle</h1>
+      <p class="tagline">Rotate the tracks, route every train to its station.</p>
+    </header>
+
+    <main>
+      <section class="hud">
+        <span id="hud-level" class="hud-item"></span>
+        <span id="hud-moves" class="hud-item"></span>
+        <span id="hud-par" class="hud-item"></span>
+        <span id="hud-routes" class="hud-item"></span>
+      </section>
+
+      <div class="board-wrap">
+        <canvas id="board" tabindex="0"></canvas>
+        <div id="popup" class="popup hidden">
+          <h2 id="popup-title"></h2>
+          <p id="popup-body"></p>
+          <button id="btn-next" class="primary">Next Level</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="btn-restart">Restart</button>
+        <button id="btn-random">Random Board</button>
+        <span class="hint">Click tile = rotate clockwise &middot; Right-click = counter-clockwise &middot; Ctrl+click = counter-clockwise</span>
+      </div>
+
+      <nav id="level-picker" aria-label="Level select"></nav>
+    </main>
+
+    <footer>
+      <p>Rail Tangle — open-source MIT puzzle. Built by the Daily Project Factory.</p>
+    </footer>
+
+    <script src="dist/game.js"></script>
+  </body>
+</html>

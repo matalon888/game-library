@@ -1,0 +1,22 @@
+Rail Tangle - validation report
+Generated: 2026-09-19T11:01:09.995Z
+
+Hand-crafted levels (each printed state is scrambled, par = intended click count)
+=================================================================================
+Level 1 'First Track' routes=1 solvable=yes moves-par=1
+Level 2 'Two Trains' routes=2 solvable=yes moves-par=4
+Level 3 'The Turn' routes=1 solvable=yes moves-par=3
+Level 4 'Crossroads' routes=2 solvable=yes moves-par=6
+Level 5 'The Loop' routes=1 solvable=yes moves-par=4
+Level 6 'Tangle' routes=2 solvable=yes moves-par=7
+
+Generated random levels (seeded, reproducible, scrambled on load)
+=================================================================
+seed 1 routes=2 solvable=yes
+seed 2 routes=2 solvable=yes
+seed 3 routes=2 solvable=yes
+seed 4 routes=2 solvable=yes
+seed 5 routes=2 solvable=yes
+seed 6 routes=2 solvable=yes
+seed 7 routes=2 solvable=yes
+seed 8 routes=2 solvable=yes

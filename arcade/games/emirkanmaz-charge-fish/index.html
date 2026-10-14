@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a3a5a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Charge Fish">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="./icons/icon-192.svg">
+
+  <!-- Open Graph / social link preview -->
+  <meta property="og:title" content="Charge Fish">
+  <meta property="og:description" content="Telefonu şarja takıp çıkararak ve eğerek oynanan bir balık tutma oyunu. Tap, tilt, reel out — a fishing game played via your charge cable.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="./icons/icon-512.svg">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Charge Fish">
+  <meta name="twitter:description" content="Telefonu şarja tak, eğ, çek. A fishing game played via your charge cable.">
+  <meta name="description" content="Telefonu şarja tak, eğ, çek — minimal tilt-and-catch web fishing game.">
+
+  <title>Charge Fish</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Screen 1: Mode selection -->
+  <div id="mode-screen" class="overlay">
+    <h1 id="game-title">Charge Fish</h1>
+    <p id="mode-intro" class="tagline"></p>
+
+    <div class="mode-list">
+      <button id="mode-free-button" class="mode-card" type="button">
+        <span class="mode-card-title" id="mode-free-title"></span>
+        <span class="mode-card-desc" id="mode-free-desc"></span>
+      </button>
+      <button id="mode-survival-button" class="mode-card" type="button">
+        <span class="mode-card-title" id="mode-survival-title"></span>
+        <span class="mode-card-desc" id="mode-survival-desc"></span>
+      </button>
+    </div>
+
+    <div id="quest-card" class="quest-card hidden">
+      <div class="quest-header" id="quest-header"></div>
+      <div class="quest-row">
+        <span class="quest-title" id="quest-title"></span>
+        <span class="quest-reward" id="quest-reward"></span>
+      </div>
+      <div class="quest-progress">
+        <div class="quest-progress-fill" id="quest-progress-fill"></div>
+      </div>
+      <div class="quest-status" id="quest-status"></div>
+    </div>
+
+    <div class="mode-actions">
+      <button id="settings-button" class="ghost-button" type="button"></button>
+      <button id="upgrades-button" class="ghost-button" type="button"></button>
+      <button id="install-button" class="ghost-button hidden" type="button"></button>
+    </div>
+
+    <p id="compat-warning" class="warning hidden"></p>
+  </div>
+
+  <!-- Screen 2: Calibration -->
+  <div id="calibration-screen" class="overlay hidden">
+    <h2 id="calib-title"></h2>
+    <p id="calib-body" class="explainer"></p>
+    <div class="gamma-meter">
+      <span class="gamma-side-label" id="calib-left-label"></span>
+      <div class="gamma-track">
+        <div class="gamma-center-line"></div>
+        <div class="gamma-dot" id="gamma-dot"></div>
+      </div>
+      <span class="gamma-side-label" id="calib-right-label"></span>
+    </div>
+    <button id="calib-start-button" type="button"></button>
+  </div>
+
+  <!-- Screen 3: Game over -->
+  <div id="gameover-screen" class="overlay hidden">
+    <h2 id="over-title"></h2>
+    <div class="over-stats">
+      <div class="stat-row">
+        <span class="stat-label" id="over-survived-label"></span>
+        <span class="stat-value" id="over-survived-value"></span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label" id="over-score-label"></span>
+        <span class="stat-value" id="over-score-value"></span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label" id="over-catches-label"></span>
+        <span class="stat-value" id="over-catches-value"></span>
+      </div>
+    </div>
+    <div class="over-buttons">
+      <button id="over-again-button" type="button"></button>
+      <button id="over-share-button" class="secondary" type="button"></button>
+      <button id="over-back-button" type="button" class="secondary"></button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Settings -->
+  <div id="settings-screen" class="overlay hidden">
+    <h2 id="settings-title"></h2>
+    <div class="settings-list">
+      <label class="setting-row">
+        <span id="settings-sound-label"></span>
+        <input type="checkbox" id="settings-sound-toggle">
+      </label>
+      <label class="setting-row">
+        <span id="settings-haptic-label"></span>
+        <input type="checkbox" id="settings-haptic-toggle">
+      </label>
+      <label class="setting-row">
+        <span id="settings-cb-label"></span>
+        <input type="checkbox" id="settings-cb-toggle">
+      </label>
+      <label class="setting-row stacked">
+        <span id="settings-sens-label"></span>
+        <input type="range" id="settings-sens-slider" min="0.5" max="2.0" step="0.1">
+        <span class="setting-value" id="settings-sens-value"></span>
+      </label>
+    </div>
+    <button id="settings-close-button" class="secondary" type="button"></button>
+  </div>
+
+  <!-- Screen 5: Upgrades -->
+  <div id="upgrades-screen" class="overlay hidden">
+    <h2 id="upg-title"></h2>
+    <div class="upg-coins" id="upg-coins"></div>
+    <div class="upg-list" id="upg-list"></div>
+    <button id="upg-close-button" class="secondary" type="button"></button>
+  </div>
+
+  <!-- In-game floating controls -->
+  <button id="back-button" class="ingame-back hidden" type="button"></button>
+  <button id="calibrate-button" class="calibrate hidden" type="button"></button>
+
+  <div id="debug-overlay" class="debug hidden"></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

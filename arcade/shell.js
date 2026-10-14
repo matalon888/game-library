@@ -128,6 +128,7 @@
   const tgt = g => g.linkout ? ' target="_blank" rel="noopener"' : '';
   // ratings first; public reception only when it says something (no '0 GitHub stars'); else the category
   const metaLine = (g, st) => {
+    if (g.platform === 'desktop') return '⌨ ' + esc(g.category || 'Arcade') + ' · Desktop';
     if (g.linkout) return esc(g.category || 'Arcade') + ' · on ' + esc(g.host || 'creator site') + ' ↗';
     if (st && st.rating) return `<span class="star">${starsTxt(st)}</span> · ${esc(g.category || 'Arcade')}`;
     const p = praise(g).find(x => !/GitHub stars/.test(x.short) || ((g.public || {}).github || {}).stars >= 25);
@@ -137,14 +138,40 @@
   const ago = d => Math.floor((Date.now() - Date.parse(d)) / 864e5);
   const madeTxt = d => { const n = ago(d); return n <= 0 ? 'Made today' : n === 1 ? 'Made yesterday' : n < 14 ? `Made ${n} days ago` : `Made ${Math.round(n / 7)} weeks ago`; };
 
+  // desktop games (need keyboard / mouse): playable on a computer; on a phone they get their own shelf + "send to my computer"
+  const PC = browser === 'desktop';
+  const isDesk = g => g.platform === 'desktop';
+  const shareUrl = g => g.linkout ? g.external : new URL(href(g), location.href).href;
+  function deskSheet(g) {
+    closeSheet();
+    const sh = document.createElement('div');
+    sh.id = 'installSheet'; sh.className = 'isheet'; sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', g.name + ' is a desktop game');
+    sh.innerHTML = `<div class="icard">
+      <div class="ihead"><img src="${esc(art(g))}" alt=""><div><b>${esc(g.name)}</b><p>This one needs a keyboard and mouse. Send it to your computer and play it there.</p></div></div>
+      ${navigator.share ? '<button class="btn big" id="dShare">Send to my computer</button>' : ''}
+      <button class="btn ghost" id="dCopy">Copy link</button>
+      <a class="btn ghost" href="${esc(href(g))}"${tgt(g)}>Try it here anyway</a>
+      <button class="btn ghost" id="notNow">Close</button></div>`;
+    document.body.appendChild(sh);
+    $('notNow').onclick = closeSheet;
+    if ($('dShare')) $('dShare').onclick = () => navigator.share({ title: g.name + ' on RIFFCADE', url: shareUrl(g) }).catch(() => {});
+    $('dCopy').onclick = e => navigator.clipboard?.writeText(shareUrl(g)).then(() => { e.target.textContent = 'Link copied'; }).catch(() => {});
+  }
+  if (!PC) document.addEventListener('click', e => {
+    const a = e.target.closest('[data-desk]'); if (!a) return;
+    e.preventDefault(); games().then(gs => { const g = gs.find(x => x.slug === a.dataset.desk); if (g) deskSheet(g); });
+  });
+
   async function home() {
-    const gs = (await games()).slice().sort((a, b) => score(b) - score(a));
+    const every = (await games()).slice().sort((a, b) => score(b) - score(a));
+    const desk = every.filter(isDesk);
+    const gs = PC ? every : every.filter(g => !isDesk(g));
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
-    const cats = [...new Set(gs.map(g => g.category || 'Arcade'))].sort();
+    const cats = [...new Set(gs.map(g => g.category || 'Arcade'))].sort().concat(desk.length ? ['Desktop'] : []);
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
-    $('count').textContent = `${gs.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
+    $('count').textContent = `${every.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
 
     // featured: the best games that have a gameplay clip
     const feat = gs.filter(g => g.clip).slice(0, 8);
@@ -164,9 +191,10 @@
     $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; store.set('cat', cat); draw(); };
     document.addEventListener('click', e => { const s = e.target.closest('[data-see]'); if (!s) return; e.preventDefault(); cat = s.dataset.see; store.set('cat', cat); draw(); $('cats').scrollIntoView({ behavior: 'smooth' }); });
 
-    const tile = (g, fresh) => `<a class="tile" href="${href(g)}"${tgt(g)}><img src="${esc(art(g))}" alt="" loading="lazy">
+    const dd = g => !PC && isDesk(g) ? ` data-desk="${esc(g.slug)}"` : '';
+    const tile = (g, fresh) => `<a class="tile" href="${href(g)}"${tgt(g)}${dd(g)}><img src="${esc(art(g))}" alt="" loading="lazy">
       <b>${esc(g.name)}</b><span>${fresh ? `<span class="new">${madeTxt(g.made)}</span>` : metaLine(g, stats[g.slug])}</span></a>`;
-    const row = (g, i) => `<a class="row" href="${href(g)}"${tgt(g)}><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
+    const row = (g, i) => `<a class="row" href="${href(g)}"${tgt(g)}${dd(g)}><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
       <div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p><span class="sub">${metaLine(g, stats[g.slug])}</span></div><span class="get">PLAY</span></a>`;
     const shelf = (title, list, see, fresh) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>
       <div class="rail">${list.slice(0, 15).map(g => tile(g, fresh)).join('')}</div></section>` : '';
@@ -174,14 +202,15 @@
     function draw() {
       $('cats').querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.c === 'All' && !cat) || b.dataset.c === cat)));
       if (cat) {
-        const list = gs.filter(g => (g.category || 'Arcade') === cat);
-        $('shelves').innerHTML = `<section class="chart"><header><h2>Top ${esc(cat)}</h2><span class="eyebrow">${list.length} games</span></header>${list.map(row).join('')}</section>`;
+        const list = cat === 'Desktop' ? desk : gs.filter(g => (g.category || 'Arcade') === cat);
+        $('shelves').innerHTML = `<section class="chart"><header><h2>${cat === 'Desktop' ? (PC ? 'Desktop games' : 'Desktop games · play on your computer') : 'Top ' + esc(cat)}</h2><span class="eyebrow">${list.length} games</span></header>${list.map(row).join('')}</section>`;
         return;
       }
       // "Just made": newest creations first, whatever day we added them
       const recent = gs.filter(g => g.made && ago(g.made) <= 21).sort((a, b) => (b.made > a.made ? 1 : -1));
       const byCat = cats.map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
       $('shelves').innerHTML = shelf('Just made', recent, null, true) +
+        shelf(PC ? 'Desktop games · keyboard & mouse' : 'Desktop games · play on your computer', desk, 'Desktop') +
         byCat.map(([c, l]) => shelf(c, l, c)).join('') +
         `<section class="chart"><header><h2>Top games</h2></header>${gs.slice(0, 25).map(row).join('')}</section>`;
     }

@@ -262,3 +262,4 @@ body .doc .band span:nth-child(1) { background: var(--bg); color: var(--paper) }
 .featured, .shelf, .rail, .chips, #shelves { min-width: 0; max-width: calc(100vw - 0px) }
 .featured .hero { flex: 0 0 calc(88vw - 16px); max-width: 460px; aspect-ratio: auto; height: min(calc((88vw - 16px) * 1.25), 520px) }
 .tile .new { color: var(--coin); font-weight: 600 }
+.icard a.btn { text-decoration: none; text-align: center; display: block }

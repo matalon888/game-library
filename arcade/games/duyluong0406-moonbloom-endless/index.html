@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#07152b" />
+    <meta name="description" content="Moonbloom Endless — game bắn linh cầu bất tận trong khu vườn ánh trăng." />
+    <title>Moonbloom Endless</title>
+    <link rel="preload" href="assets/fonts/Baloo2-Variable.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="assets/fonts/Nunito-Variable.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="stylesheet" href="assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main class="game-shell" aria-label="Moonbloom Endless">
+      <section class="game-card">
+        <canvas id="game" width="540" height="960" aria-label="Sân chơi Moonbloom"></canvas>
+
+        <header class="hud" aria-live="polite">
+          <div class="hud-chip"><span>ĐIỂM</span><strong id="score">0</strong></div>
+          <div class="hud-center">
+            <span id="phase">ĐÊM 1</span>
+            <div class="danger-track" aria-label="Mức nguy hiểm"><i id="danger-fill"></i></div>
+          </div>
+          <div class="hud-chip hud-chip--right"><span>KỶ LỤC</span><strong id="best">0</strong></div>
+        </header>
+
+        <div id="combo" class="combo" aria-live="polite"></div>
+        <div class="controls">
+          <button id="mute" class="round-button" aria-label="Tắt âm thanh và nhạc nền">♫</button>
+          <button id="motion" class="round-button" aria-label="Giảm chuyển động">✦</button>
+          <button id="pause" class="round-button" aria-label="Tạm dừng">Ⅱ</button>
+        </div>
+
+        <div class="power-dock" aria-label="Linh thuật">
+          <button id="bloom-power" class="power-button" disabled aria-label="Trăng Nở, chưa sẵn sàng" aria-pressed="false">
+            <span aria-hidden="true">✹</span><small>TRĂNG NỞ</small><strong>0/12</strong>
+          </button>
+          <button id="frost-power" class="power-button power-button--frost" disabled aria-label="Sương Ngưng, chưa sẵn sàng" aria-pressed="false">
+            <span aria-hidden="true">❄</span><small>SƯƠNG NGƯNG</small><strong>0/20</strong>
+          </button>
+        </div>
+
+        <button id="next-swap" class="next-swap" aria-label="Đổi bóng hiện tại với bóng tiếp theo" title="Bấm để đổi bóng">
+          <span aria-hidden="true">⇄</span>
+        </button>
+
+        <section id="start-screen" class="overlay overlay--visible">
+          <div class="title-plaque">
+            <h1>MOONBLOOM</h1>
+            <p>KHU VƯỜN BẤT TẬN</p>
+          </div>
+          <div class="story-card">
+            <p>Giữ khu vườn dưới ánh trăng. Ghép ba linh cầu, thả rơi cả cụm và đừng để bóng chạm vạch đỏ.</p>
+            <div class="tip-row"><span>↗ KÉO ĐỂ NGẮM</span><span>● THẢ ĐỂ BẮN</span></div>
+          </div>
+          <button id="start" class="primary-button">BẮT ĐẦU</button>
+        </section>
+
+        <section id="pause-screen" class="overlay" aria-hidden="true">
+          <div class="modal-card">
+            <small>KHU VƯỜN ĐANG NGỦ</small>
+            <h2>TẠM DỪNG</h2>
+            <button id="resume" class="primary-button">TIẾP TỤC</button>
+          </div>
+        </section>
+
+        <section id="game-over" class="overlay" aria-hidden="true">
+          <div class="modal-card result-card">
+            <div class="result-emblem" aria-hidden="true"><span>✦</span><strong>☾</strong><span>✦</span></div>
+            <small id="result-kicker">BÌNH MINH ĐÃ CHẠM VƯỜN</small>
+            <h2>ĐÊM KHÉP LẠI</h2>
+            <div class="result-divider" aria-hidden="true"><span></span><b>✧</b><span></span></div>
+            <div class="result-score"><span>ÁNH SÁNG GOM ĐƯỢC</span><strong id="final-score">0</strong></div>
+            <p id="result-note">Lyra sẽ trở lại khi vầng trăng tiếp theo mọc lên.</p>
+            <button id="restart" class="primary-button">THẮP LẠI KHU VƯỜN</button>
+          </div>
+        </section>
+      </section>
+
+      <aside class="desktop-note">
+        <span>CHƠI BẰNG CHUỘT / CẢM ỨNG</span>
+        <span>← → NGẮM · SPACE BẮN · R ĐỔI BÓNG · Q / E LINH THUẬT · P TẠM DỪNG</span>
+      </aside>
+    </main>
+    <script type="module" src="src/game.js?v=1.0.0-rc.9"></script>
+  </body>
+</html>
