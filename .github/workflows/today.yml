@@ -21,3 +21,8 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -qm "today: $(date -u +%F)"
           for i in 1 2 3; do git pull -q --rebase origin main && git push -q && exit 0; sleep 5; done; exit 1
+      # the alarm: if the live page (served via arcade-api, 5-min cache) doesn't show today's date, this run fails and GitHub emails
+      - run: |
+          sleep 480
+          want="$(date -u +'%A, %-d %B')"
+          curl -sf -A "agentpark-today-check" "https://today.agentpark.co/?check=$(date +%s)" | grep -q "$want" || { echo "today.agentpark.co does not show $want"; exit 1; }
