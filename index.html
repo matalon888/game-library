@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AGENTPARK · New games every morning from your AI</title>
-<meta name="description" content="Get on the list: your AI checks AGENTPARK every morning and brings you the newest free games. Works with ChatGPT, Claude, Gemini and Grok.">
+<meta name="description" content="Get on the list: your AI checks AGENTPARK every morning and brings you the newest free games. Works with ChatGPT, Claude and Grok.">
 <meta name="theme-color" content="#151A3A">
 <meta property="og:title" content="AGENTPARK · New games every morning from your AI">
 <meta property="og:description" content="Get on the list. Your AI brings you new games every morning.">
@@ -47,7 +47,7 @@ a { color: inherit }
 @keyframes blink { 50% { opacity: .35 } }
 h1 { font: 800 clamp(46px, 8.5vw, 92px)/.9 var(--display); letter-spacing: -.04em; margin: 0; text-shadow: 0 6px 30px rgba(0, 0, 0, .45) }
 .sub { margin: 0; font-size: clamp(16px, 2.2vw, 20px); color: var(--ink); text-shadow: 0 2px 12px rgba(0, 0, 0, .6); max-width: 34ch; text-wrap: balance }
-.ais { display: grid; grid-template-columns: repeat(4, auto); gap: 10px; margin-top: 10px }
+.ais { display: grid; grid-template-columns: repeat(3, auto); gap: 10px; margin-top: 10px }
 .ai { display: inline-flex; align-items: center; justify-content: center; gap: 9px; text-decoration: none; background: var(--card); color: var(--dark); font: 700 16px/1 var(--body);
   padding: 14px 20px 14px 16px; border-radius: 999px; box-shadow: 0 12px 28px -10px rgba(0, 0, 0, .6); transition: transform .2s cubic-bezier(.2, 1.4, .4, 1), box-shadow .2s; white-space: nowrap }
 .ai:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 18px 34px -12px rgba(0, 0, 0, .7) }
@@ -55,7 +55,6 @@ h1 { font: 800 clamp(46px, 8.5vw, 92px)/.9 var(--display); letter-spacing: -.04e
 .ai .lg { width: 22px; height: 22px; flex: none; background: var(--c, #111); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat }
 .ai[data-k="chatgpt"] .lg { --m: url(logos/openai.svg); --c: #0D0D0D }
 .ai[data-k="claude"] .lg { --m: url(logos/claude.svg); --c: #D97757 }
-.ai[data-k="gemini"] .lg { --m: url(logos/googlegemini.svg); background: linear-gradient(135deg, #4F8DFD 10%, #9168F0 55%, #E86B8A 95%) }
 .ai[data-k="grok"] .lg { --m: url(logos/grok.svg); --c: #0D0D0D }
 .how { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); text-shadow: 0 1px 8px rgba(0, 0, 0, .7) }
 .alt { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; font-size: 14px }
@@ -85,13 +84,6 @@ h1 { font: 800 clamp(46px, 8.5vw, 92px)/.9 var(--display); letter-spacing: -.04e
 .escape { position: sticky; top: 0; z-index: 25; display: grid; gap: 6px; padding: 12px 16px calc(12px); background: #FFC93C; color: #1E1B33; text-align: center; font-size: 14px }
 .escape b { font-size: 16px } .escape small { opacity: .7 }
 .escape a { justify-self: center; background: #1E1B33; color: #fff; font-weight: 800; padding: 10px 22px; border-radius: 999px; text-decoration: none }
-.psheet { position: fixed; inset: 0; z-index: 30; display: none; place-items: end center; background: rgba(14,20,40,.45); padding: 16px }
-.psheet.on { display: grid }
-.psheet > div { width: min(420px, 100%); background: #fff; color: #1E1B33; border-radius: 22px; padding: 18px; display: grid; gap: 10px; margin-bottom: env(safe-area-inset-bottom, 0px) }
-.psheet b { font-size: 17px } .psheet p { margin: 0 }
-.psheet textarea { font: 13px/1.4 system-ui, sans-serif; height: 74px; border: 1px solid #F0E2C8; border-radius: 12px; padding: 8px; resize: none }
-.psheet .go { background: #22A257; color: #fff; text-align: center; font-weight: 800; padding: 14px; border-radius: 999px; text-decoration: none }
-.psheet button { background: none; border: 0; color: #6E6A84; font: inherit; padding: 6px }
 .listed .ok { width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--grass); color: #fff; display: grid; place-items: center; font: 800 18px var(--display) }
 .listed b { display: block; font: 800 16px/1.2 var(--display) }
 
@@ -106,6 +98,7 @@ footer a { color: var(--muted) }
   .walk { padding: 9px 13px; font-size: 13px }
   .hero { padding-inline: 16px; gap: 10px }
   .ais { grid-template-columns: 1fr 1fr; width: 100%; max-width: 360px; gap: 8px }
+  .ais .ai[data-k="chatgpt"] { grid-column: 1 / -1 }   /* three buttons: the biggest AI gets the full row */
   .ai { padding: 13px 10px; font-size: 15.5px }
   .listed { bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) }
 }
@@ -130,7 +123,6 @@ footer a { color: var(--muted) }
     <div class="ais" role="group" aria-label="Start your daily games with">
       <a class="ai" data-k="chatgpt" target="_blank" rel="noopener"><span class="lg"></span>ChatGPT</a>
       <a class="ai" data-k="claude" target="_blank" rel="noopener"><span class="lg"></span>Claude</a>
-      <a class="ai" data-k="gemini" target="_blank" rel="noopener"><span class="lg"></span>Gemini</a>
       <a class="ai" data-k="grok" target="_blank" rel="noopener"><span class="lg"></span>Grok</a>
     </div>
     <p class="how">One tap, send the prompt, done. Free.</p>
@@ -151,10 +143,10 @@ footer a { color: var(--muted) }
   const MCP = 'https://mcp.riffcade.com/mcp';
   const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
   const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day, then 6 games from every category as cover pictures with their names and links, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.';
-  const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', grok: 'Grok' };
-  // ChatGPT, Claude and Grok take the prompt in the link (Claude shows a caution line, Grok a Send? dialog); Gemini has no such
-  // link, so its button first shows a Paste-then-Send sheet with the prompt already copied. Every tap also copies the prompt.
-  const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new?q=' + encodeURIComponent(DAILY), gemini: 'https://gemini.google.com/app', grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
+  const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', grok: 'Grok' };
+  // ChatGPT, Claude and Grok take the prompt in the link (Claude shows a caution line, Grok a Send? dialog); every tap also
+  // copies it. No Gemini button: Gemini has no link that pre-fills a prompt.
+  const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new?q=' + encodeURIComponent(DAILY), grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
   const post = button => fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {});
   // anonymous click count per button (button name + time, nothing else), like play counts
   const countClick = k => {
@@ -177,7 +169,6 @@ footer a { color: var(--muted) }
     a.addEventListener('click', e => {
       countClick(k);
       if (window.RiffHabits) RiffHabits.agentTapped(k);
-      if (k === 'gemini' && !a.dataset.go) { e.preventDefault(); copyText(DAILY).then(ok => { if (window.RiffHabits) { RiffHabits.ob(ok ? 'copied' : 'copy_fail', k); RiffHabits.ob('paste_sheet', k); } pasteSheet(ok); }); return; }
       copyText(DAILY).then(ok => {
         if (window.RiffHabits) RiffHabits.ob(ok ? 'copied' : 'copy_fail', k);
         if (!ok) return listed('Paste this into ' + NAMES[k] + ':', DAILY, 9000);
@@ -186,22 +177,6 @@ footer a { color: var(--muted) }
       letIn(k);
     });
   });
-
-  // Gemini: no pre-filled links, so: the prompt is copied, then one clear step before it opens
-  function pasteSheet(ok) {
-    let d = $('pasteSheet');
-    if (!d) {
-      d = document.createElement('div'); d.id = 'pasteSheet'; d.className = 'psheet'; d.setAttribute('role', 'dialog');
-      d.innerHTML = '<div><b>Prompt copied ✓</b><p>In Gemini: tap the message box, tap <b>Paste</b>, then <b>Send</b>.</p><textarea readonly></textarea>'
-        + '<a class="go" target="_blank" rel="noopener" href="https://gemini.google.com/app">Open Gemini</a><button type="button">Cancel</button></div>';
-      document.body.appendChild(d);
-      d.querySelector('button').onclick = () => d.classList.remove('on');
-      d.querySelector('.go').onclick = () => { if (window.RiffHabits) RiffHabits.ob('paste_open', 'gemini'); copyText(DAILY); setTimeout(() => d.classList.remove('on'), 400); };
-    }
-    d.querySelector('textarea').value = DAILY;
-    d.querySelector('p').innerHTML = ok ? 'In Gemini: tap the message box, tap <b>Paste</b>, then <b>Send</b>.' : 'Copy the prompt below, then in Gemini paste it and tap <b>Send</b>.';
-    d.classList.add('on');
-  }
 
   if (window.RiffHabits) RiffHabits.ob('view');
   if (window.RiffHabits && window.RiffConsent) RiffConsent.onChange(v => RiffHabits.ob(v === 'accepted' ? 'consent_yes' : 'consent_no'));
