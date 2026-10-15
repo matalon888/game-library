@@ -1,5 +1,5 @@
 // Board — world leaderboards with country flags for the "Connect your AI" games (shared across riffcade.com).
-//   • every game has its own board (its own score), plus the shared SHIP SCORE board: what your agents actually
+//   • every game has its own board (its own score), plus the shared AGENT POINTS board: what your agents actually
 //     shipped today (successful steps, passed tests ×5, commits ×5, deploys ×10, minus failures), not raw tokens
 //   • tabs: Today / This week / All time / Countries (a country's score is the sum of its players)
 //   • one profile for all games: a nickname and a country flag (guessed from the browser, changeable)
@@ -7,7 +7,7 @@
 //
 // Usage:
 //   import { board } from '../kit/board.js';
-//   const B = board({ game: 'agent-football', label: 'Goals', A });   // A = the agents() controller (for demo + Ship Score)
+//   const B = board({ game: 'agent-football', label: 'Goals', A });   // A = the agents() controller (for demo + agent points)
 //   B.submit(score)            // whenever the score improves (debounced; the server keeps the best of the day)
 //   B.open()                   // show the board (add a 🏆 button in your HUD)
 import { toast } from './agents.js';
@@ -63,17 +63,18 @@ export function board({ game, label = 'Score', A = null }) {
   let which = game, period = 'day', mine = false, pending = {}, timer = 0, lastSent = {};
   const live = () => !(A && A.demo) && profile();
 
-  // ---- Ship Score: what the agents shipped today (UTC day), from every event this tab has seen
-  const ship = { day: dayUTC(), score: 0, tools: 0, ok: 0, tokens: 0 };
+  // ---- Agent points: what the agents got done today (UTC day), from every event this tab has seen
+  const ship = { day: dayUTC(), score: 0, tools: 0, ok: 0, tokens: 0, steps: 0, tests: 0, commits: 0, deploys: 0, fails: 0 };
   function onAgentEvents(list) {
     if (A && A.demo) return;
     for (const e of list) {
-      if (dayUTC(e.t) !== ship.day) { if (e.t < Date.now() - 864e5) continue; if (dayUTC(e.t) > ship.day) Object.assign(ship, { day: dayUTC(e.t), score: 0, tools: 0, ok: 0, tokens: 0 }); else continue; }
+      if (dayUTC(e.t) !== ship.day) { if (e.t < Date.now() - 864e5) continue; if (dayUTC(e.t) > ship.day) Object.assign(ship, { day: dayUTC(e.t), score: 0, tools: 0, ok: 0, tokens: 0, steps: 0, tests: 0, commits: 0, deploys: 0, fails: 0 }); else continue; }
       if (e.kind === 'tokens') ship.tokens += e.tokens || 0;
       if (e.kind !== 'result') continue;
       ship.tools++;
-      if (!e.ok) { ship.score = Math.max(0, ship.score - 1); continue; }
+      if (!e.ok) { ship.fails++; ship.score = Math.max(0, ship.score - 1); continue; }
       ship.ok++; ship.score += e.cat === 'deploy' ? 10 : e.cat === 'test' || e.cat === 'commit' ? 5 : 1;
+      if (e.cat === 'deploy') ship.deploys++; else if (e.cat === 'test') ship.tests++; else if (e.cat === 'commit') ship.commits++; else ship.steps++;
     }
     if (ship.tools) queue(POWER, ship.score, ship);
   }
@@ -91,7 +92,7 @@ export function board({ game, label = 'Score', A = null }) {
       try {
         const r = await fetch(API + '/api/lb', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ game: g, client, name: p.name, country: p.country, ...v }) });
         const j = await r.json();
-        if (r.ok) { const prev = store.get('rank_' + g, null); lastSent[g] = v.score; if (j.you && prev && j.you.rank < prev) toast(`🏆 You climbed to #${j.you.rank} on the ${g === POWER ? 'Ship Score' : label} board today`); if (j.you) store.set('rank_' + g, j.you.rank); }
+        if (r.ok) { const prev = store.get('rank_' + g, null); lastSent[g] = v.score; if (j.you && prev && j.you.rank < prev) toast(`🏆 You climbed to #${j.you.rank} on the ${g === POWER ? 'Agent points' : label} board today`); if (j.you) store.set('rank_' + g, j.you.rank); }
       } catch (e) {}
     }
   }
@@ -106,8 +107,8 @@ export function board({ game, label = 'Score', A = null }) {
     const p = profile(), cc = (p && p.country) || guessCountry();
     const tabs = (arr, cur, key) => arr.map(([v, t]) => `<button data-${key}="${v}" aria-pressed="${v === cur}">${t}</button>`).join('');
     el.innerHTML = `<button class="bd-x" aria-label="Close">✕</button><h2>🏆 World leaderboard</h2>
-      <p class="bd-sub">${which === POWER ? 'Ship Score: what your agents shipped today. Steps that worked, passed tests ×5, commits ×5, deploys ×10, minus failures.' : `${label} in this game, people's AI agents from all over the world.`}</p>
-      <div class="bd-tabs">${tabs([[game, label], [POWER, 'Ship Score']], which, 'g')}</div>
+      <p class="bd-sub">${which === POWER ? `<b>⚡ Agent points: what your agents got done today</b>, in every RIFFCADE game. Tokens don't count, results do.${ship.tools ? `<br>You: ${breakdown()} = <b>${fmt(ship.score)}</b>` : ''}` : `${label} in this game, people's AI agents from all over the world.`}</p>
+      <div class="bd-tabs">${tabs([[game, label], [POWER, '⚡ Agent points']], which, 'g')}</div>
       <div class="bd-tabs">${tabs([['day', 'Today'], ['week', 'This week'], ['all', 'All time'], ['nations', '🌍 Countries']], period, 'p')}
         <button data-mine aria-pressed="${mine}">${flag(cc)} My country</button></div>
       <div class="bd-me">${p ? `<span style="font-size:22px">${flag(p.country)}</span><b>${p.name}</b><button class="bd-tabs" data-edit style="margin-left:auto;background:none;border:0;color:#b9b2c8;cursor:pointer">Edit</button>`
@@ -142,6 +143,7 @@ export function board({ game, label = 'Score', A = null }) {
     } catch (e) { el.querySelector('.bd-list').innerHTML = '<p class="bd-empty">The leaderboard is offline right now.</p>'; }
   }
   const best = {};
+  const breakdown = () => `✓ ${ship.steps} steps worked ×1 · 🧪 ${ship.tests} tests passed ×5 · 📦 ${ship.commits} commits ×5 · 🚀 ${ship.deploys} deploys ×10 · ✗ ${ship.fails} failures −1`;
 
   // ---------------------------------------------------------------- social: join sheet, rank chip, duels, live race
   const ADJ = 'Swift Brave Lucky Turbo Cosmic Sneaky Mighty Clever Rapid Sunny Neon Jolly'.split(' '), ANI = 'Otter Falcon Panda Fox Lynx Gecko Koala Orca Tiger Raven Moose Yak'.split(' ');
@@ -249,7 +251,7 @@ export function board({ game, label = 'Score', A = null }) {
     else sheet(html, accept);
   })();
 
-  // the chip: my flag, rank and Ship Score, plus live duels (always on screen once you're in the race)
+  // the chip: my flag, rank and agent points, plus live duels (always on screen once you're in the race)
   const chipEl = document.createElement('div'); chipEl.className = 'bd-chip'; document.body.appendChild(chipEl);
   function chip() {
     const p = profile();
@@ -260,9 +262,9 @@ export function board({ game, label = 'Score', A = null }) {
       const vs = duels.filter(d => d.status === 'live').slice(0, 2).map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a']; const h = Math.max(0, Math.ceil((d.end - Date.now()) / 3600e3));
         return `<div class="bd-vs" data-open><b class="${me.score >= th.score ? 'w' : ''}">You ${me.score}</b><span>⚔️</span><b class="${th.score > me.score ? 'w' : ''}">${th.score} ${th.name} ${flag(th.country)}</b><small>${h} h left</small></div>`; }).join('');
       const open = duels.filter(d => d.status === 'open').length;
-      chipEl.innerHTML = `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small>Ship Score ${fmt(ship.score)}</small></div>${vs}${!vs ? (matching ? '<div>🔎 Finding you a rival…</div>' : linked ? '<div data-match>⚔️ Find a rival</div>' : '<div data-link>🔗 Link your agents to get a rival</div>') : ''}`;
+      chipEl.innerHTML = `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small title="${breakdown()}">⚡ ${fmt(ship.score)} agent points</small></div>${vs}${!vs ? (matching ? '<div>🔎 Finding you a rival…</div>' : linked ? '<div data-match>⚔️ Find a rival</div>' : '<div data-link>🔗 Link your agents to get a rival</div>') : ''}`;
     }
-    chipEl.querySelectorAll('[data-open]').forEach(e => e.onclick = () => api.open());
+    chipEl.querySelectorAll('[data-open]').forEach(e => e.onclick = () => api.open(POWER));   // the chip shows agent points: open that board
     const j = chipEl.querySelector('[data-join]'); if (j) j.onclick = () => linked ? sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Put your agents on the world leaderboard and in your country's team, and get a rival.</p>`, () => setTimeout(autoMatch, 1500)) : A && A.open();
     const mt = chipEl.querySelector('[data-match]'); if (mt) mt.onclick = () => autoMatch();
     const lk = chipEl.querySelector('[data-link]'); if (lk) lk.onclick = () => A && A.open();
@@ -294,11 +296,11 @@ export function board({ game, label = 'Score', A = null }) {
     box.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard && navigator.clipboard.writeText(b.dataset.copy).then(() => b.textContent = 'Copied ✓'));
   };
   const api = {
-    open() { wrap.hidden = false; render(); loadDuels(); },
+    open(tab) { if (tab) which = tab; wrap.hidden = false; render(); loadDuels(); },
     close,
     // call with the game's score whenever it improves; the server keeps each player's best of the day
     submit(score, extra = {}) { score = Math.floor(score) || 0; if (score > (best[game] || 0)) best[game] = score; queue(game, best[game], extra); if (!profile() && score > 0 && !store.get('asked', false) && !(A && A.demo)) { store.set('asked', true); toast('🏆 Join the world leaderboard: open 🏆 and pick a nickname + your flag', 6000); } },
-    onAgentEvents,                       // pass every agents() batch here so the Ship Score board stays current
+    onAgentEvents,                       // pass every agents() batch here so the agent points board stays current
     ship: () => ({ ...ship }),
     profile,
     challenge,
