@@ -20,16 +20,9 @@
   // ---------------------------------------------------------------- counting (/stats-internal)
   // A random id for this tab's session only (sessionStorage): sessions and games per session, nothing that lasts.
   const sid = ss.get('sid', null) || (() => { const s = ((crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now()).replace(/[^\w-]/g, '').slice(0, 36); ss.set('sid', s); return s; })();
-  // Google Analytics 4 (GA4_ID): Consent Mode v2, everything denied until "Accept" (GA then sends cookieless pings only),
-  // so it needs no banner of its own. Every funnel event below goes to GA too.
-  if (C.GA4_ID) {
-    window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments); };
-    const ok = (() => { try { return JSON.parse(localStorage.getItem('arcade.consent')) === 'accepted'; } catch (e) { return false; } })() ? 'granted' : 'denied';
-    gtag('consent', 'default', { analytics_storage: ok, ad_storage: ok, ad_user_data: ok, ad_personalization: ok });
-    gtag('js', new Date()); gtag('config', C.GA4_ID, { ref: q.get('ref') || undefined });
-    const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + C.GA4_ID; document.head.appendChild(s);
-  }
-  const ga = (name, p) => { if (window.gtag && C.GA4_ID) gtag('event', name, p || {}); };
+  // Google Analytics + the Meta pixel live in consent.js and load only after "Accept"; every funnel event also goes to GA then.
+  const RC = window.RiffConsent || { state: () => null, accepted: () => false, ga() {}, pixel() {}, setKids() {}, onChange() {} };
+  const ga = (name, p) => RC.ga(name, p);
   const ev = name => (ga(name), fetch(API + '/api/ev', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, sid }) }).catch(() => {}));
   const once = (key, name) => { if (!ss.get('once.' + key, false)) { ss.set('once.' + key, true); ev(name); } };
   once('session', 'session');
@@ -44,46 +37,14 @@
   const challengeSlug = n => LIST.length && n >= 1 ? LIST[(n - 1) % LIST.length] : null;
 
   // ---------------------------------------------------------------- styles (loaded only when a feature is on)
-  const anyOn = C.AUTO_NEXT || C.DAILY_CHALLENGE || C.SUBSCRIBE_V2 || C.ADS_ENABLED || C.META_PIXEL_ID;
+  const anyOn = C.AUTO_NEXT || C.DAILY_CHALLENGE || C.SUBSCRIBE_V2 || C.ADS_ENABLED;
   if (anyOn) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'grow.css'; document.head.appendChild(l); }
 
-  // ---------------------------------------------------------------- consent (decline by default) + Meta pixel
-  // Ads personalisation and the pixel wait for "Accept". Until then (and after "No thanks") ads run non-personalised.
-  const consent = () => ls.get('consent', null); // 'accepted' | 'declined' | null (= declined until they choose)
-  const needsConsent = !!(C.ADS_ENABLED || C.META_PIXEL_ID);
-  let pixelOn = false, kids = false; // Kids games: never personalised ads, never the pixel
-  function pixel(evName, custom) {
-    if (!C.META_PIXEL_ID || consent() !== 'accepted' || kids) return;
-    if (!pixelOn) {
-      pixelOn = true;
-      /* Meta's standard loader */
-      !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-      window.fbq('init', C.META_PIXEL_ID);
-      window.fbq('track', 'PageView');
-    }
-    if (evName) window.fbq(custom ? 'trackCustom' : 'track', evName);
-  }
-  function consentBanner() {
-    if (!needsConsent || consent() || $('gConsent')) return;
-    const b = document.createElement('div');
-    b.id = 'gConsent'; b.className = 'g-consent'; b.setAttribute('role', 'dialog'); b.setAttribute('aria-label', 'Privacy choices');
-    b.innerHTML = `<p>RIFFCADE is free thanks to ads. Allow personalised ads and ad measurement? Off unless you accept. <a href="privacy.html">Privacy</a></p>
-      <div><button class="btn ghost" id="gNo">No thanks</button><button class="btn" id="gYes">Accept</button></div>`;
-    document.body.appendChild(b);
-    const pick = v => { ls.set('consent', v); if (window.gtag && C.GA4_ID) { const g = v === 'accepted' ? 'granted' : 'denied'; gtag('consent', 'update', { analytics_storage: g, ad_storage: g, ad_user_data: g, ad_personalization: g }); } ev(v === 'accepted' ? 'consent_accept' : 'consent_decline'); b.remove(); if (v === 'accepted') pixel(); if (window.RiffAds) window.RiffAds.consent(v === 'accepted' && !kids); };
-    $('gNo').onclick = () => pick('declined');
-    $('gYes').onclick = () => pick('accepted');
-  }
-  consentBanner();
-  // "Privacy choices" at the bottom of the arcade: withdraw or give consent again, as easily as it was given
-  if (needsConsent) document.addEventListener('DOMContentLoaded', () => {
-    const foot = document.querySelector('.foot'); if (!foot) return;
-    const a = document.createElement('a'); a.href = '#'; a.textContent = 'Privacy choices'; a.style.color = 'var(--accent)';
-    a.onclick = e => { e.preventDefault(); ls.set('consent', null); consentBanner(); };
-    foot.append(' · ', a);
-  });
-  const onPlayPage = /play\.html$/.test(location.pathname);
-  if (!onPlayPage) pixel(); // on the play page: from onLoad, once we know whether it's a Kids game
+  // ---------------------------------------------------------------- consent (consent.js: one banner, decline by default)
+  // Ads stay non-personalised until "Accept". Kids games: never personalised ads, never GA or the pixel.
+  let kids = false;
+  const pixel = (n, custom) => RC.pixel(n, custom);
+  RC.onChange(v => { ev(v === 'accepted' ? 'consent_accept' : 'consent_decline'); if (window.RiffAds) window.RiffAds.consent(v === 'accepted' && !kids); });
 
   // ---------------------------------------------------------------- ads (adapter loads only when ADS_ENABLED)
   let adsReady = null;
@@ -91,7 +52,7 @@
     const load = src => new Promise(r => { const s = document.createElement('script'); s.src = src; s.onload = r; s.onerror = r; document.head.appendChild(s); });
     load('ads/singular-config.js').then(() => load('ads/adapter.js')).then(() => {
       if (!window.RiffAds) return res(null);
-      window.RiffAds.init({ personalised: consent() === 'accepted' && !kids, count: ev });
+      window.RiffAds.init({ personalised: RC.accepted() && !kids, count: ev });
       res(window.RiffAds);
     });
   }));
@@ -153,7 +114,7 @@
   function onLoad(g, gs) {
     G = g; all = gs;
     kids = g.category === 'Kids' || (g.tags || []).includes('Kids');
-    pixel();
+    RC.setKids(kids); // consent.js starts GA / the pixel now (never on a Kids game)
     if (q.get('ref') === 'c') once('c_arrival.' + g.slug, 'c_arrival');
     const n = +q.get('ch');
     if (C.DAILY_CHALLENGE && n >= 1 && challengeSlug(n) === g.slug) chN = n;
@@ -305,7 +266,7 @@
         <div class="g-fresh">${fresh.map(g => `<figure><img src="${esc(art(g))}" alt=""><figcaption>${esc(g.name)}</figcaption></figure>`).join('')}</div>
         ${escapeHtml}
         <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">ChatGPT: tap Send, that's it</a>
-        <button class="btn" id="gClaude">Claude (Pro/Max)</button>
+        <a class="btn" id="gClaude" href="https://claude.ai/new" target="_blank" rel="noopener">Claude (Pro/Max)</a>
         ${C.WHATSAPP_CHANNEL_URL ? `<a class="btn" id="gWa" href="${esc(C.WHATSAPP_CHANNEL_URL)}" target="_blank" rel="noopener">WhatsApp Channel</a>` : ''}
         <button class="btn ghost" id="gSubClose">Not now</button>`);
       const close = () => { o.remove(); removeEventListener('keydown', key); done(); };
@@ -316,9 +277,8 @@
       $('gGpt').onclick = () => { tap('chatgpt'); copyText(P).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
       $('gClaude').onclick = () => {
         tap('claude');
-        const copied = copyText(P); // starts while this page still has focus
-        window.open('https://claude.ai/new', '_blank', 'noopener');
-        copied.then(ok => toast(ok ? 'Prompt copied: paste it into Claude and send.' : 'Paste this into Claude: ' + P));
+        // the link itself opens Claude (a tapped claude.ai/new opens the app on phones); the prompt goes on the clipboard
+        copyText(P).then(ok => toast(ok ? 'Prompt copied: paste it into Claude and send.' : 'Paste this into Claude: ' + P));
       };
       if ($('gWa')) $('gWa').onclick = () => tap('whatsapp');
       if ($('gOpen')) $('gOpen').onclick = () => ev('sub_inapp_open');
