@@ -22,10 +22,10 @@ window.RIFFCADE = {
   "WHATSAPP_CHANNEL_URL": "",
   "META_PIXEL_ID": "1143064938054197",
   "GA4_ID": "G-N62V18VZ3S",
-  "DAILY_PROMPT": "Right now, open https://today.agentpark.co and show me the game of the day, then 6 games from every category as cover pictures with their names and links, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.",
+  "DAILY_PROMPT": "Right now, open https://today.agentpark.co and show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.",
   "PROMPT_TEST": false,
   "PROMPTS": {
-    "a": "Right now, open https://today.agentpark.co and show me the game of the day, then 6 games from every category as cover pictures with their names and links, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.",
+    "a": "Right now, open https://today.agentpark.co and show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.",
     "b": "Right now, open https://today.agentpark.co and pick 6 games I'd enjoy from different categories, one line and a link each, plus the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.",
     "c": "Right now, open https://today.agentpark.co and give me 8 games for a quick break, grouped by category, one line and a link each, plus the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled."
   },

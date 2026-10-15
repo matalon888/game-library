@@ -6,7 +6,7 @@ Simulated gambling (chat_safe=false) and games played off-site never appear. Run
 A copy runs in the site repo (tools/build_today.py, GitHub Action "today", 05:30 and 17:30 UTC) so the page moves to the
 new day even when this Mac is asleep: TODAY_LAYOUT=site reads arcade/ and writes today.html at that repo's root.
 Usage: python3 build_today.py"""
-import datetime, html, json, os, re, shutil
+import datetime, html, json, os, re, shutil, urllib.parse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE_LAYOUT = os.environ.get("TODAY_LAYOUT") == "site"
@@ -49,6 +49,9 @@ cats = [c for c in cats if sum(g["category"] == c for g in ok) >= 3]
 shelves = [("new", "✨ New this week", "The best of the newest", best(new_shown[:60])[:NEW]),
            ("top", "🏆 Top scored", "Deepest and most polished", best(shown)[:SHELF]),
            ("phone", "📱 Great on your phone", "Tap and play, no keyboard", best([g for g in shown if phone(g)])[:SHELF])]
+def more(c): return f"{SITE}/arcade/?cat={urllib.parse.quote(c)}"  # the arcade opens on that category (park.js ?cat=)
+ckey = lambda c: f"c-{c.lower().replace(' & ', '-').replace(' ', '-')}"
+KEY_CAT = {ckey(c): c for c in cats}
 shelves += [(f"c-{c.lower().replace(' & ', '-').replace(' ', '-')}", f"{EMOJI.get(c, '🎮')} {c}", f"{sum(g['category'] == c for g in ok)} games",
              best([g for g in shown if g["category"] == c])[:SHELF]) for c in cats]
 
@@ -69,6 +72,7 @@ data = {"title": "AGENTPARK: new games", "date": today.isoformat(), "more": f"{S
         "games": [{"name": g["name"], "category": g["category"], "blurb": g.get("blurb") or "", "pitch": pitch(g), "score": score(g),
                    "added": g.get("added"), "desktop_only": bool(g.get("desk_only")), "image": img(g), "play_url": play(g, i + 1)}
                   for i, g in enumerate(newest[:NEW])],
+        "more": {c: more(c) for c in cats},
         "categories": {c: [{"name": g["name"], "new": fresh(g), "pitch": pitch(g), "image": img(g), "play_url": play(g, f"list-{c}")}
                            for g in pick_cat(c)] for c in cats}}
 for path in ((os.path.join(ROOT, "arcade/today.json"),) if SITE_LAYOUT else (os.path.join(ROOT, "arcade/today.json"), os.path.join(OUT, "arcade/today.json"))):
@@ -96,9 +100,10 @@ def tile(g, pos):
             f'<strong>{e(g["name"])}</strong><small>{e(g["category"])}{" · 💻" if g.get("desk_only") else ""}</small></a>')
 
 chips = "".join(f'<a href="#{k}">{e(t)}</a>' for k, t, _, gs in shelves[3:])
-rows = "\n".join(f'<section class="shelf" id="{k}"><header><h2>{e(t)}</h2><span>{e(sub)}</span></header>'
+rows = "\n".join(f'<section class="shelf" id="{k}"><header><h2>{e(t)}</h2><span>{e(sub)}</span>'
+                 + (f'<a class="more" href="{e(more(KEY_CAT[k]))}">More →</a>' if k in KEY_CAT else '') + '</header>'
                  f'<div class="row">{"".join(tile(g, f"{k}-{i + 1}") for i, g in enumerate(gs))}</div></section>' for k, t, sub, gs in shelves if gs)
-text = "\n".join(f'<h3>{EMOJI.get(c, "🎮")} {e(c)}</h3><ul>' + "".join(
+text = "\n".join(f'<h3>{EMOJI.get(c, "🎮")} {e(c)} <a class="more" href="{e(more(c))}">More {e(c)} games →</a> <small>{e(more(c))}</small></h3><ul>' + "".join(
     f'<li><img src="{e(x["image"])}" alt="{e(x["name"])} cover" width="48" height="80" loading="lazy"><span>{"🆕 " if x["new"] else ""}<b>{e(x["name"])}</b>: {e(x["pitch"])} <a href="{e(x["play_url"])}">{e(x["play_url"])}</a></span></li>' for x in xs) + '</ul>'
     for c, xs in data["categories"].items() if xs)
 gs_ = score(gotd)
@@ -157,6 +162,8 @@ main {{ max-width: 1100px; margin: 0 auto; padding: max(18px, env(safe-area-inse
 .shelf header {{ display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 10px; margin-bottom: 10px }}
 .shelf h2 {{ font: 800 21px/1.1 var(--display); letter-spacing: -.03em; margin: 0 }}
 .shelf header span {{ font-size: 13px; color: var(--muted) }}
+.more {{ margin-left: auto; font: 700 14px var(--body); color: var(--grass); white-space: nowrap }}
+.list h3 .more {{ margin-left: 8px; font-size: 13px }} .list h3 small {{ display: block; font: 400 12px var(--body); color: var(--muted); overflow-wrap: anywhere }}
 .shelf, .shelf header {{ scroll-margin-top: 12px }}
 .shelf > header {{ padding-inline: max(16px, env(safe-area-inset-left)) 16px }}
 .row {{ display: grid; grid-auto-flow: column; grid-auto-columns: 128px; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;

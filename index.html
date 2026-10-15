@@ -142,7 +142,7 @@ footer a { color: var(--muted) }
   // ---------------------------------------------------------------- the daily agent (same flow as connect.html)
   const MCP = 'https://mcp.riffcade.com/mcp';
   const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
-  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day, then 6 games from every category as cover pictures with their names and links, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.';
+  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.';
   const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', grok: 'Grok' };
   // ChatGPT, Claude and Grok take the prompt in the link (Claude shows a caution line, Grok a Send? dialog); every tap also
   // copies it. No Gemini button: Gemini has no link that pre-fills a prompt.
