@@ -24,7 +24,16 @@ export const supported = typeof window !== 'undefined' && 'showDirectoryPicker' 
 
 // ---------------------------------------------------------------- helpers games can use
 export const toolName = t => String(t || '').replace(/^mcp__[^_]+(?:_[^_]+)*?__/, '').replace(/^mcp__/, '').slice(0, 14);
-export const folderName = cwd => { const p = String(cwd).split(/[\\/]/).filter(Boolean); return (p.length <= 2 && /^(Users|home)$/.test(p[0] || '') ? 'home' : p.pop() || 'agent').slice(0, 16); };
+// readable names for the player: the project folder; "home folder" for the home folder; ".claude" → "claude settings"
+export const folderName = cwd => {
+  const p = String(cwd).split(/[\\/]/).filter(Boolean);
+  if (p.length <= 2 && /^(Users|home)$/.test(p[0] || '')) return 'home folder';
+  let f = p.pop() || 'agent';
+  // agents' temp folders are named after an encoded path ("-Users-me-my-app"): decode to the project
+  if (/^-(Users|home)-/.test(f)) { const q = f.split('-').filter(Boolean); if (q.length <= 2) return 'home folder'; f = q.pop(); }
+  if (/^\.(claude|codex)$/i.test(f)) return f.slice(1).toLowerCase() + ' settings';
+  return f.replace(/^\./, '').slice(0, 16);
+};
 const TEST = /\b(pytest|jest|vitest|mocha|playwright test|cargo test|go test|npm (run )?test|pnpm (run )?test|yarn test|bun test|rspec|phpunit|unittest|check\.cjs|qa\.cjs)\b/i;
 const COMMIT = /\bgit (commit|merge|rebase)\b/i, DEPLOY = /\b(git push|deploy|vercel|wrangler|railway up|fly deploy|netlify|firebase deploy|--push)\b/i;
 export function category(tool, cmd = '') {
@@ -340,7 +349,7 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
   const link = relay(code, emit, () => {
     stopDemo(); api.connected.push(link); onConnect && onConnect('link'); dispatchEvent(new CustomEvent('riffcade-connected'));
     status.textContent = '✅ Linked! Your agents are in the game.'; card.querySelector('.ag-dot').style.cssText = 'background:#9cf28a;animation:none';
-    close(); toast('✅ Linked to your agents. They join the game as they work.');
+    close(); toast('✅ Linked! Each character is one of YOUR Claude Code / Codex sessions, named after its project folder.', 7000);
   });
 
   async function connect(h, ask) {
@@ -351,7 +360,7 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
       // onConnect runs before the first (catch-up) batch, so a game can reset its demo state without losing today's numbers
       const src = await w.start(s => { api.connected.push(w); onConnect && onConnect(s); dispatchEvent(new CustomEvent('riffcade-connected')); });
       saved.add(h).catch(() => {});
-      close(); toast(`Connected to ${src === 'codex' ? 'Codex' : 'Claude Code'}. Your agents join as they work.`);
+      close(); toast(`✅ Connected to ${src === 'codex' ? 'Codex' : 'Claude Code'}. Each character is one of YOUR sessions, named after its project folder.`, 7000);
       return true;
     } catch (e) { const i = api.connected.indexOf(w); if (i >= 0) api.connected.splice(i, 1); toast('⚠️ ' + e.message); if (!api.connected.length && autoDemo) startDemo(); return false; }
   }

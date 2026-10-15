@@ -28,7 +28,16 @@ function category(tool, cmd = '') {
   if (/^(agent|task)$|spawn|delegate|subagent/.test(t)) return 'delegate';
   return 'other';
 }
-const folderName = cwd => { const p = String(cwd).split(/[\\/]/).filter(Boolean); return (p.length <= 2 && /^(Users|home)$/.test(p[0] || '') ? 'home' : p.pop() || 'agent').slice(0, 16); };
+// readable names for the player: the project folder; "home folder" for the home folder; ".claude" → "claude settings"
+const folderName = cwd => {
+  const p = String(cwd).split(/[\\/]/).filter(Boolean);
+  if (p.length <= 2 && /^(Users|home)$/.test(p[0] || '')) return 'home folder';
+  let f = p.pop() || 'agent';
+  // agents' temp folders are named after an encoded path ("-Users-me-my-app"): decode to the project
+  if (/^-(Users|home)-/.test(f)) { const q = f.split('-').filter(Boolean); if (q.length <= 2) return 'home folder'; f = q.pop(); }
+  if (/^\.(claude|codex)$/i.test(f)) return f.slice(1).toLowerCase() + ' settings';
+  return f.replace(/^\./, '').slice(0, 16);
+};
 const FAIL = /exit code:? *[1-9]|\btraceback\b|\berror:|\bfailed\b|command not found|\bexception\b/i;
 
 function parseClaude(line, st) {

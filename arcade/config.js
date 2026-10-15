@@ -9,6 +9,11 @@
 //   META_PIXEL_ID    Meta pixel, fires only after the visitor accepts in the consent banner (empty = no pixel)
 //   GA4_ID           Google Analytics 4 (G-…): Consent Mode, cookieless until Accept; mirrors every /api/ev event (empty = off)
 //   CHALLENGE_EPOCH  day #1 of the daily challenge (UTC); CHALLENGE_GAMES the curated rotation, in order
+//   PROMPT_TEST      A/B test of the daily prompt: each browser gets one of PROMPTS (a = DAILY_PROMPT, the control), carried as
+//                    today.riffcade.com/?v=<x> so taps, the AI's daily fetch and the visits from its links are credited to it
+//   TIERS            weak / okay / strong player thresholds (habits.js): strong = played on strong_days_7 of the last 7 days,
+//                    or came from their AI's daily task on strong_daily_days_7 days; okay = okay_days_7 days, okay_games_today
+//                    games today or okay_minutes_7 minutes this week; everyone else is weak
 window.RIFFCADE = {
   "AUTO_NEXT": false,
   "DAILY_CHALLENGE": false,
@@ -18,6 +23,13 @@ window.RIFFCADE = {
   "META_PIXEL_ID": "1143064938054197",
   "GA4_ID": "G-N62V18VZ3S",
   "DAILY_PROMPT": "Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.",
+  "PROMPT_TEST": false,
+  "PROMPTS": {
+    "a": "Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.",
+    "b": "Every morning, check https://today.riffcade.com and pick the one new game I'd enjoy most. Tell me what it is in one line and give me its link.",
+    "c": "Every morning, check https://today.riffcade.com and give me 3 new games for a 5-minute break, one line each with its link."
+  },
+  "TIERS": { "strong_days_7": 4, "strong_daily_days_7": 3, "okay_days_7": 2, "okay_games_today": 3, "okay_minutes_7": 10 },
   "CHALLENGE_EPOCH": "2026-10-15",
   "CHALLENGE_GAMES": [
     "neon-hop", "tube-rush", "swish-street-basketball-shooting", "slab-up", "marble-dash", "oche-ace-darts-duel", "cloud-leap",

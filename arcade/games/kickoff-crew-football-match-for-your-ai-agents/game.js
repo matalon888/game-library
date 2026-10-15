@@ -208,7 +208,9 @@ function updateNets(dt) {
 }
 
 // ---------------------------------------------------------------- people
-const shortsMat = mat(KITS[0].shorts), bootMat = mat('#1d2033'), rivalShirt = mat(BOTS[0].color), rivalShorts = mat('#2a2f45');
+// the rival club is the computer: plain silver robots, never in a colour that could look like one of your agents
+const SILVER = '#dfe4ec';
+const shortsMat = mat(KITS[0].shorts), bootMat = mat('#1d2033'), rivalShirt = mat(SILVER, { metalness: 0.15, roughness: 0.28, emissive: '#3a3f48', emissiveIntensity: 0.35 }), rivalShorts = mat('#b4bcc8', { metalness: 0.15, roughness: 0.35 });
 function makeMan(shirt, { robot = false, shorts = shortsMat } = {}) {
   const m = stickman(shirt, robot ? '#cfd6e4' : pick(SKINS), 1);
   if (robot) m.body.material = m.armL.children[0].material = m.armR.children[0].material = rivalShirt;
@@ -266,7 +268,7 @@ const ourKeeper = makeActor('us', '#2b2f45', { speed: 7 });
 ourKeeper.mesh.body.material = mat('#ffd23f'); ourKeeper.mesh.armL.children[0].material = ourKeeper.mesh.armR.children[0].material = mat('#ffd23f'); ourKeeper.keeper = true;
 const rivals = Array.from({ length: 5 }, (_, i) => { const r = makeActor('them', BOTS[0].color, { robot: true, shorts: rivalShorts, speed: 5.6 }); r.lane = [-7, -2.4, 2.4, 7, 0][i]; r.pos.set(6 + i, 0, r.lane); return r; });
 const rivalKeeper = makeActor('them', '#20c997', { robot: true, shorts: rivalShorts, speed: 7 });
-rivalKeeper.mesh.body.material = mat('#9be15d'); rivalKeeper.mesh.armL.children[0].material = rivalKeeper.mesh.armR.children[0].material = rivalKeeper.mesh.body.material; rivalKeeper.keeper = true;
+rivalKeeper.mesh.body.material = rivalShirt; rivalKeeper.mesh.armL.children[0].material = rivalKeeper.mesh.armR.children[0].material = rivalKeeper.mesh.body.material; rivalKeeper.keeper = true;
 ourKeeper.pos.set(-L + 0.8, 0, 0); rivalKeeper.pos.set(L - 0.8, 0, 0);
 
 // ball
@@ -338,7 +340,7 @@ function newMatch(data) {
 }
 const opp = () => CLUB(M ? M.opp : BOTS[D().league.md % BOTS.length].short);
 function dressRivals() {
-  const o = opp(); rivalShirt.color.set(o.color);
+  const o = opp();
   crowd.paint(US.color, o.color);
   $('themName').textContent = o.short; $('themBadge').style.background = o.color; $('usBadge').style.background = US.color;
   document.documentElement.style.setProperty('--them', o.color);
@@ -709,7 +711,7 @@ function hud() {
   const m = $('mom'); m.classList.toggle('them', P.poss === 'them'); $('momFill').style.width = (P.p * 100) + '%'; $('momBall').style.left = (P.p * 100) + '%';
   const steps = r => stepsToday.get(r.id) || r.passes;
   const f = [...AG.values()].sort((a, b) => b.goals - a.goals || steps(b) - steps(a));
-  $('team').innerHTML = `<h4><span>${US.short} · ${f.length} agent${f.length === 1 ? '' : 's'}</span><span title="successful steps today · goals">✓ ⚽</span></h4>` + (f.length ? f.slice(0, 9).map(r => `<div class="r"><span class="d" style="background:${r.color}"></span><span class="n">${esc(r.tag)}${r.sub ? '<small>sub</small>' : ''}${r.actor ? '' : '<small>bench</small>'}${r.waiting ? ' 🙋' : ''}</span><span class="s" title="successful steps today">${steps(r)}</span><span class="g">${r.goals ? '⚽' + r.goals : ''}</span></div>`).join('') + (f.length > 9 ? `<div class="r"><span></span><span class="n"><small>+${f.length - 9} more</small></span></div>` : '') : '<div class="r"><span></span><span class="n"><small>no agents on the pitch yet</small></span></div>');
+  $('team').innerHTML = `<h4><span>YOUR AGENTS · ${f.length}</span><span title="successful steps today · goals">✓ ⚽</span></h4><p class="legend">Each player is one of your Claude Code / Codex sessions, named after its project folder. Silver robots are the computer team.</p>` + (f.length ? f.slice(0, 9).map(r => `<div class="r"><span class="d" style="background:${r.color}"></span><span class="n">${esc(r.tag)}${r.sub ? '<small>sub</small>' : ''}${r.actor ? '' : '<small>bench</small>'}${r.waiting ? ' 🙋' : ''}</span><span class="s" title="successful steps today">${steps(r)}</span><span class="g">${r.goals ? '⚽' + r.goals : ''}</span></div>`).join('') + (f.length > 9 ? `<div class="r"><span></span><span class="n"><small>+${f.length - 9} more</small></span></div>` : '') : '<div class="r"><span></span><span class="n"><small>no agents on the pitch yet</small></span></div>');
   const calls = f.filter(r => r.waiting).slice(0, phone() ? 1 : 2);
   const key = calls.map(r => r.id).join();
   if ($('calls').dataset.k !== key) { $('calls').dataset.k = key; $('calls').innerHTML = calls.map(r => `<button class="call" data-id="${esc(r.id)}">🙋 ${esc(r.tag)} wants the coach</button>`).join(''); $('calls').querySelectorAll('.call').forEach(b => b.onclick = e => { e.stopPropagation(); answer(AG.get(b.dataset.id)); }); }

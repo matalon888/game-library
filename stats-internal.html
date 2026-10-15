@@ -25,6 +25,11 @@ td.z { color: var(--muted) }
 <main>
 <h1>RIFFCADE counts</h1>
 <p>Per UTC day from riffcade.com (never the chat versions). A session is one browser tab; no lasting ids. Last 30 days.</p>
+<h2 style="font-size:16px;margin:22px 0 4px">Daily prompt test</h2>
+<p>Per prompt variant (config.js PROMPTS, while PROMPT_TEST is on): button taps, the AI's scheduled task reading today.riffcade.com (it ran), and visits from its links. Fetches / tap ≈ how many taps became a running daily task; visits / fetch ≈ how well the AI's message makes people play.</p>
+<div class="wrap" style="margin-bottom:22px"><table id="pt"><thead><tr><th>Prompt</th><th>Taps</th><th>Task runs</th><th>Visits</th><th>Runs / tap</th><th>Visits / run</th></tr></thead><tbody><tr><td>Loading…</td></tr></tbody></table></div>
+<h2 style="font-size:16px;margin:22px 0 4px">Per day</h2>
+<p>Weak / okay / strong: each session's player, from their own play history on their device (habits.js; thresholds in config.js TIERS).</p>
 <div class="wrap"><table id="t"><thead></thead><tbody><tr><td>Loading…</td></tr></tbody></table></div>
 </main>
 <script>
@@ -32,6 +37,9 @@ const COLS = [
   ['Sessions', d => d.sessions],
   ['Games', d => e(d, 'game')],
   ['Games / session', d => d.sessions ? (e(d, 'game') / d.sessions).toFixed(2) : '–'],
+  ['Weak', d => pct(d, 'tier_weak')],
+  ['Okay', d => pct(d, 'tier_okay')],
+  ['Strong', d => pct(d, 'tier_strong')],
   ['Challenge plays', d => e(d, 'challenge_play')],
   ['Challenge done', d => e(d, 'challenge_done')],
   ['Shares', d => e(d, 'share')],
@@ -53,6 +61,14 @@ const COLS = [
   ['Consent no', d => e(d, 'consent_decline')],
 ];
 const e = (d, k) => d.events[k] || 0;
+// a tier's share of the day's sessions that reported one (each session reports its player's tier once)
+const pct = (d, k) => { const t = e(d, 'tier_weak') + e(d, 'tier_okay') + e(d, 'tier_strong'); return t ? `${e(d, k)} · ${Math.round(100 * e(d, k) / t)}%` : 0; };
+Promise.all([fetch('https://mcp.riffcade.com/api/clicks', { cache: 'no-store' }).then(r => r.json()), fetch('https://mcp.riffcade.com/api/ev-stats', { cache: 'no-store' }).then(r => r.json())]).then(([clicks, ev]) => {
+  const tot = k => Object.values(ev.days).reduce((n, d) => n + (d.events[k] || 0), 0), c = k => (clicks[k] || {}).clicks || 0;
+  const ratio = (a, b) => b ? (a / b).toFixed(2) : '–';
+  document.querySelector('#pt tbody').innerHTML = ['a', 'b', 'c', 'd', 'e'].filter(v => c('ptap-' + v) || c('pvfetch-' + v) || tot('daily_v_' + v))
+    .map(v => `<tr><td>${v}${v === 'a' ? ' (control)' : ''}</td><td>${c('ptap-' + v)}</td><td>${c('pvfetch-' + v)}</td><td>${tot('daily_v_' + v)}</td><td>${ratio(c('pvfetch-' + v), c('ptap-' + v))}</td><td>${ratio(tot('daily_v_' + v), c('pvfetch-' + v))}</td></tr>`).join('') || '<tr><td colspan="6">No prompt-test data yet.</td></tr>';
+}).catch(() => {});
 fetch('https://mcp.riffcade.com/api/ev-stats', { cache: 'no-store' }).then(r => r.json()).then(({ days }) => {
   const rows = Object.entries(days).sort((a, b) => (a[0] < b[0] ? 1 : -1));
   const total = { sessions: 0, events: {} };

@@ -16,7 +16,7 @@ const API = new URLSearchParams(location.search).get('lbapi') || 'https://mcp.ri
 const POWER = '_power';
 const ISO = 'AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PR PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW'.split(' ');
 const TZ = { 'Europe/Lisbon': 'PT', 'Atlantic/Madeira': 'PT', 'Atlantic/Azores': 'PT', 'Europe/Dublin': 'IE', 'Europe/Brussels': 'BE', 'Europe/Zurich': 'CH', 'Europe/Vienna': 'AT', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI', 'Europe/Athens': 'GR', 'Europe/Prague': 'CZ', 'Europe/Budapest': 'HU', 'Europe/Bucharest': 'RO', 'Europe/Moscow': 'RU', 'Asia/Bangkok': 'TH', 'Asia/Jakarta': 'ID', 'Asia/Manila': 'PH', 'Asia/Hong_Kong': 'HK', 'Asia/Taipei': 'TW', 'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD', 'Asia/Riyadh': 'SA', 'Africa/Cairo': 'EG', 'Africa/Nairobi': 'KE', 'America/Bogota': 'CO', 'America/Lima': 'PE', 'America/Santiago': 'CL', 'Australia/Melbourne': 'AU', 'Pacific/Auckland': 'NZ', 'America/Vancouver': 'CA', 'Europe/London': 'GB', 'Europe/Madrid': 'ES', 'Europe/Paris': 'FR', 'Europe/Berlin': 'DE', 'Europe/Rome': 'IT', 'Europe/Amsterdam': 'NL', 'Europe/Kyiv': 'UA', 'Europe/Warsaw': 'PL', 'Europe/Istanbul': 'TR', 'Asia/Jerusalem': 'IL', 'Asia/Tel_Aviv': 'IL', 'Asia/Kolkata': 'IN', 'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR', 'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG', 'Asia/Dubai': 'AE', 'Australia/Sydney': 'AU', 'America/Sao_Paulo': 'BR', 'America/Mexico_City': 'MX', 'America/Toronto': 'CA', 'America/Buenos_Aires': 'AR', 'Africa/Lagos': 'NG', 'Africa/Johannesburg': 'ZA' };
-export const flag = cc => /^[A-Z]{2}$/.test(cc || '') ? String.fromCodePoint(...[...cc].map(c => 0x1f1e6 + c.charCodeAt(0) - 65)) : '🏳️';
+export const flag = cc => cc === 'XX' ? '🤖' : /^[A-Z]{2}$/.test(cc || '') ? String.fromCodePoint(...[...cc].map(c => 0x1f1e6 + c.charCodeAt(0) - 65)) : '🏳️';
 const regionName = (() => { try { const d = new Intl.DisplayNames(['en'], { type: 'region' }); return cc => d.of(cc) || cc; } catch (e) { return cc => cc; } })();
 function guessCountry() {
   // the time zone first (where you are), then the browser language (often en-US everywhere)
@@ -163,7 +163,7 @@ export function board({ game, label = 'Score', A = null }) {
     };
   }
   // linking agents → one-tap join the world race
-  addEventListener('riffcade-connected', () => { if (!profile() && !store.get('declined', false)) setTimeout(() => sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Your agents are linked. Put them on the world leaderboard and in your country's team. Pick a nickname and your flag.</p>`), 2500); });
+  addEventListener('riffcade-connected', () => { if (!profile() && !store.get('declined', false)) setTimeout(() => sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Your agents are linked. Put them on the world leaderboard and in your country's team. Pick a nickname and your flag.</p>`, () => setTimeout(autoMatch, 1500)), 2500); });
 
   // duels
   let duels = [];
@@ -193,6 +193,44 @@ export function board({ game, label = 'Score', A = null }) {
     };
     profile() ? go() : sheet('<h2>⚔️ Challenge a friend</h2><p class="bd-sub">24 hours: whose AI agents ship more. Pick your nickname and flag first.</p>', go);
   }
+  // ---- matchmaking: everyone in the race always has a rival. A real player who is also looking first; if nobody
+  // turns up within ~15 s, a simulated rival (realistic nickname + flag, a pace close to yours, marked "sim" in the panel)
+  let matching = false;
+  async function autoMatch() {
+    const p = profile();
+    if (!p || matching || (A && A.demo) || !(A && A.connected && A.connected.length)) return;
+    if (duels.some(d => d.status === 'live')) return;
+    matching = true; chip();
+    const t0 = Date.now();
+    try {
+      for (;;) {
+        const r = await fetch(`${API}/api/match`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client, name: p.name, country: p.country }) });
+        const d = await r.json(); if (!r.ok) break;
+        if (d.status === 'live') { const th = d[d.you === 'a' ? 'b' : 'a']; toast(`⚔️ Your rival today: ${th.name} ${flag(th.country)}. 24 hours, whose agents ship more.`, 6000); break; }
+        if (Date.now() - t0 > 15000) { await fetch(`${API}/api/duel/${d.id}/bot`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client }) }); continue; }
+        await new Promise(res => setTimeout(res, 5000));
+      }
+    } catch (e) {}
+    matching = false; await loadDuels();
+  }
+  addEventListener('riffcade-connected', () => setTimeout(autoMatch, 4000));
+  setInterval(autoMatch, 60000);
+
+  // no friend around: duel the house bot (it ships at about your usual pace, and never shows on the world board)
+  async function botDuel(openId) {
+    const go = async () => {
+      const p = profile();
+      try {
+        let id = openId;
+        if (!id) { const r = await fetch(`${API}/api/duel`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client, name: p.name, country: p.country, game: POWER }) }); const d = await r.json(); if (!r.ok) return toast('⚠️ ' + (d.error || 'Could not start the duel')); id = d.id; }
+        const r2 = await fetch(`${API}/api/duel/${id}/bot`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client }) });
+        const j = await r2.json(); if (!r2.ok) return toast('⚠️ ' + (j.error || 'The bot is busy'));
+        toast('🤖 Duel on! 24 hours vs the House Bot. Ship more than it does.', 6000);
+        await loadDuels(); if (!wrap.hidden) render();
+      } catch (e) { toast('⚠️ The duel server is offline right now'); }
+    };
+    profile() ? go() : sheet('<h2>🤖 Duel the House Bot</h2><p class="bd-sub">24 hours: can your AI agents ship more than the bot? Pick your nickname and flag first.</p>', go);
+  }
   // opened a challenge link (?duel=ID)
   const inviteId = new URLSearchParams(location.search).get('duel');
   if (inviteId && /^[A-Za-z0-9]{6,12}$/.test(inviteId)) (async () => {
@@ -215,17 +253,21 @@ export function board({ game, label = 'Score', A = null }) {
   const chipEl = document.createElement('div'); chipEl.className = 'bd-chip'; document.body.appendChild(chipEl);
   function chip() {
     const p = profile();
-    if (!p) { chipEl.innerHTML = A && A.connected && A.connected.length && !(A && A.demo) ? `<div class="bd-cta" data-join>🏁 Join the world race</div>` : ''; }
+    const linked = A && A.connected && A.connected.length && !(A && A.demo);
+    if (!p) chipEl.innerHTML = `<div class="bd-cta" data-join>🏁 ${linked ? 'Join the world race' : 'Race people worldwide'}</div><div data-open style="font-size:12px">🏆 World leaderboard</div>`;
     else {
       const rank = store.get('rank_' + POWER, null);
       const vs = duels.filter(d => d.status === 'live').slice(0, 2).map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a']; const h = Math.max(0, Math.ceil((d.end - Date.now()) / 3600e3));
         return `<div class="bd-vs" data-open><b class="${me.score >= th.score ? 'w' : ''}">You ${me.score}</b><span>⚔️</span><b class="${th.score > me.score ? 'w' : ''}">${th.score} ${th.name} ${flag(th.country)}</b><small>${h} h left</small></div>`; }).join('');
       const open = duels.filter(d => d.status === 'open').length;
-      chipEl.innerHTML = `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small>Ship Score ${fmt(ship.score)}</small></div>${vs}${!vs && !open ? '<div data-duel>⚔️ Challenge a friend</div>' : ''}`;
+      chipEl.innerHTML = `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small>Ship Score ${fmt(ship.score)}</small></div>${vs}${!vs ? (matching ? '<div>🔎 Finding you a rival…</div>' : linked ? '<div data-match>⚔️ Find a rival</div>' : '<div data-link>🔗 Link your agents to get a rival</div>') : ''}`;
     }
     chipEl.querySelectorAll('[data-open]').forEach(e => e.onclick = () => api.open());
-    const j = chipEl.querySelector('[data-join]'); if (j) j.onclick = () => sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Put your agents on the world leaderboard and in your country's team.</p>`);
+    const j = chipEl.querySelector('[data-join]'); if (j) j.onclick = () => linked ? sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Put your agents on the world leaderboard and in your country's team, and get a rival.</p>`, () => setTimeout(autoMatch, 1500)) : A && A.open();
+    const mt = chipEl.querySelector('[data-match]'); if (mt) mt.onclick = () => autoMatch();
+    const lk = chipEl.querySelector('[data-link]'); if (lk) lk.onclick = () => A && A.open();
     const du = chipEl.querySelector('[data-duel]'); if (du) du.onclick = () => challenge();
+    const bo = chipEl.querySelector('[data-bot]'); if (bo) bo.onclick = () => botDuel();
   }
   addEventListener('riffcade-connected', chip);
   setInterval(() => { loadDuels(); }, 30000); loadDuels(); setTimeout(chip, 1500);
@@ -243,10 +285,12 @@ export function board({ game, label = 'Score', A = null }) {
     } catch (e) {}
     const box = document.createElement('div'); box.className = 'bd-duels';
     box.innerHTML = `<h3>⚔️ Duels · 24 h, whose agents ship more</h3>${duels.length ? duels.map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a'];
-      return `<div class="bd-duel"><span>${th ? `vs ${th.name} ${flag(th.country)}` : 'Waiting for a friend to accept'}</span><b>${th ? `${me.score}–${th.score}` : ''} ${d.status === 'live' ? '🔴' : d.status === 'over' ? (me.score > (th ? th.score : 0) ? '🏆' : '·') : ''}</b></div>${d.status === 'open' ? `<div class="bd-link"><input readonly value="${duelLink(d.id)}"><button class="bd-save" data-copy="${duelLink(d.id)}">Copy</button></div>` : ''}`; }).join('') : '<p class="bd-fine" style="margin:0">No duels yet. Challenge a friend and send them the link.</p>'}
-      <button class="bd-save" data-new style="margin-top:8px;width:100%">⚔️ Challenge a friend</button>`;
+      return `<div class="bd-duel"><span>${th ? `vs ${th.name} ${flag(th.country)}${th.sim ? ' <small style="color:#8e88a0">· simulated</small>' : ''}` : 'Waiting for a rival'}</span><b>${th ? `${me.score}–${th.score}` : ''} ${d.status === 'live' ? '🔴' : d.status === 'over' ? (me.score > (th ? th.score : 0) ? '🏆' : '·') : ''}</b></div>${d.status === 'open' ? `<div class="bd-link"><input readonly value="${duelLink(d.id)}"><button class="bd-save" data-copy="${duelLink(d.id)}">Copy</button>${d.you === 'a' ? `<button class="bd-save" data-botid="${d.id}" title="No friend around? The House Bot takes it">🤖</button>` : ''}</div>` : ''}`; }).join('') : '<p class="bd-fine" style="margin:0">No duels yet. Challenge a friend and send them the link.</p>'}
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="bd-save" data-new style="flex:1">⚔️ Challenge a friend</button><button class="bd-save" data-bot style="flex:1">🎲 Practice rival now</button></div>`;
     el.querySelector('.bd-tabs').before(box);
     box.querySelector('[data-new]').onclick = () => challenge();
+    box.querySelector('[data-bot]').onclick = () => botDuel();
+    box.querySelectorAll('[data-botid]').forEach(b => b.onclick = () => botDuel(b.dataset.botid));
     box.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard && navigator.clipboard.writeText(b.dataset.copy).then(() => b.textContent = 'Copied ✓'));
   };
   const api = {
@@ -258,6 +302,7 @@ export function board({ game, label = 'Score', A = null }) {
     ship: () => ({ ...ship }),
     profile,
     challenge,
+    botDuel,
   };
   return api;
 }

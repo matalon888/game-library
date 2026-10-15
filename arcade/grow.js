@@ -28,6 +28,28 @@
   once('session', 'session');
   if (/^daily/.test(q.get('ref') || '')) once('ref_daily', 'ref_daily');  // ?ref=daily or ?ref=daily-<ai> from the /today page
 
+  // ---------------------------------------------------------------- habits -> analytics (habits.js): weak / okay / strong
+  // The tier is worked out on the device from its own play history; only the label leaves it (first-party, per session).
+  // With consent, GA also gets the habit profile as user properties and every game's start / end.
+  const RH = window.RiffHabits || null;
+  const src = RH ? RH.source() : 'direct';
+  const dailyAi = ((q.get('ref') || '').match(/^daily(?:-(\w+))?$/) || [])[0] ? ((q.get('ref') || '').split('-')[1] || 'unknown') : null;
+  const pv = /^[a-e]$/.test(q.get('pv') || '') ? q.get('pv') : 'a';
+  const pos = Math.max(0, Math.min(50, +q.get('pos') || 0));
+  if (RH && dailyAi && !ss.get('dailyMarked', false)) { ss.set('dailyMarked', true); RH.daily(dailyAi); }
+  const prof = RH ? RH.profile() : null, tierNow = RH ? RH.tier(prof) : 'unknown';
+  if (RH && !ss.get('tierSent', false)) {
+    ss.set('tierSent', true);
+    ev('tier_' + tierNow);
+    RC.setUser && RC.setUser({ player_tier: tierNow, days_active_7: String(prof.days_active_7), daily_ai: prof.daily_ai, first_source: prof.first_source, installed: prof.installed, prompt_variant: RH.variant() });
+    ga('player_profile', Object.assign({ player_tier: tierNow, source: src }, prof));
+  }
+  if (dailyAi && !ss.get('once.daily_arrival', false)) {
+    ss.set('once.daily_arrival', true);
+    ev('daily_v_' + pv);
+    ga('daily_arrival', { ai: dailyAi, prompt_variant: pv, list_position: pos, game_id: q.get('g') || '', player_tier: tierNow });
+  }
+
   // ---------------------------------------------------------------- dates (UTC: the same challenge for everyone)
   const today = () => new Date().toISOString().slice(0, 10);
   const shift = (d, n) => new Date(Date.parse(d) + n * 864e5).toISOString().slice(0, 10);
@@ -124,10 +146,25 @@
     }
   }
 
+  // one game's start and end, for GA: how long, best score, how it ended (back / next / close), rounds lost
+  let t0 = 0, endSent = false, roundsLost = 0;
+  function endGame(reason) {
+    if (!t0 || endSent) return Promise.resolve();
+    endSent = true;
+    const secs = (Date.now() - t0) / 1000;
+    if (RH) RH.gameEnd(secs);
+    // GA batches events for ~5 s and drops them when the page goes: this one is beaconed at once (consent.js gaNow)
+    return (RC.gaNow || ((n, p) => Promise.resolve(ga(n, p))))('game_end', { game_id: G.slug, game_category: G.category || '', play_seconds: Math.round(secs), score: best ?? undefined, end_reason: reason, rounds_lost: roundsLost, source: src, player_tier: tierNow });
+  }
+  addEventListener('pagehide', () => endGame('close'));
+
   function onStart(frame) {
     const list = played(); if (!list.includes(G.slug)) list.push(G.slug); ss.set('played', list);
     const count = ss.get('games', 0) + 1; ss.set('games', count);
     ev('game');
+    t0 = Date.now();
+    if (RH) RH.gameStart();
+    ga('game_start', { game_id: G.slug, game_category: G.category || '', original: G.original ? 'yes' : 'no', source: src, list_position: pos, challenge: chN ? 'yes' : 'no', session_game_n: count, player_tier: tierNow });
     if (count === 2) pixel('GamePlayed2', true);
     if (chN) ev('challenge_play');
     if (C.ADS_ENABLED) ads().then(a => { if (a && $('gAdbar')) a.showBanner($('gAdbar')); });
@@ -137,7 +174,7 @@
       if (!s) return;
       let st, sc; try { st = s.state; sc = s.score; } catch (e) { return; }
       if (typeof sc === 'number' && isFinite(sc)) best = Math.max(best ?? 0, Math.round(sc));
-      if (st === 'lost' && !ended) { ended = true; setTimeout(() => { try { if (frame.contentWindow.__game.state === 'lost') gameOver(); else ended = false; } catch (e) { ended = false; } }, 1200); }
+      if (st === 'lost' && !ended) { ended = true; roundsLost++; (RC.gaNow || ga)('round_end', { game_id: G.slug, outcome: 'lost', score: typeof sc === 'number' && isFinite(sc) ? Math.round(sc) : undefined, round_n: roundsLost, player_tier: tierNow }); setTimeout(() => { try { if (frame.contentWindow.__game.state === 'lost') gameOver(); else ended = false; } catch (e) { ended = false; } }, 1200); }
       else if (st !== 'lost' && ended && !$('gNext') && !$('gShare')) ended = false; // they retried
     }, 400);
     addEventListener('pagehide', () => clearInterval(watch));
@@ -179,7 +216,8 @@
 
   // ---------------------------------------------------------------- auto-next (+ the once-per-session rewarded offer)
   const rewardedDue = () => C.ADS_ENABLED && !ss.get('rewardedOffered', false);
-  function go(slug, extra = '') {
+  async function go(slug, extra = '') {
+    await endGame(/from=next/.test(extra) ? 'next' : 'bonus');
     const to = `play.html?g=${encodeURIComponent(slug)}${extra}`;
     // between games: the session's one interstitial, never mid-game
     if (C.ADS_ENABLED) ads().then(a => (a ? a.showInterstitial() : null)).then(() => { location.href = to; }, () => { location.href = to; });
@@ -236,6 +274,7 @@
 
   // shell.js asks before leaving a game (back / Back to RIFFCADE). Resolves true when Grow took over the navigation.
   async function leave(started) {
+    await endGame('back');
     leaving = true;
     document.querySelectorAll('.g-card').forEach(o => o.remove()); // a game-over card still open gives way to the leave flow
     if (started && chN && !shared) await shareCard(true);
@@ -256,7 +295,7 @@
       ev('sub_shown');
       // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
       const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
-      const P = C.DAILY_PROMPT || 'Every morning, check https://riffcade.com/today and send me the 5 newest games with their links.';
+      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.';
       const back = 'https://riffcade.com/arcade/?sub=1';
       const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
         ${iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari</a><p>Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b>, or copy the link.</p><button class="btn ghost" id="gCopyLink">Copy link</button>`
@@ -272,7 +311,7 @@
       const close = () => { o.remove(); removeEventListener('keydown', key); done(); };
       const key = e => { if (e.key === 'Escape') close(); };
       addEventListener('keydown', key);
-      const tap = ch => { ev('sub_tap_' + ch); pixel('DailyButtonTap', true); };
+      const tap = ch => { ev('sub_tap_' + ch); pixel('DailyButtonTap', true); ga('prompt_tap', { ai: ch, prompt_variant: RH ? RH.variant() : 'a', placement: 'arcade_card', player_tier: tierNow }); fetch(API + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button: 'ptap-' + (RH ? RH.variant() : 'a') }) }).catch(() => {}); };
       // the prompt goes on the clipboard too: if ChatGPT stops for a log-in, or its app opens without it, they paste
       $('gGpt').onclick = () => { tap('chatgpt'); copyText(P).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
       $('gClaude').onclick = () => {

@@ -1,7 +1,7 @@
 // RIFFCADE consent: one banner for everything that needs it (Google Analytics, the Meta pixel, personalised ads).
 // Nothing loads until the visitor taps Accept: no gtag.js, no fbevents.js, no cookieless pings. "No thanks" or no answer = off.
 // Used by the landing page and the arcade (never the chat versions, /today, privacy, terms or support).
-// API (window.RiffConsent): state(), accepted(), ga(name, params), pixel(name, custom), setKids(bool), onChange(fn), open().
+// API (window.RiffConsent): state(), accepted(), ga(name, params), setUser(props), pixel(name, custom), setKids(bool), onChange(fn), open().
 (function () {
   if (new URLSearchParams(location.search).get('embed') === 'chat') return;
   const C = window.RIFFCADE || {};
@@ -72,6 +72,23 @@
     onChange: f => listeners.push(f),
     setKids(v) { kids = !!v; start(); },
     ga(name, params) { if (!C.GA4_ID || state() !== 'accepted' || kids) return; const f = () => window.gtag && gtag('event', name, params || {}); started ? f() : queue.push(f); },
+    // an event that must reach GA even though the page is about to change (a game's end). gtag holds events for ~5 s
+    // and loses them when the page goes, so this one is sent at once as GA's own collect hit, with the same visitor
+    // and session ids (the _ga cookies) via sendBeacon, which survives the page unloading. Same consent gate.
+    gaNow(name, params) {
+      if (!C.GA4_ID || state() !== 'accepted' || kids || !started) return Promise.resolve();
+      const ck = document.cookie;
+      const cid = (ck.match(/(?:^|; )_ga=GA\d\.\d\.(\d+\.\d+)/) || [])[1];
+      const sid = (ck.match(new RegExp('(?:^|; )_ga_' + C.GA4_ID.slice(2) + '=GS\\d\\.\\d\\.s?(\\d+)')) || [])[1];
+      if (!cid || !navigator.sendBeacon) { if (window.gtag) gtag('event', name, params || {}); return Promise.resolve(); }
+      const u = new URLSearchParams({ v: '2', tid: C.GA4_ID, cid, en: name, _ee: '1', npa: '1', dl: location.href, dt: document.title, ul: (navigator.language || '').toLowerCase(), sr: screen.width + 'x' + screen.height });
+      if (sid) { u.set('sid', sid); u.set('seg', '1'); }
+      for (const [k, v] of Object.entries(params || {})) if (v != null && v !== '') u.set((typeof v === 'number' ? 'epn.' : 'ep.') + k, String(v));
+      navigator.sendBeacon('https://region1.google-analytics.com/g/collect?' + u, '');
+      return Promise.resolve();
+    },
+    // GA user properties (player tier, habits): same gate as events
+    setUser(props) { if (!C.GA4_ID || state() !== 'accepted' || kids) return; const f = () => window.gtag && gtag('set', 'user_properties', props); started ? f() : queue.push(f); },
     pixel(name, custom) { if (!C.META_PIXEL_ID || state() !== 'accepted' || kids) return; const f = () => window.fbq && fbq(custom ? 'trackCustom' : 'track', name); started ? f() : queue.push(f); },
   };
 
