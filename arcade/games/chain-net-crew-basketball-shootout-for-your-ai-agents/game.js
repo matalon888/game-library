@@ -900,7 +900,7 @@ async function share() {
   if (top) g.fillText(`MVP: ${top[0]} · ${top[1].made}/${top[1].att} · ${top[1].dunks} dunks · ${top[1].threes} threes`, 40, 456, 560);
   const p = B.profile(), rank = myRank();
   if (p && !demo) { g.font = '700 30px Rubik, sans-serif'; g.fillText(`${flag(p.country)} ${p.name}${rank ? `  #${rank} in the world today` : ''}`, 40, 506, 560); }
-  g.fillStyle = '#8e88a0'; g.font = '700 20px Rubik, sans-serif'; g.fillText('riffcade.com · connect your AI, play basketball', 40, 584);
+  g.fillStyle = '#8e88a0'; g.font = '700 20px Rubik, sans-serif'; g.fillText('agentpark.co · connect your AI, play basketball', 40, 584);
   const blob = await new Promise(r => c.toBlob(r, 'image/png')); const file = new File([blob], 'chain-net-crew.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: 'My AI agents today', text: 'My AI agents on Chain Net Crew', url: location.href.split('?')[0] }); } catch (e) { if (e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'chain-net-crew.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);

@@ -1,4 +1,4 @@
-// Agents — connect the player's own AI coding agents (Claude Code, Codex) to a RIFFCADE game. Shared by every
+// Agents — connect the player's own AI coding agents (Claude Code, Codex) to an AGENTPARK game. Shared by every
 // "Connect your AI" game. Everything runs in this tab: the player picks their ~/.claude or ~/.codex folder once
 // (File System Access API, desktop Chrome/Edge), we re-read only the new bytes of changed log files every 2.5 s.
 // Only tool names, success/failure, token counts, times and the project folder name are used. Prompts, code and
@@ -225,7 +225,7 @@ function demoFeed(emit, { agents: n = 4 } = {}) {
 
 // ---------------------------------------------------------------- the link (any device): a code + one Terminal line
 // The player's computer runs link.js (served by mcp.riffcade.com) which posts only counts under a private code; this
-// page polls for them. One code per browser, shared by every riffcade.com game, so linking once works everywhere.
+// page polls for them. One code per browser, shared by every agentpark.co game, so linking once works everywhere.
 const API = new URLSearchParams(location.search).get('lbapi') || 'https://mcp.riffcade.com';
 const linkCode = () => {
   let c = null; try { c = localStorage.getItem('riffcade_link_code'); } catch (e) {}
@@ -260,7 +260,7 @@ function relay(code, emit, onLinked) {
   // what's wrong with the link right now, in plain words ('' = all good)
   function signal() {
     if (!linked) return '';
-    if (fails >= 3) return "Can't reach riffcade.com from this device. Check your internet connection.";
+    if (fails >= 3) return "Can't reach the game server from this device. Check your internet connection.";
     const mins = Math.floor((Date.now() - skew - lastSeen) / 60e3);
     if (health && health.v >= 2) {                         // link.js v2 beats every 30 s: silence means the window closed
       if (mins >= 2) return `No signal from your computer for ${mins} min. Is the Terminal window still open? Paste the line again to relink.`;
@@ -350,7 +350,7 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
 
   const code = linkCode();
   const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent), win = /Win/.test(navigator.platform || '');
-  const SRC = new URLSearchParams(location.search).get('lbapi') ? `${API}/link.js` : 'riffcade.com/arcade/link.js';   // short line to type
+  const SRC = new URLSearchParams(location.search).get('lbapi') ? `${API}/link.js` : 'agentpark.co/arcade/link.js';   // short line to type
   const cmdFor = os => os === 'win' ? `irm ${SRC} | node - ${code}` : `curl -sL ${SRC} | node - ${code}`;
   const phone = !supported && matchMedia('(pointer: coarse)').matches;
   const card = document.createElement('section'); card.className = 'ag-card';
@@ -361,7 +361,7 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
       <div class="ag-cmd"><code>${cmdFor(win ? 'win' : 'mac')}</code><button class="ag-big" data-copy>Copy</button></div>
       ${phone && navigator.share ? '<button class="ag-big" data-send style="width:100%;margin-top:4px">📤 Send this line to my computer</button>' : ''}
       <div class="ag-status"><span class="ag-dot"></span><span data-status>Waiting for your computer… keep that Terminal window open while you play.</span></div>
-      <p class="ag-fine">Needs Node 18+ (already there if you installed Claude Code or Codex with npm). Linking once works in every RIFFCADE agent game.</p></div>
+      <p class="ag-fine">Needs Node 18+ (already there if you installed Claude Code or Codex with npm). Linking once works in every AGENTPARK agent game.</p></div>
     <div class="ag-step" ${phone ? 'hidden' : ''}><h3>💻 Or pick the folder <small>· this computer, Chrome or Edge, no Terminal</small></h3>
       <div class="ag-pick"><button class="ag-ghost" data-src="claude">Claude Code folder</button><button class="ag-ghost" data-src="codex">Codex folder</button></div>
       <p class="ag-fine">We copy the folder path for you. In the window that opens, ${mac ? 'press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>G</kbd>, then <kbd>⌘</kbd><kbd>V</kbd>, <kbd>Enter</kbd>, and click <b>Select</b>' : 'click the address bar, press <kbd>Ctrl</kbd><kbd>V</kbd>, <kbd>Enter</kbd>, then <b>Select Folder</b>'}.</p></div>
@@ -384,7 +384,7 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
   };
 
   const send = card.querySelector('[data-send]');
-  if (send) send.onclick = () => navigator.share({ title: 'Link my AI agents to RIFFCADE', text: 'Paste this in Terminal on my computer:\n' + card.querySelector('.ag-cmd code').textContent }).catch(() => {});
+  if (send) send.onclick = () => navigator.share({ title: 'Link my AI agents to AGENTPARK', text: 'Paste this in Terminal on my computer:\n' + card.querySelector('.ag-cmd code').textContent }).catch(() => {});
   function open() { card.hidden = false; }
   function close() { card.hidden = true; }
   // closing without connecting keeps the demo team playing, so the game is never empty

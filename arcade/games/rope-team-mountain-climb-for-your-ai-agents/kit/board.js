@@ -1,4 +1,4 @@
-// Board — world leaderboards with country flags for the "Connect your AI" games (shared across riffcade.com).
+// Board — world leaderboards with country flags for the "Connect your AI" games (shared across agentpark.co).
 //   • every game has its own board (its own score), plus the shared AGENT POINTS board: what your agents actually
 //     shipped today (successful steps, passed tests ×5, commits ×5, deploys ×10, minus failures), not raw tokens
 //   • tabs: Today / This week / All time / Countries (a country's score is the sum of its players)
@@ -137,7 +137,7 @@ export function board({ game, label = 'Score', A = null }) {
     const p = profile(), cc = (p && p.country) || guessCountry();
     const tabs = (arr, cur, key) => arr.map(([v, t]) => `<button data-${key}="${v}" aria-pressed="${v === cur}">${t}</button>`).join('');
     el.innerHTML = `<button class="bd-x" aria-label="Close">✕</button><h2>🏆 World leaderboard</h2>
-      <p class="bd-sub">${which === POWER ? `<b>⚡ Agent points: what your agents got done today</b>, in every RIFFCADE game. Tokens don't count, results do.${ship.tools ? `<br>You: ${breakdown()} = <b>${fmt(ship.score)}</b>` : ''}`
+      <p class="bd-sub">${which === POWER ? `<b>⚡ Agent points: what your agents got done today</b>, in every AGENTPARK game. Tokens don't count, results do.${ship.tools ? `<br>You: ${breakdown()} = <b>${fmt(ship.score)}</b>` : ''}`
         : which === REPLY ? `<b>🙋 Fast replies: how often you answered a waiting agent within 2 minutes today.</b> An agent waiting on you ships nothing.${reply.n ? `<br>You: ${reply.quick} of ${reply.n} replies under 2 min · typical wait ${dur(median(reply.times))}` : ''}`
         : `${label} in this game, people's AI agents from all over the world.`}</p>
       <div class="bd-tabs">${tabs([[game, label], [POWER, '⚡ Agent points'], [REPLY, '🙋 Fast replies']], which, 'g')}</div>

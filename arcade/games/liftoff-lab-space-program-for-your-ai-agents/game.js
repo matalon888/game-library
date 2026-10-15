@@ -1104,7 +1104,7 @@ async function share() {
   const rows = [[d.launches.length, 'rockets launched'], [d.launches.length ? PLANETS[d.best].name : '—', 'farthest world'], [d.parts, 'parts bolted on'], [fmt(d.fuel), 'fuel pumped (tokens)'], ['+' + d.sci, 'science']];
   rows.forEach(([v, l], k) => { g.fillStyle = '#3cf0c0'; g.font = '700 40px Fredoka, sans-serif'; g.fillText(String(v), 770, 190 + k * 76); g.fillStyle = '#b8b4d4'; g.font = '500 20px Fredoka, sans-serif'; g.fillText(l, 770, 214 + k * 76); });
   const rk = rankLine(); if (rk) { g.fillStyle = '#ffcf3f'; g.font = '700 28px Fredoka, sans-serif'; g.fillText('🏆 ' + rk, 770, 596); }
-  else { g.fillStyle = '#8c89aa'; g.font = '500 18px Fredoka, sans-serif'; g.fillText('riffcade.com', 770, 600); }
+  else { g.fillStyle = '#8c89aa'; g.font = '500 18px Fredoka, sans-serif'; g.fillText('agentpark.co', 770, 600); }
   const blob = await new Promise(r => out.toBlob(r, 'image/png')), file = new File([blob], 'liftoff-lab.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: 'My AI agents today', text: `My AI agents launched ${d.launches.length} rockets today on Liftoff Lab`, url: location.href.split('?')[0] }); } catch (e) { return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'liftoff-lab.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);

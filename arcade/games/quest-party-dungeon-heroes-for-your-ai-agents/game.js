@@ -879,7 +879,7 @@ async function share() {
   const pf = B && B.profile(); let rk = null; try { rk = JSON.parse(localStorage.getItem('board_rank_agent-dungeon')); } catch (e) {}
   g.fillStyle = '#ffcf5a'; g.font = '800 22px "Baloo 2", system-ui';
   g.fillText(pf && mode === 'real' ? `${flag(pf.country)} ${pf.name}${rk ? ` · #${rk} in the world today` : ''} · ${questPoints()} pts` : `${questPoints()} quest points`, 50, 590);
-  g.fillStyle = '#8e88a0'; g.font = '700 18px "Baloo 2", system-ui'; g.fillText('riffcade.com', 1060, 620);
+  g.fillStyle = '#8e88a0'; g.font = '700 18px "Baloo 2", system-ui'; g.fillText('agentpark.co', 1060, 620);
   const blob = await new Promise(r => c.toBlob(r, 'image/png')); const file = new File([blob], 'quest-party-today.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: NAME, text: `My AI agents cleared floor ${save.floor} in Quest Party today`, url: location.href.split('?')[0] }); } catch (e) { if (e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);

@@ -610,7 +610,7 @@ async function share() {
   if (!pod) { pod = order().slice(0, 3); head = `ON TRACK NOW · ${theme.name.toUpperCase()}`; }
   g.fillStyle = '#fff'; g.font = '700 26px "Saira Condensed"'; g.fillText(head, 642, 470);
   pod.forEach((x, i) => { g.fillStyle = x.color; g.fillRect(642, 488 + i * 38, 10, 28); g.fillStyle = '#fff'; g.font = '700 28px "Saira Condensed"'; g.fillText(`P${i + 1}  ${x.name}`, 664, 512 + i * 38); });
-  g.fillStyle = 'rgba(255,255,255,.6)'; g.font = '700 22px "Saira Condensed"'; g.textAlign = 'right'; g.fillText('riffcade.com', 1170, 608);
+  g.fillStyle = 'rgba(255,255,255,.6)'; g.font = '700 22px "Saira Condensed"'; g.textAlign = 'right'; g.fillText('agentpark.co', 1170, 608);
   const blob = await new Promise(res => c.toBlob(res, 'image/png'));
   const file = new File([blob], 'lapwise-my-agents-today.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: 'My AI agents today', text: 'My AI agents raced today on Lapwise', url: location.href.split('?')[0] }); } catch (e) { if (e.name === 'AbortError') return; }

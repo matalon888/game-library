@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// (copy of ~/arcade-api/link.js, served as riffcade.com/arcade/link.js for a short Terminal line: keep both in sync)
+// (copy of ~/arcade-api/link.js, served as agentpark.co/arcade/link.js for a short Terminal line: keep both in sync)
 // RIFFCADE agent link: lets your riffcade.com "Connect your AI" games (on any device, phone included) follow what
 // your Claude Code and Codex agents are doing on this computer.
 //   curl -fsSL https://mcp.riffcade.com/link.js | node - <code>
@@ -132,7 +132,7 @@ function readNew(src, root, file, first) {
 }
 let sent = 0, failures = 0, linked = false, lastBeat = 0;
 const have = ROOTS.filter(([, r]) => fs.existsSync(r)).map(([s]) => s === 'claude' ? 'Claude Code' : 'Codex');
-console.log('RIFFCADE link · connecting your agents…');
+console.log('AGENTPARK link · connecting your agents…');
 const queue = [];
 const agentsSeen = new Set();
 async function post(events, backfill, health) {
@@ -160,7 +160,7 @@ async function tick(first) {
       await post(batch, first || !linked, health); queue.splice(0, batch.length); sent += batch.length; failures = 0; batch.forEach(e => agentsSeen.add(e.agent));
       if (!linked) { linked = true; console.log(`\n✅ Linked! Following ${have.join(' + ') || 'your agents'}. Your game shows them in a few seconds.\n   Keep this window open while you play. Ctrl+C stops it. Only counts are sent, never prompts or code.`); }
     }
-    catch (e) { if (++failures === 1) console.log('\n⚠️  Could not reach riffcade.com (' + e.message + '). Retrying…'); }
+    catch (e) { if (++failures === 1) console.log('\n⚠️  Could not reach the game server (' + e.message + '). Retrying…'); }
   }
   if (first && !have.length) console.log('⚠️  No Claude Code or Codex logs found on this computer yet (looked in ~/.claude and ~/.codex). Start an agent and they will show up.');
   if (linked) process.stdout.write(`\r   ${sent} agent events sent · ${agentsSeen.size} agent sessions today   `);

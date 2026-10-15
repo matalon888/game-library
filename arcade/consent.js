@@ -50,7 +50,7 @@
 .rc-card{position:relative;width:min(400px,100%);background:#FFFDF8;color:#1E1B33;border-radius:28px;padding:62px 24px 22px;box-shadow:0 30px 80px rgba(0,0,0,.45);display:grid;gap:14px;text-align:center;font:15px/1.45 'DM Sans','Space Grotesk',system-ui,-apple-system,sans-serif;animation:rcPop .38s cubic-bezier(.2,1.4,.4,1) both}
 .rc-card img{position:absolute;left:50%;top:-58px;width:112px;height:112px;object-fit:contain;transform:translateX(-50%);filter:drop-shadow(0 10px 14px rgba(0,0,0,.3))}
 .rc-card h2{margin:0;font:800 23px/1.1 'Bricolage Grotesque','Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;color:#1E1B33}
-.rc-card p{margin:0;color:#5D5973}.rc-card a{color:#1D8A4A;font-weight:700}
+.rc-card p{margin:0;color:#5D5973}.rc-veil .rc-card a{color:#1D8A4A;font-weight:700}
 .rc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
 .rc-card button{border:0;border-radius:999px;padding:14px 10px;font:700 15.5px/1 'DM Sans',system-ui,sans-serif;cursor:pointer;transition:transform .15s}
 @media (pointer:fine){}.rc-card:focus{outline:none}.rc-card button:active{transform:scale(.97)}.rc-card button:focus-visible{outline:3px solid #8F7DFF;outline-offset:2px}

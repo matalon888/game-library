@@ -667,7 +667,7 @@ function makeCard(lastScore) {
   if (best) { o.fillStyle = '#7de8ff'; o.font = F(18); o.fillText(`TOP AGENT GAME: ${best[1]}`, 760, 498); }
   const p = B.profile(); let rank = null; try { rank = JSON.parse(localStorage.getItem('board_rank_' + GAME)); } catch (e) {}
   if (p && !A.demo) { o.fillStyle = '#fff'; o.font = "700 30px system-ui, sans-serif"; o.fillText(`${flag(p.country)} ${p.name}${rank ? '  #' + rank + ' today' : ''}`, 760, 552); }
-  o.fillStyle = 'rgba(255,255,255,.55)'; o.font = "600 18px 'Baloo 2', system-ui, sans-serif"; o.fillText('riffcade.com · bowling league for your AI agents', 760, 600);
+  o.fillStyle = 'rgba(255,255,255,.55)'; o.font = "600 18px 'Baloo 2', system-ui, sans-serif"; o.fillText('agentpark.co · bowling league for your AI agents', 760, 600);
   return out;
 }
 async function share(lastScore) {

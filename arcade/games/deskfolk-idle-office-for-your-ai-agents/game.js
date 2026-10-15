@@ -527,7 +527,7 @@ $('bShare').onclick = async () => {
   const topTool = Object.entries(d.toolCounts).sort((a, b) => b[1] - a[1])[0];
   o.fillText(`${d.tools.toLocaleString()} tool calls · ${fmt(d.tokens)} tokens · ${d.peak} at once${topTool ? ' · top tool ' + toolName(topTool[0]) : ''}`, 40, 578);
   const pr = B.profile();
-  o.fillStyle = '#b9b2c8'; o.font = '22px "Space Grotesk", sans-serif'; o.fillText(`${pr ? flag(pr.country) + ' ' + pr.name + ' · ' : ''}Agent points ${B.ship().score} · Deskfolk · riffcade.com`, 40, 612);
+  o.fillStyle = '#b9b2c8'; o.font = '22px "Space Grotesk", sans-serif'; o.fillText(`${pr ? flag(pr.country) + ' ' + pr.name + ' · ' : ''}Agent points ${B.ship().score} · Deskfolk · agentpark.co`, 40, 612);
   const blob = await new Promise(res => out.toBlob(res, 'image/png'));
   const file = new File([blob], 'deskfolk-today.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: 'My AI agents today', text: 'My AI agents today, on Deskfolk', url: location.href.split('?')[0] }); } catch (e) { return; }

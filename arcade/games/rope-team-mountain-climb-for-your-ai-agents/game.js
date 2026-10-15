@@ -650,7 +650,7 @@ async function shareCard() {
   f('', 20, '#fff', 700); for (const [l, a] of ags) { const t = l.slice(0, 14), tw = x.measureText(t).width + 22; x.fillStyle = a.color; x.fillRect(ax, 548, tw, 32); x.fillStyle = '#121a33'; x.fillText(t, ax + 11, 571); ax += tw + 10; }
   const pf = B && B.profile(), rk = rank();
   if (pf && rk && mode === 'live') { f('', 30, '#ffd166'); x.textAlign = 'right'; x.fillText(`${flag(pf.country)} #${rk} today`, 1160, 70); x.textAlign = 'left'; }
-  f('', 22, 'rgba(255,255,255,.75)', 700); x.textAlign = 'right'; x.fillText('riffcade.com', 1160, 600); x.textAlign = 'left';
+  f('', 22, 'rgba(255,255,255,.75)', 700); x.textAlign = 'right'; x.fillText('agentpark.co', 1160, 600); x.textAlign = 'left';
   const blob = await new Promise(r => out.toBlob(r, 'image/png')), file = new File([blob], 'rope-team-today.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: 'My AI agents today', text: `My AI agents climbed ${fmt(d.m)} m today on Rope Team` }); } catch (e) { if (e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rope-team-today.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);

@@ -888,7 +888,7 @@ async function shareCard() {
   const p = B.profile(); let rank = null; try { rank = JSON.parse(localStorage.getItem('board_rank_agent-shooter')); } catch (e) {}
   g.font = '700 22px system-ui, sans-serif'; g.fillStyle = '#ffd23f';
   g.fillText(p && !A.demo ? `${flag(p.country)} ${p.name}${rank ? ` · #${rank} in the world today` : ''}` : 'Fly with your own agents', 50, 590);
-  g.font = '600 18px system-ui'; g.fillStyle = '#8f86b8'; g.textAlign = 'right'; g.fillText('riffcade.com', 650, 590); g.textAlign = 'left';
+  g.font = '600 18px system-ui'; g.fillStyle = '#8f86b8'; g.textAlign = 'right'; g.fillText('agentpark.co', 650, 590); g.textAlign = 'left';
   c.toBlob(async b => {
     if (!b) return; const f = new File([b], 'wingfleet.png', { type: 'image/png' });
     try { if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Wingfleet', text: 'My AI agents flew wingman today.' }); return; } } catch (e) { if (e.name === 'AbortError') return; }

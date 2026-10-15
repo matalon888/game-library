@@ -962,7 +962,7 @@ async function share() {
   const lg = d.league, pos = sorted(lg.table).findIndex(([k]) => k === US.short) + 1;
   g.fillText(`Season ${lg.season} · ${ord(pos)} in the league${top ? ` · star: ${top.tag}` : ''}${demoMode ? ' · demo' : ''}`, 50, 452);
   const rk = rankLine(); if (rk) { g.textAlign = 'right'; g.fillText(rk.replace(/&amp;/g, '&').replace(/&lt;/g, '<'), 1150, 452); g.textAlign = 'left'; }
-  g.fillStyle = '#c7cbe6'; g.font = '800 20px "Baloo 2", system-ui'; g.textAlign = 'right'; g.fillText('riffcade.com', 1150, 608); g.textAlign = 'left';
+  g.fillStyle = '#c7cbe6'; g.font = '800 20px "Baloo 2", system-ui'; g.textAlign = 'right'; g.fillText('agentpark.co', 1150, 608); g.textAlign = 'left';
   const blob = await new Promise(res => c.toBlob(res, 'image/png'));
   const file = new File([blob], 'kickoff-crew.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: 'My AI agents today', text: 'My AI agents played football today', url: location.href.split('?')[0] }); } catch (e) { return; }
