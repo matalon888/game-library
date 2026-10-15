@@ -81,6 +81,9 @@ h1 { font: 800 clamp(46px, 8.5vw, 92px)/.9 var(--display); letter-spacing: -.04e
   display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px); background: var(--card); color: var(--dark); padding: 12px 18px 12px 12px; border-radius: 20px;
   box-shadow: 0 20px 50px -12px rgba(0, 0, 0, .7); transition: .35s cubic-bezier(.2, 1.3, .4, 1); font-size: 14.5px }
 .listed.on { opacity: 1; transform: translate(-50%, 0) }
+.escape { position: sticky; top: 0; z-index: 25; display: grid; gap: 6px; padding: 12px 16px calc(12px); background: #FFC93C; color: #1E1B33; text-align: center; font-size: 14px }
+.escape b { font-size: 16px } .escape small { opacity: .7 }
+.escape a { justify-self: center; background: #1E1B33; color: #fff; font-weight: 800; padding: 10px 22px; border-radius: 999px; text-decoration: none }
 .psheet { position: fixed; inset: 0; z-index: 30; display: none; place-items: end center; background: rgba(14,20,40,.45); padding: 16px }
 .psheet.on { display: grid }
 .psheet > div { width: min(420px, 100%); background: #fff; color: #1E1B33; border-radius: 22px; padding: 18px; display: grid; gap: 10px; margin-bottom: env(safe-area-inset-bottom, 0px) }
@@ -173,8 +176,9 @@ footer a { color: var(--muted) }
     a.addEventListener('click', e => {
       countClick(k);
       if (window.RiffHabits) RiffHabits.agentTapped(k);
-      if (k === 'gemini' && !a.dataset.go) { e.preventDefault(); copyText(DAILY).then(ok => pasteSheet(ok)); return; }
+      if (k === 'gemini' && !a.dataset.go) { e.preventDefault(); copyText(DAILY).then(ok => { if (window.RiffHabits) { RiffHabits.ob(ok ? 'copied' : 'copy_fail', k); RiffHabits.ob('paste_sheet', k); } pasteSheet(ok); }); return; }
       copyText(DAILY).then(ok => {
+        if (window.RiffHabits) RiffHabits.ob(ok ? 'copied' : 'copy_fail', k);
         if (!ok) return listed('Paste this into ' + NAMES[k] + ':', DAILY, 9000);
         listed("You're on the list.", 'Tap Send in ' + NAMES[k] + '. Box empty? Tap it, Paste, Send (the prompt is copied).');
       });
@@ -191,13 +195,27 @@ footer a { color: var(--muted) }
         + '<a class="go" target="_blank" rel="noopener" href="https://gemini.google.com/app">Open Gemini</a><button type="button">Cancel</button></div>';
       document.body.appendChild(d);
       d.querySelector('button').onclick = () => d.classList.remove('on');
-      d.querySelector('.go').onclick = () => { copyText(DAILY); setTimeout(() => d.classList.remove('on'), 400); };
+      d.querySelector('.go').onclick = () => { if (window.RiffHabits) RiffHabits.ob('paste_open', 'gemini'); copyText(DAILY); setTimeout(() => d.classList.remove('on'), 400); };
     }
     d.querySelector('textarea').value = DAILY;
     d.querySelector('p').innerHTML = ok ? 'In Gemini: tap the message box, tap <b>Paste</b>, then <b>Send</b>.' : 'Copy the prompt below, then in Gemini paste it and tap <b>Send</b>.';
     d.classList.add('on');
   }
 
+  if (window.RiffHabits) RiffHabits.ob('view');
+  if (window.RiffHabits && window.RiffConsent) RiffConsent.onChange(v => RiffHabits.ob(v === 'accepted' ? 'consent_yes' : 'consent_no'));
+  // inside Instagram / Facebook / TikTok's own browser, AI links open the AI's website inside that app (logged out) instead
+  // of the AI's app, so the first step is: open this page in the phone's real browser (same flows as grow.js)
+  if (window.RiffHabits && RiffHabits.inapp && RiffHabits.plat !== 'desktop') {
+    const u = new URL(location.href); u.searchParams.set('apu', RiffHabits.agentCode()); if (!u.searchParams.get('utm_source')) u.searchParams.set('utm_source', RiffHabits.inapp);
+    const here = u.href.replace(/^https?:\/\//, '');
+    const bar = document.createElement('div'); bar.className = 'escape';
+    bar.innerHTML = '<b>One step first: open this in ' + (RiffHabits.plat === 'ios' ? 'Safari' : 'Chrome') + '</b><span>So ChatGPT, Claude or Grok opens in its app, already logged in.</span>'
+      + (RiffHabits.plat === 'ios' ? '<a href="x-safari-https://' + here + '">Open in Safari</a><small>Nothing happens? Tap ⋯ then Open in browser.</small>'
+        : '<a href="intent://' + here + '#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a><small>Nothing happens? Tap ⋮ then Open in Chrome.</small>');
+    document.body.prepend(bar);
+    bar.querySelector('a').addEventListener('click', () => RiffHabits.ob('escape'));
+  }
   // back from the AI: did its agent fetch today.agentpark.co with this browser's code? (habits.js agentWatch)
   if (window.RiffHabits) RiffHabits.agentWatch((state, k) => {
     const n = NAMES[k] || 'your AI';

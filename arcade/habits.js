@@ -4,7 +4,7 @@
 // The prompt also carries this browser's random agent code (?u=, no id beyond it), so the page can ask whether its own AI
 // agent ran: right after the tap (connected / missing) and on later visits (stopped). See agentTapped() and agentWatch().
 // API (window.RiffHabits): profile(), tier(), gameStart(), gameEnd(seconds), daily(ai), source(), variant(), prompt(),
-// agentCode(), agentTapped(ai), agentWatch(cb).
+// agentCode(), agentTapped(ai), agentWatch(cb), ob(step, ai) (the onboarding log).
 (function () {
   if (new URLSearchParams(location.search).get('embed') === 'chat') return;
   const C = window.RIFFCADE || {};
@@ -82,6 +82,8 @@
   const AGENT_API = 'https://mcp.riffcade.com/api/agent?u=';
   function agentCode() {
     let u; try { u = localStorage.getItem('ap.u'); } catch (e) {}
+    // arriving from the "open in Safari / Chrome" step of an in-app browser: keep that visitor's code (?apu=)
+    if (!/^[a-z0-9]{10}$/.test(u || '') && /^[a-z0-9]{10}$/.test(q.get('apu') || '')) { u = q.get('apu'); try { localStorage.setItem('ap.u', u); } catch (e) {} }
     if (!/^[a-z0-9]{10}$/.test(u || '')) {
       u = Array.from(crypto.getRandomValues(new Uint8Array(10)), b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
       try { localStorage.setItem('ap.u', u); } catch (e) {}
@@ -90,7 +92,30 @@
   }
   const tapGet = () => { try { return JSON.parse(localStorage.getItem('ap.tap')) || null; } catch (e) { return null; } };
   const tapSet = t => { try { localStorage.setItem('ap.tap', JSON.stringify(t)); } catch (e) {} };
-  function agentTapped(ai) { tapSet({ ai, at: Date.now(), ok: 0 }); }
+  function agentTapped(ai) { tapSet({ ai, at: Date.now(), ok: 0 }); ob('tap', ai); }
+
+  // ---- onboarding log: each step with this code, the AI, phone/desktop, in-app browser and where they came from
+  // (arcade-api /api/ob; the report is /api/ob-report). Anonymous: the random code is the only identifier.
+  const UA = navigator.userAgent;
+  const PLAT = /iPhone|iPad|iPod/.test(UA) ? 'ios' : /Android/.test(UA) ? 'android' : 'desktop';
+  const INAPP = /Instagram/.test(UA) ? 'instagram' : /FBAN|FBAV|FB_IAB|Messenger/.test(UA) ? 'facebook' : /musical_ly|BytedanceWebview|TikTok/i.test(UA) ? 'tiktok'
+    : /Snapchat/.test(UA) ? 'snapchat' : /LinkedInApp/.test(UA) ? 'linkedin' : /Twitter/.test(UA) ? 'x' : /; wv\)/.test(UA) ? 'webview' : null;
+  const SRC = (() => {   // first touch wins, kept on the device
+    let v; try { v = localStorage.getItem('ap.src'); } catch (e) {}
+    if (v) return v;
+    const r = (document.referrer.match(/^https?:\/\/(?:www\.)?([^/]+)/) || [])[1];
+    v = q.get('utm_source') || (q.get('fbclid') ? 'meta' : q.get('gclid') ? 'google' : q.get('ttclid') ? 'tiktok' : r && !/agentpark\.co|riffcade\.com/.test(r) ? r : 'direct');
+    v = String(v).toLowerCase().replace(/[^\w.-]/g, '').slice(0, 24) || 'direct';
+    try { localStorage.setItem('ap.src', v); } catch (e) {}
+    return v;
+  })();
+  const PLACE = /connect/.test(location.pathname) ? 'connect' : /\/(landing\.html)?$/.test(location.pathname) && !/\/arcade\/$/.test(location.pathname) ? 'landing' : 'arcade';
+  function ob(step, ai) {
+    try {
+      fetch(AGENT_API.replace('/api/agent?u=', '/api/ob'), { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ u: agentCode(), step, ai: ai || null, plat: PLAT, inapp: INAPP, src: SRC, place: PLACE }) }).catch(() => {});
+    } catch (e) {}
+  }
   // cb(state, ai): 'connected' once, at the first fetch after the latest tap; 'missing' when 3 minutes pass with none;
   // 'stopped' when it ran before but not in the last 48 hours. Polls only while the page is visible.
   function agentWatch(cb) {
@@ -100,12 +125,12 @@
       const t = tapGet(); if (!t || document.hidden) return;
       let st; try { st = await (await fetch(AGENT_API + agentCode(), { cache: 'no-store' })).json(); } catch (e) { return; }
       const last = st.last ? Date.parse(st.last) : 0;
+      if (!t.back && Date.now() - t.at > 3000 && Date.now() - t.at < 30 * 60e3) { t.back = 1; tapSet(t); ob('back', t.ai); }   // returned from the AI
       if (last > t.at - 5000) {
-        if (!t.ok) { t.ok = 1; tapSet(t); cb('connected', t.ai); }
-        else if (Date.now() - last > 48 * 3600e3) cb('stopped', t.ai);
+        if (!t.ok) { t.ok = 1; tapSet(t); ob('connected', t.ai); cb('connected', t.ai); }
+        else if (Date.now() - last > 48 * 3600e3) { if (!t.stopLog || Date.now() - t.stopLog > 86400e3) { t.stopLog = Date.now(); tapSet(t); ob('stopped', t.ai); } cb('stopped', t.ai); }
       } else if (Date.now() - t.at < 3 * 60e3) timer = setTimeout(check, 4000);
-      else if (!t.ok && !t.told) { t.told = 1; tapSet(t); cb('missing', t.ai); }
-      else if (t.ok && Date.now() - t.at > 48 * 3600e3) cb('stopped', t.ai);
+      else if (!t.ok && !t.told) { t.told = 1; tapSet(t); ob('missing', t.ai); cb('missing', t.ai); }
     };
     document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
     addEventListener('pageshow', check);
@@ -114,7 +139,7 @@
   }
 
   window.RiffHabits = {
-    profile, tier, source, variant, prompt, agentCode, agentTapped, agentWatch,
+    profile, tier, source, variant, prompt, agentCode, agentTapped, agentWatch, ob, inapp: INAPP, plat: PLAT,
     gameStart() { today().g++; save(h); },
     gameEnd(seconds) { if (seconds > 0 && seconds < 6 * 3600) { today().s += Math.round(seconds); save(h); } },
     daily(ai) { const t = today(); t.d = 1; if (ai) h.ai = ai; save(h); },
