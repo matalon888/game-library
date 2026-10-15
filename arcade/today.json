@@ -1,0 +1,87 @@
+{
+ "title": "RIFFCADE: new games",
+ "date": "2026-10-15",
+ "more": "https://riffcade.com",
+ "games": [
+  {
+   "name": "GRIDX",
+   "category": "Action",
+   "blurb": "Neon twin-stick shooter on a curved grid. Survive the waves and take down each boss.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=jarvis-llm-codec-gridx&ref=daily"
+  },
+  {
+   "name": "Iridium Reach",
+   "category": "3D",
+   "blurb": "Dogfight from the cockpit of a starship among asteroids and stations.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=jason-c-dev-iridium-reach&ref=daily"
+  },
+  {
+   "name": "HELLGRID",
+   "category": "Action",
+   "blurb": "Retro first-person shooter: fight through three sectors to close the rift. Every texture and sound is made in code.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=markcastle-hellgrid&ref=daily"
+  },
+  {
+   "name": "Starfall Scavenger",
+   "category": "Action",
+   "blurb": "Neon survivors-style roguelite: auto-fire, pick upgrades, beat the bosses across four acts.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=hanazar-games-starfall-scavenger&ref=daily"
+  },
+  {
+   "name": "Neon Vanguard",
+   "category": "Arcade",
+   "blurb": "Retro vertical shoot-'em-up: steer your ship, auto-fire and clear the waves.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=alliterhorst-neon-vanguard&ref=daily"
+  },
+  {
+   "name": "LLM Chess Arena",
+   "category": "Strategy",
+   "blurb": "Play chess against your own AI (Claude, ChatGPT, Gemini, Grok) and read why it makes every move.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=llm-chess-arena&ref=daily"
+  },
+  {
+   "name": "AI Overlord",
+   "category": "Action",
+   "blurb": "A space shooter where an AI running in your browser designs every enemy wave and taunts you.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=oyekamal-ai-overlord&ref=daily"
+  },
+  {
+   "name": "KoboldAI Lite: AI Adventure",
+   "category": "Word & Math",
+   "blurb": "Text adventures where your AI is the game master: bring Claude, ChatGPT, Gemini or a free volunteer model.",
+   "added": "2026-10-15",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=lostruins-koboldai-lite&ref=daily"
+  },
+  {
+   "name": "IsoCity",
+   "category": "Strategy",
+   "blurb": "Pick tiles, buildings and roads from a palette and place them on an isometric grid to build a city.",
+   "added": "2026-10-14",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=victorqribeiro-isocity&ref=daily"
+  },
+  {
+   "name": "Yet Another Idle RPG",
+   "category": "Idle",
+   "blurb": "Explore locations, fight enemies, train skills and manage gear as your hero progresses.",
+   "added": "2026-10-14",
+   "desktop_only": true,
+   "play_url": "https://riffcade.com/arcade/play.html?g=miktaew-yet-another-idle-rpg&ref=daily"
+  }
+ ]
+}

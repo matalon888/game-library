@@ -247,6 +247,9 @@
     const g = (await games()).find(x => x.slug === slug);
     if (!g) { location.replace(EMBED ? './?embed=chat' : './'); return; }
     if (g.linkout) { location.replace(g.external); return; }
+    // came from the daily AI task (riffcade.com/today links carry ?ref=daily): counted like a button click, no ids
+    const REF = new URLSearchParams(location.search).get('ref') === 'daily' ? 'daily' : null;
+    if (REF) api('/api/click', { button: REF });
     document.title = g.name + ' · RIFFCADE';
     $('title').textContent = g.name;
     const stage = $('stage');
@@ -418,7 +421,7 @@
       started = Date.now();
       store.set('last', g.slug);
       store.set('plays', store.get('plays', 0) + 1);
-      api('/api/play', { slug: g.slug });
+      api('/api/play', REF ? { slug: g.slug, ref: REF } : { slug: g.slug });
       try { frame.contentWindow.focus(); } catch (e) {}
       if (g.controls) controls(g.controls, frame);
       bubble(g, { leave, credits });
