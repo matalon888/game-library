@@ -20464,6 +20464,13 @@
   "added": "2026-10-13",
   "stars": null,
   "repo_dir": "dmcinnes-html5-asteroids",
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 4,
+   "ai_built": "unknown",
+   "pitch": "Rotate and thrust a small triangular ship through drifting vector rocks, shooting them apart while dodging fragments in a faithful, stripped-down arcade loop."
+  },
   "external": null,
   "made": "2010-05-13",
   "platform": null,
