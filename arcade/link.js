@@ -107,6 +107,10 @@ function walk(dir, out = [], depth = 0) {
   return out;
 }
 const state = new Map();
+// health: how many log bytes grew vs how many events we understood. Logs growing with nothing understood for a while
+// means the agent changed its log format (a new Claude Code / Codex release): the game tells the player to re-run.
+const VERSION = 2;
+let grew = 0, parsed = 0, stuck = 0;
 function readNew(src, root, file, first) {
   let stat; try { stat = fs.statSync(file); } catch (e) { return []; }
   let st = state.get(file);
@@ -119,22 +123,22 @@ function readNew(src, root, file, first) {
   if (stat.size <= st.size) return [];
   const from = first && stat.size - st.size > 2e6 ? stat.size - 2e6 : st.size;
   const fd = fs.openSync(file, 'r'), buf = Buffer.alloc(stat.size - from); fs.readSync(fd, buf, 0, buf.length, from); fs.closeSync(fd);
-  st.size = stat.size;
+  grew += stat.size - from; st.size = stat.size;
   const lines = (st.carry + buf.toString('utf8')).split('\n'); st.carry = lines.pop();
   if (from > 0 && first) lines.shift();
   const out = [];
-  for (const l of lines) if (l) for (const e of (src === 'claude' ? parseClaude : parseCodex)(l, st)) if (e.t >= since) out.push({ ...e, ...st.meta });
+  for (const l of lines) if (l) for (const e of (src === 'claude' ? parseClaude : parseCodex)(l, st)) { parsed++; if (e.t >= since) out.push({ ...e, ...st.meta }); }
   return out;
 }
-let sent = 0, failures = 0, linked = false;
+let sent = 0, failures = 0, linked = false, lastBeat = 0;
 const have = ROOTS.filter(([, r]) => fs.existsSync(r)).map(([s]) => s === 'claude' ? 'Claude Code' : 'Codex');
 console.log('RIFFCADE link · connecting your agents…');
 const queue = [];
 const agentsSeen = new Set();
-async function post(events, backfill) {
-  for (let i = 0; i < events.length || (backfill && i === 0); i += 1000) {
+async function post(events, backfill, health) {
+  for (let i = 0; i < events.length || i === 0; i += 1000) {
     const chunk = events.slice(i, i + 1000);
-    const r = await fetch(`${API}/api/link/${CODE}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ events: chunk, backfill }) });
+    const r = await fetch(`${API}/api/link/${CODE}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ events: chunk, backfill, health }) });
     if (!r.ok) throw new Error('server said ' + r.status);
     if (!events.length) break;
   }
@@ -144,10 +148,16 @@ async function tick(first) {
   for (const [src, root] of ROOTS) for (const f of walk(root)) all.push(...readNew(src, root, f, first));
   all.sort((a, b) => a.t - b.t);
   queue.push(...all); if (queue.length > 50000) queue.splice(0, queue.length - 50000);   // kept until the server has them
-  if (queue.length || first) {
+  const beat = Date.now() - lastBeat > 30000;
+  if (queue.length || first || beat) {
     const batch = queue.slice();
+    let health;
+    if (beat || first) {                                  // every 30 s: a heartbeat, so the game knows this window is still open
+      stuck = grew > 50000 && !parsed ? stuck + 1 : 0;
+      health = { v: VERSION, grew, parsed, stuck, agents: agentsSeen.size }; grew = 0; parsed = 0; lastBeat = Date.now();
+    }
     try {
-      await post(batch, first || !linked); queue.splice(0, batch.length); sent += batch.length; failures = 0; batch.forEach(e => agentsSeen.add(e.agent));
+      await post(batch, first || !linked, health); queue.splice(0, batch.length); sent += batch.length; failures = 0; batch.forEach(e => agentsSeen.add(e.agent));
       if (!linked) { linked = true; console.log(`\n✅ Linked! Following ${have.join(' + ') || 'your agents'}. Your game shows them in a few seconds.\n   Keep this window open while you play. Ctrl+C stops it. Only counts are sent, never prompts or code.`); }
     }
     catch (e) { if (++failures === 1) console.log('\n⚠️  Could not reach riffcade.com (' + e.message + '). Retrying…'); }

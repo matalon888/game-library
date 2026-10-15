@@ -140,6 +140,7 @@ async function listFiles(root, src) {
 function watcher(handle, emit) {
   let root = null, stopped = false, timer = 0;
   const state = new Map(), since = Date.now() - DAY;
+  let grew = 0, parsed = 0, stuck = 0, winAt = Date.now();      // log bytes read vs events understood (format changes)
   async function readNew(f, first) {
     const key = f.path.join('/');
     let file; try { file = await f.h.getFile(); } catch (e) { return []; }
@@ -152,13 +153,13 @@ function watcher(handle, emit) {
     if (file.size <= st.size) return [];
     const from = first && file.size - st.size > 2e6 ? file.size - 2e6 : st.size;
     const text = st.carry + await file.slice(from, file.size).text();
-    st.size = file.size;
+    grew += file.size - from; st.size = file.size;
     const lines = text.split('\n'); st.carry = lines.pop();
     if (from > 0 && first) lines.shift();
     const out = [];
     for (const l of lines) {
       if (!l) continue;
-      for (const e of (root.src === 'claude' ? parseClaude : parseCodex)(l, st)) if (e.t >= since) out.push({ ...e, ...st.meta });
+      for (const e of (root.src === 'claude' ? parseClaude : parseCodex)(l, st)) { parsed++; if (e.t >= since) out.push({ ...e, ...st.meta }); }
     }
     return out;
   }
@@ -169,12 +170,14 @@ function watcher(handle, emit) {
       for (const f of await listFiles(root.dir, root.src)) all.push(...await readNew(f, first));
       all.sort((a, b) => a.t - b.t);
       if (all.length || first) emit(all, { backfill: first, src: root.src });
+      if (Date.now() - winAt > 30000) { stuck = grew > 50000 && !parsed ? stuck + 1 : 0; grew = 0; parsed = 0; winAt = Date.now(); }
     } catch (e) { console.warn('[agents] read failed', e); }
     if (!stopped) timer = setTimeout(() => tick(false), 2500);
   }
   return {
     async start(ready) { root = await resolveRoot(handle); if (!root) throw new Error('No agent logs in that folder. Pick your .claude or .codex folder.'); ready && ready(root.src); await tick(true); return root.src; },
     stop() { stopped = true; clearTimeout(timer); },
+    signal() { return stuck >= 4 ? `Your ${root && root.src === 'codex' ? 'Codex' : 'Claude Code'} logs changed format and this game can't read the new lines yet. Try the Terminal link instead (it updates itself).` : ''; },
   };
 }
 
@@ -233,7 +236,7 @@ const linkCode = () => {
   return c;
 };
 function relay(code, emit, onLinked) {
-  let after = 0, stopped = false, timer = 0, linked = false, lastSeen = 0;
+  let after = 0, stopped = false, timer = 0, linked = false, lastSeen = 0, skew = 0, health = null, fails = 0;
   async function poll() {
     if (stopped) return;
     try {
@@ -246,14 +249,27 @@ function relay(code, emit, onLinked) {
         if (!linked) { linked = true; onLinked(); }
         if (old.length) emit(old.map(clean), { backfill: true, src: 'link' });
         if (fresh.length) emit(fresh.map(clean), { src: 'link' });
-        lastSeen = j.last || lastSeen;
+        lastSeen = j.last || lastSeen; health = j.health || health; if (j.now) skew = Date.now() - j.now;
       }
-    } catch (e) {}
+      fails = 0;
+    } catch (e) { fails++; }
     if (!stopped) timer = setTimeout(poll, linked ? 2000 : 3000);
   }
   const clean = e => { const o = { ...e }; delete o.seq; delete o.b; return o; };
   poll();
-  return { stop() { stopped = true; clearTimeout(timer); }, get linked() { return linked; }, get lastSeen() { return lastSeen; } };
+  // what's wrong with the link right now, in plain words ('' = all good)
+  function signal() {
+    if (!linked) return '';
+    if (fails >= 3) return "Can't reach riffcade.com from this device. Check your internet connection.";
+    const mins = Math.floor((Date.now() - skew - lastSeen) / 60e3);
+    if (health && health.v >= 2) {                         // link.js v2 beats every 30 s: silence means the window closed
+      if (mins >= 2) return `No signal from your computer for ${mins} min. Is the Terminal window still open? Paste the line again to relink.`;
+      if (health.stuck >= 4) return "Your agents are writing logs the link can't read (a new Claude Code or Codex version?). Paste the Terminal line again to get the newest link.";
+      return '';
+    }
+    return mins >= 15 ? `Nothing from your computer for ${mins} min. If your agents are working, paste the Terminal line again (there's a newer link).` : '';
+  }
+  return { stop() { stopped = true; clearTimeout(timer); }, get linked() { return linked; }, get lastSeen() { return lastSeen; }, signal };
 }
 
 // ---------------------------------------------------------------- connect card (same look in every game)
@@ -278,7 +294,12 @@ const CSS = `
 .ag-drop{position:fixed;inset:0;background:rgba(15,12,26,.82);display:grid;place-items:center;z-index:60;font:22px system-ui;color:#fff;border:3px dashed var(--ag-acc,#ffcf5a)}
 .ag-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(18,16,30,.95);color:#f6f0e3;border:1px solid var(--ag-acc,#ffcf5a);border-radius:12px;padding:10px 14px;font:14px system-ui;z-index:70;max-width:90%}
 .ag-demo{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(18,16,30,.9);color:#f6f0e3;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 14px;font:13px system-ui;z-index:40;white-space:nowrap}
-.ag-demo a{color:var(--ag-acc,#ffcf5a)} .ag-step[hidden],.ag-card[hidden],.ag-drop[hidden],.ag-demo[hidden],.ag-help[hidden],[hidden].ag-card{display:none!important}`;
+.ag-demo a{color:var(--ag-acc,#ffcf5a)}
+.ag-sig{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);z-index:46;max-width:min(560px,calc(100% - 24px));background:#3a1d12;color:#ffe6d6;border:1px solid #ff9d6b;border-radius:14px;padding:9px 14px;font:14px/1.35 system-ui,-apple-system,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.45);cursor:pointer}
+.ag-sig b{color:#ffb38a}
+.ag-wait{position:fixed;left:10px;top:50%;transform:translateY(-50%);z-index:44;display:grid;gap:4px;font:13px/1.3 system-ui,-apple-system,sans-serif;background:rgba(18,16,30,.9);color:#f6f0e3;border:1px solid #ffcf5a;border-radius:14px;padding:8px 11px;box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:210px}
+.ag-wait .h{font-weight:800;color:#ffcf5a} .ag-wait .w{display:flex;justify-content:space-between;gap:10px} .ag-wait .w span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .ag-wait .w b{font-variant-numeric:tabular-nums} .ag-wait .w.old b{color:#ff9d6b} .ag-wait small{color:#b9b2c8}
+.ag-sig[hidden],.ag-wait[hidden]{display:none!important} .ag-step[hidden],.ag-card[hidden],.ag-drop[hidden],.ag-demo[hidden],.ag-help[hidden],[hidden].ag-card{display:none!important}`;
 export function toast(s, ms = 4000) { const d = document.createElement('div'); d.className = 'ag-toast'; d.textContent = s; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
 
 export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', onEvents, onConnect, demoAgents = 4, autoDemo = true }) {
@@ -291,12 +312,41 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
 
   // every batch: tag live / counted, move this game's "already counted" mark after the batch
   function emit(list, info = {}) {
-    if (info.demo) { if (api.demo) onEvents(list, info); return; }
+    if (info.demo) { if (api.demo) { track(list); onEvents(list, info); } return; }
     const now = Date.now(), m0 = { ...mark };
     for (const e of list) { e.live = now - e.t < LIVE; e.counted = e.t > (m0[e.src] || 0); if (e.counted) mark[e.src] = Math.max(mark[e.src] || 0, e.t); }
     try { localStorage.setItem(KEY, JSON.stringify(mark)); } catch (e) {}
+    track(list);
     onEvents(list, info);
   }
+
+  // 🙋 who needs me: lead agents that finished their turn and wait for the player, longest first
+  const waiting = new Map();                                // agent → { label, src, since }
+  const seenAgent = new Set(), newSession = new Map();      // project → when a NEW lead session last started there
+  function track(list) {
+    const now = Date.now();
+    for (const e of list) {
+      if (!e.parent && !seenAgent.has(e.agent)) { seenAgent.add(e.agent); newSession.set(e.label, Math.max(newSession.get(e.label) || 0, e.t)); }
+      if (now - e.t > 2 * 3600e3) continue;
+      const w = waiting.get(e.agent);
+      if (e.kind === 'done' && !e.parent) { waiting.set(e.agent, { label: e.label, src: e.src, since: e.t }); continue; }
+      if (w && e.t > w.since && e.kind !== 'tokens') waiting.delete(e.agent);
+    }
+    drawWait();
+  }
+  const waitEl = document.createElement('div'); waitEl.className = 'ag-wait'; waitEl.hidden = true; waitEl.title = 'These agents finished and are waiting for your reply'; document.body.appendChild(waitEl);
+  const age = ms => ms < 60e3 ? Math.max(1, Math.round(ms / 1e3)) + 's' : ms < 3600e3 ? Math.round(ms / 60e3) + 'm' : Math.floor(ms / 3600e3) + 'h' + String(Math.round(ms % 3600e3 / 60e3)).padStart(2, '0');
+  function drawWait() {
+    const now = Date.now();
+    // ghosts out: older than 2 h, or the same project already moved on in a newer session
+    // (a session that's waiting while you started a fresh one in the same project was left behind, e.g. after /clear)
+    for (const [k, w] of waiting) if (now - w.since > 2 * 3600e3 || (newSession.get(w.label) || 0) > w.since + 1000) waiting.delete(k);
+    const list = [...waiting.values()].sort((a, b) => a.since - b.since);
+    waitEl.hidden = !list.length;
+    if (!list.length) return;
+    waitEl.innerHTML = `<div class="h">🙋 Waiting for you · ${list.length}</div>${list.slice(0, 4).map(w => `<div class="w ${now - w.since > 600e3 ? 'old' : ''}"><span>${String(w.label).replace(/</g, '')} <small>${w.src === 'codex' ? 'Codex' : 'Claude'}</small></span><b>${age(now - w.since)}</b></div>`).join('')}${list.length > 4 ? `<small>+${list.length - 4} more</small>` : ''}`;
+  }
+  setInterval(drawWait, 5000);
 
   const code = linkCode();
   const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent), win = /Win/.test(navigator.platform || '');
@@ -344,6 +394,14 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
   addEventListener('pointerdown', e => { if (!card.hidden && !card.contains(e.target) && !e.target.closest('.ag-help,.bd-wrap,.ag-toast')) dismiss(); }, true);
   function startDemo() { if (demoRun || api.connected.length) return; api.demo = true; tag.hidden = false; demoRun = demoFeed(emit, { agents: demoAgents }); }
   function stopDemo() { if (!demoRun) return; demoRun.stop(); demoRun = null; api.demo = false; tag.hidden = true; }
+
+  // ⚠️ no-signal pill: the link window closed, the network is down, or the agents' log format changed
+  const sig = document.createElement('div'); sig.className = 'ag-sig'; sig.hidden = true; document.body.appendChild(sig);
+  sig.onclick = () => open();
+  setInterval(() => {
+    const msg = api.demo ? '' : api.connected.map(c => c.signal ? c.signal() : '').find(Boolean) || '';
+    sig.hidden = !msg; if (msg) sig.innerHTML = `⚠️ <b>No signal</b> · ${msg}`;
+  }, 5000);
 
   // the link: always listening for this browser's code (cheap GET every few seconds); the first data connects
   const link = relay(code, emit, () => {

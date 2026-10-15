@@ -14,6 +14,7 @@ import { toast } from './agents.js';
 
 const API = new URLSearchParams(location.search).get('lbapi') || 'https://mcp.riffcade.com';
 const POWER = '_power';
+const REPLY = '_reply';             // quick replies: times today you answered a waiting agent within 2 minutes
 const ISO = 'AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PR PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW'.split(' ');
 const TZ = { 'Europe/Lisbon': 'PT', 'Atlantic/Madeira': 'PT', 'Atlantic/Azores': 'PT', 'Europe/Dublin': 'IE', 'Europe/Brussels': 'BE', 'Europe/Zurich': 'CH', 'Europe/Vienna': 'AT', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI', 'Europe/Athens': 'GR', 'Europe/Prague': 'CZ', 'Europe/Budapest': 'HU', 'Europe/Bucharest': 'RO', 'Europe/Moscow': 'RU', 'Asia/Bangkok': 'TH', 'Asia/Jakarta': 'ID', 'Asia/Manila': 'PH', 'Asia/Hong_Kong': 'HK', 'Asia/Taipei': 'TW', 'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD', 'Asia/Riyadh': 'SA', 'Africa/Cairo': 'EG', 'Africa/Nairobi': 'KE', 'America/Bogota': 'CO', 'America/Lima': 'PE', 'America/Santiago': 'CL', 'Australia/Melbourne': 'AU', 'Pacific/Auckland': 'NZ', 'America/Vancouver': 'CA', 'Europe/London': 'GB', 'Europe/Madrid': 'ES', 'Europe/Paris': 'FR', 'Europe/Berlin': 'DE', 'Europe/Rome': 'IT', 'Europe/Amsterdam': 'NL', 'Europe/Kyiv': 'UA', 'Europe/Warsaw': 'PL', 'Europe/Istanbul': 'TR', 'Asia/Jerusalem': 'IL', 'Asia/Tel_Aviv': 'IL', 'Asia/Kolkata': 'IN', 'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR', 'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG', 'Asia/Dubai': 'AE', 'Australia/Sydney': 'AU', 'America/Sao_Paulo': 'BR', 'America/Mexico_City': 'MX', 'America/Toronto': 'CA', 'America/Buenos_Aires': 'AR', 'Africa/Lagos': 'NG', 'Africa/Johannesburg': 'ZA' };
 export const flag = cc => cc === 'XX' ? '🤖' : /^[A-Z]{2}$/.test(cc || '') ? String.fromCodePoint(...[...cc].map(c => 0x1f1e6 + c.charCodeAt(0) - 65)) : '🏳️';
@@ -47,6 +48,7 @@ const CSS = `
 .bd .bd-me{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;padding:10px;border-radius:12px;background:rgba(255,255,255,.05)}
 .bd input,.bd select{font:inherit;background:rgba(255,255,255,.08);color:#f6f0e3;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:7px 10px}
 .bd input{flex:1;min-width:120px} .bd select{max-width:200px} .bd .bd-save{background:var(--ag-acc,#ffcf5a);color:#1b1408;border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.bd .bd-rev{display:inline-block;margin-left:4px;padding:0 6px;border-radius:999px;background:#5a3a12;color:#ffcf8a;font-size:11px;cursor:help}
 .bd .bd-empty{color:#b9b2c8;padding:16px 4px} .bd .bd-fine{color:#8e88a0;font-size:12px;margin-top:10px}
 .bd-chip{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:45;display:grid;gap:6px;justify-items:end;font:13px/1.3 system-ui,-apple-system,sans-serif;pointer-events:none}
 .bd-chip>*{pointer-events:auto;cursor:pointer;background:rgba(18,16,30,.88);color:#f6f0e3;border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:7px 11px;box-shadow:0 6px 20px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
@@ -69,8 +71,24 @@ export function board({ game, label = 'Score', A = null }) {
 
   // ---- Agent points: what the agents got done today (UTC day), from every event this tab has seen
   const ship = { day: dayUTC(), score: 0, tools: 0, ok: 0, tokens: 0, steps: 0, tests: 0, commits: 0, deploys: 0, fails: 0 };
+  // 🙋 replies: an agent finished its turn ('done') and you answered it ('prompt'); quick = within 2 minutes
+  const reply = { day: dayUTC(), quick: 0, n: 0, times: [] }, waitSince = new Map();
+  function onReply(e) {
+    if (e.parent) return;
+    if (e.kind === 'done') { waitSince.set(e.agent, e.t); return; }
+    if (e.kind !== 'prompt' || !waitSince.has(e.agent)) return;
+    const dt = e.t - waitSince.get(e.agent); waitSince.delete(e.agent);
+    if (dt <= 0 || dt > 2 * 3600e3) return;
+    if (dayUTC(e.t) !== reply.day) { if (dayUTC(e.t) < reply.day) return; Object.assign(reply, { day: dayUTC(e.t), quick: 0, n: 0, times: [] }); }
+    reply.n++; reply.times.push(dt); if (dt <= 120e3) reply.quick++;
+  }
+  const median = a => { if (!a.length) return 0; const b = [...a].sort((x, y) => x - y); return b[b.length >> 1]; };
+  const dur = ms => ms < 60e3 ? Math.round(ms / 1e3) + ' s' : Math.round(ms / 60e3) + ' min';
   function onAgentEvents(list) {
     if (A && A.demo) return;
+    const q0 = reply.quick;
+    for (const e of list) onReply(e);
+    if (reply.quick > q0 || (reply.quick && !lastSent[REPLY])) queue(REPLY, reply.quick, { tools: reply.n, ok: reply.quick });
     for (const e of list) {
       if (dayUTC(e.t) !== ship.day) { if (e.t < Date.now() - 864e5) continue; if (dayUTC(e.t) > ship.day) Object.assign(ship, { day: dayUTC(e.t), score: 0, tools: 0, ok: 0, tokens: 0, steps: 0, tests: 0, commits: 0, deploys: 0, fails: 0 }); else continue; }
       if (e.kind === 'tokens') ship.tokens += e.tokens || 0;
@@ -96,7 +114,7 @@ export function board({ game, label = 'Score', A = null }) {
       try {
         const r = await fetch(API + '/api/lb', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ game: g, client, name: p.name, country: p.country, ...v }) });
         const j = await r.json();
-        if (r.ok) { const prev = store.get('rank_' + g, null); lastSent[g] = v.score; if (j.you && prev && j.you.rank < prev) toast(`🏆 You climbed to #${j.you.rank} on the ${g === POWER ? 'Agent points' : label} board today`); if (j.you) store.set('rank_' + g, j.you.rank); }
+        if (r.ok) { const prev = store.get('rank_' + g, null); lastSent[g] = v.score; if (j.you && prev && j.you.rank < prev) toast(`🏆 You climbed to #${j.you.rank} on the ${g === POWER ? 'Agent points' : g === REPLY ? 'Fast replies' : label} board today`); if (j.you) store.set('rank_' + g, j.you.rank); }
       } catch (e) {}
     }
   }
@@ -111,14 +129,16 @@ export function board({ game, label = 'Score', A = null }) {
     const p = profile(), cc = (p && p.country) || guessCountry();
     const tabs = (arr, cur, key) => arr.map(([v, t]) => `<button data-${key}="${v}" aria-pressed="${v === cur}">${t}</button>`).join('');
     el.innerHTML = `<button class="bd-x" aria-label="Close">✕</button><h2>🏆 World leaderboard</h2>
-      <p class="bd-sub">${which === POWER ? `<b>⚡ Agent points: what your agents got done today</b>, in every RIFFCADE game. Tokens don't count, results do.${ship.tools ? `<br>You: ${breakdown()} = <b>${fmt(ship.score)}</b>` : ''}` : `${label} in this game, people's AI agents from all over the world.`}</p>
-      <div class="bd-tabs">${tabs([[game, label], [POWER, '⚡ Agent points']], which, 'g')}</div>
+      <p class="bd-sub">${which === POWER ? `<b>⚡ Agent points: what your agents got done today</b>, in every RIFFCADE game. Tokens don't count, results do.${ship.tools ? `<br>You: ${breakdown()} = <b>${fmt(ship.score)}</b>` : ''}`
+        : which === REPLY ? `<b>🙋 Fast replies: how often you answered a waiting agent within 2 minutes today.</b> An agent waiting on you ships nothing.${reply.n ? `<br>You: ${reply.quick} of ${reply.n} replies under 2 min · typical wait ${dur(median(reply.times))}` : ''}`
+        : `${label} in this game, people's AI agents from all over the world.`}</p>
+      <div class="bd-tabs">${tabs([[game, label], [POWER, '⚡ Agent points'], [REPLY, '🙋 Fast replies']], which, 'g')}</div>
       <div class="bd-tabs">${tabs([['day', 'Today'], ['week', 'This week'], ['all', 'All time'], ['nations', '🌍 Countries']], period, 'p')}
         <button data-mine aria-pressed="${mine}">${flag(cc)} My country</button></div>
       <div class="bd-me">${p ? `<span style="font-size:22px">${flag(p.country)}</span><b>${p.name}</b><button class="bd-tabs" data-edit style="margin-left:auto;background:none;border:0;color:#b9b2c8;cursor:pointer">Edit</button>`
         : `<input maxlength="18" placeholder="Your nickname" value=""><select>${ISO.map(c => `<option value="${c}" ${c === cc ? 'selected' : ''}>${flag(c)} ${regionName(c)}</option>`).join('')}</select><button class="bd-save">Join</button>`}</div>
       <div class="bd-list"><p class="bd-empty">Loading…</p></div>
-      <p class="bd-fine">${A && A.demo ? 'Demo teams never post scores. Connect your agents to compete. ' : ''}Only your nickname, flag, scores and counts are shared. Never project names, prompts or code.</p>`;
+      <p class="bd-fine">${A && A.demo ? 'Demo teams never post scores. Connect your agents to compete. ' : ''}Only your nickname, flag, scores and counts are shared. Never project names, prompts or code. Scores that can't be real are flagged "under review", never silently removed. Finished days and duels are frozen.</p>`;
     el.querySelector('.bd-x').onclick = close;
     el.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { which = b.dataset.g; render(); });
     el.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { period = b.dataset.p; render(); });
@@ -140,8 +160,8 @@ export function board({ game, label = 'Score', A = null }) {
       if (period === 'nations') {
         list.innerHTML = j.countries && j.countries.length ? j.countries.map(n => `<div class="bd-row ${p && n.country === p.country ? 'me' : ''}"><span class="bd-rank">${n.rank}</span><span class="bd-flag">${flag(n.country)}</span><span>${regionName(n.country)} <small style="color:#8e88a0">· ${n.players} player${n.players > 1 ? 's' : ''}</small></span><b>${fmt(n.score)}</b><span></span></div>`).join('') : '<p class="bd-empty">No countries on the board yet today. Put yours first!</p>';
       } else {
-        const rows = (j.top || []).map(r => `<div class="bd-row ${j.you && r.rank === j.you.rank && r.name === j.you.name ? 'me' : ''}"><span class="bd-rank">${r.rank}</span><span class="bd-flag" title="${regionName(r.country)}">${flag(r.country)}</span><span>${r.name.replace(/</g, '&lt;')}</span><b>${fmt(r.score)}</b><span class="bd-rate">${r.rate != null ? r.rate + '%' : ''}</span></div>`);
-        if (j.you && !(j.top || []).some(r => r.rank === j.you.rank)) rows.push(`<div class="bd-row me"><span class="bd-rank">${j.you.rank}</span><span class="bd-flag">${flag(j.you.country)}</span><span>${j.you.name} (you)</span><b>${fmt(j.you.score)}</b><span class="bd-rate">${j.you.rate != null ? j.you.rate + '%' : ''}</span></div>`);
+        const rows = (j.top || []).map(r => `<div class="bd-row ${j.you && r.rank === j.you.rank && r.name === j.you.name ? 'me' : ''}"><span class="bd-rank">${r.rank}</span><span class="bd-flag" title="${regionName(r.country)}">${flag(r.country)}</span><span>${r.name.replace(/</g, '&lt;')}${r.review ? ` <small class="bd-rev" title="Flagged by the server: ${r.review}. Kept visible, ranked after checked scores, not counted for its country.">under review</small>` : ''}</span><b>${fmt(r.score)}</b><span class="bd-rate">${r.rate != null ? r.rate + '%' : ''}</span></div>`);
+        if (j.you && !(j.top || []).some(r => r.rank === j.you.rank)) rows.push(`<div class="bd-row me"><span class="bd-rank">${j.you.rank}</span><span class="bd-flag">${flag(j.you.country)}</span><span>${j.you.name} (you)${j.you.review ? ' <small class="bd-rev">under review</small>' : ''}</span><b>${fmt(j.you.score)}</b><span class="bd-rate">${j.you.rate != null ? j.you.rate + '%' : ''}</span></div>`);
         list.innerHTML = rows.length ? rows.join('') : '<p class="bd-empty">Nobody on this board yet. Be the first!</p>';
       }
     } catch (e) { el.querySelector('.bd-list').innerHTML = '<p class="bd-empty">The leaderboard is offline right now.</p>'; }
@@ -317,6 +337,7 @@ export function board({ game, label = 'Score', A = null }) {
     submit(score, extra = {}) { score = Math.floor(score) || 0; if (score > (best[game] || 0)) best[game] = score; queue(game, best[game], extra); if (!profile() && score > 0 && !store.get('asked', false) && !(A && A.demo)) { store.set('asked', true); toast('🏆 Join the world leaderboard: open 🏆 and pick a nickname + your flag', 6000); } },
     onAgentEvents,                       // pass every agents() batch here so the agent points board stays current
     ship: () => ({ ...ship }),
+    replies: () => ({ quick: reply.quick, n: reply.n, median: median(reply.times) }),
     profile,
     challenge,
     botDuel,
