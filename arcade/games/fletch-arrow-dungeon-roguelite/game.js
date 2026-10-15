@@ -12,7 +12,7 @@ const F = flow('fletch');
 
 const stage = createStage({ fov: 42, shadowSize: 11 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'FLETCH', hint: 'Drag to move · let go to shoot', hand: '👆' });
+const ui = createUI({ title: 'FLETCH', hint: 'Tap where to walk · stand still to shoot', hand: '👆' });
 const D = daily('fletch', ui, { name: 'Fletch: Arrow Dungeon Roguelite' });
 const B = board({ game: 'fletch', label: 'Dungeons cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board: dungeons cleared today (RULES.md)
 
@@ -264,9 +264,12 @@ function lose() {
 
 // ---------------------------------------------------------------- input: virtual stick
 let stick = null, botVec = null, botUntil = 0;
-addEventListener('pointerdown', e => { if (state !== 'play' || picks) return; stick = { ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; joy.style.left = e.clientX + 'px'; joy.style.top = e.clientY + 'px'; joy.classList.remove('hc-hidden'); });
+addEventListener('pointerdown', e => { if (state !== 'play' || picks) return; stick = { ox: e.clientX, oy: e.clientY, x0: e.clientX, y0: e.clientY, x: 0, y: 0 }; joy.style.left = e.clientX + 'px'; joy.style.top = e.clientY + 'px'; joy.classList.remove('hc-hidden'); });
 addEventListener('pointermove', e => { if (!stick) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const l = Math.hypot(dx, dy), mx = 45; if (l > mx) { stick.ox += dx - dx / l * mx; stick.oy += dy - dy / l * mx; dx = dx / l * mx; dy = dy / l * mx; joy.style.left = stick.ox + 'px'; joy.style.top = stick.oy + 'px'; } stick.x = dx / mx; stick.y = dy / mx; joy.firstChild.style.transform = `translate(${dx}px,${dy}px)`; });
-const endStick = () => { stick = null; joy.classList.add('hc-hidden'); joy.firstChild.style.transform = ''; };
+let goal = null; const fRay = new THREE.Raycaster(), fPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), fHit = new THREE.Vector3();   // tap = walk there, then shoot
+const endStick = (e) => {
+  if (stick && e.type === 'pointerup' && state === 'play' && !picks && Math.hypot(e.clientX - stick.x0, e.clientY - stick.y0) < 12) { fRay.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera); goal = fRay.ray.intersectPlane(fPlane, fHit) ? { x: fHit.x, z: fHit.z, t: performance.now() + 3000 } : null; }
+  stick = null; joy.classList.add('hc-hidden'); joy.firstChild.style.transform = ''; };
 addEventListener('pointerup', endStick); addEventListener('pointercancel', endStick);
 const keys = {}; addEventListener('keydown', e => keys[e.key] = true); addEventListener('keyup', e => keys[e.key] = false);
 ui.onTap(() => { B.start(); buildRun(); hero.visible = true; state = 'play'; });
@@ -281,12 +284,15 @@ loop((dt, t) => {
     if (stick) { mx = stick.x; mz = stick.y; }
     else if (keys.ArrowLeft || keys.a) mx = -1; else if (keys.ArrowRight || keys.d) mx = 1;
     if (!stick) { if (keys.ArrowUp || keys.w) mz = -1; else if (keys.ArrowDown || keys.s) mz = 1; }
-    if (!stick && botVec && performance.now() < botUntil) { mx = botVec[0]; mz = botVec[1]; }
+    if (!stick && botVec && performance.now() < botUntil) { mx = botVec[0]; mz = botVec[1]; goal = null; }
+    if (stick || mx || mz) goal = null;
+    else if (goal) { const gx = goal.x - hx, gz = goal.z - hz, gl = Math.hypot(gx, gz); if (gl < 0.15 || performance.now() > goal.t) goal = null; else { mx = gx / gl * Math.min(1, gl * 2 + 0.3); mz = gz / gl * Math.min(1, gl * 2 + 0.3); if (goal.slide > 0) { goal.slide -= dt; const sd = goal.sd; [mx, mz] = [-gz / gl * sd + mx * 0.25, gx / gl * sd + mz * 0.25]; } } }   // blocked → slide sideways around it
     const ml = Math.hypot(mx, mz); moving = ml > 0.2;
     if (moving) { const k = Math.min(1, ml) / ml; hx += mx * k * P.speed * dt; hz += mz * k * P.speed * dt; face = Math.atan2(mx, mz); }
-    const o = { x: hx, z: hz }; pushOut(o, PR); hx = o.x; hz = o.z;
+    const bx = hx, bz = hz, o = { x: hx, z: hz }; pushOut(o, PR); hx = o.x; hz = o.z;
+    if (goal && moving && !(goal.slide > 0) && Math.hypot(hx - bx, hz - bz) > Math.hypot(mx, mz) * P.speed * dt * 0.6) { goal.slide = 22; goal.sd = (goal.x >= hx ? -1 : 1) * Math.sign(goal.z - hz || 1); }
     // through the gate → next room (after a skill pick)
-    if (cleared && hz < -HZ + 0.2) { if (roomIdx < rooms - 1) { showPick(); hz = -HZ + 0.3; } }
+    if (cleared && hz < -HZ + 0.2) { if (roomIdx < rooms - 1) { showPick(); hz = -HZ + 0.3; goal = null; } }
     // shooting (only when standing still)
     shotCd -= sec;
     if (!moving && !cleared && shotCd <= 0 && enemies.length) { if (fire()) shotCd = 1 / P.rate; }

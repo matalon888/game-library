@@ -18,7 +18,7 @@ const stage = createStage({ fov: 60, shadows: true, shadowSize: 20 });
 const { scene, camera, renderer } = stage;
 stage.sun.shadow.mapSize.set(1536, 1536);
 stage.hemi.intensity = 1.05; stage.sun.intensity = 1.85;
-const ui = createUI({ title: 'NUGGET<br>RUSH', hint: 'Swipe to dodge', hand: '👆' });
+const ui = createUI({ title: 'NUGGET<br>RUSH', hint: 'Tap left/right to dodge · tap top to jump · or swipe', hand: '👆' });
 const D = daily('nuggetrush', ui, { name: NAME });
 // endless game: the "win" card is our NEW BEST card (the only place a Share button appears; never after a normal run end)
 ui.els.win.querySelector('p').innerHTML = 'NEW BEST<span data-l hidden></span>';
@@ -274,7 +274,8 @@ function act(d) {
     rollT = ROLL_T; A.hiss(0.22, 2500, 500, 0.1); buzz(6);
   }
 }
-input({ onMove: (dx, dy, e, st) => { if (st.fired) return; const tx = e.clientX - st.x, ty = e.clientY - st.y; if (Math.hypot(tx, ty) > 26) { st.fired = true; act(Math.abs(tx) > Math.abs(ty) ? (tx > 0 ? 'right' : 'left') : (ty > 0 ? 'down' : 'up')); } } });
+input({ onTap: e => act(e.clientY < innerHeight * 0.4 ? 'up' : e.clientX < innerWidth / 2 ? 'left' : 'right'),   // tap: top = jump, left/right half = dodge
+  onMove: (dx, dy, e, st) => { if (st.fired) return; const tx = e.clientX - st.x, ty = e.clientY - st.y; if (Math.hypot(tx, ty) > 26) { st.fired = true; act(Math.abs(tx) > Math.abs(ty) ? (tx > 0 ? 'right' : 'left') : (ty > 0 ? 'down' : 'up')); } } });
 addEventListener('keydown', e => { const k = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', ' ': 'up' }[e.key]; if (k) { e.preventDefault(); act(k); } });
 ui.onTap(which => { B.start(); reset(); state = 'play'; A.ac(); startSong(); });
 

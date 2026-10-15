@@ -13,7 +13,7 @@ const { scene, camera, sun, hemi, renderer } = S;
 S.autoRender = false;
 renderer.localClippingEnabled = true;
 sun.position.set(-3, 16, 7); sun.intensity = 1.5; hemi.intensity = 1.25; sun.shadow.bias = -0.0008; sun.shadow.mapSize.set(1024, 1024);
-const ui = createUI({ title: 'PAW<br>LAGOON', hint: 'Swipe a fruit to match 3', hand: '👆', score: false });
+const ui = createUI({ title: 'PAW<br>LAGOON', hint: 'Tap a fruit, then its neighbour · or swipe', hand: '👆', score: false });
 const save = store('pawlagoon');
 const F = flow('pawlagoon');
 const B = board({ game: 'paw-lagoon', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });

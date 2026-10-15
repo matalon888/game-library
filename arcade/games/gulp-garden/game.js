@@ -8,7 +8,7 @@ const B = worldBoard({ game: 'gulp-garden', label: 'Levels cleared', limits: { m
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 13 });
 const { scene, camera, sun, renderer } = stage;
-const ui = createUI({ title: 'GULP<br>GARDEN', hint: 'Drag to move the hole', hand: '👆' });
+const ui = createUI({ title: 'GULP<br>GARDEN', hint: 'Tap where the hole should go · or drag', hand: '👆' });
 const css = document.createElement('style');
 css.textContent = `.hc-score{display:none}
 .gg-goals{position:fixed;left:12px;top:calc(58px + env(safe-area-inset-top));display:flex;gap:8px;z-index:5;pointer-events:none}
@@ -154,7 +154,7 @@ function buildLevel() {
   }
   goals = L.goals.map(k => ({ key: k, left: L.counts[k], total: L.counts[k] }));
   goalsEl.innerHTML = goals.map(g => `<div class="gg-goal" data-k="${g.key}"><b>${MODELS[g.key].emoji}</b><span>${g.left}</span></div>`).join('');
-  Object.assign(HOLE, { x: 0, z: BD / 2 - 2.2, lv: 1, xp: 0, r: LV_R[1], R: LV_R[1] });
+  tapTo = null; Object.assign(HOLE, { x: 0, z: BD / 2 - 2.2, lv: 1, xp: 0, r: LV_R[1], R: LV_R[1] });
   timeLeft = timeMax = L.time; eaten = 0; combo = 0;
   ui.levels(level); ui.progress(0); ui.sub(''); updateTime();
 }
@@ -163,7 +163,15 @@ const goalTotal = () => goals.reduce((a, g) => a + g.total, 0), goalLeft = () =>
 
 // ------------------------------------------------------------------ input: relative drag
 let dragK = 0.02;
+let tapTo = null;   // a plain tap glides the hole to the tapped spot on the lawn
+const tapRay = new THREE.Raycaster(), tapNdc = new THREE.Vector2(), tapPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), tapHit = new THREE.Vector3();
 const inp = input({
+  onDown() { tapTo = null; },
+  onTap(e) {
+    if (state !== 'play') return;
+    tapNdc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); tapRay.setFromCamera(tapNdc, camera);
+    if (tapRay.ray.intersectPlane(tapPlane, tapHit)) tapTo = { x: clamp(tapHit.x, -BW / 2 + HOLE.r * 0.6, BW / 2 - HOLE.r * 0.6), z: clamp(tapHit.z, -BD / 2 + HOLE.r * 0.6, BD / 2 - HOLE.r * 0.6) };
+  },
   onMove(dx, dy) {
     if (state !== 'play') return;
     HOLE.x = clamp(HOLE.x + dx * dragK, -BW / 2 + HOLE.r * 0.6, BW / 2 - HOLE.r * 0.6);
@@ -216,6 +224,7 @@ const camPos = new THREE.Vector3(0, 14, 14), camAt = new THREE.Vector3();
 loop((dt60) => {
   const dt = Math.min(dt60 / 60, 0.05);
   if (state === 'play') { timeLeft -= dt; updateTime(); if (timeLeft <= 0) { timeLeft = 0; lose(); } }
+  if (tapTo && state === 'play') { const dx = tapTo.x - HOLE.x, dz = tapTo.z - HOLE.z, L = Math.hypot(dx, dz), st = Math.min(L, 7 * dt); if (L < 0.05) tapTo = null; else { HOLE.x += dx / L * st; HOLE.z += dz / L * st; } }
   if (comboT > 0) { comboT -= dt; if (comboT <= 0) combo = 0; }
   // hole grows smoothly
   HOLE.r = lerp(HOLE.r, HOLE.R, 1 - Math.pow(0.02, dt)); pulse = Math.max(0, pulse - dt * 2);

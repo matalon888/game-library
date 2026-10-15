@@ -18,7 +18,7 @@ const save = store('untwine');
 const F = flow('untwine'); let fk = 1;
 const WB = worldBoard({ game: 'untwine', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });
 let level = save.get('level', 1), total = save.get('freed', 0), state = 'ready';
-const ui = createUI({ title: 'UN<br>TWINE', hint: 'Drag the plugs to untangle', hand: '👆', score: false });
+const ui = createUI({ title: 'UN<br>TWINE', hint: 'Tap a plug, then tap a free peg · or drag', hand: '👆', score: false });
 
 // ---------------------------------------------------------------- textures
 function ropeTexture() {   // three twisted strands, diagonal grooves + fibres; tinted per rope via material colour
@@ -254,19 +254,33 @@ function win() {
   ui.win(level - 1, `Untangled in ${movesUsed} move${movesUsed > 1 ? 's' : ''}`);
 }
 
+function sockAt(cx, cy) {
+  const w = toWorld(cx, cy), row = rowOf(drag.e), y = row ? Y_BOT : Y_TOP;
+  let best = null, bd = SP * 0.85;
+  if (Math.abs(w.y - y) < 1.6) for (const s of freeSockets(pos.map((v, i) => i === drag.e ? -1 : v), row)) { const d = Math.abs(sockX(s, S, SP) - w.x); if (d < bd) { bd = d; best = s; } }
+  return best;
+}
+function select(e) { beginDrag(e); drag.sel = true; drag.target = sockPos(e, pos[e]).setZ(1.6); }   // tap-selected plug: lifted off its peg, free pegs ringed
 input({
   onDown(ev) {
     if (state !== 'play' || botAnim) return;
+    if (drag && drag.sel) { if (pickEnd(ev.clientX, ev.clientY) === drag.e) { drag.sel = false; drag.wasSel = true; drag.target = toWorld(ev.clientX, ev.clientY).setZ(0.75); } return; }
     const e = pickEnd(ev.clientX, ev.clientY); if (e < 0) return;
-    beginDrag(e); drag.target = toWorld(ev.clientX, ev.clientY).setZ(0.75);
+    beginDrag(e); drag.fresh = true; drag.target = toWorld(ev.clientX, ev.clientY).setZ(0.75);
   },
-  onMove(dx, dy, ev) { if (drag && !drag.auto) drag.target = toWorld(ev.clientX, ev.clientY).setZ(0.75); },
-  onUp(ev) {
-    if (!drag || drag.auto) return;
-    const w = toWorld(ev.clientX, ev.clientY), row = rowOf(drag.e), y = row ? Y_BOT : Y_TOP;
-    let best = null, bd = SP * 0.85;
-    if (Math.abs(w.y - y) < 1.6) for (const s of freeSockets(pos.map((v, i) => i === drag.e ? -1 : v), row)) { const d = Math.abs(sockX(s, S, SP) - w.x); if (d < bd) { bd = d; best = s; } }
+  onMove(dx, dy, ev) { if (drag && !drag.auto && !drag.sel) drag.target = toWorld(ev.clientX, ev.clientY).setZ(0.75); },
+  onTap(ev) {   // tap a plug to pick it up, tap a free peg to plug it in there (tap the plug again / empty space to put it back)
+    if (state !== 'play' || !drag || drag.auto) return;
+    if (drag.fresh) { drag.fresh = false; drag.sel = true; drag.target = sockPos(drag.e, pos[drag.e]).setZ(1.6); return; }
+    if (drag.wasSel) { endDrag(null); return; }
+    if (!drag.sel) return;
+    const o = pickEnd(ev.clientX, ev.clientY), best = sockAt(ev.clientX, ev.clientY);
+    if (best === null && o >= 0 && o !== drag.e) { endDrag(null); select(o); return; }
     endDrag(best);
+  },
+  onUp(ev) {
+    if (!drag || drag.auto || drag.sel) return;
+    endDrag(sockAt(ev.clientX, ev.clientY));
   },
 });
 ui.onTap((which) => { WB.start();
@@ -278,7 +292,9 @@ ui.onTap((which) => { WB.start();
 // ---------------------------------------------------------------- bot (one animated drag per call, following a solver plan)
 let botPlan = null;
 function bot() {
-  if (state !== 'play' || drag || botAnim) return;
+  if (state !== 'play' || botAnim) return;
+  if (drag && drag.sel) endDrag(null);
+  if (drag) return;
   if (!botPlan || !botPlan.length) botPlan = solve(pos) || [];
   const mv = botPlan.shift(); if (!mv) return;
   const [e, s] = mv; beginDrag(e); drag.auto = true;

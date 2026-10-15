@@ -12,7 +12,7 @@ let level = S.get('level', 1), score = S.get('score', 0);
 const F = flow('loafflip');
 const stage = createStage({ fov: 34, shadowSize: 7 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'LOAF<br>FLIP', hint: 'Swipe a tile onto its neighbour', hand: '👆' });
+const ui = createUI({ title: 'LOAF<br>FLIP', hint: 'Tap a tile, then tap its neighbour · or swipe', hand: '👆' });
 const D = daily('loafflip', ui, { name: NAME });
 const B = scoreboard({ game: 'loaf-flip', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
@@ -262,7 +262,7 @@ function solveFrom() {
 
 // ---------------------------------------------------------------- input: pick the stack under the finger, swipe direction = flip direction
 const ray = new THREE.Raycaster(), gplane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -BASE), hitP = new THREE.Vector3();
-let picked = null;
+let picked = null, sel = null;
 function stackAt(cx, cy) {
   ray.setFromCamera(new THREE.Vector2(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1), camera);
   const objs = [...stacks.values()].map(s => s.group);
@@ -274,9 +274,16 @@ input({
   onDown: (e) => { if (state !== 'play') return; picked = stackAt(e.clientX, e.clientY); if (picked) { picked.lift = 1; tone(600, 0.03, 'sine', 0.05, 1.1); } },
   onSwipe: (dir) => {
     if (state !== 'play' || !picked) return;
-    const [dx, dz] = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[dir]; flip(picked, dx, dz); picked = null;
+    const [dx, dz] = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[dir]; if (sel) sel.lift = 0; sel = null; flip(picked, dx, dz); picked = null;
   },
-  onUp: () => { if (picked) picked.lift = 0; picked = null; },
+  onTap: (e) => {   // tap a stack to lift it, tap a neighbour to flip it on; tap it again to put it down
+    if (state !== 'play' || anim) return; if (sel && stacks.get(kk(sel.x, sel.z)) !== sel) sel = null;
+    const s = stackAt(e.clientX, e.clientY), a = sel; if (a) a.lift = 0; sel = null;
+    if (!s || s === a) return;
+    if (a && Math.abs(s.x - a.x) + Math.abs(s.z - a.z) === 1) { flip(a, s.x - a.x, s.z - a.z); return; }
+    sel = s; s.lift = 1; tone(760, 0.05, 'sine', 0.07, 1.2);
+  },
+  onUp: () => { if (picked && picked !== sel) picked.lift = 0; picked = null; },
 });
 ui.onTap((w) => { B.start(); if (w !== 'start') build(); state = 'play'; ui.hideStart(); });
 
@@ -294,7 +301,7 @@ loop((dt, t) => {
   for (const st of stacks.values()) {
     st.sq = Math.max(0, st.sq - s * 4); st.pop = Math.min(1, st.pop + s * 3.5);
     const ps = st.pop < 0 ? 0 : 1 + Math.sin(Math.min(1, st.pop) * Math.PI) * 0.15;
-    const lift = st.lift ? 0.08 : 0;
+    const lift = st.lift ? (st === sel ? 0.35 : 0.08) : 0;
     st.group.position.y = lerp(st.group.position.y, BASE + lift + (state === 'won' ? 0.08 : 0), 0.3);
     st.group.scale.set(ps * (1 + st.sq * 0.12), ps * (1 - st.sq * 0.22), ps * (1 + st.sq * 0.12));
     if (st.wob) { st.wob = Math.max(0, st.wob - s * 4); const w = Math.sin(st.wob * 18) * st.wob * 0.08; st.group.position.x = wx(st.x) + w * st.wdx; st.group.position.z = wz(st.z) + w * st.wdz; }

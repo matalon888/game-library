@@ -10,7 +10,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 const stage = createStage({ fov: 64, shadowSize: 16 });
 const { scene, camera, renderer, sun, hemi } = stage;
 camera.far = 700; camera.updateProjectionMatrix();
-const ui = createUI({ title: 'DUST<br>DESCENT', hint: 'Drag to steer', hand: '👆', score: false });
+const ui = createUI({ title: 'DUST<br>DESCENT', hint: 'Tap left / right to steer · or drag', hand: '👆', score: false });
 scene.add(camera);
 
 // ------------------------------------------------------------------ look: warm canyon light, sky dome, fog, sun glare
@@ -488,7 +488,11 @@ ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; t0 = performance.now(); ui.pop('GO!', '#7dff6a', 64, 34); sfx.win(); }
   else { buildLevel(); state = 'play'; ui.pop('GO!', '#7dff6a', 64, 34); tone(660, 0.2, 'triangle', 0.14, 1); }
 });
-input({ onMove: (dx) => { if (state !== 'play') return; me.lat = clamp(me.lat + dx * 0.03, -4.5, 4.5); steerVel = lerp(steerVel, dx, 0.5); } });
+let tapLat = null;   // a tap on the left / right half glides the bike one line that way
+input({
+  onMove: (dx) => { if (state !== 'play') return; tapLat = null; me.lat = clamp(me.lat + dx * 0.03, -4.5, 4.5); steerVel = lerp(steerVel, dx, 0.5); },
+  onTap: (e) => { if (state === 'play') tapLat = clamp((tapLat ?? me.lat) + (e.clientX < innerWidth / 2 ? -1.6 : 1.6), -4.5, 4.5); },
+});
 
 let boardT = 0;
 loop((dt, t) => {
@@ -496,6 +500,7 @@ loop((dt, t) => {
   if (state === 'play') {
     raceT += dt / 60;
     if (performance.now() < botUntil) { const d = clamp(botLat - me.lat, -1, 1) * 0.11 * dt; me.lat += d; steerVel = lerp(steerVel, d * 25, 0.3); }
+    else if (tapLat != null) { const d = clamp(tapLat - me.lat, -1, 1) * 0.14 * dt; me.lat += d; steerVel = lerp(steerVel, d * 25, 0.3); if (Math.abs(tapLat - me.lat) < 0.05) tapLat = null; }
     if (me.s >= finishS && !me.finished) { me.finished = true; me.ftime = raceT; finishRace(); }
   }
   if (state !== 'ready') for (const x of riders) { if (!x.finished || x.s < finishS + 80) { rivalAI(x, dt); stepRider(x, dt, false); } if (x.s >= finishS && !x.finished) { x.finished = true; x.ftime = raceT; } }

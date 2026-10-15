@@ -6,8 +6,8 @@
   "Arcade": "https://agentpark.co/arcade/?cat=Arcade",
   "Action": "https://agentpark.co/arcade/?cat=Action",
   "Racing": "https://agentpark.co/arcade/?cat=Racing",
-  "Strategy": "https://agentpark.co/arcade/?cat=Strategy",
   "3D": "https://agentpark.co/arcade/?cat=3D",
+  "Strategy": "https://agentpark.co/arcade/?cat=Strategy",
   "Word & Math": "https://agentpark.co/arcade/?cat=Word%20%26%20Math",
   "Sports": "https://agentpark.co/arcade/?cat=Sports",
   "Idle": "https://agentpark.co/arcade/?cat=Idle",
@@ -16,13 +16,13 @@
   "Makeover": "https://agentpark.co/arcade/?cat=Makeover",
   "Retro": "https://agentpark.co/arcade/?cat=Retro"
  },
- "total": 236,
+ "total": 223,
  "game_of_the_day": {
-  "name": "Lightcone",
-  "category": "Action",
-  "pitch": "Hide from an AI hunter that rewrites its own pursuit code mid-chase, using decoys, walls, and noise.",
-  "image": "https://agentpark.co/arcade/covers/agentic-commerce-lab-lightcone-webmcp-game.webp",
-  "play_url": "https://agentpark.co/arcade/play.html?g=agentic-commerce-lab-lightcone-webmcp-game&ref=daily&pos=gotd"
+  "name": "Napspot: Cat Logic Puzzle",
+  "category": "Puzzle",
+  "pitch": "Put one napping cat in every row, column and colour patch — and never let two cats touch.",
+  "image": "https://agentpark.co/arcade/covers/napspot-cat-logic-puzzle.webp",
+  "play_url": "https://agentpark.co/arcade/play.html?g=napspot-cat-logic-puzzle&ref=daily&pos=gotd"
  },
  "games": [
   {
@@ -168,13 +168,6 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Napspot: Cat Logic Puzzle",
-    "new": true,
-    "pitch": "Put one napping cat in every row, column and colour patch — and never let two cats touch.",
-    "image": "https://agentpark.co/arcade/covers/napspot-cat-logic-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=napspot-cat-logic-puzzle&ref=daily&pos=list-Puzzle"
-   },
-   {
     "name": "Jellyfit: Block Puzzle",
     "new": true,
     "pitch": "Drag jelly blocks onto an 8x8 board, fill rows and columns to blast them, and chain combos for a huge score.",
@@ -201,6 +194,13 @@
     "pitch": "Fill the grid with suns and moons: half and half in every line, never three alike, follow the = and × signs.",
     "image": "https://agentpark.co/arcade/covers/solune-sun-moon-logic-puzzle.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=solune-sun-moon-logic-puzzle&ref=daily&pos=list-Puzzle"
+   },
+   {
+    "name": "Gridlet: Nonogram Picture Puzzle",
+    "new": true,
+    "pitch": "Use the number clues to fill the grid and reveal a little pixel picture.",
+    "image": "https://agentpark.co/arcade/covers/gridlet-nonogram-picture-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=gridlet-nonogram-picture-puzzle&ref=daily&pos=list-Puzzle"
    }
   ],
   "Arcade": [
@@ -335,6 +335,50 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=brick-climb&ref=daily&pos=list-Racing"
    }
   ],
+  "3D": [
+   {
+    "name": "Iridium Reach",
+    "new": true,
+    "pitch": "Pilot a starship cockpit with a radar display and HUD readouts, hunting enemies through asteroid fields and around space stations beneath a nebula sky.",
+    "image": "https://agentpark.co/arcade/covers/jason-c-dev-iridium-reach.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=jason-c-dev-iridium-reach&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Lowpoly Roguelike MOBA",
+    "new": true,
+    "pitch": "Fight as a low-poly hero in a 3D arena with roguelike elements, with P2P multiplayer.",
+    "image": "https://agentpark.co/arcade/covers/carlomigueldy-lowpoly-roguelike-moba.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=carlomigueldy-lowpoly-roguelike-moba&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Scary Classroom Hide & Seek",
+    "new": true,
+    "pitch": "Hide from a threat in a low-poly haunted classroom, on desktop or mobile.",
+    "image": "https://agentpark.co/arcade/covers/bossmancom-scary-classroom-hide-seek.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bossmancom-scary-classroom-hide-seek&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Operation Ironhold",
+    "new": false,
+    "pitch": "Clear a container yard of ten hostiles in three minutes using four weapons, ADS, double jumps and a sniper scope.",
+    "image": "https://agentpark.co/arcade/covers/starknightt-operation-ironhold.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=starknightt-operation-ironhold&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "JS13kGame2026",
+    "new": false,
+    "pitch": "Push deeper into the void, defend colored beacons through waves, pick upgrade cards, and take down bosses in desktop, mobile, or VR.",
+    "image": "https://agentpark.co/arcade/covers/justgibas-js13kgame2026.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=justgibas-js13kgame2026&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Splat Tanks",
+    "new": false,
+    "pitch": "Drive toy tanks with up to 8 friends, splatting paint across the floor and growing bigger as you go.",
+    "image": "https://agentpark.co/arcade/covers/ferdousbhai-splat-tanks.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=ferdousbhai-splat-tanks&ref=daily&pos=list-3D"
+   }
+  ],
   "Strategy": [
    {
     "name": "Rollhome: Ludo Board Game",
@@ -342,13 +386,6 @@
     "pitch": "Roll the 3D die, bring tokens out on a six, capture rivals and race your colour home against three CPU players.",
     "image": "https://agentpark.co/arcade/covers/rollhome-ludo-board-game.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=rollhome-ludo-board-game&ref=daily&pos=list-Strategy"
-   },
-   {
-    "name": "Ugh Guys",
-    "new": true,
-    "pitch": "Pick one of three factions and fight an AI opponent through fog of war.",
-    "image": "https://agentpark.co/arcade/covers/atxgreene-ugh-guys-.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=atxgreene-ugh-guys-&ref=daily&pos=list-Strategy"
    },
    {
     "name": "IsoCity",
@@ -377,50 +414,13 @@
     "pitch": "Your real coding sessions become a dungeon party whose tool calls, test passes and commits trigger attacks, ultimates and treasure while you time abilities.",
     "image": "https://agentpark.co/arcade/covers/quest-party-dungeon-heroes-for-your-ai-agents.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=quest-party-dungeon-heroes-for-your-ai-agents&ref=daily&pos=list-Strategy"
-   }
-  ],
-  "3D": [
-   {
-    "name": "Iridium Reach",
-    "new": true,
-    "pitch": "Pilot a starship cockpit with a radar display and HUD readouts, hunting enemies through asteroid fields and around space stations beneath a nebula sky.",
-    "image": "https://agentpark.co/arcade/covers/jason-c-dev-iridium-reach.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=jason-c-dev-iridium-reach&ref=daily&pos=list-3D"
    },
    {
-    "name": "Lowpoly Roguelike MOBA",
+    "name": "Turf Rush",
     "new": true,
-    "pitch": "Fight as a low-poly hero in a 3D arena with roguelike elements, with P2P multiplayer.",
-    "image": "https://agentpark.co/arcade/covers/carlomigueldy-lowpoly-roguelike-moba.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=carlomigueldy-lowpoly-roguelike-moba&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "Skyline Rush",
-    "new": true,
-    "pitch": "Fly a quadcopter through an infinite procedurally generated white city.",
-    "image": "https://agentpark.co/arcade/covers/jason9075-skyline-rush.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=jason9075-skyline-rush&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "Globe Country Quiz",
-    "new": true,
-    "pitch": "Spin a WebGL globe and identify the highlighted country.",
-    "image": "https://agentpark.co/arcade/covers/sameralsayed-globe-country-quiz.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=sameralsayed-globe-country-quiz&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "Scary Classroom Hide & Seek",
-    "new": true,
-    "pitch": "Hide from a threat in a low-poly haunted classroom, on desktop or mobile.",
-    "image": "https://agentpark.co/arcade/covers/bossmancom-scary-classroom-hide-seek.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=bossmancom-scary-classroom-hide-seek&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "Operation Ironhold",
-    "new": false,
-    "pitch": "Clear a container yard of ten hostiles in three minutes using four weapons, ADS, double jumps and a sniper scope.",
-    "image": "https://agentpark.co/arcade/covers/starknightt-operation-ironhold.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=starknightt-operation-ironhold&ref=daily&pos=list-3D"
+    "pitch": "Glide out of your turf, draw a loop and close it to claim land, while rivals try to cut your exposed trail.",
+    "image": "https://agentpark.co/arcade/covers/turf-rush.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=turf-rush&ref=daily&pos=list-Strategy"
    }
   ],
   "Word & Math": [

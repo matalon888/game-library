@@ -12,7 +12,7 @@ const F = flow('smoochroll');
 const WB = worldBoard({ game: 'smooch-roll', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });
 let inkB = 600;                                    // ink budget: the validated solution plus a spare margin that flow scales
 let level = save.get('level', 1), stars = save.get('stars', 0), state = 'ready';
-const ui = createUI({ title: 'SMOOCH<br><b>ROLL</b>', hint: 'Draw a line so they meet', hand: '✏️', score: false });
+const ui = createUI({ title: 'SMOOCH<br><b>ROLL</b>', hint: 'Tap the dotted line · or draw your own', hand: '✏️', score: false });
 ui.els.win.classList.add('lb-win');
 const starEls = [...document.querySelectorAll('#stars i')];
 
@@ -48,7 +48,7 @@ function loadLevel() {
   inkUsed = 0; running = false; sb = null; drawing = false; pen = null; rest = 0; acc = 0; touched = false;
   hearts = []; rings = []; dust = []; botI = 0; botOn = false; firstDraw = true;
   ui.levels(level); ui.progress(1); setStars(3);
-  ui.sub(level <= 2 ? 'Draw a line so they meet!' : '');
+  ui.sub(level <= 2 ? 'Tap the dotted line so they meet!' : '');
   makeDoodles();
   prefetch(level + 1); prefetch(level + 2);     // pre-solve upcoming levels off the main thread
 }
@@ -83,8 +83,18 @@ function endStroke() {
   }
   sb = null; ui.progress(inkLeft() / inkB); setStars(starCount());
 }
+// a tap (no drag) draws for you: on the dotted tutorial line it traces that line, anywhere else it drops a short plank
+let hintAtDown = false, downPlay = false;
+function tapDraw(x, y) {
+  if (botOn || state !== 'play' || !downPlay) return;
+  if (drawing) { drawing = false; sb = null; }
+  const sol = L.solution;
+  if (hintAtDown && sol.some(p => Math.hypot(p.x - x, p.y - y) < 55)) { beginStroke(sol[0].x, sol[0].y); for (const p of sol) addPoint(p.x, p.y); }
+  else { beginStroke(x - 42, y); addPoint(x + 42, y); }
+}
 input({
-  onDown: (e) => { const p = toWorld(e.clientX, e.clientY); beginStroke(p.x, p.y); },
+  onDown: (e) => { downPlay = state === 'play'; hintAtDown = firstDraw && level <= 2; const p = toWorld(e.clientX, e.clientY); beginStroke(p.x, p.y); },
+  onTap: (e) => { const p = toWorld(e.clientX, e.clientY); tapDraw(p.x, p.y); },
   onMove: (dx, dy, e) => { if (drawing && !botOn) { const p = toWorld(e.clientX, e.clientY); addPoint(p.x, p.y); } },
   onUp: () => { if (!botOn) endStroke(); },
 });

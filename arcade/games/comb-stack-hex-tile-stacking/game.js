@@ -176,19 +176,24 @@ let drag = null;
 function groundAt(x, y) { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera); return ray.ray.intersectPlane(plane, hit) ? hit.clone() : null; }
 function screenOf(p) { const v = p.clone().project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; }
 function nearestFree(p, maxD = SIZE * 1.15) { let b = null, bd = maxD; for (const c of cells) { if (c.stack.length) continue; const d = Math.hypot(c.p.x - p.x, c.p.z - p.z); if (d < bd) { bd = d; b = c; } } return b; }
+let sel = null;   // tap controls: tap a stack (it lifts), then tap a free cell to place it
 addEventListener('pointerdown', (e) => {
   if (state !== 'play' || busy) return;
   let best = null, bd = 70;
   for (const o of offers) { if (!o.stack) continue; const [sx, sy] = screenOf(o.home.clone().setY(0.3)); const d = Math.hypot(sx - e.clientX, sy - e.clientY); if (d < bd) { bd = d; best = o; } }
-  if (best) { drag = { o: best, at: best.home.clone(), target: null }; sfx.pick(0); buzz(6); }
+  if (!best && sel && sel.stack) { const g = groundAt(e.clientX, e.clientY); const c = g && nearestFree(g); const o = sel; sel = null; if (c) place(o, c); else tone(260, 0.07, 'triangle', 0.06, 0.8); return; }
+  if (best) { drag = { o: best, at: best.home.clone(), target: null, x0: e.clientX, y0: e.clientY, moved: false }; sfx.pick(0); buzz(6); }
 });
 addEventListener('pointermove', (e) => {
-  if (!drag) return; const g = groundAt(e.clientX, e.clientY); if (!g) return;
+  if (!drag) return; if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 12) return; drag.moved = true;
+  const g = groundAt(e.clientX, e.clientY); if (!g) return;
   drag.at.set(g.x, 0.45, g.z - 0.85);
   const c = nearestFree(drag.at); if (c !== drag.target) { drag.target = c; if (c) tone(700, 0.03, 'sine', 0.05, 1.1); }
 });
 addEventListener('pointerup', () => {
-  if (!drag) return; const { o, target } = drag; drag = null;
+  if (!drag) return; const { o, target, moved } = drag; drag = null;
+  if (!moved) { sel = sel === o ? null : o; return; }   // a tap selects (or drops the selection)
+  sel = null;
   if (target && state === 'play') place(o, target); else { tone(260, 0.07, 'triangle', 0.06, 0.8); }
 });
 
@@ -288,7 +293,7 @@ loop((dt) => {
   for (const o of offers) {
     if (!o.stack) { if (o.label) o.label.visible = false; continue; }
     if (o.enter > 0) o.enter = Math.max(0, o.enter - h * 3.2);
-    const base = drag && drag.o === o ? drag.at : o.home;
+    const base = drag && drag.o === o && drag.moved ? drag.at : sel === o ? o.home.clone().setY(o.home.y + 0.4) : o.home;
     offerLabel(o); { const tt = o.stack[o.stack.length - 1]; o.label.position.set(tt.pos.x, tt.pos.y + 0.28, tt.pos.z); }
     o.stack.forEach((t, k) => { const ty = base.y + k * TH + (o.enter > 0 ? Math.pow(Math.min(1, o.enter), 2) * 4 : 0); t.pos.x = lerp(t.pos.x, base.x, 0.35 * dt); t.pos.z = lerp(t.pos.z, base.z, 0.35 * dt); t.pos.y = lerp(t.pos.y, ty, (drag && drag.o === o ? 0.35 : 0.5) * dt); t.q.identity(); });
   }

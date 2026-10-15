@@ -12,7 +12,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 58, shadowSize: 16 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'ZIP<br>LANES', hint: 'Swipe to switch lanes', hand: '👆' });
+const ui = createUI({ title: 'ZIP<br>LANES', hint: 'Tap left or right to switch lanes · or swipe', hand: '👆' });
 const D = daily('ziplanes', ui, { name: NAME });
 const B = board({ game: 'zip-lanes', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const spdEl = document.getElementById('spd');

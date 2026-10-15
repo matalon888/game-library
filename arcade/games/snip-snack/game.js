@@ -9,7 +9,7 @@ import { board } from './kit/board.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 12 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'SNIP<br>SNACK', hint: 'Swipe to snip the strings', hand: '✂️', score: false });
+const ui = createUI({ title: 'SNIP<br>SNACK', hint: 'Tap a string to snip it · or swipe', hand: '✂️', score: false });
 document.body.style.setProperty('--bg1', '#f0c58f'); document.body.style.setProperty('--bg2', '#d9a46a'); document.body.style.setProperty('--ui', '#ff6f91');
 const css = document.createElement('style');
 css.textContent = `.hc-card h1{color:#fff;text-shadow:0 6px 0 #c2456b,0 10px 18px rgba(120,50,20,.25)}
@@ -121,10 +121,19 @@ function world(x, y) { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 
 function screen(x, y) { _v.set(x, y, 0).project(camera); return [(_v.x + 1) / 2 * innerWidth, (1 - _v.y) / 2 * innerHeight]; }
 let last = null;
 function addTrail(a, b) { const d = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(d / 0.12)); for (let i = 1; i <= n; i++) trailPts.push({ x: lerp(a.x, b.x, i / n), y: lerp(a.y, b.y, i / n), life: 1 }); if (trailPts.length > TRAIL_N) trailPts.splice(0, trailPts.length - TRAIL_N); }
+let pressed = false;
 input({
-  onDown(e) { if (state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; press(sim, w.x, w.y); last = w; trailPts.push({ x: w.x, y: w.y, life: 1 }); },
+  onDown(e) { pressed = true; if (state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; pressed = !!press(sim, w.x, w.y); last = w; trailPts.push({ x: w.x, y: w.y, life: 1 }); },
   onMove(dx, dy, e) { if (!last || state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; swipe(sim, last.x, last.y, w.x, w.y); addTrail(last, w); last = w; },
   onUp() { last = null; },
+  onTap(e) {   // a tap snips the rope under (or right next to) the finger
+    if (state !== 'play' || caught || pressed) return; const w = world(e.clientX, e.clientY); if (!w) return;
+    let best = null, bd = 1.3;
+    for (const r of sim.ropes) for (const g of r.segs) { if (!g.alive) continue; const dx = g.b.x - g.a.x, dy = g.b.y - g.a.y, l2 = dx * dx + dy * dy || 1, t = Math.max(0, Math.min(1, ((w.x - g.a.x) * dx + (w.y - g.a.y) * dy) / l2)), x = g.a.x + dx * t, y = g.a.y + dy * t, d = Math.hypot(w.x - x, w.y - y); if (d < bd) { bd = d; best = { x, y, dx, dy, l: Math.sqrt(l2) }; } }
+    if (!best) return;
+    const nx = best.dy / best.l * 0.4, ny = -best.dx / best.l * 0.4, a = { x: best.x + nx, y: best.y + ny }, b = { x: best.x - nx, y: best.y - ny };
+    swipe(sim, a.x, a.y, b.x, b.y); addTrail(a, b);
+  },
 });
 function botAct(a) {   // the bot plays through real pointer events, exactly the gesture the generator simulated
   const fire = (type, p) => dispatchEvent(new PointerEvent(type, { clientX: p[0], clientY: p[1], pointerId: 1, isPrimary: true }));

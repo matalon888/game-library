@@ -12,7 +12,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 45, shadowSize: 10 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'PULP<br>SWIPE', hint: 'Swipe to slice · avoid bombs', hand: '👆' });
+const ui = createUI({ title: 'PULP<br>SWIPE', hint: 'Tap or swipe fruit to slice · avoid bombs', hand: '👆' });
 const D = daily('pulpswipe', ui, { name: NAME });
 const B = world.board({ game: 'pulp-swipe', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const livesEl = document.getElementById('lives'), cv = document.getElementById('trail'), cx = cv.getContext('2d');
@@ -237,6 +237,8 @@ input({
   onDown: (e) => { last = [e.clientX, e.clientY]; pts.push({ x: e.clientX, y: e.clientY, t: performance.now() }); },
   onMove: (dx, dy, e) => { if (!last) return; const p = [e.clientX, e.clientY]; if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 3) { sliceSeg(last[0], last[1], p[0], p[1]); if (Math.hypot(dx, dy) > 14 && Math.random() < 0.3) tone(1400 + Math.random() * 400, 0.04, 'sine', 0.015, 0.5); } last = p; pts.push({ x: p[0], y: p[1], t: performance.now() }); },
   onUp: () => { last = null; },
+  onTap: (e) => { if (state !== 'play') return; const x = e.clientX, y = e.clientY, now = performance.now();   // a tap = a short slash right under the finger
+    pts.push({ x: x - 32, y: y + 24, t: now - 30 }, { x, y, t: now - 15 }, { x: x + 32, y: y - 24, t: now }); sliceSeg(x - 32, y + 24, x + 32, y - 24); tone(1500, 0.04, 'sine', 0.02, 0.5); },
 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
 function drawTrail() {

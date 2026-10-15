@@ -11,7 +11,7 @@ let fk = 1;
 let level = S.get('level', 1);
 const stage = createStage({ fov: 46, shadowSize: 22 });
 const { scene, camera, sun, hemi } = stage;
-const ui = createUI({ title: 'BELLHOP<br>BOSS', hint: 'Drag to walk', hand: '👆', score: false });
+const ui = createUI({ title: 'BELLHOP<br>BOSS', hint: 'Tap where to walk · or drag', hand: '👆', score: false });
 hemi.intensity = 1.35; sun.intensity = 1.6;
 
 // ------------------------------------------------------------------ helpers
@@ -218,11 +218,13 @@ function walk(o, dt, sec) {
 
 // ------------------------------------------------------------------ input: floating joystick
 const joy = document.createElement('div'); joy.className = 'bb-joy'; joy.innerHTML = '<i></i>'; document.body.appendChild(joy);
-let joyV = { x: 0, y: 0 }, joyOn = false, botUntil = 0, botDir = { x: 0, z: 0 };
+let joyV = { x: 0, y: 0 }, joyOn = false, botUntil = 0, botDir = { x: 0, z: 0 }, goal = null;   // goal: tap-to-walk target on the floor
+const fRay = new THREE.Raycaster(), fPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), fHit = new THREE.Vector3();
+function floorAt(x, y) { fRay.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return fRay.ray.intersectPlane(fPlane, fHit) ? { x: fHit.x, z: fHit.z } : null; }
 input({
   onDown: (e, st) => { if (state !== 'play') return; joyOn = true; joy.style.display = 'block'; joy.style.left = st.x + 'px'; joy.style.top = st.y + 'px'; joyV = { x: 0, y: 0 }; joy.firstChild.style.transform = ''; },
   onMove: (dx, dy, e, st) => { if (!joyOn) return; let vx = e.clientX - st.x, vy = e.clientY - st.y; const d = Math.hypot(vx, vy), m = 46; if (d > m) { vx *= m / d; vy *= m / d; } joyV = { x: vx / m, y: vy / m }; joy.firstChild.style.transform = `translate(${vx}px,${vy}px)`; },
-  onUp: () => { joyOn = false; joy.style.display = 'none'; joyV = { x: 0, y: 0 }; },
+  onUp: (e, st) => { joyOn = false; joy.style.display = 'none'; joyV = { x: 0, y: 0 }; if (state === 'play' && st && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) goal = floorAt(e.clientX, e.clientY); },
 });
 ui.onTap(w => { WB.start(); if (w === 'start') state = 'play'; else { buildLevel(); state = 'play'; } });
 
@@ -244,7 +246,8 @@ loop((dt, t) => {
   // ---- manager movement
   let mx = 0, mz = 0;
   if (state === 'play') {
-    if (joyOn) { mx = joyV.x; mz = joyV.y; } else if (performance.now() < botUntil) { mx = botDir.x; mz = botDir.z; }
+    if (joyOn) { mx = joyV.x; mz = joyV.y; goal = null; } else if (performance.now() < botUntil) { mx = botDir.x; mz = botDir.z; }
+    else if (goal) { const wp = routeTo(mgr, goal), dx = wp.x - mgr.x, dz = wp.z - mgr.z, d = Math.hypot(dx, dz); if (Math.hypot(goal.x - mgr.x, goal.z - mgr.z) < 0.25 || d < 0.05) goal = null; else { mx = dx / d * Math.min(1, d * 1.5 + 0.3); mz = dz / d * Math.min(1, d * 1.5 + 0.3); } }
   }
   const ml = Math.hypot(mx, mz); if (ml > 1) { mx /= ml; mz /= ml; }
   mgr.vx = lerp(mgr.vx, mx * mgr.speed, 0.3 * dt); mgr.vz = lerp(mgr.vz, mz * mgr.speed, 0.3 * dt);

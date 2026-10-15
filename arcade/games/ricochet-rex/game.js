@@ -22,7 +22,7 @@ function fit() {
 addEventListener('resize', fit); fit();
 cam.position.set(0, camBaseY, 20);
 
-const ui = createUI({ title: 'RICOCHET<br>REX', hint: 'Drag to aim · release to fire', hand: '☝️' });
+const ui = createUI({ title: 'RICOCHET<br>REX', hint: 'Tap to shoot that way · or drag to aim', hand: '☝️' });
 const css = document.createElement('style');
 css.textContent = `.hc-score{font-size:40px;top:calc(52px + env(safe-area-inset-top))}
 .hc-card{padding-top:calc(200px + env(safe-area-inset-top))}

@@ -11,7 +11,7 @@ const NAME = 'Grainfall: Falling Grain Game';
 const S = createStage({ fov: 30, shadowSize: 8 });
 const { scene, camera, sun, hemi } = S;
 sun.position.set(2, 8, 14); sun.intensity = 1.3; hemi.intensity = 1.25;
-const ui = createUI({ title: 'GRAIN<br>FALL', hint: 'Drag to move · tap to turn · swipe down to drop', hand: '👆', progress: false });
+const ui = createUI({ title: 'GRAIN<br>FALL', hint: 'Tap the piece to turn · tap beside it to shift · swipe down to drop', hand: '👆', progress: false });
 const D = daily('grainfall', ui, { name: NAME });
 ui.els.win.querySelector('p').innerHTML = 'SCORE <span data-l></span>'; ui.els.win.querySelector('h1').textContent = 'NEW BEST!';
 const save = store('grainfall');
@@ -213,9 +213,15 @@ addEventListener('pointerup', (e) => {
   if (!drag || state !== 'play') { drag = null; return; }
   const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0, dt = performance.now() - drag.t;
   if (dy > 50 && dy > Math.abs(dx) * 1.3 && dt < 450) { fast = true; tone(300, 0.08, 'sine', 0.08, 0.5); }
-  else if (!drag.moved && Math.hypot(dx, dy) < 12) rotate();
+  else if (!drag.moved && Math.hypot(dx, dy) < 12) tapAt(e.clientX);
   drag = null;
 });
+function tapAt(cx) {   // tap on/above/below the piece = turn; tap clearly left/right of it = shift one cell that way
+  if (!piece) return; const sx = (gx) => (g2w(gx, 0).project(camera).x + 1) / 2 * innerWidth, cell = C / gpp();
+  const dir = cx < sx(piece.x) - cell * 0.6 ? -C : cx > sx(piece.x + pw(piece) - 1) + cell * 0.6 ? C : 0;
+  if (!dir) return rotate();
+  const nx = clamp(piece.x + dir, 0, GW - pw(piece)); if (nx !== piece.x && fits(piece, nx, piece.y)) { piece.x = nx; tone(dir < 0 ? 520 : 580, 0.04, 'sine', 0.08, 1); pieceSquash = 0.5; }
+}
 function rotate() {
   if (!piece) return; const nr = (piece.r + 1) % 4, t = { ...piece, r: nr };
   for (const kick of [0, -C, C, -2 * C, 2 * C]) { const nx = clamp(piece.x + kick, 0, GW - pw(t)); if (fits(t, nx, piece.y)) { piece.r = nr; piece.x = nx; sfx.tap(); pieceSquash = 1; return; } }

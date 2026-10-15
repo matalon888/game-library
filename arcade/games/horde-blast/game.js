@@ -13,7 +13,7 @@ const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 5
 sun.position.set(8, 20, 6); sun.shadow.camera.far = 90; hemi.intensity = 1.2; sun.intensity = 1.6;
 document.body.style.setProperty('--bg1', '#9fd8ff'); document.body.style.setProperty('--bg2', '#ffe2b0'); document.body.style.setProperty('--ui', '#2f7bff');
 scene.fog = new THREE.Fog('#f6dfb3', 60, 140);
-const ui = createUI({ title: 'HORDE<br>BLAST', hint: 'Hold to fire · drag to aim', hand: '👆' });
+const ui = createUI({ title: 'HORDE<br>BLAST', hint: 'Tap left or right to fire · hold and drag to aim', hand: '👆' });
 ui.levels(level);
 
 const W = 5.2, LEN = 44, BASEZ = -LEN, MAXU = 700;
@@ -112,7 +112,7 @@ function makeGate(mult, cx, w, z, move) {
 }
 
 // ---------------------------------------------------------------- level
-let baseHP = 100, baseMax = 100, bossOn = false, bossHPv = 0, bossMax = 0, bossZ = 0, waveT = 0, fireT = 0, elapsed = 0, aimX = 0, firing = false, botOn = false, killed = 0, rnd = rng(1);
+let baseHP = 100, baseMax = 100, bossOn = false, bossHPv = 0, bossMax = 0, bossZ = 0, waveT = 0, fireT = 0, elapsed = 0, aimX = 0, firing = false, volley = 0, botOn = false, killed = 0, rnd = rng(1);
 function buildLevel() {
   rnd = rng(level * 7717 + 3); fk = F.k();
   gateGroup.clear(); gates = []; blues = []; reds = [];
@@ -125,7 +125,7 @@ function buildLevel() {
   bossOn = level % 4 === 0; bossMax = bossHPv = bossOn ? 80 + level * 20 : 0; bossZ = BASEZ + 4;
   boss.visible = bossHP.visible = bossOn; boss.scale.setScalar(1);
   fort.visible = true; fort.scale.set(1, 1, 1); fortHP.visible = true; fortHP.set(String(baseHP));
-  collapse = 0; waveT = 1.5; fireT = 0; elapsed = 0; aimX = 0; killed = 0; cannon.position.x = 0;
+  collapse = 0; waveT = 1.5; fireT = 0; volley = 0; elapsed = 0; aimX = 0; killed = 0; cannon.position.x = 0;
   ui.levels(level); ui.progress(0); ui.score(''); ui.sub(bossOn ? 'BOSS LEVEL!' : ''); if (bossOn) setTimeout(() => ui.sub(''), 2500);
 }
 
@@ -133,7 +133,7 @@ function buildLevel() {
 input({
   onDown: () => { botOn = false; if (state === 'play') firing = true; },
   onMove: (dx) => { if (state === 'play') aimX = clamp(aimX + dx * 0.03, -W + 1.1, W - 1.1); },
-  onUp: () => { firing = false; },
+  onUp: (e, st) => { firing = false; if (state === 'play' && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) { volley = 1.2; aimX = clamp(aimX + (e.clientX < innerWidth / 2 ? -1.6 : 1.6), -W + 1.1, W - 1.1); } },   // tap = a 1.2 s volley + a step toward that side
 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; firing = false; }
@@ -152,7 +152,8 @@ let poofBudget = 0, recoil = 0, shake = 0;
 function step(sec) {
   elapsed += sec;
   // fire
-  if (firing) { fireT -= sec; while (fireT <= 0) { fireT += 1 / 9; spawnBlue(cannon.position.x + (Math.random() - 0.5) * 0.4, 0.6); recoil = 1; if (Math.random() < 0.5) tone(700 + Math.random() * 80, 0.03, 'triangle', 0.035, 0.7); } }
+  if (volley > 0) volley -= sec;
+  if (firing || volley > 0) { fireT -= sec; while (fireT <= 0) { fireT += 1 / 9; spawnBlue(cannon.position.x + (Math.random() - 0.5) * 0.4, 0.6); recoil = 1; if (Math.random() < 0.5) tone(700 + Math.random() * 80, 0.03, 'triangle', 0.035, 0.7); } }
   // enemy waves from the fortress door (stop once it's destroyed)
   if (baseHP > 0) { waveT -= sec; if (waveT <= 0) { const n = Math.round((5 + Math.min(30, level * 2)) * fk) + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) spawnRed((Math.random() - 0.5) * 3.4, BASEZ + 2 + Math.random() * 2.5); waveT = Math.max(1.4, (3.6 - level * 0.12) / fk); } }
   // gates move
@@ -234,7 +235,7 @@ loop((dt, t) => {
   }
   cannon.position.x = lerp(cannon.position.x, aimX, 0.35);
   recoil = Math.max(0, recoil - sec * 10); barrel.position.z = -0.6 + recoil * 0.25; cBody.scale.set(1 + recoil * 0.04, 1 - recoil * 0.05, 1 + recoil * 0.04);
-  flash.material.opacity = firing && state === 'play' ? recoil * 0.9 : 0; ring.material.opacity = 0.55 + Math.sin(t * 6) * 0.25;
+  flash.material.opacity = (firing || volley > 0) && state === 'play' ? recoil * 0.9 : 0; ring.material.opacity = 0.55 + Math.sin(t * 6) * 0.25;
   drawCrowd(blueM, blues, t, 0); drawCrowd(redM, reds, t, Math.PI);
   // fortress shake / collapse
   fortHit = Math.max(0, fortHit - sec * 8); fort.position.x = (Math.random() - 0.5) * fortHit * 0.25;

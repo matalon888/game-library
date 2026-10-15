@@ -11,7 +11,7 @@ let level = S.get('level', 1), coinsTotal = S.get('coins', 0);
 const stage = createStage({ fov: 42, shadowSize: 26 });
 const { scene, camera, renderer, sun, hemi } = stage;
 camera.far = 400; camera.updateProjectionMatrix();
-const ui = createUI({ title: 'STEADY<br>WHEELS', hint: 'Hold to drive · slide to steer', hand: '👆', score: false });
+const ui = createUI({ title: 'STEADY<br>WHEELS', hint: 'Tap to roll · hold to drive · slide to steer', hand: '👆', score: false });
 hemi.intensity = 1.25; hemi.groundColor.set('#cfe8c0'); sun.intensity = 1.8; sun.shadow.mapSize.set(2048, 2048);
 scene.fog = new THREE.Fog('#d8eeff', 70, 190);
 
@@ -229,7 +229,9 @@ input({
   onDown: (e) => { if (state !== 'play') return; holding = true; holdX = e.clientX; steerIn = 0; },
   onMove: (dx, dy, e) => { if (!holding) return; steerIn = clamp((e.clientX - holdX) / 110, -1, 1); },
   onUp: () => { holding = false; steerIn = 0; },
+  onTap: (e) => { if (state !== 'play') return; tapUntil = performance.now() + 450; const d = e.clientX - innerWidth / 2; tapSteer = Math.abs(d) > 50 ? Math.sign(d) * 0.7 : 0; },   // a tap = a short roll, nosing toward the tapped side
 });
+let tapUntil = 0, tapSteer = 0;
 ui.onTap(w => { WB.start(); if (w === 'start') { state = 'play'; } else { buildLevel(); state = 'play'; } });
 
 // ------------------------------------------------------------------ collision helpers
@@ -265,9 +267,10 @@ const MAXSTEER = 0.6;
 loop((dt, t) => {
   const sec = dt / 60;
   if (!veh) return;
-  const drive = state === 'play' && (holding || (performance.now() < botUntil && bot.hold));
-  const sIn = performance.now() < botUntil ? bot.steer : steerIn;
-  veh.steer = lerp(veh.steer, (state === 'play' && (holding || performance.now() < botUntil)) ? sIn : veh.steer * 0.9, 0.18 * dt);
+  const tapRoll = !holding && performance.now() < tapUntil;
+  const drive = state === 'play' && (holding || tapRoll || (performance.now() < botUntil && bot.hold));
+  const sIn = performance.now() < botUntil ? bot.steer : tapRoll ? tapSteer : steerIn;
+  veh.steer = lerp(veh.steer, (state === 'play' && (holding || tapRoll || performance.now() < botUntil)) ? sIn : veh.steer * 0.9, 0.18 * dt);
   const target = drive ? spec.vmax * gear * (gear < 0 ? 0.55 : 1) : 0;
   veh.v += (target - veh.v) * (drive ? 0.035 : 0.12) * dt;
   if (Math.abs(veh.v) < 0.02 && !drive) veh.v = 0;

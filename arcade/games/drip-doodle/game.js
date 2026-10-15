@@ -11,7 +11,7 @@ const save = store('dripdoodle');
 const F = flow('dripdoodle');
 const WB = worldBoard({ game: 'drip-doodle', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });
 let level = save.get('level', 1), stars = save.get('stars', 0);
-const ui = createUI({ title: 'DRIP<br>DOODLE', hint: 'Draw a line to fill the glass', hand: '✏️', progress: false, score: false });
+const ui = createUI({ title: 'DRIP<br>DOODLE', hint: 'Tap for a ramp · or draw a line', hand: '✏️', progress: false, score: false });
 const starP = ui.els.win.querySelector('[data-x]'); starP.style.cssText = 'font-size:48px;letter-spacing:6px;color:#ffd23f;text-shadow:0 4px 0 rgba(0,0,0,.2)';
 
 // ---------------------------------------------------------------- layout
@@ -92,7 +92,13 @@ input({
     beginStroke(...toWorld(e.clientX, e.clientY));
   },
   onMove(dx, dy, e) { if (state === 'play' && pencil) addPoint(...toWorld(e.clientX, e.clientY)); },
-  onUp() { if (pencil || cur) endStroke(); },
+  onUp(e, st) {
+    if (state === 'play' && pencil && st && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) {   // a tap draws a short ramp there, sloping down toward the glass
+      const [x, y] = toWorld(e.clientX, e.clientY), d = L.glass.x < x ? -1 : 1; if (cur && cur.length < 2) strokes.splice(strokes.indexOf(cur), 1);
+      beginStroke(x - d * 45, y - 14); for (let i = 1; i <= 9; i++) addPoint(x - d * 45 + d * 10 * i, y - 14 + 28 * i / 9);
+    }
+    if (pencil || cur) endStroke();
+  },
 });
 
 // ---------------------------------------------------------------- fx (2D particles)

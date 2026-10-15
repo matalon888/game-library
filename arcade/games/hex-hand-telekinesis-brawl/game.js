@@ -12,7 +12,7 @@ const S = createStage({ fov: 50, shadowSize: 12 });
 const { scene, camera, sun, hemi } = S;
 scene.add(camera);
 sun.intensity = 1.6; hemi.intensity = 1.25;
-const ui = createUI({ title: 'HEX<br>HAND', hint: 'Touch an imp, drag and flick to throw', hand: '👆' });
+const ui = createUI({ title: 'HEX<br>HAND', hint: 'Tap an imp to throw it · or drag and flick', hand: '👆' });
 const D = daily('hexhand', ui, { name: NAME });
 const B = board({ game: 'hex-hand', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 const save = store('hexhand');
@@ -226,8 +226,14 @@ function release(fling = true, vOverride = null) {
 input({
   onDown: (e) => { if (state !== 'play' || sub !== 'fight') return; botS.phase = 0; const o = pick(e.clientX, e.clientY); if (o) { grab(o); const w = fingerToWorld(e.clientX, e.clientY); if (w) fingerT.copy(w); } },
   onMove: (dx, dy, e) => { if (!held) return; const w = fingerToWorld(e.clientX, e.clientY); if (w) fingerT.copy(w); },
-  onUp: () => { if (held) release(true); },
+  onUp: (e, st) => { if (!held) return; if (Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) { const o = held; setTimeout(() => { if (held === o && state === 'play') release(true, tapThrow(o)); }, 220); } else release(true); },
 });
+// tap (no flick): lift it and auto-throw at the imp closest to you, or off the island if it's the last one
+function tapThrow(o) {
+  const q = objs.filter(q => q !== o && q.alive && q.active && !q.ko && q.kind === 'imp' && q.stage === si).sort((a, b) => b.pos.z - a.pos.z)[0];
+  if (!q) return new THREE.Vector3((o.pos.x >= 0 ? 1 : -1) * 16, 6, -4);
+  const T = 0.45, v = q.pos.clone().setY(q.big ? 1.2 : 0.4).sub(o.pos).divideScalar(T); v.y += 0.5 * GRAV * T; return v;
+}
 ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); });
 
 // ---------------------------------------------------------------- simulation

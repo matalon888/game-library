@@ -9,7 +9,7 @@ const { scene, camera, sun, hemi } = S;
 camera.far = 700; camera.updateProjectionMatrix();
 sun.intensity = 1.9; hemi.intensity = 1.05; sun.shadow.camera.far = 260; sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.05; sun.shadow.camera.updateProjectionMatrix();
 scene.add(camera);
-const ui = createUI({ title: 'SKYLINE<br>SCOPE', hint: 'Hold to scope · drag to aim · release to fire', hand: '🎯', score: false });
+const ui = createUI({ title: 'SKYLINE<br>SCOPE', hint: 'Tap a red cap to shoot · or hold, aim, release', hand: '🎯', score: false });
 const save = store('skyscope');
 let level = save.get('level', 1);
 const F = flow('skyscope'); let fk = 1;
@@ -50,7 +50,7 @@ const hud = H('<div class="sn-hud"><div class="sn-box">🎯 <span data-k>0/1</sp
 const brief = H('<div class="sn-brief"></div>'), ammoEl = H('<div class="sn-ammo"></div>');
 const zoomEl = H('<div class="sn-zoom"><i></i></div>'); H('<div class="sn-zl">ZOOM</div>');
 const scopeEl = H('<div class="sn-scope"><div class="ring"></div><div class="h"></div><div class="v"></div><div class="h2"></div><div class="v2"></div><div class="st"></div><div class="dot"></div><div class="lbl">STEADY</div></div>');
-const hintEl = H('<div class="sn-hint">HOLD TO SCOPE</div>');
+const hintEl = H('<div class="sn-hint">TAP A RED CAP</div>');
 const barT = H('<div class="sn-bars" style="top:0"></div>'), barB = H('<div class="sn-bars" style="bottom:0"></div>');
 
 // ---------------------------------------------------------------- textures + materials
@@ -291,15 +291,25 @@ function renderAmmo() { ammoEl.innerHTML = Array.from({ length: ammoMax }, (_, i
 function setHud() { hud.querySelector('[data-k]').textContent = `${killed}/${nT}`; ui.progress(killed / nT); }
 function startLevel() {
   fk = F.k(); buildCity(); nT = spawnPeople(); killed = 0; ammoMax = ammo = nT + 3; timeLeft = (32 + nT * 8) / fk; mode = 'aim'; cam = null; ts = 1; scope = 0; endT = 0;
-  yaw = 0; pitch = -0.5; holding = botHold = wasHold = false;
+  yaw = 0; pitch = -0.5; holding = botHold = wasHold = false; tapAim = null;
   ui.levels(level); setHud(); renderAmmo(); bullet.visible = trail.visible = false; rifle.visible = true;
   const names = ['RED CAP', 'RED CAPS'];
   brief.textContent = `TARGET: ${nT > 1 ? nT + ' ' + names[1] : names[0]} · SPARE CIVILIANS`;
   barT.style.height = barB.style.height = '0';
 }
 ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; if (w !== 'lose') B.start(); });
+// a tap (no drag) swings the scope to the tapped spot (snapping to a red cap near it), zooms in and fires by itself
+let tapAim = null, downPlay = false; const tapRay = new THREE.Raycaster(), tapN = new THREE.Vector2();
+function tapShot(x, y) {
+  if (state !== 'play' || mode !== 'aim' || ammo <= 0) return;
+  tapN.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); tapRay.setFromCamera(tapN, camera);
+  let d = tapRay.ray.direction.clone(), bd = 0.09;
+  for (const p of people) { if (!p.alive || p.kind !== 'target') continue; const q = p.g.position.clone().add(new THREE.Vector3(0, 1.1 * PS, 0)).sub(camPos0).normalize(); const e = q.angleTo(tapRay.ray.direction); if (e < bd && rayHit(camPos0, q).p === p) { bd = e; d = q; } }
+  tapAim = { yaw: Math.atan2(-d.x, -d.z), pitch: Math.asin(d.y), t: 0.85 }; buzz(5);
+}
 input({
-  onDown: () => { if (state === 'play') holding = true; },
+  onDown: () => { downPlay = state === 'play'; if (downPlay) holding = true; },
+  onTap: (e) => { if (downPlay) tapShot(e.clientX, e.clientY); },
   onMove: (dx, dy) => {
     if (state !== 'play' || mode !== 'aim') return;
     const k = 0.0042 * (camera.fov / BASE_FOV) * (scope > 0.5 ? 0.75 : 1);
@@ -360,7 +370,8 @@ const camPos0 = new THREE.Vector3(0, 24, -17.5);
 loop((dtRaw, t) => {
   const real = dtRaw / 60;
   // input → scope, release fires
-  const hold = state === 'play' && mode === 'aim' && (holding || botHold);
+  if (tapAim) { if (state !== 'play' || mode !== 'aim') tapAim = null; else { const sw = window.__sway || { sx: 0, sy: 0 }, k = Math.min(1, real * 14); yaw = lerp(yaw, tapAim.yaw - sw.sx, k); pitch = lerp(pitch, tapAim.pitch - sw.sy, k); moveAcc = 0; if ((tapAim.t -= real) <= 0) tapAim = null; } }
+  const hold = state === 'play' && mode === 'aim' && (holding || botHold || !!tapAim);
   if (wasHold && !hold && scope > 0.55 && state === 'play' && mode === 'aim') fire();
   wasHold = hold;
   scope = clamp(scope + (hold ? 5 : -6) * real, 0, 1);

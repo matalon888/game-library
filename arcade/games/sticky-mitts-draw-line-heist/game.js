@@ -11,7 +11,7 @@ const NAME = 'Sticky Mitts: Draw Line Heist';
 const S = createStage({ fov: 40, shadowSize: 9 });
 const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.55; hemi.intensity = 1.25;
-const ui = createUI({ title: 'STICKY<br>MITTS', hint: 'Drag the glove to the loot', hand: '👆', score: false });
+const ui = createUI({ title: 'STICKY<br>MITTS', hint: 'Tap where the glove should go · or drag it', hand: '👆', score: false });
 const D = daily('stickymitts', ui, { name: NAME });
 const B = board({ game: 'sticky-mitts', label: 'Heists cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board: heists cleared today (RULES.md)
 const save = store('stickymitts');
@@ -274,7 +274,7 @@ function build() {
   // arm
   pts = [shoulder.clone(), handStart.clone()]; tip.copy(handStart); armDirty = true;
   glove.position.copy(tip); glove.rotation.set(0, 0, 0); glove.visible = true;
-  botPath = path || []; botI = 1; botOn = false; finger = null;
+  botPath = path || []; botI = 1; botOn = false; finger = null; tapTo = null;
   startDist = Math.hypot(lootPos.x - tip.x, lootPos.z - tip.z); progress = 0; recorded = false; sub = 'reach'; caughtBy = null; beatenShown = false;
   ui.levels(level); ui.progress(0); tag.textContent = (D.isDaily ? 'DAILY HEIST · ' : '') + (haul ? '💰 $' + haul.toLocaleString() : '');
   laserMat.color.set('#ff2a55');
@@ -355,16 +355,17 @@ function winLevel() {
 // ---------------------------------------------------------------- input
 const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -ARMY), _v = new THREE.Vector2(), _hit = new THREE.Vector3();
 function toWorld(e) { _v.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(_v, camera); return ray.ray.intersectPlane(plane, _hit) ? _hit.clone() : null; }
-let dragging = false, grabOff = new THREE.Vector3();
+let dragging = false, grabOff = new THREE.Vector3(), tapTo = null;   // tapTo: a tap sends the glove crawling to that spot
 input({
   onDown: (e) => {
     if (state !== 'play' || sub !== 'reach') return; const w = toWorld(e); if (!w) return;
-    botOn = false;
+    botOn = false; tapTo = null;
     // you can grab anywhere, the glove keeps its offset to your finger so it never jumps (and stays visible above your thumb)
     grabOff.set(tip.x - w.x, 0, tip.z - w.z); if (grabOff.length() > 1.6) grabOff.setLength(1.6);
     dragging = true; finger = w.add(grabOff); glove.fingers.forEach(f => f.rotation.x = Math.PI / 2 + 0.5);
   },
   onMove: (dx, dy, e) => { if (!dragging) return; const w = toWorld(e); if (w) finger = w.add(grabOff); },
+  onTap: (e) => { if (state !== 'play' || sub !== 'reach') return; const w = toWorld(e); if (w) { tapTo = w; sfx.tap(); } },
   onUp: () => { dragging = false; finger = null; glove.fingers.forEach(f => f.rotation.x = Math.PI / 2); },
 });
 ui.onTap((which) => { B.start(); build(); state = 'play'; ui.hideStart(); });
@@ -375,6 +376,7 @@ camera.position.copy(camPos); camera.lookAt(camLook);
 loop((dt) => {
   t += dt / 60;
   if (state === 'play' && sub === 'reach') {
+    if (tapTo && !finger && !moveTip(tapTo, dt)) tapTo = null;
     const tgt = finger || (botOn && botPath[botI] ? new THREE.Vector3(botPath[botI].x, ARMY, botPath[botI].z) : null);
     if (tgt) moveTip(tgt, dt);
   }
@@ -402,7 +404,7 @@ loop((dt) => {
     if (sub === 'home') { lootObj.item.visible = false; glove.visible = true; winLevel(); }
   }
   if (armDirty) rebuildArm();
-  glove.position.set(tip.x, ARMY + (sub === 'reach' && (finger || botOn) ? 0.05 : 0), tip.z);
+  glove.position.set(tip.x, ARMY + (sub === 'reach' && (finger || tapTo || botOn) ? 0.05 : 0), tip.z);
   if (lootObj) { lootObj.item.rotation.y += 0.03 * dt; if (sub === 'reach') lootObj.item.position.y = 0.75 + Math.sin(t * 3) * 0.06; }
   hero.position.y = Math.abs(Math.sin(t * (sub === 'retract' ? 14 : 3))) * (sub === 'retract' ? 0.12 : 0.03);
   if (flashT > 0) { flashT = Math.max(0, flashT - dt * 0.02); armMat.color.set(Math.floor(t * 12) % 2 ? '#ff2a55' : ARMCOL); if (!flashT) armMat.color.set(ARMCOL); }

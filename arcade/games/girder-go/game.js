@@ -8,7 +8,7 @@ import { board } from './kit/board.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 16 });
 const { scene, camera, sun, renderer } = stage;
-const ui = createUI({ title: 'GIRDER<br>GO', hint: 'Drag from a red anchor to build', hand: '👆', score: false });
+const ui = createUI({ title: 'GIRDER<br>GO', hint: 'Tap a red anchor, then tap where to build · or drag', hand: '👆', score: false });
 const save = store('girdergo');
 const F = flow('girdergo');
 const B = board({ game: 'girder-go', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
@@ -200,7 +200,7 @@ function buildLevel(keepDesign = false) {
   flag.position.set(lv.R + 1.7, 0, -1.0);
   sim = null; mode = 'build'; simT = 0; carPos(lv.L - 3.2, lv.L - 3.2 + lv.vehicle.axle, lv.vehicle.r, lv.vehicle.r);
   ui.levels(level); ui.progress(0); updateBudget(); setBar(true); dotIM.visible = true; anchorGroup.visible = true;
-  bot.i = 0; bot.cleared = false; bot.wait = 0;
+  bot.i = 0; bot.cleared = false; bot.wait = 0; sel = null; ring.visible = false;
   frameCam(true);
 }
 function inRock(x, y) {
@@ -215,7 +215,7 @@ function updateBudget() {
   goBtn.classList.toggle('pulse', design.beams.some(b => b.type === 'road') && mode === 'build');
 }
 function setBar(show) { bar.classList.toggle('hide', !show); hintEl.style.opacity = show ? 1 : 0;
-  hintEl.textContent = !show ? '' : level === 1 ? 'Drag from the red anchors · make triangles!' : level === 2 ? 'Tap a beam to delete it' : lv.low ? 'Lower anchors can prop the deck' : lv.pillar ? 'Use the rock in the middle' : lv.vehicle.kind === 'truck' ? 'Heavy truck – go stronger' : ''; }
+  hintEl.textContent = !show ? '' : level === 1 ? 'Tap a red anchor, then tap a spot · or drag' : level === 2 ? 'Tap a beam to delete it' : lv.low ? 'Lower anchors can prop the deck' : lv.pillar ? 'Use the rock in the middle' : lv.vehicle.kind === 'truck' ? 'Heavy truck – go stronger' : ''; }
 function nodeAt(x, y) { return design.nodes.findIndex(n => n.x === x && n.y === y); }
 function beamLen(b) { const A = design.nodes[b.a], B = design.nodes[b.b]; return Math.hypot(A.x - B.x, A.y - B.y); }
 function addBeam(x1, y1, x2, y2, type, quiet = false) {
@@ -252,7 +252,7 @@ function undo() {
 // ------------------------------------------------------------------ input (drag to build, tap a beam to delete)
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), hitP = new THREE.Vector3();
 function toWorld(cx, cy) { ndc.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera); return ray.ray.intersectPlane(plane, hitP) ? { x: hitP.x, y: hitP.y } : null; }
-let drag = null;
+let drag = null, sel = null;   // sel = node picked by a tap (tap-to-build: tap node, then tap a spot)
 function snapEnd(sx, sy, wx, wy) {
   const maxL = MATS[material].maxLen; let dx = wx - sx, dy = wy - sy; const d = Math.hypot(dx, dy);
   if (d > maxL) { dx *= maxL / d; dy *= maxL / d; }
@@ -269,8 +269,8 @@ input({
     const w = toWorld(e.clientX, e.clientY); if (!w) return;
     let bi = -1, bd = 0.75;
     design.nodes.forEach((n, i) => { const d = Math.hypot(n.x - w.x, n.y - w.y); if (d < bd) { bd = d; bi = i; } });
-    if (bi >= 0) { const n = design.nodes[bi]; drag = { sx: n.x, sy: n.y, end: null }; ring.visible = true; ring.position.set(n.x, n.y, 1.1); tone(500, 0.04, 'sine', 0.1, 1.2); }
-    else drag = { tapOnly: true, w };
+    if (bi >= 0) { const n = design.nodes[bi]; drag = { sx: n.x, sy: n.y, end: null, cx: e.clientX, cy: e.clientY }; ring.visible = true; ring.position.set(n.x, n.y, 1.1); tone(500, 0.04, 'sine', 0.1, 1.2); }
+    else drag = { tapOnly: true, w, cx: e.clientX, cy: e.clientY };
   },
   onMove(dx, dy, e) {
     if (!drag || drag.tapOnly) return;
@@ -281,7 +281,17 @@ input({
   },
   onUp(e) {
     const d = drag; drag = null; ring.visible = false; preview.visible = false;
-    if (!d || state !== 'play' || mode !== 'build') return;
+    if (!d || state !== 'play' || mode !== 'build') { sel = null; return; }
+    const pick = (x, y) => { sel = { x, y }; ring.visible = true; ring.position.set(x, y, 1.1); };
+    if (!d.tapOnly && Math.hypot(e.clientX - d.cx, e.clientY - d.cy) < 12) {   // tap on a joint: select / deselect / build to it
+      if (!sel) { pick(d.sx, d.sy); return; }
+      if (sel.x === d.sx && sel.y === d.sy) { sel = null; tone(300, 0.05, 'sine', 0.08, 0.8); return; }
+      const end = snapEnd(sel.x, sel.y, d.sx, d.sy); if (end && addBeam(sel.x, sel.y, end[0], end[1], material)) pick(end[0], end[1]); else pick(d.sx, d.sy); return;
+    }
+    if (d.tapOnly && sel && Math.hypot(e.clientX - d.cx, e.clientY - d.cy) < 12) {   // tap an empty spot with a joint picked → build a beam toward it, keep chaining from its end
+      const end = snapEnd(sel.x, sel.y, d.w.x, d.w.y); if (end && addBeam(sel.x, sel.y, end[0], end[1], material)) pick(end[0], end[1]); else pick(sel.x, sel.y); return;
+    }
+    sel = null;
     if (d.tapOnly) {   // tap near a beam → delete it
       let bi = -1, bd = 0.35;
       design.beams.forEach((b, i) => { const A = design.nodes[b.a], B = design.nodes[b.b]; const ex = B.x - A.x, ey = B.y - A.y, L2 = ex * ex + ey * ey; let t = ((d.w.x - A.x) * ex + (d.w.y - A.y) * ey) / L2; t = clamp(t, 0, 1); const dd = Math.hypot(A.x + ex * t - d.w.x, A.y + ey * t - d.w.y); if (dd < bd) { bd = dd; bi = i; } });
@@ -297,6 +307,7 @@ let simT = 0, shake = 0, debris = [], stuckT = 0, lastX = 0, broken = 0;
 function go() {
   if (!design.beams.some(b => b.type === 'road')) { ui.pop('BUILD A ROAD FIRST', '#2f4858', 26, 30); buzz(20); return; }
   const v = lv.vehicle;
+  sel = null; ring.visible = false;
   sim = createSim(design, [[lv.L - 14, 0, lv.L, 0], [lv.R, 0, lv.R + 14, 0], ...(lv.pillar ? [] : [])], { x: lv.L - 3.2, y: v.r, axle: v.axle, r: v.r, wheelMass: v.wheelMass, speed: v.speed });
   mode = 'sim'; simT = 0; stuckT = 0; lastX = sim.wheels[1].x; broken = 0;
   setBar(false); dotIM.visible = false;
@@ -416,6 +427,7 @@ loop((dt60, ts) => {
     preview.visible = true; preview.position.set((drag.sx + ex) / 2, (drag.sy + ey) / 2, 0); preview.rotation.set(0, 0, Math.atan2(ey - drag.sy, ex - drag.sx)); preview.scale.set(len, 1, material === 'road' ? 1 : 0.15);
     preview.material.color.set(over ? '#ff4d5e' : BASE[material]); ring.scale.setScalar(1 + Math.sin(t * 10) * 0.08);
   } else preview.visible = false;
+  if (sel && !drag) ring.scale.setScalar(1.15 + Math.sin(t * 8) * 0.15);
   // debris
   for (let i = debris.length - 1; i >= 0; i--) { const d = debris[i]; d.vy -= 9.8 * dt; d.m.position.x += d.vx * dt; d.m.position.y += d.vy * dt; d.m.rotation.z += d.vr * dt;
     if (d.m.position.y < -lv.cliffDepth) { burst(scene, d.m.position.clone().setY(-lv.cliffDepth + 0.1), ['#ffffff', '#bff3f5'], 8, { speed: 0.08, up: 0.12, shape: 'sphere', size: 0.5 }); tone(300, 0.08, 'sine', 0.06, 0.5); scene.remove(d.m); d.m.geometry.dispose(); debris.splice(i, 1); } }

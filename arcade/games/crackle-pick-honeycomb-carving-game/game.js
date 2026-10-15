@@ -13,7 +13,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 40, shadowSize: 5 });
 const { scene, camera } = stage;
-const ui = createUI({ title: 'CRACKLE<br>PICK', hint: 'Drag along the line to carve', hand: '👆' });
+const ui = createUI({ title: 'CRACKLE<br>PICK', hint: 'Tap the line to carve · or drag along it', hand: '👆' });
 const D = daily('cracklepick', ui, { name: NAME });
 const crackEl = document.getElementById('crack'), crackFill = document.getElementById('crackFill');
 
@@ -284,16 +284,25 @@ function screenToDisc(x, y) {
   ray.setFromCamera(_ndc, camera); return ray.ray.intersectPlane(plane, _hit) ? _hit : null;
 }
 input({
-  onDown: (e) => { if (state !== 'play') return; const h = screenToDisc(e.clientX, e.clientY); if (!h) return; tip.set(h.x, TH, h.z); pressing = true; tone(900, 0.03, 'triangle', 0.06, 0.8); moveTip(h.x, h.z); },
+  onDown: (e) => { if (state !== 'play') return; trace = null; const h = screenToDisc(e.clientX, e.clientY); if (!h) return; tip.set(h.x, TH, h.z); pressing = true; tone(900, 0.03, 'triangle', 0.06, 0.8); moveTip(h.x, h.z); },
   onMove: (dx, dy, e) => { if (state !== 'play' || !pressing) return; const h = screenToDisc(e.clientX, e.clientY); if (h) moveTip(h.x, h.z); },
-  onUp: () => { pressing = false; },
+  onUp: (e, st) => {
+    pressing = false; if (state !== 'play' || !st || Math.hypot(e.clientX - st.x, e.clientY - st.y) >= 12) return;
+    // a tap near the line: the pin snaps onto it and carves a short stretch by itself
+    const h = screenToDisc(e.clientX, e.clientY + FINGER); if (!h) return; _a.set(h.x, h.z);
+    let bi = -1, bd = 0.3; path.forEach((p, i) => { const d = p.distanceTo(_a); if (d < bd) { bd = d; bi = i; } }); if (bi < 0) return;
+    const P = path.length, dir = carved[(bi + 1) % P] && !carved[(bi - 1 + P) % P] ? -1 : 1;
+    trace = { i: bi, dir, n: Math.ceil(P * 0.09) }; tip.set(path[bi].x, TH, path[bi].y); tone(900, 0.03, 'triangle', 0.06, 0.8);
+  },
 });
+let trace = null;
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); crackEl.classList.remove('off'); ui.els.sc.classList.remove('hc-hidden'); onCarve.q = 0; });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {
   if (dirty) { tex.needsUpdate = bump.needsUpdate = true; dirty = false; }
   if (state === 'play') {
+    if (trace && !pressing) { for (let k = 0; k < 2 && trace && trace.n > 0; k++, trace.n--) { const p = path[trace.i = (trace.i + trace.dir + path.length) % path.length]; pressing = true; moveTip(p.x, p.y); pressing = false; } if (trace && trace.n <= 0) trace = null; }
     timeLeft -= dt / 60;
     const s = Math.ceil(timeLeft); ui.pill('⏱ ' + Math.max(0, s));
     ui.els.pill.classList.toggle('low', timeLeft < 5);

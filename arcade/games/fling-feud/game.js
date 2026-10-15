@@ -7,7 +7,7 @@ import { board } from './kit/board.js';
 const S = createStage({ fov: 24, shadows: false });
 const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.25; hemi.intensity = 1.55; sun.position.set(-4, 10, 12);
-const ui = createUI({ title: 'FLING<br>FEUD', hint: 'Drag back to aim · release to throw', hand: '👈', score: false });
+const ui = createUI({ title: 'FLING<br>FEUD', hint: 'Tap to throw that way · or drag back to aim', hand: '👈', score: false });
 const save = store('flingfeud');
 const F = flow('flingfeud'); let fk = 1;
 const B = board({ game: 'fling-feud', label: 'Wins', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });
@@ -243,10 +243,18 @@ function aimFromDrag(d) {
   let ang = Math.atan2(-py, px); ang = clamp(ang, -0.35, 1.5);
   return { ang, pw: clamp(len / (innerHeight * 0.3), 0, 1), len };
 }
+// a tap throws in the tapped direction (from your hand); power is picked to carry that arc about as far as the rival, give or take
+function tapThrow(x, y) {
+  const h = handPos(you), p = h.clone().project(camera), hx = (p.x + 1) / 2 * innerWidth, hy = (1 - p.y) / 2 * innerHeight;
+  let ang = Math.hypot(x - hx, y - hy) < 30 ? 0.7 : clamp(Math.atan2(hy - y, (x - hx) * you.face), -0.35, 1.5); if (you.face < 0) ang = Math.PI - ang;
+  const t = headPos(foe), dx = (t.x - h.x) * you.face, dy = t.y - h.y, a = you.face > 0 ? ang : Math.PI - ang, k = dx * Math.tan(a) - dy;
+  const v = k > 0 ? Math.sqrt(G * dx * dx / (2 * Math.cos(a) ** 2 * k)) * (1 + (Math.random() - 0.5) * 0.08) : 25;
+  throwFrom(you, ang, clamp((v - 8) / 17, 0.1, 1));
+}
 input({
   onDown: e => { if (state !== 'play' || phase !== 'aim') return; drag = { sx: e.clientX, sy: e.clientY, cx: e.clientX, cy: e.clientY }; },
   onMove: (dx, dy, e) => { if (!drag) return; drag.cx = e.clientX; drag.cy = e.clientY; },
-  onUp: () => { if (!drag) return; const a = aimFromDrag(drag); drag = null; if (a.pw > 0.08 && phase === 'aim' && state === 'play') throwFrom(you, a.ang, a.pw); },
+  onUp: () => { if (!drag) return; const a = aimFromDrag(drag), d = drag; drag = null; if (phase !== 'aim' || state !== 'play') return; if (a.len < 12) tapThrow(d.sx, d.sy); else if (a.pw > 0.08) throwFrom(you, a.ang, a.pw); },
 });
 ui.onTap(w => { if (w === 'win') level++; if (you) { scene.remove(you.root); } if (foe) scene.remove(foe.root); startLevel(); state = 'play'; B.start(); });
 

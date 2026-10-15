@@ -8,7 +8,7 @@ const WB = board({ game: 'smash-dummy', label: 'Levels cleared', limits: { maxRu
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 9 });
 const { scene, camera, sun, followLight } = stage;
-const ui = createUI({ title: 'SMASH<br>DUMMY', hint: 'Drag & fling the dummy', hand: '👆' });
+const ui = createUI({ title: 'SMASH<br>DUMMY', hint: 'Tap where to fling him · or drag', hand: '👆' });
 document.body.style.setProperty('--bg1', '#f3f8fe'); document.body.style.setProperty('--bg2', '#d5e6f6'); document.body.style.setProperty('--ui', '#ff8a1f');
 const css = document.createElement('style');
 css.textContent = `.hc-score{color:#ff8a1f;text-shadow:0 4px 0 rgba(120,60,0,.18)} .hc-sub{color:#5b7088;text-shadow:none;font-weight:800}
@@ -230,13 +230,21 @@ input({
     const now = performance.now(), dtm = Math.max(8, now - lastDragT) / 1000;
     dragVel.lerp(w.clone().sub(lastDrag).divideScalar(dtm), 0.5); lastDrag.copy(w); lastDragT = now;
   },
-  onUp() {
+  onUp(e) {
     if (!grab) return;
     const g = grab; grab = null;
-    if (g.moved < 25) return;
-    // fling: give the whole body the drag velocity (clamped), a little extra up
-    const v = dragVel.clone(); if (v.length() > 24) v.setLength(24); v.y += 1.5;
-    if (performance.now() - lastDragT > 120) v.multiplyScalar(0.2);
+    let v;
+    if (g.moved < 12) {   // a tap flings the dummy toward the tapped spot with medium power (tap on the dummy = hop up and sideways)
+      const w = pointerWorld(e.clientX, e.clientY), c = rd.P[rd.IDX.chest].p;
+      const dir = w ? w.clone().sub(c) : new THREE.Vector3(); dir.z = 0;
+      if (dir.length() < 1.2) dir.set(Math.random() < 0.5 ? -1 : 1, 1.4, 0);
+      dir.y += 1.2; v = dir.normalize().multiplyScalar(15);
+    } else if (g.moved < 25) return;
+    else {
+      // fling: give the whole body the drag velocity (clamped), a little extra up
+      v = dragVel.clone(); if (v.length() > 24) v.setLength(24); v.y += 1.5;
+      if (performance.now() - lastDragT > 120) v.multiplyScalar(0.2);
+    }
     for (const j of rd.P) { j.o.copy(j.p).addScaledVector(v, -1 / 120); }
     throws--; ui.pill(throws ? '✋'.repeat(throws) : '—'); settleT = 0;
     tone(300, 0.2, 'sawtooth', 0.05, 2.2); buzz(10);

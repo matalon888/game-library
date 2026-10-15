@@ -616,7 +616,7 @@ function startFlight(i) {
   Object.assign(ps, { parts: [], fuel: 0, go: false, clear: false }); pad.rocket.clear();
   buildCorridor(cor, p0.z + 0.0); corridorG.visible = false;
   steer.touched = false; closePanels();
-  fh.hint.textContent = portrait() ? 'Hold & drag to steer · tap the rings' : 'Hold & drag (or ←/→) to steer · tap / Space on the rings';
+  fh.hint.textContent = portrait() ? 'Tap or hold a side to steer · tap the rings' : 'Tap / hold a side (or ←/→) to steer · tap / Space on the rings';
   // altitude bar marks
   const marks = $('altMarks'); marks.innerHTML = '';
   const maxR = PLANETS[PLANETS.length - 1].req * 1.05;
@@ -931,6 +931,7 @@ canvas.addEventListener('pointerdown', e => {
 addEventListener('pointermove', e => { if (steer.down) steer.cx = e.clientX; });
 addEventListener('pointerup', e => {
   steer.down = false;
+  if (flight && flight.phase === 'fly' && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 12 && performance.now() - downAt.t < 300) flight.vx += Math.sign(worldXAt(e.clientX) - flight.x) * 5;   // a quick tap = a nudge toward that side
   if (!flight && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 10 && e.target === canvas) {
     ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ptr, camera);
     const hit = ray.intersectObjects(pads.map(p => p.hit))[0]; if (hit) openPad(hit.object.userData.pad); else closePanels();

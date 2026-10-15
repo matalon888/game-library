@@ -14,7 +14,7 @@ const stage = createStage({ fov: 34, shadows: true, shadowSize: 13 });
 const { scene, camera, renderer } = stage;
 stage.hemi.intensity = 1.25; stage.sun.intensity = 1.55;
 stage.sun.shadow.camera.far = 60;
-const ui = createUI({ title: 'CAPY<br>HOP', hint: 'Tap to hop · swipe to dodge', hand: '👆', progress: false });
+const ui = createUI({ title: 'CAPY<br>HOP', hint: 'Tap to hop · tap an edge to sidestep', hand: '👆', progress: false });
 const D = daily('capyhop', ui, { name: NAME });
 document.body.style.setProperty('--bg1', '#9fdcff'); document.body.style.setProperty('--bg2', '#d8f4ff'); document.body.style.setProperty('--ui', '#ff8a3d');
 // win card doubles as the "new best" card for this endless game
@@ -266,7 +266,7 @@ function gameOver() {
 }
 
 input({
-  onTap: () => { if (state === 'play') tryHop(0, 1); },
+  onTap: (e) => { if (state !== 'play') return; const fx = e.clientX / innerWidth; if (fx < 0.22) tryHop(-1, 0); else if (fx > 0.78) tryHop(1, 0); else tryHop(0, 1); },   // edge taps sidestep
   onSwipe: (d) => { if (state !== 'play') return; if (d === 'left') tryHop(-1, 0); else if (d === 'right') tryHop(1, 0); else if (d === 'down') tryHop(0, -1); else tryHop(0, 1); },
 });
 addEventListener('keydown', e => { const k = { ArrowUp: [0, 1], KeyW: [0, 1], Space: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0], ArrowDown: [0, -1], KeyS: [0, -1] }[e.code]; if (k) tryHop(...k); });

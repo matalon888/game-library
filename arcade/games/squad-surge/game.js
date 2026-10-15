@@ -10,7 +10,7 @@ const F = flow('squadsurge');
 const WB = worldBoard({ game: 'squad-surge', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 16 });
-const ui = createUI({ title: 'SQUAD<br>SURGE', hint: 'Drag to steer your squad', hand: '👆', score: false });
+const ui = createUI({ title: 'SQUAD<br>SURGE', hint: 'Tap left or right to steer · or drag', hand: '👆', score: false });
 const $ = id => document.getElementById(id);
 const THEMES = [
   { bg: ['#8a6bff', '#bfe3ff'], track: '#f5f3ff', stripe: '#e6e0ff', rail: '#c9bcff', sea: '#5aa9ff', castle: '#7a4fe0', roof: '#ffb21f', ui: '#7b4dff' },
@@ -133,8 +133,10 @@ function setCount() { $('count').textContent = mine().length; }
 
 // ---------------------------------------------------------------- input
 let dragging = false, botX = null;
+let tapOk = false;
 input({
-  onDown() { if (state === 'play') { dragging = true; botX = null; } },
+  onDown() { tapOk = state === 'play'; if (tapOk) { dragging = true; botX = null; } },
+  onTap(e) { if (state === 'play' && tapOk && phase === 'run') C.tx = clamp((e.clientX / innerWidth - 0.5) * TW * 1.1, -TW / 2 + 0.6, TW / 2 - 0.6); },   // a tap sends the squad to that side of the track
   onMove(dx) { if (state === 'play' && dragging && phase === 'run') C.tx = clamp(C.tx + dx * 0.028, -TW / 2 + 0.6, TW / 2 - 0.6); },
   onUp() { dragging = false; },
 });

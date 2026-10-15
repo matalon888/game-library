@@ -9,7 +9,7 @@ const ST = store('stickynook');
 const F = flow('stickynook');
 let fk = 1;
 let level = ST.get('level', 1);
-const ui = createUI({ title: 'STICKY<br>NOOK', hint: 'Drag stickers onto their spots', hand: '👆', score: false });
+const ui = createUI({ title: 'STICKY<br>NOOK', hint: 'Tap a sticker, then tap its spot · or drag', hand: '👆', score: false });
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 let W = 0, H = 0, DPR = 1;
 
@@ -183,7 +183,7 @@ function buildLevel() {
   stickers = th.items.filter(k => chosen.has(k)).map(k => ({ key: k, placed: false, pop: 0, fade: 0 }));
   fixed = th.items.filter(k => !chosen.has(k));
   tray = [...stickers]; for (let i = tray.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [tray[i], tray[j]] = [tray[j], tray[i]]; }
-  placedN = 0; mistakes = 0; colorAmt = colorTarget = 0.3; drag = null; botMove = null; idleT = 0; sparks = []; winT = 0;
+  placedN = 0; mistakes = 0; colorAmt = colorTarget = 0.3; drag = null; botMove = null; sel = null; fly = null; idleT = 0; sparks = []; winT = 0;
   layout(); ui.levels(level); ui.progress(0); hearts();
 }
 function layout() {
@@ -224,7 +224,7 @@ function trayFit(s, i) { const r = slotRect(i), it = s.it, k = Math.min(r.w / (i
 // ------------------------------------------------------------------ input
 input({
   onDown: (e) => {
-    if (state !== 'play' || botMove) return;
+    if (state !== 'play' || botMove || fly) return;
     idleT = 0;
     if (e.clientY < trayY()) return;
     const i = Math.floor(e.clientX / (W / TRAY_SLOTS)); const s = tray[i]; if (!s) return;
@@ -232,8 +232,16 @@ input({
     drag = { s, x: f.x, y: f.y, k: f.k, tx: e.clientX, ty: e.clientY - 70, fromI: i }; sfx.tap(); buzz(6); tone(700, 0.05, 'triangle', 0.08, 1.4);
   },
   onMove: (dx, dy, e) => { if (!drag) return; drag.tx = e.clientX; drag.ty = e.clientY - 70; },
+  onTap: (e) => {   // tap a tray sticker to pick it up (tap again to put it back), then tap its spot to stick it there
+    if (state !== 'play' || botMove || fly) return;
+    if (drag) { sel = sel === drag.s ? null : drag.s; drag = null; return; }
+    if (!sel || e.clientY >= trayY()) return;
+    const i = tray.indexOf(sel), f = trayFit(sel, Math.max(0, i));
+    fly = { s: sel, x: f.x, y: f.y - 16, k: f.k * 1.15, tx: e.clientX, ty: e.clientY, fly: true }; sel = null; sfx.tap(); buzz(6);
+  },
   onUp: () => { if (!drag) return; drop(drag); drag = null; },
 });
+let sel = null, fly = null;
 function drop(d) {
   const it = d.s.it, dist = Math.hypot(d.x - it.cx, d.y - it.cy), snap = Math.max(40, Math.min(it.w, it.h) * 0.45 / fk);
   if (dist < snap) return place(d.s);
@@ -282,7 +290,7 @@ loop((dt, t) => {
   for (const s of stickers) {
     const it = s.it;
     if (!s.placed) {
-      const target = (drag && drag.s === s) || (botMove && botMove.s === s), pulse = target ? 0.65 + Math.sin(t * 8) * 0.35 : 0.85 + Math.sin(t * 2.5 + it.cx) * 0.15;
+      const target = (drag && drag.s === s) || (botMove && botMove.s === s) || sel === s || (fly && fly.s === s), pulse = target ? 0.65 + Math.sin(t * 8) * 0.35 : 0.85 + Math.sin(t * 2.5 + it.cx) * 0.15;
       ctx.globalAlpha = pulse; ctx.drawImage(it.ghost, it.x, it.y, it.w, it.h); ctx.globalAlpha = 1;
       if (target) { ctx.save(); ctx.globalAlpha = 0.5 + Math.sin(t * 8) * 0.3; ctx.strokeStyle = '#ffffff'; ctx.setLineDash([7, 6]); ctx.lineDashOffset = -t * 30; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(it.x + 4, it.y + 4, it.w - 8, it.h - 8, 14); ctx.stroke(); ctx.restore(); }
       continue;
@@ -301,23 +309,25 @@ loop((dt, t) => {
   ctx.fillStyle = '#fff'; ctx.strokeStyle = '#e8a46a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(14, ty - 18, 76, 34, 12); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#9a5b2c'; ctx.font = '800 19px "Baloo 2",system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(`${placedN}/${stickers.length}`, 52, ty);
   tray.slice(0, TRAY_SLOTS).forEach((s, i) => {
-    if ((drag && drag.s === s) || (botMove && botMove.s === s)) return;
+    if ((drag && drag.s === s) || (botMove && botMove.s === s) || (fly && fly.s === s)) return;
     const f = trayFit(s, i), off = trayShift * (W / TRAY_SLOTS);
     let x = f.x + off, y = f.y + Math.sin(t * 2 + i) * 2;
+    if (s === sel) { y -= 16; ctx.save(); ctx.globalAlpha = 0.55 + Math.sin(t * 8) * 0.3; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, (W / TRAY_SLOTS) * 0.42, 0, 7); ctx.stroke(); ctx.restore(); drawSticker(s, x, y, f.k * 1.15, 8, Math.sin(t * 6) * 0.06); return; }
     if (s.back) { s.back.t = Math.min(1, s.back.t + sec * 4); const e = 1 - Math.pow(1 - s.back.t, 3); x = lerp(s.back.x, x, e); y = lerp(s.back.y, y, e); if (s.back.t >= 1) s.back = null; }
     drawSticker(s, x, y, f.k, 0, Math.sin(t * 1.5 + i) * 0.03);
   });
   // dragged / bot-moved sticker (full room size, lifted)
-  const mv = drag || botMove;
+  const mv = drag || botMove || fly;
   if (mv) {
     if (botMove) { botMove.t = Math.min(1, botMove.t + sec * 2.4); const e = botMove.t < 0.5 ? 4 * botMove.t ** 3 : 1 - Math.pow(-2 * botMove.t + 2, 3) / 2; botMove.x = lerp(botMove.sx, botMove.s.it.cx, e); botMove.y = lerp(botMove.sy, botMove.s.it.cy, e) - Math.sin(e * Math.PI) * 60; }
     else { mv.x = lerp(mv.x, mv.tx, 0.4); mv.y = lerp(mv.y, mv.ty, 0.4); }
     mv.k = lerp(mv.k, 1, 0.25);
     drawSticker(mv.s, mv.x, mv.y, mv.k, 8, Math.sin(t * 6) * 0.04);
+    if (mv === fly && Math.hypot(fly.x - fly.tx, fly.y - fly.ty) < 3) { const d = fly; fly = null; drop(d); }
     if (botMove) { ctx.font = '42px system-ui'; ctx.fillText('👆', botMove.x + 10, botMove.y + 60); if (botMove.t >= 1) { const s = botMove.s; botMove = null; place(s); } }
   }
   // idle hint: ghost hand drags from the first tray sticker to its spot
-  if (state === 'play' && idleT > 4 && tray[0] && !drag) {
+  if (state === 'play' && idleT > 4 && tray[0] && !drag && !sel && !fly) {
     const f = trayFit(tray[0], 0), k = ((idleT - 4) % 1.6) / 1.6, e = k * k * (3 - 2 * k), it = tray[0].it;
     ctx.globalAlpha = Math.sin(k * Math.PI); ctx.font = '44px system-ui'; ctx.fillText('👆', lerp(f.x, it.cx, e) + 8, lerp(f.y, it.cy, e) + 40); ctx.globalAlpha = 1;
   }
@@ -339,7 +349,7 @@ ui.start();
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return placedN; },
   bot() {
-    if (state !== 'play' || botMove || drag || !tray.length) return;
+    if (state !== 'play' || botMove || drag || fly || !tray.length) return;
     const s = tray[0], f = trayFit(s, 0);
     botMove = { s, sx: f.x, sy: f.y, x: f.x, y: f.y, k: f.k, t: 0 }; tone(700, 0.05, 'triangle', 0.08, 1.4);
   },

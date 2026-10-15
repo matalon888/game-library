@@ -8,7 +8,7 @@ const ST = store('poserush');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const F = flow('poserush'); let fk = 1;
 const { scene, camera, followLight, sun } = createStage({ fov: 50, shadowSize: 10 });
-const ui = createUI({ title: 'POSE<br>RUSH', hint: 'Drag limbs in slow-mo', hand: '👆', score: true });
+const ui = createUI({ title: 'POSE<br>RUSH', hint: 'Tap in slow-mo to strike · or drag limbs', hand: '👆', score: true });
 document.body.style.setProperty('--bg1', '#14cfff'); document.body.style.setProperty('--bg2', '#c4f5ff'); document.body.style.setProperty('--ui', '#ff7a1a');
 const $ = id => document.getElementById(id);
 
@@ -168,6 +168,7 @@ input({
   },
   onMove(dx, dy, e) { if (grabbed && state === 'play') dragTo(grabbed, e.clientX, e.clientY); },
   onUp() { grabbed = null; handles.forEach(h => h.classList.remove('grab')); },
+  onTap() { if (state === 'play' && active && active.phase === 'slow') { autoPose(); sfx.tap(); buzz(8); } },   // a tap = strike the target / dodge the bullet
 });
 
 ui.onTap(w => { WB.start();
@@ -241,7 +242,7 @@ loop((dt, t) => {
         if (ev.bullet) {
           const prevZ = ev.bullet.position.z; ev.bullet.position.z += 17 * fk * wdt;
           ev.trail.position.set(0, 1.72, (ev.bullet.position.z + ev.bz0) / 2 - 0.0); ev.trail.scale.y = Math.min(6, ev.bullet.position.z - ev.bz0); ev.trail.position.z = ev.bullet.position.z - ev.trail.scale.y / 2;
-          if (!active && r.g.position.z - ev.bullet.position.z < 6) startSlow(ev, 'DRAG TO DODGE!');
+          if (!active && r.g.position.z - ev.bullet.position.z < 6) startSlow(ev, 'TAP TO DODGE!');
           if (prevZ < r.g.position.z && ev.bullet.position.z >= r.g.position.z) {
             if (bulletHits(ev.bullet.position)) { die('SHOT!', new THREE.Vector3(0, 0.05, 0.12)); burst(worldG, ev.bullet.position, '#ff3d3d', 14, { speed: 0.08 }); }
             else { ev.dodged = true; score += 50; ui.score(score); ui.pop('DODGED!', '#fff', 40, 26); sfx.coin(); buzz(15); endSlow(); worldG.remove(ev.bullet, ev.trail); ev.bullet = null; }
@@ -249,7 +250,7 @@ loop((dt, t) => {
         }
         break;
       }
-      if (!active && d < 3.6) startSlow(ev, 'DRAG A LIMB TO HIT!');
+      if (!active && d < 3.6) startSlow(ev, 'TAP TO HIT!');
       if (active === ev) {
         const target = ev.e.g.localToWorld(new THREE.Vector3(0, ev.h, 0.28));
         ev.tgt = target;
@@ -320,13 +321,14 @@ buildLevel();
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
-  bot() {
-    if (state !== 'play' || !active || active.phase !== 'slow') return;
-    if (active.type === 'gun' && !active.dodged) { locks.chest = -1.1; locks.hand0 = [-0.2, 1.7]; locks.hand1 = [-0.1, 1.65]; return; }
-    if (!active.tgt) return;
-    const loc = runner.g.worldToLocal(active.tgt.clone());
-    const useFoot = active.h < 1.5;
-    setLock(useFoot ? 'foot1' : 'hand1', loc);
-    if (useFoot) locks.chest = -0.35;
-  },
+  bot: () => autoPose(),
 };
+function autoPose() {
+  if (state !== 'play' || !active || active.phase !== 'slow') return;
+  if (active.type === 'gun' && !active.dodged) { locks.chest = -1.1; locks.hand0 = [-0.2, 1.7]; locks.hand1 = [-0.1, 1.65]; return; }
+  if (!active.tgt) return;
+  const loc = runner.g.worldToLocal(active.tgt.clone());
+  const useFoot = active.h < 1.5;
+  setLock(useFoot ? 'foot1' : 'hand1', loc);
+  if (useFoot) locks.chest = -0.35;
+}

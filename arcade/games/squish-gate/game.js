@@ -10,7 +10,7 @@ const WB = worldBoard({ game: 'squish-gate', label: 'Levels cleared', limits: { 
 let fk = 1;
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const { scene, camera, sun, followLight } = createStage({ fov: 50, shadowSize: 9 });
-const ui = createUI({ title: '<span class="sg-title"><b>SQUISH</b><i>GATE</i></span>', hint: 'Drag up & down to squish', hand: '↕️' });
+const ui = createUI({ title: '<span class="sg-title"><b>SQUISH</b><i>GATE</i></span>', hint: 'Tap top = tall · tap bottom = flat · or drag', hand: '↕️' });
 const $ = id => document.getElementById(id);
 ui.els.start.querySelector('.hand').style.animation = 'none';
 
@@ -152,6 +152,7 @@ function updFever() { $('feverBar').style.width = (fever > 0 ? fever / 300 : fev
 // ---------------------------------------------------------------- input: vertical drag = squish
 input({
   onMove(dx, dy) { if (state !== 'play' || finishing) return; s = clamp(s - dy * 0.0062, 0, 1); },
+  onTap(e) { if (state !== 'play' || finishing) return; s = clamp(s + (e.clientY < innerHeight / 2 ? 0.3 : -0.3), 0, 1); sfx.tap(); },   // tap top = taller, bottom = squatter
 });
 ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; t0 = performance.now(); sfx.tap(); }

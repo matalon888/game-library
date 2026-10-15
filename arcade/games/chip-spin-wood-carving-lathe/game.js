@@ -9,7 +9,7 @@ const NAME = 'Chip Spin: Wood Carving Lathe';
 const S = store('chipspin');
 const F = flow('chipspin');
 let level = S.get('level', 1), total = S.get('score', 0);
-const ui = createUI({ title: 'CHIP<br>SPIN', hint: 'Drag the chisel into the wood', hand: '👆', score: false });
+const ui = createUI({ title: 'CHIP<br>SPIN', hint: 'Tap the wood to carve there · or drag the chisel', hand: '👆', score: false });
 const D = daily('chipspin', ui, { name: NAME });
 const B = board({ game: 'chip-spin', label: 'Carve points', limits: { maxRun: 120, maxPerSec: 15 }, mode: 'sum' });
 const stage = createStage({ fov: 36, shadowSize: 6 });
@@ -245,14 +245,25 @@ function finish() {
 // ---------------------------------------------------------------- input (relative drag moves the tool; finger stays clear of it)
 let down = false, lx = 0, ly = 0;
 const wpp = () => 2 * camera.position.z * Math.tan(camera.fov * Math.PI / 360) / innerHeight;
-addEventListener('pointerdown', e => { if (state !== 'play') return; audioOn(); down = true; lx = e.clientX; ly = e.clientY; });
+let tx0 = 0, ty0 = 0, plunge = null, paintT = 0;   // tap: chisel lifts out, plunges at the tapped spot and sweeps a short pass there, never under the target (paint: brush dabs there)
+const tRay = new THREE.Raycaster(), tPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), tHit = new THREE.Vector3();
+addEventListener('pointerdown', e => { if (state !== 'play') return; audioOn(); down = true; lx = tx0 = e.clientX; ly = ty0 = e.clientY; plunge = null; });
 addEventListener('pointermove', e => {
   if (!down || state !== 'play') return;
   const k = wpp() * 1.15, dx = (e.clientX - lx) * k, dy = (e.clientY - ly) * k; lx = e.clientX; ly = e.clientY;
   if (phase === 'carve') { cx = clamp(cx + dx, -LEN / 2 + 0.05, LEN / 2 - 0.05); cd = clamp(cd + dy, MINR, 2.2); }
   else if (phase === 'paint') { cx = clamp(cx + dx, -LEN / 2, LEN / 2); cd = clamp(cd + dy, 0, 2.2); }
 });
-const up = () => { down = false; };
+const up = (e) => {
+  if (down && state === 'play' && e.type === 'pointerup' && Math.hypot(e.clientX - tx0, e.clientY - ty0) < 12) {
+    tRay.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
+    if (tRay.ray.intersectPlane(tPlane, tHit)) {
+      if (phase === 'carve') { const x = clamp(tHit.x, -LEN / 2 + 0.3, LEN / 2 - 0.3); cx = x - 0.3; cd = Math.max(cd, R0 + 0.3); prev = null; plunge = { x1: x + 0.3, d: clamp(Math.abs(tHit.y), MINR, 2.2) }; }
+      else if (phase === 'paint') { cx = clamp(tHit.x, -LEN / 2, LEN / 2); paintT = 0.35; }
+    }
+  }
+  down = false;
+};
 addEventListener('pointerup', up); addEventListener('pointercancel', up);
 ui.onTap((which) => { audioOn(); B.start(); if (which === 'start' && state === 'ready') { state = 'play'; return; } build(); state = 'play'; });
 
@@ -262,11 +273,12 @@ loop((dt, t) => {
   spin += (phase === 'done' ? 0.06 : 0.32) * dt; if (wood) { wood.rotation.y = spin; ghost.rotation.y = spin; }
   // carve along the tool's path since last frame
   if (state === 'play' && phase === 'carve') {
+    if (plunge) { cx = Math.min(plunge.x1, cx + 0.012 * dt); const d = Math.max(plunge.d, safeDepth(cx)); cd = Math.max(d, cd - 0.08 * dt); if (cx >= plunge.x1) plunge = null; }
     const p = prev || [cx, cd], steps = Math.max(1, Math.ceil(Math.abs(cx - p[0]) / 0.02 + Math.abs(cd - p[1]) / 0.02));
     for (let s = 1; s <= steps; s++) carveAt(lerp(p[0], cx, s / steps), lerp(p[1], cd, s / steps));
     prev = [cx, cd];
   }
-  if (state === 'play' && phase === 'paint' && (down || botPhase === 2)) paintAt(cx);
+  if (state === 'play' && phase === 'paint' && (down || botPhase === 2 || paintT > 0)) { paintT -= dt / 60; paintAt(cx); }
   // tool meshes ease to the target position
   const tg = phase === 'carve' ? chisel : brush, ty = phase === 'carve' ? -cd : -(R[clamp(Math.round((cx + LEN / 2) / LEN * N), 0, N)] + 0.17);
   tg.position.x = lerp(tg.position.x, cx, 0.6); tg.position.y = lerp(tg.position.y, ty, 0.6); tg.position.z = 0.3;

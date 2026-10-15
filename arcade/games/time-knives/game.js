@@ -10,7 +10,7 @@ const { scene, camera, renderer } = stage;
 stage.autoRender = false;
 scene.background = new THREE.Color('#03030a');
 const bloom = createBloom(renderer, scene, camera, { strength: 1.25, threshold: 0.55 });
-const ui = createUI({ title: 'TIME<br>KNIVES', hint: 'Hold · draw · release', hand: '☝️' });
+const ui = createUI({ title: 'TIME<br>KNIVES', hint: 'Tap an enemy to throw · or hold, draw, release', hand: '☝️' });
 document.body.style.setProperty('--bg1', '#04040c'); document.body.style.setProperty('--bg2', '#0b0b26'); document.body.style.setProperty('--ui', '#2f7bff');
 const save = store('timeknives');
 const F = flow('timeknives'); let fk = 1;

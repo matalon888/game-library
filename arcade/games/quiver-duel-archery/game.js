@@ -12,7 +12,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 40, shadowSize: 14 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'QUIVER<br>DUEL', hint: 'Hold to draw · drag to aim · let go', hand: '👆', score: false });
+const ui = createUI({ title: 'QUIVER<br>DUEL', hint: 'Tap to shoot · or hold, drag to aim, let go', hand: '👆', score: false });
 const D = daily('quiverduel', ui, { name: NAME });
 const B = board({ game: 'quiver-duel', label: 'Duels won', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum', corner: 'br' });
 const duelEl = document.getElementById('duel'), windEl = document.getElementById('wind');
@@ -243,11 +243,11 @@ function lose() {
 // ---------------------------------------------------------------- input
 let lastXY = null;
 function startDraw() { if (state !== 'play' || turn !== 'you' || phase !== 'idle') return; drawing = true; drawT = 0; phase = 'aim'; tone(220, 0.25, 'sawtooth', 0.03, 1.6); }
-function release() { if (!drawing) return; drawing = false; if (drawT < 0.25) { phase = 'idle'; you.bow.setDraw(0); return; } const s = swayAt(performance.now() / 1000); launch('you', aim.x + s.x, aim.y + s.y); }
+function release(tap) { if (!drawing) return; drawing = false; if (drawT < 0.25 && !tap) { phase = 'idle'; you.bow.setDraw(0); return; } const s = swayAt(performance.now() / 1000); launch('you', aim.x + s.x, aim.y + s.y); }   // a quick tap shoots straight at the crosshair
 input({
   onDown: (e) => { lastXY = [e.clientX, e.clientY]; startDraw(); },
   onMove: (dx, dy) => { if (!drawing) return; const k = 0.0042 * (dist / 20) * (camera.fov / 18); aim.x = clamp(aim.x + dx * k, -3, 3); aim.y = clamp(aim.y - dy * k, -2.5, 2.5); },
-  onUp: () => release(),
+  onUp: (e, st) => release(Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12),
 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.pop('YOUR SHOT', theme.ui, 32, 30); });
 
@@ -322,7 +322,7 @@ loop((rawDt, t) => {
   _v.copy(camLook); camera.userData.look = (camera.userData.look || _v.clone()).lerp(_v, snap); camera.lookAt(camera.userData.look);
   const f2 = (innerWidth / innerHeight < 0.7 ? 1.12 : 1) * fov; if (Math.abs(camera.fov - f2) > 0.05) { camera.fov = lerp(camera.fov, f2, drawing ? 0.2 : 0.15); camera.updateProjectionMatrix(); }
   xh.style.display = state === 'play' && turn === 'you' && drawing ? 'block' : 'none';
-  drawBar.textContent = state === 'play' ? (turn === 'you' ? (drawing ? 'let go to shoot' : phase === 'idle' ? 'hold to draw' : '') : phase === 'aim' || phase === 'idle' ? 'rival is aiming…' : '') : '';
+  drawBar.textContent = state === 'play' ? (turn === 'you' ? (drawing ? 'let go to shoot' : phase === 'idle' ? 'tap to shoot · hold to aim' : '') : phase === 'aim' || phase === 'idle' ? 'rival is aiming…' : '') : '';
   stage.followLight(_v.set(0, 0, -dist * 0.5));
 });
 

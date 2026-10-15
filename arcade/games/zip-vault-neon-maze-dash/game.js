@@ -13,7 +13,7 @@ const F = flow('zipvault');
 const stage = createStage({ fov: 46, shadowSize: 15 });
 const { scene, camera, sun, hemi } = stage;
 hemi.intensity = 0.9; sun.intensity = 1.5;
-const ui = createUI({ title: 'ZIP<br>VAULT', hint: 'Swipe to dash', hand: '👆' });
+const ui = createUI({ title: 'ZIP<br>VAULT', hint: 'Tap any side of Zip to dash · or swipe', hand: '👆' });
 const D = daily('zipvault', ui, { name: 'Zip Vault: Neon Maze Dash' });
 const B = board({ game: 'zip-vault', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
@@ -229,7 +229,10 @@ function win() {
 }
 
 // ---------------------------------------------------------------- input
-input({ onSwipe: (d) => dash(d) });
+input({ onSwipe: (d) => dash(d), onTap: (e) => {   // tap = dash toward the tapped side of Zip (up / down / left / right, whichever is stronger)
+  if (state !== 'play') return; const q = hero.position.clone().project(stage.camera), dx = e.clientX - (q.x + 1) / 2 * innerWidth, dy = e.clientY - (1 - q.y) / 2 * innerHeight;
+  dash(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+} });
 addEventListener('keydown', e => { const k = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' }[e.key]; if (k) dash(k); });
 ui.onTap(() => { B.start(); buildLevel(); state = 'play'; t0 = performance.now(); });
 

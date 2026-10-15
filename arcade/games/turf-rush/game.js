@@ -12,7 +12,7 @@ let level = save.get('level', 1), best = save.get('best', 0), score = 0, state =
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 42, shadowSize: 16 });
 hemi.intensity = 1.35; sun.intensity = 1.2;
 document.body.style.setProperty('--bg1', '#9fdcff'); document.body.style.setProperty('--bg2', '#c9f1ff'); document.body.style.setProperty('--ui', '#ff4fa3');
-const ui = createUI({ title: 'TURF<br>RUSH', hint: 'Swipe to steer', hand: '👆' });
+const ui = createUI({ title: 'TURF<br>RUSH', hint: 'Tap where to go · or swipe to steer', hand: '👆' });
 ui.levels(level);
 
 const CS = 0.5;                       // cell size (world units)
@@ -278,6 +278,7 @@ input({
   onMove: (dx, dy, e) => { if (!joy || state !== 'play') return; const vx = e.clientX - joy.x, vy = e.clientY - joy.y; if (Math.hypot(vx, vy) > 8) players[0].want = Math.atan2(vx, -vy);
     if (Math.hypot(vx, vy) > 60) { joy.x = e.clientX - vx * 0.6; joy.y = e.clientY - vy * 0.6; } },
   onUp: () => { joy = null; },
+  onTap: (e) => { const p = players[0]; if (state !== 'play' || !p) return; const q = new THREE.Vector3(p.x, 0, p.z).project(camera), vx = e.clientX - (q.x + 1) / 2 * innerWidth, vy = e.clientY - (1 - q.y) / 2 * innerHeight; if (Math.hypot(vx, vy) > 8) { p.want = Math.atan2(vx, -vy); sfx.tap(); } },   // tap = head toward that spot
 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }

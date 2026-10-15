@@ -9,7 +9,7 @@ const F = flow('splitstream');
 const WB = worldBoard({ game: 'splitstream', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
-const ui = createUI({ title: 'SPLIT<br>STREAM', hint: 'Drag ← → to stretch your legs', hand: '👆', score: false });
+const ui = createUI({ title: 'SPLIT<br>STREAM', hint: 'Tap right = wider · left = narrower · or drag', hand: '👆', score: false });
 const $ = id => document.getElementById(id);
 const SKIES = [
   { bg: ['#ff9a3c', '#ffe08a'], fog: '#ffc76b', city: ['#ffcf5c', '#ffb347', '#ffd98a'], stripe: '#2ee66b', ui: '#ff6a3d' },
@@ -160,10 +160,12 @@ function hud() { $('gems').textContent = '💎 ' + (total + gems); }
 
 // ---------------------------------------------------------------- input: horizontal drag stretches the legs
 let dragging = false, botS = null;
+let tapOk = false;
 input({
-  onDown() { if (state === 'play') { dragging = true; botS = null; } },
+  onDown() { tapOk = state === 'play'; if (tapOk) { dragging = true; botS = null; } },
   onMove(dx) { if (state === 'play' && dragging) K.t = clamp(K.t + dx * 0.022, MINS, MAXS); },
   onUp() { dragging = false; },
+  onTap(e) { if (state === 'play' && tapOk) K.t = clamp(K.t + (e.clientX > innerWidth / 2 ? 0.7 : -0.7), MINS, MAXS); },   // tap right half = legs wider, left half = narrower
 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }

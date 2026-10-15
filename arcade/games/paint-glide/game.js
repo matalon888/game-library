@@ -21,7 +21,7 @@ let level = S.get('level', 1);
 const stage = createStage({ fov: 40, shadowSize: 10 });
 const { scene, camera, sun } = stage;
 stage.hemi.intensity = 1.25; sun.intensity = 1.35;
-const ui = createUI({ title: 'PAINT<br>GLIDE', hint: 'Swipe to roll', hand: '👆', score: false });
+const ui = createUI({ title: 'PAINT<br>GLIDE', hint: 'Tap beside the ball to roll · or swipe', hand: '👆', score: false });
 
 // ---------------------------------------------------------------- level generation (seeded, always solvable, never stuck)
 function generate(lv) {
@@ -187,6 +187,11 @@ input({
     if (Math.hypot(acc.x, acc.y) > 22) { acc.used = true; go(Math.abs(acc.x) > Math.abs(acc.y) ? (acc.x > 0 ? 'right' : 'left') : (acc.y > 0 ? 'down' : 'up')); }
   },
   onUp: () => { acc = null; },
+  onTap: (e) => {                                         // tap = roll toward the tapped side of the ball
+    if (state !== 'play') return; const v = ball.position.clone().project(camera);
+    const tx = e.clientX - (v.x + 1) / 2 * innerWidth, ty = e.clientY - (1 - v.y) / 2 * innerHeight;
+    if (Math.hypot(tx, ty) > 14) go(Math.abs(tx) > Math.abs(ty) ? (tx > 0 ? 'right' : 'left') : (ty > 0 ? 'down' : 'up'));
+  },
 });
 addEventListener('keydown', e => { const k = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[e.key]; if (k) go(k); });
 ui.onTap(which => { B.start(); if (which === 'win' || which === 'lose') buildLevel(); state = 'play'; });

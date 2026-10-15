@@ -18,7 +18,7 @@ const save = store('doodlelegs');
 let level = save.get('level', 1), wins = save.get('wins', 0), state = 'ready';
 const F = flow('doodlelegs');
 const WB = worldBoard({ game: 'doodle-legs', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
-const ui = createUI({ title: 'DOODLE<br>LEGS', hint: 'Draw legs. Race. Climb!', hand: '✍️', score: false });
+const ui = createUI({ title: 'DOODLE<br>LEGS', hint: 'Tap the pad for legs, or draw your own. Race!', hand: '✍️', score: false });
 
 // ---------------------------------------------------------------- shared assets
 const tileGeo = new THREE.BoxGeometry(1, 1, 1);
@@ -198,7 +198,12 @@ input({
     const l = stroke[stroke.length - 1]; if (Math.hypot(p[0] - l[0], p[1] - l[1]) < 2.5) return; stroke.push(p); clearInk(); drawInk(stroke);
     const now = performance.now(); if (now - lastScribble > 55) { lastScribble = now; tone(260 + Math.random() * 140, 0.035, 'triangle', 0.035, 0.8); }
   },
-  onUp() { if (!stroke) return; pad.classList.remove('hot'); if (!commitStroke(stroke)) { clearInk(); if (!raceOn) hint.style.opacity = 1; } stroke = null; },
+  onUp(e, st) {
+    if (!stroke) return; pad.classList.remove('hot');
+    if (st && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) tapDraw();   // a tap draws ready-made legs (round in tunnels, else wheel / hook in turn)
+    else if (!commitStroke(stroke)) { clearInk(); if (!raceOn) hint.style.opacity = 1; }
+    stroke = null;
+  },
 });
 
 // ghost hint: a dotted "U" being drawn until the first stroke
@@ -224,7 +229,12 @@ function aiUpdate(R, dt) {
     }
   }
 }
-let botDraw = null, botMode = '', botBig = 0;
+let botDraw = null, botMode = '', botBig = 0, tapN = 0;
+function tapDraw() {
+  const me = racers[0], w = needSmall(me.sim.x + 1.2) ? SH.circle(0.45) : (tapN++ % 2 ? SH.L(2.1) : SH.U(2.4, 1.4)), k = K();
+  const fine = []; for (let i = 0; i < w.length - 1; i++) for (let j = 0; j < 4; j++) { const t = j / 4; fine.push([w[i][0] + (w[i + 1][0] - w[i][0]) * t, w[i][1] + (w[i + 1][1] - w[i][1]) * t]); }
+  fine.push(w[w.length - 1]); botDraw = { i: 0, tap: true, pts: fine.map(([x, y]) => [padRect.width / 2 + x / k, padRect.height / 2 - y / k]) };
+}
 function bot() {
   if (state !== 'play') return;
   const me = racers[0];
@@ -265,6 +275,7 @@ function finish(won) {
 loop((dt, t) => {
   const s = dt / 60;
   if (!racers.length) return;
+  if (state === 'play' && botDraw && botDraw.tap) { botDraw.i = Math.min(botDraw.pts.length, botDraw.i + Math.ceil(2 * dt)); clearInk(); drawInk(botDraw.pts.slice(0, botDraw.i)); if (botDraw.i >= botDraw.pts.length) { const p = botDraw.pts; botDraw = null; commitStroke(p); } }
   if (state === 'play' && !raceOn && !botDraw && !stroke) drawGhost(dt);
   // physics
   for (const R of racers) {

@@ -17,7 +17,7 @@ const stage = createStage({ fov: 62, shadowSize: 14 });
 const { scene, camera, sun } = stage;
 scene.add(camera);
 scene.fog = new THREE.Fog('#cfe9ff', 30, 75);
-const ui = createUI({ title: 'WAND<br>RUSH', hint: 'Drag to steer · match the magic', hand: '👆' });
+const ui = createUI({ title: 'WAND<br>RUSH', hint: 'Tap left or right to steer · match the magic', hand: '👆' });
 const D = daily('wandrush', ui, { name: NAME });
 
 const EL = [
@@ -194,7 +194,7 @@ function win() {
   D.won(score); ui.win(level, `${kills} goons blasted · ${score} pts`);
 }
 
-input({ onMove: (dx) => { if (state === 'play') tx = clamp(tx + dx * 0.016, -HALF, HALF); } });
+input({ onMove: (dx) => { if (state === 'play') tx = clamp(tx + dx * 0.016, -HALF, HALF); }, onTap: (e) => { if (state === 'play') tx = clamp(tx + (e.clientX < innerWidth / 2 ? -1.65 : 1.65), -HALF, HALF); } });   // tap a side = step one lane
 ui.onTap(w => {
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();

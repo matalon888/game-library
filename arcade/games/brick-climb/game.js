@@ -8,7 +8,7 @@ const ST = store('brickclimb');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const F = flow('brickclimb'); let fk = 1;
 const { scene, camera, followLight, renderer } = createStage({ fov: 48, shadowSize: 16 });
-const ui = createUI({ title: 'BRICK<br>CLIMB', hint: 'Drag to run', hand: '👆', score: false });
+const ui = createUI({ title: 'BRICK<br>CLIMB', hint: 'Tap where to run · or drag', hand: '👆', score: false });
 
 // ---------------------------------------------------------------- constants
 const FW = 13, FD = 13, BL = 10, RISE = 4.2, LW = 1.8, LANES = [-4.3, 0, 4.3];
@@ -150,7 +150,9 @@ function activateFloor(k, ci) {
 }
 
 // ---------------------------------------------------------------- input: floating joystick
-let joy = { x: 0, y: 0 }, botJoy = null, down = false;
+let joy = { x: 0, y: 0 }, botJoy = null, down = false, goal = null;   // goal: tap-to-walk spot (gives up after 4 s)
+const fRay = new THREE.Raycaster(), fPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), fHit = new THREE.Vector3();
+function floorAt(x, y) { fPlane.constant = -player.y; fRay.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return fRay.ray.intersectPlane(fPlane, fHit) ? { x: fHit.x, z: fHit.z, t: performance.now() + 4000 } : null; }
 input({
   onDown(e, st) { if (state !== 'play') return; down = true; botJoy = null; joyEl.style.display = 'block'; joyEl.style.left = st.x + 'px'; joyEl.style.top = st.y + 'px'; joy.x = joy.y = 0; },
   onMove(dx, dy, e, st) {
@@ -158,7 +160,7 @@ input({
     if (l > m) { jx *= m / l; jy *= m / l; }
     joy.x = jx / m; joy.y = jy / m; joyEl.firstChild.style.transform = `translate(${jx}px,${jy}px)`;
   },
-  onUp() { down = false; joy.x = joy.y = 0; joyEl.style.display = 'none'; joyEl.firstChild.style.transform = ''; },
+  onUp(e, st) { if (down && st && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) goal = floorAt(e.clientX, e.clientY); down = false; joy.x = joy.y = 0; joyEl.style.display = 'none'; joyEl.firstChild.style.transform = ''; },
 });
 
 ui.onTap(w => { WB.start();
@@ -361,6 +363,7 @@ loop((dt, t) => {
       if (ch === player) {
         if (down) dir = { x: joy.x, z: joy.y };
         else if (botJoy) dir = botJoy;
+        else if (goal && performance.now() < goal.t && Math.hypot(goal.x - ch.x, goal.z - ch.z) > 0.3) dir = { x: (goal.x - ch.x) * 2, z: (goal.z - ch.z) * 2 };
         else dir = { x: 0, z: 0 };
       } else {
         ch.think -= dt; if (ch.think <= 0 || !ch.tgt) { ch.think = 6 + Math.random() * 8; ch.tgt = brain(ch); }

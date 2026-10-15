@@ -20,7 +20,7 @@ sun.shadow.camera.far = 120;
 hemi.intensity = 1.25; hemi.color.set('#ffffff'); hemi.groundColor.set('#bfe9ff');
 document.body.style.setProperty('--bg1', '#57c7ff'); document.body.style.setProperty('--bg2', '#d6f4ff'); document.body.style.setProperty('--ui', '#ff5d8f');
 scene.fog = new THREE.Fog('#d4f2ff', 120, 420);
-const ui = createUI({ title: 'TUBE<br>RUSH', hint: 'Drag to steer', hand: '👆' });
+const ui = createUI({ title: 'TUBE<br>RUSH', hint: 'Tap left or right to steer · or drag', hand: '👆' });
 ui.levels(level);
 
 // ---------------------------------------------------------------- static world (ocean, islands, palms)
@@ -271,8 +271,8 @@ function buildLevel() {
 }
 
 // ---------------------------------------------------------------- input
-let steer = 0, botOn = false;
-input({ onDown: () => { botOn = false; }, onMove: (dx) => { if (state === 'play') steer += dx; } });
+let steer = 0, botOn = false, tapSteer = 0;   // tapSteer: a tap = a short push toward that side (fed in over a few frames)
+input({ onDown: () => { botOn = false; }, onMove: (dx) => { if (state === 'play') steer += dx; }, onTap: (e) => { if (state === 'play') tapSteer = (e.clientX < innerWidth / 2 ? -1 : 1) * 55; } });
 const sky = new THREE.Mesh(new THREE.SphereGeometry(450, 32, 16), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
 { const p = sky.geometry.attributes.position, c = [], a = new THREE.Color('#d4f2ff'), b = new THREE.Color('#3fb6f5'), k = new THREE.Color();
   for (let i = 0; i < p.count; i++) { const y = Math.max(0, p.getY(i) / 450); k.copy(a).lerp(b, Math.pow(y, 0.6)); c.push(k.r, k.g, k.b); }
@@ -446,6 +446,7 @@ loop((dt, t) => {
   const sec = dt / 60;
   if (state === 'play' || state === 'won' || state === 'lost') {
     if (state === 'play') raceT += sec;
+    if (tapSteer) { const k = tapSteer * Math.min(1, 0.25 * dt); steer += k; tapSteer -= k; if (Math.abs(tapSteer) < 1) tapSteer = 0; }
     steerAir = player.air ? clamp(steer * 0.12, -3, 3) : 0; if (player.air) steer = 0;
     if (state === 'play' || state === 'won' || player.out) for (const rd of riders) if (state === 'play' || !rd.isP || rd.done) stepRider(rd, dt);
     if (state === 'lost' && !player.out) for (const rd of riders) if (!rd.isP) stepRider(rd, dt);

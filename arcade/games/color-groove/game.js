@@ -28,7 +28,7 @@ const stage = createStage({ fov: 60, shadows: false });
 const { scene, camera } = stage;
 stage.hemi.intensity = 1.0; stage.sun.intensity = 1.3;
 scene.fog = new THREE.Fog('#7a1fbf', 50, 140);
-const ui = createUI({ title: 'COLOR<br>GROOVE', hint: 'Drag to hit your colour', hand: '👆' });
+const ui = createUI({ title: 'COLOR<br>GROOVE', hint: 'Tap left / right to switch lanes · or drag', hand: '👆' });
 const songLine = document.createElement('p'); songLine.className = 'song'; ui.els.start.insertBefore(songLine, ui.els.start.querySelector('.hint'));
 const player = createPlayer();
 const fx = sparks(scene, 160);
@@ -147,7 +147,10 @@ function setColor(c, juice = true) {
 }
 function begin() { state = 'play'; player.start(track, { melody: false, lead: 1.5, accVol: 1, drumVol: 1 }); }
 
-input({ onMove: (dx) => { if (state === 'play' || state === 'ready') tOff = clamp(tOff + dx * (6.5 / Math.min(innerWidth, 520)), -ROAD_W / 2 + 0.5, ROAD_W / 2 - 0.5); } });
+input({
+  onMove: (dx) => { if (state === 'play' || state === 'ready') tOff = clamp(tOff + dx * (6.5 / Math.min(innerWidth, 520)), -ROAD_W / 2 + 0.5, ROAD_W / 2 - 0.5); },
+  onTap: (e) => { if (state !== 'play') return; let i = 0; LANES.forEach((x, k) => { if (Math.abs(x - tOff) < Math.abs(LANES[i] - tOff)) i = k; }); tOff = LANES[clamp(i + (e.clientX < innerWidth / 2 ? -1 : 1), 0, LANES.length - 1)]; },   // tap a side = one lane that way
+});
 ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
 
 function passRow(row, now) {

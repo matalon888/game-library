@@ -11,7 +11,7 @@ let level = save.get('level', 1), best = save.get('best', 0), score = 0, state =
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 48, shadowSize: 22 });
 sun.shadow.camera.far = 90; hemi.intensity = 1.25; sun.intensity = 1.55;
 document.body.style.setProperty('--bg1', '#8fd3ff'); document.body.style.setProperty('--bg2', '#d6f0ff'); document.body.style.setProperty('--ui', '#3a7bff');
-const ui = createUI({ title: 'GULP<br>CITY', hint: 'Drag to move the hole', hand: '👆' });
+const ui = createUI({ title: 'GULP<br>CITY', hint: 'Tap where to go · or drag to steer', hand: '👆' });
 ui.levels(level);
 
 const BLK = 14, ST = 4.5, ROUND = 90, MAXH = 4;
@@ -171,9 +171,11 @@ function buildLevel() {
 }
 
 // ---------------------------------------------------------------- input (relative drag = joystick)
-let joy = null, botOn = false, mvx = 0, mvz = 0;
+let joy = null, botOn = false, mvx = 0, mvz = 0, goTo = null;
+const rc = new THREE.Raycaster(), gPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), gHit = new THREE.Vector3();
 input({
-  onDown: (e) => { botOn = false; joy = { x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY }; },
+  onTap: (e) => { if (state !== 'play') return; rc.setFromCamera({ x: e.clientX / innerWidth * 2 - 1, y: -(e.clientY / innerHeight) * 2 + 1 }, camera); if (rc.ray.intersectPlane(gPlane, gHit)) goTo = { x: gHit.x, z: gHit.z }; },
+  onDown: (e) => { botOn = false; goTo = null; joy = { x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY }; },
   onMove: (dx, dy, e) => { if (!joy) return; joy.cx = e.clientX; joy.cy = e.clientY; const vx = joy.cx - joy.x, vy = joy.cy - joy.y, d = Math.hypot(vx, vy); if (d > 70) { joy.x = joy.cx - vx / d * 70; joy.y = joy.cy - vy / d * 70; } },
   onUp: () => { joy = null; },
 });
@@ -282,7 +284,7 @@ loop((dt, t) => {
     for (const h of holes) {
       if (h.dead) { if (h.respawn !== undefined && (h.respawn -= sec) <= 0 && !h.isP) { h.dead = false; h.respawn = undefined; h.eaten = Math.round(h.eaten * 0.3); h.r = radiusFor(h.eaten); h.x = 2 + Math.random() * (M - 4); h.z = 2 + Math.random() * (M - 4); h.g.visible = h.tag.visible = true; } continue; }
       let ix = 0, iz = 0;
-      if (h.isP) { if (joy) { const vx = joy.cx - joy.x, vy = joy.cy - joy.y, d = Math.hypot(vx, vy); if (d > 6) { ix = vx / 70; iz = vy / 70; } } else if (botOn) [ix, iz] = aiSteer(h, sec); }
+      if (h.isP) { if (joy) { const vx = joy.cx - joy.x, vy = joy.cy - joy.y, d = Math.hypot(vx, vy); if (d > 6) { ix = vx / 70; iz = vy / 70; } } else if (goTo) { const gx = goTo.x - h.x, gz = goTo.z - h.z, gd = Math.hypot(gx, gz); if (gd < 0.4) goTo = null; else { ix = gx / gd; iz = gz / gd; } } else if (botOn) [ix, iz] = aiSteer(h, sec); }
       else { [ix, iz] = aiSteer(h, sec); ix *= h.skill; iz *= h.skill; }
       const sp = 6.2 + h.r * 0.55;
       h.vx = lerp(h.vx, ix * sp, 0.2); h.vz = lerp(h.vz, iz * sp, 0.2);

@@ -10,7 +10,7 @@ const F = flow('tiptoetower');
 const WB = worldBoard({ game: 'tiptoe-tower', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 14 });
-const ui = createUI({ title: 'TIPTOE<br>TOWER', hint: 'Drag to strut', hand: '👆', score: false });
+const ui = createUI({ title: 'TIPTOE<br>TOWER', hint: 'Tap left or right to strut · or drag', hand: '👆', score: false });
 const $ = id => document.getElementById(id);
 const SKIES = [['#3fa9ff', '#c4ecff', '#ff4fa3'], ['#ff7eb6', '#ffe0ef', '#c13aff'], ['#8f6bff', '#ffd1f0', '#ff4fa3'], ['#25c2d9', '#d9fbff', '#ff5d8f']];
 const TW = 5.4, BH = 0.34, SPEED = 9, LANES = [-1.7, 0, 1.7];
@@ -152,6 +152,7 @@ input({
   onDown() { if (state === 'play') { dragging = true; botX = null; } },
   onMove(dx) { if (state === 'play' && dragging) G.tx = clamp(G.tx + dx * 0.02, -TW / 2 + 0.45, TW / 2 - 0.45); },
   onUp() { dragging = false; },
+  onTap(e) { if (state === 'play') { botX = null; G.tx = clamp(G.tx + (e.clientX < innerWidth / 2 ? -1.7 : 1.7), -TW / 2 + 0.45, TW / 2 - 0.45); } },   // tap a side = step one lane that way
 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }

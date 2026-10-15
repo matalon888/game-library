@@ -13,7 +13,7 @@ const F = flow(KEY);
 const stage = createStage({ fov: 46, shadowSize: 26 });
 const { scene, camera, sun, hemi } = stage;
 hemi.intensity = 1.25; hemi.groundColor.set('#8a7fb8'); sun.intensity = 1.6;
-const ui = createUI({ title: 'NOODLE<br>RUMBLE', hint: 'Drag to steer', hand: '👆' });
+const ui = createUI({ title: 'NOODLE<br>RUMBLE', hint: 'Tap where to go · or drag to steer', hand: '👆' });
 const D = daily(KEY, ui, { name: NAME });
 const B = board({ game: 'noodle-rumble', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
@@ -359,8 +359,14 @@ function draw(t) {
 }
 
 // ---------------------------------------------------------------- input: drag = virtual joystick around the touch point
+const tapV = new THREE.Vector3();
 input({
   onDown: () => {},
+  onTap: (e) => {                                                                     // tap = turn toward the tapped spot
+    if (state !== 'play' || !player || !player.alive) return;
+    tapV.set(player.x, 0, player.z).project(camera);
+    player.tAng = Math.atan2(e.clientY - (1 - tapV.y) / 2 * innerHeight, e.clientX - (tapV.x + 1) / 2 * innerWidth);
+  },
   onMove: (dx, dy, e, st) => {
     if (state !== 'play') return;
     const vx = e.clientX - st.x, vy = e.clientY - st.y, d = Math.hypot(vx, vy);

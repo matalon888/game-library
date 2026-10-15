@@ -8,7 +8,7 @@ const ST = store('marbledash');
 const F = flow('marbledash');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
-const ui = createUI({ title: 'MARBLE<br>DASH', hint: 'Hold to roll · slide to steer', hand: '👆', score: false });
+const ui = createUI({ title: 'MARBLE<br>DASH', hint: 'Tap to roll · hold and slide to steer', hand: '👆', score: false });
 const $ = id => document.getElementById(id);
 const PALS = [
   { bg: ['#7fd0ff', '#e6f7ff'], ui: '#2f80ff' }, { bg: ['#ffb3d1', '#fff0d6'], ui: '#ff4f9a' }, { bg: ['#a7f0c9', '#effff6'], ui: '#16a34a' },
@@ -136,9 +136,9 @@ ball.castShadow = true; scene.add(ball);
 const B = { p: new THREE.Vector3(), vx: 0, vy: 0, vz: 0, ground: true, k: 0, boost: 0, squash: 0, rot: new THREE.Quaternion() };
 
 // ---------------------------------------------------------------- state
-let state = 'ready', lives = 3, cpIdx = -1, cpZ = 0, holding = false, steerPx = 0, botOn = false, botX = 0, t0 = 0, airT = 0, camY = 0, finishT = 0, deadT = 0;
+let state = 'ready', lives = 3, cpIdx = -1, cpZ = 0, holding = false, roll = 0, steerPx = 0, botOn = false, botX = 0, t0 = 0, airT = 0, camY = 0, finishT = 0, deadT = 0;
 function setLives() { $('lives').textContent = '❤️'.repeat(lives) + '🤍'.repeat(3 - lives); }
-function spawnAt(z) {
+function spawnAt(z) { roll = 0;
   const s = segAt(z) || segs[0]; const c = cx(s, z), sf = surfAt(c, z);
   B.p.set(c, sf.y + BR + 0.6, z); B.vx = B.vy = B.vz = 0; B.ground = false; B.boost = 0; deadT = 0;
   ball.visible = true;
@@ -153,7 +153,7 @@ function buildLevel() {
 input({
   onDown() { if (state === 'play') { holding = true; botOn = false; } },
   onMove(dx) { if (state === 'play' && holding) steerPx += dx; },
-  onUp() { holding = false; },
+  onUp(e, st) { holding = false; if (state === 'play' && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) { roll = 0.8; const k = e.clientX / innerWidth; if (k < 0.33 || k > 0.67) B.vx = k < 0.5 ? -3 : 3; } },   // tap = a short roll forward (side thirds nudge left/right)
 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
@@ -208,7 +208,7 @@ loop((dt, t) => {
   if (!segs) return;
   const s = Math.min(dt, 2) / 60;
   if (state === 'play' || state === 'won') {
-    const hold = state === 'won' ? false : (holding || botOn);
+    const hold = state === 'won' ? false : (holding || botOn || roll > 0); roll = Math.max(0, roll - s);
     const maxV = MAXV + B.boost;
     if (hold) B.vz = Math.max(B.vz - ACC * s, -maxV); else B.vz *= Math.exp(-0.35 * s);
     if (B.vz < -maxV) B.vz = lerp(B.vz, -maxV, 0.05);

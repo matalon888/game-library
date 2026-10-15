@@ -10,7 +10,7 @@ const NAME = 'Backyard Plop: Bean Bag Toss';
 const S = createStage({ fov: 31, shadowSize: 12 });
 const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.6; hemi.intensity = 1.25;
-const ui = createUI({ title: 'BACKYARD<br>PLOP', hint: 'Drag up and let go to toss', hand: '👆', score: false });
+const ui = createUI({ title: 'BACKYARD<br>PLOP', hint: 'Tap where to toss · or drag up and let go', hand: '👆', score: false });
 const D = daily('backyardplop', ui, { name: NAME });
 const B = board({ game: 'backyard-plop', label: 'Wins', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: wins today (RULES.md)
 const save = store('backyardplop');
@@ -244,10 +244,15 @@ function toss(p, aim) {
 const dots = new THREE.InstancedMesh(new THREE.SphereGeometry(0.06, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9 }), 14); dots.frustumCulled = false; scene.add(dots);
 const _m = new THREE.Matrix4();
 function dragParams() { if (!drag) return null; const dy = drag.y0 - drag.y, dx = drag.x - drag.x0; return { p: clamp(dy / (innerHeight * 0.4), 0, 1.15), aim: clamp(dx / (innerWidth * 0.55), -1, 1) * 0.3 }; }
+// a tap tosses toward the tapped spot: tap the hole = the right power for the hole, higher = further, lower = shorter
+function tapToss(x, y) {
+  const v = new THREE.Vector3(0, surfY(HOLE_V), ZF - HOLE_V).project(camera), hx = (v.x + 1) / 2 * innerWidth, hy = (1 - v.y) / 2 * innerHeight, a = aimCache[0] || { p: 0.6, aim: 0 };
+  toss(clamp(a.p * (innerHeight - y) / Math.max(60, innerHeight - hy) + (Math.random() - 0.5) * 0.05, 0.15, 1.15), clamp(a.aim + (x - hx) / (innerWidth * 0.55) * 0.3, -0.3, 0.3));
+}
 input({
   onDown: (e) => { if (state === 'play' && sub === 'aim' && turn === 0) drag = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY }; },
   onMove: (dx, dy, e) => { if (drag) { drag.x = e.clientX; drag.y = e.clientY; } },
-  onUp: () => { if (!drag) return; const d = dragParams(); drag = null; if (d.p > 0.08) toss(d.p, d.aim); },
+  onUp: (e) => { if (!drag) return; const d = dragParams(), mv = Math.hypot(drag.x - drag.x0, drag.y - drag.y0); drag = null; if (mv < 12) tapToss(e.clientX, e.clientY); else if (d.p > 0.08) toss(d.p, d.aim); },
 });
 ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); setBoardUI(); });
 

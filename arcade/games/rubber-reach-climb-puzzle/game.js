@@ -9,7 +9,7 @@ const V3 = THREE.Vector3;
 const S = createStage({ fov: 50, shadowSize: 10 });
 const { scene, camera, sun, hemi } = S;
 hemi.intensity = 1.25; sun.intensity = 1.5;
-const ui = createUI({ title: 'RUBBER<br>REACH', hint: 'Drag hands & feet to climb', hand: '👆', score: false });
+const ui = createUI({ title: 'RUBBER<br>REACH', hint: 'Tap the rock ahead to reach · or drag limbs', hand: '👆', score: false });
 const D = daily('rubberreach', ui, { name: 'Rubber Reach: Climb Puzzle' });
 const save = store('rubberreach');
 const F = flow('rubberreach');
@@ -168,7 +168,7 @@ const limbs = [0, 1, 2, 3].map(i => {
 });
 
 // ---------------------------------------------------------------- state
-let state = 'ready', bodyT = new V3(), bodyV = new V3(), drag = null, moves = 0, recorded = false, beatenShown = false, camZ = 0, time = 0, slips = [], debris = [], deadT = 0, warnT = 0;
+let state = 'ready', bodyT = new V3(), bodyV = new V3(), drag = null, sel = -1, tapMove = null, moves = 0, recorded = false, beatenShown = false, camZ = 0, time = 0, slips = [], debris = [], deadT = 0, warnT = 0;
 const groundPlane = new THREE.Plane(new V3(0, 1, 0), 0), ray = new THREE.Raycaster();
 function centroid() { const c = new V3(); for (const l of limbs) c.add(l.p); c.divideScalar(4); c.y = 0; return c; }
 function anchor(i, b) { return new V3(b.x + ANCH[i][0], 0.32, b.z + ANCH[i][1]); }
@@ -183,7 +183,7 @@ function buildLevel() {
   limbs.forEach((l, i) => { l.p.set(HOME[i][0], 0, HOME[i][1] + 0.5); l.y = 0; });
   for (const d of debris) scene.remove(d.m); debris = [];
   bodyT.copy(centroid()); bodyV.set(0, 0, 0); hero.position.set(bodyT.x, 0, bodyT.z); hero.rotation.set(0, 0, 0); hero.scale.setScalar(1); hero.visible = true;
-  drag = null; moves = 0; recorded = false; camZ = bodyT.z; deadT = 0; slips = [];
+  drag = null; sel = -1; moves = 0; recorded = false; camZ = bodyT.z; deadT = 0; slips = [];
   state = 'ready'; ui.levels(level); ui.progress(0); ui.score(total); ui.sub(best ? 'BEST ' + best : ''); movesEl.textContent = '✋ 0 moves';
 }
 
@@ -206,8 +206,23 @@ function release() {
 input({
   onDown: (e) => { if (state !== 'play' || drag) return; const w = pointerWorld(e); let bi = -1, bd = 1e9; limbs.forEach((l, i) => { if (l.cut) return; const d = Math.hypot(l.p.x - w.x, l.p.z - w.z); if (d < bd) { bd = d; bi = i; } }); if (bi >= 0 && bd < 2.6) grab(bi, w); },
   onMove: (dx, dy, e) => { if (!drag || state !== 'play') return; const w = pointerWorld(e); const l = limbs[drag.i]; l.p.set(clamp(drag.start.x + w.x - drag.from.x, -HALF + 0.2, HALF - 0.2), 0, drag.start.z + w.z - drag.from.z); },
-  onUp: () => release(),
+  onUp: (e, st) => { if (Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12 && state === 'play' && !tapMove) tapAt(e); else release(); },
 });
+// tap controls: tap a hand/foot (it lifts), then tap where it should go · or tap open rock and the nearest limb reaches there
+function tapAt(e) {
+  const w = pointerWorld(e), g = drag; drag = null;
+  const near = i => Math.hypot(limbs[i].p.x - w.x, limbs[i].p.z - w.z);
+  if (sel >= 0 && !limbs[sel].cut) { const i = sel; sel = -1; if (near(i) > 0.9) reach(i, w); return; }
+  if (g && near(g.i) < 1.2) { sel = g.i; tone(520, 0.06, 'triangle', 0.1, 1.4); buzz(6); return; }
+  let bi = -1, bd = 1e9; limbs.forEach((l, i) => { if (!l.cut && near(i) < bd) { bd = near(i); bi = i; } });
+  if (bi >= 0) reach(bi, w);
+}
+function reach(i, w) {
+  const l = limbs[i], ax = bodyT.x + ANCH[i][0], az = bodyT.z + ANCH[i][1], m = LMAX * 0.85;
+  let dx = w.x - ax, dz = w.z - az; const d = Math.hypot(dx, dz); if (d > m) { dx *= m / d; dz *= m / d; }
+  grab(i, l.p); const from = l.p.clone(), to = new V3(clamp(ax + dx, -HALF + 0.2, HALF - 0.2), 0, az + dz); let k = 0;
+  tapMove = setInterval(() => { k++; if (state === 'play') l.p.lerpVectors(from, to, Math.min(1, k / 6)); if (k >= 6 || state !== 'play') { clearInterval(tapMove); tapMove = null; release(); } }, 30);
+}
 ui.onTap(which => { if (which === 'start') { state = 'play'; sfx.tap(); } else { buildLevel(); state = 'play'; } B.start(); });
 
 function die(kind, li) {
@@ -258,7 +273,7 @@ loop((dt, t) => {
   let maxRatio = 0;
   limbs.forEach((l, i) => {
     if (l.cut) return;
-    const lifted = drag && drag.i === i;
+    const lifted = (drag && drag.i === i) || sel === i;
     l.y = lerp(l.y, lifted ? 0.55 : 0.12, 0.3 * dt);
     l.squash = Math.max(0, l.squash - 0.08 * dt);
     l.tip.position.set(l.p.x, l.y + 0.08, l.p.z); l.tip.scale.set(1 + l.squash * 0.4, 1 - l.squash * 0.4, 1 + l.squash * 0.4);

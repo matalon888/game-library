@@ -16,7 +16,7 @@ const F = flow('stormchase', { par: 700, warmup: 200 });
 const stage = createStage({ fov: 58, shadows: true, shadowSize: 18 });
 const { scene, camera } = stage;
 stage.sun.shadow.mapSize.set(1536, 1536); stage.hemi.intensity = 1.1; stage.sun.intensity = 1.7;
-const ui = createUI({ title: 'STORM<br>CHASE', hint: 'Swipe to turn · up to jump · down to slide', hand: '👆' });
+const ui = createUI({ title: 'STORM<br>CHASE', hint: 'Tap left/right to turn · top to jump · bottom to slide · or swipe', hand: '👆' });
 const D = daily('stormchase', ui, { name: NAME });
 ui.els.win.querySelector('p').innerHTML = 'NEW BEST<span data-l hidden></span>';
 const winH = ui.els.win.querySelector('h1');
@@ -231,6 +231,8 @@ input({ onMove: (dx, dy, e, st) => {
     else { st.horiz = true; if (nearCorner()) doTurn(tx > 0 ? 'right' : 'left'); else { turnBuf = tx > 0 ? 'right' : 'left'; turnBufT = 0.32; } }
   }
   if (!st.fired || st.horiz) leanT = clamp(leanT + dx * 0.018, -LEAN, LEAN);    // drag to lean
+}, onTap: (e) => {   // tap: top = jump, bottom = slide, otherwise left / right half = turn that way
+  const y = e.clientY / innerHeight; act(y < 0.38 ? 'up' : y > 0.8 ? 'down' : e.clientX < innerWidth / 2 ? 'left' : 'right');
 } });
 addEventListener('keydown', e => { const k = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', ' ': 'up' }[e.key]; if (k) { e.preventDefault(); act(k); } });
 // tilt to lean where the browser gives orientation without a prompt

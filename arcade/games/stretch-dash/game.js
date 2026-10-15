@@ -9,7 +9,7 @@ const ST = store('stretchdash');
 const F = flow('stretchdash'); let fk = 1;
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 52, shadowSize: 12 });
-const ui = createUI({ title: 'STRETCH<br>DASH', hint: 'Drag to steer', hand: '👆', score: false });
+const ui = createUI({ title: 'STRETCH<br>DASH', hint: 'Tap left or right to steer · or drag', hand: '👆', score: false });
 document.body.style.setProperty('--bg1', '#22b4ff'); document.body.style.setProperty('--bg2', '#bfeaff'); document.body.style.setProperty('--ui', '#ff7a1a');
 document.title = 'Stretch Dash';
 const $ = id => document.getElementById(id);
@@ -123,6 +123,7 @@ input({
   onDown() { if (state === 'play') { dragging = true; botX = null; } },
   onMove(dx) { if (state === 'play' && dragging) P.tx = clamp(P.tx + dx * 0.022, -TW / 2 + 0.4, TW / 2 - 0.4); },
   onUp() { dragging = false; },
+  onTap(e) { if (state === 'play') { botX = null; P.tx = clamp(P.tx + (e.clientX < innerWidth / 2 ? -1 : 1) * TW / 4, -TW / 2 + 0.4, TW / 2 - 0.4); } },   // tap a side = hop one gate that way
 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }

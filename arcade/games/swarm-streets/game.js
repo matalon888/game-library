@@ -11,7 +11,7 @@ let level = ST.get('level', 1), best = ST.get('best', 0);
 const F = flow('swarmstreets'); let fk = 1;
 const { scene, camera, sun, followLight } = createStage({ fov: 40, shadowSize: 46 });
 sun.shadow.camera.far = 120;
-const ui = createUI({ title: 'SWARM<br>STREETS', hint: 'Hold & drag to lead your mob', hand: '👆', score: false });
+const ui = createUI({ title: 'SWARM<br>STREETS', hint: 'Tap where to go · or hold & drag', hand: '👆', score: false });
 document.body.style.setProperty('--bg1', '#9aa3bd'); document.body.style.setProperty('--bg2', '#cfd5e6'); document.body.style.setProperty('--ui', '#7b4dff');
 const $ = id => document.getElementById(id);
 const NEUTRAL = '#dfe2ea';
@@ -184,7 +184,7 @@ const crowdR = c => 0.48 * Math.sqrt(c.members.length) + 0.55;
 function slot(k) { if (k === 0) return [0, 0]; const r = 0.62 * Math.sqrt(k + 0.4), a = k * 2.39996; return [Math.cos(a) * r, Math.sin(a) * r]; }
 
 let edges = [];
-function buildLevel() {
+function buildLevel() { tapDir = null;
   R = rng(level * 977 + 13); fk = F.k();
   for (const c of crowds) { scene.remove(c.label.s); scene.remove(c.ring); c.label.tex.dispose(); }
   for (const e of edges) e.remove(); edges = [];
@@ -210,11 +210,12 @@ function hud() {
 function rankOf(c) { return 1 + crowds.filter(o => o !== c && o.alive && o.members.length > c.members.length).length; }
 
 // ---------------------------------------------------------------- input: virtual joystick
-let joy = null, botDir = null;
+let joy = null, botDir = null, tapDir = null;   // tapDir: a tap sends the mob walking toward the tapped spot (until the next tap / drag)
 input({
-  onDown(e) { joy = { x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY }; botDir = null; },
+  onDown(e) { joy = { x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY }; botDir = null; tapDir = null; },
   onMove(dx, dy, e) { if (joy) { joy.cx = e.clientX; joy.cy = e.clientY; const d = Math.hypot(joy.cx - joy.x, joy.cy - joy.y); if (d > 70) { joy.x = joy.cx - (joy.cx - joy.x) / d * 70; joy.y = joy.cy - (joy.cy - joy.y) / d * 70; } } },
   onUp() { joy = null; },
+  onTap(e) { const c = crowds[0]; if (state !== 'play' || !c) return; const p = new THREE.Vector3(c.x, 0, c.z).project(camera), jx = e.clientX - (p.x + 1) / 2 * innerWidth, jy = e.clientY - (1 - p.y) / 2 * innerHeight, l = Math.hypot(jx, jy); if (l > 8) { tapDir = [jx / l, jy / l]; sfx.tap(); } },
 });
 ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
@@ -294,6 +295,7 @@ loop((dt, t) => {
     if (play) {
       if (c.k === 0) {
         if (joy) { const jx = joy.cx - joy.x, jy = joy.cy - joy.y, l = Math.hypot(jx, jy); if (l > 6) want = [jx / l, jy / l]; }
+        else if (tapDir) want = tapDir;
         else if (botDir) want = steer(c, botDir);
       } else {
         c.think -= s; if (c.think <= 0 || !c.goal || Math.hypot(c.goal.x - c.x, c.goal.z - c.z) < 1.5) { c.goal = think(c); c.think = 0.5 + R() * 0.6; }
@@ -411,6 +413,6 @@ window.__game = {
     if (state !== 'play') return;
     const c = crowds[0]; if (!c || !c.alive) return;
     if (!c.botGoal || Math.hypot(c.botGoal.x - c.x, c.botGoal.z - c.z) < 1.5 || R() < 0.12) { const sm = c.smart; c.smart = 1; c.botGoal = think(c); c.smart = sm; }
-    botDir = c.botGoal;
+    botDir = c.botGoal; tapDir = null;
   },
 };

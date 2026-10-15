@@ -10,7 +10,7 @@ const F = flow('shelfsnap'); let fk = 1, HMAX = 3;
 const WB = worldBoard({ game: 'shelf-snap', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 const { scene, camera, renderer, sun, hemi } = createStage({ fov: 45, shadowSize: 9 });
 sun.position.set(4, 14, 12); sun.intensity = 1.5; hemi.intensity = 1.25;
-const ui = createUI({ title: 'SHELF<br>SNAP', hint: 'Drag groceries into the fridge', hand: '👆', score: false });
+const ui = createUI({ title: 'SHELF<br>SNAP', hint: 'Tap a grocery, then tap its shelf · or drag', hand: '👆', score: false });
 
 // ------------------------------------------------------------------ helpers
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -168,7 +168,7 @@ for (let i = 0; i < 3; i++) {
 }
 
 // ------------------------------------------------------------------ level state
-let state = 'ready', items = [], slots = [], drag = null, hearts = 3, placedN = 0, combo = 0, lastPlace = 0, hover = null, botBusy = false, rowsInfo = [], winT = 0;
+let state = 'ready', items = [], slots = [], drag = null, sel = null, hearts = 3, placedN = 0, combo = 0, lastPlace = 0, hover = null, botBusy = false, rowsInfo = [], winT = 0;
 const ghostMat = new THREE.MeshBasicMaterial({ color: '#6f8fb3', transparent: true, opacity: 0.3, depthWrite: false });
 const hiMat = new THREE.MeshBasicMaterial({ color: '#4ade80', transparent: true, opacity: 0.6, depthWrite: false });
 const badMat = new THREE.MeshBasicMaterial({ color: '#ff4d6d', transparent: true, opacity: 0.5, depthWrite: false });
@@ -182,7 +182,7 @@ function makeItem(type, color) {
 }
 function buildLevel() {
   fk = F.k(); HMAX = Math.max(2, Math.round(3 / fk));
-  levelGroup.clear(); items = []; slots = []; drag = null; hover = null; botBusy = false; placedN = 0; combo = 0; hearts = HMAX; winT = 0;
+  levelGroup.clear(); items = []; slots = []; drag = null; sel = null; hover = null; botBusy = false; placedN = 0; combo = 0; hearts = HMAX; winT = 0;
   const r = rng(level * 7919 + 13), p = { bg: [['#ffe1ea', '#fff3f7'], ['#dff3ff', '#f2faff'], ['#e3f8e9', '#f5fff8'], ['#fff1d6', '#fffaf0'], ['#ece4ff', '#f8f4ff'], ['#d9f7f3', '#f1fffd']][(level - 1) % 6], ui: ['#ff5d8f', '#2f80ff', '#22b573', '#ff8c42', '#7b5cff', '#14b8a6'][(level - 1) % 6] };
   document.body.style.setProperty('--bg1', p.bg[0]); document.body.style.setProperty('--bg2', p.bg[1]); document.body.style.setProperty('--ui', p.ui);
   setWall(p); bodyMat.color.set(BODYCOLS[(level - 1) % BODYCOLS.length]); trimMat.color.set(['#ff9f43', '#ffffff', '#ffd166', '#ff7aa2'][(level - 1) % 4]);
@@ -273,11 +273,14 @@ input({
   onDown(e) {
     if (state !== 'play' || drag || doorAng < 0.6) return;
     const it = pick(e); if (!it) return;
+    if (sel && sel !== it && !sel.placed) sendHome(sel); sel = sel === it ? it : null;
     drag = { it, target: aimPoint(e).add(V(0, 0.55, 0)) }; it.lift = 1; it.sq = 0.25;
     sfx.pick(placedN % 6); buzz(6);
   },
   onMove(dx, dy, e) { if (drag) { drag.target = aimPoint(e).add(V(0, 0.55, 0)); } },
-  onUp() {
+  onUp(e, st) {
+    if (Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12 && state === 'play') return tapAt(e);
+    if (drag) sel = null;
     if (!drag) return; const it = drag.it; drag = null; const s = targetFor(it, it.g.position); setHover(null, it);
     if (!s) return sendHome(it);
     if (s.type !== it.type) return wrong(it, s);
@@ -285,6 +288,21 @@ input({
   },
 });
 
+// tap controls: tap a grocery (it lifts), then tap its shelf in the fridge · tap it again to put it back
+function tapAt(e) {
+  if (drag) {
+    const it = drag.it; drag = null; setHover(null, it);
+    if (sel === it) { sel = null; return sendHome(it); }
+    sel = it; it.lift = 1; it.sq = 0.25;
+    it.anim = { from: it.g.position.clone(), fr: it.g.rotation.clone(), to: it.home.p.clone().add(V(0, 0.45, 0.3)), tr: V(0, 0, 0), t: 0, dur: 8, arc: 0, done: () => {} };
+    return;
+  }
+  if (!sel || sel.placed || sel.anim || doorAng < 0.6) return;
+  const it = sel, s = targetFor(it, aimPoint(e)); if (!s) return;
+  sel = null;
+  if (s.type !== it.type) return wrong(it, s);
+  flyTo(it, s, 9, 0.5);
+}
 function flyTo(it, s, dur = 14, arc = 0) {
   s.item = it; // reserve
   it.anim = { from: it.g.position.clone(), fr: it.g.rotation.clone(), to: V(s.x, s.y, s.z), tr: V(0, (Math.random() - 0.5) * 0.25, 0), t: 0, dur, arc, done: () => place(it, s) };

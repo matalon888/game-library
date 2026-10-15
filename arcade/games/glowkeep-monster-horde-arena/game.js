@@ -11,7 +11,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 const F = flow('glowkeep');
 const stage = createStage({ fov: 44, shadowSize: 12 });
 const { scene, camera, sun, hemi } = stage;
-const ui = createUI({ title: 'GLOW<br>KEEP', hint: 'Drag to move · magic is automatic', hand: '👆' });
+const ui = createUI({ title: 'GLOW<br>KEEP', hint: 'Tap where to walk · or drag · magic is automatic', hand: '👆' });
 const D = daily('glowkeep', ui, { name: 'Glowkeep: Monster Horde Arena' });
 const B = board({ game: 'glowkeep', label: 'Levels survived', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: levels survived today (RULES.md)
 
@@ -191,11 +191,14 @@ function lose() {
 }
 
 // ---------------------------------------------------------------- input: floating stick
-let stick = null, botVec = null, botUntil = 0;
-addEventListener('pointerdown', e => { if (state !== 'play' || picks) return; stick = { ox: e.clientX, oy: e.clientY, x: 0, y: 0 }; joy.style.left = e.clientX + 'px'; joy.style.top = e.clientY + 'px'; joy.classList.remove('hc-hidden'); });
-addEventListener('pointermove', e => { if (!stick) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const l = Math.hypot(dx, dy), mx = 45; if (l > mx) { stick.ox += dx - dx / l * mx; stick.oy += dy - dy / l * mx; dx = dx / l * mx; dy = dy / l * mx; joy.style.left = stick.ox + 'px'; joy.style.top = stick.oy + 'px'; } stick.x = dx / mx; stick.y = dy / mx; joy.firstChild.style.transform = `translate(${dx}px,${dy}px)`; });
+let stick = null, botVec = null, botUntil = 0, tapGo = null;   // tapGo: a plain tap walks the keeper to that spot
+addEventListener('pointerdown', e => { if (state !== 'play' || picks) return; stick = { ox: e.clientX, oy: e.clientY, x: 0, y: 0, sx: e.clientX, sy: e.clientY, far: false }; tapGo = null; joy.style.left = e.clientX + 'px'; joy.style.top = e.clientY + 'px'; joy.classList.remove('hc-hidden'); });
+addEventListener('pointermove', e => { if (!stick) return; let dx = e.clientX - stick.ox, dy = e.clientY - stick.oy; const l = Math.hypot(dx, dy), mx = 45; if (l > mx) { stick.ox += dx - dx / l * mx; stick.oy += dy - dy / l * mx; dx = dx / l * mx; dy = dy / l * mx; joy.style.left = stick.ox + 'px'; joy.style.top = stick.oy + 'px'; } stick.x = dx / mx; stick.y = dy / mx; if (Math.hypot(e.clientX - stick.sx, e.clientY - stick.sy) >= 12) stick.far = true; joy.firstChild.style.transform = `translate(${dx}px,${dy}px)`; });
 function endStick() { stick = null; joy.classList.add('hc-hidden'); joy.firstChild.style.transform = ''; }
-addEventListener('pointerup', endStick); addEventListener('pointercancel', endStick);
+const tapRay = new THREE.Raycaster(), tapNdc = new THREE.Vector2(), tapPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), tapHit = new THREE.Vector3();
+addEventListener('pointerup', e => { const s = stick; endStick(); if (!s || s.far || state !== 'play' || picks) return;
+  tapNdc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); tapRay.setFromCamera(tapNdc, camera);
+  if (tapRay.ray.intersectPlane(tapPlane, tapHit)) tapGo = { x: tapHit.x, z: tapHit.z, until: performance.now() + 1500 }; }); addEventListener('pointercancel', endStick);
 const keys = {}; addEventListener('keydown', e => keys[e.key] = true); addEventListener('keyup', e => keys[e.key] = false);
 ui.onTap(() => { B.start(); buildRun(); state = 'play'; });
 
@@ -208,6 +211,7 @@ function step(dt) {
   // move
   let mx = 0, mz = 0;
   if (stick) { mx = stick.x; mz = stick.y; }
+  else if (tapGo) { const dx = tapGo.x - hx, dz = tapGo.z - hz, l = Math.hypot(dx, dz); if (l < 0.25 || performance.now() > tapGo.until) tapGo = null; else { mx = dx / l; mz = dz / l; } }
   else { mx = (keys.ArrowRight || keys.d ? 1 : 0) - (keys.ArrowLeft || keys.a ? 1 : 0); mz = (keys.ArrowDown || keys.s ? 1 : 0) - (keys.ArrowUp || keys.w ? 1 : 0); }
   if (!stick && botVec && performance.now() < botUntil) { mx = botVec[0]; mz = botVec[1]; }
   const ml = Math.hypot(mx, mz); moving = ml > 0.15;

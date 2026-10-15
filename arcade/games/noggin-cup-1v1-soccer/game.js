@@ -12,7 +12,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 40, shadowSize: 12 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'NOGGIN<br>CUP', hint: 'Drag to run · tap to jump-kick', hand: '👆', progress: true, score: false });
+const ui = createUI({ title: 'NOGGIN<br>CUP', hint: 'Tap the ball to run and kick · or drag to run', hand: '👆', progress: true, score: false });
 const D = daily('noggincup', ui, { name: NAME });
 const WB = world.board({ game: 'noggin-cup', label: 'Matches won', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const boardEl = document.getElementById('board'), powerEl = document.getElementById('power');
@@ -170,7 +170,7 @@ function updatePower() { powerEl.firstChild.style.width = Math.min(1, pl.power) 
 function resetPositions() {
   pl.x = -3.2; pl.y = 0; pl.vx = pl.vy = 0; cpu.x = 3.2; cpu.y = 0; cpu.vx = cpu.vy = 0; pl.stun = cpu.stun = 0;
   B.x = 0; B.y = 5.2; B.vx = (R() - 0.5) * 1.2; B.vy = 0; B.fire = 0; B.spin = 0;
-  phase = 'kickoff'; phaseT = 0.6;
+  phase = 'kickoff'; phaseT = 0.6; tapX = null;
 }
 function buildLevel() {
   const t = THEMES[(level - 1) % THEMES.length];
@@ -194,7 +194,7 @@ function buildLevel() {
 }
 
 // ---------------------------------------------------------------- controls
-let dragX = null, botTarget = null;
+let dragX = null, botTarget = null, tapX = null, tapEnd = 0;   // tapX: a tap away from you = run there, then jump-kick
 const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), _v2 = new THREE.Vector2(), _hit = new THREE.Vector3();
 function worldX(cx, cy) { _v2.set(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1); ray.setFromCamera(_v2, camera); return ray.ray.intersectPlane(plane, _hit) ? _hit.x : null; }
 function action(a) {
@@ -204,9 +204,9 @@ function action(a) {
   if (a.kickT <= 0) { a.kickT = 0.28; a.kicked = false; }
 }
 input({
-  onDown: (e, st) => { if (state !== 'play') return; st.drag = false; dragX = worldX(e.clientX, e.clientY); },
+  onDown: (e, st) => { if (state !== 'play') return; st.drag = false; tapX = null; dragX = worldX(e.clientX, e.clientY); },
   onMove: (dx, dy, e, st) => { if (state !== 'play') return; if (!st.drag && (Math.abs(st.lx - st.x) > 12 || performance.now() - st.t > 160)) st.drag = true; if (st.drag) dragX = worldX(st.lx, st.ly); },
-  onUp: (e, st) => { if (state !== 'play') { dragX = null; return; } if (!st.drag && performance.now() - st.t < 260) action(pl); dragX = null; },
+  onUp: (e, st) => { if (state !== 'play') { dragX = null; return; } if (!st.drag && performance.now() - st.t < 260) { const x = worldX(e.clientX, e.clientY); if (x !== null && Math.abs(x - pl.x) > 1.2) { tapX = clamp(x, -FW, FW); tapEnd = performance.now() + 1500; } else action(pl); } dragX = null; },
 });
 
 // ---------------------------------------------------------------- physics
@@ -367,7 +367,8 @@ loop((rawDt, t) => {
         if (goalsP === goalsC && !golden) { golden = true; clock = 20; ui.pop('GOLDEN GOAL!', '#fff36b', 40, 30); tone(660, 0.3, 'triangle', 0.12, 1); }
         else { clock = 0; endMatch(); break; }
       }
-      const pTarget = performance.now() < botActive ? botTarget : dragX;
+      if (tapX !== null && (dragX !== null || Math.abs(pl.x - tapX) < 0.45 || performance.now() > tapEnd)) { if (dragX === null) action(pl); tapX = null; }
+      const pTarget = performance.now() < botActive ? botTarget : dragX !== null ? dragX : tapX;
       const cT = brain(cpu, pl, 1, STEP, ai);
       moveActor(pl, pTarget, 6.6, STEP);
       moveActor(cpu, cT, 6.6 * ai.speed, STEP);

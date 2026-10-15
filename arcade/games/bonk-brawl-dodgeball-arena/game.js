@@ -13,7 +13,7 @@ let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 48, shadowSize: 11 });
 const { scene, camera } = stage;
-const ui = createUI({ title: 'BONK<br>BRAWL', hint: 'Drag to dodge · let go to throw', hand: '👆' });
+const ui = createUI({ title: 'BONK<br>BRAWL', hint: 'Tap the floor to run · tap a rival to throw', hand: '👆' });
 const D = daily('bonkbrawl', ui, { name: NAME });
 const stickEl = document.getElementById('stick'), heartsEl = document.getElementById('hearts');
 
@@ -119,6 +119,8 @@ const blobGeo = new THREE.PlaneGeometry(1, 1); blobGeo.rotateX(-Math.PI / 2);
 // ---------------------------------------------------------------- state
 const player = bean('#2ec4b6', '#ffd23f', 0); scene.add(player);
 let enemies = [], balls = [], held = null, hearts = 3, inv = 0, state = 'ready', score = 0, R = rng(1), beatShown = false, recorded = false;
+let goal = null; const fRay = new THREE.Raycaster(), fPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), fHit = new THREE.Vector3();
+function floorAt(x, y) { fRay.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return fRay.ray.intersectPlane(fPlane, fHit) ? Object.assign(new THREE.Vector2(clamp(fHit.x, -AW + BODY_R, AW - BODY_R), clamp(fHit.z, 0.7, AL - BODY_R)), { mine: fHit.z > 0.4 }) : null; }
 let ctrl = new THREE.Vector2(), botCtrl = new THREE.Vector2(), botUntil = 0, pv = new THREE.Vector3(), shake = 0, slow = 1, slowT = 0, winT = -1, totalE = 1;
 let noBallT = 0, throwInterval = 2.4, ballSpeed = 10, dodgeChance = 0.05, leadSkill = 0.3, clock = 0, pickCool = 0;
 
@@ -241,7 +243,11 @@ input({
     ctrl.set(L ? vx / L * k : 0, L ? vy / L * k : 0);
     const c = Math.min(L, 40); stickEl.firstChild.style.transform = `translate(${L ? vx / L * c : 0}px,${L ? vy / L * c : 0}px)`;
   },
-  onUp: () => { if (!touch) return; touch = null; ctrl.set(0, 0); stickEl.style.display = 'none'; if (state === 'play') throwBall(); },
+  onUp: (e, st) => {
+    if (!touch) return; touch = null; ctrl.set(0, 0); stickEl.style.display = 'none'; if (state !== 'play') return;
+    const g = st && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12 && floorAt(e.clientX, e.clientY);   // tap your half = run there, tap the rivals = throw
+    if (g && (g.mine || !held)) goal = g; else throwBall();
+  },
 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
 
@@ -257,7 +263,9 @@ loop((rawDt, t) => {
 
   if (state === 'play' || state === 'won') {
     // ---- player
-    const c = performance.now() < botUntil ? botCtrl : ctrl;
+    if (touch || performance.now() < botUntil) goal = null;
+    const gv = goal && new THREE.Vector2(goal.x - player.position.x, goal.y - player.position.z); if (gv && gv.length() < 0.3) goal = null; else if (gv) gv.multiplyScalar(Math.min(1, gv.length()) / gv.length());
+    const c = performance.now() < botUntil ? botCtrl : goal ? gv : ctrl;
     const speed = 6.2;
     const want = _v.set(c.x, 0, c.y).multiplyScalar(speed);
     pv.lerp(want, Math.min(1, 0.25 * dt));

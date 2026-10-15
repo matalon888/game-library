@@ -10,7 +10,7 @@ const F = flow('cubetrek'); let fk = 1;
 let level = S.get('level', 1), best = S.get('best', 0);
 const stage = createStage({ fov: 34, shadowSize: 12 });
 const { scene, camera, renderer, sun, hemi } = stage;
-const ui = createUI({ title: 'CUBE<br>TREK', hint: 'Drag blocks onto the board', hand: '👆' });
+const ui = createUI({ title: 'CUBE<br>TREK', hint: 'Tap a block, then tap the board · or drag', hand: '👆' });
 hemi.intensity = 1.2; hemi.color.set('#ffffff'); hemi.groundColor.set('#8ea0ff');
 sun.intensity = 1.9; sun.position.set(-7, 9, 16); sun.target.position.set(0, 0, 0);
 Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 14, bottom: -14 }); sun.shadow.camera.updateProjectionMatrix();
@@ -73,7 +73,7 @@ const W_TOTAL = SHAPES.reduce((a, s) => a + s[1], 0);
 const dims = cells => [Math.max(...cells.map(c => c[0])) + 1, Math.max(...cells.map(c => c[1])) + 1];
 
 // ------------------------------------------------------------------ state
-let board, tray, rand, state = 'ready', score = 0, goal, combo = 0, drag = null, anims = [], flyers = [], botMove = null, settle = 0, idleT = 0;
+let board, tray, rand, state = 'ready', score = 0, goal, combo = 0, drag = null, sel = null, anims = [], flyers = [], botMove = null, settle = 0, idleT = 0;
 const blank = () => Array.from({ length: N }, () => Array(N).fill(null));
 function fits(b, cells, r0, c0) { for (const [x, y] of cells) { const r = r0 + y, c = c0 + x; if (r < 0 || c < 0 || r >= N || c >= N || b[r][c]) return false; } return true; }
 function anyFit(b, cells) { for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fits(b, cells, r, c)) return true; return false; }
@@ -98,7 +98,7 @@ function dealTray() {
   sfx.pick(2);
 }
 function buildLevel() {
-  rand = rng(level * 4513 + 7); fk = F.k(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; botMove = null;
+  rand = rng(level * 4513 + 7); fk = F.k(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; sel = null; botMove = null;
   const isScore = level % 3 === 0;
   // a seeded "mess": columns of rubble rising from the bottom, never a full line
   const fill = Math.min(0.75, (0.4 + Math.min(0.25, level * 0.025)) * fk), heights = [];
@@ -137,13 +137,14 @@ function pieceOrigin(p, wx, wy) {           // world pos of the piece centre -> 
 input({
   onDown: (e) => {
     if (state !== 'play' || botMove || settle > 0) return;
-    const w = toWorld(e.clientX, e.clientY); if (w.y > TRAY_Y + 2.6) return;
+    const w = toWorld(e.clientX, e.clientY);
+    if (w.y > TRAY_Y + 2.6) { if (sel && !sel.used) { const p = sel; sel = null; tryDrop({ p, x: w.x, y: w.y }); } return; }   // tap the board with a piece selected: drop it there
     let bestI = -1, bd = 2.2; tray.forEach((p, i) => { if (p.used) return; const d = Math.abs(w.x - SLOT_X[i]); if (d < bd) { bd = d; bestI = i; } });
     if (bestI < 0) return;
-    drag = { p: tray[bestI], x: w.x, y: w.y + LIFT, tx: w.x, ty: w.y + LIFT, s: TRAY_S }; sfx.tap(); buzz(6);
+    drag = { p: tray[bestI], x: SLOT_X[bestI], y: TRAY_Y, tx: SLOT_X[bestI], ty: TRAY_Y, s: TRAY_S, x0: e.clientX, y0: e.clientY, moved: false }; sfx.tap(); buzz(6);
   },
-  onMove: (dx, dy, e) => { if (!drag) return; const w = toWorld(e.clientX, e.clientY); drag.tx = w.x; drag.ty = w.y + LIFT; },
-  onUp: () => { if (!drag) return; tryDrop(drag); drag = null; },
+  onMove: (dx, dy, e) => { if (!drag) return; if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 12) return; drag.moved = true; const w = toWorld(e.clientX, e.clientY); drag.tx = w.x; drag.ty = w.y + LIFT; },
+  onUp: () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) { sel = sel === d.p ? null : d.p; return; } sel = null; tryDrop(d); },   // a tap selects (lifts) a piece
 });
 function tryDrop(d) {
   const [r0, c0] = pieceOrigin(d.p, d.x, d.y);
@@ -264,8 +265,8 @@ loop((dt, t) => {
     const [w, h] = dims(p.cells);
     p.pop = Math.min(1, p.pop + sec * 3.5);
     const holder = drag && drag.p === p ? drag : botMove && botMove.p === p ? botMove : null;
-    const s = holder ? holder.s : TRAY_S * easeBack(Math.max(0, p.pop)), cxp = holder ? holder.x : SLOT_X[p.slot], cyp = holder ? holder.y : TRAY_Y + Math.sin(t * 2 + p.slot) * 0.05;
-    const z = holder ? 1.4 : 0, fitsSomewhere = state !== 'play' || anyFit(board, p.cells);
+    const up = sel === p && !holder, s = holder ? holder.s : TRAY_S * easeBack(Math.max(0, p.pop)) * (up ? 1.18 : 1), cxp = holder ? holder.x : SLOT_X[p.slot], cyp = holder ? holder.y : TRAY_Y + (up ? 0.45 + Math.sin(t * 6) * 0.08 : Math.sin(t * 2 + p.slot) * 0.05);
+    const z = holder || up ? 1.4 : 0, fitsSomewhere = state !== 'play' || anyFit(board, p.cells);
     for (const [x, y] of p.cells) addBlock(cxp + (x - (w - 1) / 2) * s, cyp - (y - (h - 1) / 2) * s, z, s * 0.98, fitsSomewhere ? p.color : '#6c7090', 0, holder ? 0.08 : 0);
   }
   // ghost preview on the board

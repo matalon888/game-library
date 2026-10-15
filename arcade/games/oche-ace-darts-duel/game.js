@@ -8,7 +8,7 @@ const V3 = THREE.Vector3;
 const S = createStage({ fov: 44, shadowSize: 4 });
 const { scene, camera, sun, hemi } = S;
 sun.position.set(2, 6, 9); hemi.intensity = 1.3; sun.intensity = 1.25;
-const ui = createUI({ title: 'OCHE<br>ACE', hint: 'Drag to aim · release to throw', hand: '👆', score: false });
+const ui = createUI({ title: 'OCHE<br>ACE', hint: 'Tap the board to throw · or drag to aim', hand: '👆', score: false });
 const D = daily('ocheace', ui, { name: 'Oche Ace: Darts Duel' });
 ui.els.start.classList.add('dim');
 const save = store('ocheace');
@@ -252,6 +252,11 @@ function endLevel() {
 input({
   onDown: () => { if (state === 'play' && phase === 'you' && held) { aiming = true; } },
   onMove: (dx, dy) => { if (!aiming) return; aim.x = clamp(aim.x + dx * 0.0042, -1.15, 1.15); aim.y = clamp(aim.y - dy * 0.0042, -1.15, 1.15); },
+  onTap: (e) => {                                                       // tap on the board = aim right there (sway still applies), then onUp throws
+    if (!aiming) return; const sc = (x, y) => { const v = boardWorld(x, y).project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; };
+    const [cx, cy] = sc(0, 0), [rx] = sc(1, 0), [, uy] = sc(0, 1), nx = (e.clientX - cx) / (rx - cx), ny = (e.clientY - cy) / (uy - cy);
+    if (Math.hypot(nx, ny) < 1.5) aim.set(clamp(nx, -1.15, 1.15), clamp(ny, -1.15, 1.15));
+  },
   onUp: () => release(),
 });
 ui.onTap(which => {

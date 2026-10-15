@@ -7,7 +7,7 @@ import { board } from './kit/board.js';
 const S = createStage({ fov: 55, shadowSize: 16 });
 const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.8; hemi.intensity = 1.2;
-const ui = createUI({ title: 'PUTT<br>ISLES', hint: 'Drag back · release to putt', hand: '👇', score: false });
+const ui = createUI({ title: 'PUTT<br>ISLES', hint: 'Tap where to putt · or drag back', hand: '👇', score: false });
 const save = store('puttisles');
 const F = flow('puttisles');
 const B = board({ game: 'putt-isles', label: 'Holes cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });
@@ -367,10 +367,21 @@ input({
   onMove: (dx, dy, e) => { if (!drag) return; drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y; },
   onUp: () => {
     if (!drag) return; const d = drag; drag = null;
-    const len = Math.hypot(d.dx, d.dy); if (len < 18 || state !== 'play') return;
+    const len = Math.hypot(d.dx, d.dy); if (state !== 'play') return;
+    if (len < 12) return tapPutt(d.x, d.y);   // a tap putts toward the tapped spot, with just enough power to roll there
+    if (len < 18) return;
     const s = shotFromDrag(d); shootBall(player, s.ang, s.v);
   },
 });
+const tapRay = new THREE.Raycaster(), tapNdc = new THREE.Vector2(), tapPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), tapHit = new THREE.Vector3();
+function tapPutt(x, y) {
+  tapNdc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); tapRay.setFromCamera(tapNdc, camera);
+  let ang, v;
+  if (tapRay.ray.intersectPlane(tapPlane, tapHit) && Math.hypot(tapHit.x - player.x, tapHit.z - player.z) > 0.4) {
+    const d = Math.hypot(tapHit.x - player.x, tapHit.z - player.z); ang = Math.atan2(tapHit.z - player.z, tapHit.x - player.x); v = clamp(speedFor(Math.min(d, 13)), 3, MAXV);
+  } else { const p = planShot(player); ang = p.ang; v = p.v; }   // tapped the sky: take the suggested shot
+  shootBall(player, ang, v);
+}
 function shotFromDrag(d) {
   const fwd = new THREE.Vector3(camLook.x - camPos.x, 0, camLook.z - camPos.z).normalize(), right = new THREE.Vector3(-fwd.z, 0, fwd.x);
   const len = Math.hypot(d.dx, d.dy), pw = clamp(len / (innerHeight * 0.32), 0, 1);

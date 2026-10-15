@@ -18,7 +18,7 @@
   "tags": [
    "Shooters"
   ],
-  "desk_only": true,
+  "desk_only": false,
   "review": {
    "by": "Claude",
    "depth": 5,
@@ -27,7 +27,7 @@
    "pitch": "Auto-firing twin-stick action on a curved neon grid, with a boss countdown, sub-weapon ultimates and swappable weapons adding some tactical variety."
   },
   "made": "2026-07-10",
-  "platform": "desktop",
+  "platform": "phone",
   "public": null,
   "cover": "covers/jarvis-llm-codec-gridx.webp",
   "thumb": "covers/jarvis-llm-codec-gridx.webp",
@@ -159,7 +159,7 @@
   "tags": [
    "Shooters"
   ],
-  "desk_only": true,
+  "desk_only": false,
   "review": {
    "by": "Claude",
    "depth": 6,
@@ -168,7 +168,7 @@
    "pitch": "Drift through a neon debris field with auto-firing weapons, collecting upgrades and fighting bosses across four acts in short roguelite runs."
   },
   "made": "2026-08-16",
-  "platform": "desktop",
+  "platform": "phone",
   "public": null,
   "cover": "covers/hanazar-games-starfall-scavenger.webp",
   "thumb": "covers/hanazar-games-starfall-scavenger.webp",
@@ -194,7 +194,7 @@
   "tags": [
    "Shooters"
   ],
-  "desk_only": true,
+  "desk_only": false,
   "review": {
    "by": "Claude",
    "depth": 3,
@@ -203,7 +203,7 @@
    "pitch": "Steer a small ship through a starfield, auto-firing at diamond-shaped enemies while chasing a score, though the screenshots show little variety yet."
   },
   "made": "2026-06-20",
-  "platform": "desktop",
+  "platform": "phone",
   "public": null,
   "cover": "covers/alliterhorst-neon-vanguard.webp",
   "thumb": "covers/alliterhorst-neon-vanguard.webp",
@@ -2060,40 +2060,6 @@
   "clip": "clips/webermn15-scorch-a-scorched-earth-clone.mp4"
  },
  {
-  "slug": "atxgreene-ugh-guys-",
-  "name": "Ugh Guys",
-  "blurb": "Choose a faction, gather resources, train units and destroy an AI opponent through fog of war.",
-  "category": "Strategy",
-  "author": "atxgreene",
-  "credit": "by atxgreene · CC0-1.0",
-  "licence": "CC0-1.0",
-  "source": "https://github.com/atxgreene/Ugh-Guys-",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 5,
-  "flag": null,
-  "desk_only": true,
-  "review": {
-   "by": "Claude",
-   "depth": 7,
-   "polish": 6,
-   "ai_built": "unknown",
-   "pitch": "Pick one of three factions and fight an AI opponent through fog of war."
-  },
-  "tags": [],
-  "made": "2026-06-12",
-  "platform": "desktop",
-  "public": null,
-  "cover": "covers/atxgreene-ugh-guys-.webp",
-  "thumb": "covers/atxgreene-ugh-guys-.webp",
-  "icon": "art/atxgreene-ugh-guys-.webp",
-  "clip": "clips/atxgreene-ugh-guys-.mp4"
- },
- {
   "slug": "frandyjayr-tower-defense-game",
   "name": "MelonJS Tower Defense",
   "blurb": "Build towers along the path to stop enemies from reaching your base.",
@@ -2119,7 +2085,7 @@
   },
   "tags": [],
   "made": "2018-10-16",
-  "platform": null,
+  "platform": "desktop",
   "public": {
    "github": {
     "forks": 3,
@@ -2143,7 +2109,7 @@
   "source": "https://github.com/alexjken/cookie-clicker-clone",
   "entry": "index.html",
   "external": null,
-  "orientation": "landscape",
+  "orientation": "any",
   "controls": null,
   "fit": null,
   "added": "2026-10-14",
@@ -2199,7 +2165,7 @@
    "Shooters"
   ],
   "made": "2026-07-15",
-  "platform": null,
+  "platform": "desktop",
   "public": {
    "github": {
     "forks": 1,
@@ -2343,7 +2309,7 @@
   "added": "2026-10-14",
   "stars": 2,
   "flag": null,
-  "desk_only": true,
+  "desk_only": false,
   "review": {
    "by": "Claude",
    "depth": 4,
@@ -2355,7 +2321,7 @@
    "Hyper-casual"
   ],
   "made": "2026-06-25",
-  "platform": "desktop",
+  "platform": "phone",
   "public": null,
   "cover": "covers/carlossardo-hoops88.webp",
   "thumb": "covers/carlossardo-hoops88.webp",
@@ -2427,7 +2393,7 @@
   },
   "tags": [],
   "made": "2026-06-28",
-  "platform": null,
+  "platform": "desktop",
   "public": {
    "github": {
     "forks": 0,
@@ -2547,7 +2513,7 @@
   },
   "tags": [],
   "made": "2026-02-20",
-  "platform": null,
+  "platform": "desktop",
   "public": {
    "github": {
     "forks": 0,
@@ -2558,45 +2524,6 @@
   "cover": "covers/vedant131-prison-break-game-using-dsf-a-bsf-algo-.webp",
   "thumb": "covers/vedant131-prison-break-game-using-dsf-a-bsf-algo-.webp",
   "icon": "art/vedant131-prison-break-game-using-dsf-a-bsf-algo-.webp",
-  "clip": null
- },
- {
-  "slug": "jaydobariya8-hands-hero-game",
-  "name": "Hands Hero",
-  "blurb": "Hit rhythm notes with hand gestures tracked through your webcam.",
-  "category": "Action",
-  "author": "Jay Dobariya",
-  "credit": "Copyright (c) 2025 Jay Dobariya",
-  "licence": "MIT",
-  "source": "https://github.com/jaydobariya8/hands-hero-game",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 1,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 5,
-   "polish": 5,
-   "ai_built": "unknown",
-   "pitch": "Play a cyberpunk rhythm game by hitting notes with hand gestures tracked through your webcam."
-  },
-  "tags": [],
-  "made": "2025-12-08",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 1,
-    "url": "https://github.com/jaydobariya8/hands-hero-game"
-   }
-  },
-  "cover": "covers/jaydobariya8-hands-hero-game.webp",
-  "thumb": "covers/jaydobariya8-hands-hero-game.webp",
-  "icon": "art/jaydobariya8-hands-hero-game.webp",
   "clip": null
  },
  {
@@ -2639,45 +2566,6 @@
   "clip": null
  },
  {
-  "slug": "barbour-condini-yahtzee",
-  "name": "Five Dice",
-  "blurb": "Roll five dice up to three times per turn and fill in the scorecard.",
-  "category": "Strategy",
-  "author": "Barbour-Condini",
-  "credit": "Copyright (c) 2023 Barbour-Condini",
-  "licence": "MIT",
-  "source": "https://github.com/Barbour-Condini/yahtzee",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 1,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 4,
-   "polish": 3,
-   "ai_built": "unknown",
-   "pitch": "Roll five dice up to three times per turn and fill in the scorecard categories."
-  },
-  "tags": [],
-  "made": "2023-12-26",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 1,
-    "stars": 1,
-    "url": "https://github.com/Barbour-Condini/yahtzee"
-   }
-  },
-  "cover": "covers/barbour-condini-yahtzee.webp",
-  "thumb": "covers/barbour-condini-yahtzee.webp",
-  "icon": "art/barbour-condini-yahtzee.webp",
-  "clip": null
- },
- {
   "slug": "ctbot000-soccer-game",
   "name": "Touchline",
   "blurb": "Control a player in a six-a-side soccer match, passing and shooting to beat the AI team.",
@@ -2710,40 +2598,6 @@
   "thumb": "covers/ctbot000-soccer-game.webp",
   "icon": "art/ctbot000-soccer-game.webp",
   "clip": "clips/ctbot000-soccer-game.mp4"
- },
- {
-  "slug": "jason9075-skyline-rush",
-  "name": "Skyline Rush",
-  "blurb": "Fly a quadcopter drone through red gates in an endless white city before the timer runs out.",
-  "category": "3D",
-  "author": "jason9075",
-  "credit": "by jason9075 · MIT",
-  "licence": "MIT",
-  "source": "https://github.com/jason9075/Skyline-Rush",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 1,
-  "flag": null,
-  "desk_only": true,
-  "review": {
-   "by": "Claude",
-   "depth": 4,
-   "polish": 5,
-   "ai_built": "unknown",
-   "pitch": "Fly a quadcopter through an infinite procedurally generated white city."
-  },
-  "tags": [],
-  "made": "2026-07-02",
-  "platform": "desktop",
-  "public": null,
-  "cover": "covers/jason9075-skyline-rush.webp",
-  "thumb": "covers/jason9075-skyline-rush.webp",
-  "icon": "art/jason9075-skyline-rush.webp",
-  "clip": "clips/jason9075-skyline-rush.mp4"
  },
  {
   "slug": "js13kgames-gravity-golf",
@@ -2980,45 +2834,6 @@
   "chat_safe": false
  },
  {
-  "slug": "sameralsayed-globe-country-quiz",
-  "name": "Globe Country Quiz",
-  "blurb": "Spin a 3D globe and guess which country is highlighted.",
-  "category": "3D",
-  "author": "SAMER SAEID",
-  "credit": "Copyright (c) 2026 SAMER SAEID",
-  "licence": "MIT",
-  "source": "https://github.com/sameralsayed/globe-country-quiz",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 4,
-   "polish": 5,
-   "ai_built": "unknown",
-   "pitch": "Spin a WebGL globe and identify the highlighted country."
-  },
-  "tags": [],
-  "made": "2026-04-01",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/sameralsayed/globe-country-quiz"
-   }
-  },
-  "cover": "covers/sameralsayed-globe-country-quiz.webp",
-  "thumb": "covers/sameralsayed-globe-country-quiz.webp",
-  "icon": "art/sameralsayed-globe-country-quiz.webp",
-  "clip": null
- },
- {
   "slug": "dougtebay-juno",
   "name": "Color Card Match",
   "blurb": "Play the card game UNO against the computer by matching colors and numbers.",
@@ -3029,7 +2844,7 @@
   "source": "https://github.com/dougtebay/JUNO",
   "entry": "index.html",
   "external": null,
-  "orientation": "any",
+  "orientation": "landscape",
   "controls": null,
   "fit": null,
   "added": "2026-10-14",
@@ -3133,84 +2948,6 @@
   "cover": "covers/itsahmad716-mood-game.webp",
   "thumb": "covers/itsahmad716-mood-game.webp",
   "icon": "art/itsahmad716-mood-game.webp",
-  "clip": null
- },
- {
-  "slug": "mathysb21-searchyword",
-  "name": "SearchyWord",
-  "blurb": "Find hidden words in a letter grid.",
-  "category": "Word & Math",
-  "author": "MathysB",
-  "credit": "Copyright (c) 2024 MathysB",
-  "licence": "MIT",
-  "source": "https://github.com/MathysB21/SearchyWord",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 2,
-   "polish": 3,
-   "ai_built": "unknown",
-   "pitch": "Find hidden words in a grid in a simple JavaScript word search."
-  },
-  "tags": [],
-  "made": "2024-02-05",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/MathysB21/SearchyWord"
-   }
-  },
-  "cover": "covers/mathysb21-searchyword.webp",
-  "thumb": "covers/mathysb21-searchyword.webp",
-  "icon": "art/mathysb21-searchyword.webp",
-  "clip": null
- },
- {
-  "slug": "wsh7ash-rail-tangle",
-  "name": "Rail Tangle",
-  "blurb": "Rotate track pieces to route every train to its station.",
-  "category": "Puzzle",
-  "author": "Wsh7Ash",
-  "credit": "Copyright (c) 2026 Wsh7Ash",
-  "licence": "MIT",
-  "source": "https://github.com/Wsh7Ash/rail-tangle",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 5,
-   "polish": 5,
-   "ai_built": "unknown",
-   "pitch": "Rotate track pieces to route every train to its station."
-  },
-  "tags": [],
-  "made": "2026-09-19",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/Wsh7Ash/rail-tangle"
-   }
-  },
-  "cover": "covers/wsh7ash-rail-tangle.webp",
-  "thumb": "covers/wsh7ash-rail-tangle.webp",
-  "icon": "art/wsh7ash-rail-tangle.webp",
   "clip": null
  },
  {
@@ -7602,7 +7339,7 @@
   },
   "tags": [],
   "made": "2025-11-21",
-  "platform": "phone",
+  "platform": "desktop",
   "public": null,
   "cover": "covers/pshenok-server-survival.webp",
   "thumb": "covers/pshenok-server-survival.webp",
@@ -7719,12 +7456,13 @@
    "Hyper-casual"
   ],
   "made": "2023-11-09",
-  "platform": "desktop",
+  "platform": "phone",
   "public": null,
   "cover": "covers/ramazancetinkaya-snake-game.webp",
   "thumb": "covers/ramazancetinkaya-snake-game.webp",
   "icon": "art/ramazancetinkaya-snake-game.webp",
-  "clip": "clips/ramazancetinkaya-snake-game.mp4"
+  "clip": "clips/ramazancetinkaya-snake-game.mp4",
+  "desk_only": false
  },
  {
   "slug": "salvatorepreviti-js13k-2022",
@@ -7834,7 +7572,7 @@
    "Shooters"
   ],
   "made": "2025-11-28",
-  "platform": "desktop",
+  "platform": "phone",
   "public": {
    "github": {
     "forks": 2,
@@ -7845,7 +7583,8 @@
   "cover": "covers/ygpydh-space-game.webp",
   "thumb": "covers/ygpydh-space-game.webp",
   "icon": "art/ygpydh-space-game.webp",
-  "clip": "clips/ygpydh-space-game.mp4"
+  "clip": "clips/ygpydh-space-game.mp4",
+  "desk_only": false
  },
  {
   "slug": "gd4ark-linkup",
@@ -7947,12 +7686,13 @@
    "Hyper-casual"
   ],
   "made": "2017-08-06",
-  "platform": "desktop",
+  "platform": "phone",
   "public": null,
   "cover": "covers/ipel-ns-shaft.webp",
   "thumb": "covers/ipel-ns-shaft.webp",
   "icon": "art/ipel-ns-shaft.webp",
-  "clip": null
+  "clip": null,
+  "desk_only": false
  },
  {
   "slug": "mnito-factors-game",
@@ -8204,7 +7944,7 @@
   },
   "tags": [],
   "made": "2025-10-20",
-  "platform": "desktop",
+  "platform": "phone",
   "public": {
    "github": {
     "forks": 1,
@@ -8215,7 +7955,8 @@
   "cover": "covers/rakeshid03-arrowpathpuzzle.webp",
   "thumb": "covers/rakeshid03-arrowpathpuzzle.webp",
   "icon": "art/rakeshid03-arrowpathpuzzle.webp",
-  "clip": "clips/rakeshid03-arrowpathpuzzle.mp4"
+  "clip": "clips/rakeshid03-arrowpathpuzzle.mp4",
+  "desk_only": false
  },
  {
   "slug": "eddiesanjuan-bonk-box",
@@ -8330,45 +8071,6 @@
   "chat_safe": false
  },
  {
-  "slug": "rubikou-unirush-js13k",
-  "name": "Unirush",
-  "blurb": "Steer a snake that must eat colours in rainbow order, avoiding zombies across seven worlds.",
-  "category": "Puzzle",
-  "author": "Ruben",
-  "credit": "Copyright (c) 2026 Ruben",
-  "licence": "MIT",
-  "source": "https://github.com/Rubikou/Unirush-js13k",
-  "entry": "src/index.html",
-  "external": null,
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 7,
-   "polish": 8,
-   "ai_built": "likely",
-   "pitch": "Snake where you must eat colours in rainbow order, lure zombies into your trail, and ride rainbow bridges through seven worlds."
-  },
-  "tags": [],
-  "made": "2026-09-02",
-  "platform": "phone",
-  "public": {
-   "github": {
-    "forks": 1,
-    "stars": 0,
-    "url": "https://github.com/Rubikou/Unirush-js13k"
-   }
-  },
-  "cover": "covers/rubikou-unirush-js13k.webp",
-  "thumb": "covers/rubikou-unirush-js13k.webp",
-  "icon": "art/rubikou-unirush-js13k.webp",
-  "clip": "clips/rubikou-unirush-js13k.mp4"
- },
- {
   "slug": "justgibas-js13kgame2026",
   "name": "JS13kGame2026",
   "blurb": "Defend colored beacons from waves, choose upgrade cards, and fight bosses in a 3D void.",
@@ -8447,86 +8149,6 @@
   "thumb": "covers/radrael-unicornnight-js13k.webp",
   "icon": "art/radrael-unicornnight-js13k.webp",
   "clip": "clips/radrael-unicornnight-js13k.mp4"
- },
- {
-  "slug": "ddmaster24-snakes",
-  "name": "Snakes",
-  "blurb": "Steer a glowing snake, eat to grow, boost past rivals, and trap smaller snakes in a big arena.",
-  "category": "Arcade",
-  "author": "Snakes IO Game Contributors",
-  "credit": "Copyright (c) 2025 Snakes IO Game Contributors",
-  "licence": "MIT",
-  "source": "https://github.com/DDMaster24/Snakes",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "any",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 7,
-   "polish": 7,
-   "ai_built": "likely",
-   "pitch": "Grow a giant glowing snake, boost past rivals, and hunt smaller snakes in a huge arena with AI bots."
-  },
-  "tags": [
-   "Hyper-casual"
-  ],
-  "made": "2025-10-17",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/DDMaster24/Snakes"
-   }
-  },
-  "cover": "covers/ddmaster24-snakes.webp",
-  "thumb": "covers/ddmaster24-snakes.webp",
-  "icon": "art/ddmaster24-snakes.webp",
-  "clip": null
- },
- {
-  "slug": "agentic-commerce-lab-lightcone-webmcp-game",
-  "name": "Lightcone",
-  "blurb": "Hide from an AI hunter that rewrites its own pursuit code, using decoys, walls and noise for three minutes.",
-  "category": "Action",
-  "author": "Bjørn Fjellstad Indahl",
-  "credit": "Copyright (c) 2026 Bjørn Fjellstad Indahl",
-  "licence": "MIT",
-  "source": "https://github.com/agentic-commerce-lab/lightcone-webmcp-game",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 8,
-   "polish": 7,
-   "ai_built": "likely",
-   "pitch": "Hide from an AI hunter that rewrites its own pursuit code mid-chase, using decoys, walls, and noise."
-  },
-  "tags": [],
-  "made": "2026-09-03",
-  "platform": "phone",
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/agentic-commerce-lab/lightcone-webmcp-game"
-   }
-  },
-  "cover": "covers/agentic-commerce-lab-lightcone-webmcp-game.webp",
-  "thumb": "covers/agentic-commerce-lab-lightcone-webmcp-game.webp",
-  "icon": "art/agentic-commerce-lab-lightcone-webmcp-game.webp",
-  "clip": "clips/agentic-commerce-lab-lightcone-webmcp-game.mp4"
  },
  {
   "slug": "ferdousbhai-splat-tanks",
@@ -8688,45 +8310,6 @@
   "chat_safe": false
  },
  {
-  "slug": "vishc1-fungame",
-  "name": "FunGame",
-  "blurb": "Race 3D karts and use items on three maps, against bots or online with friends.",
-  "category": "Racing",
-  "author": "vishc1 and contributors",
-  "credit": "Copyright (c) vishc1 and contributors",
-  "licence": "Apache-2.0",
-  "source": "https://github.com/vishc1/FunGame",
-  "entry": "public/index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 8,
-   "polish": 7,
-   "ai_built": "yes",
-   "pitch": "Race 3D karts with 19 items on three big maps, playing solo against bots or online with friends."
-  },
-  "tags": [],
-  "made": "2026-10-05",
-  "platform": null,
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 0,
-    "url": "https://github.com/vishc1/FunGame"
-   }
-  },
-  "cover": "covers/vishc1-fungame.webp",
-  "thumb": "covers/vishc1-fungame.webp",
-  "icon": "art/vishc1-fungame.webp",
-  "clip": null
- },
- {
   "slug": "pbl64k-raincoil-game",
   "name": "Raincoil",
   "blurb": "Steer a growing coil through falling colored rain, matching three or more colors to burst them.",
@@ -8834,7 +8417,7 @@
   },
   "tags": [],
   "made": "2026-07-18",
-  "platform": "phone",
+  "platform": "desktop",
   "public": {
    "github": {
     "forks": 0,
@@ -8846,39 +8429,6 @@
   "thumb": "covers/sanchezsaul-boplicity.webp",
   "icon": "art/sanchezsaul-boplicity.webp",
   "clip": "clips/sanchezsaul-boplicity.mp4"
- },
- {
-  "slug": "chanmeng666-css-tower-defense",
-  "name": "CSS Tower Defense",
-  "blurb": "Place Maori-themed guardians in an isometric CSS-rendered world to stop enemy waves, with daily challenges and leaderboards.",
-  "category": "Strategy",
-  "author": "Chan Meng",
-  "credit": "Copyright (c) 2026 Chan Meng",
-  "licence": "MIT",
-  "source": "https://github.com/ChanMeng666/css-tower-defense",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 8,
-   "polish": 8,
-   "ai_built": "yes",
-   "pitch": "Defend Aotearoa with Maori-themed guardians in a CSS-only 3D isometric world, with daily challenges, leaderboards, and cloud saves."
-  },
-  "tags": [],
-  "made": "2026-02-02",
-  "platform": null,
-  "public": null,
-  "cover": "covers/chanmeng666-css-tower-defense.webp",
-  "thumb": "covers/chanmeng666-css-tower-defense.webp",
-  "icon": "art/chanmeng666-css-tower-defense.webp",
-  "clip": null
  },
  {
   "slug": "markldn-forager",
@@ -8906,7 +8456,7 @@
   },
   "tags": [],
   "made": "2026-10-01",
-  "platform": "phone",
+  "platform": "desktop",
   "public": null,
   "cover": "covers/markldn-forager.webp",
   "thumb": "covers/markldn-forager.webp",
@@ -9005,7 +8555,7 @@
   },
   "tags": [],
   "made": "2026-05-08",
-  "platform": "phone",
+  "platform": "desktop",
   "public": null,
   "cover": "covers/emrezdemir-echo-game-io.webp",
   "thumb": "covers/emrezdemir-echo-game-io.webp",
@@ -9071,7 +8621,7 @@
   },
   "tags": [],
   "made": "2026-07-10",
-  "platform": "phone",
+  "platform": "desktop",
   "public": null,
   "cover": "covers/ohnotnow-soladroid.webp",
   "thumb": "covers/ohnotnow-soladroid.webp",
@@ -9109,39 +8659,6 @@
   "cover": "covers/bonitadreama-token-cart-tycoon.webp",
   "thumb": "covers/bonitadreama-token-cart-tycoon.webp",
   "icon": "art/bonitadreama-token-cart-tycoon.webp",
-  "clip": null
- },
- {
-  "slug": "aayushsharma1003-emberfall",
-  "name": "Emberfall",
-  "blurb": "Fight as a knight, mage, or ranger through a story campaign solo, in co-op, or in 1v1 duels.",
-  "category": "Action",
-  "author": "Aayush Sharma",
-  "credit": "Copyright (c) 2026 Aayush Sharma",
-  "licence": "MIT",
-  "source": "https://github.com/AayushSharma1003/emberfall",
-  "entry": "public/index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-13",
-  "stars": 0,
-  "flag": null,
-  "review": {
-   "by": "Claude",
-   "depth": 8,
-   "polish": 7,
-   "ai_built": "likely",
-   "pitch": "Pick a knight, mage, or ranger and fight through a story campaign solo, in 3-player co-op, or in 1v1 duels."
-  },
-  "tags": [],
-  "made": "2026-07-02",
-  "platform": null,
-  "public": null,
-  "cover": "covers/aayushsharma1003-emberfall.webp",
-  "thumb": "covers/aayushsharma1003-emberfall.webp",
-  "icon": "art/aayushsharma1003-emberfall.webp",
   "clip": null
  },
  {

@@ -4994,6 +4994,12 @@
   "dmcinnes-html5-asteroids": {
    "name": "Rock Blaster",
    "blurb": "Rotate, thrust and blast drifting space rocks into smaller pieces before they hit you."
+  },
+  "alexjken-cookie-clicker-clone": {
+   "orientation": "any"
+  },
+  "dougtebay-juno": {
+   "orientation": "landscape"
   }
  }
 }

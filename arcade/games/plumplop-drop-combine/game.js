@@ -11,7 +11,7 @@ const NAME = 'Plumplop: Drop & Combine';
 const S = createStage({ fov: 32, shadowSize: 8 });
 const { scene, camera, sun, hemi } = S;
 sun.position.set(1.5, 13, 16); sun.intensity = 1.3; hemi.intensity = 1.3;
-const ui = createUI({ title: 'PLUMPLOP', hint: 'Drag to aim, let go to drop', hand: '👆', progress: false });
+const ui = createUI({ title: 'PLUMPLOP', hint: 'Tap where to drop · or drag to aim', hand: '👆', progress: false });
 const D = daily('plumplop', ui, { name: NAME });
 ui.els.win.querySelector('p').innerHTML = 'SCORE <span data-l></span>'; ui.els.win.querySelector('h1').textContent = 'NEW BEST!';
 const save = store('plumplop');
