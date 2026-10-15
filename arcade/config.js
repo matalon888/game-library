@@ -7,6 +7,7 @@
 //   ADS_ENABLED      ad slots (banner during play, 1 interstitial + 1 rewarded offer per session) via ads/adapter.js
 //   WHATSAPP_CHANNEL_URL  the WhatsApp Channel link for SUBSCRIBE_V2 (its button is hidden while this is empty)
 //   META_PIXEL_ID    Meta pixel, fires only after the visitor accepts in the consent banner (empty = no pixel)
+//   GA4_ID           Google Analytics 4 (G-…): Consent Mode, cookieless until Accept; mirrors every /api/ev event (empty = off)
 //   CHALLENGE_EPOCH  day #1 of the daily challenge (UTC); CHALLENGE_GAMES the curated rotation, in order
 window.RIFFCADE = {
   "AUTO_NEXT": false,
@@ -15,7 +16,8 @@ window.RIFFCADE = {
   "ADS_ENABLED": false,
   "WHATSAPP_CHANNEL_URL": "",
   "META_PIXEL_ID": "",
-  "DAILY_PROMPT": "Every morning, check https://riffcade.com/today and send me the 5 newest games with their links.",
+  "GA4_ID": "G-N62V18VZ3S",
+  "DAILY_PROMPT": "Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.",
   "CHALLENGE_EPOCH": "2026-10-15",
   "CHALLENGE_GAMES": [
     "neon-hop", "tube-rush", "swish-street-basketball-shooting", "slab-up", "marble-dash", "oche-ace-darts-duel", "cloud-leap",

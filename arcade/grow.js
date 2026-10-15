@@ -20,7 +20,17 @@
   // ---------------------------------------------------------------- counting (/stats-internal)
   // A random id for this tab's session only (sessionStorage): sessions and games per session, nothing that lasts.
   const sid = ss.get('sid', null) || (() => { const s = ((crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now()).replace(/[^\w-]/g, '').slice(0, 36); ss.set('sid', s); return s; })();
-  const ev = name => fetch(API + '/api/ev', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, sid }) }).catch(() => {});
+  // Google Analytics 4 (GA4_ID): Consent Mode v2, everything denied until "Accept" (GA then sends cookieless pings only),
+  // so it needs no banner of its own. Every funnel event below goes to GA too.
+  if (C.GA4_ID) {
+    window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments); };
+    const ok = (() => { try { return JSON.parse(localStorage.getItem('arcade.consent')) === 'accepted'; } catch (e) { return false; } })() ? 'granted' : 'denied';
+    gtag('consent', 'default', { analytics_storage: ok, ad_storage: ok, ad_user_data: ok, ad_personalization: ok });
+    gtag('js', new Date()); gtag('config', C.GA4_ID, { ref: q.get('ref') || undefined });
+    const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + C.GA4_ID; document.head.appendChild(s);
+  }
+  const ga = (name, p) => { if (window.gtag && C.GA4_ID) gtag('event', name, p || {}); };
+  const ev = name => (ga(name), fetch(API + '/api/ev', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, sid }) }).catch(() => {}));
   const once = (key, name) => { if (!ss.get('once.' + key, false)) { ss.set('once.' + key, true); ev(name); } };
   once('session', 'session');
   if (/^daily/.test(q.get('ref') || '')) once('ref_daily', 'ref_daily');  // ?ref=daily or ?ref=daily-<ai> from the /today page
@@ -60,7 +70,7 @@
     b.innerHTML = `<p>RIFFCADE is free thanks to ads. Allow personalised ads and ad measurement? Off unless you accept. <a href="privacy.html">Privacy</a></p>
       <div><button class="btn ghost" id="gNo">No thanks</button><button class="btn" id="gYes">Accept</button></div>`;
     document.body.appendChild(b);
-    const pick = v => { ls.set('consent', v); ev(v === 'accepted' ? 'consent_accept' : 'consent_decline'); b.remove(); if (v === 'accepted') pixel(); if (window.RiffAds) window.RiffAds.consent(v === 'accepted' && !kids); };
+    const pick = v => { ls.set('consent', v); if (window.gtag && C.GA4_ID) { const g = v === 'accepted' ? 'granted' : 'denied'; gtag('consent', 'update', { analytics_storage: g, ad_storage: g, ad_user_data: g, ad_personalization: g }); } ev(v === 'accepted' ? 'consent_accept' : 'consent_decline'); b.remove(); if (v === 'accepted') pixel(); if (window.RiffAds) window.RiffAds.consent(v === 'accepted' && !kids); };
     $('gNo').onclick = () => pick('declined');
     $('gYes').onclick = () => pick('accepted');
   }
@@ -290,7 +300,7 @@
       const o = card('g-sub', `<div class="eyebrow">New games every morning</div><h2>Get tomorrow's games in your AI</h2>
         <div class="g-fresh">${fresh.map(g => `<figure><img src="${esc(art(g))}" alt=""><figcaption>${esc(g.name)}</figcaption></figure>`).join('')}</div>
         ${escapeHtml}
-        <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">ChatGPT: tap Send, then confirm the daily task</a>
+        <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">ChatGPT: tap Send, that's it</a>
         <button class="btn" id="gClaude">Claude (Pro/Max)</button>
         ${C.WHATSAPP_CHANNEL_URL ? `<a class="btn" id="gWa" href="${esc(C.WHATSAPP_CHANNEL_URL)}" target="_blank" rel="noopener">WhatsApp Channel</a>` : ''}
         <button class="btn ghost" id="gSubClose">Not now</button>`);
@@ -298,7 +308,8 @@
       const key = e => { if (e.key === 'Escape') close(); };
       addEventListener('keydown', key);
       const tap = ch => { ev('sub_tap_' + ch); pixel('DailyButtonTap', true); };
-      $('gGpt').onclick = () => tap('chatgpt');
+      // the prompt goes on the clipboard too: if ChatGPT stops for a log-in, or its app opens without it, they paste
+      $('gGpt').onclick = () => { tap('chatgpt'); copyText(P).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
       $('gClaude').onclick = () => {
         tap('claude');
         const copied = copyText(P); // starts while this page still has focus

@@ -146,6 +146,18 @@ body.open .sheet { transform: none }
 @media (max-height: 640px) { h1 { font-size: 50px } .sub { display: none } }
 @media (prefers-reduced-motion: reduce) { .dive { height: 100svh } }
 </style>
+<script src="config.js"></script>
+<script>
+// Google Analytics 4 when config.js has GA4_ID: Consent Mode, denied unless the visitor accepted in the arcade (cookieless pings)
+(function () {
+  var id = (window.RIFFCADE || {}).GA4_ID; if (!id) return;
+  window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments); };
+  var ok = 'denied'; try { if (JSON.parse(localStorage.getItem('arcade.consent')) === 'accepted') ok = 'granted'; } catch (e) {}
+  gtag('consent', 'default', { analytics_storage: ok, ad_storage: ok, ad_user_data: ok, ad_personalization: ok });
+  gtag('js', new Date()); gtag('config', id);
+  var s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id; document.head.appendChild(s);
+})();
+</script>
 </head>
 <body>
 <header class="top">
@@ -246,9 +258,9 @@ const toast = (t, ms = 1800) => { const el = $('#toast'); el.textContent = t; el
 // The morning row stays hidden until RIFFCADE passes the ChatGPT and Claude directory reviews.
 const DAILY_CARD_ENABLED = true;
 // The AI reads riffcade.com/today (plain HTML, rebuilt with every catalogue update by build_today.py).
-const DAILY = 'Every morning, check https://riffcade.com/today and send me the 5 newest games with their links.';
+const DAILY = (window.RIFFCADE || {}).DAILY_PROMPT || 'Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.';
 // anonymous click count per button (button name + time, nothing else), like play counts
-const countClick = button => fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {});
+const countClick = button => (window.gtag && gtag('event', 'daily_button_tap', { ai: button }), fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {}));
 const legacyCopy = t => {
   const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
   document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
@@ -265,7 +277,8 @@ if (DAILY_CARD_ENABLED) {
   $('#daily').hidden = false;
   $('#dailyClaude').onclick = () => { countClick('claude'); copyAndOpenClaude(DAILY); };
   $('#dailyGpt').href = 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY);
-  $('#dailyGpt').addEventListener('click', () => countClick('chatgpt'));
+  // prompt on the clipboard too: if ChatGPT stops for a log-in, or its app opens without the prompt, they paste
+  $('#dailyGpt').addEventListener('click', () => { countClick('chatgpt'); copyText(DAILY).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.', 3000)); });
 }
 function openSheet(k) {
   const phone = device !== 'desktop', h = phone && HOSTS[k].phone ? { ...HOSTS[k], ...HOSTS[k].phone } : HOSTS[k];
