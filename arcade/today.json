@@ -225,26 +225,6 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=lapwise-3d-grand-prix-racing-game-for-your-ai-agents&ref=daily&pos=list-Racing"
    }
   ],
-  "Strategy": [
-   {
-    "name": "CSS Tower Defense",
-    "pitch": "Defend Aotearoa with Maori-themed guardians in a CSS-only 3D isometric world, with daily challenges, leaderboards, and cloud saves.",
-    "image": "https://agentpark.co/arcade/covers/chanmeng666-css-tower-defense.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=chanmeng666-css-tower-defense&ref=daily&pos=list-Strategy"
-   },
-   {
-    "name": "Token Cart Tycoon",
-    "pitch": "Grow a hot dog cart into an AI startup in 30 days, balancing pricing, compute, and chaotic incidents.",
-    "image": "https://agentpark.co/arcade/covers/bonitadreama-token-cart-tycoon.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=bonitadreama-token-cart-tycoon&ref=daily&pos=list-Strategy"
-   },
-   {
-    "name": "UnicornNight",
-    "pitch": "Place unicorns, steal stars, and cut the monster's line across eight distinct boards to save a child's dream.",
-    "image": "https://agentpark.co/arcade/covers/radrael-unicornnight-js13k.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=radrael-unicornnight-js13k&ref=daily&pos=list-Strategy"
-   }
-  ],
   "3D": [
    {
     "name": "Buddy Rollback",
@@ -263,6 +243,26 @@
     "pitch": "Fly as a honeybee through a procedural 3D meadow, decode the waggle dance, dodge predators, and see in ultraviolet.",
     "image": "https://agentpark.co/arcade/covers/markldn-forager.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=markldn-forager&ref=daily&pos=list-3D"
+   }
+  ],
+  "Strategy": [
+   {
+    "name": "CSS Tower Defense",
+    "pitch": "Defend Aotearoa with Maori-themed guardians in a CSS-only 3D isometric world, with daily challenges, leaderboards, and cloud saves.",
+    "image": "https://agentpark.co/arcade/covers/chanmeng666-css-tower-defense.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=chanmeng666-css-tower-defense&ref=daily&pos=list-Strategy"
+   },
+   {
+    "name": "Token Cart Tycoon",
+    "pitch": "Grow a hot dog cart into an AI startup in 30 days, balancing pricing, compute, and chaotic incidents.",
+    "image": "https://agentpark.co/arcade/covers/bonitadreama-token-cart-tycoon.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bonitadreama-token-cart-tycoon&ref=daily&pos=list-Strategy"
+   },
+   {
+    "name": "UnicornNight",
+    "pitch": "Place unicorns, steal stars, and cut the monster's line across eight distinct boards to save a child's dream.",
+    "image": "https://agentpark.co/arcade/covers/radrael-unicornnight-js13k.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=radrael-unicornnight-js13k&ref=daily&pos=list-Strategy"
    }
   ],
   "Idle": [
@@ -345,26 +345,6 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=snip-studio-hair-salon-makeover&ref=daily&pos=list-Makeover"
    }
   ],
-  "Retro": [
-   {
-    "name": "SkiFree.js",
-    "pitch": "Weave a skier downhill past trees and jumps while a yeti hunts you, in a simple endless chase that rewards quick reflexes.",
-    "image": "https://agentpark.co/arcade/covers/basicallydan-skifree-js.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=basicallydan-skifree-js&ref=daily&pos=list-Retro"
-   },
-   {
-    "name": "Tank War",
-    "pitch": "Defend your base and destroy enemy tanks in a top-down arcade battle.",
-    "image": "https://agentpark.co/arcade/covers/markliu2013-tank-war.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=markliu2013-tank-war&ref=daily&pos=list-Retro"
-   },
-   {
-    "name": "Asteroids",
-    "pitch": "Rotate and thrust a small triangular ship through drifting vector rocks, shooting them apart while dodging fragments in a faithful, stripped-down arcade loop.",
-    "image": "https://agentpark.co/arcade/covers/dmcinnes-html5-asteroids.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=dmcinnes-html5-asteroids&ref=daily&pos=list-Retro"
-   }
-  ],
   "Kids": [
    {
     "name": "Peekaboo Pals: Animal Memory Match",
@@ -383,6 +363,26 @@
     "pitch": "Rub muddy toy trucks clean with a sponge, rinse and dry them, then add stickers, with a new vehicle each level.",
     "image": "https://agentpark.co/arcade/covers/sudsy-lane-kids-car-wash-game.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=sudsy-lane-kids-car-wash-game&ref=daily&pos=list-Kids"
+   }
+  ],
+  "Retro": [
+   {
+    "name": "SkiFree.js",
+    "pitch": "Weave a skier downhill past trees and jumps while a yeti hunts you, in a simple endless chase that rewards quick reflexes.",
+    "image": "https://agentpark.co/arcade/covers/basicallydan-skifree-js.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=basicallydan-skifree-js&ref=daily&pos=list-Retro"
+   },
+   {
+    "name": "Tank War",
+    "pitch": "Defend your base and destroy enemy tanks in a top-down arcade battle.",
+    "image": "https://agentpark.co/arcade/covers/markliu2013-tank-war.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=markliu2013-tank-war&ref=daily&pos=list-Retro"
+   },
+   {
+    "name": "Asteroids",
+    "pitch": "Rotate and thrust a small triangular ship through drifting vector rocks, shooting them apart while dodging fragments in a faithful, stripped-down arcade loop.",
+    "image": "https://agentpark.co/arcade/covers/dmcinnes-html5-asteroids.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=dmcinnes-html5-asteroids&ref=daily&pos=list-Retro"
    }
   ]
  }
