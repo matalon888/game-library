@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Deskfolk: Idle Office for Your AI Agents</title>
+<meta name="description" content="Connect Claude Code or Codex and watch your AI agents work in a pixel office. Every tool call earns coins to grow the office. Runs in your browser, nothing uploaded.">
+<meta property="og:title" content="Deskfolk: Idle Office for Your AI Agents">
+<meta property="og:description" content="Your Claude Code and Codex agents, live, as tiny office workers. Earn coins from their tool calls and build the office.">
+<meta name="theme-color" content="#1d1a2b">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="c" aria-label="Your agents' pixel office"></canvas>
+<header id="bar">
+  <div class="brand">DESKFOLK <span id="lvl">Lv 1</span></div>
+  <div class="stats">
+    <span title="Coins">🪙 <b id="coins">0</b></span>
+    <span title="Tool calls today">⚡ <b id="tools">0</b></span>
+    <span title="Tokens today">◆ <b id="tokens">0</b></span>
+    <span title="Agents at work">👥 <b id="agents">0</b></span>
+  </div>
+  <nav>
+    <button id="bShop">Shop</button>
+    <button id="bToday">Today</button>
+    <button id="bConnect">Connect</button>
+  </nav>
+</header>
+<div id="demoTag" hidden>Demo office · <a href="#" id="demoConnect">connect your agents</a> to earn coins</div>
+<div id="toasts"></div>
+
+<section id="start" class="card">
+  <h1>DESKFOLK</h1>
+  <p class="sub">An idle office for your AI agents.</p>
+  <p>Every Claude Code or Codex session you run becomes a little worker at a desk. Subagents pull up a stool. Every tool call earns a coin, and coins grow the office.</p>
+  <div class="btns">
+    <button class="big" data-src="claude">Connect Claude Code</button>
+    <button class="big" data-src="codex">Connect Codex</button>
+    <button class="ghost" id="bDemo">Watch a demo office</button>
+  </div>
+  <p class="fine" id="howto">You pick your <code>.claude</code> (or <code>.codex</code>) folder in your home folder. On a Mac press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>.</kbd> in the picker to show hidden folders. You can also drag the folder onto this page.</p>
+  <p class="fine">Private by design: the game runs in this tab and only reads tool names, token counts and times. Your prompts and code never leave your computer.</p>
+  <p class="fine warn" id="noFs" hidden>Live connection needs desktop Chrome or Edge. On this browser you can watch the demo office.</p>
+</section>
+
+<section id="shop" class="card panel" hidden>
+  <header><h2>Shop</h2><button class="x" data-close>✕</button></header>
+  <div id="shopList"></div>
+</section>
+
+<section id="today" class="card panel" hidden>
+  <header><h2>Today</h2><button class="x" data-close>✕</button></header>
+  <div id="todayBody"></div>
+  <button class="big" id="bShare">Share my agents' day</button>
+</section>
+
+<div id="drop" hidden><div>Drop your <b>.claude</b> or <b>.codex</b> folder</div></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

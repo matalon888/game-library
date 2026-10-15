@@ -5795,6 +5795,36 @@
   "chat_safe": false
  },
  {
+  "slug": "deskfolk-idle-office-for-your-ai-agents",
+  "name": "Deskfolk: Idle Office for Your AI Agents",
+  "blurb": "Connect Claude Code or Codex: your agents work in a pixel office and every tool call earns coins.",
+  "category": "Idle",
+  "author": "RIFFCADE",
+  "credit": "An original RIFFCADE game",
+  "licence": "Original",
+  "source": null,
+  "entry": "index.html",
+  "orientation": "landscape",
+  "fit": null,
+  "controls": null,
+  "added": "2026-10-14",
+  "stars": null,
+  "tags": [
+   "Connect your AI"
+  ],
+  "original": true,
+  "repo_dir": "deskfolk-idle-office-for-your-ai-agents",
+  "review": null,
+  "external": null,
+  "made": null,
+  "platform": "desktop",
+  "public": null,
+  "cover": "covers/deskfolk-idle-office-for-your-ai-agents.webp",
+  "thumb": "covers/deskfolk-idle-office-for-your-ai-agents.webp",
+  "icon": "art/deskfolk-idle-office-for-your-ai-agents.webp",
+  "clip": null
+ },
+ {
   "slug": "pshenok-server-survival",
   "name": "Server Survival",
   "blurb": "Tower defence where the towers are load balancers, caches and databases and the creeps are traffic spikes.",
