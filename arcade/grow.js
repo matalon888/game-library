@@ -196,7 +196,7 @@
       const n = chN, s = streakDone();
       ev('challenge_done');
       const pts = best != null ? ` — ${best.toLocaleString('en-US')} pts` : '';
-      const url = `riffcade.com/c/${n}`;
+      const url = `agentpark.co/c/${n}`;
       const text = `AGENTPARK #${n} 🔥${s}${pts} ${url}`;
       const o = card('g-share', `<div class="eyebrow">Today's challenge · #${n}</div><h2>Day ${s} 🔥</h2>
         ${best != null ? `<p class="g-pts">${best.toLocaleString('en-US')} pts</p>` : ''}<p class="g-sharetext">${esc(text)}</p>
@@ -296,10 +296,10 @@
       // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
       const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
       const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.';
-      const back = 'https://riffcade.com/arcade/?sub=1';
+      const back = 'https://agentpark.co/arcade/?sub=1';
       const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
         ${iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari</a><p>Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b>, or copy the link.</p><button class="btn ghost" id="gCopyLink">Copy link</button>`
-          : `<a class="btn big" id="gOpen" href="intent://riffcade.com/arcade/?sub=1#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a>`}
+          : `<a class="btn big" id="gOpen" href="intent://agentpark.co/arcade/?sub=1#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a>`}
         <b>2. Then pick your AI</b></div>` : '';
       const o = card('g-sub', `<div class="eyebrow">New games every morning</div><h2>Get tomorrow's games in your AI</h2>
         <div class="g-fresh">${fresh.map(g => `<figure><img src="${esc(art(g))}" alt=""><figcaption>${esc(g.name)}</figcaption></figure>`).join('')}</div>

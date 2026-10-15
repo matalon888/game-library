@@ -22,12 +22,12 @@ window.RIFFCADE = {
   "WHATSAPP_CHANNEL_URL": "",
   "META_PIXEL_ID": "1143064938054197",
   "GA4_ID": "G-N62V18VZ3S",
-  "DAILY_PROMPT": "Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.",
+  "DAILY_PROMPT": "Every morning, check https://today.agentpark.co and send me the 5 newest games with their links.",
   "PROMPT_TEST": false,
   "PROMPTS": {
-    "a": "Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.",
-    "b": "Every morning, check https://today.riffcade.com and pick the one new game I'd enjoy most. Tell me what it is in one line and give me its link.",
-    "c": "Every morning, check https://today.riffcade.com and give me 3 new games for a 5-minute break, one line each with its link."
+    "a": "Every morning, check https://today.agentpark.co and send me the 5 newest games with their links.",
+    "b": "Every morning, check https://today.agentpark.co and pick the one new game I'd enjoy most. Tell me what it is in one line and give me its link.",
+    "c": "Every morning, check https://today.agentpark.co and give me 3 new games for a 5-minute break, one line each with its link."
   },
   "TIERS": { "strong_days_7": 4, "strong_daily_days_7": 3, "okay_days_7": 2, "okay_games_today": 3, "okay_minutes_7": 10 },
   "CHALLENGE_EPOCH": "2026-10-15",
