@@ -46,3 +46,4 @@
 .g-ad-full .g-ad-x { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 12px); right: 12px; min-width: 44px; height: 44px; border-radius: 22px; border: 0;
   background: #fff; color: #15171B; font: 700 15px/1 var(--display, sans-serif); padding: 0 14px; z-index: 61; cursor: pointer }
 .g-ad-full .g-ad-x[disabled] { opacity: .6; cursor: default }
+.g-card ~ .bubble, body:has(.g-card) .bubble, body:has(.g-ad-full) .bubble { display: none }  /* the pause bubble hides behind our cards */

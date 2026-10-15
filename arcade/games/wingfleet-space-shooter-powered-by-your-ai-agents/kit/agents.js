@@ -211,18 +211,63 @@ function demoFeed(emit, { agents: n = 4 } = {}) {
   return { stop() { clearInterval(id); } };
 }
 
+// ---------------------------------------------------------------- the link (any device): a code + one Terminal line
+// The player's computer runs link.js (served by mcp.riffcade.com) which posts only counts under a private code; this
+// page polls for them. One code per browser, shared by every riffcade.com game, so linking once works everywhere.
+const API = new URLSearchParams(location.search).get('lbapi') || 'https://mcp.riffcade.com';
+const linkCode = () => {
+  let c = null; try { c = localStorage.getItem('riffcade_link_code'); } catch (e) {}
+  if (!/^[a-z0-9]{10}$/.test(c || '')) {
+    const a = 'abcdefghjkmnpqrstuvwxyz23456789', r = crypto.getRandomValues(new Uint8Array(10));
+    c = [...r].map(x => a[x % a.length]).join(''); try { localStorage.setItem('riffcade_link_code', c); } catch (e) {}
+  }
+  return c;
+};
+function relay(code, emit, onLinked) {
+  let after = 0, stopped = false, timer = 0, linked = false, lastSeen = 0;
+  async function poll() {
+    if (stopped) return;
+    try {
+      const j = await (await fetch(`${API}/api/link/${code}?after=${after}`, { cache: 'no-store' })).json();
+      if (j.linked) {
+        if (j.seq < after) after = 0;                        // the server restarted: start over (counted marks prevent double pay)
+        const ev = j.events || [];
+        if (ev.length) after = ev[ev.length - 1].seq;
+        const old = ev.filter(e => e.b), fresh = ev.filter(e => !e.b);
+        if (!linked) { linked = true; onLinked(); }
+        if (old.length) emit(old.map(clean), { backfill: true, src: 'link' });
+        if (fresh.length) emit(fresh.map(clean), { src: 'link' });
+        lastSeen = j.last || lastSeen;
+      }
+    } catch (e) {}
+    if (!stopped) timer = setTimeout(poll, linked ? 2000 : 3000);
+  }
+  const clean = e => { const o = { ...e }; delete o.seq; delete o.b; return o; };
+  poll();
+  return { stop() { stopped = true; clearTimeout(timer); }, get linked() { return linked; }, get lastSeen() { return lastSeen; } };
+}
+
 // ---------------------------------------------------------------- connect card (same look in every game)
 const CSS = `
-.ag-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(500px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto;background:rgba(18,16,30,.95);color:#f6f0e3;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:22px;z-index:50;font:15px/1.45 system-ui,-apple-system,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.ag-card h1{margin:0;font-size:30px;letter-spacing:1px;color:var(--ag-acc,#ffcf5a)} .ag-card .ag-tag{margin:2px 0 10px;font-weight:700;font-size:17px}
-.ag-card .ag-btns{display:grid;gap:8px;margin:14px 0 8px} .ag-card button{font:inherit;cursor:pointer;border-radius:12px;padding:11px 16px}
+.ag-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(540px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;background:rgba(18,16,30,.97);color:#f6f0e3;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px;z-index:50;font:15px/1.45 system-ui,-apple-system,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.ag-card h1{margin:0;font-size:28px;letter-spacing:1px;color:var(--ag-acc,#ffcf5a)} .ag-card .ag-tag{margin:2px 0 8px;font-weight:700;font-size:17px} .ag-card .ag-about{margin:0 0 12px;color:#d8d2e4}
+.ag-card button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px}
 .ag-card .ag-big{background:var(--ag-acc,#ffcf5a);color:#1b1408;border:0;font-weight:700;font-size:16px} .ag-card .ag-big:disabled{opacity:.45;cursor:not-allowed}
-.ag-card .ag-ghost{background:transparent;color:#f6f0e3;border:1px solid rgba(255,255,255,.18)} .ag-card .ag-fine{color:#b9b2c8;font-size:13px;margin:8px 0 0}
-.ag-card kbd{border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:0 4px;font-size:12px} .ag-card code{background:rgba(255,255,255,.08);padding:0 4px;border-radius:4px}
+.ag-card .ag-ghost{background:transparent;color:#f6f0e3;border:1px solid rgba(255,255,255,.18)}
+.ag-card .ag-fine{color:#b9b2c8;font-size:13px;margin:8px 0 0}
+.ag-step{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 14px;margin:10px 0}
+.ag-step h3{margin:0 0 6px;font-size:16px} .ag-step h3 small{font-weight:500;color:#b9b2c8}
+.ag-cmd{display:flex;gap:8px;align-items:stretch;margin:6px 0} .ag-cmd code{flex:1;display:block;background:#0b0a14;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px;font:13px/1.35 ui-monospace,Menlo,monospace;color:#9cf28a;word-break:break-all;user-select:all}
+.ag-cmd button{white-space:nowrap}
+.ag-os{display:flex;gap:6px;margin:4px 0} .ag-os button{padding:4px 10px;font-size:12px;border-radius:999px;background:rgba(255,255,255,.07);color:#f6f0e3;border:1px solid rgba(255,255,255,.12)} .ag-os button[aria-pressed=true]{background:#f6f0e3;color:#1b1408}
+.ag-status{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:8px;color:#d8d2e4} .ag-dot{width:10px;height:10px;border-radius:50%;background:#ffcf5a;animation:agp 1.2s infinite} @keyframes agp{50%{opacity:.3}}
+.ag-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ag-help{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:80;background:#fffbe8;color:#1b1408;border-radius:14px;padding:12px 16px;font:15px/1.4 system-ui;box-shadow:0 10px 40px rgba(0,0,0,.4);max-width:94%}
+.ag-help kbd,.ag-card kbd{border:1px solid currentColor;border-radius:5px;padding:0 5px;font-size:13px;opacity:.9}
 .ag-drop{position:fixed;inset:0;background:rgba(15,12,26,.82);display:grid;place-items:center;z-index:60;font:22px system-ui;color:#fff;border:3px dashed var(--ag-acc,#ffcf5a)}
 .ag-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(18,16,30,.95);color:#f6f0e3;border:1px solid var(--ag-acc,#ffcf5a);border-radius:12px;padding:10px 14px;font:14px system-ui;z-index:70;max-width:90%}
 .ag-demo{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(18,16,30,.9);color:#f6f0e3;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:7px 14px;font:13px system-ui;z-index:40;white-space:nowrap}
-.ag-demo a{color:var(--ag-acc,#ffcf5a)} [hidden].ag-card,[hidden].ag-drop,[hidden].ag-demo{display:none!important}`;
+.ag-demo a{color:var(--ag-acc,#ffcf5a)} .ag-step[hidden],.ag-card[hidden],.ag-drop[hidden],.ag-demo[hidden],.ag-help[hidden],[hidden].ag-card{display:none!important}`;
 export function toast(s, ms = 4000) { const d = document.createElement('div'); d.className = 'ag-toast'; d.textContent = s; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
 
 export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', onEvents, onConnect, demoAgents = 4, autoDemo = true }) {
@@ -242,22 +287,55 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
     onEvents(list, info);
   }
 
+  const code = linkCode();
+  const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent), win = /Win/.test(navigator.platform || '');
+  const SRC = new URLSearchParams(location.search).get('lbapi') ? `${API}/link.js` : 'riffcade.com/arcade/link.js';   // short line to type
+  const cmdFor = os => os === 'win' ? `irm ${SRC} | node - ${code}` : `curl -sL ${SRC} | node - ${code}`;
+  const phone = !supported && matchMedia('(pointer: coarse)').matches;
   const card = document.createElement('section'); card.className = 'ag-card';
-  card.innerHTML = `<h1>${title}</h1><p class="ag-tag">${tagline}</p>${about ? `<p>${about}</p>` : ''}
-    <div class="ag-btns"><button class="ag-big" data-src="claude">Connect Claude Code</button><button class="ag-big" data-src="codex">Connect Codex</button>
-    <button class="ag-ghost" data-demo>Watch a demo team</button></div>
-    <p class="ag-fine">Pick your <code>.claude</code> (or <code>.codex</code>) folder in your home folder. On a Mac press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>.</kbd> in the picker to show hidden folders, or drag the folder onto this page.</p>
-    <p class="ag-fine">Private: the game runs in this tab and reads only tool names, success or failure, token counts and times. Prompts and code never leave your computer.</p>
-    ${supported ? '' : '<p class="ag-fine" style="color:#ffb38a">Connecting live needs desktop Chrome or Edge. Here you can watch the demo team.</p>'}`;
+  card.innerHTML = `<h1>${title}</h1><p class="ag-tag">${tagline}</p>${about ? `<p class="ag-about">${about}</p>` : ''}
+    <div class="ag-step"><h3>📱 Link your Claude Code + Codex <small>· works on any device, phones too</small></h3>
+      <div>On the computer where your agents run, open <b>Terminal</b> and paste this line:</div>
+      <div class="ag-os"><button data-os="mac" aria-pressed="${!win}">Mac / Linux</button><button data-os="win" aria-pressed="${win}">Windows</button></div>
+      <div class="ag-cmd"><code>${cmdFor(win ? 'win' : 'mac')}</code><button class="ag-big" data-copy>Copy</button></div>
+      ${phone && navigator.share ? '<button class="ag-big" data-send style="width:100%;margin-top:4px">📤 Send this line to my computer</button>' : ''}
+      <div class="ag-status"><span class="ag-dot"></span><span data-status>Waiting for your computer… keep that Terminal window open while you play.</span></div>
+      <p class="ag-fine">Needs Node 18+ (already there if you installed Claude Code or Codex with npm). Linking once works in every RIFFCADE agent game.</p></div>
+    <div class="ag-step" ${phone ? 'hidden' : ''}><h3>💻 Or pick the folder <small>· this computer, Chrome or Edge, no Terminal</small></h3>
+      <div class="ag-pick"><button class="ag-ghost" data-src="claude">Claude Code folder</button><button class="ag-ghost" data-src="codex">Codex folder</button></div>
+      <p class="ag-fine">We copy the folder path for you. In the window that opens, ${mac ? 'press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>G</kbd>, then <kbd>⌘</kbd><kbd>V</kbd>, <kbd>Enter</kbd>, and click <b>Select</b>' : 'click the address bar, press <kbd>Ctrl</kbd><kbd>V</kbd>, <kbd>Enter</kbd>, then <b>Select Folder</b>'}.</p></div>
+    <button class="ag-ghost" data-demo style="width:100%">Just watch a demo team</button>
+    <p class="ag-fine">Private: only tool names, success or failure, token counts, times and project folder names are used. Never your prompts, code or files. Nothing is spent, only counted.</p>`;
   document.body.appendChild(card);
+  const help = document.createElement('div'); help.className = 'ag-help'; help.hidden = true; document.body.appendChild(help);
   const drop = document.createElement('div'); drop.className = 'ag-drop'; drop.hidden = true; drop.innerHTML = '<div>Drop your <b>.claude</b> or <b>.codex</b> folder</div>'; document.body.appendChild(drop);
   const tag = document.createElement('div'); tag.className = 'ag-demo'; tag.hidden = true; tag.innerHTML = 'Demo team · <a href="#">connect your agents</a>'; document.body.appendChild(tag);
   tag.querySelector('a').onclick = e => { e.preventDefault(); open(); };
+  const status = card.querySelector('[data-status]');
+  card.querySelectorAll('[data-os]').forEach(b => b.onclick = () => {
+    card.querySelectorAll('[data-os]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    card.querySelector('.ag-cmd code').textContent = cmdFor(b.dataset.os);
+  });
+  card.querySelector('[data-copy]').onclick = e => {
+    const t = card.querySelector('.ag-cmd code').textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => { e.target.textContent = 'Copied ✓'; setTimeout(() => e.target.textContent = 'Copy', 2500); })
+      .catch(() => { const r = document.createRange(); r.selectNodeContents(card.querySelector('.ag-cmd code')); getSelection().removeAllRanges(); getSelection().addRange(r); });
+  };
 
+  const send = card.querySelector('[data-send]');
+  if (send) send.onclick = () => navigator.share({ title: 'Link my AI agents to RIFFCADE', text: 'Paste this in Terminal on my computer:\n' + card.querySelector('.ag-cmd code').textContent }).catch(() => {});
   function open() { card.hidden = false; }
   function close() { card.hidden = true; }
   function startDemo() { if (demoRun || api.connected.length) return; api.demo = true; tag.hidden = false; demoRun = demoFeed(emit, { agents: demoAgents }); }
   function stopDemo() { if (!demoRun) return; demoRun.stop(); demoRun = null; api.demo = false; tag.hidden = true; }
+
+  // the link: always listening for this browser's code (cheap GET every few seconds); the first data connects
+  const link = relay(code, emit, () => {
+    stopDemo(); api.connected.push(link); onConnect && onConnect('link');
+    status.textContent = '✅ Linked! Your agents are in the game.'; card.querySelector('.ag-dot').style.cssText = 'background:#9cf28a;animation:none';
+    close(); toast('✅ Linked to your agents. They join the game as they work.');
+  });
+
   async function connect(h, ask) {
     if (!(await permitted(h, ask))) return false;
     const w = watcher(h, emit);
@@ -271,10 +349,18 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
     } catch (e) { const i = api.connected.indexOf(w); if (i >= 0) api.connected.splice(i, 1); toast('⚠️ ' + e.message); if (!api.connected.length && autoDemo) startDemo(); return false; }
   }
   api.connectHandle = h => connect(h, false);          // for automated QA with a fake handle
-  card.querySelectorAll('[data-src]').forEach(b => { b.disabled = !supported; b.onclick = async () => {
-    try { await connect(await showDirectoryPicker({ id: 'riffcade-' + b.dataset.src, mode: 'read' }), true); }
-    catch (e) { if (e.name !== 'AbortError') toast('⚠️ ' + (e.message || 'Could not open that folder')); }
-  }; });
+  card.querySelectorAll('[data-src]').forEach(b => {
+    if (!supported) { b.disabled = true; b.title = 'Needs desktop Chrome or Edge. Use the Terminal line above instead.'; }
+    b.onclick = async () => {
+      const p = b.dataset.src === 'codex' ? (win ? '%USERPROFILE%\\.codex' : '~/.codex') : (win ? '%USERPROFILE%\\.claude' : '~/.claude');
+      try { navigator.clipboard && navigator.clipboard.writeText(p); } catch (e) {}
+      help.innerHTML = mac ? `Copied <b>${p}</b> · press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>G</kbd> → <kbd>⌘</kbd><kbd>V</kbd> → <kbd>Enter</kbd> → <b>Select</b>` : `Copied <b>${p}</b> · click the address bar → <kbd>Ctrl</kbd><kbd>V</kbd> → <kbd>Enter</kbd> → <b>Select Folder</b>`;
+      help.hidden = false;
+      try { await connect(await showDirectoryPicker({ id: 'riffcade-' + b.dataset.src, mode: 'read' }), true); }
+      catch (e) { if (e.name !== 'AbortError') toast('⚠️ ' + (e.message || 'Could not open that folder')); }
+      help.hidden = true;
+    };
+  });
   card.querySelector('[data-demo]').onclick = () => { close(); startDemo(); };
   addEventListener('dragover', e => { e.preventDefault(); drop.hidden = false; });
   addEventListener('dragleave', e => { if (!e.relatedTarget) drop.hidden = true; });
@@ -284,13 +370,13 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
     if (it && it.getAsFileSystemHandle) { const h = await it.getAsFileSystemHandle(); if (h && h.kind === 'directory') return connect(h, true); }
     toast('⚠️ Drop the folder itself (.claude or .codex), in Chrome or Edge.');
   });
-  // returning players reconnect silently; otherwise the demo team plays behind the card so the game is never empty
+  // returning players: a picked folder reconnects silently; the link reconnects by itself when its Terminal line runs
   (async () => {
     const list = supported ? await saved.list() : [];
     let any = false; for (const h of list) if (await connect(h, false)) any = true;
     if (any) return;
-    if (list.length) { const b = document.createElement('button'); b.className = 'ag-big'; b.textContent = 'Reconnect my agents'; b.onclick = async () => { for (const h of list) await connect(h, true); }; card.querySelector('.ag-btns').prepend(b); }
-    if (autoDemo) startDemo();
+    if (list.length && !link.linked) { const b = document.createElement('button'); b.className = 'ag-ghost'; b.textContent = '↻ Reconnect my picked folder'; b.style.width = '100%'; b.onclick = async () => { for (const h of list) await connect(h, true); }; card.querySelector('[data-demo]').before(b); }
+    if (autoDemo && !link.linked) startDemo();
     if (new URLSearchParams(location.search).has('demo')) close();
   })();
   return api;

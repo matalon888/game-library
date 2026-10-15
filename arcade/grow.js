@@ -183,7 +183,9 @@
   }
 
   // game over (a kit game reports 'lost'): the share card for the challenge, else Next / the rewarded offer
+  let leaving = false;
   async function gameOver() {
+    if (leaving || document.querySelector('.g-card, .g-ad-full')) return; // one card at a time
     if (chN && !shared) return shareCard(false);
     if (ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
     if (C.AUTO_NEXT || rewardedDue()) nextCard('ended');
@@ -273,6 +275,8 @@
 
   // shell.js asks before leaving a game (back / Back to RIFFCADE). Resolves true when Grow took over the navigation.
   async function leave(started) {
+    leaving = true;
+    document.querySelectorAll('.g-card').forEach(o => o.remove()); // a game-over card still open gives way to the leave flow
     if (started && chN && !shared) await shareCard(true);
     if (started && ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
     if (started && (await nextCard('back')) !== 'none') return true;
@@ -290,7 +294,7 @@
       ls.set('subDay', today());
       ev('sub_shown');
       // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
-      const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
+      const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
       const P = C.DAILY_PROMPT || 'Every morning, check https://riffcade.com/today and send me the 5 newest games with their links.';
       const back = 'https://riffcade.com/arcade/?sub=1';
       const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
