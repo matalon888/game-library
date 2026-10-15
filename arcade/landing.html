@@ -136,7 +136,7 @@ footer a { color: var(--muted) }
   // ---------------------------------------------------------------- the daily agent (same flow as connect.html)
   const MCP = 'https://mcp.riffcade.com/mcp';
   const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
-  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.';
+  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Every morning, open https://today.agentpark.co and send me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures.';
   const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', grok: 'Grok' };
   // Claude warns on pre-filled links and Gemini has none, so both open empty with the prompt on the clipboard
   const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new', gemini: 'https://gemini.google.com/app', grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };

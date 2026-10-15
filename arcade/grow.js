@@ -295,7 +295,7 @@
       ev('sub_shown');
       // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
       const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
-      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.';
+      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Every morning, open https://today.agentpark.co and send me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures.';
       const back = 'https://agentpark.co/arcade/?sub=1';
       const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
         ${iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari</a><p>Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b>, or copy the link.</p><button class="btn ghost" id="gCopyLink">Copy link</button>`
