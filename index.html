@@ -116,8 +116,8 @@ footer { position: relative; z-index: 3; background: var(--acid); color: var(--i
 .howto .ic svg { width: 17px; height: 17px }
 
 /* sheet */
-.veil { position: fixed; inset: 0; background: rgba(10, 11, 13, .55); opacity: 0; pointer-events: none; transition: opacity .2s }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 560px; background: var(--paper); color: var(--ink); border-radius: 26px 26px 0 0;
+.veil { position: fixed; inset: 0; z-index: 5; background: rgba(10, 11, 13, .55); opacity: 0; pointer-events: none; transition: opacity .2s }
+.sheet { position: fixed; z-index: 6; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 560px; background: var(--paper); color: var(--ink); border-radius: 26px 26px 0 0;
   padding: 22px 20px calc(env(safe-area-inset-bottom, 0px) + 22px); display: grid; gap: 14px; transform: translateY(105%); transition: transform .22s var(--ease) }
 body.open .veil { opacity: 1; pointer-events: auto }
 body.open .sheet { transform: none }
