@@ -17,7 +17,7 @@ const PUSHER_Z_MIN = -3.5;    // 推板后限
 const PUSHER_Z_MAX = 1.5;     // 推板前限
 const PUSHER_SPEED = 2.0;     // 推板速度（单位/秒）
 
-const MAX_COINS = 130;        // 硬币上限
+const MAX_COINS = 90;        // 硬币上限
 
 const SLOT_SYMBOLS = ['🍒', '🍋', '🍊', '🍉', '⭐', '💎', '7️⃣'];
 const SLOT_REWARDS = { '🍒': 20, '🍋': 20, '🍊': 20, '🍉': 25, '⭐': 30, '💎': 40, '7️⃣': 50 };
@@ -44,7 +44,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x08140c);
@@ -154,7 +154,7 @@ function spawnCoin(x, y, z) {
   }
   const body = new CANNON.Body({
     mass: 1,
-    shape: new CANNON.Cylinder(COIN_R, COIN_R, COIN_H, 20),
+    shape: new CANNON.Cylinder(COIN_R, COIN_R, COIN_H, 8),
     position: new CANNON.Vec3(x, y, z),
     material: coinPhysMat,
   });
@@ -325,7 +325,7 @@ function loop(now) {
   const dt = Math.min((now - lastTime) / 1000, 0.05);
   lastTime = now;
 
-  world.step(1 / 60, dt, 3);
+  world.step(1 / 60, dt, 1);
 
   // 推板往复运动
   const pz = pusherBody.position.z + pusherDir * PUSHER_SPEED * dt;
