@@ -2,170 +2,176 @@
  "title": "AGENTPARK: new games",
  "date": "2026-10-15",
  "more": "https://agentpark.co/today",
- "total": 196,
+ "total": 236,
  "game_of_the_day": {
-  "name": "Lara World",
-  "category": "Arcade",
-  "pitch": "Race across five themed worlds, answer quiz questions, and beat arcade minigames like Dino Runner and Dragon Defense, solo or versus a bot.",
-  "image": "https://agentpark.co/arcade/covers/wellingtonhzt-lara-world-game.webp",
-  "play_url": "https://agentpark.co/arcade/play.html?g=wellingtonhzt-lara-world-game&ref=daily&pos=gotd"
+  "name": "Lightcone",
+  "category": "Action",
+  "pitch": "Hide from an AI hunter that rewrites its own pursuit code mid-chase, using decoys, walls, and noise.",
+  "image": "https://agentpark.co/arcade/covers/agentic-commerce-lab-lightcone-webmcp-game.webp",
+  "play_url": "https://agentpark.co/arcade/play.html?g=agentic-commerce-lab-lightcone-webmcp-game&ref=daily&pos=gotd"
  },
  "games": [
   {
-   "name": "KoboldAI Lite: AI Adventure",
-   "category": "Word & Math",
-   "blurb": "Text adventures where your AI is the game master: bring Claude, ChatGPT, Gemini or a free volunteer model.",
-   "pitch": "Pick a UI style, then co-write open-ended text adventures with an AI game master that improvises any story, character or scenario you imagine.",
-   "score": 6.0,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/lostruins-koboldai-lite.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=lostruins-koboldai-lite&ref=daily&pos=1"
-  },
-  {
-   "name": "Iridium Reach",
-   "category": "3D",
-   "blurb": "Dogfight from the cockpit of a starship among asteroids and stations.",
-   "pitch": "Pilot a starship cockpit with a radar display and HUD readouts, hunting enemies through asteroid fields and around space stations beneath a nebula sky.",
-   "score": 5.5,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/jason-c-dev-iridium-reach.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=jason-c-dev-iridium-reach&ref=daily&pos=2"
-  },
-  {
-   "name": "HELLGRID",
-   "category": "Action",
-   "blurb": "Retro first-person shooter: fight through three sectors to close the rift. Every texture and sound is made in code.",
-   "pitch": "Fight through three reactor sectors in a first-person shooter, with textures and sound all generated in code, until the rift gate opens.",
-   "score": 5.5,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/markcastle-hellgrid.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=markcastle-hellgrid&ref=daily&pos=3"
-  },
-  {
-   "name": "Starfall Scavenger",
-   "category": "Action",
-   "blurb": "Neon survivors-style roguelite: auto-fire, pick upgrades, beat the bosses across four acts.",
-   "pitch": "Drift through a neon debris field with auto-firing weapons, collecting upgrades and fighting bosses across four acts in short roguelite runs.",
-   "score": 5.5,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/hanazar-games-starfall-scavenger.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=hanazar-games-starfall-scavenger&ref=daily&pos=4"
-  },
-  {
-   "name": "GRIDX",
-   "category": "Action",
-   "blurb": "Neon twin-stick shooter on a curved grid. Survive the waves and take down each boss.",
-   "pitch": "Auto-firing twin-stick action on a curved neon grid, with a boss countdown, sub-weapon ultimates and swappable weapons adding some tactical variety.",
-   "score": 5.0,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/jarvis-llm-codec-gridx.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=jarvis-llm-codec-gridx&ref=daily&pos=5"
-  },
-  {
-   "name": "LLM Chess Arena",
-   "category": "Strategy",
-   "blurb": "Play chess against your own AI (Claude, ChatGPT, Gemini, Grok) and read why it makes every move.",
-   "pitch": "Play a standard chess game against an AI opponent and read its written reasoning for each move, which turns every game into a lesson.",
-   "score": 4.0,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/llm-chess-arena.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=llm-chess-arena&ref=daily&pos=6"
-  },
-  {
-   "name": "AI Overlord",
-   "category": "Action",
-   "blurb": "A space shooter where an AI running in your browser designs every enemy wave and taunts you.",
-   "pitch": "An in-browser language model invents each enemy wave's pattern, speed and swarm size, then taunts you while your auto-firing ship dodges.",
-   "score": 4.0,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/oyekamal-ai-overlord.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=oyekamal-ai-overlord&ref=daily&pos=7"
-  },
-  {
-   "name": "Neon Vanguard",
-   "category": "Arcade",
-   "blurb": "Retro vertical shoot-'em-up: steer your ship, auto-fire and clear the waves.",
-   "pitch": "Steer a small ship through a starfield, auto-firing at diamond-shaped enemies while chasing a score, though the screenshots show little variety yet.",
-   "score": 3.0,
-   "added": "2026-10-15",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/alliterhorst-neon-vanguard.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=alliterhorst-neon-vanguard&ref=daily&pos=8"
-  },
-  {
-   "name": "Yet Another Idle RPG",
-   "category": "Idle",
-   "blurb": "Explore locations, fight enemies, train skills and manage gear as your hero progresses.",
-   "pitch": "Fight enemies, explore locations, train skills and progress an idle character.",
-   "score": 7.5,
-   "added": "2026-10-14",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/miktaew-yet-another-idle-rpg.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=miktaew-yet-another-idle-rpg&ref=daily&pos=9"
-  },
-  {
-   "name": "Chain Net Crew: Basketball Shootout for Your AI Agents",
-   "category": "Sports",
-   "blurb": "Your coding agents shoot hoops on a night street court; you shoot too.",
-   "pitch": "Your coding agents' tool calls become dunks, layups and bricks on a night court while you time your own green-release shots.",
-   "score": 7.0,
-   "added": "2026-10-14",
-   "desktop_only": false,
-   "image": "https://agentpark.co/arcade/covers/chain-net-crew-basketball-shootout-for-your-ai-agents.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=chain-net-crew-basketball-shootout-for-your-ai-agents&ref=daily&pos=10"
-  },
-  {
-   "name": "Ugh Guys",
-   "category": "Strategy",
-   "blurb": "Choose a faction, gather resources, train units and destroy an AI opponent through fog of war.",
-   "pitch": "Pick one of three factions and fight an AI opponent through fog of war.",
-   "score": 6.5,
-   "added": "2026-10-14",
-   "desktop_only": true,
-   "image": "https://agentpark.co/arcade/covers/atxgreene-ugh-guys-.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=atxgreene-ugh-guys-&ref=daily&pos=11"
-  },
-  {
-   "name": "Bolt Twist",
+   "name": "Alibi Grid: Daily Logic Puzzle",
    "category": "Puzzle",
-   "blurb": "Unscrew the bolts in the right order and clear the board.",
-   "pitch": "Tap colored bolts to unscrew them into matching boxes or a limited tray, planning removal order so plates drop and the tray never fills.",
-   "score": 6.5,
-   "added": "2026-10-14",
+   "blurb": "Twenty suspects, one true clue each: work out who is innocent and who is a criminal using pure logic, with a new case every day.",
+   "pitch": "Twenty suspects, one true clue each: work out who is innocent and who is a criminal using pure logic, with a new case every day.",
+   "score": 8.0,
+   "added": "2026-10-15",
    "desktop_only": false,
-   "image": "https://agentpark.co/arcade/covers/bolt-twist.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=bolt-twist&ref=daily&pos=12"
+   "image": "https://agentpark.co/arcade/covers/alibi-grid-daily-logic-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=1"
+  },
+  {
+   "name": "Napspot: Cat Logic Puzzle",
+   "category": "Puzzle",
+   "blurb": "Put one napping cat in every row, column and colour patch — and never let two cats touch.",
+   "pitch": "Put one napping cat in every row, column and colour patch — and never let two cats touch.",
+   "score": 7.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/napspot-cat-logic-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=napspot-cat-logic-puzzle&ref=daily&pos=2"
+  },
+  {
+   "name": "Patience Pine: Klondike Solitaire",
+   "category": "Cards",
+   "blurb": "Classic Klondike solitaire with draw 1 or 3, tap-to-move, drag stacks, unlimited undo, winnable deals and a daily deal.",
+   "pitch": "Classic Klondike solitaire with draw 1 or 3, tap-to-move, drag stacks, unlimited undo, winnable deals and a daily deal.",
+   "score": 7.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/patience-pine-klondike-solitaire.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=patience-pine-klondike-solitaire&ref=daily&pos=3"
+  },
+  {
+   "name": "Bunchwise: Word Groups Puzzle",
+   "category": "Word & Math",
+   "blurb": "Sort sixteen words into four hidden groups of four, with a hint when you are close.",
+   "pitch": "Sort sixteen words into four hidden groups of four, with a hint when you are close.",
+   "score": 7.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/bunchwise-word-groups-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=4"
+  },
+  {
+   "name": "Jellyfit: Block Puzzle",
+   "category": "Puzzle",
+   "blurb": "Drag jelly blocks onto an 8x8 board, fill rows and columns to blast them, and chain combos for a huge score.",
+   "pitch": "Drag jelly blocks onto an 8x8 board, fill rows and columns to blast them, and chain combos for a huge score.",
+   "score": 7.0,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/jellyfit-block-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=jellyfit-block-puzzle&ref=daily&pos=5"
+  },
+  {
+   "name": "Huebound: Crazy Eights Card Game",
+   "category": "Cards",
+   "blurb": "Match colours and numbers against three CPU rivals, play Skip, Reverse, +2 and wilds, and shout ZING! before your last card.",
+   "pitch": "Match colours and numbers against three CPU rivals, play Skip, Reverse, +2 and wilds, and shout ZING! before your last card.",
+   "score": 7.0,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/huebound-crazy-eights-card-game.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=huebound-crazy-eights-card-game&ref=daily&pos=6"
+  },
+  {
+   "name": "Hunch: Five Letter Word Guess",
+   "category": "Word & Math",
+   "blurb": "Guess the hidden five-letter word in six tries as coloured tiles show which letters are right.",
+   "pitch": "Guess the hidden five-letter word in six tries as coloured tiles show which letters are right.",
+   "score": 7.0,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/hunch-five-letter-word-guess.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=hunch-five-letter-word-guess&ref=daily&pos=7"
+  },
+  {
+   "name": "Tenpair: Digit Pairs Puzzle",
+   "category": "Word & Math",
+   "blurb": "Cross out equal digits or pairs that add up to 10, add rows when stuck, and clear the whole board.",
+   "pitch": "Cross out equal digits or pairs that add up to 10, add rows when stuck, and clear the whole board.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/tenpair-digit-pairs-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=8"
+  },
+  {
+   "name": "Doublink: Chain Merge Puzzle",
+   "category": "Word & Math",
+   "blurb": "Swipe a chain through matching and doubling tiles to merge them into ever bigger powers of two.",
+   "pitch": "Swipe a chain through matching and doubling tiles to merge them into ever bigger powers of two.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/doublink-chain-merge-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=doublink-chain-merge-puzzle&ref=daily&pos=9"
+  },
+  {
+   "name": "Spotwise: Domino Logic Puzzle",
+   "category": "Puzzle",
+   "blurb": "Place every domino so each coloured region hits its rule: exact sums, less than, more than, all equal or all different.",
+   "pitch": "Place every domino so each coloured region hits its rule: exact sums, less than, more than, all equal or all different.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/spotwise-domino-logic-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=spotwise-domino-logic-puzzle&ref=daily&pos=10"
+  },
+  {
+   "name": "Inkpath: Number Line Puzzle",
+   "category": "Puzzle",
+   "blurb": "Draw one line through the numbered dots in order and fill every square.",
+   "pitch": "Draw one line through the numbered dots in order and fill every square.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/inkpath-number-line-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=inkpath-number-line-puzzle&ref=daily&pos=11"
+  },
+  {
+   "name": "Solune: Sun & Moon Logic Puzzle",
+   "category": "Puzzle",
+   "blurb": "Fill the grid with suns and moons: half and half in every line, never three alike, follow the = and × signs.",
+   "pitch": "Fill the grid with suns and moons: half and half in every line, never three alike, follow the = and × signs.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/solune-sun-moon-logic-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=solune-sun-moon-logic-puzzle&ref=daily&pos=12"
   }
  ],
  "categories": {
   "Puzzle": [
    {
-    "name": "Bolt Twist",
-    "pitch": "Tap colored bolts to unscrew them into matching boxes or a limited tray, planning removal order so plates drop and the tray never fills.",
-    "image": "https://agentpark.co/arcade/covers/bolt-twist.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=bolt-twist&ref=daily&pos=list-Puzzle"
+    "name": "Alibi Grid: Daily Logic Puzzle",
+    "pitch": "Twenty suspects, one true clue each: work out who is innocent and who is a criminal using pure logic, with a new case every day.",
+    "image": "https://agentpark.co/arcade/covers/alibi-grid-daily-logic-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Swirl Tee",
-    "pitch": "Fold the shirt, squirt dye into each section, then unfold to see how closely the swirl, spotted or striped pattern matches the target.",
-    "image": "https://agentpark.co/arcade/covers/swirl-tee.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=swirl-tee&ref=daily&pos=list-Puzzle"
+    "name": "Napspot: Cat Logic Puzzle",
+    "pitch": "Put one napping cat in every row, column and colour patch — and never let two cats touch.",
+    "image": "https://agentpark.co/arcade/covers/napspot-cat-logic-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=napspot-cat-logic-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Untwine",
-    "pitch": "Drag rope plugs to empty pegs until no strands cross, with a move counter, tangle count and levels adding more ropes.",
-    "image": "https://agentpark.co/arcade/covers/untwine.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=untwine&ref=daily&pos=list-Puzzle"
+    "name": "Jellyfit: Block Puzzle",
+    "pitch": "Drag jelly blocks onto an 8x8 board, fill rows and columns to blast them, and chain combos for a huge score.",
+    "image": "https://agentpark.co/arcade/covers/jellyfit-block-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=jellyfit-block-puzzle&ref=daily&pos=list-Puzzle"
    }
   ],
   "Arcade": [
+   {
+    "name": "Thumb Duel: Party Duels for Two",
+    "pitch": "Two players, one phone: rocket race, tug of war, sumo ring, quick draw and air hockey, first to 5 wins, or play solo against the CPU.",
+    "image": "https://agentpark.co/arcade/covers/thumb-duel-party-duels-for-two.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=thumb-duel-party-duels-for-two&ref=daily&pos=list-Arcade"
+   },
    {
     "name": "Zip Vault: Neon Maze Dash",
     "pitch": "Swipe to slide a little robot wall to wall through twisting neon mazes, grabbing dots and stars while dodging spikes and rising goo.",
@@ -173,16 +179,10 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=zip-vault-neon-maze-dash&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Cube Trek",
-    "pitch": "Drag block pieces onto an 8x8 grid, clearing full rows and columns to free gems or hit score targets across quest levels.",
-    "image": "https://agentpark.co/arcade/covers/cube-trek.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=cube-trek&ref=daily&pos=list-Arcade"
-   },
-   {
-    "name": "Gulp Garden",
-    "pitch": "Drag a hole around a toy-like diorama, swallowing small items to grow and clearing target treats before the timer expires, across themed levels.",
-    "image": "https://agentpark.co/arcade/covers/gulp-garden.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=gulp-garden&ref=daily&pos=list-Arcade"
+    "name": "Chip Spin: Wood Carving Lathe",
+    "pitch": "Carve a spinning log on the lathe to match the target shape, then paint your piece.",
+    "image": "https://agentpark.co/arcade/covers/chip-spin-wood-carving-lathe.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=chip-spin-wood-carving-lathe&ref=daily&pos=list-Arcade"
    }
   ],
   "Action": [
@@ -213,16 +213,36 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=lapwise-3d-grand-prix-racing-game-for-your-ai-agents&ref=daily&pos=list-Racing"
    },
    {
-    "name": "TorqueVerse 3D",
-    "pitch": "Explore open worlds, race AI opponents, drift, use nitro, perform stunts and collect stars.",
-    "image": "https://agentpark.co/arcade/covers/ebinezer-cloud-torqueverse-3d.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ebinezer-cloud-torqueverse-3d&ref=daily&pos=list-Racing"
+    "name": "Zip Lanes: Traffic Racer",
+    "pitch": "Swipe between lanes, weave through highway traffic at rising speed and chain close-call combos.",
+    "image": "https://agentpark.co/arcade/covers/zip-lanes-traffic-racer.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=zip-lanes-traffic-racer&ref=daily&pos=list-Racing"
    },
    {
-    "name": "Thrill Loop: Roller Coaster Ride",
-    "pitch": "Hold to build speed and release to brake, matching pace to track sections so every rider stays aboard through loops, jumps and hairpins.",
-    "image": "https://agentpark.co/arcade/covers/thrill-loop-roller-coaster-ride.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=thrill-loop-roller-coaster-ride&ref=daily&pos=list-Racing"
+    "name": "Microkarts",
+    "pitch": "Drift around a dinner-table circuit in tiny karts, grab items, and race friends online in 3D.",
+    "image": "https://agentpark.co/arcade/covers/mangelajo-microkarts-qwen3-8-27b.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=mangelajo-microkarts-qwen3-8-27b&ref=daily&pos=list-Racing"
+   }
+  ],
+  "Strategy": [
+   {
+    "name": "Rollhome: Ludo Board Game",
+    "pitch": "Roll the 3D die, bring tokens out on a six, capture rivals and race your colour home against three CPU players.",
+    "image": "https://agentpark.co/arcade/covers/rollhome-ludo-board-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=rollhome-ludo-board-game&ref=daily&pos=list-Strategy"
+   },
+   {
+    "name": "Ugh Guys",
+    "pitch": "Pick one of three factions and fight an AI opponent through fog of war.",
+    "image": "https://agentpark.co/arcade/covers/atxgreene-ugh-guys-.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=atxgreene-ugh-guys-&ref=daily&pos=list-Strategy"
+   },
+   {
+    "name": "IsoCity",
+    "pitch": "Lay out roads and buildings to build an isometric city on a grid.",
+    "image": "https://agentpark.co/arcade/covers/victorqribeiro-isocity.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=victorqribeiro-isocity&ref=daily&pos=list-Strategy"
    }
   ],
   "3D": [
@@ -245,24 +265,44 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=tanuu5-nova-lancer&ref=daily&pos=list-3D"
    }
   ],
-  "Strategy": [
+  "Word & Math": [
    {
-    "name": "Ugh Guys",
-    "pitch": "Pick one of three factions and fight an AI opponent through fog of war.",
-    "image": "https://agentpark.co/arcade/covers/atxgreene-ugh-guys-.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=atxgreene-ugh-guys-&ref=daily&pos=list-Strategy"
+    "name": "Bunchwise: Word Groups Puzzle",
+    "pitch": "Sort sixteen words into four hidden groups of four, with a hint when you are close.",
+    "image": "https://agentpark.co/arcade/covers/bunchwise-word-groups-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=list-Word & Math"
    },
    {
-    "name": "IsoCity",
-    "pitch": "Lay out roads and buildings to build an isometric city on a grid.",
-    "image": "https://agentpark.co/arcade/covers/victorqribeiro-isocity.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=victorqribeiro-isocity&ref=daily&pos=list-Strategy"
+    "name": "Hunch: Five Letter Word Guess",
+    "pitch": "Guess the hidden five-letter word in six tries as coloured tiles show which letters are right.",
+    "image": "https://agentpark.co/arcade/covers/hunch-five-letter-word-guess.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=hunch-five-letter-word-guess&ref=daily&pos=list-Word & Math"
    },
    {
-    "name": "The Last Pawn",
-    "pitch": "Play as a lone black pawn on a chessboard, swiping to dodge the white pieces' moves and capturing them to build a score.",
-    "image": "https://agentpark.co/arcade/covers/gbrln-the-last-pawn.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=gbrln-the-last-pawn&ref=daily&pos=list-Strategy"
+    "name": "Tenpair: Digit Pairs Puzzle",
+    "pitch": "Cross out equal digits or pairs that add up to 10, add rows when stuck, and clear the whole board.",
+    "image": "https://agentpark.co/arcade/covers/tenpair-digit-pairs-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=list-Word & Math"
+   }
+  ],
+  "Sports": [
+   {
+    "name": "Chain Net Crew: Basketball Shootout for Your AI Agents",
+    "pitch": "Your coding agents' tool calls become dunks, layups and bricks on a night court while you time your own green-release shots.",
+    "image": "https://agentpark.co/arcade/covers/chain-net-crew-basketball-shootout-for-your-ai-agents.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=chain-net-crew-basketball-shootout-for-your-ai-agents&ref=daily&pos=list-Sports"
+   },
+   {
+    "name": "Quiver Duel: Archery",
+    "pitch": "Take turns with a rival archer: read the wind, aim upwind and land your arrows in the gold.",
+    "image": "https://agentpark.co/arcade/covers/quiver-duel-archery.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=quiver-duel-archery&ref=daily&pos=list-Sports"
+   },
+   {
+    "name": "Plunge Peak: Cliff Diving",
+    "pitch": "Leap off the cliff, hold to flip, let go to straighten up and rip a clean head-first entry.",
+    "image": "https://agentpark.co/arcade/covers/plunge-peak-cliff-diving.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=plunge-peak-cliff-diving&ref=daily&pos=list-Sports"
    }
   ],
   "Idle": [
@@ -279,50 +319,50 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=viral-den&ref=daily&pos=list-Idle"
    },
    {
-    "name": "Liftoff Lab: Space Program for Your AI Agents",
-    "pitch": "Coding agents' activity builds and fuels rockets at launch pads, then you steer each launch through rings to reach progressively farther planets.",
-    "image": "https://agentpark.co/arcade/covers/liftoff-lab-space-program-for-your-ai-agents.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=liftoff-lab-space-program-for-your-ai-agents&ref=daily&pos=list-Idle"
+    "name": "Bonk Box",
+    "pitch": "Fling, firework and flatten a ragdoll stickman, earn coins, unlock toys and hats, and keep a daily streak going.",
+    "image": "https://agentpark.co/arcade/covers/eddiesanjuan-bonk-box.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=eddiesanjuan-bonk-box&ref=daily&pos=list-Idle"
    }
   ],
-  "Sports": [
+  "Cards": [
    {
-    "name": "Chain Net Crew: Basketball Shootout for Your AI Agents",
-    "pitch": "Your coding agents' tool calls become dunks, layups and bricks on a night court while you time your own green-release shots.",
-    "image": "https://agentpark.co/arcade/covers/chain-net-crew-basketball-shootout-for-your-ai-agents.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=chain-net-crew-basketball-shootout-for-your-ai-agents&ref=daily&pos=list-Sports"
+    "name": "Patience Pine: Klondike Solitaire",
+    "pitch": "Classic Klondike solitaire with draw 1 or 3, tap-to-move, drag stacks, unlimited undo, winnable deals and a daily deal.",
+    "image": "https://agentpark.co/arcade/covers/patience-pine-klondike-solitaire.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=patience-pine-klondike-solitaire&ref=daily&pos=list-Cards"
    },
    {
-    "name": "Kickoff Crew: Football Match for Your AI Agents",
-    "pitch": "Your coding agents become football players, with their tool calls driving passes and shots while you coach through tactics, pep talks and timed finishes.",
-    "image": "https://agentpark.co/arcade/covers/kickoff-crew-football-match-for-your-ai-agents.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=kickoff-crew-football-match-for-your-ai-agents&ref=daily&pos=list-Sports"
+    "name": "Huebound: Crazy Eights Card Game",
+    "pitch": "Match colours and numbers against three CPU rivals, play Skip, Reverse, +2 and wilds, and shout ZING! before your last card.",
+    "image": "https://agentpark.co/arcade/covers/huebound-crazy-eights-card-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=huebound-crazy-eights-card-game&ref=daily&pos=list-Cards"
    },
    {
-    "name": "Pin Pals: Bowling League for Your AI Agents",
-    "pitch": "Bowl lane 1 with flick-aimed hook shots while your AI coding agents roll their own lanes, with task results deciding strikes, splits and turkey bonuses.",
-    "image": "https://agentpark.co/arcade/covers/pin-pals-bowling-league-for-your-ai-agents.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=pin-pals-bowling-league-for-your-ai-agents&ref=daily&pos=list-Sports"
+    "name": "Kindred Cards: Word Category Solitaire",
+    "pitch": "Open a category card, then stack every word that belongs to it before your moves run out.",
+    "image": "https://agentpark.co/arcade/covers/kindred-cards-word-category-solitaire.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=kindred-cards-word-category-solitaire&ref=daily&pos=list-Cards"
    }
   ],
-  "Word & Math": [
+  "Kids": [
    {
-    "name": "Letterloom: Anagram Crossword Puzzle",
-    "pitch": "Swipe around a letter wheel to spell words and fill a crossword grid, with daily puzzles, hints, bonus words and scenic levels.",
-    "image": "https://agentpark.co/arcade/covers/letterloom-anagram-crossword-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=letterloom-anagram-crossword-puzzle&ref=daily&pos=list-Word & Math"
+    "name": "Peekaboo Pals: Animal Memory Match",
+    "pitch": "Peek at the animal cards, then flip them to find matching pairs on a table that grows each level, with hearts for mistakes.",
+    "image": "https://agentpark.co/arcade/covers/peekaboo-pals-animal-memory-match.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=peekaboo-pals-animal-memory-match&ref=daily&pos=list-Kids"
    },
    {
-    "name": "Ninefold: Daily Sudoku Puzzle",
-    "pitch": "A clean, classic sudoku with four difficulty tiers, pencil notes, hints and undo, plus a daily puzzle everyone shares and a mistake limit.",
-    "image": "https://agentpark.co/arcade/covers/ninefold-daily-sudoku-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ninefold-daily-sudoku-puzzle&ref=daily&pos=list-Word & Math"
+    "name": "Tinty: Pixel Color by Number",
+    "pitch": "Pick a colour and drag to fill the numbered pixels of 57 cute pictures.",
+    "image": "https://agentpark.co/arcade/covers/tinty-pixel-color-by-number.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=tinty-pixel-color-by-number&ref=daily&pos=list-Kids"
    },
    {
-    "name": "KoboldAI Lite: AI Adventure",
-    "pitch": "Pick a UI style, then co-write open-ended text adventures with an AI game master that improvises any story, character or scenario you imagine.",
-    "image": "https://agentpark.co/arcade/covers/lostruins-koboldai-lite.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=lostruins-koboldai-lite&ref=daily&pos=list-Word & Math"
+    "name": "Boop Board: Bubble Popper Fidget Game",
+    "pitch": "Press or swipe across bubbles on squishy rainbow critter boards to pop them all before the sun-clock runs out, with some bubbles puffing back up.",
+    "image": "https://agentpark.co/arcade/covers/boop-board-bubble-popper-fidget-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=boop-board-bubble-popper-fidget-game&ref=daily&pos=list-Kids"
    }
   ],
   "Makeover": [
@@ -343,26 +383,6 @@
     "pitch": "Wash, cut, dye and style a client's hair to match a reference look, with funny client requests driving each short level.",
     "image": "https://agentpark.co/arcade/covers/snip-studio-hair-salon-makeover.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=snip-studio-hair-salon-makeover&ref=daily&pos=list-Makeover"
-   }
-  ],
-  "Kids": [
-   {
-    "name": "Peekaboo Pals: Animal Memory Match",
-    "pitch": "Peek at the animal cards, then flip them to find matching pairs on a table that grows each level, with hearts for mistakes.",
-    "image": "https://agentpark.co/arcade/covers/peekaboo-pals-animal-memory-match.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=peekaboo-pals-animal-memory-match&ref=daily&pos=list-Kids"
-   },
-   {
-    "name": "Boop Board: Bubble Popper Fidget Game",
-    "pitch": "Press or swipe across bubbles on squishy rainbow critter boards to pop them all before the sun-clock runs out, with some bubbles puffing back up.",
-    "image": "https://agentpark.co/arcade/covers/boop-board-bubble-popper-fidget-game.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=boop-board-bubble-popper-fidget-game&ref=daily&pos=list-Kids"
-   },
-   {
-    "name": "Sudsy Lane: Kids Car Wash Game",
-    "pitch": "Rub muddy toy trucks clean with a sponge, rinse and dry them, then add stickers, with a new vehicle each level.",
-    "image": "https://agentpark.co/arcade/covers/sudsy-lane-kids-car-wash-game.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=sudsy-lane-kids-car-wash-game&ref=daily&pos=list-Kids"
    }
   ],
   "Retro": [
