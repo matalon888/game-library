@@ -1,0 +1,633 @@
+// Bunchwise puzzles — all written by us for this game (kid-safe, US + UK friendly).
+// One puzzle = 4 lines "Group name: W1, W2, W3, W4", easiest group first (gold, mint, sky, plum). Puzzles are separated by a blank line.
+// Red herrings are deliberate, but every puzzle has exactly one way to split the 16 words.
+const RAW = `
+Fruits: APPLE, MANGO, GRAPE, PEAR
+Things with keys: PIANO, LOCK, KEYBOARD, MAP
+Sea animals: CRAB, SQUID, SEAL, WHALE
+___ cake: CUP, PAN, CHEESE, SPONGE
+
+Planets: MARS, VENUS, SATURN, EARTH
+Breakfast foods: TOAST, CEREAL, WAFFLE, PORRIDGE
+Playing cards: KING, QUEEN, JACK, ACE
+Hidden body parts: CHAIR, SHIPS, LEGEND, ARMY
+
+In the rainbow: RED, ORANGE, INDIGO, VIOLET
+Citrus fruits: LEMON, LIME, GRAPEFRUIT, TANGERINE
+Shades of blue: NAVY, TEAL, AZURE, COBALT
+___berry: STRAW, BLUE, GOOSE, ELDER
+
+Pets: HAMSTER, GOLDFISH, RABBIT, PARROT
+Things that buzz: BEE, ALARM, PHONE, FLY
+Hats: BERET, BOWLER, BEANIE, BONNET
+Hidden numbers: OFTEN, WEIGHT, STONE, CANINE
+
+Weather: RAIN, SNOW, HAIL, FOG
+Sandwich fillings: CHEESE, HAM, TUNA, EGG
+Things that can be broken: PROMISE, RECORD, SILENCE, HEART
+Add a Y for a new word: SAND, SALT, BOSS, MESS
+
+Shapes: CIRCLE, SQUARE, TRIANGLE, OVAL
+Things with rings: SATURN, TREE, CIRCUS, OLYMPICS
+Things with a shell: SNAIL, TURTLE, EGG, WALNUT
+___light: MOON, SUN, TRAFFIC, FLASH
+
+Farm animals: COW, PIG, SHEEP, GOAT
+Baby animals: CALF, FOAL, CUB, KID
+Animal homes: NEST, HIVE, DEN, BURROW
+Hidden animals: SCATTER, DOGMA, BRATS, CROWD
+
+Band instruments: TRUMPET, FLUTE, DRUM, TUBA
+Parts of a book: PAGE, SPINE, COVER, CHAPTER
+Things with strings: KITE, PUPPET, HARP, YOYO
+Rhymes with BELL: SHELL, SPELL, WELL, SMELL
+
+Kitchen tools: WHISK, LADLE, GRATER, SIEVE
+Things you fold: PAPER, LAUNDRY, ARMS, NAPKIN
+Card games: SNAP, RUMMY, BRIDGE, PATIENCE
+___pot: TEA, CHIMNEY, FLOWER, JACK
+
+Sports with a net: TENNIS, VOLLEYBALL, NETBALL, BADMINTON
+Things with wheels: BIKE, TRAIN, WAGON, SKATEBOARD
+Swimming strokes: CRAWL, BUTTERFLY, BREASTSTROKE, BACKSTROKE
+___ball: SNOW, FOOT, MEAT, EYE
+
+Insects: ANT, BEETLE, MOTH, WASP
+Things with wings: PLANE, ANGEL, BAT, DRAGON
+Things that hop: FROG, RABBIT, KANGAROO, CRICKET
+Hidden bugs: PLANTS, BEEF, MOTHER, TICKET
+
+Vegetables: POTATO, ONION, LEEK, CABBAGE
+Green things: GRASS, EMERALD, LIME, SHAMROCK
+Orange things: PUMPKIN, GOLDFISH, TIGER, CARROT
+___corn: POP, PEPPER, UNI, SWEET
+
+Dog breeds: POODLE, BEAGLE, COLLIE, BOXER
+Boxing words: ROUND, RING, GLOVE, JAB
+Fruity drinks: SMOOTHIE, JUICE, SQUASH, PUNCH
+___fish: GOLD, STAR, SWORD, CAT
+
+Seasons: SPRING, SUMMER, AUTUMN, WINTER
+Things that fall: LEAVES, RAIN, NIGHT, DOMINO
+On the bed: PILLOW, SHEET, DUVET, BLANKET
+___ roll: EGG, SAUSAGE, DRUM, BREAD
+
+Birds: ROBIN, EAGLE, SWAN, OWL
+Out at night: BAT, FOX, BADGER, MOTH
+Things with feathers: PILLOW, ARROW, DUSTER, QUILL
+Hidden birds: CROWN, HENCE, WRENCH, BOWL
+
+Clothes: SHIRT, SKIRT, COAT, SCARF
+Things with buttons: REMOTE, CALCULATOR, LIFT, DOORBELL
+Things with zips: TENT, PURSE, SUITCASE, BACKPACK
+___ pocket: PICK, AIR, HIP, BACK
+
+Desserts: PUDDING, TRIFLE, SUNDAE, CRUMBLE
+Ice cream scoops: VANILLA, MINT, STRAWBERRY, CHOCOLATE
+Ice ___: SKATE, BERG, CUBE, AGE
+Sound like letters: SEA, TEA, BEE, PEA
+
+Ocean words: TIDE, WAVE, CURRENT, REEF
+Electrical things: PLUG, SOCKET, WIRE, SWITCH
+Hairstyles: BUN, PONYTAIL, BRAID, BOB
+Names that are also verbs: PAT, SUE, MARK, BILL
+
+Toys: DOLL, KITE, YOYO, TEDDY
+Board games: CHESS, CHECKERS, LUDO, BACKGAMMON
+Chess pieces: KNIGHT, BISHOP, ROOK, PAWN
+___time: BED, PLAY, LUNCH, OVER
+
+Trees: OAK, PINE, BIRCH, WILLOW
+Made of wood: PENCIL, BARREL, LOG, CRATE
+Parts of a tree: ROOT, BARK, BRANCH, TRUNK
+Dog sounds: WOOF, YAP, GROWL, HOWL
+
+Gems: RUBY, PEARL, OPAL, JADE
+Flower names for girls: ROSE, LILY, DAISY, IRIS
+Bright colors: SCARLET, MAGENTA, LIME, CORAL
+Ending in a body part: SPEAR, WHIP, TIPTOE, SWARM
+
+Body parts: KNEE, ELBOW, ANKLE, WRIST
+Parts of a shoe: HEEL, LACE, TONGUE, INSOLE
+Things with a face: CLOCK, CLIFF, COIN, WATCH
+Fish that are also words: PERCH, BASS, CARP, SOLE
+
+Breakfast drinks: TEA, COFFEE, JUICE, MILK
+Hot things: OVEN, LAVA, STOVE, SUN
+Coffee orders: LATTE, MOCHA, ESPRESSO, CAPPUCCINO
+Hidden drinks: STEAM, CHOCOLATE, POPULAR, PUNCHY
+
+Far out in space: STAR, GALAXY, NEBULA, BLACKHOLE
+Things that orbit: SATELLITE, PLANET, ELECTRON, MOON
+Space travel: ROCKET, ASTRONAUT, LAUNCH, CAPSULE
+___walk: BOARD, SPACE, CAT, SIDE
+
+In the garden: SHED, POND, HEDGE, LAWN
+Garden tools: RAKE, HOE, TROWEL, SHEARS
+Card suits: HEARTS, CLUBS, DIAMONDS, SPADES
+Green___: HOUSE, GROCER, BEAN, FINCH
+
+Dances: WALTZ, TANGO, SALSA, BALLET
+Things with steps: STAIRS, RECIPE, LADDER, ESCALATOR
+Things that spin: TOP, WHEEL, FAN, PLANET
+Add LE for a new word: CAST, TAB, NEED, BUST
+
+Snowy day: IGLOO, SLED, SKIS, MITTENS
+Cold drinks: LEMONADE, MILKSHAKE, SMOOTHIE, SLUSHIE
+Things that melt: ICE, CHOCOLATE, BUTTER, CHEESE
+Snow___: MAN, BALL, BOARD, FLAKE
+
+Jobs: NURSE, PILOT, CHEF, FARMER
+A chef's kit: APRON, KNIFE, PAN, WHISK
+In a hospital: WARD, BED, CHART, STRETCHER
+Words meaning patient: CALM, TOLERANT, STEADY, EASYGOING
+
+Big cats: LION, TIGER, LEOPARD, CHEETAH
+Lion words: CUB, PRIDE, MANE, ROAR
+Striped things: ZEBRA, BEE, BARCODE, CANDYCANE
+Spotty things: DALMATIAN, DOMINO, DICE, TOADSTOOL
+
+Kitchen appliances: TOASTER, KETTLE, FRIDGE, BLENDER
+Things that pop: BALLOON, BUBBLE, POPCORN, CORK
+Things that ring: BELL, PHONE, ALARM, EARS
+___cup: TEA, EGG, WORLD, BUTTER
+
+Vehicles: CAR, BUS, VAN, TRUCK
+On a boat: SAIL, MAST, DECK, ANCHOR
+Things with horns: RHINO, GOAT, UNICORN, BULL
+___yard: BACK, SHIP, VINE, SCHOOL
+
+Snacks: POPCORN, PRETZEL, CRACKER, RAISINS
+Sour things: LEMON, VINEGAR, LIME, PICKLE
+Things with a pit: CHERRY, PEACH, OLIVE, ORCHESTRA
+Hidden vehicles: SCARF, BUSY, TRAMP, VANISH
+
+Countries: FRANCE, JAPAN, BRAZIL, CANADA
+Capital cities: PARIS, TOKYO, CAIRO, ROME
+Languages: SPANISH, GERMAN, ITALIAN, DUTCH
+Hidden countries: PERUSE, WOMAN, MALIGN, PIRANHA
+
+Directions: UP, LEFT, RIGHT, NORTH
+Happy words: GLAD, MERRY, JOLLY, CHEERFUL
+Sad words: BLUE, GLUM, DOWN, LOW
+___board: CUP, SKATE, KEY, DART
+
+Pizza toppings: CHEESE, OLIVE, MUSHROOM, PEPPERONI
+Pasta: PENNE, FUSILLI, RAVIOLI, MACARONI
+Things you roll: DICE, DOUGH, CARPET, EYES
+Starts with a body part: HANDLE, EARLY, LIPSTICK, KNEEL
+
+Months: JANUARY, MARCH, OCTOBER, DECEMBER
+Ways to walk: STROLL, HIKE, TRUDGE, AMBLE
+Spans of time: WEEK, YEAR, MONTH, DECADE
+Fruits with a second meaning: DATE, ORANGE, PLUM, KIWI
+
+Sports: TENNIS, GOLF, RUGBY, HOCKEY
+Golf words: TEE, PUTT, CADDY, BIRDIE
+Tea time: KETTLE, MUG, SAUCER, BISCUIT
+Sound like letters: SEA, YOU, WHY, EYE
+
+Shades of green: OLIVE, MINT, LIME, SAGE
+Herbs: BASIL, THYME, PARSLEY, DILL
+___ tree: FAMILY, PALM, SHOE, APPLE
+Parts of a clock: HANDS, FACE, DIAL, PENDULUM
+
+Cooked breakfast: EGGS, BACON, BEANS, TOAST
+In the toolbox: HAMMER, NAILS, SCREWS, WRENCH
+Spread on toast: BUTTER, JAM, HONEY, MARMALADE
+___case: BOOK, PILLOW, SUIT, BRIEF
+
+Weather: SLEET, FOG, DRIZZLE, BREEZE
+Superhero kit: CAPE, MASK, GADGET, SIDEKICK
+Very fast: CHEETAH, ROCKET, JET, LIGHTNING
+___storm: BRAIN, SNOW, SAND, HAIL
+
+Fruits: PLUM, CHERRY, PEACH, APRICOT
+Pink things: FLAMINGO, BLOSSOM, SALMON, BUBBLEGUM
+Fish: TUNA, TROUT, HADDOCK, PLAICE
+Hidden fish: CODE, PEELING, CARPET, RAYON
+
+School subjects: HISTORY, ART, MUSIC, SCIENCE
+Classroom things: DESK, RULER, ERASER, WHITEBOARD
+People who rule: KING, QUEEN, EMPEROR, PHARAOH
+___book: NOTE, TEXT, SCRAP, COOK
+
+Elephant words: TRUNK, TUSK, HERD, CALF
+In a car: WHEEL, ENGINE, SEATBELT, MIRROR
+Footwear: BOOT, SANDAL, SLIPPER, CLOG
+___house: TREE, LIGHT, DOG, GREEN
+
+Hot drinks: COCOA, TEA, COFFEE, LATTE
+At the cafe: MENU, TABLE, COUNTER, TIP
+Things that steam: KETTLE, SHOWER, TRAIN, IRON
+Palindromes: LEVEL, KAYAK, RADAR, CIVIC
+
+Breads: BAGEL, BAGUETTE, PITA, CROISSANT
+Things that rise: TIDE, BALLOON, DOUGH, SMOKE
+Things that glow: FIREFLY, LAMP, EMBER, MOON
+Things that set: SUN, JELLY, TABLE, ALARM
+
+Cutlery: FORK, KNIFE, SPOON, CHOPSTICKS
+Crockery: PLATE, JUG, MUG, SAUCER
+Things with handles: DOOR, SUITCASE, BUCKET, KETTLE
+___bowl: DUST, FISH, FRUIT, SALAD
+
+Winter wear: GLOVES, SCARF, BEANIE, MITTENS
+At the beach: TOWEL, SANDCASTLE, PARASOL, SUNHAT
+Picnic things: BASKET, BLANKET, FLASK, SANDWICH
+___ cream: SUN, ICE, SOUR, FACE
+
+Sea mammals: DOLPHIN, WHALE, SEAL, OTTER
+Animals with tusks: ELEPHANT, WARTHOG, NARWHAL, MAMMOTH
+Arctic animals: PUFFIN, HUSKY, REINDEER, LEMMING
+Things you seal: ENVELOPE, DEAL, JAR, CRACK
+
+3D shapes: CUBE, SPHERE, CONE, PYRAMID
+Ice cream parlor: SCOOP, SPRINKLES, WAFER, SUNDAE
+Ancient Egypt: SPHINX, NILE, MUMMY, PHARAOH
+Hidden ICE: SLICE, PRICE, VOICE, MICE
+
+Music styles: JAZZ, BLUES, OPERA, REGGAE
+Things that rock: CRADLE, BOAT, HORSE, CHAIR
+Things that pop: BALLOON, BUBBLE, CORK, KERNEL
+Hidden music styles: ROCKET, POPPY, FOLKSY, SOULFUL
+
+Board game bits: DICE, BOARD, COUNTER, SPINNER
+In the kitchen: SINK, OVEN, CUPBOARD, TAP
+Things you shuffle: CARDS, FEET, PLAYLIST, PAPERS
+___board: SKATE, SURF, KEY, BILL
+
+Forms of water: ICE, STEAM, MIST, DEW
+Rain gear: RAINCOAT, PONCHO, UMBRELLA, BOOTS
+Things that drip: TAP, ICICLE, CANDLE, NOSE
+___drop: RAIN, TEAR, SNOW, LEMON
+
+Furniture: SOFA, TABLE, CHAIR, WARDROBE
+Things with legs: SPIDER, TRIPOD, CRAB, CENTIPEDE
+In the bedroom: PILLOW, DUVET, LAMP, CURTAINS
+Hidden animals: SCOWL, BEARD, ANTLER, SHARE
+
+Dairy: MILK, CHEESE, BUTTER, CREAM
+Yellow things: BANANA, LEMON, SUNFLOWER, CANARY
+Kitchen verbs: WHISK, STIR, CHOP, BAKE
+Birds that are also verbs: SWALLOW, DUCK, CROW, PARROT
+
+Sports gear: BAT, PADDLE, CLUB, STICK
+Night animals: OWL, FOX, MOTH, HEDGEHOG
+Things you join: TEAM, BAND, CHOIR, DOTS
+Words for noise: RACKET, DIN, UPROAR, HUBBUB
+
+Bathroom things: SOAP, TOWEL, SPONGE, SHAMPOO
+Things you squeeze: LEMON, HAND, ORANGE, KETCHUP
+Pencil case: PEN, RULER, GLUE, SHARPENER
+Hidden APE: GRAPE, CAPE, TAPE, SHAPE
+
+In the sky: CLOUD, RAINBOW, SUN, STAR
+Things with tails: COMET, COIN, MONKEY, KITE
+Things with a bow: VIOLIN, GIFT, ARCHER, SHIP
+Sun___: FLOWER, GLASSES, BURN, DIAL
+
+Containers: JAR, TIN, BOX, CRATE
+Metals: IRON, COPPER, SILVER, ZINC
+Things with keys: PIANO, LAPTOP, LOCK, MAP
+___fish: GOLD, SWORD, CAT, JELLY
+
+Garden creatures: SNAIL, SLUG, BEETLE, ANT
+Slow things: SLOTH, TORTOISE, GLACIER, TRAFFIC
+Things you catch: COLD, BUS, BALL, BREATH
+___worm: BOOK, SILK, EARTH, GLOW
+
+Sweets: TOFFEE, FUDGE, CARAMEL, LOLLIPOP
+Sticky things: GLUE, HONEY, TAPE, SYRUP
+Bee words: HIVE, STING, QUEEN, POLLEN
+Things you blow: BUBBLE, WHISTLE, KISS, NOSE
+
+Ballet: TUTU, POINTE, PIROUETTE, LEOTARD
+Tea party: TEAPOT, CUPCAKE, SAUCER, SANDWICH
+Round things: BALL, COIN, WHEEL, PIZZA
+Hidden ONE: SCONE, PHONE, MONEY, HONEY
+
+Mountain words: PEAK, SUMMIT, RIDGE, CLIFF
+Meetings: CONFERENCE, ASSEMBLY, RALLY, HUDDLE
+Hiking gear: BOOTS, MAP, COMPASS, BACKPACK
+Things with caps: BOTTLE, KNEE, PEN, MUSHROOM
+
+Desserts: PIE, TART, CRUMBLE, JELLY
+Things that wobble: TOOTH, TABLE, BIKE, KNEES
+Hair things: COMB, BRUSH, CLIP, GEL
+Sound like animals: DEAR, HAIR, BORE, MOUSSE
+
+Hats: CAP, CROWN, HELMET, SOMBRERO
+At the dentist: BRACES, FILLING, DRILL, MIRROR
+Royal things: THRONE, PALACE, ROBE, CASTLE
+___cap: ICE, KNEE, NIGHT, SKULL
+
+Birthday party: CAKE, CANDLES, BALLOONS, PRESENTS
+Things you blow: WHISTLE, BUBBLES, NOSE, TRUMPET
+Things that are wrapped: MUMMY, BURRITO, PARCEL, SUSHI
+___day: BIRTH, HOLI, SUN, PAY
+
+Keys to play: PIANO, ORGAN, ACCORDION, KEYBOARD
+Body organs: HEART, LUNG, LIVER, KIDNEY
+___ bean: BROAD, RUNNER, JELLY, COCOA
+Hidden KEY: DONKEY, MONKEY, TURKEY, HOCKEY
+
+Fairy tale things: DRAGON, WAND, GIANT, BEANSTALK
+Chess pieces: PAWN, BISHOP, ROOK, KNIGHT
+Space things: COMET, ORBIT, ROCKET, ALIEN
+Things with scales: FISH, PIANO, MAP, SNAKE
+
+Fruits: BANANA, CHERRY, KIWI, LYCHEE
+Things that split: HAIR, ATOM, BILL, LOG
+Birds: PUFFIN, PELICAN, STORK, HERON
+___pie: MAG, CUTIE, POT, HUMBLE
+
+Measuring tools: RULER, SCALES, THERMOMETER, CLOCK
+Things with hands: WATCH, MONKEY, PUPPET, ROBOT
+People in charge: KING, CAPTAIN, MAYOR, BOSS
+Rhymes with HAND: BAND, SAND, LAND, GRAND
+
+Cold things: ICICLE, FREEZER, GLACIER, PENGUIN
+Black and white: ZEBRA, PANDA, DOMINO, CHESSBOARD
+Hot things: FIRE, OVEN, SUN, LAVA
+___ bear: POLAR, TEDDY, GUMMY, BROWN
+
+In a band: DRUMMER, SINGER, GUITAR, BASS
+Fish: COD, TROUT, PIKE, SALMON
+Shiny things: STAR, MIRROR, CHROME, PEARL
+Hidden SING: RISING, SINGLE, MISSING, CLOSING
+
+Breakfast bowl: OATS, BRAN, GRANOLA, MUESLI
+Horse treats: HAY, CARROT, APPLE, SUGARCUBE
+Horse words: MANE, HOOF, SADDLE, STABLE
+Hidden OAT: BOAT, COAT, GOAT, FLOAT
+
+Cheeses: CHEDDAR, BRIE, FETA, GOUDA
+Things with holes: SPONGE, NET, BAGEL, BUTTON
+Computer mouse: CLICK, SCROLL, CURSOR, PAD
+Things with rinds: LEMON, MELON, BACON, LIME
+
+Superhero kit: CAPE, MASK, BOOTS, BELT
+Halloween: PUMPKIN, GHOST, COSTUME, CANDY
+Things you tie: LACES, KNOT, TIE, RIBBON
+Spooky words: CREEPY, EERIE, SPOOKY, FRIGHTFUL
+
+Nuts: ALMOND, CASHEW, WALNUT, HAZEL
+Hardware: BOLT, SCREW, NAIL, WASHER
+Eye colors: BLUE, GREEN, BROWN, AMBER
+Things that crack: JOKE, CODE, EGG, WHIP
+
+Parts of a ship: HULL, BOW, STERN, MAST
+Words meaning serious: GRAVE, SOLEMN, GRIM, SEVERE
+Hair accessories: CLIP, PIN, BAND, TIARA
+Things with sails: WINDMILL, YACHT, CATAMARAN, GALLEON
+
+Pirate things: PARROT, TREASURE, PLANK, EYEPATCH
+Things that repeat: ECHO, RERUN, CHORUS, LOOP
+Things you dig: HOLE, TUNNEL, GARDEN, DITCH
+Hidden EAR: PEARL, BEARD, HEART, SPEAR
+
+Weather: SUNNY, CLOUDY, WINDY, FOGGY
+Moods: GRUMPY, CHEERFUL, SLEEPY, MOODY
+Things that wind: ROAD, RIVER, CLOCK, STAIRCASE
+On the bed: PILLOW, DUVET, SHEET, MATTRESS
+
+On your face: NOSE, EYE, EAR, MOUTH
+Things with an eye: NEEDLE, STORM, POTATO, PEACOCK
+Things that run: TAP, PAINT, ENGINE, RACEHORSE
+___bank: PIGGY, RIVER, FOOD, SAND
+
+Spicy things: PEPPER, GINGER, MUSTARD, WASABI
+Hair colors: BLONDE, BRUNETTE, AUBURN, RED
+Hot drinks: COCOA, TEA, COFFEE, CHAI
+Hidden OWN: GOWN, CLOWN, CROWN, DROWN
+
+Fasteners: ZIP, BUTTON, BUCKLE, CLASP
+Mushrooms: OYSTER, PORTOBELLO, SHIITAKE, MOREL
+Shellfish: MUSSEL, CLAM, SCALLOP, COCKLE
+Fast movers: JET, CHEETAH, ROCKET, SPRINTER
+
+Breads: ROLL, BUN, BAGUETTE, CROISSANT
+Things that roll: DICE, WHEEL, MARBLE, TUMBLEWEED
+Hairstyles: PONYTAIL, BRAID, MOHAWK, AFRO
+Words meaning laze: LOAF, LOUNGE, IDLE, LAZE
+
+Camera words: LENS, FLASH, ZOOM, SHUTTER
+Things that snap: TWIG, FINGERS, CRACKER, CROCODILE
+Ways to cook: BAKE, BOIL, FRY, GRILL
+___dragon: SNAP, KOMODO, BEARDED, FIRE
+
+Sharp things: KNIFE, NEEDLE, CACTUS, PENCIL
+Sewing kit: THREAD, THIMBLE, BUTTON, BOBBIN
+Music words: NOTE, TUNE, BEAT, CHORD
+Hidden PEN: OPEN, PENGUIN, SPEND, CARPENTER
+
+Pond life: FROG, DUCK, NEWT, LILY
+Flower names: ROSE, DAISY, IRIS, POPPY
+Jumpers: KANGAROO, FLEA, GRASSHOPPER, SPRING
+Ways to avoid: DODGE, SWERVE, DIVE, SIDESTEP
+
+Sweet things: HONEY, SYRUP, JAM, SUGAR
+Traffic words: CONE, LANE, SIGNAL, ROUNDABOUT
+Bee words: HIVE, STING, BUZZ, POLLEN
+Words of love: DARLING, DEAR, SWEETIE, PET
+
+Striped animals: ZEBRA, TIGER, BEE, SKUNK
+Smelly things: SOCKS, CHEESE, ONION, DRAIN
+Things that sting: NETTLE, WASP, JELLYFISH, SCORPION
+Starts with PIN: PINE, PINK, PINCH, PINWHEEL
+
+Sizes: TINY, SMALL, MEDIUM, LARGE
+Huge things: WHALE, MOUNTAIN, GIANT, PLANET
+Words for big: HUGE, VAST, MASSIVE, ENORMOUS
+Starts with a vehicle: CARPET, BUSTLE, VANILLA, TRAMPOLINE
+
+Winter things: SCARF, SLED, SNOWMAN, MITTENS
+Things with a nose: PLANE, DOG, CLOWN, ROCKET
+Red things: CHERRY, TOMATO, RUBY, STRAWBERRY
+___man: FIRE, POST, MILK, BIN
+
+Containers: JAR, TIN, CARTON, CRATE
+Baby animals: CALF, FOAL, PUP, JOEY
+Australian animals: KOALA, WOMBAT, EMU, PLATYPUS
+Add an E for a new word: PIN, KIT, HUG, CUB
+
+Greek letters: ALPHA, BETA, GAMMA, DELTA
+River words: BANK, BEND, SOURCE, MOUTH
+Face parts: CHIN, CHEEK, BROW, NOSTRIL
+Contains AND: CANDLE, PANDA, SANDAL, BANDIT
+
+Has tentacles: OCTOPUS, SQUID, JELLYFISH, ANEMONE
+Rock pool: SHRIMP, LIMPET, CRAB, STARFISH
+Eight legs: SPIDER, SCORPION, TICK, MITE
+___horse: ROCKING, HOBBY, CLOTHES, SEA
+
+Music terms: TEMPO, RHYTHM, MELODY, CHORUS
+Things that beat: HEART, DRUM, EGG, RECORD
+Breakfast: TOAST, CEREAL, JUICE, BACON
+Hidden ARM: CHARM, FARMER, ALARM, HARMONY
+
+Hibernators: BEAR, HEDGEHOG, DORMOUSE, BAT
+Things you swing: RACKET, HAMMER, PENDULUM, LASSO
+Prickly things: CACTUS, HOLLY, THISTLE, PORCUPINE
+Words for sleep: NAP, DOZE, SNOOZE, REST
+
+Wild West: COWBOY, LASSO, SPURS, SHERIFF
+Things with stars: SKY, FLAG, HOTEL, WAND
+Horse words: MANE, HOOF, GALLOP, NEIGH
+Rhymes with GO: SNOW, BOW, TOE, DOUGH
+
+Shades of red: CRIMSON, SCARLET, CHERRY, MAROON
+Words meaning abandon: DESERT, DITCH, DUMP, STRAND
+Desert things: CACTUS, CAMEL, DUNE, OASIS
+Stone fruits: PLUM, PEACH, APRICOT, NECTARINE
+
+Building site: CRANE, DIGGER, BRICK, CEMENT
+Wading birds: STORK, HERON, EGRET, IBIS
+Things you dig with: SPADE, SHOVEL, TROWEL, SPOON
+___work: HOME, TEAM, FIRE, CLOCK
+
+Breads: PITA, NAAN, BRIOCHE, RYE
+Grains: WHEAT, BARLEY, OATS, RICE
+Things you spread: BUTTER, JAM, PAINT, GLUE
+Starts with BAR: BARREL, BARGAIN, BARCODE, BARNACLE
+
+Apes and monkeys: GORILLA, CHIMP, BABOON, ORANGUTAN
+Things that swing: PENDULUM, HAMMOCK, DOOR, GATE
+In the jungle: VINE, CANOPY, PARROT, JAGUAR
+___bar(s): CROW, CANDY, HANDLE, MONKEY
+
+Bathroom cabinet: TOOTHPASTE, FLOSS, PLASTER, CREAM
+Dance moves: TWIST, CONGA, LIMBO, MOONWALK
+Sundae toppings: SPRINKLES, SAUCE, NUTS, CHERRY
+Things you can twist: ANKLE, LID, PLOT, KNOB
+
+Shoes: SANDAL, BOOT, SLIPPER, CLOG
+Things that block: DAM, CLOT, CORK, PLUG
+Bedtime: PILLOW, LULLABY, NIGHTLIGHT, STORY
+Rhymes with ROCK: SOCK, CLOCK, DOCK, KNOCK
+
+On the farm: TRACTOR, SILO, HAYSTACK, SCARECROW
+Pig words: OINK, STY, TROTTER, SNOUT
+Farm sounds: MOO, BAA, NEIGH, CLUCK
+Barn ___: OWL, DANCE, DOOR, YARD
+
+Movie snacks: POPCORN, NACHOS, HOTDOG, SODA
+Things that fizz: LEMONADE, SHERBET, BATHBOMB, SPARKLER
+Dog things: BONE, KENNEL, COLLAR, FETCH
+At the movies: SCREEN, TICKET, TRAILER, AISLE
+
+Fruits: FIG, DATE, LIME, PEAR
+Calendar words: WEEK, MONTH, YEAR, DAY
+Green things: PEA, FROG, LEAF, GRASS
+Sound like numbers: WON, ATE, FOR, TOO
+
+Kitchen things: OVEN, SINK, FRIDGE, KETTLE
+Things that sink: ANCHOR, STONE, PEBBLE, COIN
+Things with whistles: REFEREE, TRAIN, LIFEGUARD, COACH
+Contains INK: PINK, THINK, BLINK, DRINK
+
+Bodies of water: LAKE, POND, SEA, OCEAN
+Garden insects: ANT, WASP, BEETLE, MOTH
+Things that flow: RIVER, LAVA, TRAFFIC, HAIR
+Sound like letters: BEE, PEA, EYE, TEA
+
+In a wallet: CARD, CASH, RECEIPT, PHOTO
+Things you send: LETTER, PARCEL, EMAIL, TEXT
+Things that flash: CAMERA, LIGHTNING, BEACON, FIREFLY
+Anagrams of STOP: POTS, SPOT, TOPS, POST
+
+Things with pages: BOOK, DIARY, MAGAZINE, CALENDAR
+Things with spines: HEDGEHOG, CACTUS, PORCUPINE, URCHIN
+Things you read: MAP, PALM, MIND, CLOCK
+Parts of a hand: THUMB, KNUCKLE, WRIST, NAIL
+
+Ways to say hello: HI, HEY, HOWDY, GREETINGS
+Things you wave: FLAG, WAND, FAN, BANNER
+Things that cool: ICE, BREEZE, SHADE, FRIDGE
+High ___: FIVE, CHAIR, TIDE, JUMP
+
+Bakery: MUFFIN, SCONE, ECLAIR, CROISSANT
+Flaky things: SNOW, PAINT, PASTRY, CEREAL
+Coffee shop drinks: LATTE, MOCHA, TEA, COCOA
+___top: LAP, TREE, HILL, TABLE
+
+In a cave: BAT, STALACTITE, ECHO, CRYSTAL
+Things that repeat: PARROT, RERUN, LOOP, ENCORE
+Things that sparkle: GLITTER, DIAMOND, STAR, SEQUIN
+___bag: SAND, HAND, TEA, SLEEPING
+
+Halloween: PUMPKIN, GHOST, BROOM, CAULDRON
+Things that sweep: BRUSH, WIND, RADAR, MOP
+Pies: APPLE, CHERRY, LEMON, PECAN
+Palindromes: LEVEL, KAYAK, CIVIC, REFER
+
+Water sports: ROWING, SAILING, KAYAKING, SWIMMING
+Swimming pool: LANE, GOGGLES, FLOAT, LIFEGUARD
+Things that float: BOAT, DUCK, CORK, ICEBERG
+___board: SURF, SKATE, KEY, DIVING
+
+Fruits that are colors: ORANGE, PEACH, PLUM, LIME
+Fruits full of seeds: APPLE, GRAPE, MELON, POMEGRANATE
+Fuzzy things: KIWI, TEDDY, CATERPILLAR, SLIPPERS
+___stone: SAND, MILE, KEY, STEPPING
+
+Clock sounds: TICK, TOCK, CHIME, ALARM
+Tiny bugs: FLEA, MITE, GNAT, APHID
+Time words: SECOND, MINUTE, HOUR, DECADE
+___dog: HOT, SHEEP, GUIDE, WATCH
+
+Playground: SLIDE, SWING, SEESAW, MONKEYBARS
+Dances: TANGO, SALSA, WALTZ, DISCO
+Science lab: BEAKER, FLASK, PIPETTE, MAGNET
+Tools: HAMMER, DRILL, CHISEL, WRENCH
+
+Shades of blue: TURQUOISE, AQUA, NAVY, TEAL
+Gemstones: EMERALD, RUBY, TOPAZ, OPAL
+Bling: RING, NECKLACE, BROOCH, EARRING
+___fruit: STAR, PASSION, BREAD, GRAPE
+
+Ways to cook: BAKE, FRY, BOIL, ROAST
+Ways to tease: TEASE, MOCK, RIB, KID
+Bones: SKULL, SPINE, FEMUR, PELVIS
+Contains OIL: SPOIL, TOIL, COIL, FOIL
+
+Flowers: TULIP, POPPY, ROSE, ORCHID
+Bright reds: CHERRY, RUBY, SCARLET, CRIMSON
+Thorny plants: BRAMBLE, CACTUS, THISTLE, HOLLY
+___ chain: DAISY, KEY, FOOD, BIKE
+
+Things with tracks: ALBUM, ROLLERCOASTER, BULLDOZER, STADIUM
+Song parts: SINGLE, CHORUS, VERSE, LYRIC
+Poems: RHYME, SONNET, LIMERICK, HAIKU
+Hidden RAIN: TRAIN, BRAIN, GRAIN, DRAIN
+
+Rodents: MOUSE, RAT, SQUIRREL, BEAVER
+Computer things: SCREEN, KEYBOARD, LAPTOP, MONITOR
+Things with whiskers: CAT, SEAL, WALRUS, OTTER
+Hidden RAT: PIRATE, KARATE, CRATE, GRATE
+
+Ways to cook eggs: FRIED, POACHED, SCRAMBLED, BOILED
+Things you unscramble: WORDS, CODE, SIGNAL, MESSAGE
+Breakfast drinks: JUICE, TEA, COFFEE, MILK
+___ egg: NEST, EASTER, GOOSE, DUCK
+
+Woodland: OAK, FERN, MOSS, TOADSTOOL
+Green things: PEA, LIME, FROG, CUCUMBER
+Ways to walk: HIKE, TREK, WALK, AMBLE
+A + a word: ACORN, ASHORE, ABOARD, AFOOT
+
+Pancake toppings: SYRUP, LEMON, SUGAR, BANANA
+Yellow things: SUN, CANARY, BUTTERCUP, DAFFODIL
+Things that split: ATOM, BILL, HAIR, LOG
+Rhymes with MOON: SPOON, TUNE, JUNE, BALLOON
+
+Space: ROCKET, ALIEN, METEOR, NEBULA
+Salad: LETTUCE, TOMATO, CUCUMBER, RADISH
+Salad dressing: OIL, VINEGAR, LEMON, MUSTARD
+Contains TEN: KITTEN, TENNIS, MITTEN, TENT
+`;
+export const PUZZLES = RAW.trim().split(/\n\s*\n/).map(block => block.trim().split('\n').map(line => {
+  const i = line.lastIndexOf(':');
+  return { name: line.slice(0, i).trim(), words: line.slice(i + 1).split(',').map(w => w.trim().toUpperCase()) };
+}));

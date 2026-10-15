@@ -3720,6 +3720,1144 @@
     "ai_built": "yes",
     "pitch": "Bowl lane 1 with flick-aimed hook shots while your AI coding agents roll their own lanes, with task results deciding strikes, splits and turkey bonuses."
    }
+  },
+  {
+   "slug": "jellyfit-block-puzzle",
+   "name": "Jellyfit: Block Puzzle",
+   "blurb": "Drag jelly blocks onto an 8x8 board, fill rows and columns to blast them, and chain combos for a huge score.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "jellyfit-block-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Drag jelly blocks onto an 8x8 board, fill rows and columns to blast them, and chain combos for a huge score."
+   }
+  },
+  {
+   "slug": "tenpair-digit-pairs-puzzle",
+   "name": "Tenpair: Digit Pairs Puzzle",
+   "blurb": "Cross out equal digits or pairs that add up to 10, add rows when stuck, and clear the whole board.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "tenpair-digit-pairs-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Cross out equal digits or pairs that add up to 10, add rows when stuck, and clear the whole board."
+   }
+  },
+  {
+   "slug": "doublink-chain-merge-puzzle",
+   "name": "Doublink: Chain Merge Puzzle",
+   "blurb": "Swipe a chain through matching and doubling tiles to merge them into ever bigger powers of two.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "doublink-chain-merge-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Swipe a chain through matching and doubling tiles to merge them into ever bigger powers of two."
+   }
+  },
+  {
+   "slug": "sumweave-math-grid-puzzle",
+   "name": "Sumweave: Math Grid Puzzle",
+   "blurb": "Fill the blanks in a grid of crossing equations from a tray of numbers, with a fresh daily puzzle.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "sumweave-math-grid-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Fill the blanks in a grid of crossing equations from a tray of numbers, with a fresh daily puzzle."
+   }
+  },
+  {
+   "slug": "spotwise-domino-logic-puzzle",
+   "name": "Spotwise: Domino Logic Puzzle",
+   "blurb": "Place every domino so each coloured region hits its rule: exact sums, less than, more than, all equal or all different.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "spotwise-domino-logic-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Place every domino so each coloured region hits its rule: exact sums, less than, more than, all equal or all different."
+   }
+  },
+  {
+   "slug": "napspot-cat-logic-puzzle",
+   "name": "Napspot: Cat Logic Puzzle",
+   "blurb": "Put one napping cat in every row, column and colour patch — and never let two cats touch.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "napspot-cat-logic-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 7,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Put one napping cat in every row, column and colour patch — and never let two cats touch."
+   }
+  },
+  {
+   "slug": "inkpath-number-line-puzzle",
+   "name": "Inkpath: Number Line Puzzle",
+   "blurb": "Draw one line through the numbered dots in order and fill every square.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "inkpath-number-line-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Draw one line through the numbered dots in order and fill every square."
+   }
+  },
+  {
+   "slug": "solune-sun-moon-logic-puzzle",
+   "name": "Solune: Sun & Moon Logic Puzzle",
+   "blurb": "Fill the grid with suns and moons: half and half in every line, never three alike, follow the = and × signs.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "solune-sun-moon-logic-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Fill the grid with suns and moons: half and half in every line, never three alike, follow the = and × signs."
+   }
+  },
+  {
+   "slug": "gridlet-nonogram-picture-puzzle",
+   "name": "Gridlet: Nonogram Picture Puzzle",
+   "blurb": "Use the number clues to fill the grid and reveal a little pixel picture.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "gridlet-nonogram-picture-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Use the number clues to fill the grid and reveal a little pixel picture."
+   }
+  },
+  {
+   "slug": "flipwise-tile-flip-puzzle",
+   "name": "Flipwise: Tile Flip Puzzle",
+   "blurb": "Every tap flips a tile and its neighbours in a pattern — turn the whole board sunny side up in par.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "flipwise-tile-flip-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Every tap flips a tile and its neighbours in a pattern — turn the whole board sunny side up in par."
+   }
+  },
+  {
+   "slug": "plunge-peak-cliff-diving",
+   "name": "Plunge Peak: Cliff Diving",
+   "blurb": "Leap off the cliff, hold to flip, let go to straighten up and rip a clean head-first entry.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "plunge-peak-cliff-diving",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Leap off the cliff, hold to flip, let go to straighten up and rip a clean head-first entry."
+   }
+  },
+  {
+   "slug": "noggin-cup-1v1-soccer",
+   "name": "Noggin Cup: 1v1 Soccer",
+   "blurb": "Drag to run, tap to jump-kick and outscore a big-noggin rival in a 60-second 1v1 soccer match.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "noggin-cup-1v1-soccer",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag to run, tap to jump-kick and outscore a big-noggin rival in a 60-second 1v1 soccer match."
+   }
+  },
+  {
+   "slug": "quiver-duel-archery",
+   "name": "Quiver Duel: Archery",
+   "blurb": "Take turns with a rival archer: read the wind, aim upwind and land your arrows in the gold.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "quiver-duel-archery",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Take turns with a rival archer: read the wind, aim upwind and land your arrows in the gold."
+   }
+  },
+  {
+   "slug": "zip-lanes-traffic-racer",
+   "name": "Zip Lanes: Traffic Racer",
+   "blurb": "Swipe between lanes, weave through highway traffic at rising speed and chain close-call combos.",
+   "category": "Racing",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "zip-lanes-traffic-racer",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Swipe between lanes, weave through highway traffic at rising speed and chain close-call combos."
+   }
+  },
+  {
+   "slug": "pulp-swipe-fruit-slicing",
+   "name": "Pulp Swipe: Fruit Slicing",
+   "blurb": "Swipe to slice tossed fruit into juicy halves, chain combos and never touch a bomb.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "pulp-swipe-fruit-slicing",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Swipe to slice tossed fruit into juicy halves, chain combos and never touch a bomb."
+   }
+  },
+  {
+   "slug": "chip-spin-wood-carving-lathe",
+   "name": "Chip Spin: Wood Carving Lathe",
+   "blurb": "Carve a spinning log on the lathe to match the target shape, then paint your piece.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Makeover"
+   ],
+   "original": true,
+   "repo_dir": "chip-spin-wood-carving-lathe",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Carve a spinning log on the lathe to match the target shape, then paint your piece."
+   }
+  },
+  {
+   "slug": "grime-gone-power-wash-cleaning",
+   "name": "Grime Gone: Power Wash Cleaning",
+   "blurb": "Blast the grime off muddy cars, bikes, fences and more until they sparkle.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "grime-gone-power-wash-cleaning",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Blast the grime off muddy cars, bikes, fences and more until they sparkle."
+   }
+  },
+  {
+   "slug": "tinty-pixel-color-by-number",
+   "name": "Tinty: Pixel Color by Number",
+   "blurb": "Pick a colour and drag to fill the numbered pixels of 57 cute pictures.",
+   "category": "Kids",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Kids"
+   ],
+   "original": true,
+   "repo_dir": "tinty-pixel-color-by-number",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Pick a colour and drag to fill the numbered pixels of 57 cute pictures."
+   }
+  },
+  {
+   "slug": "plumb-pairs-connect-the-dots-pipe-puzzle",
+   "name": "Plumb Pairs: Connect the Dots Pipe Puzzle",
+   "blurb": "Link matching dots with pipes that never cross and fill every cell.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "plumb-pairs-connect-the-dots-pipe-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Link matching dots with pipes that never cross and fill every cell."
+   }
+  },
+  {
+   "slug": "lurkfield-monster-minesweeper-rpg",
+   "name": "Lurkfield: Monster Minesweeper RPG",
+   "blurb": "Numbers add up nearby monster levels: level up on weak ones, then slay the boss.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "lurkfield-monster-minesweeper-rpg",
+   "review": {
+    "by": "Claude",
+    "depth": 7,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Numbers add up nearby monster levels: level up on weak ones, then slay the boss."
+   }
+  },
+  {
+   "slug": "patience-pine-klondike-solitaire",
+   "name": "Patience Pine: Klondike Solitaire",
+   "blurb": "Classic Klondike solitaire with draw 1 or 3, tap-to-move, drag stacks, unlimited undo, winnable deals and a daily deal.",
+   "category": "Cards",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "patience-pine-klondike-solitaire",
+   "review": {
+    "by": "Claude",
+    "depth": 7,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Classic Klondike solitaire with draw 1 or 3, tap-to-move, drag stacks, unlimited undo, winnable deals and a daily deal."
+   }
+  },
+  {
+   "slug": "huebound-crazy-eights-card-game",
+   "name": "Huebound: Crazy Eights Card Game",
+   "blurb": "Match colours and numbers against three CPU rivals, play Skip, Reverse, +2 and wilds, and shout ZING! before your last card.",
+   "category": "Cards",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "huebound-crazy-eights-card-game",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Match colours and numbers against three CPU rivals, play Skip, Reverse, +2 and wilds, and shout ZING! before your last card."
+   }
+  },
+  {
+   "slug": "rollhome-ludo-board-game",
+   "name": "Rollhome: Ludo Board Game",
+   "blurb": "Roll the 3D die, bring tokens out on a six, capture rivals and race your colour home against three CPU players.",
+   "category": "Strategy",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "rollhome-ludo-board-game",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Roll the 3D die, bring tokens out on a six, capture rivals and race your colour home against three CPU players."
+   }
+  },
+  {
+   "slug": "thumb-duel-party-duels-for-two",
+   "name": "Thumb Duel: Party Duels for Two",
+   "blurb": "Two players, one phone: rocket race, tug of war, sumo ring, quick draw and air hockey, first to 5 wins, or play solo against the CPU.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "thumb-duel-party-duels-for-two",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Two players, one phone: rocket race, tug of war, sumo ring, quick draw and air hockey, first to 5 wins, or play solo against the CPU."
+   }
+  },
+  {
+   "slug": "alibi-grid-daily-logic-puzzle",
+   "name": "Alibi Grid: Daily Logic Puzzle",
+   "blurb": "Twenty suspects, one true clue each: work out who is innocent and who is a criminal using pure logic, with a new case every day.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "alibi-grid-daily-logic-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 8,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Twenty suspects, one true clue each: work out who is innocent and who is a criminal using pure logic, with a new case every day."
+   }
+  },
+  {
+   "slug": "swingaroo-rope-swing-stunt-game",
+   "name": "Swingaroo: Rope Swing Stunt Game",
+   "blurb": "Hold to rope the nearest ring, swing, and let go to fly, flip and bounce your way to the finish line.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "swingaroo-rope-swing-stunt-game",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Hold to rope the nearest ring, swing, and let go to fly, flip and bounce your way to the finish line."
+   }
+  },
+  {
+   "slug": "hoopwing-winged-basketball-hoops",
+   "name": "Hoopwing: Winged Basketball Hoops",
+   "blurb": "Tap to flutter a winged basketball and drop it down through every hoop; clean swishes stack a fiery combo.",
+   "category": "Sports",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Endless runners"
+   ],
+   "original": true,
+   "repo_dir": "hoopwing-winged-basketball-hoops",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap to flutter a winged basketball and drop it down through every hoop; clean swishes stack a fiery combo."
+   }
+  },
+  {
+   "slug": "halo-burst-bouncing-ball-rings",
+   "name": "Halo Burst: Bouncing Ball Rings",
+   "blurb": "Bounce a ball out through the gaps of spinning rings, shatter each one with a rising note, and tap to flip their spin.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "halo-burst-bouncing-ball-rings",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Bounce a ball out through the gaps of spinning rings, shatter each one with a rising note, and tap to flip their spin."
+   }
+  },
+  {
+   "slug": "nova-leap-orbit-jump-space-game",
+   "name": "Nova Leap: Orbit Jump Space Game",
+   "blurb": "Circle a planet, tap to launch along the tangent and get caught by the next planet's orbit; miss and you're lost in space.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Endless runners"
+   ],
+   "original": true,
+   "repo_dir": "nova-leap-orbit-jump-space-game",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Circle a planet, tap to launch along the tangent and get caught by the next planet's orbit; miss and you're lost in space."
+   }
+  },
+  {
+   "slug": "chimebox-bouncing-ball-melody",
+   "name": "Chimebox: Bouncing Ball Melody",
+   "blurb": "Every bounce plays the next note of a classic tune; turn the box so golden walls catch the ball and finish the song before it fills the shape.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "chimebox-bouncing-ball-melody",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Every bounce plays the next note of a classic tune; turn the box so golden walls catch the ball and finish the song before it fills the shape."
+   }
+  },
+  {
+   "slug": "pourly-liquid-tube-game",
+   "name": "Pourly: Liquid Tube Game",
+   "blurb": "Tap a tube, tap another and pour until every shade of liquid has a tube of its own.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "pourly-liquid-tube-game",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap a tube, tap another and pour until every shade of liquid has a tube of its own."
+   }
+  },
+  {
+   "slug": "comb-stack-hex-tile-stacking",
+   "name": "Comb Stack: Hex Tile Stacking",
+   "blurb": "Drag hexagon stacks onto the honeycomb and watch matching colours flip together until ten clear.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "comb-stack-hex-tile-stacking",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag hexagon stacks onto the honeycomb and watch matching colours flip together until ten clear."
+   }
+  },
+  {
+   "slug": "plumplop-drop-combine",
+   "name": "Plumplop: Drop & Combine",
+   "blurb": "Drop berries, plums and peaches into the crate and squish two of a kind into a bigger one, all the way to the melon.",
+   "category": "Arcade",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "plumplop-drop-combine",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drop berries, plums and peaches into the crate and squish two of a kind into a bigger one, all the way to the melon."
+   }
+  },
+  {
+   "slug": "grainfall-falling-grain-game",
+   "name": "Grainfall: Falling Grain Game",
+   "blurb": "Steer falling pieces that crumble into coloured grains and link one colour wall to wall to clear it.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "grainfall-falling-grain-game",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer falling pieces that crumble into coloured grains and link one colour wall to wall to clear it."
+   }
+  },
+  {
+   "slug": "dialock-spin-lock-puzzle",
+   "name": "Dialock: Spin Lock Puzzle",
+   "blurb": "Spin nested dials until every gap lines up with the exit and the glowing core slides free.",
+   "category": "Puzzle",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "dialock-spin-lock-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Spin nested dials until every gap lines up with the exit and the glowing core slides free."
+   }
+  },
+  {
+   "slug": "hunch-five-letter-word-guess",
+   "name": "Hunch: Five Letter Word Guess",
+   "blurb": "Guess the hidden five-letter word in six tries as coloured tiles show which letters are right.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "hunch-five-letter-word-guess",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Guess the hidden five-letter word in six tries as coloured tiles show which letters are right."
+   }
+  },
+  {
+   "slug": "seekaloo-word-search-puzzle",
+   "name": "Seekaloo: Word Search Puzzle",
+   "blurb": "Swipe across themed letter grids to circle hidden words before moving on to bigger grids.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "seekaloo-word-search-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Swipe across themed letter grids to circle hidden words before moving on to bigger grids."
+   }
+  },
+  {
+   "slug": "kindred-cards-word-category-solitaire",
+   "name": "Kindred Cards: Word Category Solitaire",
+   "blurb": "Open a category card, then stack every word that belongs to it before your moves run out.",
+   "category": "Cards",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "kindred-cards-word-category-solitaire",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Open a category card, then stack every word that belongs to it before your moves run out."
+   }
+  },
+  {
+   "slug": "bunchwise-word-groups-puzzle",
+   "name": "Bunchwise: Word Groups Puzzle",
+   "blurb": "Sort sixteen words into four hidden groups of four, with a hint when you are close.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "bunchwise-word-groups-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 7,
+    "polish": 8,
+    "ai_built": "yes",
+    "pitch": "Sort sixteen words into four hidden groups of four, with a hint when you are close."
+   }
+  },
+  {
+   "slug": "cipherleaf-quote-code-puzzle",
+   "name": "Cipherleaf: Quote Code Puzzle",
+   "blurb": "Crack the number code to reveal a famous quote or proverb, one letter at a time.",
+   "category": "Word & Math",
+   "author": "RIFFCADE",
+   "credit": "An original RIFFCADE game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Daily puzzles"
+   ],
+   "original": true,
+   "repo_dir": "cipherleaf-quote-code-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Crack the number code to reveal a famous quote or proverb, one letter at a time."
+   }
   }
  ],
  "overrides": {
