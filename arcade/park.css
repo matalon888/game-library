@@ -23,9 +23,10 @@ body.park a { color: inherit }
 /* ---------- top bar ---------- */
 .park .top { display: flex; align-items: center; justify-content: space-between; gap: 14px }
 .park .brand a { display: flex; align-items: center; gap: 10px; text-decoration: none }
-.park .logo { width: 44px; height: 44px; flex: none; border-radius: 13px; box-shadow: var(--shadow) }
-.park .brand h1 { font: 800 25px/1 var(--display); letter-spacing: -.02em; margin: 0 0 4px }
-.park .brand h1 span { color: var(--grass) }
+.park .logo { width: 50px; height: 50px; flex: none }
+.park .brand h1 { font: 800 30px/.9 var(--display); letter-spacing: -.045em; margin: 0 0 5px }
+.park .brand h1 span { color: #22A257 }
+@media (prefers-color-scheme: dark) { .park .brand h1 span { color: #7FE09A } }
 .search { display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 999px; padding: 0 14px; height: 44px; box-shadow: var(--shadow); width: min(320px, 46vw); color: var(--muted) }
 .search svg { width: 18px; height: 18px; flex: none }
 .search input { border: 0; outline: 0; background: none; font: 500 15px var(--body); color: var(--ink); width: 100%; min-width: 0 }
