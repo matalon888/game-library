@@ -197,7 +197,7 @@
       ev('challenge_done');
       const pts = best != null ? ` — ${best.toLocaleString('en-US')} pts` : '';
       const url = `riffcade.com/c/${n}`;
-      const text = `RIFFCADE #${n} 🔥${s}${pts} ${url}`;
+      const text = `AGENTPARK #${n} 🔥${s}${pts} ${url}`;
       const o = card('g-share', `<div class="eyebrow">Today's challenge · #${n}</div><h2>Day ${s} 🔥</h2>
         ${best != null ? `<p class="g-pts">${best.toLocaleString('en-US')} pts</p>` : ''}<p class="g-sharetext">${esc(text)}</p>
         <button class="btn big" id="gShareGo">Share</button><button class="btn ghost" id="gShareClose">${leaving ? 'Continue' : 'Keep playing'}</button>`);

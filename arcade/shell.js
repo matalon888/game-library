@@ -69,7 +69,7 @@
         return { arrow: 'bottom-right', steps: step(1, 'Tap the menu ≡ at the bottom right') + step(2, 'Tap <b>Add page to</b> → <b>Home screen</b>') };
       case 'chrome-ios':
         return { arrow: 'top-right', steps: step(1, `Tap ${SHARE} <b>Share</b> at the right end of the address bar`) +
-          step(2, `Scroll down and tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Tap <b>Add</b>, then open <b>RIFFCADE</b> from your home screen') };
+          step(2, `Scroll down and tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Tap <b>Add</b>, then open <b>AGENTPARK</b> from your home screen') };
       case 'safari':
         return { arrow: 'bottom', steps: step(1, `Tap ${SHARE} <b>Share</b> in the toolbar (on iOS 26 tap <b>⋯</b> first)`) +
           step(2, `Tap ${ADD} <b>Add to Home Screen</b>`) + step(3, 'Keep <b>Open as Web App</b> on and tap <b>Add</b>') };
@@ -87,10 +87,10 @@
     const gd = guide();
     const sh = document.createElement('div');
     sh.id = 'installSheet'; sh.className = 'isheet' + (gd.arrow === 'bottom' || gd.arrow === 'bottom-right' ? ' top' : '');
-    sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', 'Add RIFFCADE to your home screen');
+    sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-label', 'Add AGENTPARK to your home screen');
     sh.innerHTML = `<div class="icard">
-      <div class="ihead"><img src="icons/icon-192.png" alt=""><div><b>Play fullscreen</b><p>Add RIFFCADE to your home screen. It opens like an app: no browser bars, works offline.</p></div></div>
-      ${gd.one ? '<button class="btn big" id="doInstall">Install RIFFCADE</button>' : `<ol class="steps">${gd.steps}</ol>`}
+      <div class="ihead"><img src="icons/icon-192.png" alt=""><div><b>Play fullscreen</b><p>Add AGENTPARK to your home screen. It opens like an app: no browser bars, works offline.</p></div></div>
+      ${gd.one ? '<button class="btn big" id="doInstall">Install AGENTPARK</button>' : `<ol class="steps">${gd.steps}</ol>`}
       ${gd.inapp ? '<button class="btn ghost" id="copyLink">Copy link</button>' : ''}
       <button class="btn ghost" id="notNow">Not now</button></div>`;
     document.body.appendChild(sh);
@@ -156,7 +156,7 @@
       <button class="btn ghost" id="notNow">Close</button></div>`;
     document.body.appendChild(sh);
     $('notNow').onclick = closeSheet;
-    if ($('dShare')) $('dShare').onclick = () => navigator.share({ title: g.name + ' on RIFFCADE', url: shareUrl(g) }).catch(() => {});
+    if ($('dShare')) $('dShare').onclick = () => navigator.share({ title: g.name + ' on AGENTPARK', url: shareUrl(g) }).catch(() => {});
     $('dCopy').onclick = e => navigator.clipboard?.writeText(shareUrl(g)).then(() => { e.target.textContent = 'Link copied'; }).catch(() => {});
   }
   if (!PC) document.addEventListener('click', e => {
@@ -255,7 +255,7 @@
     if (REF) api('/api/click', { button: REF });
     const grow = !EMBED && window.Grow;  // config.js flags (grow.js): auto-next, challenge, subscribe card, ads
     if (grow) grow.onLoad(g, all);
-    document.title = g.name + ' · RIFFCADE';
+    document.title = g.name + ' · AGENTPARK';
     $('title').textContent = g.name;
     const stage = $('stage');
     let started = 0;
@@ -511,7 +511,7 @@
       m.className = 'overlay pmenu'; m.id = 'pmenu';
       m.innerHTML = `<div class="box"><div class="eyebrow">Paused</div><h2>${esc(g.name)}</h2>
         <button class="btn big" id="pmResume">Resume</button>
-        ${EMBED ? '' : '<button class="btn" id="pmHome">Back to RIFFCADE</button>'}
+        ${EMBED ? '' : '<button class="btn" id="pmHome">Back to the park</button>'}
         ${starRow(g)}
         <div data-install></div>
         <button class="btn ghost" id="pmCredits">Credits${g.original ? '' : ' · ' + esc(g.licence)}</button></div>`;
@@ -612,5 +612,7 @@
     }, 1000);
   }
 
-  window.Arcade = { home, play };
+  // park.js (AGENTPARK home) draws the home screen with these; the player stays here
+  const kit = { games, getStats, store, esc, href, tgt, art, isDesk, PC, EMBED, praise, madeTxt, ago, renderInstall, autoPrompt };
+  window.Arcade = { home, play, kit };
 })();

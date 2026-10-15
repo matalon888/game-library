@@ -1,0 +1,226 @@
+/* AGENTPARK home: sunny park by day, lantern-lit park at night (dark mode). Loads after arcade.css; the player keeps arcade.css. */
+body.park {
+  --bg: #FFF6E6; --bg-2: #FFEFD3; --surface: #FFFFFF; --raise: #FFF9EF; --ink: #1E1B33; --muted: #6E6A84; --line: #F0E2C8;
+  --grass: #34B866; --grass-2: #7AD957; --grass-d: #1D8A4A; --bark: #8A5A36; --sun: #FFC93C; --coral: #FF6A55; --lilac: #8F7DFF; --sky: #8FD5FF;
+  --accent: #1D8A4A; --coin: #FFC93C; --on-coin: #1E1B33;
+  --shadow: 0 1px 0 rgba(30, 27, 51, .04), 0 12px 28px -12px rgba(76, 52, 18, .28);
+  --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif; --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --night: 0;
+  color-scheme: light;
+  background: var(--bg); color: var(--ink); font: 15.5px/1.5 var(--body);
+}
+@media (prefers-color-scheme: dark) {
+  body.park {
+    --bg: #0E1428; --bg-2: #141C36; --surface: #19223F; --raise: #1E2949; --ink: #F5F1FF; --muted: #A9AEC9; --line: #27325A;
+    --accent: #7FE09A; --shadow: 0 1px 0 rgba(255, 255, 255, .03), 0 14px 30px -12px rgba(0, 0, 0, .6); --night: 1;
+    color-scheme: dark;
+  }
+}
+body.park a { color: inherit }
+.park .home { max-width: 1180px; gap: 28px; padding-inline: 16px }
+.park .eyebrow { font: 700 11px/1 var(--body); letter-spacing: .12em; color: var(--muted) }
+
+/* ---------- top bar ---------- */
+.park .top { display: flex; align-items: center; justify-content: space-between; gap: 14px }
+.park .brand a { display: flex; align-items: center; gap: 10px; text-decoration: none }
+.park .logo { width: 44px; height: 44px; flex: none; border-radius: 13px; box-shadow: var(--shadow) }
+.park .brand h1 { font: 800 25px/1 var(--display); letter-spacing: -.02em; margin: 0 0 4px }
+.park .brand h1 span { color: var(--grass) }
+.search { display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 999px; padding: 0 14px; height: 44px; box-shadow: var(--shadow); width: min(320px, 46vw); color: var(--muted) }
+.search svg { width: 18px; height: 18px; flex: none }
+.search input { border: 0; outline: 0; background: none; font: 500 15px var(--body); color: var(--ink); width: 100%; min-width: 0 }
+.search:focus-within { outline: 2px solid var(--grass) }
+
+/* ---------- the park ---------- */
+.world { position: relative; border-radius: 34px; overflow: hidden; min-height: 560px; isolation: isolate; box-shadow: var(--shadow); background: var(--sky) }
+.world .pano { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; z-index: -2;
+  filter: brightness(calc(1 - var(--night) * .45)) saturate(calc(1 - var(--night) * .2)) hue-rotate(calc(var(--night) * 12deg)) }
+.world::before { content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--bg) 86%, transparent) 0 28%, transparent 58%), linear-gradient(180deg, transparent 55%, rgba(20, 30, 10, calc(.08 + var(--night) * .3))) }
+.world-copy { position: relative; z-index: 3; padding: 46px 44px; max-width: 460px; display: grid; gap: 14px; justify-items: start; pointer-events: none }
+.world-copy > * { pointer-events: auto }
+.world h2 { font: 800 clamp(44px, 7vw, 82px)/.92 var(--display); letter-spacing: -.035em; margin: 0; text-wrap: balance }
+.world p { margin: 0; font-size: 17px; color: var(--ink); max-width: 30ch }
+.cta { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--bg) !important; text-decoration: none; font: 700 16px var(--display); padding: 14px 22px; border-radius: 999px; box-shadow: 0 10px 22px -10px rgba(0, 0, 0, .5); transition: transform .18s }
+.cta:hover { transform: translateY(-2px) }
+.actors { position: absolute; inset: 0; z-index: 2 }
+
+/* actors */
+.act { position: absolute; left: 0; top: 0; will-change: transform; cursor: pointer; user-select: none; -webkit-user-select: none }
+.act .body { width: 100%; height: 100%; transform-origin: 50% 100%; will-change: transform }
+.act.hang .body { transform-origin: 50% 0 }
+.act img { width: 100%; height: 100%; display: block; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(40, 30, 10, .22)) }
+.act .shade { position: absolute; left: 18%; right: 18%; bottom: -4px; height: 9px; border-radius: 50%; background: rgba(30, 40, 10, .28); filter: blur(3px);
+  transform: scale(calc(1 - var(--lift, 0) * .45)); opacity: calc(1 - var(--lift, 0) * .5) }
+.act.float .shade, .act.hang .shade { display: none }
+.ball { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; will-change: transform }
+.ball img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .25)) }
+.say { position: absolute; z-index: 9; width: 220px; padding: 10px 13px; border-radius: 16px; background: var(--surface); color: var(--ink); font: 600 14px/1.3 var(--body);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, .35); animation: pop .28s cubic-bezier(.2, 1.4, .4, 1) both; pointer-events: none }
+.say::after { content: ""; position: absolute; left: var(--tail, 30px); bottom: -7px; width: 14px; height: 14px; background: inherit; transform: rotate(45deg); border-radius: 3px }
+.say.out { transition: opacity .3s, transform .3s; opacity: 0; transform: translateY(-6px) }
+@keyframes pop { from { opacity: 0; transform: scale(.6) translateY(10px) } }
+
+/* ---------- continue / install ---------- */
+.park .continue { background: var(--surface); border: 0; box-shadow: var(--shadow); border-radius: 22px }
+.park .continue .go { display: inline-flex; gap: 6px; align-items: center; background: var(--grass); color: #fff }
+.park .continue .go svg, .gc .go svg { width: 16px; height: 16px }
+.park .ibtn { background: var(--surface); color: var(--ink); border-color: var(--line) }
+
+/* ---------- modes + categories ---------- */
+.nav { position: sticky; top: 0; z-index: 20; display: grid; gap: 12px; padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 12px; margin-inline: -16px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4); scroll-margin-top: 0 }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
+.mode { position: relative; display: flex; align-items: center; gap: 10px; text-align: left; border: 0; cursor: pointer; padding: 10px 14px 10px 10px; border-radius: 22px;
+  background: var(--surface); box-shadow: var(--shadow); min-width: 0; transition: transform .18s, background .18s }
+.mode:hover { transform: translateY(-2px) }
+.mode .mimg { width: 54px; height: 54px; flex: none; border-radius: 16px; background: var(--bg-2); display: grid; place-items: end center; overflow: hidden }
+.mode .mimg img { width: 90%; height: 90%; object-fit: contain; object-position: 50% 100%; transition: transform .3s cubic-bezier(.2, 1.5, .4, 1) }
+.mode:hover .mimg img, .mode[aria-pressed="true"] .mimg img { transform: scale(1.12) translateY(-2px) rotate(-4deg) }
+.mode .mt { display: grid; min-width: 0 }
+.mode b { font: 800 18px/1.1 var(--display); letter-spacing: -.01em }
+.mode small { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.mode[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+.mode[aria-pressed="true"] small { color: color-mix(in srgb, var(--bg) 70%, transparent) }
+.mode[aria-pressed="true"] .mimg { background: var(--grass) }
+.mode.ai[aria-pressed="true"] .mimg { background: var(--lilac) }
+.park .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding: 2px 16px }
+.park .chips::-webkit-scrollbar { display: none }
+.park .chip { flex: none; display: inline-flex; align-items: center; gap: 7px; border: 0; cursor: pointer; font: 700 14px var(--body); padding: 5px 13px 5px 5px; border-radius: 999px;
+  background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line) inset }
+.park .chip[data-c="All"] { padding-left: 13px }
+.park .chip img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover }
+.park .chip small { font-weight: 600; color: var(--muted); font-size: 12px }
+.park .chip[aria-pressed="true"] { background: var(--grass); color: #fff; box-shadow: none }
+.park .chip[aria-pressed="true"] small { color: rgba(255, 255, 255, .8) }
+
+/* ---------- shelves ---------- */
+#shelves { display: grid; gap: 34px; min-width: 0 }
+.park .home > *, #shelves > * { min-width: 0 }
+.park section > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; position: relative; margin-bottom: 14px; border: 0; padding: 0 }
+.park section > header h2 { font: 800 clamp(22px, 3vw, 28px)/1.05 var(--display); letter-spacing: -.02em; margin: 0 }
+.park section > header span { color: var(--muted); font-size: 13.5px }
+.park .picks > header, .park .zones > header, .park .chart > header { display: grid; justify-content: start; gap: 4px }
+.sh-t { display: flex; align-items: center; gap: 12px; min-width: 0 }
+.sh-t > div { display: grid; gap: 2px }
+.zthumb { width: 48px; height: 48px; border-radius: 15px; object-fit: cover; box-shadow: var(--shadow) }
+.shelf header a[data-zone] { color: var(--accent); font-weight: 700; font-size: 14px; text-decoration: none; margin-right: 96px; white-space: nowrap }
+.perch { position: absolute; right: 0; bottom: -4px; width: 96px; height: 100px; pointer-events: none }
+.perch .act { pointer-events: auto }
+.perch.hang { bottom: auto; top: -30px; height: 120px }
+.park .rail { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; margin-inline: -16px; padding: 4px 16px 18px; scrollbar-width: none }
+
+/* game card */
+.gc { flex: 0 0 172px; display: grid; gap: 3px; align-content: start; text-decoration: none; scroll-snap-align: start; min-width: 0 }
+.gc .art { position: relative; aspect-ratio: 1; border-radius: 26px; overflow: hidden; background: var(--bg-2); box-shadow: var(--shadow);
+  transition: transform .25s cubic-bezier(.2, 1.3, .4, 1), box-shadow .25s; margin-bottom: 7px }
+.gc .art img, .gc .art video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block }
+.gc .art video { opacity: 0; transition: opacity .3s }
+.gc.playing .art video { opacity: 1 }
+.gc:hover .art { transform: translateY(-5px) rotate(-1.2deg) scale(1.02); box-shadow: 0 22px 34px -16px rgba(60, 40, 10, .45) }
+.gc b { font: 700 16px/1.2 var(--display); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.gc .meta { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.gc p { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.gc .go { position: absolute; right: 10px; bottom: 10px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: var(--ink);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .25); transform: scale(.6); opacity: 0; transition: .22s cubic-bezier(.2, 1.5, .4, 1) }
+.gc:hover .go, .gc:focus-visible .go { transform: none; opacity: 1 }
+.gc.big { flex-basis: 300px }
+.gc.big .art { aspect-ratio: 4 / 3; border-radius: 30px }
+.gc.big b { font-size: 19px }
+.tagnew { position: absolute; right: 10px; top: 10px; font: 800 10.5px/1 var(--body); letter-spacing: .08em; background: var(--coral); color: #fff; padding: 6px 8px; border-radius: 999px; transform: rotate(4deg) }
+
+/* score chip: the Park score, colour by band */
+.sc { position: absolute; left: 10px; top: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px 5px 6px; border-radius: 999px;
+  background: rgba(255, 255, 255, .94); color: #1E1B33; font: 800 13px/1 var(--display); box-shadow: 0 4px 12px rgba(0, 0, 0, .18); backdrop-filter: blur(6px) }
+.sc i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 28%, transparent) }
+.sc.hi, .big-sc.hi { --c: #22B35E } .sc.mid, .big-sc.mid { --c: #F5B321 } .sc.lo, .big-sc.lo { --c: #FF6A55 }
+.star { color: #E9A800 }
+
+/* zones */
+.zc { position: relative; flex: 0 0 210px; height: 230px; border-radius: 28px; overflow: hidden; text-decoration: none; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 14px 16px; color: #fff !important; box-shadow: var(--shadow); isolation: isolate; scroll-snap-align: start; transition: transform .25s cubic-bezier(.2, 1.3, .4, 1) }
+.zc > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform .6s }
+.zc::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, transparent 40%, rgba(15, 20, 30, .72)) }
+.zc:hover { transform: translateY(-4px) } .zc:hover > img { transform: scale(1.06) }
+.zc b { font: 800 21px/1.05 var(--display); letter-spacing: -.01em }
+.zc small { font-size: 12.5px; opacity: .88 }
+.zres { position: absolute; right: 8px; bottom: 44px; height: 92px; width: 92px; display: grid; place-items: end center; transition: transform .35s cubic-bezier(.2, 1.6, .4, 1) }
+.zres img { max-width: 100%; max-height: 100%; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .35)) }
+.zc:hover .zres { transform: translateY(-8px) rotate(-6deg) scale(1.08) }
+
+/* walking paths between shelves */
+.path { position: relative; height: 92px; margin: -8px -16px; overflow: hidden }
+.path::before { content: ""; position: absolute; left: 0; right: 0; bottom: 8px; height: 16px; border-radius: 99px;
+  background: radial-gradient(circle at 10px 8px, color-mix(in srgb, var(--grass) 55%, transparent) 3px, transparent 4px) 0 0 / 46px 16px, color-mix(in srgb, var(--grass) 16%, transparent) }
+
+/* chart */
+.chart { display: grid; gap: 2px }
+.rk { display: grid; grid-template-columns: 28px 64px 1fr auto; gap: 14px; align-items: center; padding: 10px 12px; border-radius: 20px; text-decoration: none; transition: background .2s }
+.rk:hover { background: var(--surface) }
+.rk .n { font: 800 20px var(--display); color: var(--muted); text-align: center }
+.rk img { width: 64px; height: 64px; border-radius: 18px; object-fit: cover; box-shadow: var(--shadow) }
+.rk div { min-width: 0; display: grid; gap: 1px }
+.rk b { font: 700 16px/1.2 var(--display) }
+.rk p { margin: 0; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.rk .why { font-size: 11.5px; color: var(--muted); opacity: .8 }
+.big-sc { display: grid; gap: 5px; justify-items: end; width: 64px }
+.big-sc b { font: 800 22px/1 var(--display); color: var(--c) }
+.big-sc i { width: 100%; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--c) var(--v), var(--line) var(--v)) }
+
+/* category page */
+.cat-head { position: relative; min-height: 300px; border-radius: 32px; overflow: hidden; display: flex; align-items: flex-start; padding: 30px; isolation: isolate; box-shadow: var(--shadow);
+  background: var(--scene) center / cover, var(--bg-2) }
+.cat-head::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, color-mix(in srgb, var(--bg) 90%, transparent) 0 34%, transparent 70%) }
+.cat-head.small { min-height: 0; padding: 0; background: none; box-shadow: none }
+.cat-head.small::before { display: none }
+.ch-txt { display: grid; gap: 6px; max-width: 470px; position: relative; z-index: 3 }
+.ch-txt h2 { font: 800 clamp(34px, 5vw, 56px)/.95 var(--display); letter-spacing: -.03em; margin: 0 }
+.ch-txt p { margin: 0; font-size: 15px }
+.stagebox { position: absolute; left: 0; right: 0; bottom: 6px; height: 120px; z-index: 2 }
+.sorts { display: flex; gap: 6px }
+.sorts button { border: 0; cursor: pointer; font: 700 14px var(--body); padding: 8px 14px; border-radius: 999px; background: transparent; color: var(--muted) }
+.sorts button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow) }
+.park .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 22px 16px }
+.park .grid .gc { flex: auto }
+
+/* footer */
+.gate { display: grid; gap: 10px; margin-top: 20px }
+.gate-cast { position: relative; height: 130px; border-bottom: 3px solid var(--grass); margin-inline: -16px }
+.park .foot a { color: var(--accent) }
+
+@media (max-width: 699px) {
+  .park .home { gap: 22px }
+  .search { width: 44px; padding: 0; justify-content: center; transition: width .25s }
+  .search input { width: 0; padding: 0 }
+  .search:focus-within { width: min(240px, 60vw); padding: 0 14px; justify-content: start }
+  .search:focus-within input { width: 100% }
+  .world { min-height: 600px; border-radius: 28px; margin-inline: -6px }
+  .world .pano { object-position: 38% 50% }
+  .world::before { background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 88%, transparent) 0 26%, transparent 52%) }
+  .world-copy { padding: 28px 22px }
+  .world p { font-size: 15.5px }
+  .modes { grid-template-columns: 1fr 1fr 1fr; gap: 6px }
+  .mode { flex-direction: column; align-items: center; text-align: center; padding: 8px 6px 10px; gap: 4px; border-radius: 20px }
+  .mode .mimg { width: 46px; height: 46px }
+  .mode b { font-size: 14.5px }
+  .mode small { display: none }
+  .gc { flex-basis: 140px } .gc .art { border-radius: 24px } .gc.big { flex-basis: 82% }
+  .zc { flex-basis: 170px; height: 200px }
+  .shelf header a[data-zone] { margin-right: 76px }
+  .perch { width: 76px; height: 82px }
+  .park .grid { grid-template-columns: repeat(2, 1fr); gap: 18px 12px }
+  .cat-head { min-height: 340px; padding: 22px }
+  .cat-head::before { background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 90%, transparent) 0 42%, transparent 75%) }
+  .rk { grid-template-columns: 22px 54px 1fr auto; gap: 10px; padding: 8px 4px }
+  .rk img { width: 54px; height: 54px }
+  .rk .why { display: none }
+}
+@media (prefers-reduced-motion: reduce) { .gc .art, .zc, .mode, .cta { transition: none } .say { animation: none } }
+
+#cont:empty, [data-install]:empty { display: none }
+.chart > header { position: relative; padding-right: 110px }
+.peek { position: absolute; right: 0; bottom: -14px; width: 100px; height: 150px; overflow: hidden }
+@media (max-width: 699px) { .chart > header { padding-right: 80px } .peek { width: 74px; height: 110px } }
+.park .shelf h2::before, .park .chart h2::before { content: none }
+.zres { bottom: 58px; right: 6px }
+.zc b, .zc small { position: relative; z-index: 1; text-shadow: 0 2px 8px rgba(0, 0, 0, .45) }
