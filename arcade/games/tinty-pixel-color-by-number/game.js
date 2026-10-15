@@ -2,6 +2,7 @@
 // picture. All pictures are hand-coded vector drawings (pictures.js) rasterised to bigger pixel grids on later levels.
 import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { PICTURES, raster } from './pictures.js';
 // No flow.js: colouring has no fail state and no skill element (FLOW_BRIEF rule 4) — every picture can always be finished.
@@ -11,6 +12,7 @@ const S = store('tinty');
 const ui = createUI({ title: 'Tinty', hint: 'Tap to colour', hand: '', score: false });
 cardTheme({ accent: '#ff5d8f', serif: "'Baloo 2',system-ui,sans-serif", font: "'Baloo 2',system-ui,sans-serif" });
 const D = daily('tinty', ui, { name: NAME });
+const WB = board({ game: 'tinty', label: 'Pictures coloured', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily picture' : 'pixel colour by number', doneLine: doneToday ? (D.isDaily ? 'Coloured today ✓' : 'Daily picture coloured ✓') : null });
@@ -150,10 +152,11 @@ function win() {
   arp([72, 76, 79, 84, 79, 84, 88], 95, 0.12, 0.8); setTimeout(() => fx.confetti(150, pic.pal.concat(['#fff', '#ffd23f'])), 500); buzz([20, 50, 20]);
   if (D.isDaily) S.set('daily_' + todayKey(), { s: total });
   else { level++; S.set('level', level); }
-  D.won(total, 'coloured');
+  D.won(total, 'coloured'); WB.submit(1);   // world board: pictures coloured today
   setTimeout(() => ui.win(D.isDaily ? '' : level - 1, `${pic.name} · ${pic.cells.length} squares`), 900);
 }
 ui.onTap((which) => {
+  WB.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

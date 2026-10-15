@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const V3 = THREE.Vector3;
 const S = createStage({ fov: 50, shadowSize: 10 });
@@ -12,6 +13,7 @@ const ui = createUI({ title: 'RUBBER<br>REACH', hint: 'Drag hands & feet to clim
 const D = daily('rubberreach', ui, { name: 'Rubber Reach: Climb Puzzle' });
 const save = store('rubberreach');
 const F = flow('rubberreach');
+const B = board({ game: 'rubber-reach', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });
 let level = save.get('level', 1), best = save.get('best', 0), total = 0;
 
 const THEMES = [
@@ -206,7 +208,7 @@ input({
   onMove: (dx, dy, e) => { if (!drag || state !== 'play') return; const w = pointerWorld(e); const l = limbs[drag.i]; l.p.set(clamp(drag.start.x + w.x - drag.from.x, -HALF + 0.2, HALF - 0.2), 0, drag.start.z + w.z - drag.from.z); },
   onUp: () => release(),
 });
-ui.onTap(which => { if (which === 'start') { state = 'play'; sfx.tap(); } else { buildLevel(); state = 'play'; } });
+ui.onTap(which => { if (which === 'start') { state = 'play'; sfx.tap(); } else { buildLevel(); state = 'play'; } B.start(); });
 
 function die(kind, li) {
   if (state !== 'play') return;
@@ -228,7 +230,7 @@ function die(kind, li) {
 }
 function win() {
   state = 'won'; drag = null;
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   const pts = 20 * level + Math.max(0, Math.round(Lz * 0.8) - moves) * 5;
   total += pts; best = Math.max(best, total); save.set('best', best);
   const lv = level; level++; save.set('level', level);

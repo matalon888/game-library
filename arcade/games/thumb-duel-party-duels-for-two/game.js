@@ -5,6 +5,8 @@ import { createUI, store, buzz, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, arp, soft, todayKey } from './calm.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'thumb-duel', label: 'Wins vs CPU', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Thumb Duel: Party Duels for Two';
 const S = store('thumbduel');
@@ -231,7 +233,7 @@ function endMatch() {
     D.won(pts[w]); ui.win(D.isDaily ? '' : level, `${pts[0]} – ${pts[1]}`); return;
   }
   if (w === 0) {
-    state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+    state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); B.submit(1); }   // solo vs the CPU only
     score += (TO - pts[1]) * 50;
     ui.els.win.querySelector('h1').textContent = 'YOU WIN!';
     if (D.isDaily) S.set('daily_' + todayKey(), { s: score }); else { level++; S.set('level', level); }
@@ -243,6 +245,7 @@ function endMatch() {
   }
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   if (which === 'win' && mode === 1) level++, S.set('level', level);
   build(); state = 'play';

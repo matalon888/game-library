@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, buzz, tone, note, confetti, lerp, clamp, rng, rounded, mat } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const S = store('glowkeep');
 let level = S.get('level', 1), best = S.get('best', 0);
@@ -12,6 +13,7 @@ const stage = createStage({ fov: 44, shadowSize: 12 });
 const { scene, camera, sun, hemi } = stage;
 const ui = createUI({ title: 'GLOW<br>KEEP', hint: 'Drag to move · magic is automatic', hand: '👆' });
 const D = daily('glowkeep', ui, { name: 'Glowkeep: Monster Horde Arena' });
+const B = board({ game: 'glowkeep', label: 'Levels survived', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: levels survived today (RULES.md)
 
 const LOOKS = [
   { bg: ['#bfe8a8', '#e6f7c9'], g1: '#bfe3a0', g2: '#b2d993', dot: '#ffffff', ui: '#3ab06b', deco: '#7cc47f' },
@@ -171,7 +173,7 @@ function hurt(d) {
   P.hp -= d; hurtT = 0.45; shake = 0.2; buzz(25); tone(150, 0.12, 'sawtooth', 0.09, 0.6); ui.flash(0.1);
   if (P.hp <= 0) { P.hp = 0; lose(); }
 }
-function record(won) { if (recorded) return; recorded = true; F.level(won, clamp(time / dur, 0, 1)); }
+function record(won) { if (recorded) return; recorded = true; if (won) B.submit(1); F.level(won, clamp(time / dur, 0, 1)); }
 function win() {
   state = 'won'; record(true); ui.progress(1); endStick();
   for (const f of foes) if (poofs.length < MAXP) poofs.push({ x: f.x, z: f.z, t: -Math.random() * 10, s: f.K.s, col: f.K.col });
@@ -195,7 +197,7 @@ addEventListener('pointermove', e => { if (!stick) return; let dx = e.clientX - 
 function endStick() { stick = null; joy.classList.add('hc-hidden'); joy.firstChild.style.transform = ''; }
 addEventListener('pointerup', endStick); addEventListener('pointercancel', endStick);
 const keys = {}; addEventListener('keydown', e => keys[e.key] = true); addEventListener('keyup', e => keys[e.key] = false);
-ui.onTap(() => { buildRun(); state = 'play'; });
+ui.onTap(() => { B.start(); buildRun(); state = 'play'; });
 
 // ---------------------------------------------------------------- simulation
 const grid = new Map();

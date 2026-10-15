@@ -6,6 +6,8 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { CATS } from './categories.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'kindred-cards', label: 'Deals solved', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Kindred Cards: Word Category Solitaire';
 const S = store('kindred-cards');
@@ -423,7 +425,7 @@ undoBtn.addEventListener('pointerdown', (e) => {
 function win() {
   if (state !== 'play') return;
   state = 'won';
-  if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+  if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); B.submit(1); }
   const bonus = movesLeft * 5; points += bonus; dailyPts += bonus; S.set('points', points); render();
   arp([67, 72, 76, 79, 84], 100, 0.12, 0.9); fx.confetti(); buzz([20, 50, 20]);
   const shown = D.isDaily ? dailyPts : points;
@@ -441,6 +443,7 @@ function lose() {
   ui.lose('Out of moves', `${st.done.length} of ${G.cats.length} categories done`);
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

@@ -4,6 +4,8 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'nova-leap', label: 'Points', limits: { maxRun: 1000, maxPerSec: 8 } });   // world board (RULES.md part C)
 
 const NAME = 'Nova Leap: Orbit Jump Space Game';
 const S = store('novaleap');
@@ -160,14 +162,14 @@ function capture(pl) {
 function lose() {
   if (state !== 'play') return;
   state = 'lost'; pending = null;
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const nb = score > best; best = Math.max(best, score); S.set('best', best);
   sfx.fail(); buzz([40, 30, 80]);
   ui.lose('LOST IN SPACE', nb && score > 0 ? `New best: ${score}!` : `Score ${score} · best ${best}`);
 }
 
 input({ onDown: () => launch() });
-ui.onTap(w => { if (w === 'lose' || w === 'win') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(w => { B.start(); if (w === 'lose' || w === 'win') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

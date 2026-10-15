@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded, stickman, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Quiver Duel: Archery';
 const S = store('quiverduel');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 40, shadowSize: 14 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'QUIVER<br>DUEL', hint: 'Hold to draw · drag to aim · let go', hand: '👆', score: false });
 const D = daily('quiverduel', ui, { name: NAME });
+const B = board({ game: 'quiver-duel', label: 'Duels won', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum', corner: 'br' });
 const duelEl = document.getElementById('duel'), windEl = document.getElementById('wind');
 ui.els.top.style.top = 'calc(132px + env(safe-area-inset-top))';
 ui.els.sub.style.top = 'calc(172px + env(safe-area-inset-top))';
@@ -227,7 +229,8 @@ function win() {
   score += 20; checkBeat();
   level++; S.set('level', level);
   confetti(scene, you.position.clone().setY(2.5).setZ(-2), 120); sfx.win(); buzz([20, 40, 20, 40, 60]);
-  D.won(score); drawDuel(); xh.style.display = 'none'; drawBar.textContent = '';
+  D.won(score); B.submit(1); drawDuel();                   // world board: duels won vs the rival today
+  xh.style.display = 'none'; drawBar.textContent = '';
   ui.win(level - 1, `${total('you')} – ${total('rival')} · ${score} pts`);
 }
 function lose() {
@@ -246,7 +249,7 @@ input({
   onMove: (dx, dy) => { if (!drawing) return; const k = 0.0042 * (dist / 20) * (camera.fov / 18); aim.x = clamp(aim.x + dx * k, -3, 3); aim.y = clamp(aim.y - dy * k, -2.5, 2.5); },
   onUp: () => release(),
 });
-ui.onTap(() => { buildLevel(); state = 'play'; ui.pop('YOUR SHOT', theme.ui, 32, 30); });
+ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.pop('YOUR SHOT', theme.ui, 32, 30); });
 
 // ---------------------------------------------------------------- rival archer (aims with honest noise and imperfect wind reading)
 let rivalPlan = null;

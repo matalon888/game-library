@@ -1,6 +1,7 @@
 // Napspot — a calm cat logic puzzle. Every colour patch needs exactly one napping cat; one cat per row and column,
 // and cats never touch, not even at the corners. Tap once for ✕, twice for a cat; drag to cross out many cells.
 // Puzzles are generated (seeded) and only kept when our step-by-step logic solver can finish them without guessing.
+import { board } from './kit/board.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp } from './puzzle.js';
 import { generate, solve, step, groupsOf, blocks, UNK, NO, CAT } from './napgen.js';
 
@@ -16,7 +17,9 @@ const FUR = [
 ];
 
 let N = 5, reg = [], sol = [], st = [], anim = new Map(), shake = new Map(), conf = new Set(), drag = null, hintCell = -1, hintAt = 0, wonAt = 0, G, BL, geo = { x: 0, y: 0, s: 40 };
+const B = board({ game: 'napspot', label: 'Puzzle points', limits: { maxRun: 1500, maxPerSec: 100 }, mode: 'sum' });
 const P = shell({
+  B,
   key: 'napspot', name: 'Napspot: Cat Logic Puzzle', brand: 'Napspot', kicker: 'cat logic puzzle', accent: '#e0708c', ink: '#3a2f45',
   bg: ['#fff4ea', '#f6dfe6'], winWord: 'Purrfect!', dailyLevel: 12,
   build(level, seed, fk) {

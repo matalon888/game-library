@@ -1,9 +1,11 @@
 // Slip Links — original game. Chains are knotted over a board of pegs; tap the chain lying on top to slip it free.
 import { THREE, createStage, createUI, input, loop, mat, rounded, sfx, tone, buzz, burst, confetti, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const ST = store('sliplinks');
 const F = flow('sliplinks');
+const WB = worldBoard({ game: 'slip-links', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const stage = createStage({ fov: 44, shadowSize: 9 });
 const { scene, camera, sun, renderer } = stage;
@@ -307,7 +309,7 @@ function slip(ch) {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); spin = nowT; score += 25 * level; best = Math.max(best, score); ST.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); spin = nowT; score += 25 * level; best = Math.max(best, score); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3((i - 1) * 2, 1.5, 0), 50), i * 150);
   ui.win(level, strikes === 0 ? 'PERFECT UNTIE!' : '');
@@ -330,7 +332,7 @@ function pick(cx, cy) {
 function screenOf(v) { P.copy(v).project(camera); return [(P.x + 1) / 2 * innerWidth, (1 - P.y) / 2 * innerHeight]; }
 input({ onTap: e => { if (state !== 'play') return; const ch = pick(e.clientX, e.clientY); if (ch) attempt(ch); else sfx.tap(); } });
 
-ui.onTap(which => {
+ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; sfx.tap(); }
   else if (which === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else if (which === 'lose') { score = 0; buildLevel(); state = 'play'; }

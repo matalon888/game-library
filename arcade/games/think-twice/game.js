@@ -4,6 +4,8 @@
 import { createUI, sfx, tone, buzz, store, loop } from './kit/hc.js';
 import { LEVELS } from './levels.js';
 import { pip } from './art.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'think-twice', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'tr' });   // world board: levels cleared today (RULES.md C)
 
 const SV = 'http://www.w3.org/2000/svg';
 const $ = (id) => document.getElementById(id);
@@ -164,7 +166,7 @@ function sparkle(x, y, n = 8, col = '#ffd84d') {
   }
 }
 function doWin(x, y) {
-  state = 'won';
+  if (state === 'play') B.submit(1); state = 'won';
   const g = frag(`<circle r="62" fill="#8fe3a8" class="ink" opacity=".95"/><path d="M-30 2 L-8 24 L32 -22" fill="none" stroke="#fff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/><path d="M-30 2 L-8 24 L32 -22" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".0"/>`);
   fxg.appendChild(g);
   tween(380, (k) => g.setAttribute('transform', `translate(180,200) scale(${easeBack(k)})`), (k) => k);
@@ -220,7 +222,7 @@ $('gcells').addEventListener('pointerdown', (e) => { const n = +e.target.dataset
 $('gClose').addEventListener('pointerdown', (e) => { e.stopPropagation(); $('grid').classList.add('hidden'); });
 $('grid').addEventListener('pointerdown', (e) => { if (e.target.id === 'grid') $('grid').classList.add('hidden'); });
 
-ui.onTap((which) => {
+ui.onTap((which) => { B.start();
   sfx.tap();
   if (which === 'start') load(level);
   else if (which === 'win') load(level >= N ? 1 : level + 1);

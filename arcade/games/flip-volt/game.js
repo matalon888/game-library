@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, confetti } from './kit/hc.js';
 import { createBloom } from './bloom.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const stage = createStage({ fov: 40, shadows: false, clear: '#141a3a' });
 const { scene, camera, renderer } = stage;
@@ -11,6 +12,7 @@ const bloom = createBloom(renderer, scene, camera, { strength: 1.15, threshold: 
 const ui = createUI({ title: 'FLIP<br>VOLT', hint: 'Hold to ride · hold in air to flip', hand: '👆' });
 const save = store('flipvolt');
 const F = flow('flipvolt');
+const WB = worldBoard({ game: 'flip-volt', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ themes (dark bg, neon track, contrasting bike)
@@ -371,7 +373,7 @@ function crash(why) {
   ui.lose('CRASHED!', `${why}  ·  ${score} pts`);
 }
 function win() {
-  if (state === 'play') F.level(true);
+  if (state === 'play') { F.level(true); WB.submit(1); }
   state = 'won'; engine(true, 70);
   confetti(scene, new THREE.Vector3(B.x + 2, B.y + 2, 0), 70);
   for (let i = 0; i < 4; i++) setTimeout(() => sparks(B.x + 3 + Math.random() * 3, B.y + 3 + Math.random() * 3, [TH.bike, TH.track, '#ffffff', '#ffe23a'][i], 50, 8, { up: 3, size: 0.1 }), i * 140);
@@ -383,7 +385,7 @@ function win() {
 
 // ------------------------------------------------------------------ input + UI flow
 input({ onDown: () => { if (state === 'play') hold = true; }, onUp: () => { hold = false; } });
-ui.onTap(w => { if (w !== 'start') buildLevel(); state = 'play'; hold = false; });
+ui.onTap(w => { WB.start(); if (w !== 'start') buildLevel(); state = 'play'; hold = false; });
 
 // ------------------------------------------------------------------ main loop
 const _v = new THREE.Vector3();

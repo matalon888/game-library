@@ -3,6 +3,7 @@
 // only an animation of that draw. No flow / adaptation: every spin has the same 2.70% house edge for everyone.
 import { THREE, createStage, createUI, loop, store, confetti, buzz } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import * as C from './casino.js';
 
 const NAME = 'Ivory Ball: European Roulette';
@@ -167,6 +168,7 @@ const camTo = (k, dur = 0.9) => { const k0 = camK; return C.tween(dur, e => { ca
 function followSun() { const k = C.ease.inOut(camK); const z = k * WHEEL.z; sun.position.set(3, 14, z + 4); sun.target.position.set(0, 0, z); }
 
 // ---------------------------------------------------------------- bets
+const B = worldBoard({ game: 'ivory-ball', label: 'Tables cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: 1 point per table cleared today
 let state = 'ready', phase = 'idle', bets = new Map(), history = [], lastBets = [], undo = [], beatenShown = false, botOn = false;
 const totalBet = () => [...bets.values()].reduce((a, b) => a + b.amount, 0);
 const CHIP_SCALE = 0.92;
@@ -328,7 +330,7 @@ async function settle(result) {
   enterBet();
 }
 function tableWon() {
-  state = 'won'; phase = 'idle'; C.csfx.big(); confetti(scene, new THREE.Vector3(0, 1, 0), 90); ui.flash(0.4);
+  state = 'won'; phase = 'idle'; B.submit(1); C.csfx.big(); confetti(scene, new THREE.Vector3(0, 1, 0), 90); ui.flash(0.4);
   D.won(chips, 'cashed out'); S.set('table', tableN + 1);
   ui.win(tableN, `${C.fmt(chips)} chips · next: Table ${tableN + 1}, max ${C.fmt(tableCfg(tableN + 1).max)}/spin`);
 }
@@ -338,6 +340,7 @@ function setupTable(n) {
   C.backdrop('#' + new THREE.Color(T.felt[1]).multiplyScalar(1.2).getHexString(), '#030405'); buildFelt(); hud();
 }
 ui.onTap(which => {
+  B.start();
   if (which === 'start') { state = 'play'; enterBet(); msg('Tap the felt to bet', 1300); }
   else if (which === 'win') { setupTable(tableN + 1); state = 'play'; enterBet(); }
   else if (which === 'lose') { setupTable(tableN); state = 'play'; enterBet(); }

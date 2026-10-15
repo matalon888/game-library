@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Zip Lanes: Traffic Racer';
 const S = store('ziplanes');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 58, shadowSize: 16 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'ZIP<br>LANES', hint: 'Swipe to switch lanes', hand: '👆' });
 const D = daily('ziplanes', ui, { name: NAME });
+const B = board({ game: 'zip-lanes', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const spdEl = document.getElementById('spd');
 
 const LANES = 4, LW = 2.3, LX = (i) => (i - (LANES - 1) / 2) * LW, ROAD_W = LANES * LW + 1.2;
@@ -174,7 +176,8 @@ function win() {
   if (!recorded) { recorded = true; F.level(true); }
   level++; S.set('level', level);
   confetti(scene, player.position.clone().add(new THREE.Vector3(0, 2, -4)), 120); sfx.win(); buzz([20, 40, 20, 40, 60]);
-  D.won(score); ui.win(level - 1, `${score} pts · ${nearCount} close calls`);
+  D.won(score); B.submit(1);                               // world board: levels cleared today
+  ui.win(level - 1, `${score} pts · ${nearCount} close calls`);
 }
 function crash(c) {
   if (state !== 'play') return; state = 'lost'; crashed = true;
@@ -200,7 +203,7 @@ input({
   onMove: (dx) => { if (state !== 'play') return; dragAcc += dx; if (Math.abs(dragAcc) > 42) { steer(Math.sign(dragAcc)); dragAcc = 0; } },
   onTap: (e) => { if (state !== 'play') return; steer(e.clientX < innerWidth / 2 ? -1 : 1); },
 });
-ui.onTap(() => { buildLevel(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
 
 // ---------------------------------------------------------------- loop
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3();

@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'pose-rush', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.25 }, mode: 'sum' });
 const ST = store('poserush');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const F = flow('poserush'); let fk = 1;
@@ -168,7 +170,7 @@ input({
   onUp() { grabbed = null; handles.forEach(h => h.classList.remove('grab')); },
 });
 
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { state = 'play'; score = 0; buildLevel(); }
@@ -204,7 +206,7 @@ function die(reason, push) {
   ui.lose(reason, `${events.filter(x => x.st === 'done').length} / ${events.length} enemies`);
 }
 function win() {
-  state = 'won'; F.level(true); tsT = 1; score += 50 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); tsT = 1; score += 50 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   const p = runner.g.position.clone().add(new THREE.Vector3(0, 2, -1)); confetti(worldG, p, 100); setTimeout(() => confetti(worldG, p, 70), 300);
   ui.win(level, `${score} points`);

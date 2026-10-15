@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 
 const NAME = 'Froggle: Pond Bubble Pop';
 const S = store('froggle');
@@ -98,6 +99,8 @@ dotIM.frustumCulled = false; scene.add(dotIM);
 
 // ---------------------------------------------------------------- state
 let busy = false, grid = [], flying = [], shot = null, cur = 0, nxt = 0, shots = 0, shotsMax = 0, aim = Math.PI / 2, aiming = false, colorsN = 3;
+const B = worldBoard({ game: 'froggle', label: 'Points', limits: { maxRun: 4000, maxPerSec: 120 }, mode: 'sum' });
+let levelStart = 0;   // score when this level started: the world board counts each cleared level's points
 let state = 'ready', score = 0, sessionLv = 0, recorded = false, beatenShown = false, total = 0, bugs = [], frogHop = 0, frogSquash = 0, shake = 0, r0 = Math.random;
 
 const badge = document.createElement('div');
@@ -225,7 +228,7 @@ function after() {
   const p = present(); if (!p.includes(cur)) cur = pickColor(); if (!p.includes(nxt)) nxt = pickColor();
 }
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(score - levelStart); }
   const frac = shots / shotsMax, stars = frac > 0.4 ? 3 : frac > 0.15 ? 2 : 1;
   const done = level; level++; sessionLv++; if (!D.seed) S.set('level', level);
   best = Math.max(best, score); S.set('best', best);
@@ -250,7 +253,7 @@ function angTo(e) {
 addEventListener('pointerdown', e => { if (state !== 'play') return; aiming = true; aim = angTo(e); });
 addEventListener('pointermove', e => { if (aiming) aim = angTo(e); });
 addEventListener('pointerup', e => { if (!aiming) return; aiming = false; if (state === 'play') fire(aim); });
-ui.onTap((which) => { if (which === 'lose') score = 0; build(); state = 'play'; ui.hideStart(); });
+ui.onTap((which) => { if (which === 'lose') score = 0; build(); state = 'play'; ui.hideStart(); levelStart = score; B.start(); });
 
 // ---------------------------------------------------------------- loop
 let guideT = 0;

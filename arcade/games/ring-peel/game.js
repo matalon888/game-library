@@ -2,6 +2,7 @@
 // Orbiting guard walls circle the tower: a ball that hits one ends the run.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const stage = createStage({ fov: 34, shadows: true, shadowSize: 9 });
 const { scene, camera, sun, hemi } = stage;
@@ -14,6 +15,7 @@ document.head.appendChild(css);
 const save = store('ringpeel');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 const F = flow('ringpeel');
+const WB = worldBoard({ game: 'ring-peel', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 
 // ------------------------------------------------------------------ themes (sea, sky, tower stripes, guard walls)
 const THEMES = [
@@ -246,7 +248,7 @@ function stageClear() {
   for (const b of balls) if (!b.dead) { b.hit = true; burst(scene, new THREE.Vector3(b.x, b.y, b.z), '#ffffff', 2, { speed: 0.04, up: 0.04, size: 0.5, shape: 'sphere' }); }
   holding = false;
   if (stageIdx + 1 < plan.length) { stageIdx++; travel = 1; state = 'travel'; setTimeout(() => { setupStage(stageIdx); }, 450); }
-  else { state = 'won'; F.level(true); level++; save.set('level', level); best = Math.max(best, score); save.set('best', best); setTimeout(sfx.win, 200); ui.win(level - 1, 'Score ' + score); }
+  else { state = 'won'; F.level(true); WB.submit(1); level++; save.set('level', level); best = Math.max(best, score); save.set('best', best); setTimeout(sfx.win, 200); ui.win(level - 1, 'Score ' + score); }
 }
 function fail(g, b) {
   if (state !== 'play') return;
@@ -264,7 +266,7 @@ function fire() {
 }
 
 input({ onDown: () => { if (state === 'play') { holding = true; if (fireT <= 0) { fire(); fireT = FIRE_DT; } } }, onUp: () => { holding = false; } });
-ui.onTap(which => {
+ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; }
   else { buildLevel(); state = 'play'; }
 });

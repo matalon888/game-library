@@ -1,6 +1,7 @@
 // Gridlet — picture logic: the numbers beside each row and above each column are the runs of filled squares in it.
 // Fill the right squares and a little pixel picture appears and colours itself in. 5×5 grows to 8×8 and 10×10.
 // Every picture is checked to be solvable one line at a time (no guessing); if line logic ever stalls, a square is pre-filled.
+import { board } from './kit/board.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, note } from './puzzle.js';
 import { generate, step } from './gridgen.js';
 
@@ -8,7 +9,9 @@ let N = 5, sol = [], col = [], rc = [], cc = [], given = [], st = [], name = '',
 const FILL_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" style="fill:currentColor;stroke:none"/></svg>';
 const X_SVG = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
+const B = board({ game: 'gridlet', label: 'Puzzle points', limits: { maxRun: 1500, maxPerSec: 100 }, mode: 'sum' });
 const P = shell({
+  B,
   key: 'gridlet', name: 'Gridlet: Nonogram Picture Puzzle', brand: 'Gridlet', kicker: 'picture logic puzzle', accent: '#7a5cf0', ink: '#2b2a45',
   bg: ['#f6f2ff', '#e4f1f7'], winWord: 'Revealed!', dailyLevel: 10,
   buttons: [{ id: 'mode', label: 'Fill', svg: FILL_SVG, onPress: () => setMode(mode ? 0 : 1) }],

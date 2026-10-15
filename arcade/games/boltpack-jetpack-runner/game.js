@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, sfx, burst, confetti, lerp, clamp, rng, rounded, mat, glossy, stickman } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import { glowSprite, sparks } from './_music/fx.js';
 
 const NAME = 'Boltpack: Jetpack Runner';
@@ -185,6 +186,7 @@ for (let i = 0; i < 4; i++) {
 }
 
 // ---------------------------------------------------------------- run state
+const B = worldBoard({ game: 'boltpack', label: 'Meters', limits: { maxRun: 10000, maxPerSec: 32 } });   // world board: best run today
 let state = 'ready', R = rng(1), x0 = 0, px = 0, py = 0, vy = 0, speed = 7, score = 0, bolts = 0, sector = 1, clock = 0, runT = 0;
 let genX = 0, nextMissile = 0, nextToken = 0, onFloor = true, holding = false, botHold = false, beatenShown = false, recorded = false;
 let bubbleT = 0, invulnT = 0, deadT = 0, deadVx = 0, spin = 0, camX = 0, camY = 0, shake = 0, nearT = 0, coinStreak = 0, coinStreakT = 0, thrustSnd = 0;
@@ -291,7 +293,7 @@ function die(why) {
 let deathWhy = '';
 function finish() {
   state = 'over';
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   totalBolts += bolts; S.set('bolts', totalBolts);
   const prev = best;
   if (score > best) { best = score; S.set('best', best); }
@@ -305,7 +307,7 @@ function finish() {
 
 input({ onDown: () => { holding = true; }, onUp: () => { holding = false; } });
 addEventListener('pointercancel', () => { holding = false; });
-ui.onTap(which => { if (which !== 'start') reset(); state = 'play'; holding = false; runT = 0; tone(660, 0.08, 'triangle', 0.12, 1.4); });
+ui.onTap(which => { B.start(); if (which !== 'start') reset(); state = 'play'; holding = false; runT = 0; tone(660, 0.08, 'triangle', 0.12, 1.4); });
 
 // ---------------------------------------------------------------- loop
 const tmpV = new THREE.Vector3();

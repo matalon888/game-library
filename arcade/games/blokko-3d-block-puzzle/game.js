@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Blokko: 3D Block Puzzle';
 const S = store('blokko');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 36, shadowSize: 7 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'BLOKKO', hint: 'Tap a cube to slide it out<br><small style="font-size:16px;opacity:.85">drag to spin the shape</small>', hand: '👆' });
 const D = daily('blokko', ui, { name: NAME });
+const B = board({ game: 'blokko', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
 const DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].map(a => new THREE.Vector3(...a));
 const MAXC = 130;
@@ -164,7 +166,7 @@ function tapBlock(b) {
 }
 function win() {
   if (state !== 'play') return; state = 'won';
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   setTimeout(() => { sfx.win(); confetti(scene, new THREE.Vector3(0, 0.5, 1), 90); ui.flash(0.35); }, 250);
   buzz([20, 30, 20]); ui.pop(['CLEARED!', 'SPOTLESS!', 'BRILLIANT!'][level % 3], '#fff', 42, 26);
   const lv = level; level++; sessionLv++; S.set('level', level); S.set('score', score);
@@ -189,7 +191,7 @@ const IN = input({
   onMove: (dx, dy) => { if (state === 'ready') return; vyaw = dx * 0.011; vpitch = dy * 0.008; yaw += vyaw; pitch = clamp(pitch + vpitch, -1.25, 1.25); idleT = 0; },
   onTap: (e) => { if (state !== 'play') return; const b = pick(e.clientX, e.clientY); if (b) tapBlock(b); else tone(220, 0.04, 'sine', 0.04, 0.9); },
 });
-ui.onTap((w) => { if (w !== 'start') build(); state = 'play'; ui.hideStart(); });
+ui.onTap((w) => { B.start(); if (w !== 'start') build(); state = 'play'; ui.hideStart(); });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

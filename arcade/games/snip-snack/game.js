@@ -5,6 +5,7 @@ import { DT, swipe, press, botStroke } from './rope.js';
 import { generate, buildSim, act } from './level.js';
 import { makeHedgehog } from './creature.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 12 });
 const { scene, camera, sun } = stage;
@@ -24,6 +25,7 @@ document.head.appendChild(css);
 const starHud = document.createElement('div'); starHud.className = 'ss-stars'; starHud.innerHTML = '<b>★</b><b>★</b><b>★</b>'; document.body.appendChild(starHud);
 const save = store('snipsnack');
 const F = flow('snipsnack');
+const B = board({ game: 'snip-snack', label: 'Stars', limits: { maxRun: 6, maxPerSec: 1.5 }, mode: 'sum' });
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), totalStars = save.get('stars', 0), state = 'ready';
 
 // ------------------------------------------------------------------ cardboard box backdrop
@@ -149,7 +151,7 @@ function onStar(s, i) {
   ui.pop(['NICE!', 'SWEET!', 'PERFECT!'][got - 1], '#ffd23f', 34 + got * 4, 30);
 }
 function win() {
-  caught = true; state = 'won'; F.level(true); candy.visible = false; pip.chomp();
+  caught = true; state = 'won'; F.level(true); B.submit(got); candy.visible = false; pip.chomp();
   const mp = V(L.mouth.x, L.mouth.y + 0.2, 1);
   sfx.win(); tone(160, 0.12, 'square', 0.1, 0.6); buzz([20, 40, 30]); ui.flash(0.45); shake = 0.3;
   burst(scene, mp, ['#ff3d6e', '#ff9bb7', '#ffffff'], 22, { speed: 0.12, up: 0.08, size: 0.5, shape: 'sphere' });
@@ -166,6 +168,7 @@ function lose() {
 ui.onTap(w => {
   if (w === 'win') level++;
   state = 'play'; buildLevel();
+  if (w !== 'lose') B.start();
 });
 
 // ------------------------------------------------------------------ render

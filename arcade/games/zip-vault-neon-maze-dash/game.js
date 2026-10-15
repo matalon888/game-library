@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, lerp, clamp, rng, rounded, mat } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const W = 11, SPD = 0.62;
 const S = store('zipvault');
@@ -14,6 +15,7 @@ const { scene, camera, sun, hemi } = stage;
 hemi.intensity = 0.9; sun.intensity = 1.5;
 const ui = createUI({ title: 'ZIP<br>VAULT', hint: 'Swipe to dash', hand: '👆' });
 const D = daily('zipvault', ui, { name: 'Zip Vault: Neon Maze Dash' });
+const B = board({ game: 'zip-vault', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
 // level looks: dark vault floor + one bright wall colour + goo colour
 const LOOKS = [
@@ -207,7 +209,7 @@ function enterCell(x, y) {
 }
 
 // ---------------------------------------------------------------- outcomes
-function record(won) { if (recorded) return; recorded = true; F.level(won, clamp(maxY / exit[1], 0, 1)); }
+function record(won) { if (recorded) return; recorded = true; if (won) B.submit(1); F.level(won, clamp(maxY / exit[1], 0, 1)); }
 function die(why) {
   if (state !== 'play') return;
   state = 'lost'; record(false); hero.visible = false; shake = 0.5; buzz([40, 30, 70]);
@@ -229,7 +231,7 @@ function win() {
 // ---------------------------------------------------------------- input
 input({ onSwipe: (d) => dash(d) });
 addEventListener('keydown', e => { const k = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' }[e.key]; if (k) dash(k); });
-ui.onTap(() => { buildLevel(); state = 'play'; t0 = performance.now(); });
+ui.onTap(() => { B.start(); buildLevel(); state = 'play'; t0 = performance.now(); });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

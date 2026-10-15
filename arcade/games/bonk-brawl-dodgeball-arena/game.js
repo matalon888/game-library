@@ -3,10 +3,12 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Bonk Brawl: Dodgeball Arena';
 const S = store('bonkbrawl');
 const F = flow('bonkbrawl');
+const B = board({ game: 'bonk-brawl', label: 'Points', limits: { maxRun: 200, maxPerSec: 30 }, mode: 'sum' });
 let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 48, shadowSize: 11 });
@@ -218,7 +220,7 @@ function win() {
   level++; S.set('level', level);
   confetti(scene, new THREE.Vector3(0, 2, 0), 100); confetti(scene, player.position.clone().setY(2), 50);
   sfx.win(); buzz([20, 40, 20, 40, 60]);
-  D.won(score);
+  D.won(score); B.submit(score);
   ui.win(level - 1, `${score} pts · ${'❤️'.repeat(hearts)}`);
 }
 function lose() {
@@ -241,7 +243,7 @@ input({
   },
   onUp: () => { if (!touch) return; touch = null; ctrl.set(0, 0); stickEl.style.display = 'none'; if (state === 'play') throwBall(); },
 });
-ui.onTap(() => { buildLevel(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
 
 // ---------------------------------------------------------------- loop
 const _v = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();

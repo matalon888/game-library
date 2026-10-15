@@ -2,6 +2,7 @@
 // Reach the flag, grab fuel cans and coins, and don't land on the driver's head.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 import { makeTerrain, DX, X0 } from './terrain.js';
 import { createCar, stepCar, headPos, WHEEL_R } from './car.js';
 
@@ -41,6 +42,7 @@ const gaugeI = hudFuel.querySelector('i'), coinsEl = hudCoins.querySelector('spa
 const save = store('bumpybuggy');
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), state = 'ready';
 const F = flow('bumpybuggy');
+const WB = board({ game: 'bumpy-buggy', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum', corner: 'tr' });
 let fk = 1, coins = 0, fuel = 100, D = 200, T, car, world = null, flagX = 0, lowFuelT = 0, stuckT = 0, endT = 0, shake = 0, slow = 0;
 const ctl = { gas: false, brake: false, noFuel: false };
 
@@ -236,6 +238,7 @@ ui.onTap(w => {
   if (w === 'win') { level++; save.set('level', level); }
   if (w !== 'start') buildLevel();
   state = 'play'; engineOn();
+  if (w !== 'lose') WB.start();
 });
 
 // ------------------------------------------------------------------ feedback helpers
@@ -248,7 +251,7 @@ function tip(text, x, y, size = 26, color = '#fff') {
 function addCoins(n) { coins += n; coinsEl.textContent = coins; }
 function finish(won, why) {
   if (state !== 'play') return;
-  state = won ? 'won' : 'lost'; F.level(won, clamp(car.p.x / D, 0, 1)); held.clear(); refreshCtl(); engineUpdate(0, false);
+  state = won ? 'won' : 'lost'; F.level(won, clamp(car.p.x / D, 0, 1)); if (won) WB.submit(1); held.clear(); refreshCtl(); engineUpdate(0, false);
   const dist = Math.max(0, Math.round(car.p.x));
   if (dist > best) { best = dist; save.set('best', best); }
   if (won) { sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(car.p.x + 1, car.p.y + 3, 0), 90); ui.flash(0.5); slow = 1; ui.win(level, `${coins} coins · ${dist} m`); }

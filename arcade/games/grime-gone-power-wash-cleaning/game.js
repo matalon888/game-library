@@ -2,6 +2,7 @@
 // mask with a noise "dissolve" edge), watch the clean % climb, and make it sparkle at 100%.
 import { THREE, createStage, createUI, loop, tone, note, buzz, confetti, burst, store, clamp, lerp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 // No flow.js: cleaning has no fail state or skill element (FLOW_BRIEF rule 4) — every object can always be finished.
 
 const NAME = 'Grime Gone: Power Wash Cleaning';
@@ -9,6 +10,7 @@ const S = store('grimegone');
 let level = S.get('level', 1), total = S.get('score', 0);
 const ui = createUI({ title: 'GRIME<br>GONE', hint: 'Drag to blast the grime', hand: '👆', score: false });
 const D = daily('grimegone', ui, { name: NAME });
+const WB = board({ game: 'grime-gone', label: 'Objects cleaned', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum' });
 const stage = createStage({ fov: 40, shadowSize: 6 });
 const { scene, camera, sun, renderer } = stage;
 document.body.style.background = 'linear-gradient(180deg,#d9ecff 0%,#f4f8ff 55%,#e3ecf7 100%)';
@@ -262,7 +264,8 @@ function win() {
   [0, 4, 7, 11, 14, 19].forEach((s, i) => setTimeout(() => note(76 + s, 0.4, 0.12), i * 80));
   confetti(scene, target.clone().add(new THREE.Vector3(0, 1, 0)), 110);
   const done = level; if (!D.seed) { level++; S.set('level', level); } sessionLv++;
-  D.won(total, 'cleaned'); ui.win(D.seed ? 'DAILY' : done, `${objName} · good as new ✨`);
+  D.won(total, 'cleaned'); WB.submit(1);                   // world board: objects cleaned today
+  ui.win(D.seed ? 'DAILY' : done, `${objName} · good as new ✨`);
 }
 
 // ---------------------------------------------------------------- input: aim 70px above the finger so it stays visible
@@ -272,7 +275,7 @@ addEventListener('pointerdown', e => { if (state !== 'play') return; audioOn(); 
 addEventListener('pointermove', e => { if (!down) return; setAim(e.clientX, e.clientY); });
 const up = () => { down = false; spraying = false; aimEl.style.display = 'none'; };
 addEventListener('pointerup', up); addEventListener('pointercancel', up);
-ui.onTap((which) => { audioOn(); if (which === 'start' && state === 'ready') { state = 'play'; return; } build(); state = 'play'; });
+ui.onTap((which) => { audioOn(); WB.start(); if (which === 'start' && state === 'ready') { state = 'play'; return; } build(); state = 'play'; });
 
 // ---------------------------------------------------------------- loop
 let measureT = 0, hissV = 0, bendT = 0;

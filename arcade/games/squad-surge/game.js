@@ -2,10 +2,12 @@
 // spinners, spike pads and spiked posts, then crash into the rival gang and topple the boss at the castle gate.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, stickman, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 import { bake, vcMat, crowdMesh } from './people.js';
 
 const ST = store('squadsurge');
 const F = flow('squadsurge');
+const WB = worldBoard({ game: 'squad-surge', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 16 });
 const ui = createUI({ title: 'SQUAD<br>SURGE', hint: 'Drag to steer your squad', hand: '👆', score: false });
@@ -136,7 +138,7 @@ input({
   onMove(dx) { if (state === 'play' && dragging && phase === 'run') C.tx = clamp(C.tx + dx * 0.028, -TW / 2 + 0.6, TW / 2 - 0.6); },
   onUp() { dragging = false; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else { buildLevel(); state = 'play'; }
@@ -150,7 +152,7 @@ function kill(p, color, fling = 1) {
 }
 function lose() { if (state !== 'play') return; state = 'lost'; F.level(false, phase === 'boss' ? 0.75 + 0.25 * clamp(1 - hp / hpMax, 0, 1) : 0.75 * clamp(C.z / endZ, 0, 1)); sfx.fail(); buzz([40, 30, 60]); ui.lose('SQUAD WIPED!', phase === 'boss' ? `Boss had ${Math.ceil(hp)} HP left` : 'Recruit more buddies on the way'); }
 function win() {
-  state = 'won'; F.level(true); const n = mine().length; best = Math.max(best, n); ST.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); const n = mine().length; best = Math.max(best, n); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20, 40]); ui.flash(0.7); ui.progress(1); flag.material.color.set(YEL);
   for (let k = 0; k < 3; k++) setTimeout(() => confetti(world, new THREE.Vector3(0, 6, bossZ - 4), 90), k * 250);
   ui.win(level, `Castle captured with ${n} survivors`);

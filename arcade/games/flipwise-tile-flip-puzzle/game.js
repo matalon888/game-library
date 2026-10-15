@@ -1,13 +1,16 @@
 // Flipwise — turn every tile sunny side up. Tapping a tile flips it and the tiles in the little pattern drawn on it
 // (a plus at first; later crosses, rings, knight jumps and bars). Boards are generated (seeded) from a solved board and
 // only kept when the press matrix is invertible, so each puzzle has exactly one set of tiles to press: that is the par.
+import { board } from './kit/board.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, note } from './puzzle.js';
 import { generate, affected, solution, PATTERNS } from './flipgen.js';
 
 let N = 3, pats = [], inv = null, start = [], st = [], par = 0, moves = 0, geo = { x: 0, y: 0, s: 80, gap: 8 }, flips = new Map(), pressAt = new Map(), hintTile = -1, wonAt = 0, kinds = [];
 const NAMES = { plus: 'plus', x: 'cross', ring: 'ring', knight: 'knight', row: 'bar', col: 'bar' };
 
+const B = board({ game: 'flipwise', label: 'Puzzle points', limits: { maxRun: 1500, maxPerSec: 100 }, mode: 'sum' });
 const P = shell({
+  B,
   key: 'flipwise', name: 'Flipwise: Tile Flip Puzzle', brand: 'Flipwise', kicker: 'tile flip puzzle', accent: '#1f9e8e', ink: '#1f3540',
   bg: ['#eefaf5', '#d5ecf2'], winWord: 'All sunny!', dailyLevel: 12,
   build(level, seed, fk) {

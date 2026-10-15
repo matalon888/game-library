@@ -4,6 +4,8 @@
 import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confetti, sfx, tone, note, buzz, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'dialock', label: 'Locks cracked', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Dialock: Spin Lock Puzzle';
 const S = createStage({ fov: 34, shadowSize: 7 });
@@ -176,7 +178,7 @@ function drive(i, s) {
   for (const l of links) if (l.from === i) { pos[l.to] = ((pos[l.to] + l.k * s) % STEPS + STEPS) % STEPS; rings[l.to].ang += l.k * s * STEP; rings[l.to].flash = 1; }
 }
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   solvedTotal++; save.set('solved', solvedTotal); escapeT = 0.0001;
   sfx.win(); buzz([20, 30, 60]);
   setTimeout(() => { confetti(scene, new THREE.Vector3(0, 1.5, -maxR), 90); ui.flash(0.5); }, 650);
@@ -198,7 +200,7 @@ function bot() {
 }
 
 // ---------------------------------------------------------------- loop
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } state = 'play'; build(); });
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } state = 'play'; build(); });
 build(); ui.start();
 let time = 0;
 loop((dt) => {

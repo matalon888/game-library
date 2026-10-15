@@ -1,10 +1,12 @@
 // Swirl Tee — original tie-dye game. Pick the fold, bind the shirt, squirt dye into each section, unfold for the reveal.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const $ = (id) => document.getElementById(id);
 const ST = store('swirltee');
 const F = flow('swirltee');
+const WB = worldBoard({ game: 'swirl-tee', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const ui = createUI({ title: 'SWIRL<br>TEE', hint: 'Fold · dye · reveal!', hand: '👆', score: false });
 const stage = createStage({ fov: 38, shadowSize: 6 });
@@ -373,7 +375,7 @@ function finish() {
   $('banner').classList.toggle('bad', !ok); $('banner').classList.add('on');
   ui.progress(1); ui.flash(0.55);
   if (ok) {
-    state = 'won'; F.level(true); score += pct; best = Math.max(best, score); ST.set('best', best);
+    state = 'won'; F.level(true); WB.submit(1); score += pct; best = Math.max(best, score); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, 2.5, 0), 80); setTimeout(() => confetti(scene, new THREE.Vector3(0, 2.5, -1), 60), 250);
     ui.win(level, stars === 3 ? 'Flawless swirl!' : `${pct}% match`);
   } else {
@@ -381,7 +383,7 @@ function finish() {
     ui.lose('SO CLOSE!', `${pct}% match · need ${Math.round(L.thr * 100)}%`);
   }
 }
-ui.onTap((which) => {
+ui.onTap((which) => { WB.start();
   if (which === 'start') { state = 'play'; show('ask', true); show('folds', true); sfx.tap(); }
   else if (which === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
   else { state = 'play'; buildLevel(); }

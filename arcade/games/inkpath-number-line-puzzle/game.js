@@ -1,13 +1,16 @@
 // Inkpath — draw one unbroken ink line that passes the numbered stops 1 → 2 → 3 … in order and fills every square.
 // Later puzzles add little walls the line can't cross. Every puzzle is generated (seeded) and checked by an exhaustive
 // solver to have exactly one line, so it can always be finished by reasoning.
+import { board } from './kit/board.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, note } from './puzzle.js';
 import { generate, neighbours, wallKey } from './inkgen.js';
 
 const INK = [[74, 95, 193], [38, 166, 154]];   // line colour runs indigo → teal along its length
 let N = 5, sol = [], stops = [], stopIdx = new Map(), walls = new Set(), wallList = [], path = [], geo = { x: 0, y: 0, s: 50 }, drag = false, wonAt = 0, hintCell = -1, hintAt = 0, pulse = new Map(), bump = { c: -1, t: 0 };
 
+const B = board({ game: 'inkpath', label: 'Puzzle points', limits: { maxRun: 1500, maxPerSec: 100 }, mode: 'sum' });
 const P = shell({
+  B,
   key: 'inkpath', name: 'Inkpath: Number Line Puzzle', brand: 'Inkpath', kicker: 'one-line number puzzle', accent: '#4a5fc1', ink: '#252a44',
   bg: ['#fbf7ee', '#e9eef8'], winWord: 'Inked!', dailyLevel: 10,
   build(level, seed, fk) {

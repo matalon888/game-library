@@ -3,6 +3,7 @@
 import { createUI, store, buzz, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, fmtTime, todayKey } from './calm.js';
 
 const NAME = 'Ninefold: Daily Sudoku Puzzle';
@@ -16,6 +17,7 @@ const MAX_MISTAKES = 3;
 const ui = createUI({ title: 'Ninefold', hint: 'Tap to play', hand: '', score: false });
 cardTheme({ accent: '#4b62c9' });
 const D = daily('ninefold', ui, { name: NAME });
+const LB = board({ game: 'ninefold', label: 'Puzzles solved', limits: { maxRun: 2, maxPerSec: 0.05 }, mode: 'sum', corner: 'br' });   // world board: puzzles solved today (RULES.md)
 const fx = fx2d(11);
 
 let diff = D.isDaily ? 1 : S.get('diff', 0);
@@ -249,7 +251,7 @@ addEventListener('keydown', (e) => {
 function win() {
   if (state !== 'play') return;
   state = 'won';
-  if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+  if (!recorded) { recorded = true; LB.submit(1); if (!D.isDaily) F.level(true); }
   const t = Math.round(time);
   wave(Array.from({ length: 81 }, (_, k) => k), sel >= 0 ? sel : 40, 0.07);
   arp([67, 71, 74, 79, 83, 86], 110, 0.12, 0.9); fx.confetti(); buzz([20, 60, 20]);
@@ -264,7 +266,7 @@ function lose() {
   if (!recorded) { recorded = true; if (!D.isDaily) F.level(false, filledFrac()); }
   ui.lose('Three strikes', `${Math.round(filledFrac() * 100)}% solved · same puzzle, fresh start`);
 }
-ui.onTap((which) => {
+ui.onTap((which) => { LB.start();
   if (which === 'start') {
     if (!built || curDiff !== diff) build();
     state = 'play'; lastTick = performance.now();

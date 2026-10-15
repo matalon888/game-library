@@ -4,6 +4,8 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'halo-burst', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Halo Burst: Bouncing Ball Rings';
 const S = store('haloburst');
@@ -141,7 +143,7 @@ function lose(why) {
   ui.lose(why, `${cur} of ${rings.length} rings`);
 }
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   addScore(Math.ceil(timeLeft) * 2 + level * 5);
   best = Math.max(best, score); S.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.4); ui.pill('');
@@ -152,6 +154,7 @@ function win() {
 
 input({ onDown: () => flip() });
 ui.onTap(w => {
+  B.start();
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();
   state = 'play'; ui.els.sc.classList.remove('hc-hidden');

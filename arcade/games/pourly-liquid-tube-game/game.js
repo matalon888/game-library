@@ -4,6 +4,8 @@ import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confet
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { CAP, top, run, done, legal, pourN, solve, deal } from './levels.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'pourly', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Pourly: Liquid Tube Game';
 const S = createStage({ fov: 34, shadowSize: 9 });
@@ -226,7 +228,7 @@ function anyLegal() { for (let a = 0; a < T.length; a++) for (let b = 0; b < T.l
 function checkEnd() {
   if (state !== 'play') return;
   if (T.every(done) && !anims.length) {
-    state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+    state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
     sfx.win(); ui.flash(0.5); confetti(world, new THREE.Vector3(0, camT.y + 1.5, 1), 90);
     level++; save.set('level', level);
     if (!beatenShown && D.beaten(level - 1)) { beatenShown = true; ui.pop('BEATEN!', '#fff', 44, 24); }
@@ -277,7 +279,7 @@ function bot() {
 }
 
 // ---------------------------------------------------------------- loop
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } build(); state = 'play'; });
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } build(); state = 'play'; });
 build(); ui.start();
 addEventListener('resize', () => layout(false));
 let time = 0;

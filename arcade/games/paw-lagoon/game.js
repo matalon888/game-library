@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { part, merge, canvasTex, puff, starShape } from './geo.js';
 import { makeCat } from './cat.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 
 const N = 8, HALF = (N - 1) / 2;
 const cx = c => c - HALF, cz = r => r - HALF;
@@ -15,6 +16,7 @@ sun.position.set(-3, 16, 7); sun.intensity = 1.5; hemi.intensity = 1.25; sun.sha
 const ui = createUI({ title: 'PAW<br>LAGOON', hint: 'Swipe a fruit to match 3', hand: '👆', score: false });
 const save = store('pawlagoon');
 const F = flow('pawlagoon');
+const B = board({ game: 'paw-lagoon', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });
 let level = save.get('level', 1);
 
 // ---------------------------------------------------------------- tile kinds
@@ -630,7 +632,7 @@ async function winSeq() {
   const best = save.get('stars', {}); best[level] = Math.max(best[level] || 0, stars); save.set('stars', best);
   save.set('level', level + 1); save.set('best', Math.max(save.get('best', 0), score));
   starsEl.innerHTML = [0, 1, 2].map(i => `<i class="${i < stars ? 'on' : ''}" style="animation-delay:${0.15 + i * 0.2}s">★</i>`).join('');
-  state = 'won'; F.level(true); ui.flash(0.5);
+  state = 'won'; F.level(true); B.submit(1); ui.flash(0.5);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3((i - 1) * 2.5, 3, 0), 60), i * 160);
   ui.win(level, `Score ${score}`);
 }
@@ -663,7 +665,7 @@ input({
     sel = sel === t ? null : t; if (sel) tone(700, 0.04, 'sine', 0.08);
   },
 });
-ui.onTap(w => { if (w === 'win') level++; genLevel(); state = 'play'; });
+ui.onTap(w => { if (w === 'win') level++; genLevel(); state = 'play'; B.start(); });
 
 // ---------------------------------------------------------------- layout + camera
 let frameRect = null, camD = 30, boardPx = 380, boardCy = 400, TILT = 0.2;

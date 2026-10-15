@@ -3,11 +3,14 @@
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 
 const NAME = 'Boop Board: Bubble Popper Fidget Game';
 const S = store('boopboard');
 let level = S.get('level', 1), best = S.get('best', 0);
 const F = flow('boopboard');
+const B = worldBoard({ game: 'boop-board', label: 'Points', limits: { maxRun: 400, maxPerSec: 30 }, mode: 'sum' });
+let levelStart = 0;   // score when this level started: the world board counts each cleared level's points
 
 const stage = createStage({ fov: 38, shadowSize: 6 });
 const { scene, camera } = stage;
@@ -191,7 +194,7 @@ function popBubble(b, byBot) {
 
 function win() {
   state = 'won'; mood = 1; spin = 1; jump = 1;
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); B.submit(score - levelStart); }
   const frac = timeLeft / timeMax, stars = frac > 0.45 ? 3 : frac > 0.2 ? 2 : 1;
   const done = level; level++; sessionLv++; if (!D.seed) S.set('level', level);
   best = Math.max(best, score); S.set('best', best);
@@ -233,7 +236,7 @@ addEventListener('pointercancel', () => { down = false; });
 
 ui.onTap((which) => {
   if (which === 'lose') score = 0;
-  build(); state = 'play'; ui.hideStart(); clock.classList.remove('hide');
+  build(); state = 'play'; ui.hideStart(); clock.classList.remove('hide'); levelStart = score; B.start();
 });
 
 // ---------------------------------------------------------------- loop

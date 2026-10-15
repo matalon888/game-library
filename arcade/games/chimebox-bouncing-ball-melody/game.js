@@ -5,6 +5,8 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { SONG } from './_music/songs.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'chimebox', label: 'Songs finished', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Chimebox: Bouncing Ball Melody';
 const S = store('chimebox');
@@ -230,7 +232,7 @@ function lose(b) {
   ui.lose('FULL!', `${Math.min(ni, need)} of ${need} notes of ${song.title}`);
 }
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   addScore(25 + level * 5);
   best = Math.max(best, score); S.set('best', best);
   const ch = chordFor(seq[need - 1][0]);
@@ -242,6 +244,7 @@ function win() {
 
 input({ onDown: () => turn() });
 ui.onTap(w => {
+  B.start();
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();
   state = 'play'; ui.els.sc.classList.remove('hc-hidden');

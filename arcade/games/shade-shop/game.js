@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'shade-shop', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const ST = store('shadeshop');
 const F = flow('shadeshop');
 let level = ST.get('level', 1), best = ST.get('best', 0), score = ST.get('score', 0);
@@ -240,7 +242,7 @@ function finish() {
   const b = $('banner'); b.textContent = resultPct + '% ACCURATE'; b.className = 'banner on' + (ok ? '' : ' bad');
   can.visible = false;
   if (ok) {
-    state = 'won'; F.level(true); score += resultPct; best = Math.max(best, resultPct); ST.set('score', score); ST.set('best', best);
+    state = 'won'; F.level(true); WB.submit(1); score += resultPct; best = Math.max(best, resultPct); ST.set('score', score); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20]); ui.flash(0.5); ui.progress(1);
     confetti(scene, objRoot.position.clone().add(new THREE.Vector3(0, 1.5, 1)), 90);
     ui.win(level, resultPct >= 97 ? 'Perfect shade!' : 'Nice eye!');
@@ -250,7 +252,7 @@ function finish() {
   }
 }
 
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { state = 'play'; buildLevel(); }

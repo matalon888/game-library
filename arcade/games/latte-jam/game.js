@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
+const B = worldBoard({ game: 'latte-jam', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const S = createStage({ fov: 40, shadowSize: 10 });
 const { scene, camera, sun, hemi, renderer } = S;
@@ -209,12 +211,12 @@ input({ onTap: (e) => {
   hits.sort((a, b) => trays[b.object.userData.tray].layer - trays[a.object.userData.tray].layer);
   tapTray(trays[hits[0].object.userData.tray]);
 } });
-ui.onTap(w => { if (w === 'win') level++; genLevel(); state = 'play'; });
+ui.onTap(w => { B.start(); if (w === 'win') level++; genLevel(); state = 'play'; });
 
 function studPos(t, k) { const i = k % 3, j = Math.floor(k / 3); return new THREE.Vector3(t.m.position.x + (i - 1) * CELL, t.m.position.y + TRAY_H + 0.07, t.m.position.z + (j - 0.5) * CELL); }
 function frontCup() { return cups.find(c => c.st === 'queue' && c.q === 0); }
 function win() {
-  state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(0, 2, -1), 70), i * 170);
   ui.win(level, `All ${total} cups served!`);
 }

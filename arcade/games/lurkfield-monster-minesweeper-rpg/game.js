@@ -4,6 +4,7 @@
 import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Lurkfield: Monster Minesweeper RPG';
@@ -12,6 +13,7 @@ const F = flow('lurkfield');
 const ui = createUI({ title: 'Lurkfield', hint: 'Tap to descend', hand: '', score: false });
 cardTheme({ accent: '#e0913a', serif: "'Baloo 2',system-ui,sans-serif" });
 const D = daily('lurkfield', ui, { name: NAME });
+const B = board({ game: 'lurkfield', label: 'Fields cleared', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily dungeon' : 'monster minesweeper', doneLine: doneToday ? (D.isDaily ? `Cleared today · ${doneToday.s} pts` : 'Daily dungeon cleared ✓') : null });
@@ -233,7 +235,7 @@ function win() {
   if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || score > prev.s) S.set(k, { s: score }); }
   else { level++; S.set('level', level); }
   const best = S.get('best', 0); if (score > best) S.set('best', score);
-  refresh(); D.won(score);
+  refresh(); D.won(score); B.submit(1);   // world board: fields cleared today
   ui.win(D.isDaily ? '' : level - 1, `${score} pts · hero level ${plvl} · ${Math.max(0, hp)} hearts left`);
 }
 function lose(c) {
@@ -244,6 +246,7 @@ function lose(c) {
   ui.lose('Defeated', `A ${(c.k === 'boss' ? BOSS : MON[c.lv])[1]} (level ${c.lv}) was too strong · ${Math.round(slain() * 100)}% slain`);
 }
 ui.onTap((which) => {
+  B.start();
   document.body.getAnimations().forEach(a => a.cancel());
   if (which === 'start') { state = 'play'; refresh(); return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }

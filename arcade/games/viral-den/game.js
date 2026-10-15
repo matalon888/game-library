@@ -3,6 +3,8 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { flow } from './kit/flow.js';
 import { part, merge, canvasTex } from './geo.js';
 
+import { board as worldBoard } from './kit/board.js';
+const WB = worldBoard({ game: 'viral-den', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const S = createStage({ fov: 30, shadowSize: 7 });
 const { scene, camera, sun, hemi, renderer } = S;
 sun.position.set(6, 12, 9); sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0008;
@@ -350,7 +352,7 @@ function startLevel() {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); save.set('level', level + 1); save.set('cash', Math.floor(cash)); save.set('total', Math.floor(total));
+  state = 'won'; F.level(true); WB.submit(1); save.set('level', level + 1); save.set('cash', Math.floor(cash)); save.set('total', Math.floor(total));
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(kai.position.x, 2.6, kai.position.z), 60), i * 160);
   emote('🏆', new THREE.Vector3(kai.position.x, 2.4, kai.position.z), 3);
@@ -364,7 +366,7 @@ function lose() {
   ui.lose('TREND OVER', `${Math.round(gained / goalOf(level) * 100)}% of the goal · upgrade your gear!`);
   refreshHUD();
 }
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; startLevel(); }
   else if (w === 'win') { level++; state = 'play'; startLevel(); }
   else if (w === 'lose') { state = 'play'; startLevel(); }

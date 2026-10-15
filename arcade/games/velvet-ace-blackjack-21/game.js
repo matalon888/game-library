@@ -2,6 +2,7 @@
 // No flow / adaptive difficulty: the cards are the cards. Progress = tables (reach the chip goal, next table has higher stakes).
 import { THREE, createStage, createUI, loop, store, confetti, buzz } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import * as C from './casino.js';
 
 const NAME = 'Velvet Ace: Blackjack 21';
@@ -122,6 +123,7 @@ function basic(hand, up, canDouble, canSplit) {
 }
 
 // ---------------------------------------------------------------- round state
+const B = worldBoard({ game: 'velvet-ace', label: 'Tables cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: 1 point per table cleared today
 let state = 'ready', phase = 'idle', bet = 0, lastBet = 0, hands = [], active = 0, dealer = { cards: [], meshes: [] }, beatenShown = false, botOn = false;
 const dLabel = C.label(); dLabel.position.set(0, 0.5, DEALER_Z + 0.82); scene.add(dLabel);
 let betStack = null; const betLabel = C.label(0.8, 0.3); betLabel.position.set(0, 0.55, BET_Z + 0.55); scene.add(betLabel);
@@ -355,7 +357,7 @@ async function clearTable() {
   hands = []; dealer = { cards: [], meshes: [] };
 }
 function tableWon() {
-  state = 'won'; phase = 'idle'; betBar.show(false); chipsBar.show(false); odds.btn.classList.add('hc-hidden');
+  state = 'won'; phase = 'idle'; B.submit(1); betBar.show(false); chipsBar.show(false); odds.btn.classList.add('hc-hidden');
   C.csfx.big(); buzz([30, 50, 30]); confetti(scene, new THREE.Vector3(0, 1, 0.5), 90); ui.flash(0.4);
   D.won(chips, 'cashed out');
   S.set('table', tableN + 1);
@@ -373,6 +375,7 @@ function setupTable(n) {
 function shade(hex, k) { const c = new THREE.Color(hex).multiplyScalar(k); return '#' + c.getHexString(); }
 
 ui.onTap(which => {
+  B.start();
   if (which === 'start') { state = 'play'; enterBet(); }
   else if (which === 'win') { setupTable(tableN + 1); state = 'play'; enterBet(); }
   else if (which === 'lose') { setupTable(tableN); state = 'play'; enterBet(); }

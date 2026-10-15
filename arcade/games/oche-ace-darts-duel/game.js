@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const V3 = THREE.Vector3;
 const S = createStage({ fov: 44, shadowSize: 4 });
@@ -12,6 +13,7 @@ const D = daily('ocheace', ui, { name: 'Oche Ace: Darts Duel' });
 ui.els.start.classList.add('dim');
 const save = store('ocheace');
 const F = flow('ocheace');
+const B = board({ game: 'oche-ace', label: 'Points in won matches', limits: { maxRun: 600, maxPerSec: 25 }, mode: 'sum', corner: 'bl' });
 let level = save.get('level', 1), best = save.get('best', 0), total = 0;
 
 const THEMES = [
@@ -232,7 +234,7 @@ function landed(f) {
 function endLevel() {
   if (you > riv) {
     state = 'won'; if (!recorded) { recorded = true; F.level(true); }
-    total += you; best = Math.max(best, total); save.set('best', best);
+    total += you; best = Math.max(best, total); save.set('best', best); B.submit(you);
     const lv = level; level++; save.set('level', level);
     sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, new V3(0, 0.6, 0.6), 90);
     if (D.beaten(total) && !beatenShown) { beatenShown = true; ui.pop('BEATEN!', '#ffd23f', 48, 30); }
@@ -255,6 +257,7 @@ input({
 ui.onTap(which => {
   if (which === 'start') { state = 'play'; sfx.tap(); turnEl.style.opacity = 1; }
   else { buildLevel(); state = 'play'; }
+  B.start();
 });
 
 // ---------------------------------------------------------------- loop

@@ -3,6 +3,7 @@
 import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Plumb Pairs: Connect the Dots Pipe Puzzle';
@@ -11,6 +12,7 @@ const F = flow('plumbpairs');
 const ui = createUI({ title: 'Plumb Pairs', hint: 'Tap to play', hand: '', score: false });
 cardTheme({ accent: '#3d8bff', serif: "'Baloo 2',system-ui,sans-serif" });
 const D = daily('plumbpairs', ui, { name: NAME });
+const B = board({ game: 'plumb-pairs', label: 'Puzzles solved', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum' });
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily puzzle' : 'connect the dots', doneLine: doneToday ? (D.isDaily ? `Solved today in ${doneToday.m} moves` : 'Daily puzzle solved ✓') : null });
@@ -197,10 +199,11 @@ function win() {
   else if (perfect) ui.pop('PERFECT!', '#ffd23f', 40, 30);
   if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || moves < prev.m) S.set(k, { m: moves }); }
   else { level++; S.set('level', level); }
-  D.won(total);
+  D.won(total); B.submit(1);   // world board: puzzles solved today
   ui.win(D.isDaily ? '' : level - 1, `${moves} moves${perfect ? ' · perfect' : ''} · +${pts} pts`);
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

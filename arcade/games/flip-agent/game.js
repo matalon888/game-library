@@ -2,6 +2,7 @@
 // Tap = one bullet along the laser. Clear every masked goon before he lands, never hit a hostage. Steel ricochets, barrels explode.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 import { particles } from './fx.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 14 });
@@ -9,6 +10,7 @@ const { scene, camera, renderer } = stage;
 const ui = createUI({ title: 'FLIP<br>AGENT', hint: 'Tap to shoot mid-flip', hand: '👆' });
 const save = store('flipagent');
 const FL = flow('flipagent');
+const WB = worldBoard({ game: 'flip-agent', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });
 let fk = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
@@ -339,7 +341,7 @@ function updateProgress() { const done = stages.filter(s => s.cleared).length; u
 // ------------------------------------------------------------------ win / lose
 function win() {
   if (state !== 'play') return;
-  state = 'won'; FL.level(true); score += ammo * 5; ui.score(score);
+  state = 'won'; FL.level(true); WB.submit(1); score += ammo * 5; ui.score(score);
   best = Math.max(best, score); save.set('best', best); level++; save.set('level', level);
   sfx.win(); buzz([30, 40, 30]);
   const p = v3(agent.x, agent.y + 2, 0);
@@ -370,7 +372,7 @@ function tracer(ax, ay, bx, by, color) {
 
 // ------------------------------------------------------------------ input
 input({ onDown: () => { if (state === 'play') fire(); } });
-ui.onTap(which => {
+ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; agent.phase = 'run'; sfx.tap(); }
   else { score = which === 'win' ? score : 0; buildLevel(); state = 'play'; agent.phase = 'run'; }
 });

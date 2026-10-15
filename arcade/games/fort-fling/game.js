@@ -2,6 +2,7 @@
 // block forts of wood, glass and stone, and knock every last bandit out before you run out of fruit.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 import { World, makeBox, makeCircle } from './physics.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 14 });
@@ -20,6 +21,7 @@ css.textContent = `body{--bg1:#5fb8f0;--bg2:#ffe6c2;--ui:#ff7a2f}
 document.head.appendChild(css);
 const save = store('fortfling');
 const F = flow('fortfling');
+const B = board({ game: 'fort-fling', label: 'Points', limits: { maxRun: 150000, maxPerSec: 30000 }, mode: 'sum' });
 let fk = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0);
 let state = 'ready', score = 0, shots = 3, totalRac = 1;
@@ -311,12 +313,12 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 
 // ------------------------------------------------------------------ states
 ui.onTap(w => {
-  if (w === 'start') { state = 'play'; }
-  else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }
+  if (w === 'start') { state = 'play'; B.start(); }
+  else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); B.start(); }
   else if (w === 'lose') { state = 'play'; buildLevel(); }
 });
 function win() {
-  state = 'won'; F.level(true); const bonus = shots * 10000; score += bonus; ui.score(score); sfx.win(); buzz([20, 40, 20]);
+  state = 'won'; F.level(true); const bonus = shots * 10000; score += bonus; ui.score(score); B.submit(score); sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3((fortMin + fortMax) / 2, 5, 0), 90);
   if (score > best) { best = score; save.set('best', best); }
   ui.win(level, `${score.toLocaleString()} pts${bonus ? ' · +' + bonus.toLocaleString() + ' spare fruit' : ''}`);

@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Goo Patrol: Spot the Impostor';
 const S = store('goopatrol');
@@ -17,6 +18,7 @@ stage.autoRender = false;
 sun.layers.enable(1); hemi.layers.enable(1);
 const ui = createUI({ title: 'GOO<br>PATROL', hint: 'Hold to scan · let go to zap', hand: '👆' });
 const D = daily('goopatrol', ui, { name: NAME });
+const B = board({ game: 'goo-patrol', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });   // world board: levels cleared today (RULES.md)
 
 // ---------------------------------------------------------------- HUD bits of our own: scanner battery + hearts
 const css = document.createElement('style');
@@ -242,7 +244,7 @@ function zap(c) {
   }
 }
 function win() {
-  if (state !== 'play') return; state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  if (state !== 'play') return; state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   score += lives * 50; ui.score(score); best = Math.max(best, score); S.set('best', best);
   sfx.win(); confetti(scene, new THREE.Vector3(0, 2.4, -3), 110); holding = false; ring.style.display = 'none';
   for (const c of crowd) if (c.state === 'idle' || c.state === 'stunned') c.state = 'cheer';
@@ -260,7 +262,7 @@ input({
   onMove: (dx, dy, e) => { if (holding) { lensX = e.clientX; lensY = e.clientY - 70; } },
   onUp: () => { if (!holding || state !== 'play') { holding = false; return; } holding = false; zap(personAt(lensX, lensY)); },
 });
-ui.onTap(w => {
+ui.onTap(w => { B.start();
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();
   state = 'play'; ui.els.sc.classList.remove('hc-hidden'); hud(true);

@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board as worldBoard } from './kit/board.js';
+const WB = worldBoard({ game: 'cube-trek', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const S = store('cubetrek');
 const F = flow('cubetrek'); let fk = 1;
 let level = S.get('level', 1), best = S.get('best', 0);
@@ -177,7 +179,7 @@ function place(p, r0, c0) {
 }
 function checkEnd() {
   if (goal.type === 'gems' ? goal.got >= goal.need : score >= goal.need) {
-    state = 'won'; F.level(true); setTimeout(() => { sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, BOARD_Y + 2, 2), 60); confetti(scene, new THREE.Vector3(-3, BOARD_Y, 2), 30); confetti(scene, new THREE.Vector3(3, BOARD_Y, 2), 30); }, 450);
+    state = 'won'; F.level(true); WB.submit(1); setTimeout(() => { sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, BOARD_Y + 2, 2), 60); confetti(scene, new THREE.Vector3(-3, BOARD_Y, 2), 30); confetti(scene, new THREE.Vector3(3, BOARD_Y, 2), 30); }, 450);
     best = Math.max(best, score); S.set('best', best); ui.win(level, `Score ${score}`); level++; S.set('level', level);
     return;
   }
@@ -189,7 +191,7 @@ function checkEnd() {
   }
 }
 
-ui.onTap(w => { if (w === 'start') { state = 'play'; } else { buildLevel(); state = 'play'; } });
+ui.onTap(w => { WB.start(); if (w === 'start') { state = 'play'; } else { buildLevel(); state = 'play'; } });
 
 // ------------------------------------------------------------------ render all blocks via instancing every frame
 const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Euler(), v3 = new THREE.Vector3(), sc = new THREE.Vector3(), col = new THREE.Color(), tmpC = new THREE.Color();

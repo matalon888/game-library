@@ -3,6 +3,8 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti
 import { canvasTex } from './geo.js';
 import { createDoll, buildItem, cloth } from './doll.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'dress-diva', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const S = createStage({ fov: 30, shadowSize: 6 });
 const { scene, camera, sun, hemi, renderer } = S;
@@ -319,7 +321,7 @@ function judge() {
   rivalDoll.root.visible = true; rivalDoll.root.scale.setScalar(0.01); rivalPop = 0;
   setTimeout(() => {
     if (myScore >= rivalScore) {
-      state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
+      if (state === 'play') B.submit(1); state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
       for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(RX, 3.5, 1.5), 70), i * 170);
       ui.win(level, `${myScore.toFixed(1)} vs ${rivalScore.toFixed(1)} — the crowd loves it!`);
     } else {
@@ -330,7 +332,7 @@ function judge() {
   }, 3300);
 }
 
-ui.onTap(w => {
+ui.onTap(w => { B.start();
   if (w === 'win') level++;
   setupLevel(); state = 'play'; panel.classList.remove('off');
 });

@@ -3,6 +3,8 @@ import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'horde-blast', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum' });
 const save = store('hordeblast');
 const F = flow('hordeblast');
 let fk = 1;
@@ -133,7 +135,7 @@ input({
   onMove: (dx) => { if (state === 'play') aimX = clamp(aimX + dx * 0.03, -W + 1.1, W - 1.1); },
   onUp: () => { firing = false; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; firing = false; }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
   else if (w === 'lose') { score = 0; buildLevel(); state = 'play'; }
@@ -199,7 +201,7 @@ let bossHit = 0, fortHit = 0;
 function lose(t, line) { if (state !== 'play') return; state = 'lost'; F.level(false, 1 - Math.max(0, baseHP) / baseMax); firing = false; sfx.fail(); buzz([60, 40, 80]); ui.flash(0.6); shake = 1; burst(scene, cannon.position.clone().setY(1), ['#2f86ff', '#ffffff', '#555'], 30, { speed: 0.25, up: 0.2 }); ui.lose(t, line); }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); firing = false; score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); firing = false; score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
   sfx.smash(); setTimeout(() => sfx.win(), 200); buzz([40, 30, 80]); ui.flash(0.8); shake = 1.5;
   for (let i = 0; i < 4; i++) setTimeout(() => burst(scene, new THREE.Vector3((Math.random() - 0.5) * 8, 3 + Math.random() * 3, BASEZ), ['#e8394d', '#ff5266', '#fff1f1', '#ffd23f'], 30, { speed: 0.35, up: 0.3, size: 2 }), i * 120);
   confetti(scene, new THREE.Vector3(0, 6, BASEZ + 4), 120); collapse = 1; fortHP.visible = false;

@@ -1,5 +1,6 @@
 // Jellyfit — original 8×8 block puzzle. Drag the three offered jelly shapes onto the board; full rows and columns blast away.
 // Keep clearing every few moves to grow a combo. The run ends when none of the offered shapes fits anywhere.
+import { board as worldBoard } from './kit/board.js';
 import { createUI, store, buzz, tone, loop } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
@@ -75,6 +76,7 @@ const SHAPES = BASE.map(([s, w, big]) => {
 // ---------------------------------------------------------------- state
 const N = 8;
 let board = new Int8Array(64).fill(-1), pop = new Float32Array(64), grey = new Float32Array(64);
+const B = worldBoard({ game: 'jellyfit', label: 'Points', limits: { maxRun: 400000, maxPerSec: 400 } });
 let tray = [null, null, null], drag = null, state = 'ready', score = 0, shown = 0, best = S.get('best', 0), combo = 0, sinceClear = 9;
 let level = 1, recorded = false, beatenShown = false, overT = 0, R = Math.random, shake = 0, clears = [], floats = [], comboT = 0, trayT = 0;
 const L = { cell: 44, bx: 0, by: 0, size: 352, trayY: 640, slotW: 130 };
@@ -114,7 +116,7 @@ addEventListener('resize', layout);
 // ---------------------------------------------------------------- run
 function newRun() {
   board.fill(-1); pop.fill(0); grey.fill(0); clears = []; floats = [];
-  score = 0; shown = 0; combo = 0; sinceClear = 9; level = 1; recorded = false; beatenShown = false; overT = 0; drag = null;
+  B.start(); score = 0; shown = 0; combo = 0; sinceClear = 9; level = 1; recorded = false; beatenShown = false; overT = 0; drag = null;
   R = rngf(D.seed ? D.seed * 977 + 13 : (Date.now() % 2147483647) ^ 0x5f3759df);
   ui.levels(1); ui.progress(0); ui.score(0); ui.sub(best ? '👑 ' + best.toLocaleString() : ''); ui.pill(D.isDaily ? 'DAILY' : '');
   refill();
@@ -176,7 +178,7 @@ function checkOver() {
 }
 function endRun() {
   if (state !== 'play') return;
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const old = best, newBest = score > best;
   if (newBest) { best = score; S.set('best', best); }
   if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || score > prev.s) S.set(k, { s: score }); }

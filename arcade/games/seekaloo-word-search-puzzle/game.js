@@ -5,6 +5,8 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { THEMES } from './themes.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'seekaloo', label: 'Puzzles solved', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Seekaloo: Word Search Puzzle';
 const S = store('seekaloo');
@@ -275,7 +277,7 @@ hintBtn.addEventListener('pointerdown', (e) => {
 function win() {
   if (state !== 'play') return;
   state = 'won';
-  if (!recorded) { recorded = true; if (!D.isDaily) { if (hintUsedAt < 0) F.level(true); else F.level(false, hintUsedAt / lv.words.length); } }
+  if (!recorded) { recorded = true; B.submit(1); if (!D.isDaily) { if (hintUsedAt < 0) F.level(true); else F.level(false, hintUsedAt / lv.words.length); } }
   const bonus = 20 + lv.words.length * 5; score += bonus; dailyScore += bonus; S.set('score', score); hud();
   arp([67, 72, 76, 79, 84], 100, 0.12, 0.9); fx.confetti(); buzz([20, 50, 20]);
   [...gridEl.children].forEach((c, i) => setTimeout(() => { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }, ((i % lv.cols) + Math.floor(i / lv.cols)) * 35));
@@ -286,6 +288,7 @@ function win() {
   ui.win(D.isDaily ? '' : level - 1, `${lv.theme.name} · ${lv.words.length} words · ${shown.toLocaleString()} pts`);
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

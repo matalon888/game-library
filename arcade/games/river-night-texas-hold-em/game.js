@@ -3,6 +3,7 @@
 // by simulation. The only adaptive part is flow on the AIs' aggression/skill (F.k()), recorded once per sit-and-go.
 import { THREE, createStage, createUI, loop, store, confetti, buzz, rng } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import { flow } from './kit/flow.js';
 import * as C from './casino.js';
 
@@ -91,6 +92,7 @@ const BADGE = ['🦊', '🦉', '🐻', '🦁', '🐺', '🐯', '🐼', '🦝', '
 const STYLE = [{ n: 'Rock', t: 1.25, a: 0.75, b: 0.02 }, { n: 'Shark', t: 1.05, a: 1.25, b: 0.07 }, { n: 'Maniac', t: 0.75, a: 1.5, b: 0.12 }, { n: 'Calling station', t: 0.8, a: 0.55, b: 0.02 }, { n: 'Steady', t: 1.0, a: 1.0, b: 0.05 }];
 
 // ---------------------------------------------------------------- game state
+const B = worldBoard({ game: 'river-night', label: 'Tables won', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: 1 point per table won vs the AI players today
 let state = 'ready', players = [], btn = 0, handNo = 0, deck = [], board = [], boardMeshes = [], pot = 0, curBet = 0, minRaise = 0;
 let busy = false, waiting = null, recorded = false, beatenShown = false, botOn = false, elimOrder = [], aiK = 1, totalChips = 0, potStack = null;
 const potLabel = C.label(0.9, 0.32); potLabel.position.set(POT.x, 0.5, POT.z + 0.42); scene.add(potLabel);
@@ -381,7 +383,7 @@ async function runTable() {
       return;
     }
     if (alive().length === 1) {
-      if (!recorded) { recorded = true; F.level(true); }
+      if (!recorded) { recorded = true; F.level(true); B.submit(1); }
       state = 'won'; actBar.show(false); C.csfx.big(); confetti(scene, new THREE.Vector3(0, 1, 1.5), 90); ui.flash(0.4);
       S.set('table', tableN + 1);
       D.won(you.stack, 'won a table with');
@@ -420,6 +422,7 @@ const odds = C.oddsPanel(`<h2>Rules & fairness</h2>
 <div class="edge">No house edge: you play the AIs, not the house. Free play only: chips have no cash value and can't be bought.</div>`);
 
 ui.onTap(which => {
+  B.start();
   if (which === 'start') { state = 'play'; runTable(); }
   else if (which === 'win') { setupTable(tableN + 1); state = 'play'; runTable(); }
   else if (which === 'lose') { setupTable(tableN); state = 'play'; runTable(); }

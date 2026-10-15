@@ -2,10 +2,12 @@
 // walls (they eat heel blocks), do the splits across rooftop rails, then spend what's left climbing the multiplier podium.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 import { bake, vcMat } from './bake.js';
 
 const ST = store('tiptoetower');
 const F = flow('tiptoetower');
+const WB = worldBoard({ game: 'tiptoe-tower', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 14 });
 const ui = createUI({ title: 'TIPTOE<br>TOWER', hint: 'Drag to strut', hand: '👆', score: false });
@@ -151,7 +153,7 @@ input({
   onMove(dx) { if (state === 'play' && dragging) G.tx = clamp(G.tx + dx * 0.02, -TW / 2 + 0.45, TW / 2 - 0.45); },
   onUp() { dragging = false; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else { buildLevel(); state = 'play'; }
@@ -164,7 +166,7 @@ function shed(k, z, fx = 0) {      // k blocks fall off each heel
 function lose(t) { if (state !== 'play') return; state = 'lost'; F.level(false, clamp(G.z / podiumZ, 0, 1)); sfx.fail(); buzz([50, 30, 80]); ui.flash(0.4); ui.lose(t, `${gems} 💎 this run`); }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); const pts = Math.round(gems * mult) + Math.round(mult * 10); total += pts; ST.set('gems', total); best = Math.max(best, mult); ST.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); const pts = Math.round(gems * mult) + Math.round(mult * 10); total += pts; ST.set('gems', total); best = Math.max(best, mult); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1); hud();
   confetti(world, new THREE.Vector3(G.x, G.y + 3, G.z - 1), 120); setTimeout(() => confetti(world, new THREE.Vector3(G.x, G.y + 3, G.z - 1), 80), 300);
   ui.win(level, `x${mult.toFixed(1)} podium · +${pts} 💎`);

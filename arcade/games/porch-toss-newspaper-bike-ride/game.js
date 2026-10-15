@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, sfx, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded, stickman } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const KEY = 'porchtoss', NAME = 'Porch Toss: Newspaper Bike Ride';
 const S = store(KEY);
@@ -14,6 +15,7 @@ const { scene, camera, sun, hemi } = stage;
 sun.intensity = 1.8; hemi.intensity = 1.1;
 const ui = createUI({ title: 'PORCH<br>TOSS', hint: 'Hold to ride · let go to toss', hand: '👆' });
 const D = daily(KEY, ui, { name: NAME });
+const B = board({ game: 'porch-toss', label: 'Routes delivered', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: routes delivered today (RULES.md)
 ui.els.start.querySelector('.hand').style.animation = 'hcpulse 1s ease-in-out infinite';
 
 const THEMES = [
@@ -309,7 +311,7 @@ function landPaper(p) {
 // ---------------------------------------------------------------- win / lose
 function finish() {
   if (delivered >= need) {
-    state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+    state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
     best = Math.max(best, score); S.set('best', best);
     confetti(scene, new THREE.Vector3(RIDER_X, 3, rz - 3), 90); sfx.win(); buzz([30, 50, 30]);
     D.won(score);
@@ -337,7 +339,7 @@ input({
   onDown: () => { if (state === 'play') { ptr = true; sfx.tap(); } },
   onUp: () => { if (ptr && state === 'play') toss(); ptr = false; },
 });
-ui.onTap((which) => {
+ui.onTap((which) => { B.start();
   if (which === 'win' || which === 'lose') buildLevel();
   state = 'play'; ui.hideStart(); ptr = false;
 });

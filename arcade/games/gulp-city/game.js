@@ -3,6 +3,8 @@ import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'gulp-city', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const save = store('gulpcity');
 const F = flow('gulpcity');
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
@@ -175,7 +177,7 @@ input({
   onMove: (dx, dy, e) => { if (!joy) return; joy.cx = e.clientX; joy.cy = e.clientY; const vx = joy.cx - joy.x, vy = joy.cy - joy.y, d = Math.hypot(vx, vy); if (d > 70) { joy.x = joy.cx - vx / d * 70; joy.y = joy.cy - vy / d * 70; } },
   onUp: () => { joy = null; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
   else if (w === 'lose') { score = 0; buildLevel(); state = 'play'; }
@@ -311,7 +313,7 @@ loop((dt, t) => {
   followLight(new THREE.Vector3(me.x, 0, me.z - 2));
 });
 function winNow(t, line) {
-  state = 'won'; F.level(true); score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, new THREE.Vector3(holes[0].x, 2, holes[0].z), 100);
   ui.pop(t, '#ff4d6d', 46, 26); ui.win(level, line);
 }

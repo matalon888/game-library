@@ -3,6 +3,8 @@ import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'tube-rush', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const R = 3.0;            // half-pipe radius
 const RIM = 1.62;         // fly-off angle (rad from bottom)
 const WALL = 1.78;        // geometry wall extent
@@ -276,7 +278,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(450, 32, 16), new THREE.Mesh
   for (let i = 0; i < p.count; i++) { const y = Math.max(0, p.getY(i) / 450); k.copy(a).lerp(b, Math.pow(y, 0.6)); c.push(k.r, k.g, k.b); }
   sky.geometry.setAttribute('color', new THREE.Float32BufferAttribute(c, 3)); }
 scene.add(sky);
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); go(); }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; go(); }
   else if (w === 'lose') { score = 0; buildLevel(); state = 'play'; go(); }
@@ -404,7 +406,7 @@ function finish(rd) {
   if (rd.isP) {
     const p = rd.place; ui.score(ord(p)); ui.progress(1);
     if (p <= 3) {
-      state = 'won'; rec(true); score += [0, 300, 200, 120][p] + level * 10; best = Math.max(best, score); save.set('best', best);
+      state = 'won'; rec(true); WB.submit(1); score += [0, 300, 200, 120][p] + level * 10; best = Math.max(best, score); save.set('best', best);
       sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, rd.P.clone().add(new THREE.Vector3(0, 3, 0)), 90);
       setTimeout(() => confetti(scene, rd.P.clone().add(new THREE.Vector3(0, 4, 0)), 60), 300);
       ui.pop(p === 1 ? '1ST PLACE!' : ord(p).toUpperCase() + ' PLACE!', '#ffd23f', 52, 30);

@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as scoreboard } from './kit/board.js';
 
 const NAME = 'Coil Pop: Color Sort Puzzle';
 const S = store('coilpop');
@@ -16,6 +17,7 @@ const stage = createStage({ fov: 38, shadowSize: 9 });
 const { scene, camera, renderer } = stage;
 const ui = createUI({ title: 'COIL<br>POP', hint: 'Tap a peg, then tap where it goes', hand: '👆' });
 const D = daily('coilpop', ui, { name: NAME });
+const B = scoreboard({ game: 'coil-pop', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.6 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
 const COLORS = ['#ff4f7b', '#ffc93c', '#3fa9ff', '#45d483', '#a66bff', '#ff8a3d', '#2fd1c9', '#ff7ad9', '#7d8bff', '#b7e34a'];
 const BGS = [['#b99cff', '#ffc4e6'], ['#7cc4ff', '#c4f1ff'], ['#ffad7a', '#ffe0a8'], ['#5fd3a6', '#c8f7d8'], ['#ff8fb1', '#ffd3c2']];
@@ -180,7 +182,7 @@ function settle() {
   if (moves <= 0 || !any) lose(moves <= 0 ? 'OUT OF MOVES' : 'STUCK!');
 }
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   score += moves * 5 + level * 10; best = Math.max(best, score); S.set('best', best);
   sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3(0, 2.5, 0), 100);
@@ -209,7 +211,7 @@ input({ onDown: (e) => {
   if (hits.length) tapPeg(hits[0].object.userData.peg);
   else if (sel >= 0) drop(sel);
 } });
-ui.onTap(w => {
+ui.onTap(w => { B.start();
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();
   state = 'play'; ui.els.sc.classList.remove('hc-hidden');

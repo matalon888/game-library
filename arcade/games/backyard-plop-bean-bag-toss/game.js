@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { canvasTex } from './geo.js';
 
 const NAME = 'Backyard Plop: Bean Bag Toss';
@@ -11,6 +12,7 @@ const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.6; hemi.intensity = 1.25;
 const ui = createUI({ title: 'BACKYARD<br>PLOP', hint: 'Drag up and let go to toss', hand: '👆', score: false });
 const D = daily('backyardplop', ui, { name: NAME });
+const B = board({ game: 'backyard-plop', label: 'Wins', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: wins today (RULES.md)
 const save = store('backyardplop');
 const F = flow('backyardplop');
 let level = save.get('level', 1);
@@ -220,7 +222,7 @@ function endRound() {
   pts = scoreBags(); setBoardUI();
   if (pts[0] === pts[1] && extra < 2) { extra++; ui.pop('TIE · EXTRA BAG', '#fff', 34, 34); turn = 0; return nextTurnAfterExtra(); }
   if (pts[0] > pts[1]) {
-    state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+    state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
     confetti(scene, new THREE.Vector3(0, 3, ZF - 2), 90); sfx.win(); buzz([20, 40, 20]);
     level++; save.set('level', level); D.won(pts[0], 'scored');
     ui.win(level - 1, `${pts[0]} – ${pts[1]}`);
@@ -247,7 +249,7 @@ input({
   onMove: (dx, dy, e) => { if (drag) { drag.x = e.clientX; drag.y = e.clientY; } },
   onUp: () => { if (!drag) return; const d = dragParams(); drag = null; if (d.p > 0.08) toss(d.p, d.aim); },
 });
-ui.onTap(() => { build(); state = 'play'; ui.hideStart(); setBoardUI(); });
+ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); setBoardUI(); });
 
 // ---------------------------------------------------------------- loop
 const camPos = new THREE.Vector3(0.5, 6.4, 10.5);

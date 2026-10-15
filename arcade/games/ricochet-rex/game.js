@@ -2,6 +2,7 @@
 // pass through goons, blow up TNT, cut ropes and shove crates. Clear the room with 3 bullets; never hit a hostage.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 // ------------------------------------------------------------------ stage: orthographic side view
 const stage = createStage({ shadows: true, shadowSize: 15 });
@@ -39,6 +40,7 @@ document.body.appendChild(ammoEl);
 
 const save = store('ricochetrex');
 const F = flow('ricochetrex');
+const WB = worldBoard({ game: 'ricochet-rex', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });
 let fkL = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
@@ -477,7 +479,7 @@ function lose(t, line) {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); timeScale = 1;
+  state = 'won'; F.level(true); WB.submit(1); timeScale = 1;
   const bonus = 150 * bullets; addScore(bonus);
   sfx.win(); buzz([20, 40, 20]);
   confetti(scene, V(0, 15, 1), 80);
@@ -556,7 +558,7 @@ input({
   onMove: (dx, dy, e) => { if (aiming) aimAt(e.clientX, e.clientY); },
   onUp: (e) => { if (!aiming) return; aiming = false; aimAt(e.clientX, e.clientY); fire(); },
 });
-ui.onTap((which) => {
+ui.onTap((which) => { WB.start();
   if (which === 'start') { state = 'play'; return; }
   buildLevel(); state = 'play';
 });

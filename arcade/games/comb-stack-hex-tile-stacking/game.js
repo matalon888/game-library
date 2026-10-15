@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confetti, sfx, tone, note, buzz, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import * as kitBoard from './kit/board.js';   // `board` is a local name here
+const B = kitBoard.board({ game: 'comb-stack', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Comb Stack: Hex Tile Stacking';
 const S = createStage({ fov: 30, shadowSize: 7 });
@@ -251,7 +253,7 @@ function updateGoal() {
 }
 function win() {
   if (state !== 'play') return; state = 'won';
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   sfx.win(); confetti(scene, new THREE.Vector3(0, 2, 0), 90); ui.flash(0.5);
   level++; save.set('level', level); D.won(cleared, 'cleared'); ui.win(level - 1, `${cleared} tiles cleared`);
 }
@@ -277,7 +279,7 @@ function bot() {
 }
 
 // ---------------------------------------------------------------- loop
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } buildLevel(); state = 'play'; });
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } buildLevel(); state = 'play'; });
 buildLevel(); ui.start();
 const UP = new THREE.Vector3(0, 1, 0);
 loop((dt) => {

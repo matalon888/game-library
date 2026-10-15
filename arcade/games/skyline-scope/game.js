@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 
 const S = createStage({ fov: 62, shadowSize: 90 });
 const { scene, camera, sun, hemi } = S;
@@ -12,6 +13,7 @@ const ui = createUI({ title: 'SKYLINE<br>SCOPE', hint: 'Hold to scope · drag to
 const save = store('skyscope');
 let level = save.get('level', 1);
 const F = flow('skyscope'); let fk = 1;
+const B = board({ game: 'skyline-scope', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });
 document.body.style.setProperty('--bg1', '#4aa8f0'); document.body.style.setProperty('--bg2', '#dff2ff'); document.body.style.setProperty('--ui', '#ff7a1a');
 scene.fog = new THREE.Fog('#cfe9fb', 140, 420);
 
@@ -295,7 +297,7 @@ function startLevel() {
   brief.textContent = `TARGET: ${nT > 1 ? nT + ' ' + names[1] : names[0]} · SPARE CIVILIANS`;
   barT.style.height = barB.style.height = '0';
 }
-ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; });
+ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; if (w !== 'lose') B.start(); });
 input({
   onDown: () => { if (state === 'play') holding = true; },
   onMove: (dx, dy) => {
@@ -432,7 +434,7 @@ loop((dtRaw, t) => {
       camera.position.set(P.x + Math.sin(cam.orbit) * 4.2, P.y + 7, P.z + Math.cos(cam.orbit) * 4.2);
       camera.lookAt(P.x, P.y + 0.8, P.z);
       if (cam.t2 > 1.6 && state === 'play') {
-        state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]);
+        state = 'won'; F.level(true); B.submit(1); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]);
         confetti(scene, P.clone().add(new THREE.Vector3(0, 4, 0)), 80);
         ui.win(level, `${nT} target${nT > 1 ? 's' : ''} down · ${ammo} round${ammo === 1 ? '' : 's'} left`);
       }

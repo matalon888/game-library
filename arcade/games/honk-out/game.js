@@ -3,6 +3,8 @@
 // Jammed vehicles bump and back up. Spots full with no matching colour = jam (lose). Board everyone = win.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'honk-out', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // rounded() grows by its bevel; this keeps exact outer size
 
 const COLORS = { red: '#ff4757', blue: '#2e86ff', yellow: '#ffc312', green: '#2ed573', purple: '#a55eea', orange: '#ff7f2a', pink: '#ff6bcb', cyan: '#1fd1d6' };
@@ -348,9 +350,9 @@ function startLevel() {
   ui.levels(level); ui.progress(0); ui.pill(`👥 ${queue.length}`);
 }
 let endT = 0;
-function win() { state = 'won'; F.level(true); endT = performance.now(); level++; save.set('level', level); save.set('riders', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 2, zSlot), 90); ui.win(level - 1, `${totalRiders} riders home!`); }
+function win() { if (state === 'play') B.submit(1); state = 'won'; F.level(true); endT = performance.now(); level++; save.set('level', level); save.set('riders', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 2, zSlot), 90); ui.win(level - 1, `${totalRiders} riders home!`); }
 function lose() { state = 'lost'; F.level(false, qi / totalRiders); sfx.fail(); buzz([60, 40, 90]); ui.lose('JAMMED!', 'No spot left for the right colour.'); }
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 input({

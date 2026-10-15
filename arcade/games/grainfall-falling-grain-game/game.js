@@ -4,6 +4,8 @@
 import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confetti, sfx, tone, note, buzz, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'grainfall', label: 'Points', limits: { maxRun: 200000, maxPerSec: 400 } });   // world board (RULES.md part C)
 
 const NAME = 'Grainfall: Falling Grain Game';
 const S = createStage({ fov: 30, shadowSize: 8 });
@@ -228,13 +230,13 @@ function reset() {
 }
 function gameOver() {
   if (state !== 'play') return; state = 'lost'; piece = null;
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const nb = score > best; if (nb) { best = score; save.set('best', best); }
   sfx.fail(); buzz([40, 60, 40]); ui.flash(0.4);
   if (nb && score > 0) { state = 'won'; D.won(score); ui.win(score, 'Your best run yet'); }
   else ui.lose('TOPPED OUT!', `${score} points` + (best ? ` · best ${best}` : ''));
 }
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } reset(); state = 'play'; });
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } reset(); state = 'play'; });
 reset(); ui.start();
 
 // ---------------------------------------------------------------- bot: pick a column + turn that lands next to its own colour

@@ -3,6 +3,7 @@
 import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 
 const NAME = 'Sumweave: Math Grid Puzzle';
@@ -11,6 +12,7 @@ const F = flow('sumweave');
 const ui = createUI({ title: 'Sumweave', hint: 'Tap to play', hand: '', score: false });
 cardTheme({ accent: '#2f7d74' });
 const D = daily('sumweave', ui, { name: NAME });
+const B = board({ game: 'sumweave', label: 'Puzzles solved', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily puzzle' : 'math crossword', doneLine: doneToday ? (D.isDaily ? `Solved today · ${doneToday.s.toLocaleString()} pts` : 'Daily puzzle solved ✓') : null });
@@ -348,7 +350,7 @@ function win() {
   if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || score > prev.s) S.set(k, { s: score }); }
   else { level++; S.set('level', level); }
   const best = S.get('best', 0); if (score > best) S.set('best', score);
-  D.won(score);
+  D.won(score); B.submit(1);   // world board: puzzles solved today
   ui.win(D.isDaily ? '' : level - 1, `${score.toLocaleString()} pts · ${fmtTime(secs)} · ${'♥'.repeat(hearts)}`);
 }
 function lose() {
@@ -364,6 +366,7 @@ let lastT = performance.now();
 })(performance.now());
 
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

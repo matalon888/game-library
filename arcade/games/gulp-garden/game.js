@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, store, rng, lerp, clamp, mat, glossy, rounded, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { buildModels, THEMES } from './models.js';
+import { board as worldBoard } from './kit/board.js';
+const B = worldBoard({ game: 'gulp-garden', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 13 });
 const { scene, camera, sun, renderer } = stage;
@@ -168,7 +170,7 @@ const inp = input({
     HOLE.z = clamp(HOLE.z + dy * dragK, -BD / 2 + HOLE.r * 0.6, BD / 2 - HOLE.r * 0.6);
   },
 });
-ui.onTap(w => {
+ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
   else if (w === 'lose') { buildLevel(); state = 'play'; }
@@ -202,7 +204,7 @@ function swallowed(o) {
   if (combo === 15 || combo === 30 || combo === 60) ui.pop(combo === 15 ? 'YUMMY!' : combo === 30 ? 'GULP x30!' : 'UNSTOPPABLE!', '#ffe14d', 36, 24);
 }
 function win() {
-  state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]); ui.flash(0.4);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]); ui.flash(0.4);
   confetti(scene, new THREE.Vector3(HOLE.x, 1.5, HOLE.z), 90);
   const t = Math.ceil(timeLeft); ui.win(level, `${eaten} gulped · ${t}s left`);
 }

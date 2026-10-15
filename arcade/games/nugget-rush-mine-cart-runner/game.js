@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, burst, confetti, lerp, clamp, rng, mat, glossy, rounded, stickman } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import * as A from './sound.js';
 
 const NAME = 'Nugget Rush: Mine Cart Runner';
@@ -138,6 +139,7 @@ for (const sx of [-1, 1]) {
 }
 
 // ---------------------------------------------------------------- state
+const B = worldBoard({ game: 'nugget-rush', label: 'Points', limits: { maxRun: 30000, maxPerSec: 70 } });   // world board: best run today
 let state = 'ready', R, dist = 0, score = 0, nuggets = 0, speed = 15, tier = 1, clock = 0, runT = 0;
 let lane = 1, px = 0, py = 0, vy = 0, onGround = true, rollT = 0, magnetT = 0, stumbleT = 0, chaseGap = 4.5, shake = 0, lean = 0, landSq = 0;
 let trains = [], bars = [], padsL = [], coins = [], powers = [], genZ = 0, busyEnd = [0, 0, 0], beatenShown = false, recorded = false;
@@ -237,7 +239,7 @@ function addScore(n) {
 function gameOver(how) {
   if (state !== 'play') return;
   state = 'lost'; deadT = 0; A.stopMusic(0.3); lastDeath = how;
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const prev = best; best = Math.max(best, score); S.set('best', best);
   shake = 1; ui.flash(0.75); buzz([40, 30, 80]);
   A.osc(120, 0.35, 'square', 0.16, 0.4); A.hiss(0.5, 1200, 200, 0.3, 'lowpass'); setTimeout(() => A.osc(70, 0.5, 'sine', 0.3, 0.5), 120);
@@ -274,7 +276,7 @@ function act(d) {
 }
 input({ onMove: (dx, dy, e, st) => { if (st.fired) return; const tx = e.clientX - st.x, ty = e.clientY - st.y; if (Math.hypot(tx, ty) > 26) { st.fired = true; act(Math.abs(tx) > Math.abs(ty) ? (tx > 0 ? 'right' : 'left') : (ty > 0 ? 'down' : 'up')); } } });
 addEventListener('keydown', e => { const k = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', ' ': 'up' }[e.key]; if (k) { e.preventDefault(); act(k); } });
-ui.onTap(which => { reset(); state = 'play'; A.ac(); startSong(); });
+ui.onTap(which => { B.start(); reset(); state = 'play'; A.ac(); startSong(); });
 
 // original loop: boom-chick canyon swing in D minor (bass + hats + pluck riff)
 const BASS = [38, 45, 38, 45, 41, 48, 41, 48, 34, 41, 34, 41, 36, 43, 40, 43];

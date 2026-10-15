@@ -1,6 +1,7 @@
 // Smooch Roll — original game. Draw ink lines that turn into real falling objects so the blue ball and the pink ball roll together and kiss.
 import { createUI, input, loop, sfx, tone, buzz, store, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 import { StrokeBuilder, makeInk, INK_R, BALL_R } from './physics.js';
 import { makeLevel, buildWorld, outOfWorld, WW, WH } from './levels.js';
 
@@ -8,6 +9,7 @@ const TEAL = '#17a096', BLUE = '#33c3de', PINK = '#ff4f8e', INK = '#1d1d22';
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const save = store('smoochroll');
 const F = flow('smoochroll');
+const WB = worldBoard({ game: 'smooch-roll', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });
 let inkB = 600;                                    // ink budget: the validated solution plus a spare margin that flow scales
 let level = save.get('level', 1), stars = save.get('stars', 0), state = 'ready';
 const ui = createUI({ title: 'SMOOCH<br><b>ROLL</b>', hint: 'Draw a line so they meet', hand: '✏️', score: false });
@@ -93,7 +95,7 @@ document.getElementById('retry').addEventListener('pointerdown', (e) => {
 // ---------------------------------------------------------------- outcomes
 function win() {
   if (state !== 'play') return;
-  state = 'won'; running = false; F.level(true);
+  state = 'won'; running = false; F.level(true); WB.submit(1);
   const [a, b] = balls, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, ang = Math.atan2(b.y - a.y, b.x - a.x);
   for (const q of balls) { q.mood = 'love'; q.sq = 0.22; }
   a.sqa = ang; b.sqa = ang;
@@ -114,7 +116,7 @@ function lose(line) {
   sfx.fail(); buzz([40, 30, 40]);
   ui.lose('OOPS!', line);
 }
-ui.onTap((which) => {
+ui.onTap((which) => { WB.start();
   if (which === 'win') loadLevel();
   if (which === 'lose') loadLevel();
   state = 'play';

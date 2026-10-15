@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded, stickman, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'bellhop-boss', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
 const S = store('bellhopboss');
 const F = flow('bellhopboss');
 let fk = 1;
@@ -222,7 +224,7 @@ input({
   onMove: (dx, dy, e, st) => { if (!joyOn) return; let vx = e.clientX - st.x, vy = e.clientY - st.y; const d = Math.hypot(vx, vy), m = 46; if (d > m) { vx *= m / d; vy *= m / d; } joyV = { x: vx / m, y: vy / m }; joy.firstChild.style.transform = `translate(${vx}px,${vy}px)`; },
   onUp: () => { joyOn = false; joy.style.display = 'none'; joyV = { x: 0, y: 0 }; },
 });
-ui.onTap(w => { if (w === 'start') state = 'play'; else { buildLevel(); state = 'play'; } });
+ui.onTap(w => { WB.start(); if (w === 'start') state = 'play'; else { buildLevel(); state = 'play'; } });
 
 function collide(o, r = 0.35) {
   for (const w of walls) {
@@ -384,7 +386,7 @@ function unlock(p) {
   collide(mgr);
   updGoal();
   if (pads.every(x => x.done) && state === 'play') {
-    state = 'won'; F.level(true); setTimeout(() => { for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, V(camX, 2, camZ), 45), i * 160); }, 200);
+    state = 'won'; F.level(true); WB.submit(1); setTimeout(() => { for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, V(camX, 2, camZ), 45), i * 160); }, 200);
     ui.win(level, `${theme.name} complete · ${served} guests`); level++; S.set('level', level);
   }
 }

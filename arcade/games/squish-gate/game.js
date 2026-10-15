@@ -2,9 +2,11 @@
 // short and wide, and squeeze through every cut-out gate. Snug fits build combos and fever; the finish ladder pays out.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const ST = store('squishgate');
 const F = flow('squishgate');
+const WB = worldBoard({ game: 'squish-gate', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 let fk = 1;
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const { scene, camera, sun, followLight } = createStage({ fov: 50, shadowSize: 9 });
@@ -151,7 +153,7 @@ function updFever() { $('feverBar').style.width = (fever > 0 ? fever / 300 : fev
 input({
   onMove(dx, dy) { if (state !== 'play' || finishing) return; s = clamp(s - dy * 0.0062, 0, 1); },
 });
-ui.onTap(which => {
+ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; t0 = performance.now(); sfx.tap(); }
   else if (which === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else { buildLevel(); state = 'play'; }
@@ -220,7 +222,7 @@ function finish() {
 }
 function settle() {
   multiplier = clamp(Math.floor((finishZ - 1.2 - z) / 2.2) + 1, 1, 10);
-  state = 'won'; F.level(true); const total = score * multiplier; score = total; best = Math.max(best, total); ST.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); const total = score * multiplier; score = total; best = Math.max(best, total); ST.set('best', best);
   ui.score(score); ui.pop('x' + multiplier + '!', '#fff', 64, 30);
   [60, 64, 67, 72, 76].forEach((m, i) => setTimeout(() => note(m + Math.min(multiplier, 8), 0.3, 0.15), i * 80));
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3(0, 2.5, z - 1), 40), i * 160);

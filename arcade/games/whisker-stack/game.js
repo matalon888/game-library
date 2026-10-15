@@ -5,6 +5,7 @@ import { part, merge, canvasTex } from './geo.js';
 import { makeCat } from './cat.js';
 import { ICONS, iconCanvas } from './icons.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 
 const S = createStage({ fov: 34, shadowSize: 9 });
 const { scene, camera, sun, hemi, renderer } = S;
@@ -14,6 +15,7 @@ const ui = createUI({ title: 'WHISKER<br>STACK', hint: 'Tap tiles · match 3 ali
 const save = store('whiskerstack');
 let level = save.get('level', 1);
 const F = flow('whiskerstack');
+const B = board({ game: 'whisker-stack', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });
 
 const TW = 1.0, TD = 1.2, TH = 0.36, SLOTS = 7, SP = 0.84, TRAY_S = 0.78;
 let TZ = 4.75;
@@ -162,7 +164,7 @@ function resolveTrio(trio) {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5); kitty.party(true);
+  state = 'won'; F.level(true); B.submit(1); save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5); kitty.party(true);
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3((i - 1) * 2.5, 3, 0), 70), i * 170);
   ui.win(level, `${total} tiles cleared!`);
 }
@@ -181,7 +183,7 @@ input({ onTap: e => {
   if (!hits.length) return;
   pick(tiles[hits[0].instanceId]);
 } });
-ui.onTap(w => { if (w === 'win') level++; genLevel(); state = 'play'; });
+ui.onTap(w => { if (w === 'win') level++; genLevel(); state = 'play'; B.start(); });
 
 // ---------------------------------------------------------------- camera fit
 let camD = 20, TILT = 0.36, offY = 0, kittyRect = { x: 0, y: 0, s: 40 };

@@ -2,12 +2,14 @@
 // tap to switch direction at every corner. Gems are bonus, the path crumbles behind you, and it keeps getting faster.
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const COLH = 16, CAP = 170, AHEAD = 46, BALL_R = 0.2, TIER = 40;
 const HUES = [212, 268, 330, 18, 160, 190, 45];                 // path hue per tier (blue → purple → pink → ...)
 const S = store('switchback');
 let best = S.get('best', 0), plays = S.get('plays', 0);
 const F = flow('switchback', { par: 60, warmup: 15 });
+const WB = worldBoard({ game: 'switchback', label: 'Points', limits: { maxRun: 1500, maxPerSec: 10 } });
 
 const stage = createStage({ fov: 19, shadows: false });
 const { scene, camera } = stage;
@@ -91,14 +93,14 @@ function turn() {
   dir = 1 - dir; squash = 1; tone(dir ? 620 : 540, 0.04, 'sine', 0.09, 1.1); buzz(6);
 }
 function lose() {
-  state = 'lost'; F.endless(score); plays++; S.set('plays', plays); best = Math.max(best, score); S.set('best', best);
+  state = 'lost'; F.endless(score); WB.submit(score); plays++; S.set('plays', plays); best = Math.max(best, score); S.set('best', best);
   tone(220, 0.25, 'triangle', 0.12, 0.4); buzz([30, 30, 60]);
   ui.lose(String(score), `BEST ${best} · 💎 ${gemsGot}`);
   setTimeout(() => state === 'lost' && ui.els.sc.classList.add('hc-hidden'), 650);
 }
 
 input({ onDown: () => { if (state === 'play') turn(); } });
-ui.onTap(which => { if (which !== 'start') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(which => { WB.start(); if (which !== 'start') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
 
 // ---------------------------------------------------------------- loop
 const OFF = new THREE.Vector3(-24, 25, -24);

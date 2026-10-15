@@ -4,6 +4,7 @@
 import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Lantern Pairs: Mahjong Solitaire';
@@ -12,6 +13,7 @@ const F = flow('lanternpairs');
 const ui = createUI({ title: 'Lantern Pairs', hint: 'Tap to play', hand: '', score: false });
 cardTheme({ accent: '#c9443c' });
 const D = daily('lanternpairs', ui, { name: NAME });
+const B = board({ game: 'lantern-pairs', label: 'Boards cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });   // world board: boards cleared today (RULES.md)
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily board' : 'Mahjong solitaire', doneLine: doneToday ? (D.isDaily ? `Cleared today · ${doneToday.s.toLocaleString()} pts` : 'Daily board cleared ✓') : null });
@@ -306,7 +308,7 @@ cv.addEventListener('pointerdown', (e) => { e.preventDefault(); tap(pick(e.clien
 
 function win() {
   if (state !== 'play') return;
-  state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; B.submit(1); if (!D.isDaily) F.level(true); }
   arp([67, 71, 74, 79, 83, 86], 110, 0.12, 0.9); fx.confetti(140, ['#e7b45a', '#fff', '#c9443c', '#7cc6a4', '#f3ead8']); buzz([20, 60, 20]);
   if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || score > prev.s) S.set(k, { s: score }); }
   else { level++; S.set('level', level); }
@@ -319,7 +321,7 @@ function lose() {
   if (!recorded) { recorded = true; if (!D.isDaily) F.level(false, cl); }
   ui.lose('No pairs left', `${Math.round(cl * 100)}% cleared · tap to replay this board`);
 }
-ui.onTap((which) => {
+ui.onTap((which) => { B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

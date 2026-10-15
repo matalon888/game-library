@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, buzz, tone, note, burst, confetti, lerp, clamp, rng, rounded, mat } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const RW = 9, RD = 14, HX = RW / 2, HZ = RD / 2, PR = 0.42;
 const S = store('fletch');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 42, shadowSize: 11 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'FLETCH', hint: 'Drag to move · let go to shoot', hand: '👆' });
 const D = daily('fletch', ui, { name: 'Fletch: Arrow Dungeon Roguelite' });
+const B = board({ game: 'fletch', label: 'Dungeons cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board: dungeons cleared today (RULES.md)
 
 const LOOKS = [
   { bg: ['#a8e6cf', '#dcedc1'], f1: '#f6e7c8', f2: '#ecd8b0', wall: '#8d7bc4', rock: '#b9a6e8', ui: '#7b5cff' },
@@ -247,7 +249,7 @@ function hurt(d) {
   dmgText(hx, hz, '-' + d, '#ff4d6d', 22);
   if (P.hp <= 0) { P.hp = 0; lose(); }
 }
-function record(won) { if (recorded) return; recorded = true; F.level(won, clamp((roomIdx + (roomStartCount ? 1 - enemies.length / roomStartCount : 0)) / rooms, 0, 1)); }
+function record(won) { if (recorded) return; recorded = true; if (won) B.submit(1); F.level(won, clamp((roomIdx + (roomStartCount ? 1 - enemies.length / roomStartCount : 0)) / rooms, 0, 1)); }
 function win() {
   state = 'won'; record(true); ui.progress(1); score += 50 + Math.round(P.hp); ui.score(score); best = Math.max(best, score); S.set('best', best);
   confetti(scene, new THREE.Vector3(hx, 1.2, hz), 90); buzz([20, 40, 20]); [0, 4, 7, 12, 16].forEach((s, k) => setTimeout(() => note(67 + s, 0.4, 0.15), k * 90));
@@ -267,7 +269,7 @@ addEventListener('pointermove', e => { if (!stick) return; let dx = e.clientX - 
 const endStick = () => { stick = null; joy.classList.add('hc-hidden'); joy.firstChild.style.transform = ''; };
 addEventListener('pointerup', endStick); addEventListener('pointercancel', endStick);
 const keys = {}; addEventListener('keydown', e => keys[e.key] = true); addEventListener('keyup', e => keys[e.key] = false);
-ui.onTap(() => { buildRun(); hero.visible = true; state = 'play'; });
+ui.onTap(() => { B.start(); buildRun(); hero.visible = true; state = 'play'; });
 
 // ---------------------------------------------------------------- loop
 const camQ = new THREE.Quaternion();

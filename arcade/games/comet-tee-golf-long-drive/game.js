@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { canvasTex } from './geo.js';
 
 const NAME = 'Comet Tee: Golf Long Drive';
@@ -13,6 +14,7 @@ camera.far = 6000; camera.updateProjectionMatrix();
 sun.intensity = 1.5; hemi.intensity = 1.3;
 const ui = createUI({ title: 'COMET<br>TEE', hint: 'Tap when the arrow is in the green', hand: '👆' });
 const D = daily('comettee', ui, { name: NAME });
+const B = board({ game: 'comet-tee', label: 'Holes cleared', limits: { maxRun: 2, maxPerSec: 0.6 }, mode: 'sum' });   // world board: holes cleared today (RULES.md)
 const save = store('comettee');
 const F = flow('comettee');
 let level = save.get('level', 1), bestDrive = save.get('best', 0);
@@ -285,7 +287,7 @@ function shotDone(evt) {
   if (d > bestDrive) { bestDrive = d; save.set('best', bestDrive); }
   if (!beatenShown && D.beaten(best)) { beatenShown = true; ui.pop('BEATEN!', '#fff', 46, 24); confetti(scene, ball.position.clone().add(new THREE.Vector3(0, 6, 0)), 50); }
   if (d >= goal) {
-    state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+    state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
     confetti(scene, ball.position.clone().add(new THREE.Vector3(0, 8, 0)), 90); sfx.win(); buzz([20, 40, 20]); ui.pop(d + ' yd!', '#fff', 50, 26);
     level++; save.set('level', level); D.won(best, 'drove a');
     ui.win(level - 1, `Longest drive ${best} yd`);
@@ -299,7 +301,7 @@ function shotDone(evt) {
 }
 
 input({ onDown: () => { if (state === 'play') swing(); } });
-ui.onTap(() => { build(); state = 'play'; ui.hideStart(); });
+ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); });
 
 // ---------------------------------------------------------------- loop
 scene.fog = new THREE.Fog('#d8f1ff', 200, 900);

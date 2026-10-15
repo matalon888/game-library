@@ -3,10 +3,12 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import * as worldBoard from './kit/board.js';             // `board` is the backboard mesh here
 
 const NAME = 'Swish Street: Basketball Shooting';
 const S = store('swish');
 const F = flow('swish');
+const B = worldBoard.board({ game: 'swish-street', label: 'Points', limits: { maxRun: 130, maxPerSec: 8 }, mode: 'sum' });
 let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 50, shadowSize: 9 });
@@ -267,6 +269,7 @@ function win() {
   if (!recorded) { recorded = true; F.level(true); }
   // bonus for unused balls
   if (ballsLeft > 0) addScore(ballsLeft * 2);
+  B.submit(score);
   level++; S.set('level', level);
   confetti(scene, RIM.clone().add(new THREE.Vector3(0, 0.5, 0)), 90); confetti(scene, hero.position.clone().add(new THREE.Vector3(0, 2.5, 0)), 50);
   sfx.win(); buzz([20, 40, 20, 40, 60]);
@@ -323,7 +326,7 @@ input({
   onUp: () => { if (state === 'play' && charging) shoot(); },
 });
 ui.onTap((which) => {
-  if (which === 'win' || which === 'lose' || which === 'start') { buildLevel(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); }
+  if (which === 'win' || which === 'lose' || which === 'start') { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); }
 });
 
 // ---------------------------------------------------------------- loop

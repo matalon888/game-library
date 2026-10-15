@@ -2,6 +2,7 @@
 // Drag a rope plug to an empty peg in the same row; when no rope crosses another, the knot is solved.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const COLORS = ['#ff4b5c', '#ffc93c', '#3ccf6e', '#3b8bff', '#a66bff', '#ff8a2b'];
 const Y_TOP = 2.75, Z_PEG = 0.16, R_ROPE = 0.155, SAMPLES = 22;
@@ -15,6 +16,7 @@ sun.position.set(3.5, 9, 10); sun.intensity = 1.9; hemi.intensity = 1.0; hemi.co
 sun.shadow.mapSize.set(1024, 1024); sun.shadow.radius = 4;
 const save = store('untwine');
 const F = flow('untwine'); let fk = 1;
+const WB = worldBoard({ game: 'untwine', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });
 let level = save.get('level', 1), total = save.get('freed', 0), state = 'ready';
 const ui = createUI({ title: 'UN<br>TWINE', hint: 'Drag the plugs to untangle', hand: '👆', score: false });
 
@@ -243,7 +245,7 @@ function freed(r) {
   if (crossings(pos) > 0) ui.pop(['FREE!', 'NICE!', 'UNTIED!'][freedCount % 3], '#c9ffe0', 34, 24);
 }
 function win() {
-  state = 'won'; F.level(true); winT = 1; total += R; save.set('freed', total);
+  state = 'won'; F.level(true); WB.submit(1); winT = 1; total += R; save.set('freed', total);
   sfx.win(); buzz([30, 30, 60]); ui.flash(0.45);
   confetti(scene, new THREE.Vector3(0, 1.5, 1), 70);
   ui.pop(movesLeft > 0 && movesUsed <= par ? 'PERFECT!' : 'UNTANGLED!', '#fff', 42, 22);
@@ -267,7 +269,7 @@ input({
     endDrag(best);
   },
 });
-ui.onTap((which) => {
+ui.onTap((which) => { WB.start();
   if (which === 'lose') startLevel();
   if (which === 'win') startLevel();
   state = 'play'; $('moves').classList.remove('hc-hidden'); $('tangles').classList.remove('hc-hidden');

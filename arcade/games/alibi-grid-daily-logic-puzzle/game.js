@@ -5,6 +5,8 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { generate, forced, deducible, N, COLS, ROWS, rc, LETTER } from './logic.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'alibi-grid', label: 'Cases solved', limits: { maxRun: 2, maxPerSec: 0.05 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Alibi Grid: Daily Logic Puzzle';
 const S = store('alibigrid');
@@ -183,7 +185,7 @@ function hint() {
 // ---------------------------------------------------------------- end states
 function win() {
   if (state !== 'play') return;
-  state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); B.submit(1); }
   const secs = t0 ? (performance.now() - t0) / 1000 : 0;
   score = Math.max(0, score + (MAXM - mistakes) * 150 - hints * 50);
   fx.confetti(140, ['#c8553d', '#3f9a62', '#f0b13c', '#2a2522', '#fff']); arp([67, 71, 74, 79, 83], 100, 0.12, 0.9); buzz([20, 60, 20]);
@@ -201,6 +203,7 @@ function lose() {
   ui.lose('Case gone cold', `${Math.round(fr * N)} of ${N} people cleared · tap to reopen the case`);
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

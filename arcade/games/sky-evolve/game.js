@@ -3,6 +3,8 @@ import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'sky-evolve', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.25 }, mode: 'sum' });
 const save = store('skyevolve');
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 const F = flow('skyevolve');
@@ -244,7 +246,7 @@ input({
   onMove: (dx) => { if (state === 'play' && launched) steerX += dx * 0.05; },
   onUp: () => { if (state === 'play' && !launched && holding) release(); holding = false; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
   else if (w === 'lose') { score = 0; buildLevel(); state = 'play'; }
@@ -280,7 +282,7 @@ function smash() {
   sfx.smash(); buzz([40, 30, 80]); ui.flash(0.8);
   score += dmg; ui.score(dmg);
   if (dmg >= targetHP) {
-    state = 'won'; F.level(true); best = Math.max(best, score); save.set('best', best);
+    state = 'won'; F.level(true); WB.submit(1); best = Math.max(best, score); save.set('best', best);
     setTimeout(() => { sfx.win(); confetti(scene, new THREE.Vector3(0, ALT + 3, -D + 4), 120); }, 250);
     ui.pop('SMASHED!', '#ff3b5c', 60, 22); ui.win(level, `${dmg} damage · ${TIERS[tier].name.toLowerCase()}`);
   } else {

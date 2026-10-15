@@ -5,6 +5,8 @@ import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'glow-keys', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'ode', 'minuet', 'saints', 'canon', 'elise', 'cancan', 'neon', 'mountain', 'starlight', 'turkish'];
 const THEMES = [   // background gradient (top, middle, bottom) + glow colour of hits
@@ -191,7 +193,7 @@ function fail(reason, t, lane, y) {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 4; k++) fx.emit(new THREE.Vector3((k - 1.5) * 1.4, 1 + k * 0.4, 0.5), ['#ffd84a', '#ffffff', theme.glow, '#ff9be8'], 22, { speed: 0.16, size: 0.6, up: 0.05 });
   ui.flash(0.5); buzz([20, 40, 30]);
   [72, 76, 79, 84].forEach((m, k) => synth.chime(m, player.at(player.time()) + 0.05 + k * 0.09, 0.14));
@@ -223,7 +225,7 @@ addEventListener('pointerdown', e => tryTap(laneAt(e.clientX), e.pointerId, e.cl
 const up = e => { const t = pointers.get(e.pointerId); pointers.delete(e.pointerId); if (t && state === 'play') releaseHold(t, player.time()); };
 addEventListener('pointerup', up); addEventListener('pointercancel', up);
 
-ui.onTap(which => {
+ui.onTap(which => { B.start();
   if (which === 'start') { begin(); return; }
   buildLevel(); begin();
 });

@@ -3,10 +3,12 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, burst, confetti, sfx, tone, note, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Crackle Pick: Honeycomb Carving Game';
 const S = store('cracklepick');
 const F = flow('cracklepick');
+const B = board({ game: 'crackle-pick', label: 'Points', limits: { maxRun: 700, maxPerSec: 120 }, mode: 'sum' });
 let level = S.get('level', 1), best = S.get('best', 0);
 
 const stage = createStage({ fov: 40, shadowSize: 5 });
@@ -271,7 +273,7 @@ function win() {
   ui.pop(stress < 0.05 ? 'FLAWLESS!' : 'CARVED!', '#fff', 46, 26);
   crackEl.classList.add('off'); ui.pill('');
   level++; S.set('level', level);
-  D.won(score);
+  D.won(score); B.submit(score);
   ui.win(level - 1, `${score} pts · ${Math.round(timeLeft)}s left`);
 }
 
@@ -286,7 +288,7 @@ input({
   onMove: (dx, dy, e) => { if (state !== 'play' || !pressing) return; const h = screenToDisc(e.clientX, e.clientY); if (h) moveTip(h.x, h.z); },
   onUp: () => { pressing = false; },
 });
-ui.onTap(() => { buildLevel(); state = 'play'; crackEl.classList.remove('off'); ui.els.sc.classList.remove('hc-hidden'); onCarve.q = 0; });
+ui.onTap(() => { buildLevel(); state = 'play'; B.start(); crackEl.classList.remove('off'); ui.els.sc.classList.remove('hc-hidden'); onCarve.q = 0; });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

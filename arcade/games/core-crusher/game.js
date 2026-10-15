@@ -2,6 +2,7 @@
 // crushing coloured rings one by one. Black slices shatter the ball — unless you have held long enough to catch fire.
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, rng, lerp, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const SEG = 12, SEGA = Math.PI * 2 / SEG, GAP = 0.3, THICK = 0.25, R_OUT = 2.0, R_IN = 0.42, BALL_R = 0.3, BALL_D = 1.3;
 const GRAV = 0.0125, BOUNCE = 0.165, SMASH = 0.11;
@@ -17,6 +18,7 @@ const THEMES = [
 const S = store('corecrusher');
 let level = S.get('level', 1), best = S.get('best', 0);
 const F = flow('corecrusher');
+const WB = worldBoard({ game: 'core-crusher', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });
 const stage = createStage({ fov: 46, shadowSize: 4 });
 const { scene, camera, sun } = stage;
 stage.hemi.intensity = 1.05; sun.intensity = 1.55;
@@ -170,7 +172,7 @@ function die() {
   ui.lose('CRASHED!', `${Math.round(top / total * 100)}% crushed`);
 }
 function win() {
-  state = 'won'; F.level(true); hold = false; best = Math.max(best, score); S.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); hold = false; best = Math.max(best, score); S.set('best', best);
   level++; S.set('level', level);
   confetti(scene, new THREE.Vector3(0, finishY + 1, BALL_D), 90); ui.flash(0.4); buzz([20, 40, 30]);
   [0, 4, 7, 12, 16].forEach((s, i) => setTimeout(() => note(67 + s, 0.4, 0.16), i * 90));
@@ -180,7 +182,7 @@ function win() {
 input({ onDown: () => { if (state === 'play') hold = true; }, onUp: () => { hold = false; } });
 addEventListener('keydown', e => { if (e.code === 'Space' && state === 'play') hold = true; });
 addEventListener('keyup', e => { if (e.code === 'Space') hold = false; });
-ui.onTap(which => { if (which !== 'start') buildLevel(); state = 'play'; });
+ui.onTap(which => { WB.start(); if (which !== 'start') buildLevel(); state = 'play'; });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

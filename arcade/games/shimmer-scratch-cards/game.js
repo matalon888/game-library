@@ -3,6 +3,7 @@
 // odds never change, losing cards are a uniformly random no-win arrangement (no planted near-misses), no real money.
 import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, palette, applyPalette } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Shimmer: Scratch Cards';
 const V3 = THREE.Vector3;
@@ -11,6 +12,7 @@ const { scene, camera, sun, hemi, renderer } = S;
 sun.position.set(2.5, 5, 9); sun.intensity = 1.35; hemi.intensity = 1.25;
 const ui = createUI({ title: 'SHIMMER', hint: 'Pick a card · scratch with the coin', hand: '👆' });
 const D = daily('shimmer', ui, { name: NAME });
+const B = board({ game: 'shimmer', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.5 }, mode: 'sum' });
 const save = store('shimmer');
 
 // ---------------------------------------------------------------- fair randomness (outcomes only use this)
@@ -380,6 +382,7 @@ function refreshShop() {
   shop.style.opacity = state === 'ready' ? 0 : 1;
 }
 function newLevel() {
+  B.start();
   stack = START; shown = START; tgt = targetFor(level); beatenShown = false; checked = false;
   const p = palette(level); applyPalette(p); decorColors(p);
   ui.levels(level); ui.sub(D.seed ? `Daily · goal ${tgt} chips` : `Goal: ${tgt} chips`); ui.score(stack); ui.progress(stack / tgt);
@@ -427,7 +430,7 @@ function checkEnd() {
   if (stack >= tgt) {
     state = 'won'; best = Math.max(best, stack); save.set('best', best);
     const lv = level; level++; save.set('level', level);
-    D.won(stack);
+    D.won(stack); B.submit(1);                             // world board: levels cleared today
     ui.win(lv, `Turned ${START} into ${fmt(stack)} chips`);
     confetti(scene, new V3(0, 1, 1), 100); refreshShop();
   } else if (stack < CHEAPEST) {

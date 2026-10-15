@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { particles } from './fx.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'kickback', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const stage = createStage({ fov: 30, shadows: true, shadowSize: 11 });
 const { scene, camera, sun } = stage;
@@ -180,7 +182,7 @@ function shoot() {
   shake = Math.max(shake, 0.08);
 }
 input({ onDown: () => { if (state === 'play') shoot(); } });
-ui.onTap(w => {
+ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; buildLevel(); }
   else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { score = 0; state = 'play'; buildLevel(); }
@@ -224,7 +226,7 @@ function lose(why) {
 }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3(0, 10, 1), 70);
   addScore(25 * level);
   ui.win(level, `${score} pts`);

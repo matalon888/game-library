@@ -1,6 +1,7 @@
 // Rack Attack — original top-down 8-ball. Touch the table to aim (guide line + ghost ball), pull the cue in the bottom panel for power, release to shoot.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 import { canvasTex } from './geo.js';
 
 const S = createStage({ fov: 30, shadowSize: 7 });
@@ -9,6 +10,7 @@ sun.intensity = 1.25; hemi.intensity = 1.25;
 const ui = createUI({ title: 'RACK<br>ATTACK', hint: 'Touch to aim · pull the cue to shoot', hand: '🎱', score: false });
 const save = store('rackattack');
 const F = flow('rackattack');
+const B = board({ game: 'rack-attack', label: 'Wins vs CPU', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });
 let fk = 1;
 let level = save.get('level', 1);
 document.body.style.setProperty('--bg1', '#3b4f8f'); document.body.style.setProperty('--bg2', '#1d2547'); document.body.style.setProperty('--ui', '#ffb627');
@@ -261,7 +263,7 @@ function respotCue() {
   cue.x = x; cue.z = z; cue.vx = cue.vz = 0;
 }
 function finish(winner, line) {
-  if (phase !== 'over') F.level(winner === 0, Math.min(1, myPots / (totalGroup + 1)));
+  if (phase !== 'over') { F.level(winner === 0, Math.min(1, myPots / (totalGroup + 1))); if (winner === 0) B.submit(1); }
   phase = 'over';
   if (winner === 0) { state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, 1.5, 0), 90); ui.pop('8-BALL!', '#ffd23f', 52, 30); ui.win(level, `You beat ${hud.querySelector('[data-nm]').textContent}!`); }
   else { state = 'lost'; sfx.fail(); ui.lose('MATCH LOST', line || `${hud.querySelector('[data-nm]').textContent} cleared the table`); }
@@ -350,7 +352,7 @@ input({
   onMove: (dx, dy, e) => { if (state !== 'play' || phase !== 'aim') return; if (pulling) power = clamp((pullX - e.clientX) / (innerWidth * 0.62), 0, 1); else aimAt(e); },
   onUp: () => { if (pulling) { pulling = false; if (power > 0.04 && phase === 'aim' && state === 'play') shoot(aim, power); else power = 0; } },
 });
-ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; refreshHud(); });
+ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; refreshHud(); B.start(); });
 
 // ---------------------------------------------------------------- loop
 const camTarget = new THREE.Vector3(0, 0, 0.05);

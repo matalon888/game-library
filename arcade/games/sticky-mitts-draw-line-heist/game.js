@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { canvasTex } from './geo.js';
 
 const NAME = 'Sticky Mitts: Draw Line Heist';
@@ -12,6 +13,7 @@ const { scene, camera, sun, hemi } = S;
 sun.intensity = 1.55; hemi.intensity = 1.25;
 const ui = createUI({ title: 'STICKY<br>MITTS', hint: 'Drag the glove to the loot', hand: '👆', score: false });
 const D = daily('stickymitts', ui, { name: NAME });
+const B = board({ game: 'sticky-mitts', label: 'Heists cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board: heists cleared today (RULES.md)
 const save = store('stickymitts');
 const F = flow('stickymitts');
 let level = save.get('level', 1), haul = save.get('haul', 0);
@@ -340,7 +342,7 @@ function grab() {
 }
 function winLevel() {
   state = 'won'; haul += lootVal; save.set('haul', haul);
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   confetti(scene, hero.position.clone().add(new THREE.Vector3(0, 1.4, -0.5)), 70); sfx.win(); buzz([20, 40, 20]);
   if (!beatenShown && D.beaten(haul)) { beatenShown = true; ui.pop('BEATEN!', '#fff', 44, 26); }
   else ui.pop('+$' + lootVal.toLocaleString(), '#fff', 44, 26);
@@ -365,7 +367,7 @@ input({
   onMove: (dx, dy, e) => { if (!dragging) return; const w = toWorld(e); if (w) finger = w.add(grabOff); },
   onUp: () => { dragging = false; finger = null; glove.fingers.forEach(f => f.rotation.x = Math.PI / 2); },
 });
-ui.onTap((which) => { build(); state = 'play'; ui.hideStart(); });
+ui.onTap((which) => { B.start(); build(); state = 'play'; ui.hideStart(); });
 
 // ---------------------------------------------------------------- loop
 const camPos = new THREE.Vector3(0, 13.4, 9.2), camLook = new THREE.Vector3(0, 0, -0.35);

@@ -4,6 +4,7 @@
 import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Tenpair: Digit Pairs Puzzle', COLS = 9;
@@ -12,6 +13,7 @@ const F = flow('tenpair');
 const ui = createUI({ title: 'Tenpair', hint: 'Tap to start', hand: '', score: false });
 cardTheme({ accent: '#4f6bed' });
 const D = daily('tenpair', ui, { name: NAME });
+const WB = board({ game: 'tenpair', label: 'Boards cleared', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum', corner: 'bl' });
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily board' : 'pairs · sums of ten', doneLine: doneToday ? (D.isDaily ? `Cleared today · ${doneToday.s.toLocaleString()} pts` : 'Daily board cleared ✓') : null });
@@ -303,7 +305,7 @@ function win() {
   if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || score > prev.s) S.set(k, { s: score }); }
   else { level++; S.set('level', level); }
   if (score > best) { best = score; S.set('best', best); }
-  D.won(score);
+  D.won(score); WB.submit(1);   // world board: boards cleared today
   ui.win(D.isDaily ? '' : level - 1, `${score.toLocaleString()} pts · +${bonus} clear bonus${adds ? ` · ${adds} + unused` : ''}`);
 }
 function lose() {
@@ -315,6 +317,7 @@ function lose() {
   ui.lose('No pairs left', `${cells.filter(c => !c.x).length} digits remain · ${score.toLocaleString()} pts`);
 }
 ui.onTap((which) => {
+  WB.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   stage(); state = 'play';

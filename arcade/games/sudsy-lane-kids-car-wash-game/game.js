@@ -2,6 +2,7 @@
 // soap the mud into foam, rinse the foam, dry the drops, then stick on shiny stickers. A new vehicle every level.
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette, mat, glossy, rounded } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 
 const NAME = 'Sudsy Lane: Kids Car Wash Game';
 const S = store('sudsylane');
@@ -168,6 +169,8 @@ function surfacePoints(n, r, sidePrefer, minGap) {
 }
 
 // ---------------------------------------------------------------- state
+const B = worldBoard({ game: 'sudsy-lane', label: 'Points', limits: { maxRun: 1500, maxPerSec: 100 }, mode: 'sum' });
+let levelStart = 0;   // score when this wash started: the world board counts each finished wash's points
 let state = 'ready', score = 0, sessionLv = 0, enter = 0, driveOff = 0, happy = 0, idle = 0, now = 0, kind = 'dump', rubbing = null, botRub = 0, botTarget = null;
 const lookP = new THREE.Vector3(3, 1.5, 4);
 
@@ -255,7 +258,7 @@ function checkStep() {
 }
 let beatenShown = false;
 function win() {
-  state = 'won'; renderTools();
+  state = 'won'; renderTools(); B.submit(score - levelStart);
   const done = level; level++; sessionLv++; if (!D.seed) S.set('level', level);
   best = Math.max(best, score); S.set('best', best);
   // beep beep! then drive off sparkling
@@ -286,7 +289,7 @@ addEventListener('pointermove', e => { if (!down) return; moveCursor(e.clientX, 
 const up = () => { down = false; rubbing = null; cursor.style.display = 'none'; };
 addEventListener('pointerup', up); addEventListener('pointercancel', up);
 function moveCursor(x, y) { cursor.style.left = x + 'px'; cursor.style.top = y + 'px'; cursor.style.rotate = (Math.sin(now * 20) * 14) + 'deg'; }
-ui.onTap(() => { build(); state = 'play'; ui.hideStart(); toolRow.classList.remove('sl-hidden'); });
+ui.onTap(() => { build(); state = 'play'; ui.hideStart(); toolRow.classList.remove('sl-hidden'); levelStart = score; B.start(); });
 
 // ---------------------------------------------------------------- loop
 const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _q = new THREE.Quaternion(), _v = new THREE.Vector3();

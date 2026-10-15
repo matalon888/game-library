@@ -120,7 +120,12 @@
     });
   }
   document.addEventListener('click', e => { if (e.target.closest('[data-open-install]')) openSheet(); });
-  function autoPrompt() { if (canPrompt() && !snoozed() && !store.get('promptedOnce', false)) { store.set('promptedOnce', true); setTimeout(openSheet, 900); } }
+  // shown once, and only after the consent card is gone (it used to open underneath it and never be seen)
+  function autoPrompt() {
+    if (!canPrompt() || snoozed() || store.get('promptedOnce2', false)) return;
+    if (document.documentElement.classList.contains('rc-lock') || document.querySelector('.isheet')) return setTimeout(autoPrompt, 700);
+    setTimeout(() => { if (canPrompt() && !store.get('promptedOnce2', false) && !document.documentElement.classList.contains('rc-lock')) { store.set('promptedOnce2', true); openSheet(); } else autoPrompt(); }, 900);
+  }
 
   // App Store-style home: featured carousel with gameplay video, shelves of square icons, ranked list per category
   const score = g => g.review ? g.review.depth + g.review.polish + (g.clip ? 1 : 0) : Math.min(16, Math.log10((g.stars || 0) + 1) * 4);
@@ -283,6 +288,19 @@
     });
     frame.className = 'fit';
     stage.appendChild(frame);
+    // guard.js in the game reports it can't keep up (under 22 fps for 6 s): offer lighter graphics (devicePixelRatio 1 for this
+    // game, kept on the device), and if it's already light, suggest another game. Counted in GA as game_slow.
+    addEventListener('message', e => {
+      if (e.origin !== location.origin || !e.data || e.data.agentpark !== 'slow' || e.data.slug !== g.slug || document.querySelector('.slowbar')) return;
+      try { window.RiffConsent && RiffConsent.ga('game_slow', { game: g.slug, fps: e.data.fps, lite: e.data.lite ? 1 : 0 }); } catch (x) {}
+      const bar = document.createElement('div'); bar.className = 'slowbar'; bar.setAttribute('role', 'status');
+      bar.innerHTML = e.data.lite ? `<span>This game is heavy for this device.</span><a href="./">Try another game</a><button type="button" aria-label="Close">✕</button>`
+        : `<span>Running slow on this device?</span><button type="button" class="lite">Lighter graphics</button><button type="button" aria-label="Close">✕</button>`;
+      player.appendChild(bar);
+      bar.querySelector('[aria-label=Close]').onclick = () => bar.remove();
+      const l = bar.querySelector('.lite');
+      if (l) l.onclick = () => { try { localStorage.setItem('ap.lite.' + g.slug, '1'); } catch (x) {} try { window.RiffConsent && RiffConsent.ga('game_lite', { game: g.slug }); } catch (x) {} bar.remove(); frame.src = gameUrl; };
+    });
     const player = document.querySelector('.player');
 
     const ov = document.createElement('div');
@@ -292,7 +310,7 @@
       <div data-install></div>
       <div class="credit"><span id="splashStats"></span>${esc(g.credit)}${g.original ? '' : ' · ' + esc(g.licence)}</div></div>`;
     stage.appendChild(ov);
-    renderInstall();
+    renderInstall(); autoPrompt();
     getStats().then(st => { const x = st[g.slug]; if (x && $('splashStats')) $('splashStats').textContent = [starsTxt(x) && `${starsTxt(x)} (${x.ratings})`, x.plays && `${x.plays} plays`].filter(Boolean).join(' · ') + (x.plays || x.rating ? ' · ' : ''); });
 
     // ---- fitting. The stage already sits inside the phone's safe area (CSS env(safe-area-inset-*)),

@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'swingaroo', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Swingaroo: Rope Swing Stunt Game';
 const S = store('swingaroo');
@@ -201,7 +203,7 @@ function lose(why) {
 }
 function win() {
   state = 'won'; grip = null; holding = false; rope.visible = false;
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   addScore(30 + level * 5);
   best = Math.max(best, score); S.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.4);
@@ -211,6 +213,7 @@ function win() {
 
 input({ onDown: () => press(), onUp: () => release() });
 ui.onTap(w => {
+  B.start();
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();
   state = 'play'; ui.els.sc.classList.remove('hc-hidden');

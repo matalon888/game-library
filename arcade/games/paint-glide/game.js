@@ -1,6 +1,8 @@
 // Paint Glide — original maze painter. Swipe to send the paint ball rolling until it hits a wall;
 // every tile it crosses gets painted. Paint the whole maze to clear the level.
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, rng, lerp, clamp, rounded } from './kit/hc.js';
+import { board as worldBoard } from './kit/board.js';
+const B = worldBoard({ game: 'paint-glide', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.6 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const THEMES = [
   { bg: '#6f86ff', bg2: '#8fa0ff', paint: '#8b2cf0', deco: '#5fd6ff' },
@@ -169,7 +171,7 @@ function arrive() {
   if (queued) { const q = queued; queued = null; go(q); }
 }
 function win() {
-  state = 'won'; winT = 0; level++; S.set('level', level);
+  if (state === 'play') B.submit(1); state = 'won'; winT = 0; level++; S.set('level', level);
   sfx_win(); buzz([20, 40, 30]); ui.flash(0.45);
   confetti(scene, new THREE.Vector3(0, 1.5, 0), 90);
   ui.win(level - 1, `${total} tiles painted`);
@@ -187,7 +189,7 @@ input({
   onUp: () => { acc = null; },
 });
 addEventListener('keydown', e => { const k = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[e.key]; if (k) go(k); });
-ui.onTap(which => { if (which === 'win' || which === 'lose') buildLevel(); state = 'play'; });
+ui.onTap(which => { B.start(); if (which === 'win' || which === 'lose') buildLevel(); state = 'play'; });
 
 // ---------------------------------------------------------------- loop
 const AX = new THREE.Vector3();

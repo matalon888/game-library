@@ -6,6 +6,8 @@ import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, sparks, skyDome, starField, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'color-groove', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'neon', 'ode', 'starlight', 'cancan', 'saints', 'mountain', 'minuet', 'turkish', 'elise', 'canon'];
 const COLORS = ['#ff3fa4', '#ffd23f', '#35d6ff', '#9b6bff', '#45f59a', '#ff7a35'];
@@ -146,7 +148,7 @@ function setColor(c, juice = true) {
 function begin() { state = 'play'; player.start(track, { melody: false, lead: 1.5, accVol: 1, drumVol: 1 }); }
 
 input({ onMove: (dx) => { if (state === 'play' || state === 'ready') tOff = clamp(tOff + dx * (6.5 / Math.min(innerWidth, 520)), -ROAD_W / 2 + 0.5, ROAD_W / 2 - 0.5); } });
-ui.onTap(which => { if (which !== 'start') buildLevel(); begin(); });
+ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
 
 function passRow(row, now) {
   row.done = true;
@@ -174,7 +176,7 @@ function crash(b) {
   ui.lose('WRONG COLOR!', `${Math.round(collected / Math.max(1, targets) * 100)}% · ${score} pts`);
 }
 function win() {
-  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 5; k++) fx.emit(playerBall.position.clone().add(new THREE.Vector3((k - 2) * 0.9, 1.5, -3)), [...COLORS, '#ffffff'], 18, { speed: 0.17, up: 0.12, size: 0.6 });
   ui.flash(0.5); buzz([20, 40, 30]); ui.win(level, `${score} pts · ${Math.round(collected / Math.max(1, targets) * 100)}% notes`);
   level++; S.set('level', level);

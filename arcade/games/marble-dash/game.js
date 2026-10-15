@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'marble-dash', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum', corner: 'bl' });
 const ST = store('marbledash');
 const F = flow('marbledash');
 let level = ST.get('level', 1), best = ST.get('best', 0);
@@ -153,7 +155,7 @@ input({
   onMove(dx) { if (state === 'play' && holding) steerPx += dx; },
   onUp() { holding = false; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { state = 'play'; buildLevel(); }
@@ -165,7 +167,7 @@ function fell() {
   ui.pop('CHECKPOINT', '#fff', 34, 30); spawnAt(cpZ); camY = B.p.y;
 }
 function win() {
-  state = 'won'; F.level(true); finishT = 0; const secs = (performance.now() - t0) / 1000;
+  state = 'won'; F.level(true); WB.submit(1); finishT = 0; const secs = (performance.now() - t0) / 1000;
   best = best ? Math.min(best, secs) : secs; ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   confetti(world, B.p.clone().add(new THREE.Vector3(0, 1.5, -2)), 110);

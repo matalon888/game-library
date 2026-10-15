@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Plunge Peak: Cliff Diving';
 const S = store('plungepeak');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 44, shadowSize: 14 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'PLUNGE<br>PEAK', hint: 'Hold to flip · let go to straighten', hand: '👆' });
 const D = daily('plungepeak', ui, { name: NAME });
+const B = board({ game: 'plunge-peak', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const meterEl = document.getElementById('meter');
 const TAU = Math.PI * 2;
 
@@ -283,7 +285,7 @@ function win() {
   if (!recorded) { recorded = true; F.level(true); }
   level++; S.set('level', level);
   confetti(scene, new THREE.Vector3(P.x, 3, 0), 110); sfx.win(); buzz([20, 40, 20, 40, 60]);
-  D.won(score);
+  D.won(score); B.submit(1);                               // world board: levels cleared today
   ui.win(level - 1, `${score} pts`);
 }
 function lose() {
@@ -297,7 +299,7 @@ input({
   onDown: () => { if (state !== 'play') return; hold = true; if (phase === 'stand') leap(); },
   onUp: () => { hold = false; },
 });
-ui.onTap(() => { buildLevel(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); camSnap = true; });
+ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); camSnap = true; });
 
 // ---------------------------------------------------------------- loop
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();

@@ -2,12 +2,14 @@
 // Fill it to the dashed line and the glass grins. 2D canvas rendering, own position-based water (physics.js).
 import { createUI, input, loop, sfx, tone, buzz, store, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 import { Water } from './physics.js';
 import { W, H, GLASS, makeLevel, staticSegs, inGlass, glassPts, blockPoly, insideBlocks, pipeBox, emit } from './levels.js';
 
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const save = store('dripdoodle');
 const F = flow('dripdoodle');
+const WB = worldBoard({ game: 'drip-doodle', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });
 let level = save.get('level', 1), stars = save.get('stars', 0);
 const ui = createUI({ title: 'DRIP<br>DOODLE', hint: 'Draw a line to fill the glass', hand: '✏️', progress: false, score: false });
 const starP = ui.els.win.querySelector('[data-x]'); starP.style.cssText = 'font-size:48px;letter-spacing:6px;color:#ffd23f;text-shadow:0 4px 0 rgba(0,0,0,.2)';
@@ -44,7 +46,7 @@ function startLevel() {
 }
 startLevel();
 ui.start();
-ui.onTap((which) => {
+ui.onTap((which) => { WB.start();
   if (which === 'win') { level++; save.set('level', level); startLevel(); }
   else if (which === 'lose') startLevel();
   state = 'play';
@@ -141,7 +143,7 @@ function update() {
   fx = fx.filter(p => p.life > 0 && p.y < H + 60);
 }
 function win() {
-  state = 'won'; F.level(true);
+  state = 'won'; F.level(true); WB.submit(1);
   const st = starsFor(inkLeft()); stars += st; save.set('stars', stars);
   sfx.win(); buzz([20, 40, 30]); ui.flash(0.45);
   ui.pop(st === 3 ? 'PERFECT!' : st === 2 ? 'GREAT!' : 'NICE!', '#ffd23f', 46, 20);

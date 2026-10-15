@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as scoreboard } from './kit/board.js';
 
 const NAME = 'Loaf Flip: Food Puzzle';
 const S = store('loafflip');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 34, shadowSize: 7 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'LOAF<br>FLIP', hint: 'Swipe a tile onto its neighbour', hand: '👆' });
 const D = daily('loafflip', ui, { name: NAME });
+const B = scoreboard({ game: 'loaf-flip', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
 const CELL = 1.08, BASE = 0.12;
 const M = {}; const m = (c, o) => M[c + JSON.stringify(o || {})] || (M[c + JSON.stringify(o || {})] = mat(c, o));
@@ -221,7 +223,7 @@ function check() {
 }
 function win(s) {
   if (state !== 'play') return; state = 'won';
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   score += N; ui.score(score);
   if (!beatenShown && D.beaten(score)) { beatenShown = true; confetti(scene, new THREE.Vector3(0, 2, 0), 40); setTimeout(() => ui.pop('BEATEN!', '#fff', 40, 30), 500); }
   serveT = 0.001; serveFrom = [wx(s.x), wz(s.z)]; plate.visible = true; plate.position.set(wx(s.x), BASE + 0.02, wz(s.z)); plate.scale.setScalar(0.01); s.group.position.y = BASE + 0.08;
@@ -276,7 +278,7 @@ input({
   },
   onUp: () => { if (picked) picked.lift = 0; picked = null; },
 });
-ui.onTap((w) => { if (w !== 'start') build(); state = 'play'; ui.hideStart(); });
+ui.onTap((w) => { B.start(); if (w !== 'start') build(); state = 'play'; ui.hideStart(); });
 
 // ---------------------------------------------------------------- loop
 const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;

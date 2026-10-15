@@ -4,12 +4,14 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, lerp
 import { createSim, stepSim, MATS } from './sim.js';
 import { makeLevel, solution, budgetFor, designCost } from './levels.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 16 });
 const { scene, camera, sun, renderer } = stage;
 const ui = createUI({ title: 'GIRDER<br>GO', hint: 'Drag from a red anchor to build', hand: '👆', score: false });
 const save = store('girdergo');
 const F = flow('girdergo');
+const B = board({ game: 'girder-go', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 let runProg = 0;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = save.get('score', 0);
 const bot = { i: 0, cleared: false, wait: 0 };
@@ -322,7 +324,7 @@ function carPos(x0, x1, y0, y1, roll = 0) {
 }
 let roll = 0;
 function win() {
-  if (state !== 'won' && state !== 'lost') F.level(true);
+  if (state !== 'won' && state !== 'lost') { F.level(true); B.submit(1); }
   state = 'won'; mode = 'done'; sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3(lv.R + 1.7, 2.5, 0), 90);
   const c = cost(), saved = Math.max(0, budget - c), pts = 100 + Math.round(saved / 10) - broken * 10;
@@ -340,8 +342,8 @@ function lose(why) {
 
 // ------------------------------------------------------------------ frame
 ui.onTap(w => {
-  if (w === 'start') { state = 'play'; buildLevel(); }
-  else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }
+  if (w === 'start') { state = 'play'; buildLevel(); B.start(); }
+  else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); B.start(); }
   else if (w === 'lose') { state = 'play'; buildLevel(true); }
 });
 const camPos = new THREE.Vector3(), camAt = new THREE.Vector3();

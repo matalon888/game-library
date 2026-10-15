@@ -2,10 +2,12 @@
 // shelves. All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const ST = store('shelfsnap');
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
 const F = flow('shelfsnap'); let fk = 1, HMAX = 3;
+const WB = worldBoard({ game: 'shelf-snap', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 const { scene, camera, renderer, sun, hemi } = createStage({ fov: 45, shadowSize: 9 });
 sun.position.set(4, 14, 12); sun.intensity = 1.5; hemi.intensity = 1.25;
 const ui = createUI({ title: 'SHELF<br>SNAP', hint: 'Drag groceries into the fridge', hand: '👆', score: false });
@@ -325,12 +327,12 @@ function place(it, s) {
   if (placedN === slots.length) win();
 }
 function win() {
-  state = 'won'; F.level(true); best = Math.max(best, score); ST.set('best', best); winT = 1;
+  state = 'won'; F.level(true); WB.submit(1); best = Math.max(best, score); ST.set('best', best); winT = 1;
   setTimeout(() => { if (state === 'won') doorTarget = 0; }, 350);
   setTimeout(() => { if (state !== 'won') return; sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, V(0, 5, 2), 70); burst(scene, V(0, 4, 2), ['#ffffff', '#ffd23f'], 20, { speed: 0.16, up: 0.12, size: 0.5, shape: 'sphere' }); }, 700);
   ui.win(level, `Fridge stocked! ${score} pts`);
 }
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; doorTarget = 1; sfx.tap(); tone(180, 0.25, 'sine', 0.08, 1.4); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; doorTarget = 1; tone(180, 0.25, 'sine', 0.08, 1.4); }
   else if (w === 'lose') { score = 0; buildLevel(); state = 'play'; doorTarget = 1; }

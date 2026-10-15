@@ -3,6 +3,7 @@
 import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Doublink: Chain Merge Puzzle';
@@ -11,6 +12,8 @@ const F = flow('doublink', { par: 6000, warmup: 800 });
 const ui = createUI({ title: 'Doublink', hint: 'Tap to play', hand: '', score: false });
 cardTheme({ accent: '#ff5e9c', font: "'Baloo 2',ui-rounded,system-ui,sans-serif", serif: "'Baloo 2',ui-rounded,system-ui,sans-serif" });
 const D = daily('doublink', ui, { name: NAME });
+const B = board({ game: 'doublink', label: 'Points', limits: { maxRun: 10000000, maxPerSec: 3000 } });
+let runT0 = performance.now();   // world board: a run lasts across milestones until no links are left
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily board' : 'chain merge puzzle', doneLine: doneToday ? (D.isDaily ? `Today's best · ${doneToday.s.toLocaleString()} pts` : `Daily board played ✓`) : null });
@@ -62,6 +65,7 @@ const tile = (e, row) => ({ e, id: uid++, ry: row, vy: 0, sc: 1, sv: 0, flash: 0
 function newRun() {
   const seed = D.seed ? D.seed : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
   R = rngf(seed * 2654435761 + 7);
+  runT0 = performance.now();
   level = 1; score = 0; minE = 1; targetE = 7; runMax = 0; chain = []; recorded = false; beatenShown = false; botChain = null; ghosts = []; overT = 0;
   grid = [];
   for (let c = 0; c < COLS; c++) { grid.push([]); for (let r = 0; r < ROWS; r++) { const t = tile(spawnE(), r - ROWS - 1 - c * 0.4); grid[c].push(t); } }
@@ -151,7 +155,7 @@ function retire() {
 function milestone() {
   if (state !== 'play') return;
   state = 'won';
-  D.won(score);
+  D.won(score); B.submit(score, { ms: performance.now() - runT0 });   // best run today (the run goes on)
   ui.els.win.querySelector('h1').textContent = `${label(targetE)}!`;
   arp([67, 71, 74, 79, 83, 86], 100, 0.12, 0.9); fx.confetti(140, [colorOf(targetE), '#fff', '#ffd76a', '#ff5e9c', '#3fa3ff']); buzz([20, 60, 20]);
   ui.win(level, `${score.toLocaleString()} pts · next goal ${label(targetE + 1)}`);
@@ -160,6 +164,7 @@ function gameOver() {
   if (state !== 'play') return;
   state = 'lost';
   if (!recorded) { recorded = true; if (!D.isDaily) F.endless(score); }
+  B.submit(score, { ms: performance.now() - runT0 });                   // world board: best run today
   soft.err();
   ui.lose('No links left', `${score.toLocaleString()} pts · top tile ${label(maxE)}`);
 }

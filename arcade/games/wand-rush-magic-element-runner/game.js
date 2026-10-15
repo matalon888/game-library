@@ -4,12 +4,14 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded, stickman } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Wand Rush: Magic Element Runner';
 const S = store('wandrush');
 let level = +new URLSearchParams(location.search).get('level') || S.get('level', 1);
 let best = S.get('best', 0);
-const F = flow('wandrush');
+const F = flow('bloopstack');
+const B = board({ game: 'wand-rush', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });
 
 const stage = createStage({ fov: 62, shadowSize: 14 });
 const { scene, camera, sun } = stage;
@@ -185,7 +187,7 @@ function lose() {
   ui.lose('KNOCKED OUT!', `${Math.round(clamp(-pz / length, 0, 1) * 100)}% of the run`);
 }
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   addScore(20 + level * 5); best = Math.max(best, score); S.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.35);
   confetti(scene, new THREE.Vector3(px, 2.5, pz - 5), 100);
@@ -196,7 +198,7 @@ input({ onMove: (dx) => { if (state === 'play') tx = clamp(tx + dx * 0.016, -HAL
 ui.onTap(w => {
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();
-  state = 'play'; ui.els.sc.classList.remove('hc-hidden');
+  state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden');
 });
 
 // ---------------------------------------------------------------- loop

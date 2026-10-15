@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'steady-wheels', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const S = store('steadywheels');
 const F = flow('steadywheels');
 let level = S.get('level', 1), coinsTotal = S.get('coins', 0);
@@ -228,7 +230,7 @@ input({
   onMove: (dx, dy, e) => { if (!holding) return; steerIn = clamp((e.clientX - holdX) / 110, -1, 1); },
   onUp: () => { holding = false; steerIn = 0; },
 });
-ui.onTap(w => { if (w === 'start') { state = 'play'; } else { buildLevel(); state = 'play'; } });
+ui.onTap(w => { WB.start(); if (w === 'start') { state = 'play'; } else { buildLevel(); state = 'play'; } });
 
 // ------------------------------------------------------------------ collision helpers
 function circleBox(cx, cz, rad, o) {
@@ -304,7 +306,7 @@ loop((dt, t) => {
     zone.g.userData.fill.material.opacity = inside ? 0.6 + Math.sin(t * 10) * 0.1 : 0.42;
     if (inside && !drive && Math.abs(veh.v) < 0.25) {
       parkT += sec; if (parkT > 0.35) {
-        state = 'won'; F.level(true); const ang = Math.abs(((veh.th - zone.h) % Math.PI + Math.PI * 1.5) % Math.PI - Math.PI / 2);
+        state = 'won'; F.level(true); WB.submit(1); const ang = Math.abs(((veh.th - zone.h) % Math.PI + Math.PI * 1.5) % Math.PI - Math.PI / 2);
         const perfect = ang < 0.12 && damage === 0; ui.progress(1);
         ui.pop(perfect ? 'PERFECT PARK!' : 'PARKED!', '#7dff9a', 44, 30); sfx.win(); buzz([20, 40, 20]); ui.flash(0.5);
         for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, V(zone.x, 2, zone.z), 60), i * 180);

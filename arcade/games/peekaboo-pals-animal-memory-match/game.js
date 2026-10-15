@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import { NAMES, faceCanvas, backCanvas } from './animals.js';
 
 const NAME = 'Peekaboo Pals: Animal Memory Match';
@@ -40,6 +41,8 @@ const EDGE = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.4 }
 // ---------------------------------------------------------------- level layouts
 const LAYOUT = [[2, 2], [2, 3], [2, 4], [3, 4], [4, 4], [4, 5], [4, 6]];
 let cards = [], cols = 2, rows = 2, hearts = 0, heartsMax = 0, matched = 0, pairs = 0, first = null, lock = 0, streak = 0;
+const B = worldBoard({ game: 'peekaboo-pals', label: 'Points', limits: { maxRun: 800, maxPerSec: 60 }, mode: 'sum' });
+let levelStart = 0;   // score when this level started: the world board counts each cleared level's points
 let state = 'ready', score = 0, sessionLv = 0, recorded = false, beatenShown = false, peekT = 0, peeking = false, now = 0, misses = 0;
 let botSeen = new Map();
 
@@ -120,7 +123,7 @@ function flip(c) {
 }
 
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(score - levelStart); }
   const stars = misses <= pairs * 0.4 ? 3 : misses <= pairs ? 2 : 1;
   const done = level; level++; sessionLv++; if (!D.seed) S.set('level', level);
   best = Math.max(best, score); S.set('best', best);
@@ -150,7 +153,7 @@ addEventListener('pointerdown', e => {
   }
   if (c) flip(c);
 });
-ui.onTap((which) => { if (which === 'lose') score = 0; build(); state = 'play'; ui.hideStart(); });
+ui.onTap((which) => { if (which === 'lose') score = 0; build(); state = 'play'; ui.hideStart(); levelStart = score; B.start(); });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

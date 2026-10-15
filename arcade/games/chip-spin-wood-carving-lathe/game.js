@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, loop, tone, note, buzz, confetti, store, clamp, lerp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Chip Spin: Wood Carving Lathe';
 const S = store('chipspin');
@@ -10,6 +11,7 @@ const F = flow('chipspin');
 let level = S.get('level', 1), total = S.get('score', 0);
 const ui = createUI({ title: 'CHIP<br>SPIN', hint: 'Drag the chisel into the wood', hand: '👆', score: false });
 const D = daily('chipspin', ui, { name: NAME });
+const B = board({ game: 'chip-spin', label: 'Carve points', limits: { maxRun: 120, maxPerSec: 15 }, mode: 'sum' });
 const stage = createStage({ fov: 36, shadowSize: 6 });
 const { scene, camera, sun, renderer } = stage;
 const BGS = [['#c3b4ff', '#8e7cf2'], ['#ffc3d8', '#f08bb0'], ['#b4e6ff', '#6fb5f0'], ['#c7f2c9', '#6fcf97'], ['#ffd8b0', '#f5a25d'], ['#d8c4ff', '#a17cf0']];
@@ -231,7 +233,7 @@ function finish() {
     setTimeout(() => { confetti(scene, new THREE.Vector3(0, 0.5, 1), 120); [0, 4, 7, 12, 16].forEach((s, i) => setTimeout(() => note(72 + s, 0.3, 0.14), i * 90)); ui.flash(0.35); buzz([20, 40, 20]); }, 300);
     if (!beatenShown && D.beaten(total)) { beatenShown = true; ui.pop('BEATEN!', '#fff', 40, 30); }
     const done = level; if (!D.seed) { level++; S.set('level', level); } sessionLv++;
-    D.won(total);
+    D.won(total); B.submit(pts);                          // world board: carve points today (% match + paint bonus)
     ui.win(D.seed ? 'DAILY' : done, `${'⭐'.repeat(stars)}  ${pct}% match`);
   } else {
     state = 'lost'; if (!recorded) { recorded = true; if (!D.seed) F.level(false, clamp(pct / goal, 0, 1)); }
@@ -252,7 +254,7 @@ addEventListener('pointermove', e => {
 });
 const up = () => { down = false; };
 addEventListener('pointerup', up); addEventListener('pointercancel', up);
-ui.onTap((which) => { audioOn(); if (which === 'start' && state === 'ready') { state = 'play'; return; } build(); state = 'play'; });
+ui.onTap((which) => { audioOn(); B.start(); if (which === 'start' && state === 'ready') { state = 'play'; return; } build(); state = 'play'; });
 
 // ---------------------------------------------------------------- loop
 let hissV = 0, rebuildT = 0;

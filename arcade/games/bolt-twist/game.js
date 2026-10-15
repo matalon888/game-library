@@ -2,6 +2,8 @@
 // (3 per box) or into a 5-slot tray. Plates with no bolts left fall off. Clear every bolt to win; a full tray loses.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'bolt-twist', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // rounded() grows by its bevel; this keeps exact outer size
 
 const COLORS = { red: '#ff4d5e', blue: '#3a8dff', yellow: '#ffc61a', green: '#35c96a', purple: '#9b62ff', orange: '#ff8a2a', pink: '#ff6fc3', cyan: '#22cfd6' };
@@ -434,12 +436,12 @@ function startLevel() {
 }
 function win() {
   if (state === 'play') FL.level(true);
-  state = 'won'; wonAt = performance.now(); save.set('bolts', total); level++; save.set('level', level);
+  if (state === 'play') B.submit(1); state = 'won'; wonAt = performance.now(); save.set('bolts', total); level++; save.set('level', level);
   sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 1.5, 0), 90);
   ui.win(level - 1, `${screws.length} bolts out!`);
 }
 function lose() { if (state === 'play') FL.level(false, screws.length ? screws.filter((s) => s.gone).length / screws.length : 0); state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TRAY FULL!', 'No room left for that bolt.'); }
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
 
 // ---------------------------------------------------------------- input: drag to spin, tap a bolt
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();

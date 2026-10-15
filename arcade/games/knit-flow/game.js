@@ -4,6 +4,8 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, clamp, lerp } from './kit/hc.js';
 import { YARN, PICTURES, patternPicture } from './pictures.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
+const WB = worldBoard({ game: 'knit-flow', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);
 
 const HOLD = 5, BELT_MAX = 5, PIC = 5.0, GAP = 0.62, CR = 0.55, SPEED = 8.5, SPACING = 1.1;
@@ -265,9 +267,9 @@ function startLevel() {
   document.body.style.setProperty('--bg1', bg[0]); document.body.style.setProperty('--bg2', bg[1]); document.body.style.setProperty('--ui', '#ff7aa8');
 }
 let wonAt = 0;
-function win() { state = 'won'; F.level(true); wonAt = performance.now(); level++; save.set('level', level); save.set('stitches', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.4); confetti(scene, new THREE.Vector3(0, 2, 0), 90); ui.win(level - 1, `"${D.pic.name}" unravelled!`); }
+function win() { if (state === 'play') WB.submit(1); state = 'won'; F.level(true); wonAt = performance.now(); level++; save.set('level', level); save.set('stitches', score); sfx.win(); buzz([30, 40, 60]); ui.flash(0.4); confetti(scene, new THREE.Vector3(0, 2, 0), 90); ui.win(level - 1, `"${D.pic.name}" unravelled!`); }
 function lose() { if (state !== 'play') return; state = 'lost'; F.level(false, totalSt ? 1 - leftSt / totalSt : 0); sfx.fail(); buzz([60, 40, 90]); ui.lose('TANGLED!', 'No free slot for that spool.'); }
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
+ui.onTap((which) => { WB.start(); if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
 function placeCamera() {
   const tilt = THREE.MathUtils.degToRad(66), fovV = THREE.MathUtils.degToRad(camera.fov);
   const halfW = m + 0.58, zTop = -m - 0.6, zBot = rackZ + 2.2, tz = (zTop + zBot) / 2 + 0.1;

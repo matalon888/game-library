@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, store, lerp, clamp, rng } from './kit/hc.js';
 import { bake, vcMat, crowdMesh } from './people.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'swarm-streets', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ST = store('swarmstreets');
 let level = ST.get('level', 1), best = ST.get('best', 0);
@@ -214,7 +216,7 @@ input({
   onMove(dx, dy, e) { if (joy) { joy.cx = e.clientX; joy.cy = e.clientY; const d = Math.hypot(joy.cx - joy.x, joy.cy - joy.y); if (d > 70) { joy.x = joy.cx - (joy.cx - joy.x) / d * 70; joy.y = joy.cy - (joy.cy - joy.y) / d * 70; } } },
   onUp() { joy = null; },
 });
-ui.onTap(w => {
+ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else { buildLevel(); state = 'play'; }
@@ -264,7 +266,7 @@ function finish(why) {
   if (why === 'dead') { state = 'lost'; F.level(false, clamp(T / dur, 0, 1)); sfx.fail(); buzz([60, 40, 80]); ui.flash(0.5); ui.lose('SWALLOWED!', `A bigger mob ate yours · ☠ ${kills}`); return; }
   const r = rankOf(me);
   if (r === 1) {
-    state = 'won'; F.level(true); best = Math.max(best, me.members.length); ST.set('best', best);
+    if (state === 'play') B.submit(1); state = 'won'; F.level(true); best = Math.max(best, me.members.length); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20, 40]); ui.flash(0.7); ui.progress(1);
     for (let k = 0; k < 3; k++) setTimeout(() => confetti(scene, new THREE.Vector3(me.x, 4, me.z), 90), k * 260);
     ui.win(level, `Biggest mob · ${me.members.length} people · ☠ ${kills}`);

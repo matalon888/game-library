@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'cover-clash', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const S = createStage({ fov: 50, shadowSize: 18 });
 const { scene, camera, sun, hemi } = S;
@@ -196,7 +198,7 @@ function startLevel() {
   ui.levels(level); ui.progress(0); setHP(); hud.querySelector('span').textContent = totalEnemies;
   spawnWave();
 }
-ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; });
+ui.onTap(w => { B.start(); if (w === 'win') level++; startLevel(); state = 'play'; });
 input({ onDown: () => { holding = true; }, onUp: () => { holding = false; } });
 addEventListener('pointercancel', () => holding = false);
 addEventListener('keydown', e => { if (e.code === 'Space') holding = true; });
@@ -262,7 +264,7 @@ function playerHit(e) {
 const camPos = new THREE.Vector3(1.3, 3.5, 5.0), camLook = new THREE.Vector3(0, 0.3, -11);
 loop((dtRaw, t) => {
   const real = dtRaw / 60;
-  if (slowT > 0) { slowT -= real; if (slowT <= 0) { slow = 1; if (winPending && state === 'play') { F.level(true); state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); confetti(scene, player.position.clone().add(new THREE.Vector3(0, 2.5, -3)), 70); ui.win(level, `All ${totalEnemies} enemies down · ${hp}/${maxHP} armour left`); } } }
+  if (slowT > 0) { slowT -= real; if (slowT <= 0) { slow = 1; if (winPending && state === 'play') { F.level(true); if (state === 'play') B.submit(1); state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); confetti(scene, player.position.clone().add(new THREE.Vector3(0, 2.5, -3)), 70); ui.win(level, `All ${totalEnemies} enemies down · ${hp}/${maxHP} armour left`); } } }
   const sec = real * slow;
   const wantUp = state === 'play' && (holding || botHold) && !winPending;
   up = clamp(up + (wantUp ? 8 : -9) * sec, 0, 1);

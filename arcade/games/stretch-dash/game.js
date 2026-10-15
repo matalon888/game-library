@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'stretch-dash', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum', corner: 'bl' });
 const ST = store('stretchdash');
 const F = flow('stretchdash'); let fk = 1;
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
@@ -122,7 +124,7 @@ input({
   onMove(dx) { if (state === 'play' && dragging) P.tx = clamp(P.tx + dx * 0.022, -TW / 2 + 0.4, TW / 2 - 0.4); },
   onUp() { dragging = false; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { state = 'play'; buildLevel(); }
@@ -141,7 +143,7 @@ function chop(kind, amount) {
 }
 function lose(t) { state = 'lost'; F.level(false, rows.filter(r => r.done).length / rows.length); sfx.fail(); buzz([40, 30, 60]); ui.lose(t, `${gems} 💎 collected`); }
 function win() {
-  state = 'won'; F.level(true); const pts = Math.round(gems * mult); total += pts; ST.set('gems', total); best = Math.max(best, pts); ST.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); const pts = Math.round(gems * mult); total += pts; ST.set('gems', total); best = Math.max(best, pts); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   confetti(world, new THREE.Vector3(P.x, P.y + 3, P.z - 1), 110); setTimeout(() => confetti(world, new THREE.Vector3(P.x, P.y + 3, P.z - 1), 70), 300);
   ui.win(level, `x${mult.toFixed(1)}  ·  ${pts} 💎`);

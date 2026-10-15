@@ -3,6 +3,8 @@ import { THREE, createStage, createUI, input, loop, glossy, mat, rounded, burst,
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'chilly-chute', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const S = createStage({ fov: 54, shadowSize: 16 });
 const { scene, camera, sun, hemi } = S;
 scene.add(camera);
@@ -366,7 +368,7 @@ function duck() {
 input({ onSwipe: d => d === 'left' ? steer(-1) : d === 'right' ? steer(1) : d === 'up' ? jump() : duck() });
 addEventListener('keydown', e => { if (state === 'ready' && e.key.startsWith('Arrow')) return; ({ ArrowLeft: () => steer(-1), ArrowRight: () => steer(1), ArrowUp: jump, ArrowDown: duck, a: () => steer(-1), d: () => steer(1), w: jump, s: duck, ' ': jump })[e.key]?.(); });
 
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
   else if (w === 'lose') { buildLevel(); state = 'play'; }
@@ -382,7 +384,7 @@ function crash(o) {
   ui.lose('WIPEOUT!', `${Math.round(dist)} m · ${pct}% of the run`);
 }
 function win() {
-  if (state === 'play') F.level(true);
+  if (state === 'play') { F.level(true); WB.submit(1); }
   state = 'won'; winT = 0;
   const m = Math.round(goal); best = Math.max(best, m); save.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);

@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import * as world from './kit/board.js';           // `board` is taken here
 
 const NAME = 'Pulp Swipe: Fruit Slicing';
 const S = store('pulpswipe');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 45, shadowSize: 10 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'PULP<br>SWIPE', hint: 'Swipe to slice · avoid bombs', hand: '👆' });
 const D = daily('pulpswipe', ui, { name: NAME });
+const B = world.board({ game: 'pulp-swipe', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const livesEl = document.getElementById('lives'), cv = document.getElementById('trail'), cx = cv.getContext('2d');
 const TAU = Math.PI * 2;
 camera.position.set(0, 0, 14); camera.lookAt(0, 0, 0);
@@ -217,7 +219,8 @@ function win() {
   level++; S.set('level', level);
   for (const t of things) if (t.live) { t.live = false; scene.remove(t.g); }
   confetti(scene, new THREE.Vector3(0, 1, 1), 130); sfx.win(); buzz([20, 40, 20, 40, 60]);
-  D.won(score); ui.win(level - 1, `${score} pts · ${sliced} fruit`);
+  D.won(score); B.submit(1);                               // world board: levels cleared today
+  ui.win(level - 1, `${score} pts · ${sliced} fruit`);
 }
 function lose(t, line) {
   if (state !== 'play') return; state = 'lost';
@@ -235,7 +238,7 @@ input({
   onMove: (dx, dy, e) => { if (!last) return; const p = [e.clientX, e.clientY]; if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 3) { sliceSeg(last[0], last[1], p[0], p[1]); if (Math.hypot(dx, dy) > 14 && Math.random() < 0.3) tone(1400 + Math.random() * 400, 0.04, 'sine', 0.015, 0.5); } last = p; pts.push({ x: p[0], y: p[1], t: performance.now() }); },
   onUp: () => { last = null; },
 });
-ui.onTap(() => { buildLevel(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
 function drawTrail() {
   const now = performance.now(), k = cv.width / innerWidth;
   pts = pts.filter(p => now - p.t < 140);

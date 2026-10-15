@@ -96,6 +96,7 @@ export function shell(o) {
       score += pts; S.set('score', score);
       if (D.isDaily) { const k = 'daily_' + todayKey(), pd = S.get(k, null); if (!pd || t < pd.t) S.set(k, { t, s: pts }); }
       else { level++; S.set('level', level); }
+      o.B && o.B.submit(pts, { ms: t * 1000 });             // world board: puzzle points today (RULES.md)
       D.won(pts, 'scored');
       if (D.beaten(pts)) { setTimeout(() => { ui.pop('BEATEN!', '#fff', 40, 30); fx.confetti(60); }, 300); }
       arp([67, 72, 76, 79, 84], 95, 0.12, 0.9); buzz([20, 50, 20]); setTimeout(() => fx.confetti(), 250);
@@ -118,6 +119,7 @@ export function shell(o) {
     const fk = D.isDaily ? 1 : F.k();
     const seed = D.seed ? D.seed * 31 + 7 : level * 7919 + 13;
     info = o.build(D.isDaily ? dailyLevel : level, seed, fk) || {};
+    o.B && o.B.start();
     secs = 0; shownSec = -1; hintsLeft = HINTS; hintsUsed = 0; firstHintAt = -1; undo = []; recorded = false; P.hintBadge();
     ui.levels(D.isDaily ? 1 : level); P.progress(0);
     if (D.isDaily) { ui.els.top.querySelector('[data-a]').textContent = '★'; ui.els.top.querySelector('[data-b]').textContent = '✓'; }

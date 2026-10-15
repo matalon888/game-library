@@ -3,11 +3,13 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 
 const NAME = 'Snip Studio: Hair Salon Makeover';
 const $ = (id) => document.getElementById(id);
 const ST = store('snipstudio');
 const F = flow('snipstudio');
+const B = worldBoard({ game: 'snip-studio', label: 'Match points', limits: { maxRun: 100, maxPerSec: 25 }, mode: 'sum' });   // world board: each won client's match % adds up today
 let level = ST.get('level', 1), best = ST.get('best', 0), score = ST.get('score', 0);
 const ui = createUI({ title: 'SNIP<br>STUDIO', hint: 'Wash · cut · dye · style!', hand: '✂️', score: false });
 const D = daily('snipstudio', ui, { name: NAME });
@@ -343,7 +345,7 @@ function finish() {
   $('pct').textContent = ok ? `${pct}% MATCH` : `${pct}% · NEED ${Math.round(L.thr * 100)}%`;
   $('banner').classList.toggle('bad', !ok); $('banner').classList.add('on'); ui.flash(0.5);
   if (ok) {
-    state = 'won'; mood = 1; F.level(true); score += pct; ST.set('score', score); best = Math.max(best, score); ST.set('best', best);
+    state = 'won'; mood = 1; F.level(true); score += pct; B.submit(pct); ST.set('score', score); best = Math.max(best, score); ST.set('best', best);
     $('bub').textContent = stars === 3 ? '“I look AMAZING. Who is this?!”' : '“Ooh, I like it!”';
     sfx.win(); buzz([20, 40, 20]); confetti(scene, V(0, 4.2, 0.5), 80); setTimeout(() => confetti(scene, V(0, 4.2, 0), 60), 250);
     if (!beatenShown && D.beaten(score)) { beatenShown = true; setTimeout(() => { ui.pop('BEATEN!', '#fff', 40, 34); confetti(scene, V(0, 4, 0.5), 50); }, 300); }
@@ -355,6 +357,7 @@ function finish() {
   }
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; beginWash(); sfx.tap(); }
   else if (which === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
   else { state = 'play'; buildLevel(); }

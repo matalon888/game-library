@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, burst, confetti, lerp, clamp, rng, mat, glossy, rounded, stickman } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import * as A from './sound.js';
 
 const NAME = 'Stormchase: Endless Turn Runner';
@@ -102,6 +103,7 @@ const bolt = new THREE.Group(); grumble.add(bolt);
 
 // ---------------------------------------------------------------- path (segments of straight causeway joined by 90° corners)
 let R, segs = [], cur = 0, s = 0, x = 0, leanT = 0, py = 0, vy = 0, onGround = true, slideT = 0, jumpBuf = 0, turnBuf = null, turnBufT = 0;
+const B = worldBoard({ game: 'stormchase', label: 'Points', limits: { maxRun: 20000, maxPerSec: 70 } });   // world board: best run today
 let state = 'ready', dist = 0, score = 0, gemCount = 0, speed = 11, tier = 1, sky = 0, stumbleT = 0, chaseGap = 4, runT = 0, deadT = 0, deadHow = '', recorded = false, beatenShown = false;
 let off = new THREE.Vector3(), camYaw = 0, camRoll = 0, shake = 0, fovKick = 0, landSq = 0, comboT = 0, combo = 0, lastM = 0, hist = [], gripT = 0;
 const camPos = new THREE.Vector3(0, 5, 8);
@@ -171,7 +173,7 @@ function addScore(n) {
 function gameOver(how, kind) {
   if (state !== 'play') return;
   state = 'lost'; deadT = 0; deadHow = kind; A.stopMusic(0.3);
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const prev = best; best = Math.max(best, score); S.set('best', best);
   shake = kind === 'fall' ? 0.3 : 1; ui.flash(kind === 'caught' ? 0.9 : 0.6); buzz([40, 30, 90]);
   if (kind === 'fall') { A.hiss(1.1, 2500, 300, 0.2); A.osc(600, 0.9, 'triangle', 0.1, 0.25); }
@@ -233,7 +235,7 @@ input({ onMove: (dx, dy, e, st) => {
 addEventListener('keydown', e => { const k = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', ' ': 'up' }[e.key]; if (k) { e.preventDefault(); act(k); } });
 // tilt to lean where the browser gives orientation without a prompt
 addEventListener('deviceorientation', e => { if (state === 'play' && e.gamma != null && Math.abs(e.gamma) > 6) leanT = clamp(lerp(leanT, (e.gamma / 25) * LEAN, 0.2), -LEAN, LEAN); });
-ui.onTap(() => { reset(); state = 'play'; A.ac(); startSong(); ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(() => { B.start(); reset(); state = 'play'; A.ac(); startSong(); ui.els.sc.classList.remove('hc-hidden'); });
 
 // original loop: bright F-major sky run (four-on-the-floor + bass + bell arpeggio)
 const BASS = [41, 41, 53, 41, 38, 38, 50, 38, 46, 46, 58, 46, 48, 48, 60, 43];

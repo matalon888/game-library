@@ -6,6 +6,8 @@ import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, sparks, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'munch-buddies', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'ode', 'saints', 'minuet', 'cancan', 'canon', 'neon', 'elise', 'starlight', 'mountain', 'turkish'];
 const THEMES = [
@@ -198,7 +200,7 @@ function lose(title) {
   ui.lose(title, `${Math.round(eaten / Math.max(1, foodCount) * 100)}% · ${score} pts`);
 }
 function win() {
-  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   kits.forEach(k => { k.bounce = 1; k.open = 1; });
   for (let i = 0; i < 4; i++) fx.emit(new THREE.Vector3((i - 1.5) * 1.2, 1.5, 1), ['#ff8fae', '#ffd84a', '#8fd3ff', '#ffffff'], 16, { speed: 0.14, up: 0.1, size: 0.5 });
   hearts3d(new THREE.Vector3(LANE_X[0], 0, 1.2), 3); hearts3d(new THREE.Vector3(LANE_X[1], 0, 1.2), 3);
@@ -219,7 +221,7 @@ function endHold(it, now) {
   const p = clamp((now - it.t) / it.len, 0, 1); it.state = 'eaten'; it.eatAt = now;
   if (p > 0.85) { score += 3; ui.score(score); ui.pop('DELICIOUS!', '#ff5d8f', 30, 30); hearts3d(new THREE.Vector3(LANE_X[it.lane], MOUTH_Y + 0.4, 1.2), 2); synth.chime(88, player.at(now), 0.1); }
 }
-ui.onTap(which => { if (which !== 'start') buildLevel(); begin(); });
+ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
 
 // ---------------------------------------------------------------- frame
 let clock = 0, lastBeat = -1, pulse = 0;

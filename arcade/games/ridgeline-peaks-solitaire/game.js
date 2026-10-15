@@ -3,6 +3,7 @@
 import { createUI, store, buzz, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Ridgeline: Peaks Solitaire';
@@ -11,6 +12,7 @@ const F = flow('ridgeline');
 const ui = createUI({ title: 'Ridgeline', hint: 'Tap to deal', hand: '', score: false });
 cardTheme({ accent: '#d6a24a' });
 const D = daily('ridgeline', ui, { name: NAME });
+const B = board({ game: 'ridgeline', label: 'Deals cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: deals cleared today (RULES.md)
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
 startCard(ui, D, { kicker: D.isDaily ? 'Daily deal' : 'three-peaks solitaire', doneLine: doneToday ? (D.isDaily ? `Cleared today · ${doneToday.s.toLocaleString()} pts` : 'Daily deal cleared ✓') : null });
@@ -233,7 +235,7 @@ function checkStuck() {
 function cleared() { let n = 0; for (let i = 0; i < 28; i++) if (mask & (1 << i)) n++; return n / 28; }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; B.submit(1); if (!D.isDaily) F.level(true); }
   const left = stockCards.length - si, bonus = left * 250; score += bonus; refresh();
   stockCards.slice(si).forEach((c, k) => setTimeout(() => { c.el.classList.remove('down'); const x = Math.random() * innerWidth, y = -120; c.el.style.transform = `translate(${x}px,${y}px) rotate(${(Math.random() - 0.5) * 90}deg)`; chime(k, 79, 0.06); }, k * 70));
   arp([67, 71, 74, 79, 83, 86], 110, 0.12, 0.9); fx.confetti(140, ['#f0c56a', '#fff', '#d03a4c', '#7cc6a4', '#9db4ff']); buzz([20, 60, 20]);
@@ -248,7 +250,7 @@ function lose() {
   state = 'lost'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(false, cleared()); }
   ui.lose('Out of cards', `${Math.round(cleared() * 28)} of 28 cleared · tap to redeal`);
 }
-ui.onTap((which) => {
+ui.onTap((which) => { B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

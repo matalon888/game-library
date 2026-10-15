@@ -5,6 +5,8 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { WORDS } from './words.js';
+import * as kitBoard from './kit/board.js';   // `board` is a local name here
+const B = kitBoard.board({ game: 'hunch', label: 'Points', limits: { maxRun: 140, maxPerSec: 10 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Hunch: Five Letter Word Guess';
 const S = store('hunch');
@@ -55,7 +57,7 @@ body:before{content:'';position:fixed;inset:0;background-image:radial-gradient(r
 .row{display:grid;grid-template-columns:repeat(5,var(--ts));gap:var(--tg);margin-bottom:var(--tg)}
 .row.shake{animation:shake .42s}
 .row.jump .tl{animation:jump .5s cubic-bezier(.3,1.6,.5,1) both}
-.tl{width:var(--ts);height:var(--ts);perspective:500px}
+div.tl{width:var(--ts);height:var(--ts);perspective:500px}
 .tl .in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.45,.05,.4,1)}
 .tl.flip .in{transform:rotateX(180deg)}
 .tl .fa{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;font-weight:800;font-size:calc(var(--ts) * .52);text-transform:uppercase;font-family:ui-rounded,'SF Pro Rounded','Baloo 2',system-ui,sans-serif}
@@ -75,7 +77,7 @@ body:before{content:'';position:fixed;inset:0;background-image:radial-gradient(r
 #kb svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
 #toast{position:fixed;left:50%;z-index:9;transform:translateX(-50%) translateY(-6px);background:#2b2a33;color:#fff;font-weight:700;font-size:15px;padding:9px 16px;border-radius:12px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.2)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.pillbtn{position:fixed;z-index:6;top:calc(46px + env(safe-area-inset-top));height:30px;border-radius:16px;border:0;font:inherit;font-weight:800;font-size:12px;letter-spacing:1px;padding:0 12px;cursor:pointer;background:#fffdf8;color:#8a7f6c;box-shadow:0 2px 8px rgba(80,60,30,.12)}
+.pillbtn{position:fixed;z-index:6;top:calc(55px + env(safe-area-inset-top));height:30px;border-radius:16px;border:0;font:inherit;font-weight:800;font-size:12px;letter-spacing:1px;padding:0 12px;cursor:pointer;background:#fffdf8;color:#8a7f6c;box-shadow:0 2px 8px rgba(80,60,30,.12)}
 #hardBtn{left:12px}#hardBtn.on{background:#c0573f;color:#fff}#hardBtn.lock{opacity:.55}
 #pts{right:12px;pointer-events:none;color:#3f8f63}
 .hc-card,.hc-card.dim{background:linear-gradient(180deg,rgba(24,58,42,.78),rgba(20,40,32,.86))}
@@ -205,7 +207,7 @@ function finish(won) {
   if (!recorded) { recorded = true; if (!D.isDaily) { if (won) F.level(true); else F.level(false, Math.max(...marks.map(m => m.filter(x => x === 2).length)) / 5); } }
   if (won) {
     state = 'won';
-    const pts = (7 - g) * 10 + (hard ? 10 : 0); points += pts; S.set('points', points); hud();
+    const pts = (7 - g) * 10 + (hard ? 10 : 0); points += pts; S.set('points', points); hud(); B.submit(pts);
     const rd = board.children[g - 1]; rd.classList.add('jump'); [...rd.children].forEach((t, i) => (t.style.animationDelay = i * 90 + 'ms'));
     ui.pop(WORDS_OF_PRAISE[g - 1], '#3f8f63', 38, 9); arp([67, 71, 74, 79, 83], 90, 0.12, 0.8); fx.confetti(); buzz([20, 40, 20]);
     if (!beatenShown && D.beaten(pts)) { beatenShown = true; setTimeout(() => ui.pop('BEATEN!', '#c0573f', 40, 14), 500); }
@@ -222,6 +224,7 @@ function finish(won) {
   }
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

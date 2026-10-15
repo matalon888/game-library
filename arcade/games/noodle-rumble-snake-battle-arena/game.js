@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, sfx, note, burst, confetti, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const KEY = 'noodle', NAME = 'Noodle Rumble: Snake Battle Arena';
 const S = store(KEY);
@@ -14,6 +15,7 @@ const { scene, camera, sun, hemi } = stage;
 hemi.intensity = 1.25; hemi.groundColor.set('#8a7fb8'); sun.intensity = 1.6;
 const ui = createUI({ title: 'NOODLE<br>RUMBLE', hint: 'Drag to steer', hand: '👆' });
 const D = daily(KEY, ui, { name: NAME });
+const B = board({ game: 'noodle-rumble', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
 // ---------------------------------------------------------------- palettes
 const ACCENTS = ['#ff4f9a', '#2bd4a8', '#8b6bff', '#ff8a3d', '#3d8bff', '#ffbf1f'];
@@ -186,7 +188,7 @@ function lose() {
   ui.lose('SWALLOWED!', `${score} long · boss was ${Math.round(boss.len)}`);
 }
 function win() {
-  state = 'won'; if (!recorded) { recorded = true; F.level(true); }
+  state = 'won'; if (!recorded) { recorded = true; F.level(true); B.submit(1); }
   score = Math.round(player.len) + level * 10; best = Math.max(best, score); S.set('best', best);
   confetti(scene, new THREE.Vector3(player.x, 2, player.z), 90); sfx.win(); buzz([30, 50, 30]);
   D.won(score); ui.score(score);
@@ -366,7 +368,7 @@ input({
     if (d > 70) { st.x = e.clientX - vx / d * 70; st.y = e.clientY - vy / d * 70; }   // anchor follows the finger
   },
 });
-ui.onTap((which) => {
+ui.onTap((which) => { B.start();
   if (which === 'win' || which === 'lose' || !player) buildLevel();
   state = 'play'; ui.hideStart(); sfx.tap();
 });

@@ -5,6 +5,8 @@ import { flow } from './kit/flow.js';
 import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, skyDome, starField, ease } from './_music/fx.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'neon-hop', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'starlight', 'ode', 'neon', 'cancan', 'saints', 'mountain', 'minuet', 'elise', 'turkish', 'canon'];
 const THEMES = [
@@ -109,7 +111,7 @@ function begin() { state = 'play'; player.start(track, { melody: true, lead: 1.6
 
 // ---------------------------------------------------------------- input: drag steers (relative), one verb
 input({ onMove: (dx) => { if (state === 'play' || state === 'ready') tx = clamp(tx + dx * (7.5 / Math.min(innerWidth, 520)), -3.4, 3.4); } });
-ui.onTap(which => { if (which !== 'start') buildLevel(); begin(); });
+ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
 
 function land(i, now) {
   const t = tiles[i], dx = Math.abs(bx - tileX(t, now));
@@ -133,7 +135,7 @@ function fail() {
   ui.lose('OOPS!', `${Math.round(landed / (tiles.length - 1) * 100)}% · ${score} pts`);
 }
 function win() {
-  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 5; k++) fx.emit(new THREE.Vector3(bx + (k - 2) * 0.8, 1.2, bz - 2), ['#ffffff', theme.tile, theme.acc, '#ffe66d'], 18, { speed: 0.16, up: 0.12, size: 0.6 });
   ui.flash(0.5); buzz([20, 40, 30]); ui.win(level, `${score} pts · ${gems} 💎`);
   level++; S.set('level', level);

@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp } from './kit/hc.js';
 import { createBloom, neonMat } from './bloom.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'time-knives', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const stage = createStage({ fov: 46, shadows: false, clear: '#04040c' });
 const { scene, camera, renderer } = stage;
@@ -254,7 +256,7 @@ input({
   },
   onUp() { release(); },
 });
-ui.onTap(w => {
+ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; buildLevel(); }
   else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { score = 0; state = 'play'; buildLevel(); }
@@ -328,7 +330,7 @@ function lose() {
   ui.lose('TOO CLOSE!', `${Math.round(killed / total * 100)}% cleared`);
 }
 function win() {
-  state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); sfx.win(); buzz([20, 40, 20]);
   for (let i = 0; i < 4; i++) setTimeout(() => sparks(cineTarget.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, 1 + Math.random() * 2, 0)), ['#ffd23f', '#4aa8ff', '#ff4fd8', '#19e0c8'][i], 60, 9, { up: 6 }), i * 120);
   addScore(50 * level);
   ui.win(level, `${score} pts`);

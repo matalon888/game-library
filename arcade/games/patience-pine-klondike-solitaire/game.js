@@ -4,6 +4,7 @@
 import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { SU, RK, RED, canStack, dealCards, solve, moves as genMoves, reach } from './solver.js';
 
@@ -13,6 +14,7 @@ const F = flow('patiencepine');
 const ui = createUI({ title: 'Patience Pine', hint: 'Tap to deal', hand: '', score: false });
 cardTheme({ accent: '#3f9a6b' });
 const D = daily('patiencepine', ui, { name: NAME });
+const B = board({ game: 'patience-pine', label: 'Games won', limits: { maxRun: 1, maxPerSec: 0.05 }, mode: 'sum' });
 const fx = fx2d(11);
 let drawN = S.get('draw', 1), winnable = S.get('winnable', 1);
 const doneToday = S.get('daily_' + todayKey(), null);
@@ -406,7 +408,7 @@ function win() {
   if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || score > prev.s) S.set(k, { s: score }); }
   else { level++; S.set('level', level); }
   const best = S.get('best', 0); if (score > best) S.set('best', score);
-  D.won(score);
+  D.won(score); B.submit(1);   // world board: games won today
   ui.win(D.isDaily ? '' : level - 1, `${score.toLocaleString()} pts · ${nMoves} moves · ${fmtTime(elapsed)}${score > best ? ' · new best' : ''}`);
 }
 function lose() {
@@ -416,6 +418,7 @@ function lose() {
   ui.lose('No more moves', `${Math.round(cleared() * 52)} of 52 cards home`);
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   if (which === 'lose') { replay(); state = 'play'; return; }

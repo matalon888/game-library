@@ -4,6 +4,8 @@ import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confet
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { FRUITS, fruitMesh } from './fruits.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'plumplop', label: 'Points', limits: { maxRun: 20000, maxPerSec: 60 } });   // world board (RULES.md part C)
 
 const NAME = 'Plumplop: Drop & Combine';
 const S = createStage({ fov: 32, shadowSize: 8 });
@@ -158,14 +160,14 @@ function reset() {
   ui.sub(best ? `BEST ${best}` : ''); markRing();
 }
 function gameOver() {
-  state = 'lost'; if (!recorded) { recorded = true; F.endless(score); }
+  state = 'lost'; if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const nb = score > best; if (nb) { best = score; save.set('best', best); }
   sfx.fail(); buzz([40, 60, 40]); ui.flash(0.4);
   for (const b of bodies) if (b.y + b.r > LINE) burst(crate, new THREE.Vector3(b.x, b.y, 0.5), '#ff5a6e', 8, { speed: 0.06, size: 0.5 });
   if (nb && score > 0) { state = 'won'; D.won(score); ui.win(score, `Biggest yet: ${FRUITS[bestType].name}`); }
   else ui.lose('CRATE FULL!', `${score} point${score === 1 ? '' : 's'}` + (best ? ` · best ${best}` : ''));
 }
-ui.onTap((which) => { if (which === 'start') { state = 'play'; return; } reset(); state = 'play'; });
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } reset(); state = 'play'; });
 reset(); ui.start();
 
 // ---------------------------------------------------------------- bot

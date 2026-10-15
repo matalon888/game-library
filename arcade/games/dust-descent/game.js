@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, input, loop, confetti, burst, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board as worldBoard } from './kit/board.js';
+const WB = worldBoard({ game: 'dust-descent', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const S = store('dustdescent');
 const F = flow('dustdescent');
 let level = S.get('level', 1), best = S.get('best', 0);
@@ -476,13 +478,13 @@ function finishRace() {
   F.level(p <= 3, (st.length - p) / (st.length - 1));
   score += Math.max(0, (4 - p)) * 100;
   if (p <= 3) {
-    state = 'won'; best = Math.max(best, score); S.set('best', best); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
+    state = 'won'; WB.submit(1); best = Math.max(best, score); S.set('best', best); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
     for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, camera.position.clone().add(new THREE.Vector3(0, 1.5, 0).applyQuaternion(camera.quaternion)).add(camera.getWorldDirection(V()).multiplyScalar(6)), 50), i * 200);
     ui.win(level, `${ord(p)} place · ${score} pts`);
     level++; S.set('level', level);
   } else { state = 'lost'; sfx.fail(); buzz([60, 40, 60]); ui.lose(ord(p).toUpperCase() + ' PLACE', 'Finish top 3 to qualify'); }
 }
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; t0 = performance.now(); ui.pop('GO!', '#7dff6a', 64, 34); sfx.win(); }
   else { buildLevel(); state = 'play'; ui.pop('GO!', '#7dff6a', 64, 34); tone(660, 0.2, 'triangle', 0.14, 1); }
 });

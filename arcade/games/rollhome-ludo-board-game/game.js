@@ -4,6 +4,8 @@
 import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, clamp, applyPalette, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import * as kitBoard from './kit/board.js';   // `board` is a local name here
+const B = kitBoard.board({ game: 'rollhome', label: 'Wins', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const V3 = THREE.Vector3, Q = THREE.Quaternion;
 const NAME = 'Rollhome: Ludo Board Game';
@@ -299,7 +301,7 @@ function endGame(p) {
   if (state !== 'play') return;
   phase = 'idle'; hintEl.textContent = '';
   if (p === 0) {
-    state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+    state = 'won'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); B.submit(1); }
     score += 100; confetti(scene, new V3(0, 2, 2), 120); sfx.win(); buzz([30, 60, 30]);
     if (!D.isDaily) { level++; save.set('level', level); }
     const best = save.get('best', 0); if (score > best) save.set('best', score);
@@ -314,6 +316,7 @@ function endGame(p) {
   }
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   if (which !== 'start') build();
   state = 'play'; setTimeout(startTurn, 250);

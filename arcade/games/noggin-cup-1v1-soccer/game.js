@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import * as world from './kit/board.js';           // `board` is taken here
 
 const NAME = 'Noggin Cup: 1v1 Soccer';
 const S = store('noggincup');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 40, shadowSize: 12 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'NOGGIN<br>CUP', hint: 'Drag to run · tap to jump-kick', hand: '👆', progress: true, score: false });
 const D = daily('noggincup', ui, { name: NAME });
+const WB = world.board({ game: 'noggin-cup', label: 'Matches won', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const boardEl = document.getElementById('board'), powerEl = document.getElementById('power');
 ui.els.top.style.top = 'calc(66px + env(safe-area-inset-top))';
 const TAU = Math.PI * 2;
@@ -309,14 +311,15 @@ function endMatch() {
     score = totalScore + Math.max(0, Math.ceil(clock)) + (goalsP - goalsC) * 10; checkBeat();
     level++; S.set('level', level);
     confetti(scene, new THREE.Vector3(pl.x, 3, 0), 120); sfx.win(); buzz([20, 40, 20, 40, 60]);
-    D.won(score); ui.win(level - 1, `${goalsP} – ${goalsC} · ${score} pts`);
+    D.won(score); WB.submit(1);                            // world board: matches won vs the CPU today
+    ui.win(level - 1, `${goalsP} – ${goalsC} · ${score} pts`);
   } else {
     state = 'lost'; if (!recorded) { recorded = true; F.level(false, clamp(goalsP / goalLimit, 0, 1)); }
     sfx.fail(); ui.lose(goalsP === goalsC ? 'DRAW!' : 'FULL TIME', `${goalsP} – ${goalsC} · first to score wins in golden time`);
   }
   powerEl.style.display = 'none';
 }
-ui.onTap(() => { buildLevel(); state = 'play'; powerEl.style.display = ''; });
+ui.onTap(() => { buildLevel(); state = 'play'; WB.start(); powerEl.style.display = ''; });
 
 // ---------------------------------------------------------------- CPU brain (same physics, reaction delay, imperfect choices)
 function brain(me, foe, goalSide, dt, skill) {

@@ -6,6 +6,8 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { PUZZLES } from './puzzles.js';
+import * as kitBoard from './kit/board.js';   // `board` is a local name here
+const LB = kitBoard.board({ game: 'bunchwise', label: 'Puzzles solved', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Bunchwise: Word Groups Puzzle';
 const S = store('bunchwise');
@@ -180,7 +182,7 @@ function shareGrid() { return tries.map(t => t.map(i => COLORS[i].emo).join(''))
 function win() {
   if (state !== 'play') return;
   state = 'won';
-  if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+  if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); LB.submit(1); }
   const bonus = (mistakesMax - mistakes) * 10; points += bonus; S.set('points', points); hud();
   arp([67, 72, 76, 79, 84], 100, 0.12, 0.9); fx.confetti(); buzz([20, 50, 20]);
   const d = new Date(), tag = D.isDaily ? `the ${d.toLocaleString('en', { month: 'short' })} ${d.getDate()} daily board` : `board #${level}`;
@@ -200,6 +202,7 @@ function lose() {
   setTimeout(() => ui.lose('Next time!', 'Here are the groups you missed'), 300 + rest.length * 700 + 400);
 }
 ui.onTap((which) => {
+  LB.start();
   if (which === 'start') { state = 'play'; return; }
   if (D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

@@ -3,6 +3,8 @@
 import { createUI, input, loop, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'sticky-nook', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const ST = store('stickynook');
 const F = flow('stickynook');
 let fk = 1;
@@ -252,12 +254,12 @@ function place(s) {
   if (placedN % 2 === 0 || placedN === stickers.length) ui.pop(PRAISE[Math.floor(Math.random() * PRAISE.length)], '#fff', 30, 24);
   ui.progress(placedN / stickers.length);
   if (placedN === stickers.length && state === 'play') {
-    state = 'won'; F.level(true); winT = 0.001;
+    state = 'won'; F.level(true); WB.submit(1); winT = 0.001;
     setTimeout(() => { sfx.win(); buzz([20, 40, 20]); for (let i = 0; i < 90; i++) { const a = Math.random() * 6.28, v = 2 + Math.random() * 6; sparks.push({ x: W / 2, y: R.y + 6 * R.s, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 4, life: 1.6, c: ['#ffd23f', '#ff8fab', '#8ad6ff', '#9be38f', '#b39ddb'][i % 5], conf: true, rot: Math.random() * 6 }); } }, 250);
     ui.win(level, `${theme.name} decorated!`); level++; ST.set('level', level);
   }
 }
-ui.onTap(w => { if (w === 'start') state = 'play'; else { buildLevel(); state = 'play'; } });
+ui.onTap(w => { WB.start(); if (w === 'start') state = 'play'; else { buildLevel(); state = 'play'; } });
 
 // ------------------------------------------------------------------ render
 function drawSticker(s, x, y, k, lift = 0, rot = 0) {

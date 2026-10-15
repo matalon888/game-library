@@ -20,7 +20,8 @@ export function flow(key, { par = 20, warmup = 0, hard = 0.2, ease = 0.1 } = {})
     get skill() { return skill(); },
     // multiplier for a "harder when bigger" knob (speed, danger density); `score` drives the warm-up of endless runs
     k(score = Infinity) {
-      const s = skill(), m = 1 + (s > 0 ? s * hard : s * ease);
+      // games with a world board (RULES.md 5): the same difficulty for everyone, so the skill nudge is off
+      const s = globalThis.__hcRanked ? 0 : skill(), m = 1 + (s > 0 ? s * hard : s * ease);
       const w = warmup > 0 ? Math.min(1, score / warmup) : 1;
       return m * (0.85 + 0.15 * w);
     },

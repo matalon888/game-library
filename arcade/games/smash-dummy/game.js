@@ -3,6 +3,8 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { createRagdoll, placeRagdoll, stepRagdoll, syncCollider } from './ragdoll.js';
+import { board } from './kit/board.js';
+const WB = board({ game: 'smash-dummy', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 9 });
 const { scene, camera, sun, followLight } = stage;
@@ -242,14 +244,14 @@ input({
 });
 function maxSpeed() { let m = 0; for (const j of rd.P) m = Math.max(m, j.p.distanceTo(j.o) * 120); return m; }
 
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; buildLevel(); }
   else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { state = 'play'; buildLevel(); }
 });
 function win() {
   if (state === 'play') F.level(true);
-  state = 'won'; sfx.win(); buzz([20, 40, 20]);
+  if (state === 'play') WB.submit(1); state = 'won'; sfx.win(); buzz([20, 40, 20]);
   confetti(scene, rd.P[rd.IDX.chest].p.clone().add(new THREE.Vector3(0, 1.5, 0)), 80);
   if (damage > best) { best = damage; save.set('best', best); }
   ui.win(level, `${damage} damage`);

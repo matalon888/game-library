@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, burst, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import { audio, synth, createPlayer } from './_music/conductor.js';
 import { SONG, arrange } from './_music/songs.js';
 import { glowSprite, glowTex, skyDome, starField, sparks as sparkPool } from './_music/fx.js';
@@ -97,6 +98,7 @@ const boxGeo = new THREE.BoxGeometry(1, 1, 1), edgeGeo = new THREE.EdgesGeometry
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color(), _c2 = new THREE.Color();
 
 // ---------------------------------------------------------------- run state
+const B = worldBoard({ game: 'pulse-prism', label: 'Beats', limits: { maxRun: 4000, maxPerSec: 7 } });   // world board: best run today
 let state = 'ready', R = rng(1), sections = [], events = [], evI = 0, songT = -2, perf0 = 0, alive = true;
 let spikeList = [], blockList = [], pitList = [], padList = [], beatList = [], taps = [], meshes = [];
 let hx = 0, hy = 0, vy = 0, grounded = true, holding = false, buffer = -9, score = 0, beatI = 0, recorded = false, beatenShown = false;
@@ -241,7 +243,7 @@ function doJump(fromTap) {
 }
 input({ onDown: () => { holding = true; jump(true); }, onUp: () => { holding = false; } });
 addEventListener('pointercancel', () => holding = false);
-ui.onTap(which => { reset(); state = 'play'; perf0 = performance.now() / 1000 - songT; audio(); ui.els.sc.classList.remove('hc-hidden'); holding = false; });
+ui.onTap(which => { B.start(); reset(); state = 'play'; perf0 = performance.now() / 1000 - songT; audio(); ui.els.sc.classList.remove('hc-hidden'); holding = false; });
 
 // ---------------------------------------------------------------- physics (sub-stepped, x is driven by the song clock)
 function supportAt(x) {
@@ -292,7 +294,7 @@ function die() {
   sparks.emit(pos, [theme.neon, '#ffffff', theme.spike], 12, { speed: 0.06, size: 0.3, up: 0.03 });
   ui.flash(0.75); buzz([40, 30, 80]); synth.fail(); fader.stop(0.35);
   ui.sub('');
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   newBest = score > best && score > 0;
   if (newBest) { best = score; S.set('best', best); }
   setTimeout(() => {

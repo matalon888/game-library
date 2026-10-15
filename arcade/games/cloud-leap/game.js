@@ -5,6 +5,8 @@ import { levelPlan, arrange } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, skyDome, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'cloud-leap', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'canon', 'ode', 'neon', 'minuet', 'starlight', 'saints', 'elise', 'cancan', 'mountain', 'turkish'];
 const MOODS = [
@@ -121,7 +123,7 @@ function applyMood(m, k) {
 function begin() { state = 'play'; player.start(track, { melody: true, lead: 1.4, melVol: 0.2, accVol: 0.95, drumVol: 0.9 }); document.body.style.background = `linear-gradient(180deg,#${cur.top.getHexString()},#${cur.hor.getHexString()})`; }
 
 input({ onMove: (dx) => { if (state === 'play' || state === 'ready') tx = clamp(tx + dx * (8 / Math.min(innerWidth, 520)), -3.4, 3.4); } });
-ui.onTap(which => { if (which !== 'start') buildLevel(); begin(); });
+ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
 
 function land(ri, now) {
   const row = rows[ri], q = row.plats.find(q => Math.abs(q.x - bx) < TILE / 2 + 0.12);
@@ -147,7 +149,7 @@ function fail(why, q, row) {
   return false;
 }
 function win() {
-  state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
+  if (state === 'play') B.submit(1); state = 'won'; F.level(true); best = Math.max(best, score); S.set('best', best);
   for (let k = 0; k < 5; k++) fx.emit(new THREE.Vector3(bx + (k - 2), 1.6, bz - 1), ['#ffd84a', '#ffffff', '#' + cur.tile.getHexString(), '#ff9be8'], 18, { speed: 0.16, up: 0.12, size: 0.55 });
   ui.flash(0.5); buzz([20, 40, 30]); ui.win(level, `${score} pts · ${starsGot} ★`);
   level++; S.set('level', level);

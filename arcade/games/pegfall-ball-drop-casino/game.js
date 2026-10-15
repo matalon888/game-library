@@ -2,6 +2,7 @@
 // Honest odds: each bounce is one fair bit from crypto.getRandomValues; tables are fixed and published in the Odds panel.
 import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import * as world from './kit/board.js';           // `board` is taken here
 
 const NAME = 'Pegfall: Ball Drop Casino';
 const V3 = THREE.Vector3;
@@ -11,6 +12,7 @@ hemi.intensity = 1.05; sun.intensity = 1.5; sun.position.set(3, 9, 12); sun.targ
 const ui = createUI({ title: 'PEG<br>FALL', hint: 'Tap DROP to play', hand: '👇' });
 const D = daily('pegfall', ui, { name: NAME });
 const save = store('pegfall');
+const B = world.board({ game: 'pegfall', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.5 }, mode: 'sum' });
 
 // ---------------------------------------------------------------- fixed odds (never change at runtime)
 const ROWS = 12, SLOTS = ROWS + 1;
@@ -299,7 +301,7 @@ function checkEnd() {
     state = 'won'; recorded = true;
     const lv = level; level++; save.set('level', level); best = Math.max(best, chips); save.set('best', best);
     sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, new V3(0, CY, 1), 100);
-    D.won(chips);
+    D.won(chips); B.submit(1);                             // world board: levels cleared today
     ui.win(lv, `${fmt(chips)} chips · best ${fmt(best)}`);
     ctl.classList.add('off');
   } else if (chips < BETS[0]) {
@@ -312,6 +314,7 @@ ui.onTap(which => {
   document.body.classList.remove('pf-ready');
   if (which === 'start') { state = 'play'; sfx.tap(); }
   else { buildLevel(); state = 'play'; }
+  B.start();
   ctl.classList.remove('off'); refreshCtl();
 });
 // tapping the board drops a ball too (one verb)

@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const V3 = THREE.Vector3;
 const S = createStage({ fov: 52, shadowSize: 16 });
@@ -12,6 +13,7 @@ const ui = createUI({ title: 'THRILL<br>LOOP', hint: 'Hold to speed up · let go
 const D = daily('thrillloop', ui, { name: 'Thrill Loop: Roller Coaster Ride' });
 const save = store('thrillloop');
 const F = flow('thrillloop');
+const B = board({ game: 'thrill-loop', label: 'Rides completed', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 let level = save.get('level', 1), best = save.get('best', 0), total = 0;
 
 const THEMES = [
@@ -292,7 +294,7 @@ function lose(t, line) {
   ui.lose(t, line); total = 0;
 }
 function win() {
-  state = 'won'; holding = false; finishRecord(true);
+  state = 'won'; holding = false; finishRecord(true); B.submit(1);
   const pts = aboard * 10 * level + Math.round(topV * 3.6);
   total += pts; best = Math.max(best, total); save.set('best', best);
   level++; save.set('level', level);
@@ -308,6 +310,7 @@ ui.onTap(which => {
   if (which === 'start') { state = 'play'; sfx.tap(); }
   else if (which === 'win') { buildLevel(); state = 'play'; }
   else if (which === 'lose') { buildLevel(); state = 'play'; }
+  B.start();
 });
 input({ onDown: () => { if (state === 'play') { holding = true; sfx.tap(); } }, onUp: () => { holding = false; } });
 

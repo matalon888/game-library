@@ -3,6 +3,8 @@ import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'turf-rush', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const save = store('turfrush');
 const F = flow('turfrush');
 let fk = 1;
@@ -277,7 +279,7 @@ input({
     if (Math.hypot(vx, vy) > 60) { joy.x = e.clientX - vx * 0.6; joy.y = e.clientY - vy * 0.6; } },
   onUp: () => { joy = null; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
   else if (w === 'lose') { score = 0; buildLevel(); state = 'play'; }
@@ -297,7 +299,7 @@ loop((dt, t) => {
     ui.progress(pct / goal); ui.score((pct * 100).toFixed(1) + '%');
     const rank = 1 + players.filter(q => q !== me && q.count > me.count).length; ui.sub(`Rank ${ord(rank)} · goal ${Math.round(goal * 100)}%`);
     if (state === 'play' && pct >= goal) {
-      state = 'won'; F.level(true); score += Math.round(pct * 1000) + level * 20; best = Math.max(best, score); save.set('best', best);
+      state = 'won'; F.level(true); WB.submit(1); score += Math.round(pct * 1000) + level * 20; best = Math.max(best, score); save.set('best', best);
       sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, new THREE.Vector3(me.x, 1.5, me.z), 90);
       ui.pop('TURF CLAIMED!', '#ff4fa3', 46, 26); ui.win(level, `${(pct * 100).toFixed(1)}% of the map · rank ${ord(rank)}`);
     }

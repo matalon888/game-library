@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { part, merge, canvasTex } from './geo.js';
+import { board } from './kit/board.js';
 
 const S = createStage({ fov: 55, shadowSize: 16 });
 const { scene, camera, sun, hemi } = S;
@@ -9,6 +10,7 @@ sun.intensity = 1.8; hemi.intensity = 1.2;
 const ui = createUI({ title: 'PUTT<br>ISLES', hint: 'Drag back · release to putt', hand: '👇', score: false });
 const save = store('puttisles');
 const F = flow('puttisles');
+const B = board({ game: 'putt-isles', label: 'Holes cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });
 let fk = 1;
 let level = save.get('level', 1);
 const THEMES = [
@@ -356,7 +358,7 @@ function sink(b) {
   if (b.isPlayer) {
     const diff = b.strokes - par, word = b.strokes === 1 ? 'HOLE IN ONE!' : diff <= -2 ? 'EAGLE!' : diff === -1 ? 'BIRDIE!' : diff === 0 ? 'PAR!' : diff === 1 ? 'BOGEY' : 'IN THE HOLE!';
     ui.pop(word, '#ffd23f', 48, 30); sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(cup.x, 1.5, cup.z), 80); ui.flash(0.3);
-    if (state === 'play') F.level(true); state = 'won'; save.set('level', level + 1);
+    if (state === 'play') { F.level(true); B.submit(1); } state = 'won'; save.set('level', level + 1);
     ui.win(level, `${ord(b.place)} place · ${b.strokes} stroke${b.strokes > 1 ? 's' : ''} (par ${par})`);
   } else tone(880, 0.1, 'triangle', 0.06, 1);
 }
@@ -375,7 +377,7 @@ function shotFromDrag(d) {
   const dir = fwd.clone().multiplyScalar(d.dy).addScaledVector(right, -d.dx).normalize();
   return { ang: Math.atan2(dir.z, dir.x), v: 1.2 + pw * (MAXV - 1.2), pw };
 }
-ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; });
+ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; B.start(); });
 
 // ---------------------------------------------------------------- loop
 const o3 = new THREE.Object3D(), tmp = new THREE.Vector3();

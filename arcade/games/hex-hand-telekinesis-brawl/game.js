@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 import { canvasTex } from './geo.js';
 
 const NAME = 'Hex Hand: Telekinesis Brawl';
@@ -13,6 +14,7 @@ scene.add(camera);
 sun.intensity = 1.6; hemi.intensity = 1.25;
 const ui = createUI({ title: 'HEX<br>HAND', hint: 'Touch an imp, drag and flick to throw', hand: '👆' });
 const D = daily('hexhand', ui, { name: NAME });
+const B = board({ game: 'hex-hand', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 const save = store('hexhand');
 const F = flow('hexhand');
 let level = save.get('level', 1), kos = 0;
@@ -226,7 +228,7 @@ input({
   onMove: (dx, dy, e) => { if (!held) return; const w = fingerToWorld(e.clientX, e.clientY); if (w) fingerT.copy(w); },
   onUp: () => { if (held) release(true); },
 });
-ui.onTap(() => { build(); state = 'play'; ui.hideStart(); });
+ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); });
 
 // ---------------------------------------------------------------- simulation
 function updateObj(o, h) {
@@ -293,7 +295,7 @@ loop((dt) => {
     if (left === 0 && !objs.some(o => o.stage === si && o.kind === 'imp' && o.alive && o.ko && o.pos.y > -1)) {
       if (si < stages.length - 1) { sub = 'travel'; travelT = 0; release(false); ui.pop('CLEAR!', '#fff', 42, 30); [0, 4, 7].forEach((s, i) => setTimeout(() => note(72 + s, 0.25, 0.13), i * 80)); }
       else {
-        state = 'won'; release(false); bossEl.classList.add('hc-hidden'); if (!recorded) { recorded = true; F.level(true); }
+        state = 'won'; release(false); bossEl.classList.add('hc-hidden'); if (!recorded) { recorded = true; F.level(true); B.submit(1); }
         confetti(scene, new THREE.Vector3(0, 2.5, stages[si].z + 2), 90); sfx.win(); buzz([20, 40, 20]);
         level++; save.set('level', level); D.won(kos, 'knocked out'); ui.win(level - 1, `${kos} knockouts`);
       }

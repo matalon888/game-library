@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, glossy, mat, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Bolt Out: Ball Drop Puzzle';
 const S = store('boltout');
@@ -13,6 +14,7 @@ const stage = createStage({ fov: 40, shadowSize: 9 });
 const { scene, camera, renderer, sun } = stage;
 const ui = createUI({ title: 'BOLT<br>OUT', hint: 'Tap a bolt to pull it', hand: '👆' });
 const D = daily('boltout', ui, { name: NAME });
+const LB = board({ game: 'bolt-out', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md)
 
 // ---------------------------------------------------------------- constants
 const R = 0.13, RB = 0.27, GRAV = -30, SUB = 6, Y_TOP = 6.0, Y_FLOOR = 0.7, NECK = 0.62, RIM = -3.0, CUP_B = -5.0, CUP_W = 1.3;
@@ -278,7 +280,7 @@ function lose(t, line) {
 }
 function win() {
   if (state !== 'play') return; state = 'won';
-  if (!recorded) { recorded = true; F.level(true); }
+  if (!recorded) { recorded = true; F.level(true); LB.submit(1); }
   sfx.win(); buzz([20, 30, 20]); ui.flash(0.4); jarBounce = 1;
   confetti(scene, new THREE.Vector3(0, RIM + 0.6, 0.5), 80);
   ui.pop(['SWEET!', 'PERFECT!', 'NICE!', 'GENIUS!'][level % 4], '#fff', 42, 28);
@@ -310,7 +312,7 @@ function pinAt(cx, cy) {
   return best;
 }
 input({ onDown: (e) => { if (state !== 'play') return; const p = pinAt(e.clientX, e.clientY); if (p) pull(p); else tone(200, 0.04, 'sine', 0.05, 0.9); } });
-ui.onTap((w) => {
+ui.onTap((w) => { LB.start();
   if (w === 'win') build();
   else if (w === 'lose') build();
   state = 'play'; ui.hideStart();

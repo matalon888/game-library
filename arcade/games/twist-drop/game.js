@@ -2,6 +2,8 @@
 import * as THREE from './three.module.min.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'twist-drop', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const $ = (id) => document.getElementById(id);
 const SEG = 12, SEGA = Math.PI * 2 / SEG, GAP = 3.2, R_OUT = 2.25, R_IN = 0.55, THICK = 0.36, BALL_R = 0.3, BALL_D = 1.45;
 const GRAV = -0.0105, JUMP = 0.19, MAXFALL = -0.42;
@@ -190,9 +192,9 @@ addEventListener('pointermove', e => { if (dragX === null || state !== 'play') r
 addEventListener('pointerup', () => { dragX = null; });
 
 function tapped() {
-  if (state === 'ready') { state = 'play'; $('start').classList.add('hidden'); tone(520, 0.06); }
-  else if (state === 'won') { level++; localStorage.setItem('twist_level', level); $('win').classList.add('hidden'); buildLevel(); state = 'play'; }
-  else if (state === 'lost') { score = 0; $('lose').classList.add('hidden'); buildLevel(); state = 'play'; }
+  if (state === 'ready') { state = 'play'; WB.start(); $('start').classList.add('hidden'); tone(520, 0.06); }
+  else if (state === 'won') { level++; localStorage.setItem('twist_level', level); $('win').classList.add('hidden'); buildLevel(); state = 'play'; WB.start(); }
+  else if (state === 'lost') { score = 0; $('lose').classList.add('hidden'); buildLevel(); state = 'play'; WB.start(); }
 }
 
 function lose() {
@@ -204,7 +206,7 @@ function lose() {
   }, 700);
 }
 function win() {
-  state = 'won'; F.level(true); score += 50 * level; best = Math.max(best, score); localStorage.setItem('twist_best', best);
+  state = 'won'; F.level(true); WB.submit(1); score += 50 * level; best = Math.max(best, score); localStorage.setItem('twist_best', best);
   $('score').textContent = score; $('winLv').textContent = level; tone(660, 0.12); setTimeout(() => tone(880, 0.18), 120);
   buzz([20, 40, 20]); $('flash').style.opacity = 0.7; setTimeout(() => $('flash').style.opacity = 0, 120);
   for (let i = 0; i < 3; i++) setTimeout(() => burst(['#ffd23f', pal.safe, '#ffffff'][i], 26), i * 140);

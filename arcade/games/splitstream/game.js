@@ -2,9 +2,11 @@
 // snap them together so each skate stays on its rail; straddle blocks on wide decks, squeeze onto single beams.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const ST = store('splitstream');
 const F = flow('splitstream');
+const WB = worldBoard({ game: 'splitstream', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
 const ui = createUI({ title: 'SPLIT<br>STREAM', hint: 'Drag ← → to stretch your legs', hand: '👆', score: false });
@@ -163,7 +165,7 @@ input({
   onMove(dx) { if (state === 'play' && dragging) K.t = clamp(K.t + dx * 0.022, MINS, MAXS); },
   onUp() { dragging = false; },
 });
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else { buildLevel(); state = 'play'; }
@@ -175,7 +177,7 @@ function ok(A, s) {
 }
 function lose() { if (state === 'play') F.level(false, clamp(K.z / endZ, 0, 1)); state = 'lost'; sfx.fail(); buzz([50, 30, 80]); ui.lose('WIPEOUT!', `${gems} 💎 this run`); }
 function win() {
-  if (state === 'play') F.level(true);
+  if (state === 'play') { F.level(true); WB.submit(1); }
   state = 'won'; total += gems; ST.set('gems', total); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   confetti(world, new THREE.Vector3(K.c, 3, K.z - 2), 120); setTimeout(() => confetti(world, new THREE.Vector3(K.c, 3, K.z - 2), 80), 300);
   ui.win(level, `${gems} 💎 collected`);

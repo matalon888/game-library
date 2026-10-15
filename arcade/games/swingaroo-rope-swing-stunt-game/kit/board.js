@@ -71,7 +71,10 @@ const CSS = `
 .bd .bd-vs-t td.w{color:#9cf28a;font-weight:700} .bd .bd-vs-t td.l{color:#ff8a8a} .bd .bd-vs-t tr.tot td{border-top:1px solid rgba(255,255,255,.14);font-weight:800;color:#f6f0e3}
 .bd .bd-live{font-size:13px;color:#d8d2e4;margin:-4px 0 8px} .bd .bd-live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5d5d;margin-right:5px;animation:agp 1.2s infinite}`;
 
-export function board({ game, label = 'Score', A = null }) {
+const every = (fn, ms) => setInterval(() => { if (document.visibilityState !== 'hidden') fn(); }, ms);   // polling pauses in hidden tabs
+
+export function board(o) { return o.A ? tokenBoard(o) : regular(o); }
+function tokenBoard({ game, label = 'Score', A = null }) {
   if (!document.getElementById('bd-css')) { const s = document.createElement('style'); s.id = 'bd-css'; s.textContent = CSS; document.head.appendChild(s); }
   let which = game, period = 'day', mine = false, pending = {}, timer = 0, lastSent = {};
   const live = () => !(A && A.demo) && profile();
@@ -122,7 +125,7 @@ export function board({ game, label = 'Score', A = null }) {
       try {
         const r = await fetch(API + '/api/lb', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ game: g, client, name: p.name, country: p.country, ...v }) });
         const j = await r.json();
-        if (r.ok) { const prev = store.get('rank_' + g, null); lastSent[g] = v.score; if (j.you && prev && j.you.rank < prev) toast(`🏆 You climbed to #${j.you.rank} on the ${g === POWER ? 'Agent points' : g === REPLY ? 'Fast replies' : label} board today`); if (j.you) store.set('rank_' + g, j.you.rank); }
+        if (r.ok) { const prev = store.get('rank_' + g, null); lastSent[g] = v.score; if (j.you && prev && j.you.rank < prev) toast(`🏆 ${flag(p.country)} You climbed to #${j.you.rank} on the ${g === POWER ? 'Agent points' : g === REPLY ? 'Fast replies' : label} board today`); if (j.you) store.set('rank_' + g, j.you.rank); }
       } catch (e) {}
     }
   }
@@ -146,11 +149,14 @@ export function board({ game, label = 'Score', A = null }) {
       <div class="bd-me">${p ? `<span style="font-size:22px">${flag(p.country)}</span><b>${p.name}</b><button class="bd-tabs" data-edit style="margin-left:auto;background:none;border:0;color:#b9b2c8;cursor:pointer">Edit</button>`
         : `<input maxlength="18" placeholder="Your nickname" value=""><select>${ISO.map(c => `<option value="${c}" ${c === cc ? 'selected' : ''}>${flag(c)} ${regionName(c)}</option>`).join('')}</select><button class="bd-save">Join</button>`}</div>
       <div class="bd-list"><p class="bd-empty">Loading…</p></div>
-      <p class="bd-fine">${A && A.demo ? 'Demo teams never post scores. Connect your agents to compete. ' : ''}Only your nickname, flag, scores and counts are shared. Never project names, prompts or code. Scores that can't be real are flagged "under review", never silently removed. Finished days and duels are frozen.</p>`;
+      ${p ? '<button class="bd-save" data-card style="margin-top:10px">📸 Share card</button>' : ''}
+      <p class="bd-fine">Unrigged: the same rules for everyone. ${A && A.demo ? 'Demo teams never post scores. Connect your agents to compete. ' : ''}Only your nickname, flag, scores and counts are shared. Never project names, prompts or code. Scores that can't be real are flagged "under review", never silently removed. Finished days and duels are frozen.</p>`;
     el.querySelector('.bd-x').onclick = close;
     el.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { which = b.dataset.g; render(); });
     el.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { period = b.dataset.p; render(); });
     const m = el.querySelector('[data-mine]'); if (m) m.onclick = () => { mine = !mine; render(); };
+    const cd = el.querySelector('[data-card]'); if (cd) cd.onclick = () => { const g = which, sc = g === POWER ? ship.score : g === REPLY ? reply.quick : best[game] || 0;
+      shareCard({ title: document.title.split(/ [·|–—-] /)[0], score: sc, label: g === POWER ? '⚡ Agent points today' : g === REPLY ? '🙋 Fast replies today' : label + ' today', rank: store.get('rank_' + g, null), profile: p }); };
     const ed = el.querySelector('[data-edit]'); if (ed) ed.onclick = () => { store.set('profile', null); render(); };
     const sv = el.querySelector('.bd-save');
     if (sv) sv.onclick = () => {
@@ -248,7 +254,7 @@ export function board({ game, label = 'Score', A = null }) {
     matching = false; await loadDuels();
   }
   addEventListener('riffcade-connected', () => setTimeout(autoMatch, 4000));
-  setInterval(autoMatch, 60000);
+  every(autoMatch, 60000);
 
   // no friend around: duel the house bot (it ships at about your usual pace, and never shows on the world board)
   async function botDuel(openId) {
@@ -313,10 +319,10 @@ export function board({ game, label = 'Score', A = null }) {
   const liveCard = () => !liveData ? '' : `<div class="bd-livec" data-open-live><div class="t"><i></i>LIVE <b>${liveData.playingNow || 0}</b> playing now${liveData.duelsLive ? ` · ${liveData.duelsLive} duel${liveData.duelsLive > 1 ? 's' : ''}` : ''}</div>
     ${(liveData.countries || []).length ? `<div class="c">${liveData.countries.slice(0, 4).map(c => `${flag(c.country)} ${fmt(c.score)}`).join('  ')}</div>` : ''}
     ${(liveData.recent || []).slice(0, 3).map(r => `<div class="r">${flag(r.country)} ${String(r.name).replace(/</g, '').slice(0, 12)} <b>${GAMES[r.game] || '🎮'} ${fmt(r.score)}</b> <small>${ago(r.ago)}</small></div>`).join('')}</div>`;
-  setInterval(loadLive, 20000); loadLive();
+  every(loadLive, 20000); loadLive();
   addEventListener('riffcade-connected', chip);
-  setInterval(() => { loadDuels(); }, 30000); loadDuels(); setTimeout(chip, 1500);
-  setInterval(chip, 10000);
+  every(loadDuels, 30000); loadDuels(); setTimeout(chip, 1500);
+  every(chip, 10000);
 
   // duels + live race inside the board panel
   const renderBase = render;
@@ -398,7 +404,7 @@ export function board({ game, label = 'Score', A = null }) {
       chip();
     } catch (e) {}
   }
-  setInterval(rivalTick, 3500); setTimeout(rivalTick, 2500);
+  every(rivalTick, 3500); setTimeout(rivalTick, 2500);
   const esc = x => String(x).replace(/[<>&"]/g, '');
   const dot = st => st === 'working' ? '#9cf28a' : st === 'waiting' ? '#ffcf5a' : '#6b6580';
   const since = t => { const s = Math.max(1, Math.round((Date.now() - t) / 1000)); return s < 60 ? s + 's' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h'; };
@@ -433,6 +439,155 @@ export function board({ game, label = 'Score', A = null }) {
     profile,
     challenge,
     botDuel,
+  };
+  return api;
+}
+
+// ================================================================ share card: 1200×630 image with score, rank and flag
+export async function shareCard({ title, score, label, rank, profile: p, accent = '#ffcf5a' }) {
+  const c = document.createElement('canvas'); c.width = 1200; c.height = 630; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 1200, 630); g.addColorStop(0, '#16122a'); g.addColorStop(1, '#2b1f4a'); x.fillStyle = g; x.fillRect(0, 0, 1200, 630);
+  x.fillStyle = accent; x.globalAlpha = .16; x.beginPath(); x.arc(1040, 120, 260, 0, 7); x.fill(); x.beginPath(); x.arc(140, 640, 220, 0, 7); x.fill(); x.globalAlpha = 1;
+  const F = (w, s) => `${w} ${s}px system-ui,-apple-system,"Segoe UI",sans-serif`;
+  x.textBaseline = 'alphabetic'; x.fillStyle = '#f6f0e3'; x.font = F(800, 30); x.fillText('AGENTPARK', 70, 86);
+  x.font = F(700, 22); const uw = x.measureText('UNRIGGED').width + 28; x.fillStyle = 'rgba(255,255,255,.12)'; x.beginPath(); x.roundRect ? x.roundRect(250, 58, uw, 38, 19) : x.rect(250, 58, uw, 38); x.fill(); x.fillStyle = '#9cf28a'; x.fillText('UNRIGGED', 264, 85);
+  x.fillStyle = '#f6f0e3'; x.font = F(800, 64); x.fillText(String(title).slice(0, 26), 70, 190);
+  x.fillStyle = accent; x.font = F(900, 170); x.fillText(fmt(score), 66, 380);
+  x.fillStyle = '#b9b2c8'; x.font = F(600, 34); x.fillText(String(label).slice(0, 40), 74, 432);
+  if (p) { x.font = F(400, 96); x.fillText(flag(p.country), 70, 560); x.fillStyle = '#f6f0e3'; x.font = F(800, 46); x.fillText(rank ? `#${rank} in the world today` : p.name, 200, 532); if (rank) { x.fillStyle = '#b9b2c8'; x.font = F(600, 30); x.fillText(p.name, 202, 572); } }
+  x.fillStyle = '#8e88a0'; x.font = F(600, 26); x.textAlign = 'right'; x.fillText('agentpark.co · free, no account', 1130, 590);
+  let url = location.href; try { url = top.location.href; } catch (e) {}
+  const text = `${rank ? `#${rank} in the world today on ${title}` : `${fmt(score)} on ${title}`} ${p ? flag(p.country) : ''}. Beat me?`;
+  const blob = await new Promise(r => c.toBlob(r, 'image/png')), file = new File([blob], 'agentpark-score.png', { type: 'image/png' });
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title, text, url }); } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  try { await navigator.clipboard.writeText(`${text} ${url}`); } catch (e) {}
+  return 'downloaded';
+}
+
+// ================================================================ regular games (RULES.md part C)
+// const B = board({ game: 'napspot', label: 'Puzzles solved', limits: { maxRun: 1, maxPerSec: 0.05 }, mode: 'sum' });
+// B.start()                    when a run starts (optional: otherwise the clock runs from the last submit or page load)
+// B.submit(score, { ms })      when a run ends. mode 'best' (default): today's score = your best run today.
+//                              mode 'sum': today's score = everything you scored today (e.g. levels cleared).
+// B.open()                     show the board (the kit also adds a small 🏆 button in a corner: corner 'tl' (default) | 'tr' | 'bl' | 'br')
+const RCSS = `.bd-trophy{position:fixed;z-index:40;width:42px;height:42px;padding:0;display:grid;place-items:center;font:20px/1 system-ui,-apple-system,sans-serif;color:#f6f0e3;background:rgba(18,16,30,.72);border:1px solid rgba(255,255,255,.18);border-radius:50%;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,.25);touch-action:manipulation}
+.bd-trophy small{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);font:800 10px/1 system-ui,-apple-system,sans-serif;background:var(--ag-acc,#ffcf5a);color:#1b1408;border-radius:999px;padding:2px 5px;white-space:nowrap}
+.bd-trophy.tr{top:calc(10px + env(safe-area-inset-top));right:10px}.bd-trophy.tl{top:calc(10px + env(safe-area-inset-top));left:10px}.bd-trophy.br{bottom:calc(10px + env(safe-area-inset-bottom));right:10px}.bd-trophy.bl{bottom:calc(10px + env(safe-area-inset-bottom));left:10px}
+.bd-toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(24px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:10px;align-items:center;background:rgba(18,16,30,.95);color:#f6f0e3;border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 14px;font:600 15px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:calc(100% - 32px);animation:bdt .3s ease-out}
+.bd-toast button{font:inherit;font-size:13px;background:var(--ag-acc,#ffcf5a);color:#1b1408;border:0;border-radius:9px;padding:6px 10px;font-weight:800;cursor:pointer;white-space:nowrap} @keyframes bdt{from{opacity:0;transform:translateY(10px)}}
+@keyframes agp{50%{opacity:.25}} .bd .bd-mine{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:10px;font-size:14px;color:#d8d2e4}`;
+function btoast(html, ms = 5000, btn = '', onBtn = null) {
+  document.querySelectorAll('.bd-toast').forEach(t => t.remove());
+  const d = document.createElement('div'); d.className = 'bd-toast'; d.innerHTML = `<span>${html}</span>${btn ? `<button>${btn}</button>` : ''}`; document.body.appendChild(d);
+  d.addEventListener('pointerdown', e => e.stopPropagation());
+  const b = d.querySelector('button'); if (b && onBtn) b.onclick = e => { e.stopPropagation(); d.remove(); onBtn(); };
+  setTimeout(() => d.remove(), ms);
+}
+function regular({ game, label = 'Score', limits = null, mode = 'best', corner = 'tl', title = null, accent = null }) {
+  const Q = new URLSearchParams(location.search);
+  let embed = Q.get('embed') === 'chat'; try { embed = embed || new URLSearchParams(parent.location.search).get('embed') === 'chat'; } catch (e) {}
+  const noop = { start() {}, submit() {}, open() {}, close() {}, profile, today: () => 0, shareCard() {} };
+  globalThis.__hcRanked = true;                            // flow.js: no skill nudge, the same difficulty for everyone (RULES.md 5)
+  if (embed) return noop;                                  // chat embeds stay exactly as they are: no board, no prompts
+  const quiet = Q.has('demo') || (navigator.webdriver && !Q.get('lbapi'));   // demo and automated runs never post
+  title = title || document.title.split(/: | [·|–—-] /)[0].trim();
+  if (!document.getElementById('bd-css')) { const s = document.createElement('style'); s.id = 'bd-css'; s.textContent = CSS + RCSS; document.head.appendChild(s); }
+  else if (!document.getElementById('bd-rcss')) { const s = document.createElement('style'); s.id = 'bd-rcss'; s.textContent = RCSS; document.head.appendChild(s); }
+  if (accent) document.documentElement.style.setProperty('--ag-acc', accent);
+  // today's state for this game (UTC day, like the server). Scores only go up within a day.
+  const K = 'reg_' + game, fresh = () => ({ day: dayUTC(), best: 0, bestMs: 0, total: 0, pRun: 0, pMs: 0, pN: 0, sent: 0, rank: null });
+  let st = store.get(K, null); if (!st || st.day !== dayUTC()) st = fresh();
+  const save = () => store.set(K, st), today = () => (mode === 'sum' ? st.total : st.best);
+  let t0 = performance.now(), timer = 0, period = 'day', mine = false, open = false;
+
+  const btn = document.createElement('button'); btn.className = 'bd-trophy ' + corner; btn.setAttribute('aria-label', 'World leaderboard');
+  btn.addEventListener('pointerdown', e => e.stopPropagation()); btn.addEventListener('click', e => { e.stopPropagation(); api.open(); });
+  const paint = () => { const p = profile(); btn.innerHTML = st.rank && p ? `🏆<small>#${st.rank}</small>` : '🏆'; };
+  document.body.appendChild(btn); paint();
+
+  function queue() { if (quiet || !profile() || today() <= st.sent) return; clearTimeout(timer); timer = setTimeout(flush, 2500); }
+  async function flush() {
+    const p = profile(); if (!p || quiet) return;
+    if (st.day !== dayUTC()) return;                       // a past day is frozen
+    const score = today(); if (score <= st.sent) return;
+    const body = mode === 'sum' ? { run: st.pRun, ms: Math.round(st.pMs), n: st.pN } : { run: st.best, ms: Math.round(st.bestMs) };
+    try {
+      const r = await fetch(API + '/api/lb', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ game, client, name: p.name, country: p.country, score, ...body }) });
+      const j = await r.json(); if (!r.ok) return;
+      st.sent = score; st.pRun = 0; st.pMs = 0; st.pN = 0;
+      const prev = st.rank; if (j.you) st.rank = j.you.rank; save(); paint();
+      if (j.you && (!prev || j.you.rank < prev)) btoast(`🏆 ${flag(p.country)} #${j.you.rank} in the world today${j.you.review ? ' <small>(under review)</small>' : ''}`, 6000, '📸 Share', card);
+      if (open) render();
+    } catch (e) {}
+  }
+  addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && timer) { clearTimeout(timer); flush(); } });
+  const card = () => shareCard({ title, score: today(), label: (mode === 'sum' ? label : 'Best ' + label.toLowerCase()) + ' today', rank: st.rank, profile: profile(), accent: getComputedStyle(document.documentElement).getPropertyValue('--ag-acc').trim() || '#ffcf5a' });
+
+  function join(el) {
+    const name = el.querySelector('input').value.replace(/\s+/g, ' ').trim().slice(0, 18), country = el.querySelector('select').value;
+    if (name.length < 2) return el.querySelector('input').focus();
+    store.set('profile', { name, country }); st.sent = 0; save(); paint(); flush().then(() => open && render()); render();
+  }
+  const wrap = document.createElement('div'); wrap.className = 'bd-wrap'; wrap.hidden = true; wrap.innerHTML = '<div class="bd"></div>'; document.body.appendChild(wrap);
+  ['pointerdown', 'touchstart', 'mousedown', 'keydown'].forEach(t => wrap.addEventListener(t, e => e.stopPropagation()));
+  wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });
+  const el = wrap.firstChild;
+  function close() { wrap.hidden = true; open = false; }
+  const ADJ = 'Swift Brave Lucky Turbo Cosmic Sneaky Mighty Clever Rapid Sunny Neon Jolly'.split(' '), ANI = 'Otter Falcon Panda Fox Lynx Gecko Koala Orca Tiger Raven Moose Yak'.split(' ');
+  const suggest = () => ADJ[(Math.random() * ADJ.length) | 0] + ANI[(Math.random() * ANI.length) | 0] + ((Math.random() * 90 + 10) | 0);
+  async function render() {
+    const p = profile(), cc = (p && p.country) || guessCountry();
+    const tabs = (arr, cur) => arr.map(([v, t]) => `<button data-p="${v}" aria-pressed="${v === cur}">${t}</button>`).join('');
+    el.innerHTML = `<button class="bd-x" aria-label="Close">✕</button><h2>🏆 ${title.replace(/</g, '')}</h2>
+      <p class="bd-sub">World leaderboard · <b>${label}</b>. ${mode === 'sum' ? 'Everything you score today adds up.' : 'Your best run today counts.'} This week and All time add up each player's best day, so showing up every day beats one lucky day.</p>
+      <p class="bd-live" data-live></p>
+      <div class="bd-tabs">${tabs([['day', 'Today'], ['week', 'This week'], ['all', 'All time'], ['nations', '🌍 Countries']], period)}<button data-mine aria-pressed="${mine}">${flag(cc)} My country</button></div>
+      <div class="bd-me">${p ? `<span style="font-size:22px">${flag(p.country)}</span><b>${p.name.replace(/</g, '')}</b><button data-edit style="margin-left:auto;background:none;border:0;color:#b9b2c8;cursor:pointer;font:inherit">Edit</button>`
+        : `<input maxlength="18" value="${suggest()}" aria-label="Nickname"><select aria-label="Country">${ISO.map(c => `<option value="${c}" ${c === cc ? 'selected' : ''}>${flag(c)} ${regionName(c)}</option>`).join('')}</select><button class="bd-save">Join</button>`}</div>
+      <div class="bd-list"><p class="bd-empty">Loading…</p></div>
+      <div class="bd-mine"><span>${p ? 'You today' : 'Your score today'}: <b>${fmt(today())}</b>${st.rank && p ? ` · #${st.rank} ${flag(p.country)}` : ''}</span>${today() > 0 ? '<button class="bd-save" data-card>📸 Share card</button>' : ''}</div>
+      <p class="bd-fine"><b style="color:#9cf28a">Unrigged:</b> the same rules and difficulty for everyone, never tuned to what you spend or who you are. No account: only your nickname, flag and scores leave this device. Scores that can't be real are flagged "under review", never silently removed. Past days are frozen.${quiet ? ' Demo and test runs never post.' : ''}</p>`;
+    el.querySelector('.bd-x').onclick = close;
+    el.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { period = b.dataset.p; render(); });
+    el.querySelector('[data-mine]').onclick = () => { mine = !mine; render(); };
+    const ed = el.querySelector('[data-edit]'); if (ed) ed.onclick = () => { store.set('profile', null); render(); };
+    const sv = el.querySelector('.bd-save:not([data-card])'); if (sv) sv.onclick = () => join(el);
+    const cd = el.querySelector('[data-card]'); if (cd) cd.onclick = card;
+    fetch(`${API}/api/live?game=${game}`).then(r => r.json()).then(L => {
+      const lead = (L.countries || [])[0], rec = (L.recent || [])[0], li = el.querySelector('[data-live]'); if (!li) return;
+      li.innerHTML = `<i></i>${L.playingNow || 0} playing on AGENTPARK now · ${L.players || 0} on this board today${lead ? ` · ${flag(lead.country)} ${regionName(lead.country)} leads` : ''}${rec ? ` · latest ${flag(rec.country)} ${String(rec.name).replace(/</g, '').slice(0, 12)} ${fmt(rec.score)}` : ''}`;
+    }).catch(() => {});
+    const list = el.querySelector('.bd-list');
+    try {
+      const q = new URLSearchParams({ game, period: period === 'nations' ? 'day' : period, client });
+      if (mine && period !== 'nations') q.set('country', cc);
+      const j = await (await fetch(API + '/api/lb?' + q)).json();
+      if (j.error) throw 0;
+      if (period === 'nations') list.innerHTML = j.countries && j.countries.length ? j.countries.map(n => `<div class="bd-row ${p && n.country === p.country ? 'me' : ''}"><span class="bd-rank">${n.rank}</span><span class="bd-flag">${flag(n.country)}</span><span>${regionName(n.country)} <small style="color:#8e88a0">· ${n.players} player${n.players > 1 ? 's' : ''}</small></span><b>${fmt(n.score)}</b><span></span></div>`).join('') : '<p class="bd-empty">No countries on the board yet today. Put yours first!</p>';
+      else {
+        const row = (r, me) => `<div class="bd-row ${me ? 'me' : ''}"><span class="bd-rank">${r.rank}</span><span class="bd-flag" title="${regionName(r.country)}">${flag(r.country)}</span><span>${r.name.replace(/</g, '&lt;')}${me ? ' (you)' : ''}${r.review ? ` <small class="bd-rev" title="Flagged by the server: ${r.review}. Kept visible, ranked after checked scores, not counted for its country.">under review</small>` : ''}</span><b>${fmt(r.score)}</b><span></span></div>`;
+        const rows = (j.top || []).map(r => row(r, j.you && r.rank === j.you.rank && r.name === j.you.name));
+        if (j.you && !(j.top || []).some(r => r.rank === j.you.rank)) rows.push(row(j.you, true));
+        list.innerHTML = rows.length ? rows.join('') : `<p class="bd-empty">Nobody on this board yet${period === 'day' ? ' today' : ''}. Be the first!</p>`;
+      }
+    } catch (e) { list.innerHTML = '<p class="bd-empty">The leaderboard is offline right now. Your score is kept on this device.</p>'; }
+  }
+  every(() => { if (open) render(); }, 20000);
+
+  const api = {
+    start() { t0 = performance.now(); },
+    submit(score, { ms } = {}) {
+      score = Math.max(0, Math.floor(+score) || 0); ms = ms > 0 ? ms : performance.now() - t0; t0 = performance.now();
+      if (st.day !== dayUTC()) st = fresh();
+      if (mode === 'sum') { if (!score) return; st.total += score; st.pRun += score; st.pMs += ms; st.pN = (st.pN || 0) + 1; }
+      else if (score > st.best) { st.best = score; st.bestMs = ms; } else return;
+      save();
+      if (!profile() && !quiet && !store.get('asked', false)) { store.set('asked', true); btoast('🏆 This game has a world leaderboard. Pick a nickname and your flag.', 7000, 'Join', () => api.open()); }
+      queue();
+    },
+    open() { wrap.hidden = false; open = true; render(); },
+    close, profile, today, shareCard: card,
   };
   return api;
 }

@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
 import { makeRacer, setShape, step, course, floorAt, HALF } from './physics.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const OMEGA = -2 * Math.PI * 0.9;            // player motor (rad/s, negative = forward)
 const LANE_Z = [0, -1.75, -3.5, -5.25], LANE_D = 1.0;
@@ -16,6 +17,7 @@ const { scene, camera, renderer, sun } = stage;
 const save = store('doodlelegs');
 let level = save.get('level', 1), wins = save.get('wins', 0), state = 'ready';
 const F = flow('doodlelegs');
+const WB = worldBoard({ game: 'doodle-legs', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 const ui = createUI({ title: 'DOODLE<br>LEGS', hint: 'Draw legs. Race. Climb!', hand: '✍️', score: false });
 
 // ---------------------------------------------------------------- shared assets
@@ -247,7 +249,7 @@ const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), tmp = new THR
 let shake = 0;
 function finish(won) {
   if (state !== 'play') return;
-  state = won ? 'won' : 'lost'; F.level(won, clamp((racers[0].sim.x + 3.2) / (finishX + 3.2), 0, 1));
+  state = won ? 'won' : 'lost'; F.level(won, clamp((racers[0].sim.x + 3.2) / (finishX + 3.2), 0, 1)); if (won) WB.submit(1);
   if (won) {
     wins++; level++; save.set('level', level); save.set('wins', wins);
     sfx.win(); buzz([30, 40, 60]); ui.flash(0.55);
@@ -335,7 +337,7 @@ loop((dt, t) => {
   }
 });
 
-ui.onTap((which) => {
+ui.onTap((which) => { WB.start();
   if (which === 'start') { state = 'play'; fitPad(); return; }
   startLevel(); fitPad(); state = 'play';
 });

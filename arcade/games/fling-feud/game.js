@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
+import { board } from './kit/board.js';
 
 const S = createStage({ fov: 24, shadows: false });
 const { scene, camera, sun, hemi } = S;
@@ -9,6 +10,7 @@ sun.intensity = 1.25; hemi.intensity = 1.55; sun.position.set(-4, 10, 12);
 const ui = createUI({ title: 'FLING<br>FEUD', hint: 'Drag back to aim · release to throw', hand: '👈', score: false });
 const save = store('flingfeud');
 const F = flow('flingfeud'); let fk = 1;
+const B = board({ game: 'fling-feud', label: 'Wins', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });
 let level = save.get('level', 1);
 
 // ---------------------------------------------------------------- HUD
@@ -229,7 +231,7 @@ function onHit(p, kind) {
 function nextTurn() {
   if (proj) { const p = proj; setTimeout(() => { p.m.removeFromParent(); }, p.stuck ? 900 : 0); proj = null; }
   you.wpn.visible = foe.wpn.visible = true;
-  if (foe.hp <= 0) { phase = 'over'; state = 'won'; F.level(true); save.set('level', level + 1); sfx.win(); confetti(scene, new THREE.Vector3(foe.x, foe.y + 3, 0.5), 90); ui.win(level, `${foe.spec.name} is down · ${hits} hit${hits > 1 ? 's' : ''}`); return; }
+  if (foe.hp <= 0) { phase = 'over'; state = 'won'; F.level(true); B.submit(1); save.set('level', level + 1); sfx.win(); confetti(scene, new THREE.Vector3(foe.x, foe.y + 3, 0.5), 90); ui.win(level, `${foe.spec.name} is down · ${hits} hit${hits > 1 ? 's' : ''}`); return; }
   if (you.hp <= 0) { phase = 'over'; state = 'lost'; F.level(false, 1 - Math.max(0, foe.hp) / foe.maxHp); sfx.fail(); ui.lose('K.O.!', `${foe.spec.name} had ${Math.max(0, foe.hp)} HP left`); return; }
   if (lastShooter === you) { phase = 'foe'; turnT = 0; aiPlan = null; say(`${foe.spec.name}'S TURN`); }
   else { phase = 'aim'; say('YOUR TURN'); }
@@ -246,7 +248,7 @@ input({
   onMove: (dx, dy, e) => { if (!drag) return; drag.cx = e.clientX; drag.cy = e.clientY; },
   onUp: () => { if (!drag) return; const a = aimFromDrag(drag); drag = null; if (a.pw > 0.08 && phase === 'aim' && state === 'play') throwFrom(you, a.ang, a.pw); },
 });
-ui.onTap(w => { if (w === 'win') level++; if (you) { scene.remove(you.root); } if (foe) scene.remove(foe.root); startLevel(); state = 'play'; });
+ui.onTap(w => { if (w === 'win') level++; if (you) { scene.remove(you.root); } if (foe) scene.remove(foe.root); startLevel(); state = 'play'; B.start(); });
 
 // ---------------------------------------------------------------- loop
 const o3 = new THREE.Object3D(), tmp = new THREE.Vector3();

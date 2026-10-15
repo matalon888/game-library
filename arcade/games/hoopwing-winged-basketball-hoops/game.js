@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const NAME = 'Hoopwing: Winged Basketball Hoops';
 const S = store('hoopwing');
@@ -120,6 +121,8 @@ function spawnHoop() {
   g.position.set(h.x, h.y, 0); hoops.push(h); nextX += gap;
 }
 
+const B = board({ game: 'hoopwing', label: 'Points', limits: { maxRun: 60000, maxPerSec: 120 } });
+
 function reset() {
   const seed = D.seed || (Date.now() % 100000) + 7; r = rng(seed);
   for (const h of hoops) { h.g.visible = false; hoopPool.push(h.g); } hoops = [];
@@ -169,7 +172,7 @@ function scoreHoop(h) {
 function die(why) {
   if (state !== 'play') return;
   state = 'lost'; combo = 0; fire = 0; deadT = 0;
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const nb = score > best; best = Math.max(best, score); S.set('best', best);
   sfx.fail(); buzz([40, 30, 80]); ui.flash(0.4);
   burst(scene, new THREE.Vector3(p.x, p.y, 0), ['#ff8a2a', '#ffffff', '#bdf1ff'], 18, { speed: 0.12, up: 0.1, size: 0.6 });
@@ -178,7 +181,7 @@ function die(why) {
 }
 
 input({ onDown: () => flap() });
-ui.onTap(w => { if (w === 'lose' || w === 'win') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); v.y = FLAP * 0.8; });
+ui.onTap(w => { if (w === 'lose' || w === 'win') reset(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); v.y = FLAP * 0.8; });
 
 // ---------------------------------------------------------------- physics
 function rimHit(h, ex) {

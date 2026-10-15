@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board } from './kit/board.js';
 
 const V3 = THREE.Vector3, Q = THREE.Quaternion;
 const S = createStage({ fov: 60, shadowSize: 5 });
@@ -14,6 +15,7 @@ const NAME = 'Pip Duel: Five Dice Game';
 const D = daily('pipduel', ui, { name: NAME });
 const save = store('pipduel');
 const F = flow('pipduel', { hard: 0.3, ease: 0.4 });
+const B = board({ game: 'pip-duel', label: 'Matches won', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
 
 // ---------------------------------------------------------------- fair dice (crypto, rejection-sampled)
 const U8 = new Uint8Array(1), U32 = new Uint32Array(1);
@@ -270,7 +272,7 @@ const wait = (ms) => new Promise(r => setTimeout(r, fast ? ms * 0.06 : ms));
 const anim = () => dice.some(d => d.anim);
 
 function newMatch() {
-  matchId++;
+  matchId++; B.start();
   TH = THEMES[(level - 1) % THEMES.length];
   const pick = D.seed ? D.seed : level * 7 + Math.floor(crand() * 3);
   rival = RIVALS[pick % RIVALS.length];
@@ -458,7 +460,7 @@ function endMatch() {
     chips += a; save.set('chips', chips);
     if (!recorded) { recorded = true; F.level(true); }
     sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, new V3(0, 1.2, 0), 100);
-    D.won(you);
+    D.won(you); B.submit(1);                                // world board: matches won vs the rival today
     state = 'won';
     if (chips >= target(level)) {
       const lv = level; level++; save.set('level', level);

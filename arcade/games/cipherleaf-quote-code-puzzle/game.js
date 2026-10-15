@@ -6,6 +6,8 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { QUOTES } from './quotes.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'cipherleaf', label: 'Quotes cracked', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Cipherleaf: Quote Code Puzzle';
 const S = store('cipherleaf');
@@ -67,7 +69,7 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.5;bac
 .btn svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn i{position:absolute;top:-6px;right:-6px;font-style:normal;background:#e2a33b;color:#fff;font-size:12px;font-weight:800;border-radius:10px;padding:1px 6px}
 .btn i.off{background:#aaa}
-#pts{position:fixed;z-index:6;left:12px;top:calc(46px + env(safe-area-inset-top));height:30px;border-radius:16px;font-weight:800;font-size:13px;padding:0 12px;display:flex;align-items:center;background:#fff;color:#4f8a5b;box-shadow:0 2px 8px rgba(40,70,30,.12)}
+#pts{position:fixed;z-index:6;left:12px;top:calc(56px + env(safe-area-inset-top));height:30px;border-radius:16px;font-weight:800;font-size:13px;padding:0 12px;display:flex;align-items:center;background:#fff;color:#4f8a5b;box-shadow:0 2px 8px rgba(40,70,30,.12)}
 `);
 const mist = document.createElement('div'); mist.id = 'mist'; document.body.appendChild(mist);
 const paper = document.createElement('div'); paper.id = 'paper'; paper.innerHTML = '<div id="quote"></div><div id="by"></div>'; document.body.appendChild(paper);
@@ -216,7 +218,7 @@ function checkBeat() { const s = D.isDaily ? dailyPts : points; if (!beatenShown
 function win() {
   if (state !== 'play') return;
   state = 'won';
-  if (!recorded) { recorded = true; if (!D.isDaily) { if (hintUsedAt < 0) F.level(true); else F.level(false, hintUsedAt); } }
+  if (!recorded) { recorded = true; B.submit(1); if (!D.isDaily) { if (hintUsedAt < 0) F.level(true); else F.level(false, hintUsedAt); } }
   const bonus = (MAXM - mistakes) * 10; points += bonus; dailyPts += bonus; S.set('points', points); paint();
   byEl.classList.add('show');
   cells.forEach((c, i) => setTimeout(() => { c.el.classList.remove('got'); void c.el.offsetWidth; c.el.classList.add('got'); }, i * 18));
@@ -234,6 +236,7 @@ function lose() {
   ui.lose('Out of mistakes', 'Same quote, fresh start');
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';

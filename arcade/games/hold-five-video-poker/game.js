@@ -2,6 +2,7 @@
 // Fresh crypto-shuffled 52-card deck every hand; the draw comes from the same deck, in order. No flow: the odds never adapt.
 import { THREE, createStage, createUI, loop, store, confetti, buzz } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import * as C from './casino.js';
 
 const NAME = 'Hold Five: Video Poker';
@@ -85,6 +86,7 @@ function payCol(coins) { payEl.querySelectorAll('td[data-c]').forEach(td => td.c
 function payHit(k) { payEl.querySelectorAll('tr').forEach(tr => { tr.classList.toggle('hit', tr.dataset.k === k); tr.classList.remove('blink'); if (tr.dataset.k === k) { void tr.offsetWidth; tr.classList.add('blink'); } }); }
 
 // ---------------------------------------------------------------- hand state
+const B = worldBoard({ game: 'hold-five', label: 'Tables cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: 1 point per table cleared today
 let state = 'ready', phase = 'idle', coins = 5, deck = [], hand = [], meshes = [], held = [false, false, false, false, false], beatenShown = false, botOn = false;
 const heldLabels = [0, 1, 2, 3, 4].map(i => { const l = C.label(0.78, 0.29); l.position.set((i - 2) * GAP, 0.3, CARD_Z + 0.9); scene.add(l); return l; });
 const slot = i => new THREE.Vector3((i - 2) * GAP, 0.012, CARD_Z);
@@ -179,7 +181,7 @@ async function countUp(win) {
   chips = start + win; hud();
 }
 function tableWon() {
-  state = 'won'; phase = 'idle'; bars.show(false); C.csfx.big(); confetti(scene, new THREE.Vector3(0, 1, 0), 90); ui.flash(0.4);
+  state = 'won'; phase = 'idle'; B.submit(1); bars.show(false); C.csfx.big(); confetti(scene, new THREE.Vector3(0, 1, 0), 90); ui.flash(0.4);
   D.won(chips, 'cashed out'); S.set('table', tableN + 1);
   ui.win(tableN, `${C.fmt(chips)} chips · next: Table ${tableN + 1}, 1 coin = ${C.fmt(tableCfg(tableN + 1).u)}`);
 }
@@ -193,6 +195,7 @@ function setupTable(n) {
 function shade(hex, k) { return '#' + new THREE.Color(hex).multiplyScalar(k).getHexString(); }
 function begin() { payEl.style.opacity = 1; state = 'play'; phase = 'bet'; bars.show(true); hud(); msg('Bet Max deals instantly', 1200); }
 ui.onTap(which => {
+  B.start();
   if (which === 'start') begin();
   else if (which === 'win') { setupTable(tableN + 1); begin(); }
   else if (which === 'lose') { setupTable(tableN); begin(); }

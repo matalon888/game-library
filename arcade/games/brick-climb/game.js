@@ -2,6 +2,8 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, palette, applyPalette, mat, glossy, rounded, stickman, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
+import { board } from './kit/board.js';
+const WB = board({ game: 'brick-climb', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const ST = store('brickclimb');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const F = flow('brickclimb'); let fk = 1;
@@ -159,7 +161,7 @@ input({
   onUp() { down = false; joy.x = joy.y = 0; joyEl.style.display = 'none'; joyEl.firstChild.style.transform = ''; },
 });
 
-ui.onTap(w => {
+ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
   else if (w === 'lose') { state = 'play'; score = 0; buildLevel(); }
@@ -279,7 +281,7 @@ function knock(a, b) {   // a has more bricks; b drops its stack
 }
 
 function win() {
-  state = 'won'; F.level(true); winT = 0; score += 20 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
+  state = 'won'; F.level(true); WB.submit(1); winT = 0; score += 20 * level; ui.score(score); best = Math.max(best, score); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6);
   const p = new THREE.Vector3(player.x, player.y + 2, player.z);
   confetti(world, p, 90); setTimeout(() => confetti(world, p, 70), 300);

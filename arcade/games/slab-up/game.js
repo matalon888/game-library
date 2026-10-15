@@ -2,11 +2,13 @@
 // Whatever hangs over the edge is sliced off and tumbles away; perfect drops keep the full size and climb a chime scale.
 import { THREE, createStage, createUI, store, loop, input, buzz, note, tone, burst, confetti, lerp, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { board as worldBoard } from './kit/board.js';
 
 const H = 0.36, W0 = 3, RANGE = 4.6, TIER = 20, PERFECT = 0.09;
 const S = store('slabup');
 let best = S.get('best', 0);
 const F = flow('slabup', { par: 25, warmup: 8 });
+const WB = worldBoard({ game: 'slab-up', label: 'Blocks', limits: { maxRun: 300, maxPerSec: 3 } });
 
 const stage = createStage({ fov: 19, shadows: false });
 const { scene, camera } = stage;
@@ -121,7 +123,7 @@ function drop() {
   setBg(); spawn();
 }
 function lose() {
-  state = 'lost'; F.endless(score); best = Math.max(best, score); S.set('best', best);
+  state = 'lost'; F.endless(score); WB.submit(score); best = Math.max(best, score); S.set('best', best);
   tone(180, 0.35, 'sawtooth', 0.1, 0.5); buzz([30, 40, 60]); shake = 0.25;
   camDistT = clamp(40 + blocks.length * H * 2.2, 40, 110);           // zoom out to admire the tower
   ui.lose(String(score), best ? 'BEST ' + best : '');
@@ -129,7 +131,7 @@ function lose() {
 }
 
 input({ onDown: () => { if (state === 'play') drop(); } });
-ui.onTap(() => { reset(); state = 'play'; ui.hideStart(); ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(() => { WB.start(); reset(); state = 'play'; ui.hideStart(); ui.els.sc.classList.remove('hc-hidden'); });
 
 // ---------------------------------------------------------------- loop
 const DIR = new THREE.Vector3(1, 0.98, 1).normalize();

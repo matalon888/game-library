@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, sfx, burst, confetti, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 
 const NAME = 'Capy Hop: Endless Road Hopper';
 const S = store('capyhop');
@@ -202,6 +203,7 @@ function dropRows(below) {
 }
 
 // ---------------------------------------------------------------- run state
+const B = worldBoard({ game: 'capy-hop', label: 'Hops', limits: { maxRun: 1000, maxPerSec: 8 } });   // world board: best run today
 let state = 'ready', score = 0, oranges = 0, hx = 0, hr = 0, hop = null, queued = null, faceY = Math.PI + 0.7, camRow = 0, camX = 0, started = false, runT = 0;
 let deathAnim = null, recorded = false, beatenShown = false, squash = 0, lastNear = 0, prevBest = best, idleT = 0;
 function reset() {
@@ -255,7 +257,7 @@ function die(kind) {
 }
 const CHILL_LINES = { car: 'Still chill, though.', train: 'Should\'ve heard the bell.', water: 'Capys can swim. Just not today.', slow: 'Too slow — even for a capybara.', swept: 'Drifted off. Very relaxing.' };
 function gameOver() {
-  if (!recorded) { recorded = true; F.endless(score); }
+  if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const newBest = score > prevBest && score > 0, oj = oranges ? `🍊 ${oranges} · ` : '';
   setTimeout(() => (state === 'won' || state === 'lost') && ui.els.sc.classList.add('hc-hidden'), 650);
   best = Math.max(best, score); S.set('best', best);
@@ -268,7 +270,7 @@ input({
   onSwipe: (d) => { if (state !== 'play') return; if (d === 'left') tryHop(-1, 0); else if (d === 'right') tryHop(1, 0); else if (d === 'down') tryHop(0, -1); else tryHop(0, 1); },
 });
 addEventListener('keydown', e => { const k = { ArrowUp: [0, 1], KeyW: [0, 1], Space: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0], ArrowDown: [0, -1], KeyS: [0, -1] }[e.code]; if (k) tryHop(...k); });
-ui.onTap(which => { if (which !== 'start') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
+ui.onTap(which => { B.start(); if (which !== 'start') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
 
 // ---------------------------------------------------------------- loop
 const camOff = new THREE.Vector3(4.6, 17.5, 12.2);

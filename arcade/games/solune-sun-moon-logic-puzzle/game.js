@@ -1,12 +1,15 @@
 // Solune — fill the grid with suns and moons: each row and column holds as many suns as moons, never three alike in a
 // line, '=' joins two alike cells and '×' two different ones. Puzzles are generated (seeded) and kept only when our
 // step-by-step logic solver finishes them without guessing (so the answer is unique).
+import { board } from './kit/board.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp } from './puzzle.js';
 import { generate, step, lineCells, ek, SUN, MOON } from './solgen.js';
 
 let N = 4, sol = [], given = [], st = [], edges = new Map(), edgeList = [], LC = [], geo = { x: 0, y: 0, s: 50 }, anim = new Map(), bad = new Set(), badEdges = new Set(), wonAt = 0, hintCell = -1, hintAt = 0;
 
+const B = board({ game: 'solune', label: 'Puzzle points', limits: { maxRun: 1500, maxPerSec: 100 }, mode: 'sum' });
 const P = shell({
+  B,
   key: 'solune', name: 'Solune: Sun & Moon Logic Puzzle', brand: 'Solune', kicker: 'sun & moon logic', accent: '#ee8a3a', ink: '#2c2f4a',
   bg: ['#fff3df', '#e2e6fb'], winWord: 'Balanced!', dailyLevel: 10,
   build(level, seed, fk) {

@@ -5,6 +5,8 @@ import { createUI, store, buzz, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
+import { board } from './kit/board.js';
+const B = board({ game: 'huebound', label: 'Wins', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Huebound: Crazy Eights Card Game';
 const S = store('huebound');
@@ -360,7 +362,7 @@ function endRound(p) {
   if (p === 0) {
     let bonus = 0; for (let q = 1; q <= 3; q++) for (const c of hands[q]) bonus += pts(c);
     score += bonus; state = 'won';
-    if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); }
+    if (!recorded) { recorded = true; if (!D.isDaily) F.level(true); B.submit(1); }
     fx.confetti(140, COLS.concat(['#fff'])); arp([67, 71, 74, 79, 83, 86], 100, 0.12, 0.9); buzz([20, 60, 20]);
     total += score; S.set('total', total);
     if (D.isDaily) { const k = 'daily_' + todayKey(), prev = S.get(k, null); if (!prev || score > prev.s) S.set(k, { s: score }); }
@@ -375,6 +377,7 @@ function endRound(p) {
   }
 }
 ui.onTap((which) => {
+  B.start();
   if (which === 'start') { state = 'play'; startTurn(); return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play'; setTimeout(startTurn, 700);

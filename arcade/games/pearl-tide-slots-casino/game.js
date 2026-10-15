@@ -3,6 +3,7 @@
 // no near-miss logic, no anticipation slow-downs. RTP is computed exactly from the strips + paytable in math.js.
 import { THREE, createStage, createUI, loop, glossy, mat, rounded, confetti, burst, tone, note, buzz, store, lerp, clamp } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { board as worldBoard } from './kit/board.js';
 import * as M from './math.js';
 import { drawSymbol, smear, logoCanvas, markerCanvas, vignetteCanvas, glowCanvas, raysCanvas, frameCanvas } from './art.js';
 
@@ -232,6 +233,7 @@ function coinBurst(n = 40, power = 1) {
 const BETS = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
 let level = S.get('level', 1), levelStart = S.get('start', 1000), best = S.get('best', 0);
 if (D.seed) { level = 1; levelStart = 1000; }
+const B = worldBoard({ game: 'pearl-tide', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: 1 point per level cleared today
 let chips = levelStart, shown = chips, target = 0, state = 'ready', phase = 'idle', betIdx = 2, recorded = false, beatenShown = false;
 let result = null, mult = 1, fs = { left: 0, total: 0, won: 0 }, winCells = new Set(), turbo = false, spinStart = 0, overlay = null, overlayAt = 0, timers = [];
 const later = (ms, fn) => { const id = setTimeout(() => { timers = timers.filter(t => t !== id); fn(); }, ms); timers.push(id); };
@@ -377,7 +379,7 @@ function end() {
   if (BETS[betIdx] > chips) { betIdx = bestBet(); hud(); }
 }
 function levelWon() {
-  state = 'won'; if (!recorded) recorded = true;
+  state = 'won'; if (!recorded) { recorded = true; B.submit(1); }
   best = Math.max(best, chips); S.set('best', best);
   confetti(scene, new THREE.Vector3(0, 1, 1.5), 100); coinBurst(80, 1.4); ui.flash(0.6); note(84, 0.5, 0.15);
   D.won(chips);
@@ -440,6 +442,7 @@ bar.querySelector('.pt-odds').addEventListener('pointerdown', e => { e.stopPropa
 
 // ---------------------------------------------------------------- flow
 ui.onTap(which => {
+  B.start();
   if (which === 'start') { state = 'play'; winEl.innerHTML = `Reach <b style="font-size:26px">${fmt(target)}</b> chips`; tone(660, 0.08, 'triangle', 0.12, 1.3); previewLines(); }
   else if (which === 'win') { if (!D.seed) { level++; levelStart = chips; S.set('level', level); S.set('start', levelStart); } setupLevel(); state = 'play'; previewLines(); }
   else if (which === 'lose') { setupLevel(); state = 'play'; }
