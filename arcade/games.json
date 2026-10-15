@@ -5814,7 +5814,13 @@
   ],
   "original": true,
   "repo_dir": "deskfolk-idle-office-for-your-ai-agents",
-  "review": null,
+  "review": {
+   "by": "Claude",
+   "depth": 4,
+   "polish": 7,
+   "ai_built": "yes",
+   "pitch": "Watch a charming pixel office fill with workers as your real AI coding sessions run, with each tool call earning coins for upgrades."
+  },
   "external": null,
   "made": null,
   "platform": "desktop",
