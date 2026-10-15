@@ -252,6 +252,8 @@ const CSS = `
 .ag-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(540px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;background:rgba(18,16,30,.97);color:#f6f0e3;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px;z-index:50;font:15px/1.45 system-ui,-apple-system,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .ag-card h1{margin:0;font-size:28px;letter-spacing:1px;color:var(--ag-acc,#ffcf5a)} .ag-card .ag-tag{margin:2px 0 8px;font-weight:700;font-size:17px} .ag-card .ag-about{margin:0 0 12px;color:#d8d2e4}
 .ag-card button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px}
+.ag-card .ag-x{position:absolute;top:10px;right:10px;width:36px;height:36px;padding:0;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#f6f0e3;font-size:17px;line-height:1}
+.ag-card .ag-x:hover{background:rgba(255,255,255,.18)}
 .ag-card .ag-big{background:var(--ag-acc,#ffcf5a);color:#1b1408;border:0;font-weight:700;font-size:16px} .ag-card .ag-big:disabled{opacity:.45;cursor:not-allowed}
 .ag-card .ag-ghost{background:transparent;color:#f6f0e3;border:1px solid rgba(255,255,255,.18)}
 .ag-card .ag-fine{color:#b9b2c8;font-size:13px;margin:8px 0 0}
@@ -293,7 +295,7 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
   const cmdFor = os => os === 'win' ? `irm ${SRC} | node - ${code}` : `curl -sL ${SRC} | node - ${code}`;
   const phone = !supported && matchMedia('(pointer: coarse)').matches;
   const card = document.createElement('section'); card.className = 'ag-card';
-  card.innerHTML = `<h1>${title}</h1><p class="ag-tag">${tagline}</p>${about ? `<p class="ag-about">${about}</p>` : ''}
+  card.innerHTML = `<button class="ag-x" aria-label="Close" title="Close">✕</button><h1>${title}</h1><p class="ag-tag">${tagline}</p>${about ? `<p class="ag-about">${about}</p>` : ''}
     <div class="ag-step"><h3>📱 Link your Claude Code + Codex <small>· works on any device, phones too</small></h3>
       <div>On the computer where your agents run, open <b>Terminal</b> and paste this line:</div>
       <div class="ag-os"><button data-os="mac" aria-pressed="${!win}">Mac / Linux</button><button data-os="win" aria-pressed="${win}">Windows</button></div>
@@ -326,12 +328,17 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
   if (send) send.onclick = () => navigator.share({ title: 'Link my AI agents to RIFFCADE', text: 'Paste this in Terminal on my computer:\n' + card.querySelector('.ag-cmd code').textContent }).catch(() => {});
   function open() { card.hidden = false; }
   function close() { card.hidden = true; }
+  // closing without connecting keeps the demo team playing, so the game is never empty
+  const dismiss = () => { close(); if (!api.connected.length && autoDemo) startDemo(); };
+  card.querySelector('.ag-x').onclick = dismiss;
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !card.hidden) dismiss(); });
+  addEventListener('pointerdown', e => { if (!card.hidden && !card.contains(e.target) && !e.target.closest('.ag-help,.bd-wrap,.ag-toast')) dismiss(); }, true);
   function startDemo() { if (demoRun || api.connected.length) return; api.demo = true; tag.hidden = false; demoRun = demoFeed(emit, { agents: demoAgents }); }
   function stopDemo() { if (!demoRun) return; demoRun.stop(); demoRun = null; api.demo = false; tag.hidden = true; }
 
   // the link: always listening for this browser's code (cheap GET every few seconds); the first data connects
   const link = relay(code, emit, () => {
-    stopDemo(); api.connected.push(link); onConnect && onConnect('link');
+    stopDemo(); api.connected.push(link); onConnect && onConnect('link'); dispatchEvent(new CustomEvent('riffcade-connected'));
     status.textContent = '✅ Linked! Your agents are in the game.'; card.querySelector('.ag-dot').style.cssText = 'background:#9cf28a;animation:none';
     close(); toast('✅ Linked to your agents. They join the game as they work.');
   });
@@ -342,7 +349,7 @@ export function agents({ game, title, tagline, about = '', accent = '#ffcf5a', o
     try {
       stopDemo();
       // onConnect runs before the first (catch-up) batch, so a game can reset its demo state without losing today's numbers
-      const src = await w.start(s => { api.connected.push(w); onConnect && onConnect(s); });
+      const src = await w.start(s => { api.connected.push(w); onConnect && onConnect(s); dispatchEvent(new CustomEvent('riffcade-connected')); });
       saved.add(h).catch(() => {});
       close(); toast(`Connected to ${src === 'codex' ? 'Codex' : 'Claude Code'}. Your agents join as they work.`);
       return true;

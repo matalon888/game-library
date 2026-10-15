@@ -707,8 +707,9 @@ function hud() {
   $('pepN').textContent = P.pepN; $('pepBar').style.width = (P.meter * 100) + '%'; $('bPep').classList.toggle('live', P.pep > 0); $('bPep').disabled = P.pepN <= 0 && P.pep <= 0;
   $('clock').textContent = M ? (P.mode === 'ft' ? 'FT' : minute() + "'") : "0'";
   const m = $('mom'); m.classList.toggle('them', P.poss === 'them'); $('momFill').style.width = (P.p * 100) + '%'; $('momBall').style.left = (P.p * 100) + '%';
-  const f = [...AG.values()].sort((a, b) => b.goals - a.goals || b.passes - a.passes);
-  $('team').innerHTML = `<h4><span>${US.short} · ${f.length} agent${f.length === 1 ? '' : 's'}</span><span>⚽</span></h4>` + (f.length ? f.slice(0, 9).map(r => `<div class="r"><span class="d" style="background:${r.color}"></span><span class="n">${esc(r.tag)}${r.sub ? '<small>sub</small>' : ''}${r.actor ? '' : '<small>bench</small>'}${r.waiting ? ' 🙋' : ''}</span><span class="s">${r.passes}</span><span class="g">${r.goals ? '⚽' + r.goals : ''}</span></div>`).join('') + (f.length > 9 ? `<div class="r"><span></span><span class="n"><small>+${f.length - 9} more</small></span></div>` : '') : '<div class="r"><span></span><span class="n"><small>no agents on the pitch yet</small></span></div>');
+  const steps = r => stepsToday.get(r.id) || r.passes;
+  const f = [...AG.values()].sort((a, b) => b.goals - a.goals || steps(b) - steps(a));
+  $('team').innerHTML = `<h4><span>${US.short} · ${f.length} agent${f.length === 1 ? '' : 's'}</span><span title="successful steps today · goals">✓ ⚽</span></h4>` + (f.length ? f.slice(0, 9).map(r => `<div class="r"><span class="d" style="background:${r.color}"></span><span class="n">${esc(r.tag)}${r.sub ? '<small>sub</small>' : ''}${r.actor ? '' : '<small>bench</small>'}${r.waiting ? ' 🙋' : ''}</span><span class="s" title="successful steps today">${steps(r)}</span><span class="g">${r.goals ? '⚽' + r.goals : ''}</span></div>`).join('') + (f.length > 9 ? `<div class="r"><span></span><span class="n"><small>+${f.length - 9} more</small></span></div>` : '') : '<div class="r"><span></span><span class="n"><small>no agents on the pitch yet</small></span></div>');
   const calls = f.filter(r => r.waiting).slice(0, phone() ? 1 : 2);
   const key = calls.map(r => r.id).join();
   if ($('calls').dataset.k !== key) { $('calls').dataset.k = key; $('calls').innerHTML = calls.map(r => `<button class="call" data-id="${esc(r.id)}">🙋 ${esc(r.tag)} wants the coach</button>`).join(''); $('calls').querySelectorAll('.call').forEach(b => b.onclick = e => { e.stopPropagation(); answer(AG.get(b.dataset.id)); }); }
@@ -723,8 +724,11 @@ function checkMeter() { if (P.meter >= 1) { if (P.pepN < 3) { P.pepN++; toast('�
 
 // ---------------------------------------------------------------- agent events
 const CATWORD = { edit: '✎ edit', read: 'read', run: 'run', test: 'tests', commit: 'commit', deploy: 'deploy!', web: 'web', delegate: 'sub on', other: 'tool' };
+const stepsToday = new Map();      // agent id → successful steps today (from every event this tab saw, so it starts at the real number)
 function handle(list, info) {
   const real = !info.demo;
+  const today0 = new Date(); today0.setHours(0, 0, 0, 0);
+  for (const e of list) if (e.kind === 'result' && e.ok && e.t >= +today0) stepsToday.set(e.agent, (stepsToday.get(e.agent) || 0) + 1);
   if (real) { rollToday(); if (demoMode || (M && M.demo)) leaveDemo(); for (const e of list) if (e.counted) tallyReal(e); }
   if (info.backfill) {
     let n = 0, sh = 0;

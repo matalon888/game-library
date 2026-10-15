@@ -27,12 +27,6 @@
 .g-toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 80px); transform: translateX(-50%); z-index: 40; max-width: min(92vw, 420px);
   background: #fff; color: #15171B; border-radius: 14px; padding: 10px 14px; font-size: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.35) }
 
-.g-consent { position: fixed; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 50; max-width: 520px; margin: 0 auto;
-  background: #fff; color: #15171B; border-radius: 18px; padding: 14px 16px; box-shadow: 0 10px 40px rgba(0,0,0,.4); display: grid; gap: 10px }
-.g-consent p { margin: 0; font-size: 14px; line-height: 1.4 }
-.g-consent a { color: #5a46d6 }
-.g-consent div { display: flex; gap: 8px; justify-content: flex-end }
-.g-consent .btn.ghost { color: #15171B; border: 1px solid #c9ccd4; padding-inline: 14px }
 
 /* ads: a 320x50 banner row under the game. The row is reserved before the game starts, so the game never jumps or sits under it. */
 .player.has-ad { grid-template-rows: auto 1fr auto calc(50px + env(safe-area-inset-bottom, 0px)) }

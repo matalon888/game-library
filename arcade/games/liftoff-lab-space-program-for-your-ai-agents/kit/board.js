@@ -46,7 +46,16 @@ const CSS = `
 .bd .bd-me{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;padding:10px;border-radius:12px;background:rgba(255,255,255,.05)}
 .bd input,.bd select{font:inherit;background:rgba(255,255,255,.08);color:#f6f0e3;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:7px 10px}
 .bd input{flex:1;min-width:120px} .bd select{max-width:200px} .bd .bd-save{background:var(--ag-acc,#ffcf5a);color:#1b1408;border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
-.bd .bd-empty{color:#b9b2c8;padding:16px 4px} .bd .bd-fine{color:#8e88a0;font-size:12px;margin-top:10px}`;
+.bd .bd-empty{color:#b9b2c8;padding:16px 4px} .bd .bd-fine{color:#8e88a0;font-size:12px;margin-top:10px}
+.bd-chip{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:45;display:grid;gap:6px;justify-items:end;font:13px/1.3 system-ui,-apple-system,sans-serif;pointer-events:none}
+.bd-chip>*{pointer-events:auto;cursor:pointer;background:rgba(18,16,30,.88);color:#f6f0e3;border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:7px 11px;box-shadow:0 6px 20px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
+.bd-chip .bd-me1 b{color:var(--ag-acc,#ffcf5a)} .bd-chip .bd-me1 small{color:#b9b2c8;display:block}
+.bd-chip .bd-vs{display:grid;grid-template-columns:auto auto auto;gap:6px;align-items:center;border-color:var(--ag-acc,#ffcf5a)} .bd-chip .bd-vs .w{color:#9cf28a} .bd-chip .bd-vs small{grid-column:1/-1;text-align:center;color:#b9b2c8}
+.bd-chip .bd-cta{background:var(--ag-acc,#ffcf5a);color:#1b1408;font-weight:700;border:0}
+.bd .bd-duels{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;margin:10px 0} .bd .bd-duels h3{margin:0 0 6px;font-size:15px}
+.bd .bd-duel{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid rgba(255,255,255,.07);font-size:14px}
+.bd .bd-link{display:flex;gap:6px;margin-top:6px} .bd .bd-link input{flex:1;font-size:12px}
+.bd .bd-live{font-size:13px;color:#d8d2e4;margin:-4px 0 8px} .bd .bd-live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5d5d;margin-right:5px;animation:agp 1.2s infinite}`;
 
 export function board({ game, label = 'Score', A = null }) {
   if (!document.getElementById('bd-css')) { const s = document.createElement('style'); s.id = 'bd-css'; s.textContent = CSS; document.head.appendChild(s); }
@@ -92,7 +101,7 @@ export function board({ game, label = 'Score', A = null }) {
   wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });
   const el = wrap.firstChild;
   function close() { wrap.hidden = true; }
-  async function render() {
+  let render = async function () {
     const p = profile(), cc = (p && p.country) || guessCountry();
     const tabs = (arr, cur, key) => arr.map(([v, t]) => `<button data-${key}="${v}" aria-pressed="${v === cur}">${t}</button>`).join('');
     el.innerHTML = `<button class="bd-x" aria-label="Close">✕</button><h2>🏆 World leaderboard</h2>
@@ -132,13 +141,122 @@ export function board({ game, label = 'Score', A = null }) {
     } catch (e) { el.querySelector('.bd-list').innerHTML = '<p class="bd-empty">The leaderboard is offline right now.</p>'; }
   }
   const best = {};
-  return {
-    open() { wrap.hidden = false; render(); },
+
+  // ---------------------------------------------------------------- social: join sheet, rank chip, duels, live race
+  const ADJ = 'Swift Brave Lucky Turbo Cosmic Sneaky Mighty Clever Rapid Sunny Neon Jolly'.split(' '), ANI = 'Otter Falcon Panda Fox Lynx Gecko Koala Orca Tiger Raven Moose Yak'.split(' ');
+  const suggest = () => ADJ[(Math.random() * ADJ.length) | 0] + ANI[(Math.random() * ANI.length) | 0] + ((Math.random() * 90 + 10) | 0);
+  const rnd = () => Math.random();
+  function sheet(html, onOk) {                       // small modal: nickname + flag (prefilled), then onOk(profile)
+    const w = document.createElement('div'); w.className = 'bd-wrap';
+    const cc = guessCountry();
+    w.innerHTML = `<div class="bd">${html}<div class="bd-me" style="margin-top:12px"><input maxlength="18" value="${suggest()}"><select>${ISO.map(c => `<option value="${c}" ${c === cc ? 'selected' : ''}>${flag(c)} ${regionName(c)}</option>`).join('')}</select></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="bd-x" style="float:none;font-size:15px" data-no>Not now</button><button class="bd-save" data-ok>Let's go</button></div>
+      <p class="bd-fine">Only your nickname, flag and scores are shared. Never project names, prompts or code.</p></div>`;
+    document.body.appendChild(w);
+    w.querySelector('[data-no]').onclick = () => w.remove();
+    w.querySelector('[data-ok]').onclick = () => {
+      const name = w.querySelector('input').value.replace(/\s+/g, ' ').trim().slice(0, 18), country = w.querySelector('select').value;
+      if (name.length < 2) return w.querySelector('input').focus();
+      store.set('profile', { name, country }); lastSent = {}; w.remove();
+      onAgentEvents([]); if (best[game] != null) queue(game, best[game]); flush(); onOk && onOk({ name, country }); chip();
+    };
+  }
+  // linking agents → one-tap join the world race
+  addEventListener('riffcade-connected', () => { if (!profile() && !store.get('declined', false)) setTimeout(() => sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Your agents are linked. Put them on the world leaderboard and in your country's team. Pick a nickname and your flag.</p>`), 2500); });
+
+  // duels
+  let duels = [];
+  const duelLink = id => `${location.origin}${location.pathname}?duel=${id}`;
+  async function loadDuels() {
+    if (!profile()) return;
+    try { duels = await (await fetch(`${API}/api/duels?client=${client}`, { cache: 'no-store' })).json(); } catch (e) { return; }
+    const seen = store.get('duels_done', []);
+    for (const d of duels) if (d.status === 'over' && !seen.includes(d.id)) {
+      const me = d[d.you], them = d[d.you === 'a' ? 'b' : 'a'];
+      toast(me.score === them.score ? `⚔️ Duel with ${them.name} ${flag(them.country)}: a draw, ${me.score} each!` : me.score > them.score ? `🏆 You beat ${them.name} ${flag(them.country)} ${me.score}–${them.score}! Your agents shipped more.` : `⚔️ ${them.name} ${flag(them.country)} won the duel ${them.score}–${me.score}. Rematch?`, 8000);
+      seen.push(d.id); store.set('duels_done', seen.slice(-50));
+    }
+    chip();
+  }
+  async function challenge(btn) {
+    const go = async () => {
+      const p = profile();
+      try {
+        const r = await fetch(`${API}/api/duel`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client, name: p.name, country: p.country, game: POWER }) });
+        const d = await r.json(); if (!r.ok) return toast('⚠️ ' + (d.error || 'Could not create the duel'));
+        const url = duelLink(d.id), text = `⚔️ ${p.name} ${flag(p.country)} challenges your AI agents: 24 hours, whose agents ship more? (tests, commits, deploys, not tokens)`;
+        if (navigator.share) { try { await navigator.share({ title: 'AI agent duel', text, url }); } catch (e) {} }
+        else { try { await navigator.clipboard.writeText(text + ' ' + url); toast('🔗 Challenge link copied: send it to a friend'); } catch (e) {} }
+        loadDuels(); if (!wrap.hidden) render();
+      } catch (e) { toast('⚠️ The duel server is offline right now'); }
+    };
+    profile() ? go() : sheet('<h2>⚔️ Challenge a friend</h2><p class="bd-sub">24 hours: whose AI agents ship more. Pick your nickname and flag first.</p>', go);
+  }
+  // opened a challenge link (?duel=ID)
+  const inviteId = new URLSearchParams(location.search).get('duel');
+  if (inviteId && /^[A-Za-z0-9]{6,12}$/.test(inviteId)) (async () => {
+    let d; try { const r = await fetch(`${API}/api/duel/${inviteId}`); d = r.ok ? await r.json() : null; } catch (e) {}
+    if (!d) return toast('⚠️ That duel link has expired.');
+    if (d.status !== 'open') { if (!duels.some(x => x.id === d.id)) toast(`⚔️ ${d.a.name} ${flag(d.a.country)} vs ${d.b ? d.b.name + ' ' + flag(d.b.country) : '…'}: ${d.a.score}–${d.b ? d.b.score : 0}`); return; }
+    const accept = async () => {
+      const p = profile();
+      const r = await fetch(`${API}/api/duel/${inviteId}/join`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client, name: p.name, country: p.country }) });
+      const j = await r.json(); if (!r.ok) return toast('⚠️ ' + (j.error || 'Could not join'));
+      toast(`⚔️ Duel on! 24 hours vs ${d.a.name} ${flag(d.a.country)}. Link your agents and ship.`, 7000);
+      loadDuels(); if (A && !A.connected.length) A.open();
+    };
+    const html = `<h2>⚔️ ${d.a.name} ${flag(d.a.country)} challenged you!</h2><p class="bd-sub">24 hours, whose AI agents ship more: steps that work, passed tests, commits and deploys. Tokens don't count. Accept, then link your agents.</p>`;
+    if (profile()) { const w = document.createElement('div'); w.className = 'bd-wrap'; w.innerHTML = `<div class="bd">${html}<div style="display:flex;gap:8px;justify-content:flex-end"><button class="bd-x" style="float:none;font-size:15px" data-no>Not now</button><button class="bd-save" data-ok>Accept the duel</button></div></div>`; document.body.appendChild(w); w.querySelector('[data-no]').onclick = () => w.remove(); w.querySelector('[data-ok]').onclick = () => { w.remove(); accept(); }; }
+    else sheet(html, accept);
+  })();
+
+  // the chip: my flag, rank and Ship Score, plus live duels (always on screen once you're in the race)
+  const chipEl = document.createElement('div'); chipEl.className = 'bd-chip'; document.body.appendChild(chipEl);
+  function chip() {
+    const p = profile();
+    if (!p) { chipEl.innerHTML = A && A.connected && A.connected.length && !(A && A.demo) ? `<div class="bd-cta" data-join>🏁 Join the world race</div>` : ''; }
+    else {
+      const rank = store.get('rank_' + POWER, null);
+      const vs = duels.filter(d => d.status === 'live').slice(0, 2).map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a']; const h = Math.max(0, Math.ceil((d.end - Date.now()) / 3600e3));
+        return `<div class="bd-vs" data-open><b class="${me.score >= th.score ? 'w' : ''}">You ${me.score}</b><span>⚔️</span><b class="${th.score > me.score ? 'w' : ''}">${th.score} ${th.name} ${flag(th.country)}</b><small>${h} h left</small></div>`; }).join('');
+      const open = duels.filter(d => d.status === 'open').length;
+      chipEl.innerHTML = `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small>Ship Score ${fmt(ship.score)}</small></div>${vs}${!vs && !open ? '<div data-duel>⚔️ Challenge a friend</div>' : ''}`;
+    }
+    chipEl.querySelectorAll('[data-open]').forEach(e => e.onclick = () => api.open());
+    const j = chipEl.querySelector('[data-join]'); if (j) j.onclick = () => sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Put your agents on the world leaderboard and in your country's team.</p>`);
+    const du = chipEl.querySelector('[data-duel]'); if (du) du.onclick = () => challenge();
+  }
+  addEventListener('riffcade-connected', chip);
+  setInterval(() => { loadDuels(); }, 30000); loadDuels(); setTimeout(chip, 1500);
+  setInterval(chip, 10000);
+
+  // duels + live race inside the board panel
+  const renderBase = render;
+  render = async function () {
+    await renderBase();
+    const p = profile(), sub = el.querySelector('.bd-sub');
+    try {
+      const L = await (await fetch(`${API}/api/live`)).json();
+      const lead = (L.countries || [])[0];
+      sub.insertAdjacentHTML('afterend', `<p class="bd-live"><i></i>${L.agentsNow || 0} agents shipping right now · ${L.players || 0} players today${lead ? ` · ${flag(lead.country)} ${regionName(lead.country)} leads` : ''}</p>`);
+    } catch (e) {}
+    const box = document.createElement('div'); box.className = 'bd-duels';
+    box.innerHTML = `<h3>⚔️ Duels · 24 h, whose agents ship more</h3>${duels.length ? duels.map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a'];
+      return `<div class="bd-duel"><span>${th ? `vs ${th.name} ${flag(th.country)}` : 'Waiting for a friend to accept'}</span><b>${th ? `${me.score}–${th.score}` : ''} ${d.status === 'live' ? '🔴' : d.status === 'over' ? (me.score > (th ? th.score : 0) ? '🏆' : '·') : ''}</b></div>${d.status === 'open' ? `<div class="bd-link"><input readonly value="${duelLink(d.id)}"><button class="bd-save" data-copy="${duelLink(d.id)}">Copy</button></div>` : ''}`; }).join('') : '<p class="bd-fine" style="margin:0">No duels yet. Challenge a friend and send them the link.</p>'}
+      <button class="bd-save" data-new style="margin-top:8px;width:100%">⚔️ Challenge a friend</button>`;
+    el.querySelector('.bd-tabs').before(box);
+    box.querySelector('[data-new]').onclick = () => challenge();
+    box.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard && navigator.clipboard.writeText(b.dataset.copy).then(() => b.textContent = 'Copied ✓'));
+  };
+  const api = {
+    open() { wrap.hidden = false; render(); loadDuels(); },
     close,
     // call with the game's score whenever it improves; the server keeps each player's best of the day
     submit(score, extra = {}) { score = Math.floor(score) || 0; if (score > (best[game] || 0)) best[game] = score; queue(game, best[game], extra); if (!profile() && score > 0 && !store.get('asked', false) && !(A && A.demo)) { store.set('asked', true); toast('🏆 Join the world leaderboard: open 🏆 and pick a nickname + your flag', 6000); } },
     onAgentEvents,                       // pass every agents() batch here so the Ship Score board stays current
     ship: () => ({ ...ship }),
     profile,
+    challenge,
   };
+  return api;
 }

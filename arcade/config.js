@@ -15,7 +15,7 @@ window.RIFFCADE = {
   "SUBSCRIBE_V2": false,
   "ADS_ENABLED": false,
   "WHATSAPP_CHANNEL_URL": "",
-  "META_PIXEL_ID": "",
+  "META_PIXEL_ID": "1143064938054197",
   "GA4_ID": "G-N62V18VZ3S",
   "DAILY_PROMPT": "Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.",
   "CHALLENGE_EPOCH": "2026-10-15",
