@@ -52,10 +52,14 @@ const CSS = `
 .bd-chip>*{pointer-events:auto;cursor:pointer;background:rgba(18,16,30,.88);color:#f6f0e3;border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:7px 11px;box-shadow:0 6px 20px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
 .bd-chip .bd-me1 b{color:var(--ag-acc,#ffcf5a)} .bd-chip .bd-me1 small{color:#b9b2c8;display:block}
 .bd-chip .bd-vs{display:grid;grid-template-columns:auto auto auto;gap:6px;align-items:center;border-color:var(--ag-acc,#ffcf5a)} .bd-chip .bd-vs .w{color:#9cf28a} .bd-chip .bd-vs small{grid-column:1/-1;text-align:center;color:#b9b2c8}
+.bd-chip .bd-livec{font-size:12px;min-width:170px;display:grid;gap:2px} .bd-chip .bd-livec .t{font-weight:700;letter-spacing:.3px} .bd-chip .bd-livec .t i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff4d4d;margin-right:5px;animation:bdp 1.2s infinite}
+.bd-chip .bd-livec .c{color:#f6f0e3} .bd-chip .bd-livec .r{color:#d8d2e4} .bd-chip .bd-livec small{color:#8e88a0} @keyframes bdp{50%{opacity:.25}}
 .bd-chip .bd-cta{background:var(--ag-acc,#ffcf5a);color:#1b1408;font-weight:700;border:0}
 .bd .bd-duels{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;margin:10px 0} .bd .bd-duels h3{margin:0 0 6px;font-size:15px}
 .bd .bd-duel{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid rgba(255,255,255,.07);font-size:14px}
 .bd .bd-link{display:flex;gap:6px;margin-top:6px} .bd .bd-link input{flex:1;font-size:12px}
+.bd .bd-vs-t{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0} .bd .bd-vs-t th,.bd .bd-vs-t td{padding:3px 6px;text-align:right} .bd .bd-vs-t th:first-child,.bd .bd-vs-t td:first-child{text-align:left;color:#b9b2c8}
+.bd .bd-vs-t td.w{color:#9cf28a;font-weight:700} .bd .bd-vs-t td.l{color:#ff8a8a} .bd .bd-vs-t tr.tot td{border-top:1px solid rgba(255,255,255,.14);font-weight:800;color:#f6f0e3}
 .bd .bd-live{font-size:13px;color:#d8d2e4;margin:-4px 0 8px} .bd .bd-live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5d5d;margin-right:5px;animation:agp 1.2s infinite}`;
 
 export function board({ game, label = 'Score', A = null }) {
@@ -82,7 +86,7 @@ export function board({ game, label = 'Score', A = null }) {
   function queue(g, score, extra = {}) {
     if (!live()) return;
     if ((lastSent[g] || -1) >= score) return;
-    pending[g] = { score, tools: extra.tools || 0, ok: extra.ok || 0, tokens: extra.tokens || 0 };
+    pending[g] = { score, tools: extra.tools || 0, ok: extra.ok || 0, tokens: extra.tokens || 0, ...(g === POWER ? { detail: { steps: ship.steps, tests: ship.tests, commits: ship.commits, deploys: ship.deploys, fails: ship.fails } } : {}) };
     clearTimeout(timer); timer = setTimeout(flush, 4000);
   }
   async function flush() {
@@ -256,21 +260,31 @@ export function board({ game, label = 'Score', A = null }) {
   function chip() {
     const p = profile();
     const linked = A && A.connected && A.connected.length && !(A && A.demo);
-    if (!p) chipEl.innerHTML = `<div class="bd-cta" data-join>🏁 ${linked ? 'Join the world race' : 'Race people worldwide'}</div><div data-open style="font-size:12px">🏆 World leaderboard</div>`;
+    if (!p) chipEl.innerHTML = liveCard() + `<div class="bd-cta" data-join>🏁 ${linked ? 'Join the world race' : 'Race people worldwide'}</div><div data-open style="font-size:12px">🏆 World leaderboard</div>`;
     else {
       const rank = store.get('rank_' + POWER, null);
       const vs = duels.filter(d => d.status === 'live').slice(0, 2).map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a']; const h = Math.max(0, Math.ceil((d.end - Date.now()) / 3600e3));
         return `<div class="bd-vs" data-open><b class="${me.score >= th.score ? 'w' : ''}">You ${me.score}</b><span>⚔️</span><b class="${th.score > me.score ? 'w' : ''}">${th.score} ${th.name} ${flag(th.country)}</b><small>${h} h left</small></div>`; }).join('');
       const open = duels.filter(d => d.status === 'open').length;
-      chipEl.innerHTML = `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small title="${breakdown()}">⚡ ${fmt(ship.score)} agent points</small></div>${vs}${!vs ? (matching ? '<div>🔎 Finding you a rival…</div>' : linked ? '<div data-match>⚔️ Find a rival</div>' : '<div data-link>🔗 Link your agents to get a rival</div>') : ''}`;
+      chipEl.innerHTML = liveCard() + `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small title="${breakdown()}">⚡ ${fmt(ship.score)} agent points</small></div>${vs}${!vs ? (matching ? '<div>🔎 Finding you a rival…</div>' : linked ? '<div data-match>⚔️ Find a rival</div>' : '<div data-link>🔗 Link your agents to get a rival</div>') : ''}`;
     }
-    chipEl.querySelectorAll('[data-open]').forEach(e => e.onclick = () => api.open(POWER));   // the chip shows agent points: open that board
+    chipEl.querySelectorAll('[data-open]').forEach(e => e.onclick = () => api.open(POWER));
+    chipEl.querySelectorAll('[data-open-live]').forEach(e => e.onclick = () => { period = 'nations'; api.open(POWER); });   // the chip shows agent points: open that board
     const j = chipEl.querySelector('[data-join]'); if (j) j.onclick = () => linked ? sheet(`<h2>🏁 Join the world race</h2><p class="bd-sub">Put your agents on the world leaderboard and in your country's team, and get a rival.</p>`, () => setTimeout(autoMatch, 1500)) : A && A.open();
     const mt = chipEl.querySelector('[data-match]'); if (mt) mt.onclick = () => autoMatch();
     const lk = chipEl.querySelector('[data-link]'); if (lk) lk.onclick = () => A && A.open();
     const du = chipEl.querySelector('[data-duel]'); if (du) du.onclick = () => challenge();
     const bo = chipEl.querySelector('[data-bot]'); if (bo) bo.onclick = () => botDuel();
   }
+  // 🌍 LIVE card: real people playing right now, their latest scores and the leading countries (polled every 20 s)
+  let liveData = null;
+  const GAMES = { _power: '⚡', 'agent-football': '⚽', 'agent-hoops': '🏀', 'agent-shooter': '🚀', 'agent-racing': '🏎️', 'agent-rockets': '🛰️', 'agent-dungeon': '⚔️', 'agent-summit': '🏔️', 'agent-bowling': '🎳', deskfolk: '🏢' };
+  const ago = s => s < 60 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h';
+  async function loadLive() { try { liveData = await (await fetch(`${API}/api/live`)).json(); chip(); } catch (e) {} }
+  const liveCard = () => !liveData ? '' : `<div class="bd-livec" data-open-live><div class="t"><i></i>LIVE <b>${liveData.playingNow || 0}</b> playing now${liveData.duelsLive ? ` · ${liveData.duelsLive} duel${liveData.duelsLive > 1 ? 's' : ''}` : ''}</div>
+    ${(liveData.countries || []).length ? `<div class="c">${liveData.countries.slice(0, 4).map(c => `${flag(c.country)} ${fmt(c.score)}`).join('  ')}</div>` : ''}
+    ${(liveData.recent || []).slice(0, 3).map(r => `<div class="r">${flag(r.country)} ${String(r.name).replace(/</g, '').slice(0, 12)} <b>${GAMES[r.game] || '🎮'} ${fmt(r.score)}</b> <small>${ago(r.ago)}</small></div>`).join('')}</div>`;
+  setInterval(loadLive, 20000); loadLive();
   addEventListener('riffcade-connected', chip);
   setInterval(() => { loadDuels(); }, 30000); loadDuels(); setTimeout(chip, 1500);
   setInterval(chip, 10000);
@@ -287,7 +301,8 @@ export function board({ game, label = 'Score', A = null }) {
     } catch (e) {}
     const box = document.createElement('div'); box.className = 'bd-duels';
     box.innerHTML = `<h3>⚔️ Duels · 24 h, whose agents ship more</h3>${duels.length ? duels.map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a'];
-      return `<div class="bd-duel"><span>${th ? `vs ${th.name} ${flag(th.country)}${th.sim ? ' <small style="color:#8e88a0">· simulated</small>' : ''}` : 'Waiting for a rival'}</span><b>${th ? `${me.score}–${th.score}` : ''} ${d.status === 'live' ? '🔴' : d.status === 'over' ? (me.score > (th ? th.score : 0) ? '🏆' : '·') : ''}</b></div>${d.status === 'open' ? `<div class="bd-link"><input readonly value="${duelLink(d.id)}"><button class="bd-save" data-copy="${duelLink(d.id)}">Copy</button>${d.you === 'a' ? `<button class="bd-save" data-botid="${d.id}" title="No friend around? The House Bot takes it">🤖</button>` : ''}</div>` : ''}`; }).join('') : '<p class="bd-fine" style="margin:0">No duels yet. Challenge a friend and send them the link.</p>'}
+      const tbl = th && me.detail && th.detail ? `<table class="bd-vs-t"><tr><th></th><th>You</th><th>${th.name.replace(/</g, '')} ${flag(th.country)}</th></tr>${[['✓ steps that worked', 'steps'], ['🧪 tests passed', 'tests'], ['📦 commits', 'commits'], ['🚀 deploys', 'deploys'], ['✗ failures', 'fails']].map(([t, k]) => `<tr><td>${t}</td><td class="${me.detail[k] > th.detail[k] ? (k === 'fails' ? 'l' : 'w') : ''}">${me.detail[k]}</td><td class="${th.detail[k] > me.detail[k] ? (k === 'fails' ? 'l' : 'w') : ''}">${th.detail[k]}</td></tr>`).join('')}<tr class="tot"><td>⚡ points</td><td>${me.score}</td><td>${th.score}</td></tr></table><p class="bd-fine" style="margin:2px 0 6px">Counted since the duel started · ${Math.max(0, Math.ceil((d.end - Date.now()) / 3600e3))} h left</p>` : '';
+      return `${tbl ? '' : ''}<div class="bd-duel"><span>${th ? `vs ${th.name} ${flag(th.country)}${th.sim ? ' <small style="color:#8e88a0">· simulated</small>' : ''}` : 'Waiting for a rival'}</span><b>${th ? `${me.score}–${th.score}` : ''} ${d.status === 'live' ? '🔴' : d.status === 'over' ? (me.score > (th ? th.score : 0) ? '🏆' : '·') : ''}</b></div>${d.status !== 'open' ? tbl : ''}${d.status === 'open' ? `<div class="bd-link"><input readonly value="${duelLink(d.id)}"><button class="bd-save" data-copy="${duelLink(d.id)}">Copy</button>${d.you === 'a' ? `<button class="bd-save" data-botid="${d.id}" title="No friend around? The House Bot takes it">🤖</button>` : ''}</div>` : ''}`; }).join('') : '<p class="bd-fine" style="margin:0">No duels yet. Challenge a friend and send them the link.</p>'}
       <div style="display:flex;gap:8px;margin-top:8px"><button class="bd-save" data-new style="flex:1">⚔️ Challenge a friend</button><button class="bd-save" data-bot style="flex:1">🎲 Practice rival now</button></div>`;
     el.querySelector('.bd-tabs').before(box);
     box.querySelector('[data-new]').onclick = () => challenge();
