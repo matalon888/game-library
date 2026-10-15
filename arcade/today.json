@@ -1,7 +1,21 @@
 {
  "title": "AGENTPARK: new games",
  "date": "2026-10-15",
- "more": "https://agentpark.co/today",
+ "more": {
+  "Puzzle": "https://agentpark.co/arcade/?cat=Puzzle",
+  "Arcade": "https://agentpark.co/arcade/?cat=Arcade",
+  "Action": "https://agentpark.co/arcade/?cat=Action",
+  "Racing": "https://agentpark.co/arcade/?cat=Racing",
+  "Strategy": "https://agentpark.co/arcade/?cat=Strategy",
+  "3D": "https://agentpark.co/arcade/?cat=3D",
+  "Word & Math": "https://agentpark.co/arcade/?cat=Word%20%26%20Math",
+  "Sports": "https://agentpark.co/arcade/?cat=Sports",
+  "Idle": "https://agentpark.co/arcade/?cat=Idle",
+  "Cards": "https://agentpark.co/arcade/?cat=Cards",
+  "Kids": "https://agentpark.co/arcade/?cat=Kids",
+  "Makeover": "https://agentpark.co/arcade/?cat=Makeover",
+  "Retro": "https://agentpark.co/arcade/?cat=Retro"
+ },
  "total": 236,
  "game_of_the_day": {
   "name": "Lightcone",
