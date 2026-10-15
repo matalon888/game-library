@@ -165,13 +165,13 @@
   async function home() {
     const every = (await games()).slice().sort((a, b) => (b.original ? 1 : 0) - (a.original ? 1 : 0) || score(b) - score(a));  // our originals lead every shelf and category
     const desk = every.filter(isDesk);
-    const gs = PC ? every : every.filter(g => !isDesk(g));
+    const gs = every.filter(g => !isDesk(g));                    // desktop games live only in their own Desktop category
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
     const COLLS = ['Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
     const inColl = (g, c) => (g.tags || []).includes(c);
-    const collList = c => (PC ? every : every.filter(g => !isDesk(g) || c === 'Shooters')).filter(g => inColl(g, c));
-    const cats = [...new Set(COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()))].concat(desk.length ? ['Desktop'] : []);
+    const collList = c => gs.filter(g => inColl(g, c));
+    const cats = [...new Set(COLLS.filter(c => collList(c).length).concat(desk.length ? ['Desktop'] : [], [...new Set(gs.map(g => g.category || 'Arcade'))].sort()))];
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
     $('count').textContent = `${every.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
@@ -212,7 +212,7 @@
       // "Just made": newest creations first, whatever day we added them
       const recent = gs.filter(g => g.made && ago(g.made) <= 21).sort((a, b) => (b.made > a.made ? 1 : -1));
       const byCat = cats.filter(c => !COLLS.includes(c) && c !== 'Desktop').map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
-      $('shelves').innerHTML = shelf('Hyper-casual · Voodoo-style', collList('Hyper-casual'), 'Hyper-casual') +
+      $('shelves').innerHTML = shelf('Hyper-casual · one-tap hits', collList('Hyper-casual'), 'Hyper-casual') +
         shelf('Endless runners', collList('Endless runners'), 'Endless runners') +
         shelf('Daily puzzles · a new one every day', collList('Daily puzzles'), 'Daily puzzles') +
         shelf('Makeover & DIY', collList('Makeover'), 'Makeover') +
@@ -226,7 +226,7 @@
     }
     draw();
     getStats().then(s => { stats = s; draw(); });
-    const last = gs.find(g => g.slug === store.get('last'));
+    const last = every.find(g => g.slug === store.get('last'));
     if (last) $('cont').innerHTML = `<a class="continue" href="${href(last)}"${tgt(last)}><img src="${esc(art(last))}" alt="">
       <div><div class="eyebrow">Continue</div><b>${esc(last.name)}</b></div><span class="go">Play</span></a>`;
     renderInstall();
