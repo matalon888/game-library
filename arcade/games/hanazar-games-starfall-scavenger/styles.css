@@ -1,0 +1,200 @@
+:root{
+  --bg:#05060d; --ink:#e8f0ff; --dim:#8a97b8;
+  --cyan:#4df3ff; --mag:#ff4dd2; --amber:#ffc44d; --green:#5cff9d; --red:#ff5a6e;
+  --panel:rgba(10,14,28,.86); --line:rgba(120,180,255,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:ui-monospace,"SF Mono",Menlo,"Cascadia Mono","Noto Sans SC",monospace;
+  overscroll-behavior:none;touch-action:none}
+#stage{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%;image-rendering:auto}
+.hidden{display:none !important}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;inset:0;pointer-events:none;padding:max(10px,env(safe-area-inset-top)) 12px 12px}
+.hud-top{display:flex;gap:12px;align-items:flex-start;max-width:900px;margin:0 auto}
+.bar-wrap{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.bar{position:relative;height:16px;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  background:rgba(0,0,0,.45)}
+.bar .fill{height:100%;width:100%;transition:width .12s linear}
+.bar.hp .fill{background:linear-gradient(90deg,#ff5a6e,#ff9d6e)}
+.bar.xp{height:11px}
+.bar.xp .fill{background:linear-gradient(90deg,#4df3ff,#8f7bff);width:0}
+.bar span{position:absolute;inset:0;display:grid;place-items:center;font-size:10px;letter-spacing:.5px;
+  text-shadow:0 1px 2px #000}
+.stats{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:13px;
+  text-shadow:0 0 8px rgba(77,243,255,.5)}
+#timer{font-size:20px;font-weight:700;color:var(--cyan)}
+#kills{color:var(--dim)}
+.loadout{position:absolute;left:12px;bottom:max(12px,env(safe-area-inset-bottom));display:flex;gap:6px;
+  /* Five weapons plus eight modules is thirteen tiles: on a 375px screen that ran
+     off the edge and under the pause button. Wrap upward, and stay clear of it. */
+  flex-wrap:wrap-reverse;max-width:calc(100% - 84px);align-content:flex-end}
+.slot{width:36px;height:36px;border:1px solid var(--line);border-radius:9px;background:rgba(10,14,28,.7);
+  display:grid;place-items:center;font-size:17px;position:relative}
+.slot i{position:absolute;right:2px;bottom:0;font-size:9px;font-style:normal;color:var(--amber)}
+.icon-btn{position:absolute;right:12px;bottom:max(12px,env(safe-area-inset-bottom));pointer-events:auto;
+  width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:rgba(10,14,28,.7);
+  color:var(--ink);font:700 13px/1 monospace;letter-spacing:1px;cursor:pointer}
+
+/* ---------- Overlay ---------- */
+.overlay{position:absolute;inset:0;display:grid;place-items:center;padding:20px;
+  background:radial-gradient(ellipse at center,rgba(5,6,13,.72),rgba(5,6,13,.95));backdrop-filter:blur(3px)}
+.overlay.hidden{display:none}
+.panel{width:min(560px,100%);max-height:100%;overflow:auto;text-align:center;padding:26px 22px;
+  border:1px solid var(--line);border-radius:18px;background:var(--panel);
+  box-shadow:0 0 60px rgba(77,243,255,.1),inset 0 0 40px rgba(77,243,255,.03);animation:pop .22s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}}
+.logo{font-size:clamp(30px,8vw,46px);letter-spacing:6px;
+  background:linear-gradient(90deg,var(--cyan),var(--mag));-webkit-background-clip:text;background-clip:text;
+  color:transparent;filter:drop-shadow(0 0 18px rgba(77,243,255,.35))}
+.sub{font-size:11px;letter-spacing:5px;color:var(--dim);margin-top:6px}
+.desc{margin:20px 0;color:#b8c6e6;font-size:13px;line-height:1.9}
+h2{font-size:22px;letter-spacing:3px;margin-bottom:16px}
+h2.lvup{color:var(--amber);text-shadow:0 0 20px rgba(255,196,77,.45)}
+h2.dead{color:var(--red);text-shadow:0 0 20px rgba(255,90,110,.45)}
+.btn{display:block;width:100%;margin:9px 0;padding:13px;border-radius:12px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--ink);
+  font:600 14px/1 inherit;letter-spacing:2px;transition:.15s}
+.btn:hover{background:rgba(77,243,255,.12);border-color:var(--cyan);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(90deg,rgba(77,243,255,.18),rgba(255,77,210,.18));border-color:var(--cyan)}
+.hint{margin-top:16px;font-size:11px;color:var(--dim);line-height:1.8}
+.best{margin-top:14px;font-size:12px;color:var(--amber)}
+.toggle{display:inline-flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:var(--dim);cursor:pointer}
+
+/* ---------- Upgrade cards ---------- */
+.cards{display:grid;gap:11px}
+.card{display:flex;gap:13px;align-items:center;text-align:left;padding:13px;border-radius:14px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);transition:.15s}
+.card:hover{border-color:var(--cyan);background:rgba(77,243,255,.1);transform:translateX(4px)}
+.card .ico{width:44px;height:44px;flex:none;display:grid;place-items:center;font-size:23px;border-radius:12px;
+  background:rgba(77,243,255,.1);border:1px solid var(--line)}
+.card h3{font-size:14px;letter-spacing:1px;margin-bottom:4px}
+.card p{font-size:11.5px;color:var(--dim);line-height:1.6}
+.card .tag{font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:5px;margin-left:6px;vertical-align:1px}
+.tag.new{background:rgba(255,196,77,.18);color:var(--amber)}
+.tag.up{background:rgba(92,255,157,.15);color:var(--green)}
+
+/* ---------- Result ---------- */
+.result{display:flex;justify-content:center;gap:26px;margin:18px 0}
+.result div{display:flex;flex-direction:column;gap:5px}
+.result b{font-size:26px;color:var(--cyan)}
+.result span{font-size:10px;color:var(--dim);letter-spacing:1px}
+
+/* ---------- Joystick ---------- */
+.joystick{position:absolute;width:110px;height:110px;border-radius:50%;pointer-events:none;
+  border:1px solid var(--line);background:rgba(77,243,255,.05);transform:translate(-50%,-50%)}
+#joystick-knob{position:absolute;left:50%;top:50%;width:46px;height:46px;border-radius:50%;
+  transform:translate(-50%,-50%);background:rgba(77,243,255,.28);border:1px solid var(--cyan)}
+
+/* evolution cards read as the run's payoff */
+.card.evo{border-color:var(--amber);background:linear-gradient(90deg,rgba(255,196,77,.16),rgba(255,77,210,.1));
+  box-shadow:0 0 24px rgba(255,196,77,.18)}
+.card.evo:hover{border-color:var(--amber);background:linear-gradient(90deg,rgba(255,196,77,.26),rgba(255,77,210,.16))}
+.card.evo .ico{background:rgba(255,196,77,.18);border-color:var(--amber)}
+.card p em{display:block;margin-top:5px;font-style:normal;font-size:10px;color:var(--amber);letter-spacing:.5px}
+.tag.evo{background:rgba(255,196,77,.25);color:var(--amber)}
+
+/* run summary on the results panel */
+.build{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 10px}
+.wchip{font-size:11px;padding:5px 9px;border-radius:8px;border:1px solid var(--line);
+  background:rgba(255,255,255,.04);color:#b8c6e6}
+.wchip.evo{border-color:var(--amber);color:var(--amber);background:rgba(255,196,77,.12)}
+.extra{font-size:11px;color:var(--dim);letter-spacing:.5px}
+
+/* patch notes */
+.ver{font-size:10px;color:var(--amber);letter-spacing:1px;margin-left:6px}
+.news-entry{text-align:left;margin-bottom:14px}
+.news-entry h3{font-size:13px;letter-spacing:1px;color:var(--cyan);margin-bottom:8px}
+.news-entry h3 b{color:var(--amber);font-weight:600}
+.news-entry ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.news-entry li{font-size:11.5px;line-height:1.65;color:#b8c6e6;padding-left:14px;position:relative}
+.news-entry li::before{content:'▸';position:absolute;left:0;color:var(--cyan);opacity:.7}
+#news-history{margin:6px 0 14px;text-align:left}
+#news-history summary{cursor:pointer;font-size:11px;letter-spacing:1px;color:var(--dim);
+  padding:8px 0;list-style:none}
+#news-history summary::-webkit-details-marker{display:none}
+#news-history summary::before{content:'▸ ';color:var(--cyan)}
+#news-history[open] summary::before{content:'▾ '}
+#news-history summary:hover{color:var(--cyan)}
+#news-old .news-entry h3{color:var(--dim)}
+#news-old .news-entry li{font-size:11px;color:#93a3c4}
+
+/* keyboard affordance on level-up cards */
+.card kbd{flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:5px;
+  border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--dim);
+  font:600 10px/1 inherit;align-self:flex-start;margin-top:2px}
+.card:hover kbd{border-color:var(--cyan);color:var(--cyan)}
+.card.evo kbd{border-color:rgba(255,196,77,.5);color:var(--amber)}
+
+/* unseen-version dot on the patch notes button */
+.ver.unseen::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--red);margin-left:6px;vertical-align:1px;box-shadow:0 0 6px var(--red)}
+
+/* ---------- v1.0: campaign arc ---------- */
+/* Act track: the run has a designed length now, so the HUD says how far in you are. */
+.act-track{position:relative;max-width:900px;margin:7px auto 0;height:16px;border-radius:8px;
+  border:1px solid var(--line);background:rgba(10,14,28,.5);overflow:hidden}
+.act-fill{position:absolute;inset:0;width:0;border-radius:8px;transition:width .5s linear;
+  background:linear-gradient(90deg,rgba(77,243,255,.35),rgba(255,77,210,.35))}
+.act-track span{position:absolute;inset:0;display:grid;place-items:center;
+  font-size:9px;letter-spacing:3px;color:var(--dim)}
+.run-diff{position:absolute;right:8px;top:0;bottom:0;display:grid;place-items:center;
+  font-size:8px;letter-spacing:2px;color:var(--dim);opacity:.75;font-weight:400}
+.final-bar{max-width:640px;margin:10px auto 0;text-align:center}
+.fb-name{font-size:11px;letter-spacing:6px;color:#ff8fa8;text-shadow:0 0 14px rgba(255,47,109,.6)}
+.fb-track{margin-top:5px;height:12px;border-radius:7px;border:1px solid rgba(255,47,109,.55);
+  background:rgba(10,14,28,.6);overflow:hidden}
+.fb-fill{height:100%;width:100%;border-radius:7px;transition:width .12s linear;
+  background:linear-gradient(90deg,#ff2f6d,#ffc44d)}
+
+/* Act banner, drawn over the field when an act turns over. */
+.act-banner{position:absolute;left:0;right:0;top:34%;text-align:center;pointer-events:none;
+  animation:actin 2.8s ease-out forwards}
+.act-banner b{display:block;font-size:clamp(20px,5vw,32px);letter-spacing:8px;color:var(--cyan);
+  text-shadow:0 0 26px rgba(77,243,255,.6)}
+.act-banner i{display:block;margin-top:8px;font-size:12px;font-style:normal;letter-spacing:3px;color:var(--dim)}
+.act-banner.final b{color:var(--red);text-shadow:0 0 30px rgba(255,47,109,.7)}
+@keyframes actin{0%{opacity:0;transform:scale(.9)}15%{opacity:1;transform:scale(1)}
+  75%{opacity:1}100%{opacity:0}}
+
+/* Difficulty picker */
+.diffs{display:flex;gap:8px;margin:6px 0 14px}
+.diff{flex:1;padding:10px 6px;border-radius:11px;cursor:pointer;text-align:center;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--dim);
+  font:600 11px/1.5 inherit;letter-spacing:1.5px;transition:.15s}
+.diff b{display:block;font-size:12px;color:var(--ink);letter-spacing:2px}
+.diff small{display:block;margin-top:4px;font-size:9px;letter-spacing:.5px;opacity:.8}
+.diff:hover:not([disabled]){border-color:var(--cyan)}
+.diff.on{border-color:var(--cyan);background:rgba(77,243,255,.14)}
+.diff.on b{color:var(--cyan)}
+.diff[disabled]{opacity:.4;cursor:not-allowed}
+.diff .clear{color:var(--green)}
+
+h2.won{color:var(--green);text-shadow:0 0 22px rgba(92,255,157,.5)}
+h2.salv{color:var(--amber);text-shadow:0 0 22px rgba(255,196,77,.45)}
+.card.mod{border-color:rgba(255,196,77,.42);background:linear-gradient(90deg,rgba(255,196,77,.09),rgba(255,196,77,.02))}
+.card.mod:hover{border-color:var(--amber);background:rgba(255,196,77,.16)}
+.card.mod h3{color:var(--amber)}
+.slot.mod{width:28px;height:28px;font-size:14px;border-color:rgba(255,196,77,.5);background:rgba(255,196,77,.1)}
+.wchip.mod{border-color:rgba(255,196,77,.45);color:var(--amber)}
+.statsheet{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0 4px}
+.statsheet div{padding:6px 2px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.statsheet b{display:block;font-size:12px;color:var(--cyan)}
+.statsheet span{display:block;margin-top:3px;font-size:8px;letter-spacing:1px;color:var(--dim)}
+@media (max-width:520px){.statsheet{grid-template-columns:repeat(3,1fr)}}
+.held{margin-top:12px;font-size:11px;letter-spacing:2px;color:var(--dim)}
+.held span{font-size:15px;letter-spacing:0}
+.salv-hud{position:absolute;left:0;right:0;bottom:74px;text-align:center;pointer-events:none;
+  font-size:10px;letter-spacing:4px;color:var(--amber);text-shadow:0 0 12px rgba(255,196,77,.5)}
+.unlock{margin-top:12px;padding:9px;border-radius:10px;font-size:11px;letter-spacing:1px;
+  color:var(--green);border:1px solid rgba(92,255,157,.4);background:rgba(92,255,157,.08)}
+
+/* Respect a system-level request for less motion: the act banner is the only
+   thing in the game that moves purely for effect. */
+@media (prefers-reduced-motion: reduce){
+  .act-banner{animation:actfade 2.8s linear forwards}
+  @keyframes actfade{0%{opacity:0}10%{opacity:1}80%{opacity:1}100%{opacity:0}}
+  .panel{animation:none}
+}

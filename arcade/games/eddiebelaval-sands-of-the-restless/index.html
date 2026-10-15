@@ -1,0 +1,1661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Sands of the Restless</title>
+<!-- Empty inline icon. Without it every load logs a 404 and the test harness
+     cannot distinguish a real console error from browser noise. -->
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --gold: #d9b26a;
+    --gold-dim: #8a6f3e;
+    /* Between the two. Secondary HUD text - the reserve count, the map footer,
+       the objective's place line - needs to read as quieter than the primary
+       gold WITHOUT falling under the contrast floor, and --gold-dim measures
+       3.70 to one against the plate over sunlit sand. This measures 5.32.
+       test/hud.mjs audits every label against the worst plate it can find. */
+    --gold-mid: #a08b64;
+    --lapis: #2c4a7c;
+    --ink: #0d0a07;
+    --bone: #e8dcc4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d0a07; }
+  body {
+    font-family: "Trebuchet MS", "Gill Sans", Optima, sans-serif;
+    color: var(--bone);
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+  #stage { position: fixed; inset: 0; display: block; }
+
+  /* ---- THE TITLE SCREEN ----
+
+     THE HUD WAS REPAINTED INTO THIS LANGUAGE IN 9135f98 AND THIS SCREEN WAS
+     EXPLICITLY LEFT OUT OF THAT PASS, which meant the first thing anyone saw of
+     the game was the one surface in it that had never been designed: a radial
+     scrim, a letterspaced heading and a bordered rectangle. This closes it,
+     under the same thesis stated at the top of src/ui/tokens.js - keep the
+     shooter's information architecture, change the material it is made of.
+
+     The architecture is a title screen's and is not clever: name, the one
+     choice worth making before entering, the way in, the controls, top to
+     bottom, primary action alone on its line. The MATERIAL is the cartouche -
+     an oblong with semicircular ends and the rope tie at one end, which is what
+     an Egyptian surface does with a name that matters - the register rule, and
+     the kheker frieze along the top of the wall.
+
+     Every label here is CARVED: a dark edge down and a lit edge up, at one
+     pixel. More than a pixel and an incision becomes a bevel, which reads as
+     nineties software rather than as stone. Same two shadows as incised() in
+     src/ui/tokens.js.
+
+     Nothing on this screen is an image, a font file or a glyph. The frieze is
+     one repeating gradient, the cartouche is a border radius, and the icon is
+     the same 1.5px gold stroke as every other mark in the build. */
+  .veil {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    /* Deeper and warmer than it was, and centred slightly high: the name has to
+       stand on a ground dark enough to be cut into, and at .82 the sunlit
+       avenue read straight through the middle of the type. */
+    background: radial-gradient(ellipse at 50% 46%,
+      rgba(24,17,9,.84), rgba(5,3,1,.975) 76%);
+    z-index: 40;
+    text-align: center;
+    padding: 24px;
+  }
+  .veil[hidden] { display: none; }
+
+  /* THE KHEKER FRIEZE: the stepped band that runs along the top of a painted
+     wall. One repeating gradient and two rules rather than sixty elements -
+     a gold tick every seven pixels standing on a register rule. The same motif
+     khekerFrieze() draws on canvas for the minimap border, so the two surfaces
+     are wearing one ornament and not two versions of it. */
+  .frieze {
+    position: absolute; left: 0; right: 0; top: 0; height: 13px;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(217,178,106,.45) 0 1px, transparent 1px 7px) 0 0 / 100% 9px no-repeat,
+      linear-gradient(rgba(217,178,106,.45), rgba(217,178,106,.45))
+        0 9px / 100% 1px no-repeat,
+      linear-gradient(rgba(217,178,106,.20), rgba(217,178,106,.20))
+        0 12px / 100% 1px no-repeat;
+    opacity: .62;
+  }
+
+  /* THE NAME RING. A cartouche is an oblong with SEMICIRCULAR ends, and the
+     difference between r = h/2 and r = 8px is the difference between reading as
+     Egyptian and reading as a web component. Any radius past half the height
+     clamps to exactly half, so 999px is r = h/2 stated without knowing h. See
+     FORM.pillRadius in src/ui/tokens.js. */
+  .cartouche {
+    position: relative;
+    padding: 20px clamp(40px, 7vw, 94px) 22px;
+    border: 1px solid rgba(217,178,106,.45);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(31,22,12,.55), rgba(8,5,3,.30));
+    box-shadow:
+      inset 0 1px 0 rgba(217,178,106,.14),
+      inset 0 0 40px rgba(0,0,0,.55),
+      0 0 70px rgba(217,178,106,.06);
+  }
+  /* THE TIE, and it is at ONE end on purpose. The cartouche is a loop of rope
+     knotted at a single end, and that knot is the whole reason the shape reads
+     as a name ring rather than as a pill. A mirrored pair would be tidier and
+     would be a different object. */
+  .cartouche::after {
+    content: ""; position: absolute; left: 15px; top: 24%; bottom: 24%;
+    width: 1px; background: rgba(217,178,106,.55);
+  }
+
+  .title {
+    font-size: clamp(26px, 5.2vw, 56px);
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    font-weight: normal;
+    color: var(--gold);
+    text-shadow:
+      0 1px 0 rgba(8,5,3,.85),
+      0 -1px 0 rgba(168,117,31,.45),
+      0 0 30px rgba(217,178,106,.26);
+    /* The final glyph's tracking is trailing space on the right. Pulling the
+       line back by one tracking unit is what actually centres the name inside
+       the ring; without it the word sits a quarter of a letter to the left. */
+    text-indent: .22em;
+  }
+  .sub {
+    font-size: clamp(10px, 1.5vw, 13px);
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    /* --gold-mid, not --gold-dim. Dim measures 3.70 to one and this line is the
+       only thing on the screen that says what the game is about. */
+    color: var(--gold-mid);
+    margin-top: 17px;
+  }
+
+  /* THE REGISTER RULE: the paired line that separates one band of Egyptian wall
+     art from the next, near line stronger than far. registerRules() in
+     src/ui/tokens.js returns the same pair for DOM surfaces. */
+  .rule {
+    width: min(560px, 74vw); height: 5px;
+    margin: 26px 0 22px;
+    background:
+      linear-gradient(90deg, transparent, rgba(217,178,106,.55) 14%,
+        rgba(217,178,106,.55) 86%, transparent) 0 0 / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent, rgba(217,178,106,.28) 14%,
+        rgba(217,178,106,.28) 86%, transparent) 0 4px / 100% 1px no-repeat;
+  }
+
+  /* ---- the one choice made before entering ---- */
+  .rite { display: flex; flex-direction: column; align-items: center; gap: 13px; }
+  .rite-head {
+    font-size: 9px; letter-spacing: .34em; text-transform: uppercase;
+    color: var(--gold-mid);
+  }
+  .rite-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+  /* The same cartouche at badge size. */
+  .tier {
+    font-family: inherit;
+    font-size: 12px; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--gold-mid);
+    background: linear-gradient(180deg, rgba(20,14,8,.85), rgba(8,5,3,.70));
+    border: 1px solid rgba(217,178,106,.30);
+    border-radius: 999px;
+    padding: 11px 30px 12px;
+    min-width: 132px;
+    cursor: pointer;
+    /* NO TRANSITION, AND IT WAS THERE UNTIL A SCREENSHOT CAUGHT IT.
+     *
+     * A 160ms fade on colour and border looked right in principle and was
+     * measured, on the headless build every verification in this project runs
+     * on, still 20 per cent complete 1.4 SECONDS after the click: with the
+     * whole scene rendering behind the veil under software rasterisation the
+     * page gets well under one animation frame a second, and a transition only
+     * advances when style is ticked. The reading was unambiguous - the button
+     * that had just been chosen still had the unselected colour and the one
+     * just abandoned still had bone text, while the lapis ground (not
+     * transitioned, because a gradient was not in the list) had already moved.
+     * A selector whose feedback arrives after the player has looked away is a
+     * selector that reads as broken.
+     *
+     * It is also the wrong idea on its own terms. src/ui/tokens.js states it
+     * for the HUD - state changes are instant and high contrast - and every
+     * other toggle in this interface already obeys: .set-btn and .pause-tab
+     * carry no transition at all. A choice is discrete. It snaps. */
+  }
+  .tier:hover { color: var(--gold); border-color: rgba(217,178,106,.60); }
+  /* CHOSEN. Filled with lapis and lettered in bone, which is both the Egyptian
+     move - gold and lapis is the funerary mask, and a pectoral is a bone-white
+     inlay in a blue ground - and the only legible one: tokens.js measures lapis
+     at 2.70 to one and marks it FILL ONLY. Ornament in the frame, never in the
+     number. */
+  .tier[aria-pressed="true"] {
+    color: var(--bone);
+    border-color: rgba(217,178,106,.90);
+    background: linear-gradient(180deg, rgba(45,95,158,.45), rgba(22,38,66,.65));
+    box-shadow: 0 0 0 1px rgba(0,0,0,.55), 0 0 22px rgba(45,95,158,.30);
+    text-shadow: 0 1px 0 rgba(8,5,3,.80), 0 -1px 0 rgba(96,148,206,.35);
+  }
+  /* Locked once the run begins. The choice is part of the score. */
+  .tier:disabled { cursor: default; opacity: .55; }
+
+  /* What the tier actually does, in plain words, from the same record the wave
+     director reads. min-height is load-bearing: the three sentences are
+     different lengths and without it the buttons above jump a line every time
+     the player compares two tiers. */
+  .rite-note {
+    max-width: min(560px, 76vw);
+    min-height: 3.4em;
+    font-size: 11px; letter-spacing: .12em; line-height: 1.7;
+    color: var(--gold-mid);
+  }
+
+  .enter { display: flex; align-items: center; gap: 14px; margin-top: 22px; }
+
+  .cta {
+    border: 1px solid rgba(217,178,106,.55);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(217,178,106,.16), rgba(217,178,106,.04));
+    color: var(--gold);
+    padding: 14px 40px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    text-shadow: 0 1px 0 rgba(8,5,3,.75), 0 -1px 0 rgba(168,117,31,.35);
+    transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .cta:hover {
+    background: rgba(217,178,106,.24);
+    border-color: var(--gold);
+    box-shadow: 0 0 24px rgba(217,178,106,.20);
+  }
+
+  /* The way to the settings that already exist. Quieter than the way in, and
+     beside it rather than under it, because it is the same kind of act - a
+     button that leaves this screen - at a fraction of the importance. */
+  .ghost {
+    display: flex; align-items: center; gap: 9px;
+    border: 1px solid rgba(217,178,106,.24);
+    border-radius: 999px;
+    background: rgba(10,7,4,.70);
+    color: var(--gold-mid);
+    padding: 13px 22px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color .16s ease, border-color .16s ease;
+  }
+  .ghost:hover { color: var(--gold); border-color: rgba(217,178,106,.55); }
+
+  .keys {
+    margin-top: 2.4em;
+    font-size: 11px;
+    letter-spacing: .16em;
+    color: #7d6a4e;
+    line-height: 2;
+    text-transform: uppercase;
+  }
+  .keys b { color: var(--gold-mid); font-weight: normal; }
+
+  /* WHAT THE TOMB REMEMBERS.
+
+     Deliberately the keys strip's own treatment rather than a new one: dim
+     label, gold-mid figure, same letterspacing and the same uppercase. This is
+     secondary information on a screen whose primary action is one button, and a
+     records line styled to compete with the cartouche would be the loudest
+     thing on a title screen that already knows what it is about.
+
+     The figures take --gold-mid and NOT --gold-dim for the reason tokens.js
+     records against the subtitle: dim measures 3.70 to one, under the 4.5 floor
+     test/hud.mjs holds every label in this game to, and a number nobody can
+     read is not a record. The labels beside them are allowed to be dimmer
+     because they are the same four words every time and a returning player is
+     reading the numbers. */
+  .record {
+    margin-top: 1.5em;
+    font-size: 11px;
+    letter-spacing: .16em;
+    color: #7d6a4e;
+    text-transform: uppercase;
+    /* Wraps to two lines on a phone rather than scrolling the veil. */
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: .35em 0;
+    max-width: min(560px, 74vw);
+  }
+  .record[hidden] { display: none; }
+  .record b { color: var(--gold-mid); font-weight: normal; }
+  /* Each field is one unbreakable unit, so a wrap never splits "Fastest 14:22"
+     down the middle. */
+  .record span { white-space: nowrap; }
+  /* THE SAME MIDDLE DOT THE KEYS STRIP USES, one line above this one. Two
+     adjacent bands of dim uppercase text that separate their fields by
+     different conventions read as two things nobody looked at together. The
+     separator is generated rather than authored so it cannot survive its own
+     field being conditionally dropped - which every field here is. */
+  .record span + span::before {
+    content: '·';
+    color: #5d4f3a;
+    margin: 0 .7em;
+  }
+
+  /* The same focus treatment the pause panel gets, and for the same reason
+     recorded there: Chrome's default ring is a saturated blue rectangle, which
+     on a warm gold interface is the brightest and coldest object on the screen.
+     Replaced rather than removed - a keyboard player has to know where they
+     are. */
+  .veil :focus-visible { outline: 1px solid var(--gold); outline-offset: 3px; }
+  .veil :focus:not(:focus-visible) { outline: none; }
+
+  /* ---- asset loading ---- */
+  #load-wrap {
+    position: fixed; left: 50%; bottom: 34px;
+    transform: translateX(-50%);
+    width: min(340px, 60vw);
+    z-index: 45;
+    transition: opacity .6s ease;
+  }
+  #load-track {
+    height: 1px; background: #35291a; overflow: hidden;
+  }
+  #load-bar {
+    height: 100%; width: 0%; background: var(--gold);
+    transition: width .25s ease;
+  }
+  #load-status {
+    margin-top: 9px; font-size: 9px; letter-spacing: .22em;
+    text-transform: uppercase; color: #5d4e39; text-align: center;
+    min-height: 12px;
+  }
+
+  /* ---- hud ----
+
+     ONE OBJECT, USED EVERYWHERE: the plate. A near-opaque dark ground with a
+     gold hairline and a gilded top edge, which is exactly what #prompt has
+     always been and is the only part of this interface anybody has said feels
+     right. Every readout now stands on one.
+
+     That is a legibility fix and not a decorative one. The game has two
+     backgrounds - a sunlit avenue around luma 190 and a fire-lit chamber around
+     luma 25 - and text with a drop shadow is readable on precisely one of them.
+     A plate makes the local background a constant, so the contrast of the HUD
+     is a property of the HUD rather than of wherever the player happens to be
+     standing. The alpha is high on purpose: at .55 the sand read straight
+     through it. */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+  #hud[hidden] { display: none; }
+
+  /* THE FURNITURE GOES QUIET WHILE SHE STANDS UP.
+     ------------------------------------------------------------------------
+     Beat 4.8 is "she does not ask him anything" - a silence - and it was
+     playing behind a minimap, an objective panel, a vitality plate, a frag
+     counter, an ammunition plate, two fidelity buttons and an MK9 held at the
+     centre of the screen and pointed at her. Every one of those is correct for
+     a siege. None of them is correct for this, and the game has spent an hour
+     teaching the player to read all of them, so they do not go unnoticed - they
+     go on shouting.
+
+     OPACITY AND NOT `hidden`, deliberately. The readouts are still THERE and
+     still true; the game is not taking the run away from him, it is looking
+     somewhere else for four seconds. A display:none would pop, and popping is
+     the opposite of what a held breath is.
+
+     The fade is slower going out than coming back (1100ms vs 420ms) for the
+     same reason a room dims slowly and a light switch is instant: leaving is a
+     mood and returning is a fact. Coming back only ever happens if the ending
+     somehow does not follow, which is a case story/meeting.js cannot construct
+     but does not claim is impossible.
+
+     Keyed off the ROOT and not off #hud, because #settings lives outside #hud
+     (it is the one corner that is clicked, so it cannot sit in a
+     pointer-events:none subtree) and the two fidelity buttons are as wrong in
+     this shot as the ammunition plate is. One class, both surfaces.
+
+     The crosshair is inside #hud and goes with it, which is the point: there is
+     nothing in this room to put it on. */
+  :root.is-meeting #hud,
+  :root.is-meeting #settings {
+    opacity: 0;
+    transition: opacity 1100ms cubic-bezier(.4, 0, .2, 1);
+  }
+  #hud, #settings { transition: opacity 420ms ease-out; }
+
+  .plate {
+    background: linear-gradient(180deg, rgba(9,6,3,.95), rgba(4,3,1,.90));
+    border: 1px solid rgba(217,178,106,.30);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.55), 0 8px 26px rgba(0,0,0,.5);
+    position: relative;
+  }
+  /* The gilded top edge. One line, and it is what makes a dark rectangle read
+     as a piece of the same building as the doorways. */
+  .plate::before {
+    content: ""; position: absolute; left: -1px; right: -1px; top: -1px;
+    height: 2px;
+    background: linear-gradient(90deg,
+      rgba(217,178,106,.15), rgba(217,178,106,.85), rgba(217,178,106,.15));
+  }
+
+  #crosshair {
+    position: absolute; left: 50%; top: 50%;
+    width: 22px; height: 22px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Icons are drawn, never typed. A 12px gold mark in the same weight as the
+     crosshair, sitting on the label's baseline.
+
+     --gold-dim would have been the obvious choice and is too dark: measured
+     against the plate over sunlit sand it comes out at 3.70 to one, under the
+     4.5 floor everything else on this HUD clears. --gold-mid exists for exactly
+     the labels and marks that want to sit below the primary gold without
+     dropping out of legibility. */
+  .ico {
+    width: 12px; height: 12px; flex: none;
+    fill: none; stroke: var(--gold-mid); stroke-width: 1.5;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .readout {
+    position: absolute;
+    padding: 8px 13px 9px;
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .readout .cap {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 9px; letter-spacing: .26em; color: var(--gold);
+  }
+
+  /* ---- THE KEY CAP ----
+
+     Every verb the player has to perform prints its key beside the thing it
+     acts on, and this is that object.
+
+     It exists because of one report from the owner playing his own game: "I
+     hunt for the key". The bindings were stated in exactly one place - the
+     title screen - which is gone the moment play starts, so the whole control
+     scheme was a thing the player had to have memorised in the ten seconds
+     before the game began or go without. A feature nobody can find does not
+     exist, and the grenade is the proof: a cook-and-throw wager with a live
+     fuse, self-damage, bounce physics and a supply economy, and the owner had
+     been playing for days without once throwing one.
+
+     Bone on near-black inside a gold hairline, which is the plate at badge
+     size. Bone because this is the one class of HUD text whose entire job is to
+     be found by someone who is not looking for it, and bone is the brightest
+     value on the interface. */
+  .key-cap {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 16px; height: 15px; padding: 0 4px;
+    border: 1px solid rgba(217,178,106,.55);
+    background: rgba(18,12,6,.94);
+    font-family: inherit; font-size: 9px; letter-spacing: .04em;
+    color: var(--bone);
+    flex: none;
+  }
+
+  #r-health { left: 22px; bottom: 22px; min-width: 148px; }
+
+  /* The bar is the readout the number cannot be. Sekhmet moves the ceiling
+     from 100 to 250, and at that point an absolute figure has stopped saying
+     anything about how close the player is to the floor. */
+  #r-health .track {
+    display: block; height: 3px; margin-top: 7px;
+    background: rgba(217,178,106,.14);
+    overflow: hidden;
+  }
+  #r-health .track i {
+    display: block; height: 100%; width: 100%;
+    transform-origin: left center;
+    background: linear-gradient(90deg, #b8894a, var(--gold));
+  }
+  /* One swing from the floor, and it is the PLATE that changes, not the
+     numeral: this has to be caught without being looked at. */
+  #r-health.hurt { border-color: rgba(224,86,60,.55); }
+  #r-health.hurt .val { color: #ff8a6c; }
+  #r-health.hurt .track i { background: linear-gradient(90deg, #7d2114, #e0563c); }
+
+  /* The boon strip. Directly above vitality, because the two are read
+     together: how much life you have and what is keeping you alive. Empty
+     slots are drawn as well as full ones, so the strip answers "should I stop
+     at the next shrine" and not only "what did I buy".
+
+     Lifted from 96 to 104 when the ordnance plate went in beside vitality: a
+     full strip of NAMED boons is a good deal wider than a strip of empty
+     sockets, and at four chips carrying "SEKHMET" it reached far enough right
+     to land on the top edge of the new plate. Two pixels of overlap, which the
+     suite would have caught and the eye would not. */
+  #r-boons {
+    position: absolute; left: 22px; bottom: 104px;
+    display: flex; gap: 7px; align-items: center;
+  }
+  .boon[hidden] { display: none; }
+  .boon {
+    display: flex; align-items: center; gap: 5px;
+    border: 1px solid rgba(217,178,106,.26);
+    background: rgba(6,4,2,.90);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.5);
+    padding: 3px 7px 3px 5px;
+    min-width: 22px;
+    min-height: 20px;
+  }
+  .boon i {
+    display: block; width: 8px; height: 8px;
+    background: var(--boon, #4a3d29);
+    box-shadow: 0 0 6px var(--boon, transparent);
+    transform: rotate(45deg);
+  }
+  .boon b {
+    font-weight: normal; font-size: 9px; letter-spacing: .16em;
+    color: var(--boon, #6b5a42);
+    text-shadow: 0 1px 3px #000;
+  }
+  /* An unheld slot is a socket, not a button: no glow, no border highlight. */
+  .boon:not(.held) i { box-shadow: none; opacity: .55; }
+  .boon.held { border-color: rgba(217,178,106,.45); }
+
+  /* ---- ORDNANCE ----
+
+     Beside vitality, not beside ammunition, and on the same baseline so the two
+     read as one cluster. They are the pair a player consults at the moment that
+     actually matters in this game - cornered, low, deciding whether to fight
+     the room or leave it - and the grenade is the only answer to that question
+     that is not "shoot faster".
+
+     The count is always up, at 26px in bone, exactly as vitality and gold are.
+     A consumable that only appears when you are holding one is a consumable
+     nobody plans around. The pips underneath say the other half of it: this HUD
+     already argues, at the boon strip, that "two of four" is a different piece
+     of information from "two", and it is the one that decides whether a player
+     spends the one in their hand. */
+  #r-frag { left: 186px; bottom: 22px; min-width: 134px; }
+  #r-frag .key-cap { margin-left: auto; }
+  #r-frag .val { display: block; }
+  #r-frag .pips { display: flex; gap: 4px; margin-top: 8px; }
+  #r-frag .pips i {
+    display: block; width: 13px; height: 4px;
+    background: rgba(217,178,106,.15);
+    box-shadow: inset 0 0 0 1px rgba(217,178,106,.22);
+  }
+  #r-frag .pips i.on {
+    background: linear-gradient(90deg, #b8894a, var(--gold));
+    box-shadow: none;
+  }
+  /* Nothing in the pouch. Dimmed rather than hidden, because the plate
+     disappearing would take the binding with it - and an empty pouch is
+     precisely when a player needs to know grenades exist and come back. */
+  #r-frag.out .val { color: var(--gold-mid); }
+  /* THE PIN IS OUT. The plate goes to danger, and it goes there on the frame
+     the pin comes out rather than at some threshold, because the wager starts
+     immediately: see #cook for the clock. */
+  #r-frag.cooking { border-color: rgba(224,86,60,.65); }
+  #r-frag.cooking .val { color: #ff8a6c; }
+  #r-frag.cooking .key-cap { border-color: rgba(224,86,60,.75); color: #ff8a6c; }
+
+  /* ---- THE FUSE ----
+
+     A 3.4 second fuse that kills you where you stand is not a progress bar, and
+     three decisions here follow from that.
+
+     It is drawn AT THE CROSSHAIR, because a player holding a live grenade is
+     looking down the middle of the screen at the thing they mean to hit, and a
+     clock in the corner of a HUD is a clock they will read after it has gone
+     off. It EMPTIES rather than fills: a ring draining reads as time running
+     out, a ring filling reads as a weapon charging, and this is the first one.
+     And it crosses to amber and then to red well before it expires, so the
+     element is danger first and information second - a player who has learned
+     nothing else about it still knows that red at the centre of their screen
+     while their thumb is on a key means let go.
+
+     The throb at the end is a wall-clock CSS animation, which is correct here
+     for the same reason it is correct on the gold popups: nothing in the
+     simulation reads it, so it cannot desynchronise anything by running at a
+     different rate than the clamped frame delta. */
+  /* A CLASS, NOT THE hidden ATTRIBUTE, and that is not a style preference.
+     `hidden` is a property of HTMLElement and this is an SVGElement, so
+     `el.hidden = false` on it sets a JavaScript expando and leaves the content
+     attribute exactly where it was - the ring stayed display:none for its whole
+     life while the code that hid it read back `hidden: false` and believed
+     itself. Found by rendering it and looking at the middle of the frame, which
+     is the only way anything in this class of bug has ever been found here. */
+  #cook {
+    display: none;
+    position: absolute; left: 50%; top: 50%;
+    width: 64px; height: 64px;
+    transform: translate(-50%, -50%) rotate(-90deg);
+  }
+  #cook.live { display: block; }
+  #cook circle { fill: none; }
+  .cook-track { stroke: rgba(6,4,2,.82); stroke-width: 5.5; }
+  .cook-burn {
+    stroke: var(--gold); stroke-width: 3.2; stroke-linecap: butt;
+    /* 2 * PI * 17, the circumference the dash offset is written against. */
+    stroke-dasharray: 106.81;
+    stroke-dashoffset: 0;
+  }
+  #cook.hot .cook-burn { stroke: #ffab3c; stroke-width: 4; }
+  /* HEAVIER as it gets SHORTER, which is the opposite of what happens if the
+     stroke is left alone. The arc is the fuse, so the last half second is the
+     least ink on the screen at the moment it matters most - measured on the
+     first version, the danger frame had a thinner mark than the opening one.
+     Width goes up as length comes down so the total ink holds. */
+  #cook.danger .cook-burn { stroke: #ff4c2c; stroke-width: 5.4; }
+  #cook.danger { animation: cook-throb .26s steps(2, end) infinite; }
+  /* The trough is .55 and not .38. A blink is the right signal and a blink that
+     halves a thin red arc over sunlit sand is a mark that is genuinely gone for
+     half of every cycle - caught in a screenshot of the danger band, which is
+     the frame that has to be the most readable one the element ever produces. */
+  @keyframes cook-throb { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+  /* ---- the one-time hint ----
+
+     Shown once, the first time the player is standing in the game with a
+     grenade in the pouch, and retired for the rest of the session the moment it
+     has been read or the moment a pin comes out - whichever happens first. It
+     is not a tutorial and there is deliberately no system behind it: one line,
+     one boolean, and it takes itself off the screen. */
+  #frag-hint {
+    position: absolute; left: 22px; bottom: 132px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 13px 8px;
+    font-size: 11px; letter-spacing: .17em; text-transform: uppercase;
+    color: var(--gold); white-space: nowrap;
+    opacity: 0; transition: opacity .35s ease;
+  }
+  #frag-hint[hidden] { display: none; }
+  #frag-hint.on { opacity: 1; }
+
+  #r-gold { right: 22px; top: 22px; text-align: right; min-width: 118px; }
+  #r-gold .cap { justify-content: flex-end; }
+  .readout .val { display: block; font-size: 26px; letter-spacing: .08em; color: var(--bone); }
+
+  /* Ammunition and the wave share one plate, low right, where the eye can
+     catch them without leaving the crosshair. They are separated by a rule
+     rather than by empty space, because two plates in one corner is two things to
+     find and this is one glance. Lifted clear of the fidelity buttons, which
+     the wave counter used to sit on top of. */
+  #r-ammo {
+    right: 22px; bottom: 62px; text-align: right; min-width: 186px;
+  }
+  /* The weapon's NAME and the number that recalls it, together. Seven weapons
+     are bought across this map and any of them can be swapped to instantly with
+     a digit, which is worth nothing to a player who has to remember which digit
+     - so the slot rides on the same line as the name and the player learns the
+     binding by reading the gun they are already holding. */
+  #r-ammo .cap { justify-content: flex-end; }
+  #r-ammo .val { display: block; margin-top: 1px; }
+  #r-ammo b { font-weight: normal; font-size: 30px; letter-spacing: .04em; color: var(--bone); }
+  #r-ammo i {
+    font-style: normal; font-size: 15px; color: var(--gold-mid);
+    margin-left: 7px;
+  }
+  #r-ammo i::before { content: "/ "; }
+  #r-ammo.empty b { color: #ff6a4c; }
+  #r-ammo.reloading b { color: var(--gold); }
+
+  /* The wave, and the one key that acts on this plate. They share the footer
+     rather than taking a line each: the reload binding is the least urgent
+     thing in this corner and does not deserve its own rule, but it does have to
+     be somewhere a player can find it without leaving the game. */
+  #r-ammo .wave {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 8px; padding-top: 7px;
+    border-top: 1px solid rgba(217,178,106,.18);
+    font-size: 9px; letter-spacing: .26em; color: var(--gold);
+  }
+  #r-ammo .wave u {
+    text-decoration: none; font-size: 15px; letter-spacing: .06em; color: var(--bone);
+  }
+  /* The run's terms. Quieter than the wave by a clear step - it is a constant
+     and the wave is not - but above the legibility floor, which is the whole
+     reason it is --gold-mid rather than --gold-dim. */
+  #r-ammo .terms {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin-top: 6px;
+    font-size: 9px; letter-spacing: .26em; color: var(--gold-mid);
+  }
+  #r-ammo .terms u {
+    text-decoration: none; letter-spacing: .18em; color: var(--gold);
+  }
+  #r-ammo .hint { display: flex; align-items: center; gap: 6px; }
+  /* Lit only while pressing it would do something. A key hint that is bright
+     when the magazine is full is a prompt that has cried wolf by the time the
+     magazine is empty. */
+  #r-ammo.canreload .hint .key-cap {
+    border-color: rgba(217,178,106,.95);
+    box-shadow: 0 0 8px rgba(217,178,106,.30);
+  }
+  #r-ammo.empty .hint .key-cap { border-color: #ff6a4c; color: #ff8a6c; }
+
+  /* ---- the left column: where am I, and what next ----
+
+     One stack, because the two questions are one question. The map answers
+     "where", the tracker answers "what next", and putting them anywhere but
+     adjacent would make the player's eye do the joining. */
+  /* THE COMPASS. Centred on the top edge, above everything the fight needs the
+     middle of the screen for. Pointer-events off: it is a readout, and it sits
+     in the band a player sweeps past constantly. */
+  #compass {
+    position: absolute; left: 50%; top: 8px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    /* No plate behind it. Every other readout in this interface sits on a
+       translucent ground because it holds numbers that must survive sunlit
+       sand; this holds four letters and two pips, and a panel across the top of
+       the screen would be the single largest opaque object in the game. The
+       marks carry their own contrast instead - see the note in ui/compass.js
+       about honouring the HUD legibility floor by construction. */
+  }
+
+  #hud-left {
+    position: absolute; left: 22px; top: 20px;
+    width: 290px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .card { padding: 0; }
+  .card-head {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 11px 6px;
+    border-bottom: 1px solid rgba(217,178,106,.16);
+    font-size: 9px; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  #map-canvas {
+    display: block;
+    width: 268px; height: 296px;
+    margin: 8px 11px 0;
+  }
+  .map-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 11px 8px;
+    font-size: 8px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold-mid);
+  }
+  /* The chest legend. The box moving between three plinths is the one mechanic
+     that moves the map underneath the player, and a map that only ever drew it
+     where it currently is would make a cold plinth look like a broken game. */
+  .key { display: flex; align-items: center; gap: 6px; }
+  .key .k-chest {
+    display: block; width: 9px; height: 7px;
+    border: 1px solid var(--gold); border-top-width: 3px;
+  }
+  #fps { color: var(--gold-mid); }
+
+  /* The objective. The headline is the only string on the HUD a player has to
+     actually READ, so it is the only one set at a size that invites it. */
+  #objective { padding: 0 0 9px; }
+  /* THE STANDING GOAL. Quieter than the step below it on purpose: the step is
+     what you do in the next ten seconds and this is what the hour is for, so it
+     must never compete for the glance. Gold rather than bone, one size down,
+     with a rule under it to separate the reason from the instruction. */
+  .obj-goal {
+    padding: 8px 11px 6px;
+    margin-bottom: 2px;
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--gold-mid, #a08b64);
+    border-bottom: 1px solid rgba(217,178,106,.16);
+  }
+  .obj-goal b {
+    font-weight: 600; color: var(--gold);
+  }
+  .obj-text {
+    padding: 9px 11px 0;
+    font-size: 12px; line-height: 1.4; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--bone);
+  }
+  .obj-detail {
+    padding: 5px 11px 0;
+    font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .obj-where {
+    padding: 4px 11px 0;
+    font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--gold-mid);
+  }
+  .obj-where[hidden] { display: none; }
+
+  /* Shown only while gold is what stands in the way. A full bar under an
+     objective that has nothing to do with money is a gauge lying about what it
+     measures. */
+  .obj-track {
+    height: 2px; margin: 9px 11px 0;
+    background: rgba(217,178,106,.14);
+    overflow: hidden; visibility: hidden;
+  }
+  #objective.short .obj-track { visibility: visible; }
+  #objective.short .obj-detail { color: #e0563c; }
+  .obj-track i {
+    display: block; height: 100%; width: 100%;
+    transform: scaleX(0); transform-origin: left center;
+    background: linear-gradient(90deg, #7d5a24, var(--gold));
+  }
+
+  /* The hitmarker is the single most important piece of shooting feedback.
+     It confirms the shot connected without the player leaving the crosshair. */
+  #hitmarker {
+    position: absolute; left: 50%; top: 50%;
+    width: 26px; height: 26px;
+    transform: translate(-50%, -50%) rotate(45deg);
+    opacity: 0;
+  }
+  #hitmarker::before, #hitmarker::after {
+    content: ""; position: absolute; background: #fff;
+  }
+  #hitmarker::before { left: 50%; top: 0; width: 2px; height: 100%; margin-left: -1px; }
+  #hitmarker::after  { top: 50%; left: 0; height: 2px; width: 100%; margin-top: -1px; }
+  #hitmarker.on { opacity: 1; transition: none; }
+  #hitmarker.fade { opacity: 0; transition: opacity .18s ease-out; }
+  #hitmarker.crit::before, #hitmarker.crit::after { background: #ff5a3c; }
+
+  /* The buy prompt. Sits above the notice line rather than sharing it: a
+     prompt is persistent while you look at a door, a notice is a message that
+     expires, and one element cannot be both without them fighting. */
+  #prompt {
+    position: absolute; left: 50%; top: 57%;
+    transform: translateX(-50%);
+    font-size: 13px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold);
+    padding: 7px 16px;
+    white-space: nowrap;
+    opacity: 0; transition: opacity .12s ease;
+  }
+  #prompt.on { opacity: 1; }
+  /* Cannot afford it, or it is not for sale at any price. */
+  #prompt.deny { color: #ff6a4c; border-color: rgba(224,86,60,.55); }
+  #prompt.deny::before { background: linear-gradient(90deg,
+      rgba(224,86,60,.12), rgba(224,86,60,.8), rgba(224,86,60,.12)); }
+
+  /* Floating gold. The container is a zero-size anchor at the crosshair and
+     every popup positions off it, so the animation never triggers layout. */
+  #gold-pops { position: absolute; left: 50%; top: 44%; width: 0; height: 0; }
+  .gold-pop {
+    position: absolute; left: 0; top: 0;
+    font-size: 17px; letter-spacing: .08em;
+    color: var(--gold); text-shadow: 0 1px 4px #000;
+    white-space: nowrap;
+    animation: gold-float 1s ease-out forwards;
+  }
+  .gold-pop.crit { color: #ffe0a0; font-size: 21px; }
+  .gold-pop.debit { color: #e0563c; }
+  @keyframes gold-float {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(.82); }
+    14%  { opacity: 1;
+           transform: translate(calc(-50% + var(--dx) * .2), calc(-50% + var(--dy) * .2)) scale(1); }
+    100% { opacity: 0;
+           transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); }
+  }
+
+  /* The boss bar. Top centre, because that is where the player's eye already
+     is when something four metres tall is walking at them, and because the
+     bottom corners are already spoken for by vitality and ammunition. It is
+     hidden until a god is live and it disappears with it, so its presence is
+     itself the readout. */
+  #boss {
+    position: absolute; left: 50%; top: 24px;
+    transform: translateX(-50%);
+    width: min(520px, 56vw);
+    text-align: center;
+    padding: 8px 14px 10px;
+  }
+  #boss[hidden] { display: none; }
+  #boss-name {
+    font-size: 12px; letter-spacing: .38em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  #boss-track {
+    height: 6px;
+    background: rgba(10,7,4,.86);
+    border: 1px solid rgba(217,178,106,.34);
+    overflow: hidden;
+  }
+  #boss-bar {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, #8c2417, #d4452a 60%, #e8894a);
+    /* Width is written every frame from the director; a transition here would
+       lag the number it is drawn from and read as the boss healing. */
+  }
+
+  /* ---- the power-up strip ----
+
+     Under the gold plate, right-hand column, because gold and the boons that
+     multiply it are read in the same glance and because both bottom corners are
+     already spoken for by vitality and ammunition. It grows DOWNWARDS as
+     effects stack, so a second one arriving never moves the first.
+
+     The plain meaning is the big line and the Egyptian name is the small one
+     under it. That ordering is the whole point: a player with four husks on them
+     needs "ONE HIT KILLS", not "THE FEATHER OF MAAT". */
+  #r-powers {
+    position: absolute; right: 22px; top: 92px;
+    display: flex; flex-direction: column; gap: 7px;
+    align-items: flex-end;
+  }
+  .power[hidden] { display: none; }
+  .power {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 12px 8px;
+    min-width: 208px;
+  }
+  /* The mark, in the same colour as the drop the player walked over. Rotated
+     45 degrees, exactly as the boon chips are, so the two strips read as one
+     family of things you are carrying. */
+  .power i {
+    display: block; width: 9px; height: 9px;
+    background: var(--power, #d9b26a);
+    box-shadow: 0 0 8px var(--power, transparent);
+    transform: rotate(45deg);
+  }
+  .power-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .power b {
+    font-weight: normal; font-size: 12px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--bone);
+    white-space: nowrap;
+  }
+  .power u {
+    text-decoration: none; font-size: 8px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--gold-mid);
+    white-space: nowrap;
+  }
+  .power s {
+    text-decoration: none; font-size: 20px; letter-spacing: .04em;
+    color: var(--power, var(--gold));
+  }
+  /* The bar sits on the plate's bottom edge, spanning the whole chip: a number
+     is read, a bar that is nearly gone is seen without being looked at. */
+  .power span {
+    grid-column: 1 / -1;
+    display: block; height: 2px; margin-top: 6px;
+    background: rgba(217,178,106,.14);
+    overflow: hidden;
+  }
+  .power em {
+    display: block; height: 100%; width: 100%;
+    transform: scaleX(1); transform-origin: left center;
+    background: var(--power, var(--gold));
+  }
+
+  /* ---- the full-frame flash ----
+
+     For the Second Death, and deliberately nothing else. It is drawn over the
+     whole viewport under the rest of the HUD, so readouts stay legible through
+     it, and it is pointer-transparent like everything else in here. */
+  #flash {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center,
+      var(--flash, #fff2cf) 0%, rgba(255,220,150,.35) 55%, rgba(255,200,120,0) 100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  #flash.on { animation: flash-out var(--flash-ms, 600ms) ease-out forwards; }
+  @keyframes flash-out {
+    0%   { opacity: .92; }
+    22%  { opacity: .70; }
+    100% { opacity: 0; }
+  }
+
+  /* THE NOTICE PILL. Two voices use it and they are styled apart rather than
+     labelled apart; see src/ui/pacer.js.
+
+     `white-space: nowrap` WAS on this rule and had to go. It is fine for a
+     stamp - THE KINDLING TAKES is 18 characters - and it is a rendering bug
+     for anything longer: the pill is centred by a translate, so an unbreakable
+     string wider than the window runs off BOTH edges at once. The longest
+     string already passed to showNotice today is the 54-character pointer-lock
+     fallback in main.js, which at this size is roughly 640px of text that does
+     not fit a 720-wide window. Wrapping cannot change a line that already fits
+     on one, so every existing caller is untouched by this. */
+  #notice {
+    position: absolute; left: 50%; top: 62%;
+    transform: translateX(-50%);
+    padding: 6px 14px;
+    font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold);
+    white-space: normal;
+    max-width: min(34em, 78vw);
+    text-align: center;
+    opacity: 0; transition: opacity .2s ease;
+  }
+  #notice.on { opacity: 1; }
+
+  /* HER VOICE, and the whole attribution scheme is this one declaration.
+     `text-transform: uppercase` stays on the base rule above, so the ten
+     systems that write to this pill keep the capitals they were built for and
+     nothing about them is renegotiated. It is overridden HERE, on her class
+     only, because until it is, no string handed to showNotice can render
+     lowercase at all - which is what the entire "she is the only lowercase
+     text in the game" device is downstream of.
+
+     Tracking comes down with it. .2em is set for capitals, which have no
+     ascender/descender rhythm to carry the eye; the same tracking on lowercase
+     reads as a ransom note. */
+  #notice.voice-her {
+    text-transform: none;
+    font-size: 13px;
+    letter-spacing: .07em;
+    line-height: 1.45;
+  }
+
+  /* THE GATEKEEPER, who does not get her lowercase - it is hers, and the
+     handover in World 2 only means something if it was never shared. He is
+     capitals with more air than the system's, which is the same fact as his
+     6-characters-per-second reveal said in type instead of in time. */
+  #notice.voice-gate {
+    letter-spacing: .34em;
+    color: var(--gold-mid);
+  }
+
+  /* The unsaid half of a line in flight. Hidden by VISIBILITY and not by
+     display, so it still occupies its space: every glyph then appears at the
+     position it will hold when the line is finished, instead of the pill
+     re-centring itself on every character for the whole reveal. */
+  #notice .notice-rest { visibility: hidden; }
+
+  /* ---- settings ---- */
+  #settings {
+    position: fixed; right: 20px; bottom: 20px; z-index: 30;
+    display: flex; gap: 8px; align-items: center;
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: #6b5a42;
+  }
+  #settings button {
+    font-family: inherit; font-size: 10px; letter-spacing: .18em;
+    text-transform: uppercase;
+    background: rgba(10,7,4,.7); color: var(--gold-dim);
+    border: 1px solid #35291a; padding: 6px 12px; cursor: pointer;
+  }
+  #settings button[aria-pressed="true"] { color: var(--gold); border-color: var(--gold-dim); }
+
+  /* ---- THE PAUSE MENU ----
+
+     OUTSIDE #hud, and that is not a layout convenience. #hud is
+     `pointer-events: none` by construction - it is a set of readouts nothing
+     clicks - and this is the one surface in the game that has to be clicked.
+     It also sits at a higher z than #settings, so the fidelity buttons in the
+     corner cannot be reached through the scrim while the game is stopped.
+
+     The visual language is the one the rest of this file already established:
+     the plate, a gilded top edge, gold labels and bone figures on a near-opaque
+     dark ground. The scrim under the sheet is deliberately heavier than any
+     plate in the game - the courtyard behind it runs to luma 190 and the panel
+     is text-dense, so it earns its own darkness rather than borrowing the
+     HUD's. Measured the way test/hud.mjs measures: every label on it clears
+     4.5 to one against the ground it stands on. */
+  #pause {
+    position: fixed; inset: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    background: radial-gradient(ellipse at center,
+      rgba(14,10,5,.90), rgba(4,3,1,.975));
+  }
+  #pause[hidden] { display: none; }
+
+  .pause-sheet {
+    width: min(720px, 94vw);
+    max-height: min(84vh, 720px);
+    display: flex; flex-direction: column;
+    /* Nothing may paint outside the sheet. Belt to the min-height braces
+       below: the plate's gold hairline is the edge of the object, and a row of
+       key bindings hanging past it is not a panel, it is a leak. */
+    overflow: hidden;
+    /* Darker than the HUD plate. This one is never over the game - it is over
+       the scrim - so there is nothing to be translucent for. */
+    background: linear-gradient(180deg, rgba(9,6,3,.985), rgba(4,3,1,.97));
+  }
+
+  .pause-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 22px 14px;
+    border-bottom: 1px solid rgba(217,178,106,.18);
+  }
+  .pause-head .ico { width: 15px; height: 15px; stroke: var(--gold); }
+  .pause-head h2 {
+    font-weight: normal;
+    font-size: 15px; letter-spacing: .38em; text-transform: uppercase;
+    color: var(--gold);
+  }
+  /* The one line that says what the state IS, rather than what the panel is
+     for. A player who opened this by alt-tabbing needs to know the game is
+     stopped before they need to know it has sliders. */
+  .pause-head .said {
+    margin-left: auto;
+    font-size: 9px; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--gold-mid);
+  }
+
+  #pause-tabs {
+    display: flex; gap: 0;
+    padding: 0 22px;
+    border-bottom: 1px solid rgba(217,178,106,.18);
+  }
+  .pause-tab {
+    font-family: inherit;
+    font-size: 10px; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--gold-mid);
+    background: none; border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 12px 16px 10px;
+    margin-bottom: -1px;
+    cursor: pointer;
+  }
+  .pause-tab:hover { color: var(--gold); }
+  .pause-tab[aria-pressed="true"] {
+    color: var(--bone);
+    border-bottom-color: var(--gold);
+  }
+
+  /* THE min-height: 0 IS NOT A TIDY-UP. It is the whole reason this scrolls.
+     A flex item defaults to min-height:auto, which refuses to shrink below its
+     content - so on the Controls tab, which is the tallest, the body kept its
+     full height, the sheet's max-height clipped nothing, and the footer was
+     laid out BELOW the sheet and off the bottom of the screen. The Resume
+     button was still "visible and enabled" to every state assertion and could
+     not be clicked: Playwright reported #pause intercepting the pointer at the
+     button's own coordinates. Found by trying to click Resume, which is the
+     only way this class of bug is ever found. See the layout check in
+     test/settings.mjs, which now measures every tab against the sheet. */
+  .pause-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 22px 4px; }
+  .pause-panel[hidden] { display: none; }
+
+  /* ---- one setting ----
+
+     Label left, VALUE RIGHT AND IN BONE, control under both, and the derived
+     consequence under that. The value is the largest thing in the row on
+     purpose: this panel exists because the owner asked for "sensitivity for
+     mouse, and FOV degrees slider", and a slider whose number you have to
+     squint at is a slider you cannot report back. */
+  .set-row { padding: 15px 0 16px; border-bottom: 1px solid rgba(217,178,106,.10); }
+  .set-row:last-child { border-bottom: 0; }
+
+  .set-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  }
+  .set-label {
+    font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .set-value {
+    font-size: 19px; letter-spacing: .06em; color: var(--bone);
+    white-space: nowrap;
+  }
+
+  .set-control { margin-top: 11px; display: flex; gap: 8px; align-items: center; }
+
+  /* The slider. Authored end to end rather than left to the platform, because
+     the platform's is a blue iOS control in the middle of a gold Egyptian
+     interface. The track is the same hairline the HUD bars are; the thumb is
+     the same rotated square the boon chips and the power-up marks are, so it
+     reads as part of the same set of objects. */
+  .set-range {
+    -webkit-appearance: none; appearance: none;
+    flex: 1; height: 22px; background: none; cursor: pointer;
+  }
+  .set-range::-webkit-slider-runnable-track {
+    height: 3px;
+    background: linear-gradient(90deg, rgba(217,178,106,.45), rgba(217,178,106,.16));
+    border: 0;
+  }
+  .set-range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 13px; height: 13px; margin-top: -5px;
+    background: var(--gold);
+    border: 1px solid #2a1d0d;
+    box-shadow: 0 0 8px rgba(217,178,106,.4);
+    transform: rotate(45deg);
+  }
+  .set-range::-moz-range-track {
+    height: 3px; background: rgba(217,178,106,.30); border: 0;
+  }
+  .set-range::-moz-range-thumb {
+    width: 12px; height: 12px; border-radius: 0;
+    background: var(--gold); border: 1px solid #2a1d0d;
+  }
+
+  .set-btn {
+    font-family: inherit;
+    font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold-mid);
+    background: rgba(18,12,6,.94);
+    border: 1px solid rgba(217,178,106,.28);
+    padding: 8px 20px; cursor: pointer;
+    min-width: 82px;
+  }
+  .set-btn:hover { color: var(--gold); border-color: rgba(217,178,106,.55); }
+  .set-btn[aria-pressed="true"] {
+    color: var(--bone);
+    border-color: rgba(217,178,106,.85);
+    background: linear-gradient(180deg, rgba(217,178,106,.16), rgba(217,178,106,.05));
+  }
+
+  /* The consequence line. --gold-mid and not --gold-dim, for the reason stated
+     at the top of this file: dim measures 3.70 to one and this is where the
+     FOV slider says what it just did to the sight picture. */
+  .set-note {
+    margin-top: 9px;
+    font-size: 10px; letter-spacing: .12em;
+    color: var(--gold-mid);
+  }
+
+  /* ---- the controls list, WHICH IS ALSO THE KEY EDITOR ----
+
+     Read the note above buildKeyBindings in src/ui/pause.js before adding
+     anything here. This tab has a measured layout budget: six extra rows once
+     pushed the key bindings off the bottom of the scrolling body and the
+     legibility pass in test/settings.mjs correctly reported the controls list at
+     1.01 to one, because it was no longer on the screen. The editor was built
+     inside that budget - the row IS the control - and the only new furniture is
+     one Reset button on a heading that already existed.
+
+     The row padding came down from 5px to 4px in the same pass, which buys back
+     more than the khopesh row and the button cost. It is a two pixel change on a
+     five pixel gap and the list reads identically; it is written down because a
+     later pass that puts it back will not know it was spending something. */
+  .bind-block { padding: 14px 0 4px; }
+  .bind-block + .bind-block { border-top: 1px solid rgba(217,178,106,.10); }
+  /* The heading line, with the Reset control on the far end of it. The button is
+     a SIBLING of .bind-group rather than a child: test/settings.mjs measures the
+     heading's own text box for legibility, and a heading with a button inside it
+     would be measured as a heading and a button at once. */
+  .bind-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  }
+  .bind-group {
+    font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .bind-reset {
+    font-family: inherit;
+    font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold-mid);
+    background: rgba(18,12,6,.94);
+    border: 1px solid rgba(217,178,106,.28);
+    padding: 3px 10px; cursor: pointer;
+    flex: none;
+  }
+  .bind-reset:hover { color: var(--gold); border-color: rgba(217,178,106,.55); }
+  .bind-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 4px 0;
+  }
+  /* A row that can be edited says so on hover rather than with a permanent
+     affordance. A column of Change buttons is the thing this tab cannot afford,
+     and a pointer over a row that lights up is the cheapest possible statement
+     that the list is a control and not a poster. */
+  .bind-row.bind-edit { cursor: pointer; }
+  .bind-row.bind-edit:hover .key-cap.key-edit,
+  .key-cap.key-edit:hover { border-color: rgba(217,178,106,.95); }
+  .bind-row.bind-edit:hover .bind-what { color: #fff; }
+  /* WAITING FOR A KEY. The caps dim while the row is armed, because what they
+     say is about to stop being true. The gold hairline that goes with this is
+     declared down in the focus block and NOT here - see the note there, it is
+     the one thing in this feature that was written, looked right, and drew
+     nothing. */
+  .bind-row.binding .key-cap { opacity: .45; }
+  .bind-keys {
+    display: flex; align-items: center; gap: 4px;
+    flex: none; min-width: 132px;
+  }
+  .bind-what {
+    font-size: 11px; letter-spacing: .1em;
+    color: var(--bone);
+  }
+
+  .pause-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 22px 16px;
+    border-top: 1px solid rgba(217,178,106,.18);
+  }
+  /* Says what does NOT survive a reload, in the place a player would find out
+     the hard way. The project constraint is no browser storage; that is a
+     documented decision and not a bug, so it is stated rather than hidden. */
+  .pause-foot .fine {
+    font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--gold-mid);
+  }
+  #pause-resume {
+    border: 1px solid var(--gold-dim);
+    background: linear-gradient(180deg, rgba(217,178,106,.14), rgba(217,178,106,.04));
+    color: var(--gold);
+    padding: 11px 32px;
+    letter-spacing: .28em; text-transform: uppercase;
+    font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #pause-resume:hover { background: rgba(217,178,106,.2); border-color: var(--gold); }
+  #pause-resume .ico { stroke: var(--gold); }
+
+  /* ---- focus ----
+
+     The panel focuses Resume when it opens so the keyboard can reach it, and
+     the default focus ring for that is Chrome's, which is a 2px SATURATED BLUE
+     rectangle. On a warm gold interface over sunlit sand it is the brightest
+     and coldest object on the screen, and it was the first thing visible in the
+     first screenshot of this menu - a defect no contrast number could have
+     reported, because it passes every one of them.
+
+     Replaced rather than removed. A focus ring is how a keyboard player knows
+     where they are, and deleting it to make a screenshot tidy would trade an
+     ugly affordance for no affordance. Gold, offset, in the same hairline the
+     plates use. */
+  #pause :focus-visible {
+    outline: 1px solid var(--gold);
+    outline-offset: 3px;
+  }
+  #pause :focus:not(:focus-visible) { outline: none; }
+
+  /* THE ARMED BINDING ROW, AND IT HAS TO BE DECLARED HERE.
+
+     A row waiting for a key wears the same gold hairline, and the rule for it
+     belongs up with the rest of the controls list - it was written there first.
+     It drew nothing. A row is armed by CLICKING it, which focuses it without
+     making it :focus-visible, so the line directly above turns the outline off
+     again: `#pause :focus:not(:focus-visible)` scores an id and two classes and
+     the plain `.bind-row.binding` scores two, and even at equal weight the later
+     rule would win. Found by cropping the screenshot and looking at the row,
+     which is the only way this class of defect is ever found - every state
+     assertion passed, the class was on the element, and the player saw nothing.
+
+     So it sits after the rule that was cancelling it, at the same weight. */
+  #pause .bind-row.binding {
+    outline: 1px solid var(--gold);
+    outline-offset: 2px;
+  }
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.185.1/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.185.1/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+<!-- Drawn marks, never glyphs from a font and never emoji. Each is the same
+     1.5px gold stroke the crosshair is, so the icon set reads as one hand.
+     Outside #hud on purpose: #hud starts hidden, and a <use> should never have
+     to depend on whether its referent's ancestor is being rendered. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- ankh: the sign for life, which is what vitality is -->
+    <symbol id="i-ankh" viewBox="0 0 12 12">
+      <ellipse cx="6" cy="3.2" rx="2.3" ry="2.6"/>
+      <path d="M6 5.8V11M3 7.4h6"/>
+    </symbol>
+    <!-- deben: the weight gold was measured against -->
+    <symbol id="i-deben" viewBox="0 0 12 12">
+      <circle cx="6" cy="6" r="4.4"/><circle cx="6" cy="6" r="1.5"/>
+    </symbol>
+    <!-- a cartridge, standing on its base -->
+    <symbol id="i-round" viewBox="0 0 12 12">
+      <path d="M4 11h4V6.2L6 1.4 4 6.2z"/><path d="M4 7.6h4"/>
+    </symbol>
+    <!-- the step ahead -->
+    <symbol id="i-step" viewBox="0 0 12 12">
+      <path d="M2 6h7M6 3l3 3-3 3"/>
+    </symbol>
+    <!-- a frag: body, neck, and the spoon running down the side.
+         The first version drew the pin ring as a dot on a diagonal off the
+         neck, which at 12px stops being a grenade and becomes the glyph for
+         Mars. Rendered and looked at, which is the only way to find that. The
+         spoon down the flank is the silhouette that survives the size. -->
+    <symbol id="i-frag" viewBox="0 0 12 12">
+      <circle cx="5.5" cy="7.7" r="3.2"/>
+      <path d="M4.1 4.8V3.3h2.8v1.5"/>
+      <path d="M7.3 3.7c1.3.5 1.8 1.5 1.8 2.7v1.5"/>
+    </symbol>
+    <!-- the pause mark: two standing stones, which is the universal sign and
+         also, at this scale and in this stroke, a doorway with its lintel
+         removed. Drawn like every other mark here and never a glyph. -->
+    <symbol id="i-pause" viewBox="0 0 12 12">
+      <path d="M4.3 1.9v8.2M7.7 1.9v8.2"/>
+    </symbol>
+    <!-- the way back in: an arrow returning through the gap between them -->
+    <symbol id="i-resume" viewBox="0 0 12 12">
+      <path d="M3.4 2.3v7.4l6-3.7z"/>
+    </symbol>
+    <!-- settings: two register rules with a bead riding on each, which is both
+         the universal sign for a slider and, in this hand, the paired lines
+         that divide one band of a wall from the next. Drawn, never a gear
+         glyph and never an emoji. -->
+    <symbol id="i-rule" viewBox="0 0 12 12">
+      <path d="M1.4 4h9.2M1.4 8.4h9.2"/>
+      <circle cx="4.2" cy="4" r="1.3"/>
+      <circle cx="8.1" cy="8.4" r="1.3"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="hud" hidden>
+  <!-- FIRST inside #hud, so every readout paints over it and stays legible
+       through the flash. See createFlash in ui/hud.js. -->
+  <div id="flash"></div>
+
+  <svg id="crosshair" viewBox="0 0 22 22" aria-hidden="true">
+    <g stroke="#d9b26a" stroke-width="1.4" stroke-linecap="round" opacity=".9">
+      <line x1="11" y1="2"  x2="11" y2="7"/>
+      <line x1="11" y1="15" x2="11" y2="20"/>
+      <line x1="2"  y1="11" x2="7"  y2="11"/>
+      <line x1="15" y1="11" x2="20" y2="11"/>
+    </g>
+    <circle cx="11" cy="11" r="1" fill="#d9b26a" opacity=".9"/>
+  </svg>
+
+  <!-- THE FUSE, at the crosshair. Hidden until a pin is out; see #cook above
+       for why it is here rather than on the ordnance plate, and why it drains
+       rather than fills. Painted by createGrenadeReadout in ui/hud.js. -->
+  <svg id="cook" viewBox="0 0 44 44" aria-hidden="true">
+    <circle class="cook-track" cx="22" cy="22" r="17"/>
+    <circle class="cook-burn" cx="22" cy="22" r="17" data-cook-burn="1"/>
+  </svg>
+
+  <!-- THE COMPASS. Top centre, which is the one band of the screen no readout
+       owns: #hud-left and #r-gold are both corner anchored and the crosshair
+       sits at the middle of the frame, well below this. Cardinal marks are
+       literal here rather than borrowed from the genre - the pyramid is aligned
+       to true north and every room in the map is cut on those axes. See
+       src/ui/compass.js. -->
+  <canvas id="compass" width="420" height="34" aria-hidden="true"></canvas>
+
+  <div id="hud-left">
+    <!-- THE MAP. A floorplan of the room graph at true scale and true bearing;
+         see src/ui/minimap.js for why that rather than an overhead slice. -->
+    <div class="plate card" id="map">
+      <div class="card-head"><span id="map-room">The Necropolis</span></div>
+      <canvas id="map-canvas" width="536" height="592"></canvas>
+      <div class="map-foot">
+        <span class="key"><i class="k-chest"></i>chest moves</span>
+        <span id="fps">--- fps</span>
+      </div>
+    </div>
+
+    <!-- THE NEXT STEP. Derived from the economy, the doors, the power system
+         and the room graph; see src/ui/objective.js. -->
+    <div class="plate card" id="objective">
+      <div class="card-head">
+        <svg class="ico"><use href="#i-step"/></svg><span>Next</span>
+      </div>
+      <!-- THE STANDING GOAL. Not a step - the reason for all of them. It sits
+           above the ladder because the ladder names what to do NEXT and this
+           names what the run is FOR, and those are different questions. See the
+           siege note in src/ui/objective.js. -->
+      <div class="obj-goal" data-obj-goal hidden></div>
+      <div class="obj-text" data-obj-text>Buy the sealed doorway</div>
+      <div class="obj-detail" data-obj-detail>1000 gold</div>
+      <div class="obj-where" data-obj-where hidden></div>
+      <div class="obj-track"><i data-obj-bar></i></div>
+    </div>
+  </div>
+
+  <div id="r-boons"></div>
+
+  <div class="readout plate" id="r-health">
+    <span class="cap"><svg class="ico"><use href="#i-ankh"/></svg>Vitality</span>
+    <span class="val" data-health>100</span>
+    <span class="track"><i data-health-bar></i></span>
+  </div>
+
+  <div class="readout plate" id="r-gold">
+    <span class="cap"><svg class="ico"><use href="#i-deben"/></svg>Gold</span>
+    <span class="val" data-gold>500</span>
+  </div>
+
+  <!-- ORDNANCE. Always up, whether or not the pouch has anything in it, with
+       the key printed on it; see #r-frag above. Painted by
+       createGrenadeReadout in ui/hud.js from systems/grenades.js. -->
+  <div class="readout plate" id="r-frag">
+    <span class="cap">
+      <svg class="ico"><use href="#i-frag"/></svg>Frag<kbd class="key-cap" data-key-cap="grenade">G</kbd>
+    </span>
+    <span class="val" data-frag>2</span>
+    <span class="pips" data-frag-pips></span>
+  </div>
+
+  <div class="readout plate" id="r-ammo">
+    <span class="cap"><svg class="ico"><use href="#i-round"/></svg><span data-weapon>MK9</span><kbd class="key-cap" data-slot>1</kbd></span>
+    <span class="val"><b data-mag>12</b><i data-reserve>96</i></span>
+    <span class="wave">
+      <span class="hint"><kbd class="key-cap" data-key-cap="reload">R</kbd>Reload</span>
+      <span>Wave<u data-wave>1</u></span>
+      <!-- DEPTH. Beside the wave on purpose: the wave is where the run is on the
+           time axis and this is where the player is on the space axis, and World
+           1's whole second half is a descent. A building whose interface never
+           mentions levels is a building the player navigates as a sprawl. See
+           BUILD 9 in docs/WORLD-1-MAP-SCOPE.md. -->
+      <span>Depth<u data-depth>0M</u></span>
+    </span>
+    <!-- THE TERMS OF THE RUN. Written once by src/ui/start.js when the run
+         begins and never again, because it cannot change while the run lasts -
+         see the lock in systems/difficulty.js. It sits under the wave counter
+         because it is the same fact at a different rate: the wave says where on
+         the curve the player is, this says which curve.
+
+         --gold-mid and not --gold-dim, for the reason stated at the top of this
+         file: dim measures 3.70 to one against the plate over sunlit sand and
+         test/hud.mjs audits every label on this HUD at 4.5. -->
+    <span class="terms"><span>Difficulty</span><u data-difficulty>Normal</u></span>
+  </div>
+
+  <!-- Once, and then never again. See #frag-hint above: one line, one boolean,
+       and it takes itself off the screen. -->
+  <div class="plate" id="frag-hint" hidden>
+    <kbd class="key-cap" data-key-cap="grenade">G</kbd>Hold to cook, release to throw
+  </div>
+
+  <div class="plate" id="boss" hidden>
+    <div id="boss-name">ANUBIS</div>
+    <div id="boss-track"><div id="boss-bar"></div></div>
+  </div>
+
+  <!-- WHAT IS BURNING RIGHT NOW. Painted by createPowerStrip in ui/hud.js from
+       systems/powerups.js; empty, and touching no DOM at all, whenever nothing
+       is running. -->
+  <div id="r-powers"></div>
+
+  <div id="gold-pops"></div>
+  <div class="plate" id="prompt"></div>
+  <div class="plate" id="notice"></div>
+  <div id="hitmarker"></div>
+</div>
+
+<!-- THE TITLE SCREEN.
+
+     The shell only. The three difficulty cartouches and the line under them are
+     built by src/ui/start.js out of the same table src/systems/difficulty.js
+     hands the wave director, for the reason ui/pause.js builds its settings
+     rows the same way: the sentence a player reads and the numbers the game
+     runs on have to be one object, or the screen can describe a tier that is
+     not being played.
+
+     #begin KEEPS ITS ID AND ITS JOB. Eleven test suites boot this game by
+     calling document.getElementById('begin').click(), so it is not a button on
+     this screen, it is the entry point to the build. -->
+<div class="veil" id="veil">
+  <div class="frieze" aria-hidden="true"></div>
+
+  <div class="cartouche">
+    <h1 class="title">Sands of the Restless</h1>
+  </div>
+  <p class="sub">The dead are getting up</p>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- THE ONE CHOICE MADE BEFORE ENTERING. Fixed for the run once #begin is
+       pressed; see the lock in systems/difficulty.js. -->
+  <div class="rite">
+    <div class="rite-head">Difficulty</div>
+    <div class="rite-row" data-tiers role="group" aria-label="Difficulty"></div>
+    <p class="rite-note" data-tier-note></p>
+  </div>
+
+  <div class="enter">
+    <button class="cta" id="begin">Enter the Necropolis</button>
+    <!-- Opens the panel that already exists rather than a copy of it. -->
+    <button class="ghost" id="open-settings" data-open-settings type="button">
+      <svg class="ico"><use href="#i-rule"/></svg>Settings
+    </button>
+  </div>
+
+  <!-- THE CONTROLS STRIP, AND IT IS EMPTY ON PURPOSE.
+
+       It used to be four lines of bold letters typed in by hand, and it was
+       wrong twice that anybody noticed: it claimed weapons 1 to 7 for as long as
+       there have been eight, and it had no entry for the khopesh at all, because
+       the blade and this screen were built by two different passes in the same
+       night and neither was the other's file. Nothing caught either one. A
+       sentence in markup has nothing to disagree with.
+
+       So it is built by src/main.js from src/core/keymap.js - the same table the
+       key handler and the CONTROLS tab read - and it is repainted whenever a
+       binding changes, including from the Settings button eight lines up. The
+       letters a player reads here are now the letters the game is running. -->
+  <div class="keys" data-keys></div>
+
+  <!-- WHAT THE TOMB REMEMBERS. Empty markup on purpose, exactly like the keys
+       strip above: the line is built by src/ui/start.js from the same save the
+       death card and the ending card write to, so it cannot claim a record the
+       game did not keep.
+
+       A player with no history sees NOTHING here. No placeholder dashes, no
+       empty labels, no zeroes - a title screen that opens by showing a
+       first-time player an empty scoreboard has told them they are behind
+       before they have pressed anything. -->
+  <div class="record" data-record hidden></div>
+
+  <!-- Assets stream in after the game is already playable, so this reports
+       progress rather than gating entry on it. -->
+  <div id="load-wrap">
+    <div id="load-track"><div id="load-bar"></div></div>
+    <div id="load-status">loading materials</div>
+  </div>
+</div>
+
+<div id="settings">
+  <span>Fidelity</span>
+  <button id="fid-high" aria-pressed="true">High</button>
+  <button id="fid-low"  aria-pressed="false">Low</button>
+</div>
+
+<!-- THE PAUSE MENU.
+
+     Outside #hud on purpose - see the #pause block in the stylesheet: #hud is
+     pointer-events:none and this is the one surface in the game that is
+     clicked. The shell only is authored here; every tab and every row is built
+     by src/ui/pause.js from one table, so the label, the range, the unit and
+     the effect of a control cannot drift apart from each other.
+
+     Starts `hidden`, and the frame loop reads pause.paused rather than this
+     attribute: an overlay is not a pause, and the thing that stops the game has
+     to be the thing that runs it. -->
+<div id="pause" hidden>
+  <div class="pause-sheet plate">
+    <!-- The heading says what the STATE is, and the panel now has two of them:
+         it is reached from the title screen as well as from a stopped game, and
+         a panel that says PAUSED before a run has begun is describing a state
+         the player is not in. Written by src/ui/pause.js from one table on
+         open(), so the two can never disagree; see HEADINGS there. -->
+    <div class="pause-head">
+      <svg class="ico"><use href="#i-pause" data-pause-mark/></svg>
+      <h2 data-pause-title>Paused</h2>
+      <span class="said" data-pause-said>The sands are still</span>
+    </div>
+
+    <nav id="pause-tabs" data-pause-tabs></nav>
+    <div class="pause-body" data-pause-body></div>
+
+    <div class="pause-foot">
+      <span class="fine">Settings last for this run</span>
+      <button id="pause-resume" data-pause-resume type="button">
+        <svg class="ico"><use href="#i-resume"/></svg>Resume
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

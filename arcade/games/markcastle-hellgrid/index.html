@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HELLGRID — a single-file FPS</title>
+<!--
+  HELLGRID
+  A complete Doom-like FPS in a single HTML page.
+  Engine: Three.js (WebGL) from CDN. Everything else — textures, enemy
+  sprites, sounds, maps — is generated procedurally at runtime, so this
+  file is the entire game. Drop it on any static host and it runs.
+
+  Controls: WASD move · mouse look · click / Space fire · Shift sprint · R restart level
+-->
+<style>
+  :root{
+    --blood:#c4271b; --ember:#ff7a18; --bone:#e8e0cf; --pit:#0b0a0c; --rust:#5a3326;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ width:100%; height:100%; overflow:hidden; background:var(--pit);
+    font-family:'Courier New', monospace; color:var(--bone); user-select:none; }
+  canvas#game{ position:absolute; inset:0; display:block; }
+
+  /* ---------- HUD ---------- */
+  #hud{ position:absolute; inset:0; pointer-events:none; display:none; }
+  #crosshair{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:18px; height:18px; }
+  #crosshair::before,#crosshair::after{ content:''; position:absolute; background:var(--bone);
+    box-shadow:0 0 4px #000; }
+  #crosshair::before{ left:8px; top:0; width:2px; height:18px; }
+  #crosshair::after{ left:0; top:8px; width:18px; height:2px; }
+
+  #hudbar{ position:absolute; left:0; right:0; bottom:0; padding:10px 22px 14px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    background:linear-gradient(transparent, rgba(0,0,0,.75)); text-shadow:2px 2px 0 #000; }
+  .stat{ line-height:1; }
+  .stat .label{ font-size:11px; letter-spacing:3px; color:#9b8f78; }
+  .stat .value{ font-size:42px; font-weight:bold; font-family:Impact,'Arial Black',sans-serif;
+    letter-spacing:1px; }
+  #hp .value{ color:var(--blood); } #hp.low .value{ animation:pulse .5s infinite alternate; }
+  #ammo .value{ color:var(--ember); }
+  #mid{ text-align:center; font-size:13px; letter-spacing:2px; color:#9b8f78; }
+  @keyframes pulse{ from{opacity:1} to{opacity:.35} }
+
+  #healthbar{ width:160px; height:8px; background:#2a1512; border:1px solid #000; margin-top:6px; }
+  #healthfill{ height:100%; width:100%; background:linear-gradient(90deg,#7a1410,var(--blood)); }
+
+  #msg{ position:absolute; top:18%; left:0; right:0; text-align:center;
+    font-family:Impact,'Arial Black',sans-serif; font-size:26px; letter-spacing:4px;
+    color:var(--ember); text-shadow:3px 3px 0 #000; opacity:0; transition:opacity .4s; }
+
+  #minimap{ position:absolute; top:14px; right:14px; border:2px solid #000;
+    background:rgba(0,0,0,.55); image-rendering:pixelated; }
+
+  #damage{ position:absolute; inset:0; pointer-events:none; opacity:0;
+    background:radial-gradient(ellipse at center, transparent 40%, rgba(170,10,5,.85) 100%); }
+  #flash{ position:absolute; inset:0; pointer-events:none; opacity:0;
+    background:radial-gradient(ellipse at 50% 80%, rgba(255,200,80,.45), transparent 60%); }
+
+  /* ---------- weapon viewmodel ---------- */
+  #gun{ position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    width:340px; pointer-events:none; image-rendering:pixelated; transition:none; }
+
+  /* ---------- screens ---------- */
+  .screen{ position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:18px; text-align:center;
+    background:radial-gradient(ellipse at 50% 120%, #2a0c08 0%, var(--pit) 65%); z-index:10; }
+  .screen h1{ font-family:Impact,'Arial Black',sans-serif; font-size:clamp(54px,11vw,110px);
+    letter-spacing:8px; color:var(--blood);
+    text-shadow:0 0 30px rgba(196,39,27,.5), 4px 4px 0 #000; }
+  .screen h1 span{ color:var(--ember); }
+  .screen p{ max-width:520px; color:#9b8f78; font-size:14px; line-height:1.7; letter-spacing:1px; }
+  .screen .keys{ font-size:12px; color:#6f6452; letter-spacing:2px; }
+  .btn{ pointer-events:auto; cursor:pointer; border:2px solid var(--blood); background:transparent;
+    color:var(--bone); font-family:Impact,'Arial Black',sans-serif; font-size:22px;
+    letter-spacing:4px; padding:12px 44px; text-shadow:2px 2px 0 #000; }
+  .btn:hover{ background:var(--blood); color:#fff; box-shadow:0 0 24px rgba(196,39,27,.6); }
+  .hidden{ display:none !important; }
+  #stats{ font-size:13px; color:var(--ember); letter-spacing:2px; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div id="crosshair"></div>
+  <canvas id="gun" width="480" height="400"></canvas>
+  <canvas id="minimap" width="152" height="152"></canvas>
+  <div id="msg"></div>
+  <div id="damage"></div>
+  <div id="flash"></div>
+  <div id="hudbar">
+    <div class="stat" id="hp">
+      <div class="label">VITALS</div><div class="value">100</div>
+      <div id="healthbar"><div id="healthfill"></div></div>
+    </div>
+    <div id="mid"><span id="levelname"></span><br><span id="enemiesleft"></span></div>
+    <div class="stat" id="ammo"><div class="label">SHELLS</div><div class="value">24</div></div>
+  </div>
+</div>
+
+<div class="screen" id="menu">
+  <h1>HELL<span>GRID</span></h1>
+  <p>The facility's reactor tore a hole somewhere it shouldn't have. Three sectors stand between
+     you and the surface. Clear each one and the rift gate opens.</p>
+  <button class="btn" id="startbtn">ENTER SECTOR 1</button>
+  <p class="keys">WASD MOVE &nbsp;·&nbsp; MOUSE LOOK &nbsp;·&nbsp; CLICK FIRE &nbsp;·&nbsp; SHIFT SPRINT &nbsp;·&nbsp; R RESTART</p>
+</div>
+
+<div class="screen hidden" id="paused">
+  <h1>PAUSED</h1>
+  <button class="btn" id="resumebtn">RESUME</button>
+</div>
+
+<div class="screen hidden" id="dead">
+  <h1>YOU <span>DIED</span></h1>
+  <p id="deathline"></p>
+  <button class="btn" id="retrybtn">TRY AGAIN</button>
+</div>
+
+<div class="screen hidden" id="victory">
+  <h1>RIFT <span>SEALED</span></h1>
+  <p>You walk out of sector three into daylight. Behind you the gate collapses into nothing.
+     Somewhere below, the reactor hums on as if none of it happened.</p>
+  <div id="stats"></div>
+  <button class="btn" id="againbtn">PLAY AGAIN</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+/* ================================================================
+   HELLGRID — game source
+   Sections: maps · textures · audio · world build · player ·
+   enemies · projectiles · combat · HUD · minimap · loop · states
+   ================================================================ */
+
+// ---------------- constants ----------------
+const TILE = 4;                 // world units per map cell
+const WALL_H = 4;
+const EYE = 1.7;
+const PLAYER_R = 0.55;
+const MOVE_SPEED = 6.2, SPRINT_MULT = 1.55;
+const SHOT_PELLETS = 7, PELLET_DMG = 11, SHOT_SPREAD = 0.055, FIRE_COOLDOWN = 0.55;
+const MAX_HP = 100;
+
+// ---------------- maps ----------------
+// '#' wall · '.' floor · 'P' start · 'i' imp · 'g' gunner
+// 'h' medkit · 'a' shells · 'E' exit gate
+const LEVELS = [
+{ name:'SECTOR 1 — INTAKE', map:[
+'################',
+'#P....#....h#..#',
+'#.....#.###.#i.#',
+'#.##..#.#a#..#.#',
+'#.#..i..#.#..#.#',
+'#.#.###.#.#i.#.#',
+'#.#...#.#.#..#.#',
+'#.##..#.#.#.##.#',
+'#..h..#i..#.a..#',
+'#.###...#.###..#',
+'#...#.i.#....hE#',
+'################',
+]},
+{ name:'SECTOR 2 — COOLANT MAZE', map:[
+'#####################',
+'#P......#.i.#E..#i..#',
+'#.#.#...#...#.#.#.#.#',
+'#.#h......#.#...h.#.#',
+'#.####i####.###.###.#',
+'#.#.....a.#...#.#g..#',
+'#.#.#..##.#...###.#.#',
+'#i.........a..#...#.#',
+'#.#...#.......#.###.#',
+'#.#.........#...#i..#',
+'###.###.#.###.#.#####',
+'#...#.g.#..h..#a....#',
+'#..########.#######.#',
+'#...........g.......#',
+'#####################',
+]},
+{ name:'SECTOR 3 — THE RIFT', map:[
+'#######################',
+'#P#...#...g......a#...#',
+'#...#.####........#...#',
+'#...#...g.....h.#.#.#.#',
+'###.#####.#....#......#',
+'#.....#...#.h..g......#',
+'#.#.#.#g#.#........h..#',
+'#.#...#..a..#.#.......#',
+'#...###.#.#.#i#...i.#.#',
+'#.#....i#.g.........#.#',
+'#.###.#.#.#.#.#.i...###',
+'#...#...#..a#.#...#...#',
+'###.###########.#.#.#.#',
+'#.#....i..#.i...#.#...#',
+'#.##.####.#.#####.#.#h#',
+'#.....i.....#E......#.#',
+'#######################',
+]},
+];
+// normalise: pad short rows so every map is rectangular
+for (const L of LEVELS) {
+  const w = Math.max(...L.map.map(r => r.length));
+  L.map = L.map.map(r => r.padEnd(w, '#'));
+}
+
+// ---------------- procedural textures ----------------
+function makeCanvas(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h); return c;
+}
+function tex(canvas, repeatX = 1, repeatY = 1) {
+  const t = new THREE.CanvasTexture(canvas);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeatX, repeatY);
+  return t;
+}
+function noiseRect(g, x, y, w, h, base, vary, n) {
+  for (let i = 0; i < n; i++) {
+    const v = base + (Math.random() - 0.5) * vary;
+    g.fillStyle = `rgb(${v|0},${(v*0.86)|0},${(v*0.8)|0})`;
+    g.fillRect(x + Math.random()*w, y + Math.random()*h, 2, 2);
+  }
+}
+const wallCanvas = makeCanvas(128, 128, (g) => {
+  g.fillStyle = '#3a3236'; g.fillRect(0,0,128,128);
+  noiseRect(g, 0,0,128,128, 60, 40, 900);
+  // tech panel lines
+  g.strokeStyle = '#1c171a'; g.lineWidth = 3;
+  g.strokeRect(6,6,116,116); g.strokeRect(6,6,116,58);
+  g.fillStyle = '#1c171a';
+  [20,108].forEach(x => [20,44,84,108].forEach(y => { g.beginPath(); g.arc(x,y,3,0,7); g.fill(); }));
+  // rust streaks
+  g.globalAlpha = 0.25; g.fillStyle = '#7a3b1e';
+  for (let i=0;i<10;i++){ const x=Math.random()*128; g.fillRect(x, Math.random()*40, 3, 30+Math.random()*60); }
+  g.globalAlpha = 1;
+  // hazard stripe at base
+  for (let x=0;x<128;x+=16){ g.fillStyle = (x/16)%2 ? '#8a6a12' : '#1a1416'; g.fillRect(x,118,16,10); }
+});
+const floorCanvas = makeCanvas(128, 128, (g) => {
+  g.fillStyle = '#221d20'; g.fillRect(0,0,128,128);
+  noiseRect(g, 0,0,128,128, 40, 30, 700);
+  g.strokeStyle = '#121013'; g.lineWidth = 2;
+  for (let i=0;i<=128;i+=32){ g.beginPath(); g.moveTo(i,0); g.lineTo(i,128); g.stroke();
+    g.beginPath(); g.moveTo(0,i); g.lineTo(128,i); g.stroke(); }
+  g.globalAlpha = .18; g.fillStyle = '#6b1410';
+  for (let i=0;i<6;i++){ g.beginPath(); g.arc(Math.random()*128, Math.random()*128, 6+Math.random()*10, 0, 7); g.fill(); }
+});
+const ceilCanvas = makeCanvas(128, 128, (g) => {
+  g.fillStyle = '#16131a'; g.fillRect(0,0,128,128);
+  noiseRect(g, 0,0,128,128, 28, 22, 500);
+  g.fillStyle = '#0c0a10';
+  for (let x=8;x<128;x+=32) for (let y=8;y<128;y+=32) g.fillRect(x,y,18,18);
+});
+
+// enemy sprites — chunky pixel demons, drawn once per type (+ hurt + dead variants)
+function drawImp(g, w, h, flash) {
+  const px = (x,y,s,c)=>{ g.fillStyle=c; g.fillRect(x,y,s,s); };
+  g.clearRect(0,0,w,h);
+  const body = flash ? '#ffffff' : '#a32417', dark = flash ? '#dddddd' : '#5e0f08',
+        belly = flash ? '#ffffff' : '#d8704a';
+  // legs
+  px(40,150,18,dark); px(70,150,18,dark);
+  // torso
+  g.fillStyle = body; g.beginPath(); g.ellipse(64,104,34,42,0,0,7); g.fill();
+  g.fillStyle = belly; g.beginPath(); g.ellipse(64,116,18,24,0,0,7); g.fill();
+  // arms with claws
+  g.fillStyle = body; g.fillRect(22,86,16,40); g.fillRect(90,86,16,40);
+  g.fillStyle = '#e8e0cf';
+  [24,30,36].forEach(x=>{ g.beginPath(); g.moveTo(x,126); g.lineTo(x+4,138); g.lineTo(x+8,126); g.fill(); });
+  [92,98,104].forEach(x=>{ g.beginPath(); g.moveTo(x,126); g.lineTo(x+4,138); g.lineTo(x+8,126); g.fill(); });
+  // head + horns
+  g.fillStyle = body; g.beginPath(); g.ellipse(64,52,26,24,0,0,7); g.fill();
+  g.fillStyle = dark;
+  g.beginPath(); g.moveTo(40,40); g.lineTo(26,16); g.lineTo(48,32); g.fill();
+  g.beginPath(); g.moveTo(88,40); g.lineTo(102,16); g.lineTo(80,32); g.fill();
+  // eyes + mouth
+  g.fillStyle = flash ? '#000' : '#ffd24a';
+  g.fillRect(50,46,9,7); g.fillRect(69,46,9,7);
+  g.fillStyle = '#1a0503'; g.fillRect(52,64,24,6);
+  g.fillStyle = '#e8e0cf'; g.fillRect(54,64,4,5); g.fillRect(70,64,4,5);
+}
+function drawGunner(g, w, h, flash) {
+  g.clearRect(0,0,w,h);
+  const armor = flash ? '#ffffff' : '#4a5a46', dark = flash ? '#dddddd' : '#26301f',
+        skin = flash ? '#ffffff' : '#b08868';
+  // legs
+  g.fillStyle = dark; g.fillRect(42,140,16,30); g.fillRect(70,140,16,30);
+  // torso armour
+  g.fillStyle = armor; g.fillRect(34,84,60,60);
+  g.fillStyle = dark; g.fillRect(34,84,60,12); g.fillRect(58,84,12,60);
+  // head with visor
+  g.fillStyle = skin; g.fillRect(48,48,32,32);
+  g.fillStyle = '#0e0c10'; g.fillRect(46,56,36,12);
+  g.fillStyle = flash ? '#000' : '#ff3b2a'; g.fillRect(52,59,8,6); g.fillRect(68,59,8,6);
+  // shoulder pads
+  g.fillStyle = dark; g.fillRect(26,84,12,20); g.fillRect(90,84,12,20);
+  // rifle held across
+  g.fillStyle = '#15131a'; g.fillRect(20,108,88,10);
+  g.fillStyle = '#3a3640'; g.fillRect(96,104,18,18); g.fillRect(28,118,12,14);
+  g.fillStyle = flash ? '#000' : '#ff7a18'; g.fillRect(16,110,6,6); // muzzle glow
+}
+function drawCorpse(g, w, h, color) {
+  g.clearRect(0,0,w,h);
+  g.fillStyle = color; g.beginPath(); g.ellipse(64,150,44,14,0,0,7); g.fill();
+  g.fillStyle = 'rgba(20,4,3,.8)'; g.beginPath(); g.ellipse(64,154,52,10,0,0,7); g.fill();
+  g.fillStyle = color; g.beginPath(); g.ellipse(40,144,12,8,0,0,7); g.fill();
+}
+function spriteSet(drawFn, corpseColor) {
+  const norm  = makeCanvas(128,176,(g,w,h)=>drawFn(g,w,h,false));
+  const hurt  = makeCanvas(128,176,(g,w,h)=>drawFn(g,w,h,true));
+  const dead  = makeCanvas(128,176,(g,w,h)=>drawCorpse(g,w,h,corpseColor));
+  return { norm:tex(norm), hurt:tex(hurt), dead:tex(dead) };
+}
+const IMP_TEX = spriteSet(drawImp, '#7e1810');
+const GUN_TEX = spriteSet(drawGunner, '#39452f');
+
+// pickup sprites
+const HEALTH_TEX = tex(makeCanvas(64,64,(g)=>{
+  g.fillStyle='#dcd6c6'; g.fillRect(8,8,48,48);
+  g.fillStyle='#9c958a'; g.fillRect(8,8,48,8);
+  g.fillStyle='#c4271b'; g.fillRect(26,18,12,34); g.fillRect(15,29,34,12);
+}));
+const AMMO_TEX = tex(makeCanvas(64,64,(g)=>{
+  g.fillStyle='#3a4a2c'; g.fillRect(6,22,52,34);
+  g.fillStyle='#222d18'; g.fillRect(6,22,52,8);
+  g.fillStyle='#ff7a18';
+  for(let i=0;i<4;i++){ g.fillRect(12+i*12,8,8,18); g.fillStyle='#c9560f'; }
+  g.fillStyle='#dcd6c6'; g.font='bold 14px monospace'; g.fillText('SHELLS',7,46);
+}));
+
+// weapon viewmodel — pump shotgun seen from behind, drawn onto the #gun canvas.
+// Perspective comes from the taper: wide near the viewer, narrow at the muzzle.
+const gunCanvas = document.getElementById('gun');
+const gunCtx = gunCanvas.getContext('2d');
+function roundRect(g, x, y, w, h, r) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+function drawGun(recoil, flash) {
+  const g = gunCtx, W = gunCanvas.width, H = gunCanvas.height, cx = W / 2;
+  g.clearRect(0, 0, W, H);
+  g.save();
+  g.translate(0, recoil * 30);                       // kick straight back/down
+  const pump = recoil > 0 ? Math.sin((1 - recoil) * Math.PI) * 16 : 0;  // cycle after the shot
+
+  // stock — wood angling down to the unseen shoulder
+  let grad = g.createLinearGradient(cx, 300, cx + 150, 400);
+  grad.addColorStop(0, '#5a3018'); grad.addColorStop(1, '#371c0e');
+  g.fillStyle = grad;
+  g.beginPath();
+  g.moveTo(cx + 14, 312); g.lineTo(cx + 96, 400); g.lineTo(cx + 170, 400);
+  g.lineTo(cx + 42, 296); g.closePath(); g.fill();
+
+  // under-barrel magazine tube (peeks out either side below the barrel)
+  grad = g.createLinearGradient(cx - 30, 0, cx + 30, 0);
+  grad.addColorStop(0, '#101218'); grad.addColorStop(0.5, '#3a4150'); grad.addColorStop(1, '#101218');
+  g.fillStyle = grad;
+  g.beginPath();
+  g.moveTo(cx - 11, 96); g.lineTo(cx + 11, 96);
+  g.lineTo(cx + 30, 256); g.lineTo(cx - 30, 256); g.closePath(); g.fill();
+
+  // barrel — tapers toward the muzzle, bright sheen down the spine
+  grad = g.createLinearGradient(cx - 34, 0, cx + 34, 0);
+  grad.addColorStop(0, '#181b21'); grad.addColorStop(0.35, '#535c6e');
+  grad.addColorStop(0.5, '#97a0b4'); grad.addColorStop(0.65, '#535c6e');
+  grad.addColorStop(1, '#181b21');
+  g.fillStyle = grad;
+  g.beginPath();
+  g.moveTo(cx - 17, 70); g.lineTo(cx + 17, 70);
+  g.lineTo(cx + 30, 232); g.lineTo(cx - 30, 232); g.closePath(); g.fill();
+
+  // muzzle: steel rim, dark bore, brass sight bead on top
+  g.fillStyle = '#79829a'; g.beginPath(); g.ellipse(cx, 70, 17, 7, 0, 0, 7); g.fill();
+  g.fillStyle = '#06070a'; g.beginPath(); g.ellipse(cx, 70, 11, 4.4, 0, 0, 7); g.fill();
+  g.fillStyle = '#caa64a'; g.fillRect(cx - 3, 58, 6, 8);
+  g.fillStyle = '#e8dca0'; g.fillRect(cx - 3, 58, 6, 3);
+
+  // pump / forend — ribbed wood, slides back during the cycle, hand wrapped over it
+  g.save(); g.translate(0, pump);
+  grad = g.createLinearGradient(cx - 50, 0, cx + 50, 0);
+  grad.addColorStop(0, '#3a1f12'); grad.addColorStop(0.5, '#7d4827'); grad.addColorStop(1, '#3a1f12');
+  g.fillStyle = grad;
+  roundRect(g, cx - 50, 192, 100, 66, 14); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.35)';
+  for (let y = 204; y <= 246; y += 10) g.fillRect(cx - 45, y, 90, 3);
+  // support hand: palm on the left, four fingers curling over the top
+  g.fillStyle = '#b08868';
+  roundRect(g, cx - 74, 204, 44, 52, 18); g.fill();
+  for (let i = 0; i < 4; i++) {
+    roundRect(g, cx - 52 + i * 17, 188, 14, 30, 7); g.fill();
+  }
+  g.fillStyle = 'rgba(0,0,0,.18)';
+  for (let i = 0; i < 4; i++) g.fillRect(cx - 52 + i * 17, 206, 14, 3); // knuckle creases
+  g.restore();
+
+  // receiver — machined steel block with ejection port and loading detail
+  grad = g.createLinearGradient(cx - 42, 0, cx + 42, 0);
+  grad.addColorStop(0, '#14161b'); grad.addColorStop(0.5, '#41485a'); grad.addColorStop(1, '#14161b');
+  g.fillStyle = grad;
+  roundRect(g, cx - 40, 254, 80, 84, 10); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(cx - 36, 258, 72, 4); // top catchlight
+  g.fillStyle = '#0a0c10'; roundRect(g, cx + 10, 272, 24, 34, 4); g.fill(); // ejection port
+  g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(cx + 12, 274, 20, 3);
+  g.fillStyle = '#0a0c10'; g.fillRect(cx - 30, 318, 22, 6); // loading gate slit
+
+  // trigger hand: thumb hooked over the small of the stock, bottom right
+  g.fillStyle = '#b08868';
+  roundRect(g, cx + 14, 322, 54, 70, 22); g.fill();
+  roundRect(g, cx - 2, 310, 34, 22, 10); g.fill(); // thumb over the small of the stock
+  g.fillStyle = 'rgba(0,0,0,.15)'; g.fillRect(cx + 22, 346, 38, 4);
+
+  // muzzle flash — radial bloom plus a four-point star, drawn over everything
+  if (flash) {
+    const fy = 62;
+    grad = g.createRadialGradient(cx, fy, 4, cx, fy, 78);
+    grad.addColorStop(0, 'rgba(255,246,200,.95)');
+    grad.addColorStop(0.35, 'rgba(255,160,40,.85)');
+    grad.addColorStop(1, 'rgba(255,80,0,0)');
+    g.fillStyle = grad;
+    g.beginPath(); g.arc(cx, fy, 78, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,240,190,.9)';
+    for (let a = 0; a < 4; a++) {
+      g.save(); g.translate(cx, fy); g.rotate(a * Math.PI / 2 + 0.4);
+      g.beginPath(); g.moveTo(0, -64); g.lineTo(7, 0); g.lineTo(-7, 0); g.fill();
+      g.restore();
+    }
+  }
+  g.restore();
+}
+drawGun(0, false);
+
+// ---------------- audio (procedural, WebAudio) ----------------
+const AudioFX = (() => {
+  let ctx = null, master = null;
+  function ensure() {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      master = ctx.createGain(); master.gain.value = 0.5; master.connect(ctx.destination);
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+  }
+  function env(node, t0, a, peak, d) {
+    node.gain.setValueAtTime(0.0001, t0);
+    node.gain.linearRampToValueAtTime(peak, t0 + a);
+    node.gain.exponentialRampToValueAtTime(0.0001, t0 + a + d);
+  }
+  function noiseBuf(dur) {
+    const b = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return b;
+  }
+  function noise(dur, peak, filterFreq, type='lowpass') {
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf(dur);
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = filterFreq;
+    const g = ctx.createGain(); env(g, ctx.currentTime, 0.005, peak, dur);
+    src.connect(f).connect(g).connect(master); src.start();
+  }
+  function toneSweep(type, f0, f1, dur, peak) {
+    const o = ctx.createOscillator(); o.type = type;
+    o.frequency.setValueAtTime(f0, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), ctx.currentTime + dur);
+    const g = ctx.createGain(); env(g, ctx.currentTime, 0.005, peak, dur);
+    o.connect(g).connect(master); o.start(); o.stop(ctx.currentTime + dur + 0.05);
+  }
+  return {
+    unlock(){ ensure(); },
+    shoot(){ ensure(); noise(0.28, 0.9, 1400); toneSweep('square', 140, 40, 0.22, 0.5); },
+    empty(){ ensure(); toneSweep('square', 900, 700, 0.06, 0.15); },
+    enemyHit(){ ensure(); noise(0.1, 0.45, 2400, 'bandpass'); },
+    enemyDie(){ ensure(); toneSweep('sawtooth', 220, 30, 0.5, 0.4); noise(0.3, 0.4, 900); },
+    impAttack(){ ensure(); toneSweep('sawtooth', 90, 50, 0.18, 0.45); },
+    gunnerFire(){ ensure(); toneSweep('square', 520, 120, 0.16, 0.3); },
+    hurt(){ ensure(); toneSweep('sine', 130, 55, 0.3, 0.6); noise(0.15, 0.3, 600); },
+    pickup(){ ensure(); toneSweep('square', 520, 880, 0.12, 0.25);
+      setTimeout(()=>toneSweep('square', 700, 1100, 0.12, 0.22), 90); },
+    portal(){ ensure(); toneSweep('sine', 180, 720, 0.9, 0.3); toneSweep('sine', 90, 360, 0.9, 0.2); },
+    exitHum(){ ensure(); toneSweep('triangle', 60, 64, 0.6, 0.12); },
+    step(){ ensure(); noise(0.05, 0.07, 500); },
+  };
+})();
+
+// ---------------- renderer / scene ----------------
+const canvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 200);
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ---------------- game state ----------------
+const G = {
+  state: 'menu',          // menu | playing | paused | dead | victory
+  level: 0,
+  scene: null,
+  grid: null, gw: 0, gh: 0,
+  player: { x:0, z:0, yaw:0, pitch:0, hp:MAX_HP, ammo:24, vy:0, bob:0, cooldown:0 },
+  enemies: [], pickups: [], projectiles: [],
+  exit: null, exitOpen: false,
+  kills: 0, totalKills: 0, shotsFired: 0,
+  msgTimer: 0,
+  time: 0,
+  flicker: null,
+};
+
+function cellAt(x, z) {
+  const cx = Math.floor(x / TILE), cz = Math.floor(z / TILE);
+  if (cz < 0 || cz >= G.gh || cx < 0 || cx >= G.gw) return '#';
+  return G.grid[cz][cx];
+}
+function isWall(x, z) { return cellAt(x, z) === '#'; }
+
+// circle-vs-grid collision: resolve each axis separately for wall sliding
+function moveWithCollision(pos, dx, dz, radius) {
+  pos.x += dx;
+  if (collides(pos.x, pos.z, radius)) pos.x -= dx;
+  pos.z += dz;
+  if (collides(pos.x, pos.z, radius)) pos.z -= dz;
+}
+function collides(x, z, r) {
+  const minX = Math.floor((x - r) / TILE), maxX = Math.floor((x + r) / TILE);
+  const minZ = Math.floor((z - r) / TILE), maxZ = Math.floor((z + r) / TILE);
+  for (let cz = minZ; cz <= maxZ; cz++) for (let cx = minX; cx <= maxX; cx++) {
+    const solid = cz < 0 || cz >= G.gh || cx < 0 || cx >= G.gw ||
+                  G.grid[cz][cx] === '#' ||
+                  (G.grid[cz][cx] === 'E' && !G.exitOpen);   // gate is solid until clear
+    if (solid) {
+      // AABB of this tile vs circle
+      const nx = Math.max(cx * TILE, Math.min(x, (cx + 1) * TILE));
+      const nz = Math.max(cz * TILE, Math.min(z, (cz + 1) * TILE));
+      if ((nx - x) ** 2 + (nz - z) ** 2 < r * r) return true;
+    }
+  }
+  return false;
+}
+// line-of-sight: sample along the segment, fail on any wall tile
+function hasLOS(x0, z0, x1, z1) {
+  const dx = x1 - x0, dz = z1 - z0;
+  const dist = Math.hypot(dx, dz);
+  const steps = Math.ceil(dist / 0.5);
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    if (isWall(x0 + dx * t, z0 + dz * t)) return false;
+  }
+  return true;
+}
+// distance along a ray (dir normalised in xz) until it hits a wall
+function wallDistance(x0, z0, dirX, dirZ, maxDist) {
+  const step = 0.2;
+  for (let d = step; d < maxDist; d += step) {
+    if (isWall(x0 + dirX * d, z0 + dirZ * d)) return d;
+  }
+  return maxDist;
+}
+
+// ---------------- world building ----------------
+function buildLevel(idx) {
+  const L = LEVELS[idx];
+  G.grid = L.map; G.gh = L.map.length; G.gw = L.map[0].length;
+  G.enemies = []; G.pickups = []; G.projectiles = [];
+  G.exitOpen = false; G.kills = 0;
+  G.player.hp = Math.max(G.player.hp, 60);   // mercy top-up between sectors
+  G.player.cooldown = 0;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b0a0c);
+  scene.fog = new THREE.Fog(0x0b0a0c, 6, 46);
+  G.scene = scene;
+
+  // lighting: dim ambient + warm player torch + slow red flicker
+  scene.add(new THREE.AmbientLight(0x404048, 0.9));
+  const torch = new THREE.PointLight(0xffb070, 1.1, 26, 1.6);
+  scene.add(torch); G.torch = torch;
+  const flicker = new THREE.PointLight(0xc4271b, 0.0, 60, 2);
+  flicker.position.set(G.gw * TILE / 2, WALL_H, G.gh * TILE / 2);
+  scene.add(flicker); G.flicker = flicker;
+
+  // floor + ceiling
+  const floorMat = new THREE.MeshLambertMaterial({ map: tex(floorCanvas, G.gw, G.gh) });
+  const ceilMat  = new THREE.MeshLambertMaterial({ map: tex(ceilCanvas, G.gw, G.gh) });
+  const planeGeo = new THREE.PlaneGeometry(G.gw * TILE, G.gh * TILE);
+  const floor = new THREE.Mesh(planeGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(G.gw * TILE / 2, 0, G.gh * TILE / 2);
+  scene.add(floor);
+  const ceil = new THREE.Mesh(planeGeo, ceilMat);
+  ceil.rotation.x = Math.PI / 2;
+  ceil.position.set(G.gw * TILE / 2, WALL_H, G.gh * TILE / 2);
+  scene.add(ceil);
+
+  // walls — one box per wall tile that borders open space
+  const wallMat = new THREE.MeshLambertMaterial({ map: tex(wallCanvas) });
+  const wallGeo = new THREE.BoxGeometry(TILE, WALL_H, TILE);
+  for (let z = 0; z < G.gh; z++) for (let x = 0; x < G.gw; x++) {
+    if (G.grid[z][x] !== '#') continue;
+    const open = [[1,0],[-1,0],[0,1],[0,-1]].some(([ox,oz]) => {
+      const nx = x+ox, nz = z+oz;
+      return nx>=0 && nx<G.gw && nz>=0 && nz<G.gh && G.grid[nz][nx] !== '#';
+    });
+    if (!open) continue;
+    const m = new THREE.Mesh(wallGeo, wallMat);
+    m.position.set(x * TILE + TILE/2, WALL_H/2, z * TILE + TILE/2);
+    scene.add(m);
+  }
+
+  // entities from the map
+  for (let z = 0; z < G.gh; z++) for (let x = 0; x < G.gw; x++) {
+    const ch = G.grid[z][x];
+    const wx = x * TILE + TILE/2, wz = z * TILE + TILE/2;
+    if (ch === 'P') {
+      G.player.x = wx; G.player.z = wz; G.player.pitch = 0;
+      // face the first open neighbouring tile so we never spawn staring at a wall
+      // forward vector is (-sin yaw, -cos yaw): +X → -π/2 · +Z → π · -X → π/2 · -Z → 0
+      G.player.yaw = 0;
+      const facings = [[1,0,-Math.PI/2],[0,1,Math.PI],[-1,0,Math.PI/2],[0,-1,0]];
+      for (const [ox, oz, yaw] of facings) {
+        const row = G.grid[z + oz];
+        if (row && row[x + ox] && row[x + ox] !== '#') { G.player.yaw = yaw; break; }
+      }
+    }
+    else if (ch === 'i') spawnEnemy('imp', wx, wz);
+    else if (ch === 'g') spawnEnemy('gunner', wx, wz);
+    else if (ch === 'h') spawnPickup('health', wx, wz);
+    else if (ch === 'a') spawnPickup('ammo', wx, wz);
+    else if (ch === 'E') spawnExit(wx, wz);
+  }
+
+  document.getElementById('levelname').textContent = L.name;
+  updateHUD();
+  showMsg(L.name, 2.4);
+}
+
+const ENEMY_DEFS = {
+  imp:    { hp: 55, speed: 4.0, dmg: 12, range: 1.9, cooldown: 1.0, score: 1,
+            texs: IMP_TEX, w: 2.0, h: 2.75, melee: true },
+  gunner: { hp: 85, speed: 2.4, dmg: 10, range: 18,  cooldown: 1.9, score: 1,
+            texs: GUN_TEX, w: 2.0, h: 2.75, melee: false },
+};
+function spawnEnemy(type, x, z) {
+  const def = ENEMY_DEFS[type];
+  const mat = new THREE.SpriteMaterial({ map: def.texs.norm });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(def.w, def.h, 1);
+  sprite.position.set(x, def.h / 2, z);
+  G.scene.add(sprite);
+  G.enemies.push({
+    type, def, sprite, mat, x, z, hp: def.hp,
+    alerted: false, attackCd: Math.random() * 0.6, hurtTimer: 0,
+    wobble: Math.random() * Math.PI * 2,
+  });
+}
+function spawnPickup(kind, x, z) {
+  const mat = new THREE.SpriteMaterial({ map: kind === 'health' ? HEALTH_TEX : AMMO_TEX });
+  const s = new THREE.Sprite(mat);
+  s.scale.set(0.9, 0.9, 1); s.position.set(x, 0.6, z);
+  G.scene.add(s);
+  G.pickups.push({ kind, x, z, sprite: s, t: Math.random() * 6 });
+}
+function spawnExit(x, z) {
+  const group = new THREE.Group();
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x2a2228 });
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(3.4, WALL_H, 3.4), frameMat);
+  frame.position.y = WALL_H / 2;
+  const coreMat = new THREE.MeshBasicMaterial({ color: 0x550f0a });
+  const core = new THREE.Mesh(new THREE.BoxGeometry(2.6, WALL_H - 0.8, 2.6), coreMat);
+  core.position.y = WALL_H / 2;
+  group.add(frame, core);
+  group.position.set(x, 0, z);
+  G.scene.add(group);
+  G.exit = { x, z, group, coreMat };
+}
+
+// ---------------- input ----------------
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'KeyR' && (G.state === 'playing' || G.state === 'dead')) restartLevel();
+  if (e.code === 'Space') { e.preventDefault(); if (G.state === 'playing') tryShoot(); }
+});
+window.addEventListener('keyup', e => keys[e.code] = false);
+window.addEventListener('contextmenu', e => e.preventDefault());
+
+document.addEventListener('mousemove', e => {
+  if (G.state !== 'playing') return;
+  // movementX/Y deltas work with OR without pointer lock, so look still
+  // functions in environments that deny pointer lock (e.g. sandboxed iframes)
+  G.player.yaw -= e.movementX * 0.0023;
+  G.player.pitch -= e.movementY * 0.0023;
+  G.player.pitch = Math.max(-1.25, Math.min(1.25, G.player.pitch));
+});
+canvas.addEventListener('mousedown', () => {
+  if (G.state !== 'playing') return;
+  if (document.pointerLockElement !== canvas) requestLock();  // re-grab if we can
+  tryShoot();
+});
+let hadLock = false;
+function requestLock() {
+  try {
+    const p = canvas.requestPointerLock();
+    if (p && p.catch) p.catch(() => {});   // denied — fallback look already covers us
+  } catch (err) { /* pointer lock unavailable; fallback look covers us */ }
+}
+document.addEventListener('pointerlockerror', () => {
+  showMsg('MOUSE NOT CAPTURED — LOOK STILL WORKS', 2.5);
+});
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === canvas) { hadLock = true; return; }
+  // only auto-pause when a lock we actually held is released (Esc)
+  if (hadLock && G.state === 'playing') setState('paused');
+  hadLock = false;
+});
+// Esc can't be intercepted under pointer lock, but without lock we need it for pause
+window.addEventListener('keydown', e => {
+  if (e.code === 'Escape' && G.state === 'playing' && document.pointerLockElement !== canvas)
+    setState('paused');
+});
+
+// ---------------- combat ----------------
+let gunRecoil = 0, gunFlash = 0;
+function tryShoot() {
+  const p = G.player;
+  if (p.cooldown > 0) return;
+  if (p.ammo <= 0) { AudioFX.empty(); p.cooldown = 0.25; return; }
+  p.ammo--; p.cooldown = FIRE_COOLDOWN; G.shotsFired++;
+  gunRecoil = 1; gunFlash = 0.08;
+  AudioFX.shoot();
+  document.getElementById('flash').style.opacity = 1;
+  setTimeout(() => document.getElementById('flash').style.opacity = 0, 60);
+
+  // hitscan pellets: ray from camera, sphere-test enemies, occlude with walls
+  const fwd = new THREE.Vector3();
+  camera.getWorldDirection(fwd);
+  for (let i = 0; i < SHOT_PELLETS; i++) {
+    const dir = fwd.clone();
+    dir.x += (Math.random() - 0.5) * SHOT_SPREAD * 2;
+    dir.y += (Math.random() - 0.5) * SHOT_SPREAD * 2;
+    dir.z += (Math.random() - 0.5) * SHOT_SPREAD * 2;
+    dir.normalize();
+    const flatLen = Math.hypot(dir.x, dir.z) || 0.0001;
+    const wallD = wallDistance(p.x, p.z, dir.x / flatLen, dir.z / flatLen, 60);
+    let best = null, bestD = wallD;
+    for (const e of G.enemies) {
+      if (e.hp <= 0) continue;
+      // closest approach of ray to enemy centre
+      const ex = e.x - p.x, ey = e.def.h * 0.55 - EYE, ez = e.z - p.z;
+      const t = ex * dir.x + ey * dir.y + ez * dir.z;
+      if (t < 0 || t > bestD + 0.5) continue;
+      const cx = ex - dir.x * t, cy = ey - dir.y * t, cz = ez - dir.z * t;
+      const distSq = cx*cx + cy*cy + cz*cz;
+      if (distSq < 0.85 * 0.85 && t < bestD) { best = e; bestD = t; }
+    }
+    if (best) damageEnemy(best, PELLET_DMG + (Math.random() * 4 | 0));
+  }
+  updateHUD();
+}
+function damageEnemy(e, dmg) {
+  e.hp -= dmg;
+  e.alerted = true;
+  e.hurtTimer = 0.09;
+  e.mat.map = e.def.texs.hurt; e.mat.needsUpdate = true;
+  AudioFX.enemyHit();
+  if (e.hp <= 0) killEnemy(e);
+}
+function killEnemy(e) {
+  AudioFX.enemyDie();
+  G.kills++; G.totalKills++;
+  e.mat.map = e.def.texs.dead; e.mat.needsUpdate = true;
+  e.sprite.scale.set(e.def.w * 1.2, e.def.h * 0.45, 1);
+  e.sprite.position.y = e.def.h * 0.45 / 2 - 0.15;
+  const alive = G.enemies.filter(x => x.hp > 0).length;
+  if (alive === 0 && !G.exitOpen) openExit();
+  updateHUD();
+}
+function openExit() {
+  G.exitOpen = true;
+  AudioFX.portal();
+  showMsg('SECTOR CLEAR — RIFT GATE OPEN', 3);
+}
+function damagePlayer(dmg) {
+  if (G.state !== 'playing') return;
+  G.player.hp -= dmg;
+  AudioFX.hurt();
+  const d = document.getElementById('damage');
+  d.style.transition = 'none'; d.style.opacity = 0.9;
+  requestAnimationFrame(() => { d.style.transition = 'opacity .6s'; d.style.opacity = 0; });
+  updateHUD();
+  if (G.player.hp <= 0) {
+    G.player.hp = 0;
+    const lines = [
+      'The sector logs you as: biomass.',
+      'Your torch rolls away across the floor and goes out.',
+      'Somewhere a gunner reloads, unbothered.',
+      'The rift takes one more.',
+    ];
+    document.getElementById('deathline').textContent = lines[(Math.random()*lines.length)|0];
+    setState('dead');
+  }
+}
+
+// ---------------- enemy projectiles ----------------
+function fireProjectile(e) {
+  AudioFX.gunnerFire();
+  const dx = G.player.x - e.x, dz = G.player.z - e.z;
+  const d = Math.hypot(dx, dz) || 1;
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.16, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0xff7a18 })
+  );
+  mesh.position.set(e.x, 1.5, e.z);
+  G.scene.add(mesh);
+  G.projectiles.push({ mesh, x: e.x, z: e.z, dx: dx / d * 13, dz: dz / d * 13, life: 4 });
+}
+
+// ---------------- HUD / messages / minimap ----------------
+function updateHUD() {
+  const hpEl = document.getElementById('hp');
+  hpEl.querySelector('.value').textContent = Math.ceil(G.player.hp);
+  hpEl.classList.toggle('low', G.player.hp <= 30);
+  document.getElementById('healthfill').style.width = `${(G.player.hp / MAX_HP) * 100}%`;
+  document.getElementById('ammo').querySelector('.value').textContent = G.player.ammo;
+  const alive = G.enemies.filter(e => e.hp > 0).length;
+  document.getElementById('enemiesleft').textContent =
+    alive > 0 ? `HOSTILES: ${alive}` : 'GATE OPEN — GO';
+}
+function showMsg(text, secs) {
+  const m = document.getElementById('msg');
+  m.textContent = text; m.style.opacity = 1;
+  G.msgTimer = secs;
+}
+const mm = document.getElementById('minimap');
+const mmCtx = mm.getContext('2d');
+function drawMinimap() {
+  const s = Math.min(mm.width / G.gw, mm.height / G.gh);
+  mmCtx.clearRect(0, 0, mm.width, mm.height);
+  mmCtx.fillStyle = 'rgba(0,0,0,.55)'; mmCtx.fillRect(0,0,mm.width,mm.height);
+  for (let z = 0; z < G.gh; z++) for (let x = 0; x < G.gw; x++) {
+    if (G.grid[z][x] === '#') { mmCtx.fillStyle = '#4a4046'; mmCtx.fillRect(x*s, z*s, s, s); }
+  }
+  if (G.exit) {
+    mmCtx.fillStyle = G.exitOpen ? '#ff7a18' : '#552a20';
+    mmCtx.fillRect(G.exit.x / TILE * s - 2, G.exit.z / TILE * s - 2, 5, 5);
+  }
+  mmCtx.fillStyle = '#c4271b';
+  for (const e of G.enemies) {
+    if (e.hp > 0 && e.alerted) mmCtx.fillRect(e.x / TILE * s - 1.5, e.z / TILE * s - 1.5, 3, 3);
+  }
+  // player arrow
+  const px = G.player.x / TILE * s, pz = G.player.z / TILE * s;
+  mmCtx.save(); mmCtx.translate(px, pz); mmCtx.rotate(-G.player.yaw);
+  mmCtx.fillStyle = '#e8e0cf';
+  mmCtx.beginPath(); mmCtx.moveTo(0, -4); mmCtx.lineTo(3, 3); mmCtx.lineTo(-3, 3); mmCtx.fill();
+  mmCtx.restore();
+}
+
+// ---------------- update ----------------
+let stepTimer = 0;
+function update(dt) {
+  G.time += dt;
+  const p = G.player;
+  p.cooldown = Math.max(0, p.cooldown - dt);
+
+  // --- movement ---
+  let mx = 0, mz = 0;
+  if (keys['KeyW'] || keys['ArrowUp'])    mz += 1;
+  if (keys['KeyS'] || keys['ArrowDown'])  mz -= 1;
+  if (keys['KeyA'] || keys['ArrowLeft'])  mx -= 1;
+  if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+  const len = Math.hypot(mx, mz);
+  if (len > 0) {
+    mx /= len; mz /= len;
+    const sp = MOVE_SPEED * ((keys['ShiftLeft'] || keys['ShiftRight']) ? SPRINT_MULT : 1);
+    const sin = Math.sin(p.yaw), cos = Math.cos(p.yaw);
+    const dx = (mx * cos - mz * sin) * sp * dt;
+    const dz = (-mx * sin - mz * cos) * sp * dt;
+    moveWithCollision(p, dx, dz, PLAYER_R);
+    p.bob += dt * sp * 1.6;
+    stepTimer -= dt * sp;
+    if (stepTimer <= 0) { AudioFX.step(); stepTimer = 3.4; }
+  }
+
+  // --- camera ---
+  camera.position.set(p.x, EYE + Math.sin(p.bob) * 0.05, p.z);
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = p.yaw;
+  camera.rotation.x = p.pitch;
+  G.torch.position.set(p.x, EYE + 0.4, p.z);
+  G.flicker.intensity = 0.25 + Math.max(0, Math.sin(G.time * 7) * Math.sin(G.time * 2.3)) * 0.5;
+
+  // --- gun viewmodel ---
+  gunRecoil = Math.max(0, gunRecoil - dt * 5);
+  gunFlash = Math.max(0, gunFlash - dt);
+  drawGun(gunRecoil, gunFlash > 0);
+  gunCanvas.style.transform =
+    `translateX(-50%) translate(${Math.sin(p.bob)*7}px, ${Math.abs(Math.cos(p.bob))*5 + gunRecoil*18}px)`;
+
+  // --- enemies ---
+  for (const e of G.enemies) {
+    if (e.hp <= 0) continue;
+    if (e.hurtTimer > 0) {
+      e.hurtTimer -= dt;
+      if (e.hurtTimer <= 0) { e.mat.map = e.def.texs.norm; e.mat.needsUpdate = true; }
+    }
+    const dx = p.x - e.x, dz = p.z - e.z;
+    const dist = Math.hypot(dx, dz);
+    const los = dist < 30 && hasLOS(e.x, e.z, p.x, p.z);
+    if (los && dist < 24) e.alerted = true;
+    e.attackCd -= dt;
+
+    if (e.alerted) {
+      e.wobble += dt * 3;
+      let vx = 0, vz = 0;
+      if (e.def.melee) {
+        if (dist > e.def.range * 0.8) { vx = dx / dist; vz = dz / dist; }
+        if (dist < e.def.range && e.attackCd <= 0 && los) {
+          e.attackCd = e.def.cooldown;
+          AudioFX.impAttack();
+          damagePlayer(e.def.dmg + (Math.random() * 4 | 0));
+        }
+      } else {
+        // gunner: keep mid distance, strafe, shoot on sight
+        if (!los || dist > 15) { vx = dx / dist; vz = dz / dist; }
+        else if (dist < 6)     { vx = -dx / dist; vz = -dz / dist; }
+        else { vx = -dz / dist * Math.sin(e.wobble * 0.7); vz = dx / dist * Math.sin(e.wobble * 0.7); }
+        if (los && dist < e.def.range && e.attackCd <= 0) {
+          e.attackCd = e.def.cooldown;
+          fireProjectile(e);
+        }
+      }
+      // light wander wobble so packs don't stack into a single line
+      vx += Math.sin(e.wobble) * 0.25; vz += Math.cos(e.wobble * 1.3) * 0.25;
+      const v = Math.hypot(vx, vz);
+      if (v > 0.01) {
+        const pos = { x: e.x, z: e.z };
+        moveWithCollision(pos, vx / v * e.def.speed * dt, vz / v * e.def.speed * dt, 0.5);
+        e.x = pos.x; e.z = pos.z;
+      }
+      // separation from other enemies
+      for (const o of G.enemies) {
+        if (o === e || o.hp <= 0) continue;
+        const ox = e.x - o.x, oz = e.z - o.z, od = Math.hypot(ox, oz);
+        if (od > 0.01 && od < 1.4) { e.x += ox / od * dt * 2; e.z += oz / od * dt * 2; }
+      }
+    }
+    e.sprite.position.set(e.x, e.def.h / 2 + (e.alerted ? Math.abs(Math.sin(e.wobble*2))*0.08 : 0), e.z);
+  }
+
+  // --- projectiles ---
+  for (let i = G.projectiles.length - 1; i >= 0; i--) {
+    const pr = G.projectiles[i];
+    pr.x += pr.dx * dt; pr.z += pr.dz * dt; pr.life -= dt;
+    pr.mesh.position.set(pr.x, 1.5, pr.z);
+    const hitPlayer = Math.hypot(pr.x - p.x, pr.z - p.z) < 0.7;
+    if (hitPlayer) damagePlayer(10 + (Math.random() * 5 | 0));
+    if (hitPlayer || pr.life <= 0 || isWall(pr.x, pr.z)) {
+      G.scene.remove(pr.mesh);
+      pr.mesh.geometry.dispose(); pr.mesh.material.dispose();
+      G.projectiles.splice(i, 1);
+    }
+  }
+
+  // --- pickups ---
+  for (let i = G.pickups.length - 1; i >= 0; i--) {
+    const pk = G.pickups[i];
+    pk.t += dt;
+    pk.sprite.position.y = 0.6 + Math.sin(pk.t * 2.5) * 0.12;
+    if (Math.hypot(pk.x - p.x, pk.z - p.z) < 1.1) {
+      if (pk.kind === 'health') {
+        if (p.hp >= MAX_HP) continue;          // leave it for later
+        p.hp = Math.min(MAX_HP, p.hp + 25);
+      } else {
+        p.ammo += 8;
+      }
+      AudioFX.pickup();
+      showMsg(pk.kind === 'health' ? '+25 VITALS' : '+8 SHELLS', 1.1);
+      G.scene.remove(pk.sprite);
+      pk.sprite.material.dispose();
+      G.pickups.splice(i, 1);
+      updateHUD();
+    }
+  }
+
+  // --- exit gate ---
+  if (G.exit) {
+    if (G.exitOpen) {
+      const pulse = (Math.sin(G.time * 4) + 1) / 2;
+      G.exit.coreMat.color.setHSL(0.05, 1, 0.35 + pulse * 0.3);
+      G.exit.group.rotation.y += dt * 0.8;
+      if (Math.hypot(G.exit.x - p.x, G.exit.z - p.z) < 2.6) {
+        nextLevel();
+        return;
+      }
+    } else {
+      G.exit.coreMat.color.setHex(0x3a0c08);
+    }
+  }
+
+  // --- message fade ---
+  if (G.msgTimer > 0) {
+    G.msgTimer -= dt;
+    if (G.msgTimer <= 0) document.getElementById('msg').style.opacity = 0;
+  }
+
+  drawMinimap();
+}
+
+// ---------------- state machine ----------------
+const screens = {
+  menu: document.getElementById('menu'),
+  paused: document.getElementById('paused'),
+  dead: document.getElementById('dead'),
+  victory: document.getElementById('victory'),
+};
+function setState(s) {
+  G.state = s;
+  for (const k in screens) screens[k].classList.toggle('hidden', k !== s);
+  document.getElementById('hud').style.display = (s === 'playing') ? 'block' : 'none';
+  if (s !== 'playing' && document.pointerLockElement === canvas) document.exitPointerLock();
+}
+function startGame() {
+  AudioFX.unlock();
+  G.level = 0; G.totalKills = 0; G.shotsFired = 0;
+  G.player.hp = MAX_HP; G.player.ammo = 24;
+  buildLevel(0);
+  enterPlay();
+}
+function enterPlay() {
+  setState('playing');
+  requestLock();
+}
+function restartLevel() {
+  G.player.hp = MAX_HP;
+  G.player.ammo = Math.max(G.player.ammo, 16);
+  buildLevel(G.level);
+  enterPlay();
+}
+function nextLevel() {
+  AudioFX.exitHum();
+  G.level++;
+  if (G.level >= LEVELS.length) {
+    document.getElementById('stats').textContent =
+      `HOSTILES NEUTRALISED: ${G.totalKills} · SHELLS FIRED: ${G.shotsFired}`;
+    setState('victory');
+    return;
+  }
+  buildLevel(G.level);
+  showMsg(LEVELS[G.level].name, 2.4);
+}
+
+document.getElementById('startbtn').addEventListener('click', startGame);
+document.getElementById('resumebtn').addEventListener('click', enterPlay);
+document.getElementById('retrybtn').addEventListener('click', restartLevel);
+document.getElementById('againbtn').addEventListener('click', startGame);
+// click anywhere on pause screen to resume feels natural with pointer lock
+screens.paused.addEventListener('click', () => { if (G.state === 'paused') enterPlay(); });
+
+// ---------------- main loop ----------------
+const clock = new THREE.Clock();
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), 0.05);   // clamp to survive tab-switch
+  if (G.state === 'playing') update(dt);
+  if (G.scene) renderer.render(G.scene, camera);
+}
+// build level 0 behind the menu so something atmospheric renders immediately
+buildLevel(0);
+setState('menu');
+loop();
+</script>
+</body>
+</html>

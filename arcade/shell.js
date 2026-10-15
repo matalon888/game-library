@@ -170,9 +170,9 @@
     const gs = every.filter(g => !isDesk(g));                    // desktop games live only in their own Desktop category
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
-    const COLLS = ['Play with your AI', 'Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
+    const COLLS = ['Connect your AI', 'Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
     const inColl = (g, c) => (g.tags || []).includes(c);
-    const collList = c => (c === 'Play with your AI' ? every : gs).filter(g => inColl(g, c));  // AI games show whatever the device (desktop ones offer 'send to my computer' on phones)
+    const collList = c => (c === 'Connect your AI' ? every : gs).filter(g => inColl(g, c));  // AI games show whatever the device (desktop ones offer 'send to my computer' on phones)
     const cats = [...new Set(COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()))].concat(desk.length ? ['Desktop'] : []);
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
@@ -214,7 +214,7 @@
       // "Just made": newest creations first, whatever day we added them
       const recent = gs.filter(g => g.made && ago(g.made) <= 21).sort((a, b) => (b.made > a.made ? 1 : -1));
       const byCat = cats.filter(c => !COLLS.includes(c) && c !== 'Desktop').map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
-      $('shelves').innerHTML = shelf('Play with your AI · bring Claude or ChatGPT', collList('Play with your AI'), 'Play with your AI') +
+      $('shelves').innerHTML = shelf('Connect your AI · runs on your Claude or ChatGPT', collList('Connect your AI'), 'Connect your AI') +
         shelf('Hyper-casual · one-tap hits', collList('Hyper-casual'), 'Hyper-casual') +
         shelf('Endless runners', collList('Endless runners'), 'Endless runners') +
         shelf('Daily puzzles · a new one every day', collList('Daily puzzles'), 'Daily puzzles') +

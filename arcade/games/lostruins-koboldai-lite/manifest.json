@@ -1,0 +1,31 @@
+{
+  "name": "KoboldAI Lite",
+  "description": "Progressive Web App for KoboldAI Lite",
+  "start_url": "./",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#1A232F",
+  "theme_color": "#337ab7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "niko.png",
+      "type": "image/png", 
+      "sizes": "150x150"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "preview1.png",
+      "sizes": "400x300",
+      "type": "image/png",
+      "label": "Chat preview showing classic theme"
+    },
+    {
+      "src": "preview2.png",
+      "sizes": "400x300",
+      "type": "image/png",
+      "label": "Chat preview showing aesthetic theme"
+    }
+  ]
+}

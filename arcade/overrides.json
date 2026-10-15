@@ -3187,6 +3187,287 @@
     "ai_built": "yes",
     "pitch": "Scratch foil with a coin to reveal matching symbols or numbers, choosing from three card tiers while chasing a chip goal across two stages."
    }
+  },
+  {
+   "slug": "jarvis-llm-codec-gridx",
+   "name": "GRIDX",
+   "blurb": "Neon twin-stick shooter on a curved grid. Survive the waves and take down each boss.",
+   "category": "Action",
+   "author": "jarvis-llm-codec",
+   "credit": "by jarvis-llm-codec · Apache-2.0",
+   "licence": "Apache-2.0",
+   "source": "https://github.com/jarvis-llm-codec/gridx",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Shooters"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Auto-firing twin-stick action on a curved neon grid, with a boss countdown, sub-weapon ultimates and swappable weapons adding some tactical variety."
+   }
+  },
+  {
+   "slug": "jason-c-dev-iridium-reach",
+   "name": "Iridium Reach",
+   "blurb": "Dogfight from the cockpit of a starship among asteroids and stations.",
+   "category": "3D",
+   "author": "jason-c-dev",
+   "credit": "by jason-c-dev · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/jason-c-dev/iridium-reach-demo",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Shooters"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Pilot a starship cockpit with a radar display and HUD readouts, hunting enemies through asteroid fields and around space stations beneath a nebula sky."
+   }
+  },
+  {
+   "slug": "eddiebelaval-sands-of-the-restless",
+   "name": "Sands of the Restless",
+   "blurb": "Hold off waves of the risen dead in a desert necropolis with seven weapons and a buy menu.",
+   "category": "Action",
+   "author": "eddiebelaval",
+   "credit": "by eddiebelaval · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/eddiebelaval/sands-of-the-restless",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Shooters"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Survive escalating waves of undead in a desert tomb, earning cash to buy and swap between seven weapons, grenades and a special ability."
+   }
+  },
+  {
+   "slug": "markcastle-hellgrid",
+   "name": "HELLGRID",
+   "blurb": "Retro first-person shooter: fight through three sectors to close the rift. Every texture and sound is made in code.",
+   "category": "Action",
+   "author": "markcastle",
+   "credit": "by markcastle · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/markcastle/hellgrid",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Shooters"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Fight through three reactor sectors in a first-person shooter, with textures and sound all generated in code, until the rift gate opens."
+   }
+  },
+  {
+   "slug": "hanazar-games-starfall-scavenger",
+   "name": "Starfall Scavenger",
+   "blurb": "Neon survivors-style roguelite: auto-fire, pick upgrades, beat the bosses across four acts.",
+   "category": "Action",
+   "author": "Hanazar-Games",
+   "credit": "by Hanazar-Games · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/Hanazar-Games/claude-opus5-aigc-webgame-project",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Shooters"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Drift through a neon debris field with auto-firing weapons, collecting upgrades and fighting bosses across four acts in short roguelite runs."
+   }
+  },
+  {
+   "slug": "alliterhorst-neon-vanguard",
+   "name": "Neon Vanguard",
+   "blurb": "Retro vertical shoot-'em-up: steer your ship, auto-fire and clear the waves.",
+   "category": "Arcade",
+   "author": "alliterhorst",
+   "credit": "by alliterhorst · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/alliterhorst/neon-vanguard",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Shooters"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 3,
+    "ai_built": "yes",
+    "pitch": "Steer a small ship through a starfield, auto-firing at diamond-shaped enemies while chasing a score, though the screenshots show little variety yet."
+   }
+  },
+  {
+   "slug": "llm-chess-arena",
+   "name": "LLM Chess Arena",
+   "blurb": "Play chess against your own AI (Claude, ChatGPT, Gemini, Grok) and read why it makes every move.",
+   "category": "Strategy",
+   "author": "llm-chess-arena",
+   "credit": "by llm-chess-arena · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/llm-chess-arena/llm-chess-arena",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Connect your AI"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 4,
+    "ai_built": "unknown",
+    "pitch": "Play a standard chess game against an AI opponent and read its written reasoning for each move, which turns every game into a lesson."
+   }
+  },
+  {
+   "slug": "songhaifan-frankie-poker",
+   "name": "Frankie Poker",
+   "blurb": "Texas Hold'em against AI opponents powered by your own model key. Play chips only.",
+   "category": "Casino",
+   "author": "SonghaiFan",
+   "credit": "by SonghaiFan · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/SonghaiFan/frankie-poker",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Connect your AI"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "unknown",
+    "pitch": "Sit down for Texas Hold'em against AI opponents driven by your own model key, playing chips only, with English and Chinese support."
+   }
+  },
+  {
+   "slug": "oyekamal-ai-overlord",
+   "name": "AI Overlord",
+   "blurb": "A space shooter where an AI running in your browser designs every enemy wave and taunts you.",
+   "category": "Action",
+   "author": "oyekamal",
+   "credit": "by oyekamal · MIT",
+   "licence": "MIT",
+   "source": "https://github.com/oyekamal/offline-llm-chat",
+   "entry": "game.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Connect your AI",
+    "Shooters"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 3,
+    "ai_built": "unknown",
+    "pitch": "An in-browser language model invents each enemy wave's pattern, speed and swarm size, then taunts you while your auto-firing ship dodges."
+   }
+  },
+  {
+   "slug": "lostruins-koboldai-lite",
+   "name": "KoboldAI Lite: AI Adventure",
+   "blurb": "Text adventures where your AI is the game master: bring Claude, ChatGPT, Gemini or a free volunteer model.",
+   "category": "Word & Math",
+   "author": "LostRuins",
+   "credit": "by LostRuins · AGPL-3.0",
+   "licence": "AGPL-3.0",
+   "source": "https://github.com/LostRuins/lite.koboldai.net",
+   "entry": "index.html",
+   "external": null,
+   "orientation": "landscape",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Connect your AI"
+   ],
+   "desk_only": true,
+   "review": {
+    "by": "Claude",
+    "depth": 7,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Pick a UI style, then co-write open-ended text adventures with an AI game master that improvises any story, character or scenario you imagine."
+   }
   }
  ],
  "overrides": {

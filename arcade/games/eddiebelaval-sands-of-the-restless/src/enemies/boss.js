@@ -1,0 +1,1187 @@
+/**
+ * The five gods, one per fifth wave.
+ *
+ * THE RULE EVERY ABILITY IN THIS FILE IS WRITTEN AGAINST: an ability that fires
+ * without a wind-up the player can read is not an ability, it is damage. So
+ * every one of them runs the same three-phase machine -
+ *
+ *     telegraph  ->  active  ->  recover
+ *
+ * - and the telegraph is never silent and never invisible. It costs a pose
+ * change, an emissive ramp on the god's gilding, and a horn. A player who is
+ * looking at the boss gets the pose, a player who is reloading behind a pillar
+ * gets the horn, and a player who is neither gets hit, which is correct.
+ *
+ * The gods are five behaviour tables over one body. Anubis summons and charges;
+ * Ammit slams and volleys; Apep teleports and volleys; Sekhmet charges and
+ * slams; Set does all five and unlocks them as it loses health, so the last
+ * fight of the cycle is the only one where the player has to read more than two
+ * tells at once.
+ *
+ * Everything is pooled: all five bodies, the projectile pool, and the shockwave
+ * ring are allocated when the pack is built at boot. A boss wave allocates
+ * nothing, because the frame a boss lands is the worst frame in the game to
+ * pay for a garbage collection.
+ */
+
+import * as THREE from 'three';
+import { parts } from './anatomy.js';
+import { linenMaps, compensate, WRAP_TILES } from './wraps.js';
+import {
+  MUMMY, buildHumanoid, animateHumanoid, strideRate, groundAt, resolveAgainstWorld,
+  pickDetourSide, WEDGE_TRIP, DETOUR_S, DETOUR_BIAS,
+} from './mummy.js';
+
+const _v = new THREE.Vector3();
+
+/** Scratch for the routed heading, so reading the field allocates nothing. */
+const _route = { x: 0, z: 0 };
+
+/**
+ * HOW LONG A GOD KEEPS WALKING A ROUTE AFTER THE FIELD STOPS ANSWERING.
+ *
+ * The same reasoning as mummy.js's ROUTE_HOLD_S, and the same value. The heavy
+ * field is rebuilt on a throttle and dropped outright the moment the space
+ * changes, so `sample()` returning false for a frame or two is ordinary rather
+ * than exceptional. A heading computed against real geometry half a second ago
+ * describes which way the player is better than a bearing known to point into
+ * a wall, and it costs two floats.
+ */
+const ROUTE_HOLD_S = 0.6;
+
+/**
+ * HOW FAR OUT THE ROUTE IS WORTH MORE THAN THE STRAIGHT LINE, past melee.
+ *
+ * The field measures to where the player WAS at the last rebuild. Over twenty
+ * metres that is nothing; in melee it is the difference between a strike that
+ * lands and one that swings through the air beside them. So the last stretch is
+ * walked on the live position, exactly as the horde does inside its own FADE_M.
+ * Measured from the god's own reach rather than from a flat 2.5 m, because a
+ * colossus swings from three times further out than a shambler.
+ */
+const ROUTE_FADE = 6;
+
+/**
+ * Shared crown geometry. Five gods, a dozen shapes, built once.
+ *
+ * Built through the enemy module's own bevel rather than the world's. A god's
+ * ear is a twenty-centimetre member and the world's chamfer rule is written for
+ * a forty-metre pyramid step, so it floors at nine centimetres - which on an
+ * ear is the whole ear.
+ */
+const CGEO = new Map();
+function cgeo(w, h, d) {
+  const key = `${w}|${h}|${d}`;
+  let g = CGEO.get(key);
+  if (!g) { g = parts(WRAP_TILES).box(w, h, d).build(); CGEO.set(key, g); }
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// heads
+// ---------------------------------------------------------------------------
+
+/**
+ * The god's head, which is the ONLY thing distinguishing five bodies that are
+ * otherwise the same wrapped colossus.
+ *
+ * That is deliberate rather than lazy. The gods are the same order of being;
+ * what an Egyptian pantheon actually varies is the head, and it is also the
+ * part of a silhouette that reads at the top of the frame where the player's
+ * crosshair already is. Every crown here is three to six boxes.
+ */
+function addCrown(rig, mats, kind, P, tag) {
+  const neck = rig.neck;
+  const add = (g, mat, x, y, z, rx = 0, ry = 0, rz = 0) => {
+    const m = new THREE.Mesh(g, mat);
+    m.userData.enemy = tag;
+    m.userData.region = 'head';
+    m.castShadow = true;
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    neck.add(m);
+    rig.meshes.push(m);
+    rig.triangles += g.attributes.position.count / 3;
+    return m;
+  };
+
+  const H = P.headH, W = P.headW, D = P.headD;
+
+  if (kind === 'jackal') {
+    // Long muzzle and two tall upright ears. The most recognisable outline in
+    // the whole pantheon, and it survives being three boxes.
+    add(cgeo(W * 0.52, H * 0.36, D * 1.5), mats.deep, 0, H * 0.34, D * 0.9);
+    for (const s of [-1, 1]) {
+      add(cgeo(W * 0.26, H * 1.15, 0.07), mats.deep,
+        s * W * 0.34, H * 1.05, -D * 0.1, 0, 0, s * 0.12);
+    }
+  } else if (kind === 'crocodile') {
+    // A long low jaw with a visible tooth line, and a stubby mane behind it.
+    add(cgeo(W * 0.72, H * 0.30, D * 2.0), mats.deep, 0, H * 0.22, D * 1.15);
+    add(cgeo(W * 0.66, H * 0.16, D * 1.8), mats.accent, 0, H * 0.40, D * 1.05);
+    for (const s of [-1, 1]) {
+      add(cgeo(0.09, H * 0.55, 0.09), mats.accent, s * W * 0.42, H * 0.75, -D * 0.2);
+    }
+  } else if (kind === 'serpent') {
+    // A flared hood. Two wide thin slabs angled out of the skull, which reads
+    // as a cobra from any angle including directly overhead.
+    for (const s of [-1, 1]) {
+      add(cgeo(W * 0.9, H * 1.5, 0.07), mats.accent,
+        s * W * 0.62, H * 0.62, -D * 0.15, 0, 0, s * -0.42);
+    }
+    add(cgeo(W * 0.6, H * 0.34, D * 1.3), mats.deep, 0, H * 0.30, D * 0.8);
+  } else if (kind === 'lioness') {
+    // A ring of mane slabs and a solar disc over the crown.
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      add(cgeo(0.10, H * 0.75, 0.10), mats.accent,
+        Math.sin(a) * W * 0.66, H * 0.55, Math.cos(a) * D * 0.66 - D * 0.1,
+        0, a, Math.sin(a) * 0.3);
+    }
+    add(cgeo(W * 0.9, W * 0.9, 0.09), mats.accent, 0, H * 1.45, -D * 0.1);
+    add(cgeo(W * 0.45, H * 0.28, D * 1.1), mats.deep, 0, H * 0.26, D * 0.72);
+  } else {
+    // Set: the animal nobody has ever identified. Square-cut ears and a long
+    // down-curved snout, which is exactly why it reads as WRONG rather than as
+    // any animal the player can name.
+    add(cgeo(W * 0.5, H * 0.30, D * 1.7), mats.deep, 0, H * 0.20, D * 1.0, 0.22);
+    for (const s of [-1, 1]) {
+      add(cgeo(W * 0.34, H * 1.0, 0.08), mats.accent,
+        s * W * 0.36, H * 1.02, -D * 0.15, -0.16, 0, s * 0.1);
+    }
+    add(cgeo(W * 1.3, 0.09, D * 0.7), mats.accent, 0, H * 1.3, -D * 0.3);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// the pantheon
+// ---------------------------------------------------------------------------
+
+/** Base body: the shambler's proportions, thickened and doubled in size. */
+const COLOSSUS = {
+  hipY: 0.92, hipW: 0.50, bodyD: 0.40,
+  legX: 0.18, legW: 0.26, thighL: 0.44, shinL: 0.48,
+  torsoY: 0.13, chestW: 0.74, chestH: 0.60,
+  shoulderX: 0.40, shoulderY: 0.50, armW: 0.22, upperL: 0.44, foreL: 0.46,
+  headY: 0.70, headW: 0.30, headH: 0.32, headD: 0.30,
+  plate: { w: 0.56, h: 0.34 },
+  shoulderSlab: { w: 0.34, h: 0.16, d: 0.50 },
+  tatterRest: 0.20,
+  // WIDE, and the note this replaces had it backwards. It argued narrow, because
+  // "a wide rag on a shoulder photographs as a flag, and a god does not need
+  // help being seen". Being SEEN was never the question - a four metre body
+  // fills the frame either way. What a god needs is to not be a stack of boxes
+  // four times the size, and at 15 cm on a 4 m figure these were relatively
+  // thinner than the shambler's already-invisible ones. Two long ceremonial
+  // wraps off the shoulder blades and one off the striking arm, each anchored
+  // outboard of the chest and tilted clear of it.
+  tatters: [
+    { on: 'torso', x: -0.42, y: 0.24, z: -0.22, w: 0.27, h: 1.30, yaw: 0.36, cut: 1, swing: 0.7, out: 0.22 },
+    { on: 'torso', x: 0.42, y: 0.18, z: -0.22, w: 0.24, h: 1.08, yaw: -0.40, cut: 2, swing: 0.7, out: 0.20 },
+    { on: 'arm', side: 1, x: 0.02, y: -0.36, z: 0, w: 0.21, h: 0.80, yaw: 1.1, cut: 3, swing: 1.2, out: 0.24 },
+  ],
+};
+
+const GOD_GAIT = {
+    // `rate` is a MULTIPLIER on a derived cadence now, not the cadence itself.
+    // See strideRate in mummy.js: the clock is set by how far this body's legs
+    // reach and how fast it is travelling, so 1.0 means "no foot slip" and
+    // anything else is a deliberate character note paid for in skating.
+  rate: 1.0,
+  // A four-metre god at three metres a second needs a stride to match. At 0.40
+  // it crossed the courtyard without its feet ever catching up.
+  stride: 0.66,
+  armSwing: 0.16,
+  armReach: -0.55,
+  armSplay: 0.40,
+  elbowBend: 0.55,
+  lean: -0.10,
+  sway: 0.06,
+  hipTwist: 0.05,
+  bob: 0.05,
+  headLoll: 0.06,
+  headDroop: -0.10,
+};
+
+/**
+ * The five.
+ *
+ * `abilities` is an ORDERED list. Set reads it as an escalation ladder gated on
+ * health; everyone else picks from it at random, which is what keeps a
+ * two-ability god from becoming a metronome.
+ */
+/**
+ * HEALTH IS NOW THE NUMBER THE PLAYER ACTUALLY FIGHTS, not a base to be scaled.
+ *
+ * These used to be multiplied at spawn by `1 + (wave / 5 - 1) * 0.55`, which is
+ * indirection that hides the only figure a designer needs. Each god appears at
+ * exactly ONE wave - there are five gods, bosses land on wave % 5, and
+ * FINAL_WAVE is 25 - so the multiplier had a single value per god and could
+ * never be anything else. Reading the table told you a god's size and not its
+ * difficulty, and the two had drifted a long way apart. The multiplier is gone;
+ * director.js passes 1. It comes back the day an endless mode does.
+ *
+ * TUNED AGAINST MEASURED TIME TO KILL, from `test/bosstune.mjs`, which reads
+ * damage per round out of `combat.applyHits()` - the same call the real hitscan
+ * makes - and divides by the weapon's own rpm. That is a CEILING: it assumes
+ * every round lands, and on the head, which no player manages. A real fight runs
+ * two to three times longer.
+ *
+ * WHAT THE MEASUREMENT FOUND, and the second one is the reason this changed.
+ *
+ * The first boss died in 3.8 seconds of held aim. That is not a boss, and it is
+ * most of what the owner meant by "the big bosses are too easy to kill" once the
+ * doorway exploit is taken out of it.
+ *
+ * And the escalation INVERTED. Ceiling headshot TTK ran 3.8, 8.2, 5.4, 7.9, 13.5
+ * seconds, so the third god was easier than the second - because the Altar sits
+ * between them and triples the player's damage, and health was climbing 55 per
+ * cent a boss against a 250 per cent step in what it was being shot with. The
+ * table was escalating on paper and getting easier in the hands.
+ *
+ * The curve is now monotonic in the thing that matters, which is how long the
+ * fight lasts: roughly 8, 10, 12, 15 and 18 seconds at the ceiling. The jump at
+ * APEP is not a mistake and it is not smooth - it is the Altar, absorbed.
+ */
+export const GODS = [
+  {
+    id: 'anubis', name: 'ANUBIS', crown: 'jackal',
+    // 11,000 against a base carbine: 7.9 s of perfect headshots, 20.5 s of body
+    // fire. The first god the player meets should survive a magazine.
+    health: 11000, speed: 2.6, damage: 42,
+    abilities: ['summon', 'charge'],
+    palette: { wrap: 0xa2947a, wrapDark: 0x5e5138, deep: 0x2b2318, eye: 0x64d0ff, accent: 0xd8b25c },
+  },
+  {
+    id: 'ammit', name: 'AMMIT', crown: 'crocodile',
+    // 13,000 against a base LMG: 10.1 s head, 24.2 s body. Still pre-Altar, so
+    // the step from ANUBIS is modest and lives in health rather than in damage.
+    health: 13000, speed: 2.1, damage: 48,
+    abilities: ['slam', 'volley'],
+    palette: { wrap: 0x968c6a, wrapDark: 0x504b30, deep: 0x282216, eye: 0xffc14a, accent: 0x9fae5c },
+  },
+  {
+    id: 'apep', name: 'APEP', crown: 'serpent',
+    // 38,000, and the jump is the ALTAR rather than the god. By wave 15 an
+    // upgraded LMG does 312 a headshot against 124.8, so absorbing 2.5x is what
+    // keeps the third boss from being easier than the second. 11.8 s head.
+    health: 38000, speed: 2.4, damage: 54,
+    abilities: ['teleport', 'volley'],
+    palette: { wrap: 0x8a8892, wrapDark: 0x45444f, deep: 0x232230, eye: 0x9a4aff, accent: 0x4e6fb0 },
+  },
+  {
+    id: 'sekhmet', name: 'SEKHMET', crown: 'lioness',
+    // 48,000: 14.9 s head, 35.7 s body. The fastest god at speed 3.0, so the
+    // fight is long AND it is the one that will not let the player walk away.
+    health: 48000, speed: 3.0, damage: 60,
+    abilities: ['charge', 'slam'],
+    palette: { wrap: 0xb59767, wrapDark: 0x6c4d2c, deep: 0x2e1e12, eye: 0xff7a20, accent: 0xe0a63e },
+  },
+  {
+    id: 'set', name: 'SET', crown: 'set',
+    // 58,000: 18 s of perfect headshots, and 207 rounds of an upgraded LMG - more
+    // than one magazine, which is what puts the refill wall in the fight.
+    // Damage stops at 68 on purpose: at 72 the strike's 0.7 multiplier crosses
+    // 50 and the player dies in TWO hits instead of three, which is a cliff
+    // rather than a curve.
+    health: 58000, speed: 2.8, damage: 68,
+    // Escalating: one more tell to read every quarter of its health bar.
+    abilities: ['charge', 'slam', 'volley', 'teleport', 'summon'],
+    escalating: true,
+    /**
+     * THE ONE GOD WHOSE DEATH IS NOT THE SHARED DEATH, and it is one field
+     * rather than a second death path.
+     *
+     * Wave twenty-five is the last one. The transcript's line about the gods is
+     * "it doesn't really die, it just goes away because it raises the dead
+     * again", and this is where that gets said without a word of copy: the
+     * topple runs exactly as built, so the player gets the kill they earned and
+     * whatever they did plainly worked on the body - and then the face goes out
+     * first, and THEN the gilding flares brighter than any telegraph in the
+     * game, on a corpse, and goes out. The thing lighting up is the METAL. It
+     * is not a ghost and there is no particle in it. Something left through the
+     * ornament.
+     *
+     * Absent on the other four on purpose. Anubis, Ammit, Apep and Sekhmet die
+     * the shared death four times so that the fifth one reads as different
+     * rather than as a boss death.
+     */
+    farewell: true,
+    palette: { wrap: 0x94756a, wrapDark: 0x4e352d, deep: 0x2a1a15, eye: 0xff2a2a, accent: 0xb03a2a },
+  },
+];
+
+/**
+ * The farewell's three beats, in seconds after the body starts falling.
+ *
+ * `EYE_OUT` is short because the face being finished is a PREMISE rather than a
+ * beat: it has to be plainly over before anything else happens, or the flare
+ * reads as the god doing something instead of as something leaving it.
+ *
+ * `AT` is 0.55 rather than immediate because the topple is still running - the
+ * body reaches its ninety degrees around 1.1 - so the flare lands on a corpse
+ * that is visibly already going down. `HOLD` is a third of a second, which is
+ * long enough to be certain of and far too short to read as a state.
+ *
+ * `FLARE` is 6.4 against the telegraph's ceiling of 3.6 in setGlow below. The
+ * requirement is not "bright", it is BRIGHTER THAN ANY TELEGRAPH THE PLAYER HAS
+ * LEARNED, and that is a comparison against a number in this file rather than a
+ * taste call, so it is written as one.
+ */
+const FAREWELL = { EYE_OUT: 0.30, AT: 0.55, HOLD: 0.34, FLARE: 6.4 };
+
+/**
+ * Ability timings, in seconds.
+ *
+ * `tell` is the readable wind-up. Nothing here is under half a second, because
+ * half a second is roughly where a telegraph stops being a decision the player
+ * makes and starts being a reflex test.
+ */
+const ABILITY = {
+  charge:   { tell: 0.95, active: 1.30, recover: 0.90, cool: 6.5 },
+  slam:     { tell: 0.90, active: 0.75, recover: 1.10, cool: 7.5 },
+  volley:   { tell: 0.80, active: 0.90, recover: 0.80, cool: 8.0 },
+  teleport: { tell: 0.60, active: 0.35, recover: 0.55, cool: 9.0 },
+  summon:   { tell: 1.15, active: 0.40, recover: 0.90, cool: 14.0 },
+};
+
+/** How far a shockwave travels, and how fast. */
+const SHOCK_RANGE = 13;
+const SHOCK_SPEED = 17;
+
+// ---------------------------------------------------------------------------
+// effects
+// ---------------------------------------------------------------------------
+
+/**
+ * Projectiles and the shockwave ring, pooled and shared by all five gods.
+ *
+ * Only one god is ever live, so one pool is enough, and sharing it means the
+ * cost is paid once at boot rather than five times.
+ */
+function createEffects(scene) {
+  const group = new THREE.Group();
+  group.name = 'boss-effects';
+  scene.add(group);
+
+  const COUNT = 20;
+  const geo = new THREE.SphereGeometry(0.26, 10, 8);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0xffd08a,
+    transparent: true,
+    opacity: 0.95,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  const shots = [];
+  for (let i = 0; i < COUNT; i++) {
+    const m = new THREE.Mesh(geo, mat);
+    m.visible = false;
+    // Not a hit target: shooting a boss projectile out of the air is a feature
+    // this game does not have, and leaving it raycastable would let a stray
+    // pellet register as a hit on nothing.
+    m.userData.noHit = true;
+    m.frustumCulled = false;
+    group.add(m);
+    shots.push({ mesh: m, live: false, vx: 0, vy: 0, vz: 0, life: 0, damage: 0 });
+  }
+
+  // The shockwave. A flat ring scaled outward from the slam point, additive so
+  // it reads on a dark chamber floor and on bright sand alike.
+  const ringGeo = new THREE.RingGeometry(0.86, 1.0, 44);
+  ringGeo.rotateX(-Math.PI / 2);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0xffb04a,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.userData.noHit = true;
+  ring.frustumCulled = false;
+  ring.visible = false;
+  group.add(ring);
+
+  const shock = { live: false, r: 0, damage: 0, hit: false };
+
+  function fire(x, y, z, dx, dy, dz, speed, damage) {
+    for (const s of shots) {
+      if (s.live) continue;
+      s.live = true;
+      s.mesh.visible = true;
+      s.mesh.position.set(x, y, z);
+      s.vx = dx * speed; s.vy = dy * speed; s.vz = dz * speed;
+      s.life = 4;
+      s.damage = damage;
+      return true;
+    }
+    return false;   // pool exhausted, which is a volley the player already dodged
+  }
+
+  function slam(x, y, z, damage) {
+    shock.live = true;
+    shock.r = 1.2;
+    shock.damage = damage;
+    shock.hit = false;
+    ring.position.set(x, y + 0.08, z);
+    ring.visible = true;
+  }
+
+  function update(dt, ctx) {
+    for (const s of shots) {
+      if (!s.live) continue;
+
+      s.life -= dt;
+      s.mesh.position.x += s.vx * dt;
+      s.mesh.position.y += s.vy * dt;
+      s.mesh.position.z += s.vz * dt;
+      s.vy -= 3.2 * dt;              // a slow arc, so a volley can be walked out of
+
+      const p = s.mesh.position;
+      const dx = p.x - ctx.playerPos.x;
+      const dy = p.y - ctx.playerPos.y;
+      const dz = p.z - ctx.playerPos.z;
+
+      if (dx * dx + dy * dy + dz * dz < 1.1) {
+        ctx.combat.damagePlayer(s.damage, p.x, p.z);
+        s.live = false; s.mesh.visible = false;
+        continue;
+      }
+
+      // Into the floor, out of time, or into stone. A projectile that sails
+      // through a pillar tells the player the pillar is not cover, which is a
+      // lie the whole arena is built on.
+      const floor = groundAt(ctx, p.x, p.z, p.y);
+      if (s.life <= 0 || p.y < floor + 0.05 || blocked(p, ctx)) {
+        s.live = false;
+        s.mesh.visible = false;
+        ctx.impacts?.spawn(p, null, 'metal');
+      }
+    }
+
+    if (shock.live) {
+      shock.r += SHOCK_SPEED * dt;
+      const k = shock.r / SHOCK_RANGE;
+      ring.scale.setScalar(shock.r);
+      ringMat.opacity = Math.max(0, 0.85 * (1 - k));
+
+      if (!shock.hit) {
+        const dx = ctx.playerPos.x - ring.position.x;
+        const dz = ctx.playerPos.z - ring.position.z;
+        const d = Math.hypot(dx, dz);
+        // The wave is a band, not a disc: standing still at the epicentre is
+        // safe once it has passed, which is what makes it dodgeable.
+        if (Math.abs(d - shock.r) < 1.4) {
+          shock.hit = true;
+          ctx.combat.damagePlayer(shock.damage, ring.position.x, ring.position.z);
+        }
+      }
+
+      if (shock.r >= SHOCK_RANGE) {
+        shock.live = false;
+        ring.visible = false;
+      }
+    }
+  }
+
+  function blocked(p, ctx) {
+    const n = ctx.colliderGrid.near(p.x, p.z, 0.4);
+    const list = ctx.colliderGrid.out;
+    for (let i = 0; i < n; i++) {
+      const c = list[i];
+      const base = c.y0 === undefined ? 0 : c.y0;
+      if (p.y < base || p.y > base + c.h) continue;
+      const dx = p.x - c.x, dz = p.z - c.z;
+      if (dx * dx + dz * dz < c.r * c.r) return true;
+    }
+    return false;
+  }
+
+  function clear() {
+    for (const s of shots) { s.live = false; s.mesh.visible = false; }
+    shock.live = false;
+    ring.visible = false;
+  }
+
+  return { group, fire, slam, update, clear, get liveShots() { return shots.filter((s) => s.live).length; } };
+}
+
+// ---------------------------------------------------------------------------
+// one god
+// ---------------------------------------------------------------------------
+
+function createGod(god, effects) {
+  const spec = {
+    ...MUMMY,
+    id: god.id,
+    name: god.name,
+    health: god.health,
+    speed: god.speed,
+    accel: 5.0,
+    turn: 2.2,
+    damage: god.damage,
+    attackRange: 3.0,
+    windup: 0.75,
+    strikeTime: 0.50,
+    cooldown: 2.2,
+    // A god does not flinch. Stagger on a boss reads as a stun the player did
+    // not earn, and it makes an automatic weapon a lock rather than a choice.
+    staggerTake: 0,
+    scale: 1.9,
+    height: 2.05,
+    radius: 0.95,
+    sepRadius: 2.4,
+    voicePitch: 0.5,
+    palette: { ...MUMMY.palette, ...god.palette, accentMetal: 0.85, accentRough: 0.3 },
+    proportions: COLOSSUS,
+    gait: GOD_GAIT,
+    build: buildHumanoid,
+    animate: animateHumanoid,
+  };
+
+  const actor = {
+    spec,
+    variant: god.id,
+    name: god.name,
+    boss: true,
+    live: false,
+    dead: false,
+    dying: false,
+    health: god.health,
+    maxHealth: god.health,
+    radius: spec.radius,
+    emitter: null,
+    ability: null,
+  };
+
+  // Materials, per god rather than per instance: only one is ever live, and the
+  // hit flash is therefore never shared with anything.
+  //
+  // The linen carries the same generated maps the horde wears. It has to: a god
+  // is built by the same `buildHumanoid`, so an unmapped god standing among
+  // mapped shamblers would be the one flat-shaded body in the frame, and it
+  // would be the one the player is looking at. The maps are the shared set from
+  // wraps.js, so five gods add nothing to texture memory, and the colour is
+  // divided by the map's linear mean so the god renders at the value its
+  // palette states.
+  const linen = linenMaps();
+  const mats = {
+    wrap: new THREE.MeshStandardMaterial({
+      color: compensate(god.palette.wrap, linen.gain),
+      map: linen.map, normalMap: linen.normalMap,
+      normalScale: new THREE.Vector2(1.1, 1.1),
+      roughnessMap: linen.roughnessMap, roughness: 0.94,
+    }),
+    wrapDark: new THREE.MeshStandardMaterial({
+      color: compensate(god.palette.wrapDark, linen.gain),
+      map: linen.map, normalMap: linen.normalMap,
+      normalScale: new THREE.Vector2(1.1, 1.1),
+      roughnessMap: linen.roughnessMap, roughness: 0.98,
+    }),
+    // Flat dark. The glow lives on `eye` alone, or the whole head becomes a
+    // lantern and the crown that distinguishes one god from another is lost
+    // inside it - which is exactly what the first Anubis screenshot showed.
+    deep: new THREE.MeshStandardMaterial({
+      color: god.palette.deep, roughness: 0.8,
+    }),
+    // Same ember, same reason, one notch up because a god is four metres tall
+    // and the socket subtends less of the frame than a shambler's does at the
+    // range you fight it from.
+    eye: new THREE.MeshStandardMaterial({
+      color: 0x1a120b, roughness: 0.7,
+      emissive: god.palette.eye, emissiveIntensity: 1.2,
+    }),
+    accent: new THREE.MeshStandardMaterial({
+      color: god.palette.accent, roughness: 0.3, metalness: 0.85,
+      emissive: god.palette.eye, emissiveIntensity: 0,
+    }),
+    // Painted at the BODY's linen, not at the shadow under it, because the value
+    // break now lives in the strip's own colour attribute: three bands, 0.26 of
+    // this at the bind, 0.86 slack, 0.44 at the hem, all UNDER one. See tornStrip.
+    // A god that kept the flat wrapDark rag would be the one figure in the frame
+    // whose cloth still matched the wall behind it.
+    tatter: new THREE.MeshStandardMaterial({
+      color: compensate(god.palette.wrap, linen.gain),
+      map: linen.map, normalMap: linen.normalMap,
+      normalScale: new THREE.Vector2(0.7, 0.7),
+      roughness: 1.0, side: THREE.DoubleSide, vertexColors: true,
+    }),
+  };
+
+  const rig = buildHumanoid(spec, mats, actor);
+  addCrown(rig, mats, god.crown, COLOSSUS, actor);
+
+  actor.group = rig.group;
+  actor.rig = rig;
+  actor.materials = mats;
+  actor.triangles = Math.round(rig.triangles);
+  actor.position = rig.group.position;
+
+  const st = {
+    vx: 0, vz: 0, feetY: 0,
+    phase: 0,
+    windup: 0, strike: 0, cooldown: 0, struck: false,
+    flash: 0,
+    // ability machine
+    phaseName: 'idle',      // idle | tell | active | recover
+    ability: null,
+    tLeft: 0,
+    nextAbility: 4,
+    chargeX: 0, chargeZ: 0,
+    volleyLeft: 0, volleyIn: 0,
+    summonWanted: 0,
+    deathT: 0,
+    toppleX: 0, toppleZ: 0,
+
+    /**
+     * Whether the farewell flare has already announced itself this death.
+     *
+     * A one-shot rather than a time window, and reset on spawn like every other
+     * mutable on this record: a god pooled and re-spawned is a new death, and a
+     * flag left set would make the second one silent.
+     */
+    flared: false,
+
+    // Wedge escape, the same one the horde runs. A god needs it MORE than a
+    // shambler does, not less: it has no local avoidance at all - it steers
+    // straight at the player by design, because a colossus that side-steps
+    // scenery reads as timid - and it is two to three times wider, so the walk
+    // field that clears a route for a mummy is not a promise it can use the
+    // same gap. Measured before this existed: Anubis placed at (-16.7, 22.5),
+    // 18.29 m out and on the player's own island, held 2.6 m/s for 1,116 of
+    // 1,200 frames and covered 0.00 m in forty simulated seconds. Wave five
+    // ends when the boss dies, and a boss behind a wall can neither arrive nor
+    // be shot, so that is the round over permanently.
+    wedge: 0,
+    detour: 0,
+    detourSide: 1,
+    detourFrom: 0,
+    forceSide: 0,
+
+    /**
+     * The last heading the god field gave, and how long ago.
+     *
+     * Held per god rather than per frame so a body carries on round the corner
+     * it was already rounding when the field blinks, instead of turning square
+     * into the wall it was walking past. See ROUTE_HOLD_S. Zeroed on spawn like
+     * every other mutable on this record: a pooled god re-entering the map must
+     * not steer on a route measured in the space it died in.
+     */
+    routeX: 0, routeZ: 0, routeAge: 0,
+  };
+  actor.st = st;
+
+  const anim = {
+    phase: 0, speed: 0, windup: 0, strike: 0,
+    stagger: 0, staggerRoll: 0, staggerPitch: 0,
+  };
+
+  function setGlow(k) {
+    // The gilding is the telegraph channel. It is the only surface on the body
+    // with metalness high enough to hold a colour against a bloom pass, so a
+    // ramp on it is visible across a gallery at 16 units of ceiling height.
+    // The GILDING carries the telegraph, not the sockets. Ramping the eyes was
+    // pushing a colossus toward the same lit-visor read the shamblers had to be
+    // corrected out of, and the metal holds a colour against the bloom pass far
+    // better than two recessed squares ever will.
+    mats.accent.emissiveIntensity = k * 3.6;
+    mats.eye.emissiveIntensity = 1.2 + k * 0.8;
+    const e = st.flash * 0.9;
+    mats.wrap.emissive.setRGB(e * 0.75, e * 0.18, e * 0.10);
+    mats.wrapDark.emissive.setRGB(e * 0.75, e * 0.18, e * 0.10);
+  }
+
+  /**
+   * The farewell curve. Only ever driven for a god carrying `farewell`.
+   *
+   * Written as a pure function of the death clock rather than as a little state
+   * machine with its own timers, for the same reason the shared death is: it is
+   * driven from one place, once a frame, and a curve that can be evaluated at
+   * any t cannot get stuck part way through it on a frame that was dropped.
+   *
+   * The hit flash is deliberately NOT carried here, unlike setGlow. The body is
+   * dead; a wrap that still lights up when a corpse is shot would be the game
+   * saying the fight is continuing, which is precisely the reading this whole
+   * sequence exists to refuse.
+   */
+  function setFarewellGlow(t) {
+    mats.eye.emissiveIntensity = 1.2 * Math.max(0, 1 - t / FAREWELL.EYE_OUT);
+
+    let accent;
+    if (t < FAREWELL.AT) accent = Math.max(0, 1 - t / FAREWELL.AT) * 1.2;
+    else if (t < FAREWELL.AT + FAREWELL.HOLD) accent = FAREWELL.FLARE;
+    else accent = 0;
+
+    mats.accent.emissiveIntensity = accent;
+    mats.wrap.emissive.setRGB(0, 0, 0);
+    mats.wrapDark.emissive.setRGB(0, 0, 0);
+  }
+
+  function spawn(x, z, ctx, hpScale) {
+    actor.live = true;
+    actor.dead = false;
+    actor.dying = false;
+    actor.maxHealth = god.health * hpScale;
+    actor.health = actor.maxHealth;
+
+    st.vx = st.vz = 0;
+    st.windup = st.strike = st.cooldown = 0;
+    st.struck = false;
+    st.flash = 0;
+    st.phaseName = 'idle';
+    st.ability = null;
+    st.tLeft = 0;
+    st.nextAbility = 4.5;
+    st.deathT = 0;
+    st.flared = false;
+    st.wedge = st.detour = st.detourFrom = st.forceSide = 0;
+    // The remembered route goes with them. A god pooled from the courtyard and
+    // re-spawned inside must not carry a heading measured 110 units away.
+    st.routeX = st.routeZ = st.routeAge = 0;
+    st.detourSide = 1;
+
+    st.feetY = groundAt(ctx, x, z, undefined);
+    rig.group.position.set(x, st.feetY, z);
+    rig.group.rotation.set(0, 0, 0);
+    rig.group.scale.setScalar(spec.scale);
+    rig.body.position.set(0, 0, 0);
+    rig.body.rotation.set(0, 0, 0);
+    for (const m of rig.meshes) m.visible = true;
+    setGlow(0);
+  }
+
+  function retire() {
+    actor.live = false;
+    actor.dying = false;
+    actor.dead = false;
+    actor.ability = null;
+    actor.emitter = null;
+  }
+
+  function hurt(damage, region, dirX = 0, dirZ = 0) {
+    if (!actor.live || actor.dying) return false;
+    actor.health -= damage;
+    st.flash = 1;
+    if (actor.health <= 0) {
+      actor.health = 0;
+      actor.dying = true;
+      st.deathT = 0;
+      st.vx = st.vz = 0;
+      st.phaseName = 'idle';
+      actor.ability = null;
+      const len = Math.hypot(dirX, dirZ) || 1;
+      st.toppleX = dirZ / len;
+      st.toppleZ = -dirX / len;
+      actor.emitter?.play('deathRattle', { pitch: 0.4 });
+      return true;
+    }
+    return false;
+  }
+
+  /** Which abilities are legal right now. Set unlocks as its bar comes down. */
+  function pool() {
+    if (!god.escalating) return god.abilities;
+    const lost = 1 - actor.health / actor.maxHealth;
+    const n = Math.max(1, Math.min(god.abilities.length, 1 + Math.floor(lost * 4.2)));
+    return god.abilities.slice(0, n);
+  }
+
+  function beginAbility(name, ctx) {
+    const A = ABILITY[name];
+    st.ability = name;
+    actor.ability = name;
+    st.phaseName = 'tell';
+    st.tLeft = A.tell;
+
+    // Every telegraph is audible as well as visible. A player behind a pillar
+    // is exactly the player who most needs to know a slam is coming.
+    if (name === 'summon' || name === 'teleport') actor.emitter?.play('bossHorn');
+    else actor.emitter?.play('groan', { pitch: 0.45 });
+
+    if (name === 'charge') {
+      // The charge line is locked at the END of the tell, not here, so a player
+      // who reads the pose can still move out of it. Stored anyway so the god
+      // faces its intent for the whole wind-up.
+      st.chargeX = ctx.playerPos.x;
+      st.chargeZ = ctx.playerPos.z;
+    }
+  }
+
+  function fireAbility(ctx) {
+    const name = st.ability;
+    const A = ABILITY[name];
+    st.phaseName = 'active';
+    st.tLeft = A.active;
+
+    const p = rig.group.position;
+
+    if (name === 'charge') {
+      const dx = ctx.playerPos.x - p.x;
+      const dz = ctx.playerPos.z - p.z;
+      const d = Math.hypot(dx, dz) || 1;
+      st.chargeX = dx / d;
+      st.chargeZ = dz / d;
+      actor.emitter?.play('swipe', { pitch: 0.5 });
+    } else if (name === 'slam') {
+      effects.slam(p.x, st.feetY, p.z, spec.damage * 0.9);
+      ctx.rig?.addTrauma(0.55);
+      actor.emitter?.play('swipe', { pitch: 0.35 });
+    } else if (name === 'volley') {
+      st.volleyLeft = 5;
+      st.volleyIn = 0;
+    } else if (name === 'teleport') {
+      // Behind the player, at arm's length past their shoulder, on a point the
+      // world says is standable. A teleport into stone is the one failure the
+      // player cannot recover from.
+      const yaw = ctx.playerYaw ?? 0;
+      const bx = ctx.playerPos.x + Math.sin(yaw) * 7.5;
+      const bz = ctx.playerPos.z + Math.cos(yaw) * 7.5;
+      p.set(bx, groundAt(ctx, bx, bz, undefined), bz);
+      st.feetY = p.y;
+      resolveAgainstWorld(p, spec.radius * spec.scale, st.feetY, ctx);
+      actor.emitter?.play('bossHorn', { pitch: 1.2 });
+    } else if (name === 'summon') {
+      st.summonWanted = 5;
+      actor.emitter?.play('waveStart');
+    }
+  }
+
+  function update(dt, ctx) {
+    if (!actor.live) return;
+
+    ctx.actorHeight = spec.height * spec.scale;
+
+    st.flash = Math.max(0, st.flash - dt * 6.0);
+
+    if (actor.dying) {
+      st.deathT += dt;
+      const k = Math.min(1, st.deathT / 1.1) ** 2;
+      rig.body.rotation.x = st.toppleX * k * (Math.PI / 2);
+      rig.body.rotation.z = st.toppleZ * k * (Math.PI / 2);
+
+      if (god.farewell) {
+        setFarewellGlow(st.deathT);
+
+        /*
+         * ONE SHOT, ON THE FLARE FRAME, AND THE DIRECTOR OWNS WHAT HAPPENS NEXT.
+         *
+         * Every living thing in the room stops for one second and turns to face
+         * the door of the sealed chapel, and then comes back at the player as
+         * if nothing happened. That is a fact about the HORDE, not about this
+         * body, so it is announced from here and staged there - `ctx.director`
+         * is the running api and has been on the context since the director was
+         * built, precisely so an actor can tell it something without importing
+         * it.
+         *
+         * Guarded by a flag rather than by an epsilon around the time, because
+         * a delta large enough to step over a window is exactly the frame this
+         * would otherwise be silently skipped on, and swiftshader produces
+         * those by the dozen.
+         */
+        if (!st.flared && st.deathT >= FAREWELL.AT) {
+          st.flared = true;
+          ctx.director?.bossFarewell?.(actor);
+        }
+      } else {
+        setGlow(Math.max(0, 1 - st.deathT * 0.6));
+      }
+
+      if (st.deathT > 1.9) {
+        const s = Math.min(1, (st.deathT - 1.9) / 1.4);
+        rig.group.position.y = st.feetY - s * spec.height * spec.scale;
+        rig.group.scale.setScalar(spec.scale * (1 - s * 0.5));
+        if (s >= 1) { actor.dead = true; actor.live = false; }
+      }
+      return;
+    }
+
+    const p = rig.group.position;
+    const tx = ctx.playerPos.x - p.x;
+    const tz = ctx.playerPos.z - p.z;
+    const dist = Math.hypot(tx, tz) || 1;
+
+    // --- the ability machine -------------------------------------------------
+    // One glow value is computed here and written ONCE at the bottom, because
+    // setGlow also carries the hit flash: writing it from three branches means
+    // a frame where a branch returns early is a frame the flash never lands.
+    let charging = false;
+    let glow = 0;
+
+    if (st.phaseName === 'idle') {
+      st.nextAbility -= dt;
+      if (st.nextAbility <= 0) {
+        const list = pool();
+        beginAbility(list[Math.floor(Math.random() * list.length)], ctx);
+      }
+    } else {
+      st.tLeft -= dt;
+
+      if (st.phaseName === 'tell') {
+        glow = 1 - st.tLeft / ABILITY[st.ability].tell;
+        if (st.tLeft <= 0) fireAbility(ctx);
+      } else if (st.phaseName === 'active') {
+        glow = 1;
+
+        if (st.ability === 'charge') {
+          charging = true;
+          st.vx = st.chargeX * spec.speed * 4.4;
+          st.vz = st.chargeZ * spec.speed * 4.4;
+          if (dist < spec.radius * spec.scale + 1.6) {
+            ctx.combat.damagePlayer(spec.damage, p.x, p.z);
+            st.tLeft = Math.min(st.tLeft, 0.05);
+          }
+        } else if (st.ability === 'volley' && st.volleyLeft > 0) {
+          st.volleyIn -= dt;
+          if (st.volleyIn <= 0) {
+            st.volleyIn = 0.16;
+            st.volleyLeft--;
+            const oy = st.feetY + spec.height * spec.scale * 0.72;
+            _v.set(ctx.playerPos.x - p.x, ctx.playerPos.y - oy, ctx.playerPos.z - p.z)
+              .normalize();
+            // Fanned, so a volley is a zone to leave rather than a hitscan.
+            const spread = 0.10;
+            effects.fire(p.x, oy, p.z,
+              _v.x + (Math.random() - 0.5) * spread,
+              _v.y + 0.06,
+              _v.z + (Math.random() - 0.5) * spread,
+              21, spec.damage * 0.42);
+          }
+        } else if (st.ability === 'summon' && st.summonWanted > 0) {
+          ctx.director?.summon(st.summonWanted);
+          st.summonWanted = 0;
+        }
+
+        if (st.tLeft <= 0) {
+          st.phaseName = 'recover';
+          st.tLeft = ABILITY[st.ability].recover;
+        }
+      } else if (st.phaseName === 'recover') {
+        glow = Math.max(0, st.tLeft / ABILITY[st.ability].recover) * 0.5;
+        if (st.tLeft <= 0) {
+          st.nextAbility = ABILITY[st.ability].cool * (god.escalating ? 0.6 : 1);
+          st.phaseName = 'idle';
+          st.ability = null;
+          actor.ability = null;
+        }
+      }
+    }
+
+    // --- melee, which never stops running --------------------------------------
+    const reach = spec.attackRange * spec.scale * 0.55 + ctx.playerRadius;
+    st.cooldown = Math.max(0, st.cooldown - dt);
+
+    if (st.strike > 0) {
+      st.strike = Math.max(0, st.strike - dt / spec.strikeTime);
+      if (!st.struck && st.strike < 0.55) {
+        st.struck = true;
+        if (dist <= reach + 1.0) ctx.combat.damagePlayer(spec.damage * 0.7, p.x, p.z);
+      }
+    } else if (st.windup > 0) {
+      st.windup = Math.min(1, st.windup + dt / spec.windup);
+      if (st.windup >= 1) {
+        st.windup = 0; st.strike = 1; st.struck = false;
+        actor.emitter?.play('swipe', { pitch: 0.5 });
+      }
+    } else if (dist <= reach && st.cooldown <= 0 && st.phaseName === 'idle') {
+      st.windup = 0.001;
+      st.cooldown = spec.cooldown;
+    }
+
+    // --- movement -------------------------------------------------------------
+    if (!charging) {
+      const busy = st.windup > 0 || st.strike > 0
+        || st.phaseName === 'tell' || st.phaseName === 'recover';
+      const want = busy || dist < reach * 0.9 ? 0 : spec.speed;
+      const a = Math.min(1, spec.accel * dt);
+
+      // Straight at the player, unless it is jammed, in which case square off
+      // the line to the player until it is round whatever is in the way. The
+      // detour rides on the VELOCITY target rather than on the facing, so the
+      // colossus keeps looking at the player while it walks the wall - the same
+      // separation the horde makes between where it is going and where it is
+      // looking, and for the same reason.
+      let dx = tx / dist, dz = tz / dist;
+
+      /**
+       * AND NOW A ROUTE, WHICH A GOD HAS NEVER HAD.
+       *
+       * The comment on `wedge` above says this body "has no local avoidance at
+       * all - it steers straight at the player by design". That was true, it was
+       * the right call for one open courtyard, and it stopped being right when
+       * the map became a room graph: local steering cannot see a doorway it is
+       * not already facing, which is the whole reason enemies/flow.js exists for
+       * the horde. A god was the one body still walking the bearing into stone,
+       * and it is the body the player stops and stands still to fight.
+       *
+       * It reads `ctx.flowHeavy`, NOT `ctx.flow`. The horde's field is carved
+       * with a 0.55 disc and this body is 1.805, so that field would hand it
+       * routes through gaps it cannot enter - confidently, which is worse than a
+       * straight line, because a body walking a wrong route does not trip its
+       * own wedge detector. See the note on the second field in director.js.
+       *
+       * THE ROUTE STEERS AND DOES NOT TURN THE HEAD. It is folded into dx/dz,
+       * which is the velocity target, and `wantYaw` below is still built from
+       * the straight line to the player. So a god walking round a colonnade
+       * still faces the thing it is hunting, which is the same separation the
+       * detour already makes and the reason a colossus does not read as timid.
+       *
+       * Everything below this line is untouched. The wedge detector and the
+       * committed detour were tuned against a body grinding on stone, they are
+       * good at that, and they are now the last-metre recovery on top of a
+       * heading worth following rather than the only thing standing between a
+       * god and a wall.
+       */
+      const near = reach;
+      const routed = dist > near
+        && !!ctx.flowHeavy
+        && ctx.flowHeavy.sample(p.x, p.z, st.feetY, _route);
+
+      if (routed) {
+        st.routeX = _route.x;
+        st.routeZ = _route.z;
+        st.routeAge = 0;
+      } else {
+        st.routeAge += dt;
+      }
+
+      // None in melee, all of it past ROUTE_FADE beyond reach, and - when the
+      // route is remembered rather than sampled - decaying to none over
+      // ROUTE_HOLD_S.
+      let k = dist > near ? Math.min(1, (dist - near) / ROUTE_FADE) : 0;
+      if (!routed) k *= Math.max(0, 1 - st.routeAge / ROUTE_HOLD_S);
+
+      if (k > 0 && (routed || st.routeX !== 0 || st.routeZ !== 0)) {
+        const rx = routed ? _route.x : st.routeX;
+        const rz = routed ? _route.z : st.routeZ;
+        dx += (rx - dx) * k;
+        dz += (rz - dz) * k;
+        const rl = Math.hypot(dx, dz) || 1;
+        dx /= rl; dz /= rl;
+      }
+
+      if (st.detour > 0) {
+        dx += -(tz / dist) * st.detourSide * DETOUR_BIAS;
+        dz += (tx / dist) * st.detourSide * DETOUR_BIAS;
+        const l = Math.hypot(dx, dz) || 1;
+        dx /= l; dz /= l;
+      }
+
+      st.vx += (dx * want - st.vx) * a;
+      st.vz += (dz * want - st.vz) * a;
+    }
+
+    const wasX = p.x, wasZ = p.z;
+    p.x += st.vx * dt;
+    p.z += st.vz * dt;
+
+    st.feetY = groundAt(ctx, p.x, p.z, st.feetY);
+    resolveAgainstWorld(p, spec.radius * spec.scale, st.feetY, ctx);
+    p.y = st.feetY;
+
+    // --- wedged? ---------------------------------------------------------------
+    // Not while charging: a charge is SUPPOSED to end against a wall, and the
+    // ability's own recover phase is what gets it out of that.
+    if (!charging) {
+      const moved = Math.hypot(p.x - wasX, p.z - wasZ);
+      const wanted = Math.hypot(st.vx, st.vz) * dt;
+
+      if (st.detour > 0) {
+        st.detour -= dt;
+        if (st.detour <= 0) {
+          st.forceSide = dist > st.detourFrom - 0.75 ? -st.detourSide : 0;
+          st.wedge = 0;
+        }
+      } else {
+        if (wanted > 1e-3 && moved < wanted * 0.45) st.wedge += dt;
+        else st.wedge = Math.max(0, st.wedge - dt * 2.5);
+
+        if (st.wedge >= WEDGE_TRIP) {
+          st.detourSide = st.forceSide
+            || pickDetourSide(p, tx / dist, tz / dist, spec.radius * spec.scale, st.feetY, ctx);
+          st.forceSide = 0;
+          st.detour = DETOUR_S;
+          st.detourFrom = dist;
+          st.wedge = 0;
+        }
+      }
+    }
+
+    const wantYaw = Math.atan2(tx, tz);
+    let d = wantYaw - rig.group.rotation.y;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    rig.group.rotation.y += d * Math.min(1, (charging ? 0.8 : spec.turn) * dt);
+
+    // --- pose ------------------------------------------------------------------
+    const speed = Math.hypot(st.vx, st.vz);
+    // Derived, exactly as the shambler's is. A god is four metres of body on a
+    // two-metre leg and it covers three metres a second, so an authored cadence
+    // is wrong here by more than it is anywhere else: the shipped number had a
+    // god's feet delivering under a third of the ground it crossed, which is a
+    // colossus on castors. See strideRate in mummy.js.
+    st.phase += dt * strideRate(spec, rig, speed);
+
+    anim.phase = st.phase;
+    anim.speed = speed;
+    // The ability tell borrows the melee wind-up pose: arms up, torso reared.
+    // One pose vocabulary for every tell means a player who has learned to read
+    // one has learned to read all of them.
+    anim.windup = st.phaseName === 'tell'
+      ? 1 - st.tLeft / ABILITY[st.ability].tell
+      : st.windup;
+    anim.strike = st.phaseName === 'active' && st.ability !== 'charge' ? 1 : st.strike;
+    anim.stagger = 0;
+    anim.staggerRoll = 0;
+    anim.staggerPitch = 0;
+    animateHumanoid(rig, spec, anim);
+
+    setGlow(glow);
+  }
+
+  actor.spawn = spawn;
+  actor.retire = retire;
+  actor.hurt = hurt;
+  actor.update = update;
+  actor.setFidelity = (high) => { for (const m of rig.meshes) m.castShadow = high; };
+
+  return actor;
+}
+
+// ---------------------------------------------------------------------------
+// the pack
+// ---------------------------------------------------------------------------
+
+/**
+ * Build all five gods and the effects they share.
+ *
+ * All at boot. Five colossi is about 4,700 triangles and five material sets,
+ * which is cheaper than the courtyard's palm trees, and the alternative is a
+ * multi-hundred-millisecond geometry build on the frame the horn sounds.
+ */
+export function createBossPack(scene) {
+  const effects = createEffects(scene);
+  const list = GODS.map((g) => createGod(g, effects));
+  const byId = new Map(list.map((b) => [b.variant, b]));
+
+  return {
+    list,
+    effects,
+
+    /** Which god belongs to a given wave number. Cycles past the fifth. */
+    forWave(wave) {
+      const i = (Math.floor(wave / 5) - 1) % list.length;
+      return list[(i + list.length) % list.length];
+    },
+
+    get(id) { return byId.get(id) || null; },
+
+    update(dt, ctx) { effects.update(dt, ctx); },
+
+    setFidelity(high) { for (const b of list) b.setFidelity(high); },
+
+    triangles: list.reduce((n, b) => n + b.triangles, 0),
+  };
+}

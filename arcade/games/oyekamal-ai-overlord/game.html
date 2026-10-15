@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Overlord — offline LLM arcade</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: system-ui, sans-serif; background: #0b0e1a; color: #e2e8f0; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+  header { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; padding: .6rem 1rem; width: min(520px, 95vw); box-sizing: border-box; }
+  header h1 { font-size: 1rem; margin: 0; flex: 1; }
+  a { color: #7dd3fc; font-size: .85rem; }
+  #status { font-size: .78rem; opacity: .75; width: 100%; }
+  progress { width: 100%; height: 5px; }
+  button, select { padding: .4rem .7rem; border-radius: 8px; border: 1px solid #334; background: #1a2035; color: #e2e8f0; cursor: pointer; font-size: .85rem; }
+  button:disabled { opacity: .5; cursor: default; }
+  #wrap { position: relative; }
+  canvas { background: radial-gradient(ellipse at 50% 120%, #1a2350 0%, #0b0e1a 70%); border: 1px solid #223; border-radius: 8px; display: block; touch-action: none; }
+  #taunt { position: absolute; top: 8px; left: 0; right: 0; text-align: center; font-size: .9rem; color: #f87171; text-shadow: 0 0 8px #f8717155; pointer-events: none; padding: 0 10px; }
+  #overlay { position: absolute; inset: 0; display: flex; flex-direction: column; gap: .8rem; align-items: center; justify-content: center; background: #0b0e1acc; border-radius: 8px; text-align: center; }
+  #overlay h2 { margin: 0; }
+  #overlay p { margin: 0; font-size: .85rem; opacity: .8; max-width: 80%; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>👾 AI Overlord</h1>
+  <a href="index.html">💬 chat</a>
+  <select id="model">
+    <option value="smol">SmolLM2 360M — fast</option>
+    <option value="qwen">Qwen2.5 1.5B — better</option>
+  </select>
+  <button id="load">Load AI</button>
+  <div id="status">The enemy waves are designed live by the LLM in your browser. Load the AI to play.</div>
+  <progress id="prog" value="0" max="1" hidden></progress>
+</header>
+
+<div id="wrap">
+  <canvas id="cv" width="480" height="620"></canvas>
+  <div id="taunt"></div>
+  <div id="overlay">
+    <h2>AI Overlord</h2>
+    <p>← → or A/D to move (or touch-drag). Your ship auto-fires.<br>An offline LLM is the villain: it invents every wave — pattern, speed, swarm size — and taunts you.</p>
+    <button id="start" disabled>Load the AI first</button>
+  </div>
+</div>
+
+<script type="module">
+import { createEngine } from "./engine.js";
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+
+const $ = id => document.getElementById(id);
+const cv = $("cv"), ctx = cv.getContext("2d");
+let chat = null;
+
+// ---------- AI wave director ----------
+const PATTERNS = ["sweep", "zigzag", "dive"];
+const DEFAULT_WAVES = [
+  { count: 5, speed: 1, pattern: "sweep", emoji: "👾", taunt: "Prepare to be deleted, human." },
+  { count: 7, speed: 1.5, pattern: "zigzag", emoji: "🛸", taunt: "My swarm grows stronger." },
+  { count: 9, speed: 2, pattern: "dive", emoji: "☄️", taunt: "You cannot dodge forever." },
+];
+let nextWaveConfig = null, generating = false;
+
+async function generateWave(waveNum, score) {
+  if (!chat || generating) return;
+  generating = true;
+  try {
+    const raw = await chat([
+      { role: "system", content: "You are the villain AI in a space shooter game. Reply with ONLY a JSON object, no other text." },
+      { role: "user", content: `Design wave ${waveNum}. Player score: ${score}. Reply ONLY with JSON like {"count":8,"speed":2,"pattern":"zigzag","emoji":"🛸","taunt":"short menacing one-liner"}. count 4-14, speed 1-5, pattern one of sweep/zigzag/dive.` }
+    ], null, { maxTokens: 90, temperature: 0.9 });
+    // tiny models often ignore "JSON only" — try strict parse, then lenient field-scraping
+    let j = {}, m = raw.match(/\{[\s\S]*?\}/);
+    if (m) { try { j = JSON.parse(m[0]); } catch { m = null; } }
+    if (!m) {
+      j = {
+        count: +(raw.match(/count\D{0,6}(\d+)/i)?.[1]),
+        speed: +(raw.match(/speed\D{0,6}(\d+(?:\.\d+)?)/i)?.[1]),
+        pattern: raw.match(/sweep|zigzag|dive/i)?.[0]?.toLowerCase(),
+        taunt: raw.match(/taunt\W{0,4}([^"{}\n]{5,110})/i)?.[1] || raw.match(/"([^"{}]{5,110})"/)?.[1],
+      };
+      m = (j.count || j.speed || j.pattern || j.taunt) ? true : null;
+    }
+    nextWaveConfig = {
+      count: Math.min(14, Math.max(4, Math.round(+j.count) || 5 + waveNum)),
+      speed: Math.min(5, Math.max(1, +j.speed || 1 + waveNum * 0.4)),
+      pattern: PATTERNS.includes(j.pattern) ? j.pattern : PATTERNS[waveNum % 3],
+      emoji: (typeof j.emoji === "string" && [...j.emoji].length <= 2 && j.emoji.trim()) ? j.emoji.trim() : "👾",
+      taunt: (typeof j.taunt === "string" && j.taunt.length < 120 && j.taunt.trim() && !/menacing one-liner/i.test(j.taunt)) ? j.taunt.trim() : "Resistance is futile.",
+      ai: !!m,
+    };
+  } catch (e) {
+    console.warn("wave gen failed, using default", e);
+    nextWaveConfig = null;
+  }
+  generating = false;
+}
+
+function takeWaveConfig(waveNum) {
+  const cfg = nextWaveConfig || { ...DEFAULT_WAVES[(waveNum - 1) % 3], count: Math.min(14, 4 + waveNum), speed: Math.min(5, 1 + waveNum * 0.4), ai: false };
+  nextWaveConfig = null;
+  return cfg;
+}
+
+// ---------- game state ----------
+const G = { running: false, wave: 0, score: 0, lives: 3, player: { x: 240, w: 34 }, bullets: [], enemies: [], particles: [], lastShot: 0, keys: {} };
+window.G = G; // debug/test hook
+
+function startWave() {
+  G.wave++;
+  const cfg = takeWaveConfig(G.wave);
+  cfg.speed = Math.min(cfg.speed, 1 + G.wave * 0.5); // early waves stay survivable no matter what the AI asks for
+  showTaunt(`Wave ${G.wave} — “${cfg.taunt}”${cfg.ai ? "" : " (backup wave)"}`);
+  for (let i = 0; i < cfg.count; i++) {
+    G.enemies.push({
+      x: 40 + (i % 7) * 60, y: -30 - Math.floor(i / 7) * 50, baseX: 40 + (i % 7) * 60,
+      speed: cfg.speed, pattern: cfg.pattern, emoji: cfg.emoji, t: i * 0.7, alive: true,
+    });
+  }
+  generateWave(G.wave + 1, G.score); // prefetch next wave while player fights this one
+}
+
+let tauntTimer;
+function showTaunt(text) {
+  $("taunt").textContent = text;
+  clearTimeout(tauntTimer);
+  tauntTimer = setTimeout(() => $("taunt").textContent = "", 5000);
+}
+
+function boom(x, y, color) {
+  for (let i = 0; i < 12; i++) G.particles.push({ x, y, vx: (Math.random() - .5) * 5, vy: (Math.random() - .5) * 5, life: 30, color });
+}
+
+// ---------- input ----------
+addEventListener("keydown", e => G.keys[e.key.toLowerCase()] = true);
+addEventListener("keyup", e => G.keys[e.key.toLowerCase()] = false);
+cv.addEventListener("pointermove", e => { if (e.buttons || e.pointerType === "touch") G.player.x = e.offsetX; });
+cv.addEventListener("pointerdown", e => G.player.x = e.offsetX);
+
+// ---------- main loop ----------
+function tick(ts) {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  const P = G.player;
+
+  if (G.running) {
+    if (G.keys["arrowleft"] || G.keys["a"]) P.x -= 6;
+    if (G.keys["arrowright"] || G.keys["d"]) P.x += 6;
+    P.x = Math.max(20, Math.min(cv.width - 20, P.x));
+
+    if (ts - G.lastShot > 150) { G.bullets.push({ x: P.x, y: cv.height - 60 }); G.lastShot = ts; }
+    G.bullets = G.bullets.filter(b => (b.y -= 9) > -10);
+
+    for (const e of G.enemies) {
+      e.t += 0.03;
+      e.y += e.speed * 0.3;
+      if (e.pattern === "sweep") e.x = e.baseX + Math.sin(e.t) * 60;
+      if (e.pattern === "zigzag") e.x = e.baseX + ((e.t * 90) % 240 < 120 ? (e.t * 90) % 120 : 120 - (e.t * 90) % 120) - 60;
+      if (e.pattern === "dive") { if (e.y > 200) e.y += e.speed * 0.4; e.x = e.baseX + Math.sin(e.t * 2) * 30; }
+      e.x = Math.max(15, Math.min(cv.width - 15, e.x));
+
+      for (const b of G.bullets) {
+        if (Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) { e.alive = false; b.y = -99; G.score += 10; boom(e.x, e.y, "#fbbf24"); }
+      }
+      if (e.y > cv.height - 70 && Math.abs(e.x - P.x) < 30 || e.y > cv.height) {
+        e.alive = false; G.lives--; boom(P.x, cv.height - 50, "#f87171");
+        if (G.lives <= 0) gameOver();
+      }
+    }
+    G.enemies = G.enemies.filter(e => e.alive);
+    if (G.enemies.length === 0 && G.running) startWave();
+  }
+
+  // draw
+  ctx.font = "26px serif"; ctx.textAlign = "center";
+  for (const e of G.enemies) ctx.fillText(e.emoji, e.x, e.y);
+  ctx.fillStyle = "#7dd3fc";
+  for (const b of G.bullets) ctx.fillRect(b.x - 2, b.y - 8, 4, 10);
+  G.particles = G.particles.filter(p => --p.life > 0);
+  for (const p of G.particles) { ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 30; ctx.fillRect(p.x += p.vx, p.y += p.vy, 3, 3); ctx.globalAlpha = 1; }
+  ctx.font = "30px serif";
+  ctx.fillText("🚀", P.x, cv.height - 35);
+  ctx.font = "14px system-ui"; ctx.fillStyle = "#e2e8f0"; ctx.textAlign = "left";
+  ctx.fillText(`Score ${G.score}   Wave ${G.wave}   ${"❤️".repeat(Math.max(0, G.lives))}`, 12, 22);
+
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function gameOver() {
+  G.running = false;
+  showTaunt("");
+  $("overlay").classList.remove("hidden");
+  $("overlay").querySelector("h2").textContent = `💀 Game Over — score ${G.score}`;
+  $("overlay").querySelector("p").textContent = "The Overlord wins this time.";
+  $("start").textContent = "Play again";
+  // ask the villain to gloat (non-blocking, purely cosmetic)
+  chat?.([
+    { role: "system", content: "You are a victorious villain AI. One short gloating sentence only." },
+    { role: "user", content: `You defeated the player at wave ${G.wave} with score ${G.score}. Gloat in one sentence.` }
+  ], null, { maxTokens: 40 }).then(t => { if (!G.running && t?.trim()) $("overlay").querySelector("p").textContent = "“" + t.trim() + "”"; }).catch(() => {});
+}
+
+$("start").onclick = () => {
+  Object.assign(G, { running: true, wave: 0, score: 0, lives: 3, bullets: [], enemies: [], particles: [] });
+  $("overlay").classList.add("hidden");
+  startWave();
+};
+
+$("load").onclick = async () => {
+  $("load").disabled = $("model").disabled = true;
+  $("prog").hidden = false;
+  try {
+    const eng = await createEngine($("model").value, (p, text) => { $("prog").value = p; $("status").textContent = text; });
+    chat = eng.chat;
+    window._chat = chat; // debug/test hook
+    $("status").textContent = `AI Overlord online (${eng.backend}) — fully offline.`;
+    $("prog").hidden = true;
+    $("start").disabled = false;
+    $("start").textContent = "Start game";
+    generateWave(1, 0); // pre-generate wave 1 while player reads the intro
+  } catch (e) {
+    $("status").textContent = "Failed to load: " + (e.message || e);
+    $("load").disabled = $("model").disabled = false;
+  }
+};
+</script>
+</body>
+</html>
