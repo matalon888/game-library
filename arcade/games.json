@@ -707,7 +707,8 @@
   "cover": "covers/vensun41-coin-pusher-3d.webp",
   "thumb": "covers/vensun41-coin-pusher-3d.webp",
   "icon": "art/vensun41-coin-pusher-3d.webp",
-  "clip": null
+  "clip": null,
+  "chat_safe": false
  },
  {
   "slug": "vedant131-prison-break-game-using-dsf-a-bsf-algo-",
@@ -1164,7 +1165,8 @@
   "cover": "covers/fraternebahirwe-pool-game-2026.webp",
   "thumb": "covers/fraternebahirwe-pool-game-2026.webp",
   "icon": "art/fraternebahirwe-pool-game-2026.webp",
-  "clip": null
+  "clip": null,
+  "chat_safe": false
  },
  {
   "slug": "sameralsayed-globe-country-quiz",
@@ -5177,7 +5179,8 @@
   "cover": "covers/velvet-ace-blackjack-21.webp",
   "thumb": "covers/velvet-ace-blackjack-21.webp",
   "icon": "art/velvet-ace-blackjack-21.webp",
-  "clip": "clips/velvet-ace-blackjack-21.mp4"
+  "clip": "clips/velvet-ace-blackjack-21.mp4",
+  "chat_safe": false
  },
  {
   "slug": "ivory-ball-european-roulette",
@@ -5213,7 +5216,8 @@
   "cover": "covers/ivory-ball-european-roulette.webp",
   "thumb": "covers/ivory-ball-european-roulette.webp",
   "icon": "art/ivory-ball-european-roulette.webp",
-  "clip": "clips/ivory-ball-european-roulette.mp4"
+  "clip": "clips/ivory-ball-european-roulette.mp4",
+  "chat_safe": false
  },
  {
   "slug": "hold-five-video-poker",
@@ -5249,7 +5253,8 @@
   "cover": "covers/hold-five-video-poker.webp",
   "thumb": "covers/hold-five-video-poker.webp",
   "icon": "art/hold-five-video-poker.webp",
-  "clip": "clips/hold-five-video-poker.mp4"
+  "clip": "clips/hold-five-video-poker.mp4",
+  "chat_safe": false
  },
  {
   "slug": "river-night-texas-hold-em",
@@ -5285,7 +5290,8 @@
   "cover": "covers/river-night-texas-hold-em.webp",
   "thumb": "covers/river-night-texas-hold-em.webp",
   "icon": "art/river-night-texas-hold-em.webp",
-  "clip": "clips/river-night-texas-hold-em.mp4"
+  "clip": "clips/river-night-texas-hold-em.mp4",
+  "chat_safe": false
  },
  {
   "slug": "pearl-tide-slots-casino",
@@ -5321,7 +5327,8 @@
   "cover": "covers/pearl-tide-slots-casino.webp",
   "thumb": "covers/pearl-tide-slots-casino.webp",
   "icon": "art/pearl-tide-slots-casino.webp",
-  "clip": "clips/pearl-tide-slots-casino.mp4"
+  "clip": "clips/pearl-tide-slots-casino.mp4",
+  "chat_safe": false
  },
  {
   "slug": "pip-duel-five-dice-game",
@@ -5357,7 +5364,8 @@
   "cover": "covers/pip-duel-five-dice-game.webp",
   "thumb": "covers/pip-duel-five-dice-game.webp",
   "icon": "art/pip-duel-five-dice-game.webp",
-  "clip": "clips/pip-duel-five-dice-game.mp4"
+  "clip": "clips/pip-duel-five-dice-game.mp4",
+  "chat_safe": false
  },
  {
   "slug": "pegfall-ball-drop-casino",
@@ -5393,7 +5401,8 @@
   "cover": "covers/pegfall-ball-drop-casino.webp",
   "thumb": "covers/pegfall-ball-drop-casino.webp",
   "icon": "art/pegfall-ball-drop-casino.webp",
-  "clip": "clips/pegfall-ball-drop-casino.mp4"
+  "clip": "clips/pegfall-ball-drop-casino.mp4",
+  "chat_safe": false
  },
  {
   "slug": "shimmer-scratch-cards",
@@ -5429,7 +5438,8 @@
   "cover": "covers/shimmer-scratch-cards.webp",
   "thumb": "covers/shimmer-scratch-cards.webp",
   "icon": "art/shimmer-scratch-cards.webp",
-  "clip": "clips/shimmer-scratch-cards.mp4"
+  "clip": "clips/shimmer-scratch-cards.mp4",
+  "chat_safe": false
  },
  {
   "slug": "pshenok-server-survival",
@@ -6157,7 +6167,8 @@
   "cover": "covers/dongsebastian86-lab-dsebastian-poker-game.webp",
   "thumb": "covers/dongsebastian86-lab-dsebastian-poker-game.webp",
   "icon": "art/dongsebastian86-lab-dsebastian-poker-game.webp",
-  "clip": "clips/dongsebastian86-lab-dsebastian-poker-game.mp4"
+  "clip": "clips/dongsebastian86-lab-dsebastian-poker-game.mp4",
+  "chat_safe": false
  },
  {
   "slug": "rubikou-unirush-js13k",
@@ -6514,7 +6525,8 @@
   "cover": "covers/lingfeiwang-game-emberforge.webp",
   "thumb": "covers/lingfeiwang-game-emberforge.webp",
   "icon": "art/lingfeiwang-game-emberforge.webp",
-  "clip": "clips/lingfeiwang-game-emberforge.mp4"
+  "clip": "clips/lingfeiwang-game-emberforge.mp4",
+  "chat_safe": false
  },
  {
   "slug": "vishc1-fungame",

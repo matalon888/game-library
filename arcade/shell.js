@@ -19,7 +19,9 @@
   const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  const games = () => fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('games.json').then(r => r.json()));
+  // inside ChatGPT/Claude (embed=chat) simulated-gambling games (chat_safe=false) are never listed or playable
+  const games = () => fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('games.json').then(r => r.json()))
+    .then(gs => EMBED ? gs.filter(g => g.chat_safe !== false) : gs);
   const cid = (() => { let c = store.get('cid'); if (!c) { c = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now(); store.set('cid', c); } return c; })();
   const api = (p, body) => fetch(API + p, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true } : {})
     .then(r => r.ok ? r.json() : null).catch(() => null);
@@ -168,9 +170,9 @@
     const gs = every.filter(g => !isDesk(g));                    // desktop games live only in their own Desktop category
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
-    const COLLS = ['Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
+    const COLLS = ['Play with your AI', 'Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
     const inColl = (g, c) => (g.tags || []).includes(c);
-    const collList = c => gs.filter(g => inColl(g, c));
+    const collList = c => (c === 'Play with your AI' ? every : gs).filter(g => inColl(g, c));  // AI games show whatever the device (desktop ones offer 'send to my computer' on phones)
     const cats = [...new Set(COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()))].concat(desk.length ? ['Desktop'] : []);
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
@@ -212,7 +214,8 @@
       // "Just made": newest creations first, whatever day we added them
       const recent = gs.filter(g => g.made && ago(g.made) <= 21).sort((a, b) => (b.made > a.made ? 1 : -1));
       const byCat = cats.filter(c => !COLLS.includes(c) && c !== 'Desktop').map(c => [c, gs.filter(g => (g.category || 'Arcade') === c)]).sort((a, b) => b[1].length - a[1].length);
-      $('shelves').innerHTML = shelf('Hyper-casual · one-tap hits', collList('Hyper-casual'), 'Hyper-casual') +
+      $('shelves').innerHTML = shelf('Play with your AI · bring Claude or ChatGPT', collList('Play with your AI'), 'Play with your AI') +
+        shelf('Hyper-casual · one-tap hits', collList('Hyper-casual'), 'Hyper-casual') +
         shelf('Endless runners', collList('Endless runners'), 'Endless runners') +
         shelf('Daily puzzles · a new one every day', collList('Daily puzzles'), 'Daily puzzles') +
         shelf('Makeover & DIY', collList('Makeover'), 'Makeover') +
@@ -242,7 +245,7 @@
   async function play() {
     const slug = new URLSearchParams(location.search).get('g');
     const g = (await games()).find(x => x.slug === slug);
-    if (!g) { location.replace('./'); return; }
+    if (!g) { location.replace(EMBED ? './?embed=chat' : './'); return; }
     if (g.linkout) { location.replace(g.external); return; }
     document.title = g.name + ' · RIFFCADE';
     $('title').textContent = g.name;
