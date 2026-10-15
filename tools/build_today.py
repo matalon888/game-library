@@ -190,7 +190,7 @@ footer a {{ text-decoration: underline }}
 <span class="cv"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="600" height="1000"></span>
 <div><small>GAME OF THE DAY</small><h2>{e(gotd['name'])}</h2><p>{e(pitch(gotd))}</p>
 <span class="btn">▶ Play free</span><span class="meta">{e(EMOJI.get(gotd['category'], '🎮'))} {e(gotd['category'])}{f" · ★ {gs_:.1f}" if gs_ else ""}{" · best on a computer" if gotd.get("desk_only") else ""}</span></div></a></div>
-<details class="list pad"><summary>📋 Today's list with links</summary>
+<details class="list pad" open><summary>📋 Today's list with links</summary>
 <p>Game of the day, then today's picks in each category (🆕 = just added), one line each with its link. They change every day. All free, in the browser.</p>
 <p class="gl"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="48" height="80">🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
 {text}
