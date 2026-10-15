@@ -201,7 +201,7 @@
       <b>${esc(g.name)}</b><span>${fresh ? `<span class="new">${madeTxt(g.made)}</span>` : metaLine(g, stats[g.slug])}</span></a>`;
     const row = (g, i) => `<a class="row" href="${href(g)}"${tgt(g)}${dd(g)}><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
       <div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p><span class="sub">${metaLine(g, stats[g.slug])}</span></div><span class="get">PLAY</span></a>`;
-    const AI_DESC = '<p class="shelf-desc"><b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch, and the tokens they use fill your fuel, mana or coins. You play alongside them. It only counts your agents\' activity, it never spends tokens. 🏆 World leaderboards with country flags.</p>';
+    const AI_DESC = '<p class="shelf-desc"><b>Your own AI agents drive these games.</b> Connect Claude Code or Codex: it counts the work your agents finish, it is not an AI playing alone. Every step that works is a pass, a shot or a launch; passed tests, commits and deploys score big. Results count, tokens don\'t, and it never spends tokens. You aim, time and boost. 🏆 World leaderboards with country flags, unrigged.</p>';
     const shelf = (title, list, see, fresh) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>${see === 'Connect your AI' ? AI_DESC : ''}
       <div class="rail">${list.slice(0, 15).map(g => tile(g, fresh)).join('')}</div></section>` : '';
 

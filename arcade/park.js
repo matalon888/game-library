@@ -237,6 +237,9 @@
       l.forEach(g => { n[g.category || 'Arcade'] = (n[g.category || 'Arcade'] || 0) + 1; (g.tags || []).forEach(t => COLLS.includes(t) && (n[t] = (n[t] || 0) + 1)); });
       return Object.entries(n).filter(([, k]) => k >= 2).sort((a, b) => b[1] - a[1]);
     };
+    // Ad / share deep link: /arcade/?cat=Puzzle opens that shelf, in the first mode that has it (phones first).
+    const qc = new URLSearchParams(location.search).get('cat');
+    if (qc) { const m = ['mobile', ...Object.keys(MODES)].find(k => k !== 'ai' && catsFor(k).some(([c]) => c === qc)); if (m) { mode = m; cat = qc; } }
     const latest = LATEST = all.reduce((m, g) => (g.added > m ? g.added : m), '');
     $('count').textContent = `${all.length} games · ${all.filter(g => g.added === latest).length} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
     $('heroN').textContent = all.length;
