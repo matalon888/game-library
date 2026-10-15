@@ -15,7 +15,7 @@ OUT = ROOT if SITE_LAYOUT else os.path.join(ROOT, "site")
 SITE = "https://agentpark.co"
 SHELF = 12          # covers per shelf
 NEW = 12            # "Just added" shelf and the JSON's games list
-PER_CAT = 3         # games per category in the plain-text list
+PER_CAT = 6         # games per category in the list the AI quotes (with covers)
 EMOJI = {"Puzzle": "🧩", "Arcade": "👾", "Action": "💥", "Racing": "🏎️", "Strategy": "♟️", "3D": "🧊", "Idle": "⏳",
          "Word & Math": "🔤", "Sports": "⚽", "Makeover": "💅", "Retro": "🕹️", "Kids": "🧸", "2-Player": "🤝", "Cards": "🃏"}
 
@@ -54,7 +54,7 @@ shelves += [(f"c-{c.lower().replace(' & ', '-').replace(' ', '-')}", f"{EMOJI.ge
 
 def pick_cat(c):
     """The list an AI quotes, different every day: games added today or yesterday first, then a window that moves PER_CAT
-    places a day through the category's good games (Park score 6+, best first), so the picks rotate even on days with
+    places a day through the category's games (Park score 6+, best first), so the picks rotate even on days with
     nothing new; a category of 30 games repeats only after 10 days."""
     gs = [g for g in shown if g["category"] == c and g is not gotd]
     new = best([g for g in gs if fresh(g)])
@@ -191,7 +191,7 @@ footer a {{ text-decoration: underline }}
 <div><small>GAME OF THE DAY</small><h2>{e(gotd['name'])}</h2><p>{e(pitch(gotd))}</p>
 <span class="btn">▶ Play free</span><span class="meta">{e(EMOJI.get(gotd['category'], '🎮'))} {e(gotd['category'])}{f" · ★ {gs_:.1f}" if gs_ else ""}{" · best on a computer" if gotd.get("desk_only") else ""}</span></div></a></div>
 <details class="list pad" open><summary>📋 Today's list with links</summary>
-<p>Game of the day, then today's picks in each category (🆕 = just added), one line each with its link. They change every day. All free, in the browser.</p>
+<p>Game of the day, then 6 picks in every category (🆕 = just added), each with its cover, name and link. They change every day. All free, in the browser.</p>
 <p class="gl"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="48" height="80">🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
 {text}
 <p>All the games with pictures: <a href="https://today.agentpark.co">https://today.agentpark.co</a></p>
