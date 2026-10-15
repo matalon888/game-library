@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/arcade/guard.js" data-ap-guard></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TorqueVerse 3D - Toon City, Forest & Circuit</title>
@@ -1184,9 +1185,9 @@
     const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 820;
     const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: 'high-performance', preserveDrawingBuffer: new URLSearchParams(location.search).get('test') === '1' });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.4 : 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = isMobile ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.BasicShadowMap;
 
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
@@ -3078,7 +3079,7 @@
     let toonCityLife = null;
     let cityCollisionGrid = null;
     let cityLightingRestore = null;
-    let graphicsQuality = 'high';
+    let graphicsQuality = 'med';
     let raceCountdownInterval = null;
     let minimapElapsed = 0;
     let cityHudElapsed = 0;
@@ -3295,7 +3296,7 @@
     function setGraphicsQuality(level) {
         graphicsQuality = ['low', 'med', 'high'].includes(level) ? level : 'med';
         level = graphicsQuality;
-        persistence.saveRecord('gfxQuality', level);
+        persistence.saveRecord('gfxQuality2', level);
         ['low', 'med', 'high'].forEach(lvl => {
             const btn = document.getElementById('btn-gfx-' + lvl);
             if (btn) {
@@ -6124,7 +6125,7 @@ function updatePlayer(dt) {
 
     // Initialize Saved Graphics Quality
     if (typeof setGraphicsQuality === 'function') {
-        setGraphicsQuality(persistence.getRecord('gfxQuality') || (isMobile ? 'med' : 'high'));
+        setGraphicsQuality(persistence.getRecord('gfxQuality2') || 'med');
     }
 
     const urlParams = new URLSearchParams(window.location.search);

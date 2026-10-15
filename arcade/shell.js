@@ -288,6 +288,19 @@
     });
     frame.className = 'fit';
     stage.appendChild(frame);
+    // guard.js in the game reports it can't keep up (under 22 fps for 6 s): offer lighter graphics (devicePixelRatio 1 for this
+    // game, kept on the device), and if it's already light, suggest another game. Counted in GA as game_slow.
+    addEventListener('message', e => {
+      if (e.origin !== location.origin || !e.data || e.data.agentpark !== 'slow' || e.data.slug !== g.slug || document.querySelector('.slowbar')) return;
+      try { window.RiffConsent && RiffConsent.ga('game_slow', { game: g.slug, fps: e.data.fps, lite: e.data.lite ? 1 : 0 }); } catch (x) {}
+      const bar = document.createElement('div'); bar.className = 'slowbar'; bar.setAttribute('role', 'status');
+      bar.innerHTML = e.data.lite ? `<span>This game is heavy for this device.</span><a href="./">Try another game</a><button type="button" aria-label="Close">✕</button>`
+        : `<span>Running slow on this device?</span><button type="button" class="lite">Lighter graphics</button><button type="button" aria-label="Close">✕</button>`;
+      player.appendChild(bar);
+      bar.querySelector('[aria-label=Close]').onclick = () => bar.remove();
+      const l = bar.querySelector('.lite');
+      if (l) l.onclick = () => { try { localStorage.setItem('ap.lite.' + g.slug, '1'); } catch (x) {} try { window.RiffConsent && RiffConsent.ga('game_lite', { game: g.slug }); } catch (x) {} bar.remove(); frame.src = gameUrl; };
+    });
     const player = document.querySelector('.player');
 
     const ov = document.createElement('div');
