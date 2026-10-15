@@ -65,7 +65,7 @@
   // ---------------------------------------------------------------- consent (consent.js: one banner, decline by default)
   // Ads stay non-personalised until "Accept". Kids games: never personalised ads, never GA or the pixel.
   let kids = false;
-  const pixel = (n, custom) => RC.pixel(n, custom);
+  const pixel = (n, custom, params) => RC.pixel(n, custom, params);
   RC.onChange(v => { ev(v === 'accepted' ? 'consent_accept' : 'consent_decline'); if (window.RiffAds) window.RiffAds.consent(v === 'accepted' && !kids); });
 
   // ---------------------------------------------------------------- ads (adapter loads only when ADS_ENABLED)
@@ -165,6 +165,9 @@
     t0 = Date.now();
     if (RH) RH.gameStart();
     ga('game_start', { game_id: G.slug, game_category: G.category || '', original: G.original ? 'yes' : 'no', source: src, list_position: pos, challenge: chN ? 'yes' : 'no', session_game_n: count, player_tier: tierNow });
+    // Meta: every game start is a standard ViewContent (what ads optimise for); the 1st and 2nd of a session are custom events too
+    pixel('ViewContent', false, { content_type: 'product', content_ids: [G.slug], content_name: G.name, content_category: G.category || 'Arcade' });
+    if (count === 1) pixel('GamePlayed1', true);
     if (count === 2) pixel('GamePlayed2', true);
     if (chN) ev('challenge_play');
     if (C.ADS_ENABLED) ads().then(a => { if (a && $('gAdbar')) a.showBanner($('gAdbar')); });

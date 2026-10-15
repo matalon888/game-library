@@ -116,7 +116,7 @@ html.rc-lock,html.rc-lock body{overflow:hidden}
     },
     // GA user properties (player tier, habits): same gate as events
     setUser(props) { if (!C.GA4_ID || state() !== 'accepted' || kids) return; const f = () => window.gtag && gtag('set', 'user_properties', props); started ? f() : queue.push(f); },
-    pixel(name, custom) { if (!C.META_PIXEL_ID || state() !== 'accepted' || kids) return; const f = () => window.fbq && fbq(custom ? 'trackCustom' : 'track', name); started ? f() : queue.push(f); },
+    pixel(name, custom, params) { if (!C.META_PIXEL_ID || state() !== 'accepted' || kids) return; const f = () => window.fbq && fbq(custom ? 'trackCustom' : 'track', name, params || {}); started ? f() : queue.push(f); },
   };
 
   if (!needed) return;
