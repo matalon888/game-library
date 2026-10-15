@@ -11,7 +11,7 @@ const NAME = 'Dialock: Spin Lock Puzzle';
 const S = createStage({ fov: 34, shadowSize: 7 });
 const { scene, camera, sun, hemi } = S;
 sun.position.set(-3, 14, 5); sun.intensity = 1.4; hemi.intensity = 1.3;
-const ui = createUI({ title: 'DIALOCK', hint: 'Tap a dial to turn it · or drag', hand: '👆', score: false });
+const ui = createUI({ title: 'DIALOCK', hint: 'Drag the dials to line up the gaps', hand: '👆', score: false });
 const D = daily('dialock', ui, { name: NAME });
 const save = store('dialock');
 const F = flow('dialock');
@@ -44,13 +44,9 @@ function ringGeo(i) {
   return g;   // the gap is centred on local +X
 }
 const base = new THREE.Group(); scene.add(base);
-// free a removed board's GPU memory (shared cog shapes stay)
-const freeTree = o => o.traverse(x => { if (!x.isMesh) return; if (x.geometry !== COG && x.geometry !== TOOTH) x.geometry.dispose(); [].concat(x.material).forEach(m => m && m.dispose()); });
-// free a removed board's GPU memory (shared cog shapes stay)
-const freeTree = o => o.traverse(x => { if (!x.isMesh) return; if (x.geometry !== COG && x.geometry !== TOOTH) x.geometry.dispose(); [].concat(x.material).forEach(m => m && m.dispose()); });
 let maxR = 3;
 function buildBase(n) {
-  freeTree(base); base.clear();
+  base.clear();
   maxR = rOut(n - 1) + 0.55;
   const plate = new THREE.Mesh(new THREE.CylinderGeometry(maxR, maxR + 0.05, 0.3, 72), mat('#ffffff', { roughness: 0.5 })); plate.position.y = -0.15; plate.receiveShadow = true; plate.castShadow = true; base.add(plate);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(maxR, 0.09, 12, 72), glossy('#f1e4d8')); rim.rotation.x = Math.PI / 2; rim.position.y = 0.0; base.add(rim);
@@ -103,7 +99,7 @@ let lvl = null;
 function build() {
   const fk = F.k(), seed = D.seed ? D.seed : level * 6151 + 3;
   lvl = design(level, seed, fk);
-  for (const r of rings) { scene.remove(r.g); freeTree(r.g); }
+  for (const r of rings) scene.remove(r.g);
   buildBase(lvl.n);
   rings = []; pos = lvl.pos.slice(); links = lvl.L;
   for (let i = 0; i < lvl.n; i++) {
@@ -166,8 +162,7 @@ addEventListener('pointermove', (e) => {
   let a = angOf(p), d = a - drag.last; if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; drag.last = a; drag.delta += d;
   const s = Math.round(drag.delta / STEP); if (s !== drag.tick) { if (drag.tick !== undefined) tone(900 + (s % 2) * 120, 0.025, 'square', 0.03, 1); drag.tick = s; }
 });
-// a tap (no real turn) turns the dial one notch clockwise; a drag turns it as far as it was dragged
-addEventListener('pointerup', () => { if (!drag) return; const { i, delta } = drag; drag = null; commit(i, Math.abs(delta) < STEP * 0.35 ? -1 : Math.round(delta / STEP)); });
+addEventListener('pointerup', () => { if (!drag) return; const { i, delta } = drag; drag = null; commit(i, Math.round(delta / STEP)); });
 
 function commit(i, s) {
   for (let k = 0; k < rings.length; k++) rings[k].ang = pos[k] * STEP;

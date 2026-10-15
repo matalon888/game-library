@@ -3079,7 +3079,7 @@
     let toonCityLife = null;
     let cityCollisionGrid = null;
     let cityLightingRestore = null;
-    let graphicsQuality = 'med';
+    let graphicsQuality = 'low';
     let raceCountdownInterval = null;
     let minimapElapsed = 0;
     let cityHudElapsed = 0;
@@ -6125,7 +6125,7 @@ function updatePlayer(dt) {
 
     // Initialize Saved Graphics Quality
     if (typeof setGraphicsQuality === 'function') {
-        setGraphicsQuality(persistence.getRecord('gfxQuality2') || 'med');
+        setGraphicsQuality(persistence.getRecord('gfxQuality2') || 'low');
     }
 
     const urlParams = new URLSearchParams(window.location.search);

@@ -4,6 +4,22 @@
 import * as THREE from './three.module.min.js';
 export { THREE };
 
+// ---------------------------------------------------------------- GPU memory guard (qa/perf_fixes.py)
+if (!THREE.Object3D.prototype.__apFree) {
+  const P = THREE.Object3D.prototype, rem = P.remove, pending = new Set();
+  const free = o => o.traverse(x => {
+    if (x.geometry && x.geometry.dispose) x.geometry.dispose();
+    for (const m of [].concat(x.material || [])) { if (!m) continue; for (const k in m) { const v = m[k]; if (v && v.isTexture && !v.isRenderTargetTexture) v.dispose(); } m.dispose(); }
+  });
+  let timer = 0;
+  const sweep = () => { timer = 0; for (const o of pending) { pending.delete(o); if (!o.parent) free(o); } };
+  P.remove = function (...objs) {
+    for (const o of objs) if (o && o.parent === this) { pending.add(o); if (!timer) timer = setTimeout(sweep, 2000); }
+    return rem.apply(this, objs);
+  };
+  P.__apFree = 1;
+}
+
 // ---------------------------------------------------------------- palettes (pastel bg + one bold accent family)
 export const PALETTES = [
   { bg: ['#ffd1dc', '#ffe9b8'], a: '#ff5d8f', b: '#ffd23f', c: '#2b2d42', ground: '#fff4e6', ui: '#ff5d8f' },
