@@ -58,7 +58,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "twist-drop"
+   "repo_dir": "twist-drop",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag to twist a pink tower so a bouncing ball drops through the gaps, smashing platforms in satisfying bursts while avoiding dark slices."
+   }
   },
   {
    "slug": "tube-rush",
@@ -79,7 +86,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "tube-rush"
+   "repo_dir": "tube-rush",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer an inflatable tube down twisting water slides against rival animals, bumping opponents and flying off curves to cut corners and climb the placings."
+   }
   },
   {
    "slug": "sky-evolve",
@@ -100,7 +114,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "sky-evolve"
+   "repo_dir": "sky-evolve",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Sling a paper plane off a ramp, steer through gates that add, subtract or multiply, and evolve into an airliner to hit the target."
+   }
   },
   {
    "slug": "turf-rush",
@@ -121,7 +142,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "turf-rush"
+   "repo_dir": "turf-rush",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Glide out of your turf, draw a loop and close it to claim land, while rivals try to cut your exposed trail."
+   }
   },
   {
    "slug": "horde-blast",
@@ -142,7 +170,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "horde-blast"
+   "repo_dir": "horde-blast",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Hold to fire a stream of blue fighters through x2 and x3 gates, multiplying your crowd into a swarm that storms the red fortress."
+   }
   },
   {
    "slug": "gulp-city",
@@ -163,7 +198,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "gulp-city"
+   "repo_dir": "gulp-city",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer a growing hole around a toy city, swallowing people, cones and cars to hit each level's size goal before rival holes do."
+   }
   },
   {
    "slug": "brick-climb",
@@ -184,7 +226,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "brick-climb"
+   "repo_dir": "brick-climb",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Race rivals across a brick-strewn floor, collecting only your colour to stack and lay as stairs, then climb first to the next level."
+   }
   },
   {
    "slug": "shade-shop",
@@ -206,7 +255,14 @@
     "Kids"
    ],
    "original": true,
-   "repo_dir": "shade-shop"
+   "repo_dir": "shade-shop",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tap red, yellow, blue, white and black drops into a bowl to match a target colour on a 3D object, then spray it."
+   }
   },
   {
    "slug": "pose-rush",
@@ -227,7 +283,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "pose-rush"
+   "repo_dir": "pose-rush",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Run down a street, then drag your fighter's limbs into the right pose during slow motion to kick, punch or dodge past obstacles."
+   }
   },
   {
    "slug": "marble-dash",
@@ -248,7 +311,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "marble-dash"
+   "repo_dir": "marble-dash",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Hold to roll a glossy marble down a wooden sky track, steering around red blocks and over boost pads toward the next level."
+   }
   },
   {
    "slug": "stretch-dash",
@@ -269,7 +339,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "stretch-dash"
+   "repo_dir": "stretch-dash",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer a jelly runner through gates that stretch it taller, shorter, wider or thinner, then spend that size climbing the finish stairs."
+   }
   },
   {
    "slug": "dust-descent",
@@ -290,7 +367,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "dust-descent"
+   "repo_dir": "dust-descent",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer a first-person mountain bike down a dusty canyon, grabbing boost pads and passing five rivals to take first place."
+   }
   },
   {
    "slug": "cube-trek",
@@ -311,7 +395,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "cube-trek"
+   "repo_dir": "cube-trek",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag block pieces onto an 8x8 grid, clearing full rows and columns to free gems or hit score targets across quest levels."
+   }
   },
   {
    "slug": "steady-wheels",
@@ -332,7 +423,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "steady-wheels"
+   "repo_dir": "steady-wheels",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Hold to drive, slide the wheel to steer along curving roads, collect coins, dodge cones, then reverse into a marked bay without scraping."
+   }
   },
   {
    "slug": "bellhop-boss",
@@ -353,7 +451,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "bellhop-boss"
+   "repo_dir": "bellhop-boss",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag your bellhop around a pastel hotel, checking in guests and collecting cash to buy new rooms and staff, unlocking themed floors."
+   }
   },
   {
    "slug": "sticky-nook",
@@ -375,7 +480,14 @@
     "Makeover"
    ],
    "original": true,
-   "repo_dir": "sticky-nook"
+   "repo_dir": "sticky-nook",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag cute stickers from a tray onto faint silhouettes in isometric rooms, gradually restoring a bedroom, kitchen, bathroom and living room."
+   }
   },
   {
    "slug": "chilly-chute",
@@ -396,7 +508,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "chilly-chute"
+   "repo_dir": "chilly-chute",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Swipe to steer a tube-riding sledder down an icy slope, jumping, ducking under limbo bars, and grabbing coins as levels advance."
+   }
   },
   {
    "slug": "viral-den",
@@ -417,7 +536,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "viral-den"
+   "repo_dir": "viral-den",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap to film clips and watch followers climb while cash buys camera, lights, room and gear upgrades that visibly transform your streamer room across levels."
+   }
   },
   {
    "slug": "dress-diva",
@@ -439,7 +565,14 @@
     "Makeover"
    ],
    "original": true,
-   "repo_dir": "dress-diva"
+   "repo_dir": "dress-diva",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Dress a client to match a theme like Beach Party, then watch her walk the runway and face a rival's score across levels."
+   }
   },
   {
    "slug": "cover-clash",
@@ -461,7 +594,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "cover-clash"
+   "repo_dir": "cover-clash",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Hold to pop out of cover and shoot, release to duck before enemy fire lands, across beach and city waves."
+   }
   },
   {
    "slug": "latte-jam",
@@ -482,7 +622,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "latte-jam"
+   "repo_dir": "latte-jam",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap Lego-like trays into four slots so matching cups from a winding belt hop in, clearing orders before the slots jam."
+   }
   },
   {
    "slug": "time-knives",
@@ -504,7 +651,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "time-knives"
+   "repo_dir": "time-knives",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Hold to freeze time, draw a path of knives across the neon grid, then release to send them through enemies in a combo burst."
+   }
   },
   {
    "slug": "kickback",
@@ -526,7 +680,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "kickback"
+   "repo_dir": "kickback",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tap to fire a floating pistol and use its recoil to launch upward, shooting red guns while dodging fire and staying above the floor."
+   }
   },
   {
    "slug": "smash-dummy",
@@ -547,7 +708,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "smash-dummy"
+   "repo_dir": "smash-dummy",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag and fling a wooden dummy into swinging wrecking balls and down stairs, racking up damage points toward each level's goal before throws run out."
+   }
   },
   {
    "slug": "gulp-garden",
@@ -568,7 +736,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "gulp-garden"
+   "repo_dir": "gulp-garden",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag a hole around a toy-like diorama, swallowing small items to grow and clearing target treats before the timer expires, across themed levels."
+   }
   },
   {
    "slug": "glow-keys",
@@ -589,7 +764,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "glow-keys"
+   "repo_dir": "glow-keys",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tap dark tiles as they reach the glow line to play public-domain melodies note by note, with combo-driven Perfect ratings and star-based level progress."
+   }
   },
   {
    "slug": "neon-hop",
@@ -610,7 +792,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "neon-hop"
+   "repo_dir": "neon-hop",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Steer a bouncing ball across tiles in time with a melody, chasing PERFECT center landings, gem pickups, and a personal best."
+   }
   },
   {
    "slug": "munch-buddies",
@@ -631,7 +820,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "munch-buddies"
+   "repo_dir": "munch-buddies",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap left or right as falling snacks reach two cats' mouths, playing a melody note with each catch while avoiding bombs."
+   }
   },
   {
    "slug": "color-groove",
@@ -652,7 +848,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "color-groove"
+   "repo_dir": "color-groove",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Steer a striped ball down a neon space road, collecting matching-colour orbs that play song notes while dodging others and passing colour-change gates."
+   }
   },
   {
    "slug": "cloud-leap",
@@ -673,7 +876,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "cloud-leap"
+   "repo_dir": "cloud-leap",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "A ball hops across floating pillars in time with a song, steering around spikes and gaps while collecting stars across levels."
+   }
   },
   {
    "slug": "think-twice",
@@ -694,7 +904,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "think-twice"
+   "repo_dir": "think-twice",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Short trick puzzles on a notebook page, like popping balloons or flipping a frown, reward lateral thinking, with free hints and three tries per level."
+   }
   },
   {
    "slug": "bolt-twist",
@@ -715,7 +932,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "bolt-twist"
+   "repo_dir": "bolt-twist",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap colored bolts to unscrew them into matching boxes or a limited tray, planning removal order so plates drop and the tray never fills."
+   }
   },
   {
    "slug": "honk-out",
@@ -736,7 +960,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "honk-out"
+   "repo_dir": "honk-out",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap boxed-in cars in the right order to clear the jam and park them, so queued passengers board matching colours before spots fill."
+   }
   },
   {
    "slug": "knit-flow",
@@ -757,7 +988,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "knit-flow"
+   "repo_dir": "knit-flow",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Pick spools of colored yarn to send around a conveyor that unravels matching stitches from a knitted picture, while managing five limited holding slots."
+   }
   },
   {
    "slug": "swarm-streets",
@@ -778,7 +1016,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "swarm-streets"
+   "repo_dir": "swarm-streets",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer a growing swarm through a city, absorbing grey pedestrians and swallowing smaller rival mobs while dodging bigger ones before the timer expires."
+   }
   },
   {
    "slug": "paint-glide",
@@ -800,7 +1045,14 @@
     "Kids"
    ],
    "original": true,
-   "repo_dir": "paint-glide"
+   "repo_dir": "paint-glide",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Swipe a paint ball sliding across a walled maze until it stops, planning routes so every tile ends up painted."
+   }
   },
   {
    "slug": "doodle-legs",
@@ -821,7 +1073,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "doodle-legs"
+   "repo_dir": "doodle-legs",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Sketch any curve to shape your cube's spinning legs, then redraw mid-race so big arcs vault steps and small ones slip under low roofs."
+   }
   },
   {
    "slug": "ring-peel",
@@ -842,7 +1101,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "ring-peel"
+   "repo_dir": "ring-peel",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Hold to stream balls down a pier, peeling rings off a striped tower while timing shots to dodge the orbiting guard wall."
+   }
   },
   {
    "slug": "squad-surge",
@@ -863,7 +1129,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "squad-surge"
+   "repo_dir": "squad-surge",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer a growing yellow crowd down a sky track, gathering recruits, dodging saws and spinners, then clashing with a boss at the castle."
+   }
   },
   {
    "slug": "squish-gate",
@@ -884,7 +1157,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "squish-gate"
+   "repo_dir": "squish-gate",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag to stretch a wobbly jelly tall or wide so it slips through gates, building snug-fit combos and fever toward a multiplier finish."
+   }
   },
   {
    "slug": "flip-agent",
@@ -906,7 +1186,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "flip-agent"
+   "repo_dir": "flip-agent",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Somersault across rooftop gaps in slow motion, aiming a spinning laser sight to tap-shoot masked goons while avoiding hostages, ricochets and explosive barrels."
+   }
   },
   {
    "slug": "swirl-tee",
@@ -928,7 +1215,14 @@
     "Makeover"
    ],
    "original": true,
-   "repo_dir": "swirl-tee"
+   "repo_dir": "swirl-tee",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Fold the shirt, squirt dye into each section, then unfold to see how closely the swirl, spotted or striped pattern matches the target."
+   }
   },
   {
    "slug": "splitstream",
@@ -949,7 +1243,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "splitstream"
+   "repo_dir": "splitstream",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag to stretch or squeeze a roller-skater's legs so each skate stays on its rail, collecting gems along winding sunset tracks."
+   }
   },
   {
    "slug": "untwine",
@@ -970,7 +1271,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "untwine"
+   "repo_dir": "untwine",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag rope plugs to empty pegs until no strands cross, with a move counter, tangle count and levels adding more ropes."
+   }
   },
   {
    "slug": "tiptoe-tower",
@@ -991,7 +1299,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "tiptoe-tower"
+   "repo_dir": "tiptoe-tower",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer a runner down rooftop lanes, stacking heels while dodging brick walls, splitting across rails, then climbing a rainbow multiplier podium."
+   }
   },
   {
    "slug": "slip-links",
@@ -1012,7 +1327,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "slip-links"
+   "repo_dir": "slip-links",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap the topmost chain to slip it off its pegs, untangling overlapping colored links in the right order, with satisfying combo feedback."
+   }
   },
   {
    "slug": "shelf-snap",
@@ -1033,7 +1355,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "shelf-snap"
+   "repo_dir": "shelf-snap",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag groceries from baskets into matching outlined fridge shelf slots, with each level bringing a new color scheme, more item types and fuller shelves."
+   }
   },
   {
    "slug": "slab-up",
@@ -1055,7 +1384,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "slab-up"
+   "repo_dir": "slab-up",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap to drop a sliding slab onto the tower; overhang gets sliced off, while perfect drops keep full size and build a combo."
+   }
   },
   {
    "slug": "switchback",
@@ -1077,7 +1413,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "switchback"
+   "repo_dir": "switchback",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tap to flip a rolling ball's direction along a narrow zigzag cliff path, collecting gems while the pace steadily quickens."
+   }
   },
   {
    "slug": "flip-volt",
@@ -1098,7 +1441,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "flip-volt"
+   "repo_dir": "flip-volt",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Throttle a glowing neon bike along a curving light track, backflipping in midair and landing on both wheels to reach each level's finish gate."
+   }
   },
   {
    "slug": "ricochet-rex",
@@ -1120,7 +1470,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "ricochet-rex"
+   "repo_dir": "ricochet-rex",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Line up ricochet shots off walls to take out goons, set off TNT and spare the hostage, all within three bullets per room."
+   }
   },
   {
    "slug": "drip-doodle",
@@ -1141,7 +1498,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "drip-doodle"
+   "repo_dir": "drip-doodle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Draw ink lines to steer falling water into a glass; the expressive face and confetti reward each clever solution with satisfying feedback."
+   }
   },
   {
    "slug": "smooch-roll",
@@ -1162,7 +1526,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "smooch-roll"
+   "repo_dir": "smooch-roll",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Sketch ink lines that become physical objects so a blue and a pink ball roll into each other, with simple, readable physics puzzles."
+   }
   },
   {
    "slug": "core-crusher",
@@ -1183,7 +1554,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "core-crusher"
+   "repo_dir": "core-crusher",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Hold to smash a ball down a spinning tower of colored rings, dodging black slices, with a fire-streak power-up for risky dives."
+   }
   },
   {
    "slug": "girder-go",
@@ -1204,7 +1582,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "girder-go"
+   "repo_dir": "girder-go",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Draw road, wood and steel beams across a gap within budget, then press GO and watch stress colors reveal whether your bridge holds."
+   }
   },
   {
    "slug": "snip-snack",
@@ -1225,7 +1610,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "snip-snack"
+   "repo_dir": "snip-snack",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Swipe to cut ropes so a swinging candy collects stars and lands in a sleepy hedgehog's mouth, with bubbles and cushions added along the way."
+   }
   },
   {
    "slug": "fort-fling",
@@ -1247,7 +1639,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "fort-fling"
+   "repo_dir": "fort-fling",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Pull back the slingshot and fling fruit to collapse wood, glass and stone forts, knocking out every raccoon hiding inside before ammo runs out."
+   }
   },
   {
    "slug": "bumpy-buggy",
@@ -1268,7 +1667,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "bumpy-buggy"
+   "repo_dir": "bumpy-buggy",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tilt a toy jeep over rolling seeded hills using only gas and brake, chasing distance, coins and fuel while avoiding flips."
+   }
   },
   {
    "slug": "skyline-scope",
@@ -1290,7 +1696,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "skyline-scope"
+   "repo_dir": "skyline-scope",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Hold to scope in from a rooftop, steer the crosshair onto the red-capped target among civilians, and release on a steady breath to fire."
+   }
   },
   {
    "slug": "rack-attack",
@@ -1311,7 +1724,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "rack-attack"
+   "repo_dir": "rack-attack",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Aim with a touch, pull back the cue for power, and pocket your balls before a named rival clears theirs."
+   }
   },
   {
    "slug": "putt-isles",
@@ -1332,7 +1752,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "putt-isles"
+   "repo_dir": "putt-isles",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag back to aim and putt a ball across floating-island mini-golf courses, racing rival balls to the cup through themed holes."
+   }
   },
   {
    "slug": "fling-feud",
@@ -1354,7 +1781,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "fling-feud"
+   "repo_dir": "fling-feud",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag back to set angle and power, then fling an axe at quirky opponents across colorful stages, where headshots deal double damage."
+   }
   },
   {
    "slug": "paw-lagoon",
@@ -1375,7 +1809,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "paw-lagoon"
+   "repo_dir": "paw-lagoon",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Swap fruit on a beach grid to clear goals like strawberries and wooden crates, triggering rockets and bombs while two cartoon kittens cheer."
+   }
   },
   {
    "slug": "whisker-stack",
@@ -1396,7 +1837,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "whisker-stack"
+   "repo_dir": "whisker-stack",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap cute cat-face tiles into a seven-slot tray, matching three alike to clear them and build combos while a kitten cheers you on."
+   }
   },
   {
    "slug": "crackle-pick-honeycomb-carving-game",
@@ -1417,7 +1865,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "crackle-pick-honeycomb-carving-game"
+   "repo_dir": "crackle-pick-honeycomb-carving-game",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Trace a pin along a pressed-in outline to carve shapes from toffee before the timer ends, while a crack meter punishes straying."
+   }
   },
   {
    "slug": "bonk-brawl-dodgeball-arena",
@@ -1438,7 +1893,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "bonk-brawl-dodgeball-arena"
+   "repo_dir": "bonk-brawl-dodgeball-arena",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag your bean around a slick ice rink to dodge incoming balls, scoop one up and throw it to knock out rivals across the court."
+   }
   },
   {
    "slug": "swish-street-basketball-shooting",
@@ -1459,7 +1921,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "swish-street-basketball-shooting"
+   "repo_dir": "swish-street-basketball-shooting",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Hold to charge a vertical meter, release in the green to swish hoops, with streaks, shifting city courts and level progression."
+   }
   },
   {
    "slug": "thrill-loop-roller-coaster-ride",
@@ -1480,7 +1949,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "thrill-loop-roller-coaster-ride"
+   "repo_dir": "thrill-loop-roller-coaster-ride",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Hold to build speed and release to brake, matching pace to track sections so every rider stays aboard through loops, jumps and hairpins."
+   }
   },
   {
    "slug": "oche-ace-darts-duel",
@@ -1501,7 +1977,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "oche-ace-darts-duel"
+   "repo_dir": "oche-ace-darts-duel",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steady a swaying aim on a clean dartboard, release to throw, and trade nine-dart rounds with a rival to see who scores more."
+   }
   },
   {
    "slug": "rubber-reach-climb-puzzle",
@@ -1522,7 +2005,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "rubber-reach-climb-puzzle"
+   "repo_dir": "rubber-reach-climb-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag a cute blob's four stretchy limbs across tiled floors, planning grips to avoid saws, spikes and pits while counting moves toward the exit."
+   }
   },
   {
    "slug": "bloop-stack-block-tower-runner",
@@ -1543,7 +2033,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "bloop-stack-block-tower-runner"
+   "repo_dir": "bloop-stack-block-tower-runner",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tap to stack jelly blocks under a sliding blob so it clears rising walls, with perfect clears chaining into a double-point fever."
+   }
   },
   {
    "slug": "wand-rush-magic-element-runner",
@@ -1564,7 +2061,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "wand-rush-magic-element-runner"
+   "repo_dir": "wand-rush-magic-element-runner",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Steer a pair of wands through fire, frost and spark gates, matching each element to shatter armoured goons in a smooth first-person dash."
+   }
   },
   {
    "slug": "coil-pop-color-sort-puzzle",
@@ -1585,7 +2089,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "coil-pop-color-sort-puzzle"
+   "repo_dir": "coil-pop-color-sort-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Lift stacked springy coils between pegs, matching colours to fill each peg, with a limited move budget and levels that gain more pegs and colours."
+   }
   },
   {
    "slug": "goo-patrol-spot-the-impostor",
@@ -1606,7 +2117,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "goo-patrol-spot-the-impostor"
+   "repo_dir": "goo-patrol-spot-the-impostor",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Sweep an x-ray lens over a crowd to reveal slimy goo impostors, then zap them before the limited battery runs out."
+   }
   },
   {
    "slug": "sticky-mitts-draw-line-heist",
@@ -1627,7 +2145,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "sticky-mitts-draw-line-heist"
+   "repo_dir": "sticky-mitts-draw-line-heist",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag a stretchy glove arm across the vault floor, dodging lasers and sleeping or watching bots, to snatch the loot and watch it snap back."
+   }
   },
   {
    "slug": "comet-tee-golf-long-drive",
@@ -1648,7 +2173,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "comet-tee-golf-long-drive"
+   "repo_dir": "comet-tee-golf-long-drive",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tap to stop a sweeping arrow in the green, then watch your drive sail past trees toward rising distance goals across colorful worlds."
+   }
   },
   {
    "slug": "hex-hand-telekinesis-brawl",
@@ -1669,7 +2201,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "hex-hand-telekinesis-brawl"
+   "repo_dir": "hex-hand-telekinesis-brawl",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Grab imps and barrels with a telekinetic glove, then fling them into other imps, explosions or the sea across short island stages."
+   }
   },
   {
    "slug": "backyard-plop-bean-bag-toss",
@@ -1690,7 +2229,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "backyard-plop-bean-bag-toss"
+   "repo_dir": "backyard-plop-bean-bag-toss",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drag up to flick bean bags at a cornhole board, scoring 3 for the hole and 1 for the board while rival bags knock yours aside."
+   }
   },
   {
    "slug": "zip-vault-neon-maze-dash",
@@ -1711,7 +2257,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "zip-vault-neon-maze-dash"
+   "repo_dir": "zip-vault-neon-maze-dash",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Swipe to slide a little robot wall to wall through twisting neon mazes, grabbing dots and stars while dodging spikes and rising goo."
+   }
   },
   {
    "slug": "fletch-arrow-dungeon-roguelite",
@@ -1733,7 +2286,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "fletch-arrow-dungeon-roguelite"
+   "repo_dir": "fletch-arrow-dungeon-roguelite",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drag to dodge, stop to auto-fire arrows at the nearest monster, then clear each room and choose one of three skills."
+   }
   },
   {
    "slug": "glowkeep-monster-horde-arena",
@@ -1755,7 +2315,14 @@
     "Shooters"
    ],
    "original": true,
-   "repo_dir": "glowkeep-monster-horde-arena"
+   "repo_dir": "glowkeep-monster-horde-arena",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Drag a lantern-wielding hero around a growing swarm while auto-fired spells and level-up upgrade picks build a stronger run across themed stages."
+   }
   },
   {
    "slug": "noodle-rumble-snake-battle-arena",
@@ -1776,7 +2343,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "noodle-rumble-snake-battle-arena"
+   "repo_dir": "noodle-rumble-snake-battle-arena",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Steer a growing jelly noodle through an orb-strewn arena, swallowing smaller snakes and dodging bigger ones until you can eat the boss."
+   }
   },
   {
    "slug": "porch-toss-newspaper-bike-ride",
@@ -1797,7 +2371,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "porch-toss-newspaper-bike-ride"
+   "repo_dir": "porch-toss-newspaper-bike-ride",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Pedal down a suburban street and release at the right moment to toss newspapers into mailboxes, braking for crossing cars and chasing perfect-throw combos."
+   }
   },
   {
    "slug": "bolt-out-ball-drop-puzzle",
@@ -1818,7 +2399,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "bolt-out-ball-drop-puzzle"
+   "repo_dir": "bolt-out-ball-drop-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Pull bolts in the right order so coloured balls fall into the jar, while grey balls and bombs add rules that force planning."
+   }
   },
   {
    "slug": "blokko-3d-block-puzzle",
@@ -1839,7 +2427,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "blokko-3d-block-puzzle"
+   "repo_dir": "blokko-3d-block-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Spin a chunky 3D shape and tap arrow cubes out in the right order, since a blocked cube bumps back and costs a heart."
+   }
   },
   {
    "slug": "loaf-flip-food-puzzle",
@@ -1860,7 +2455,14 @@
     "Hyper-casual"
    ],
    "original": true,
-   "repo_dir": "loaf-flip-food-puzzle"
+   "repo_dir": "loaf-flip-food-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Swipe food stacks onto neighbours so they flip upside down, folding the whole board into one sandwich with bread at both ends."
+   }
   },
   {
    "slug": "letterloom-anagram-crossword-puzzle",
@@ -1882,7 +2484,14 @@
     "Daily puzzles"
    ],
    "original": true,
-   "repo_dir": "letterloom-anagram-crossword-puzzle"
+   "repo_dir": "letterloom-anagram-crossword-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Swipe around a letter wheel to spell words and fill a crossword grid, with daily puzzles, hints, bonus words and scenic levels."
+   }
   },
   {
    "slug": "ridgeline-peaks-solitaire",
@@ -1904,7 +2513,14 @@
     "Daily puzzles"
    ],
    "original": true,
-   "repo_dir": "ridgeline-peaks-solitaire"
+   "repo_dir": "ridgeline-peaks-solitaire",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Chain cards one rank up or down to clear three peaks, building streaks across color-themed levels, with a daily seeded puzzle."
+   }
   },
   {
    "slug": "lantern-pairs-mahjong-solitaire",
@@ -1926,7 +2542,14 @@
     "Daily puzzles"
    ],
    "original": true,
-   "repo_dir": "lantern-pairs-mahjong-solitaire"
+   "repo_dir": "lantern-pairs-mahjong-solitaire",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Match free tile pairs across generated layouts, chaining combos for score, with hints, shuffles and undo to rescue stuck boards."
+   }
   },
   {
    "slug": "ninefold-daily-sudoku-puzzle",
@@ -1948,7 +2571,14 @@
     "Daily puzzles"
    ],
    "original": true,
-   "repo_dir": "ninefold-daily-sudoku-puzzle"
+   "repo_dir": "ninefold-daily-sudoku-puzzle",
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "A clean, classic sudoku with four difficulty tiers, pencil notes, hints and undo, plus a daily puzzle everyone shares and a mistake limit."
+   }
   },
   {
    "slug": "boop-board-bubble-popper-fidget-game",
@@ -1970,7 +2600,14 @@
     "Kids"
    ],
    "original": true,
-   "repo_dir": "boop-board-bubble-popper-fidget-game"
+   "repo_dir": "boop-board-bubble-popper-fidget-game",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Press or swipe across bubbles on squishy rainbow critter boards to pop them all before the sun-clock runs out, with some bubbles puffing back up."
+   }
   },
   {
    "slug": "peekaboo-pals-animal-memory-match",
@@ -1992,7 +2629,14 @@
     "Kids"
    ],
    "original": true,
-   "repo_dir": "peekaboo-pals-animal-memory-match"
+   "repo_dir": "peekaboo-pals-animal-memory-match",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Peek at the animal cards, then flip them to find matching pairs on a table that grows each level, with hearts for mistakes."
+   }
   },
   {
    "slug": "froggle-pond-bubble-pop",
@@ -2014,7 +2658,14 @@
     "Kids"
    ],
    "original": true,
-   "repo_dir": "froggle-pond-bubble-pop"
+   "repo_dir": "froggle-pond-bubble-pop",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Aim Tippy the frog's bubbles to match three colours, drop hanging clusters into the pond, and clear each level's board before running out of shots."
+   }
   },
   {
    "slug": "sudsy-lane-kids-car-wash-game",
@@ -2036,7 +2687,14 @@
     "Kids"
    ],
    "original": true,
-   "repo_dir": "sudsy-lane-kids-car-wash-game"
+   "repo_dir": "sudsy-lane-kids-car-wash-game",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Rub muddy toy trucks clean with a sponge, rinse and dry them, then add stickers, with a new vehicle each level."
+   }
   },
   {
    "slug": "tip-top-nail-salon-makeover",
@@ -2058,7 +2716,14 @@
     "Makeover"
    ],
    "original": true,
-   "repo_dir": "tip-top-nail-salon-makeover"
+   "repo_dir": "tip-top-nail-salon-makeover",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Fill each client's order by choosing a nail shape, filing, polishing and stamping art, then see the whole hand finished in that look."
+   }
   },
   {
    "slug": "spin-bakes-cake-decorating-game",
@@ -2080,7 +2745,14 @@
     "Makeover"
    ],
    "original": true,
-   "repo_dir": "spin-bakes-cake-decorating-game"
+   "repo_dir": "spin-bakes-cake-decorating-game",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Hold to pipe textured icing rings onto a spinning cake, switch colours per layer, smooth it, and shake on toppings to match each customer's order."
+   }
   },
   {
    "slug": "snip-studio-hair-salon-makeover",
@@ -2102,7 +2774,14 @@
     "Makeover"
    ],
    "original": true,
-   "repo_dir": "snip-studio-hair-salon-makeover"
+   "repo_dir": "snip-studio-hair-salon-makeover",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Wash, cut, dye and style a client's hair to match a reference look, with funny client requests driving each short level."
+   }
   },
   {
    "slug": "goo-lab-slime-simulator-asmr",
@@ -2124,7 +2803,14 @@
     "Makeover"
    ],
    "original": true,
-   "repo_dir": "goo-lab-slime-simulator-asmr"
+   "repo_dir": "goo-lab-slime-simulator-asmr",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Drip dyes into glue, stir to match the recipe card, then squish and poke the soft slime, with add-ins and scoring across stages."
+   }
   },
   {
    "slug": "nugget-rush-mine-cart-runner",
@@ -2146,7 +2832,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "nugget-rush-mine-cart-runner"
+   "repo_dir": "nugget-rush-mine-cart-runner",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Swipe between three canyon rails to dodge wagons and barricades, grab gold nuggets, and stay ahead of a grumpy rolling boulder."
+   }
   },
   {
    "slug": "stormchase-endless-turn-runner",
@@ -2168,7 +2861,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "stormchase-endless-turn-runner"
+   "repo_dir": "stormchase-endless-turn-runner",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Swipe through corners, jump gaps and slide under arches along a floating pink causeway while a grumpy thundercloud rumbles close behind you."
+   }
   },
   {
    "slug": "boltpack-jetpack-runner",
@@ -2190,7 +2890,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "boltpack-jetpack-runner"
+   "repo_dir": "boltpack-jetpack-runner",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Hold to fire a robot's jetpack and release to drop, weaving past zappers and rockets while collecting golden bolts along a bright lab corridor."
+   }
   },
   {
    "slug": "capy-hop-endless-road-hopper",
@@ -2212,7 +2919,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "capy-hop-endless-road-hopper"
+   "repo_dir": "capy-hop-endless-road-hopper",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Tap to hop a capybara across busy roads, log rivers and train tracks while the camera creeps forward, chasing a higher score."
+   }
   },
   {
    "slug": "pulse-prism-rhythm-runner",
@@ -2234,7 +2948,14 @@
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "pulse-prism-rhythm-runner"
+   "repo_dir": "pulse-prism-rhythm-runner",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Tap in time to hop a glowing crystal over spikes, pits and raised blocks on a neon synthwave runway as songs speed up."
+   }
   },
   {
    "slug": "velvet-ace-blackjack-21",
@@ -2255,7 +2976,14 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "velvet-ace-blackjack-21"
+   "repo_dir": "velvet-ace-blackjack-21",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Straightforward blackjack with a fixed 6-deck shoe and 3:2 payouts, where you build a bankroll to a chip goal to unlock higher-stakes tables."
+   }
   },
   {
    "slug": "ivory-ball-european-roulette",
@@ -2276,7 +3004,14 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "ivory-ball-european-roulette"
+   "repo_dir": "ivory-ball-european-roulette",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "Place chips on a European single-zero table and spin a 3D wheel to hit a bankroll goal, then move to a new table."
+   }
   },
   {
    "slug": "hold-five-video-poker",
@@ -2297,7 +3032,14 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "hold-five-video-poker"
+   "repo_dir": "hold-five-video-poker",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Clean, honest Jacks or Better video poker where you hold cards, draw, and chase each table's coin goal on a full-pay 9/6 paytable."
+   }
   },
   {
    "slug": "river-night-texas-hold-em",
@@ -2318,7 +3060,14 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "river-night-texas-hold-em"
+   "repo_dir": "river-night-texas-hold-em",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "yes",
+    "pitch": "A quick no-limit sit-and-go against three AI opponents, with an odds helper and rising blinds that push you to play each hand."
+   }
   },
   {
    "slug": "pearl-tide-slots-casino",
@@ -2339,7 +3088,14 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "pearl-tide-slots-casino"
+   "repo_dir": "pearl-tide-slots-casino",
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "A cheerful undersea slot machine with wild and bonus symbols, level goals, and openly published 96.4% odds, played with free chips only."
+   }
   },
   {
    "slug": "pip-duel-five-dice-game",
@@ -2360,7 +3116,14 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "pip-duel-five-dice-game"
+   "repo_dir": "pip-duel-five-dice-game",
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "A familiar roll-hold-score dice game with 3D dice, a 13-box scorecard, and a string of rival opponents across ante-based stages."
+   }
   },
   {
    "slug": "pegfall-ball-drop-casino",
@@ -2381,7 +3144,14 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "pegfall-ball-drop-casino"
+   "repo_dir": "pegfall-ball-drop-casino",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 7,
+    "ai_built": "yes",
+    "pitch": "Drop a ball down a peg pyramid and watch it bounce into a multiplier slot, with adjustable bets, risk levels and chip targets per level."
+   }
   },
   {
    "slug": "shimmer-scratch-cards",
@@ -2402,12 +3172,152 @@
     "Casino"
    ],
    "original": true,
-   "repo_dir": "shimmer-scratch-cards"
+   "repo_dir": "shimmer-scratch-cards",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 6,
+    "ai_built": "yes",
+    "pitch": "Scratch foil with a coin to reveal matching symbols or numbers, choosing from three card tiers while chasing a chip goal across two stages."
+   }
   }
  ],
  "overrides": {
   "felixmariotto-edelweiss": {
-   "cover_frame": "play"
+   "cover_frame": "play",
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Guide a small girl up a mountain village and its cliffs, using a touch joystick and jump button to climb between ledges."
+   }
+  },
+  "gbrln-the-last-pawn": {
+   "review": {
+    "by": "Claude",
+    "depth": 5,
+    "polish": 7,
+    "ai_built": "unknown",
+    "pitch": "Play as a lone black pawn on a chessboard, swiping to dodge the white pieces' moves and capturing them to build a score."
+   }
+  },
+  "pshenok-server-survival": {
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 6,
+    "ai_built": "unknown",
+    "pitch": "Place load balancers, caches and databases to keep servers alive as traffic surges, with a 25-level campaign, sandbox mode and tutorial."
+   }
+  },
+  "basicallydan-skifree-js": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Weave a skier downhill past trees and jumps while a yeti hunts you, in a simple endless chase that rewards quick reflexes."
+   }
+  },
+  "ramazancetinkaya-snake-game": {
+   "review": {
+    "by": "Claude",
+    "depth": 6,
+    "polish": 7,
+    "ai_built": "unknown",
+    "pitch": "A clean take on classic Snake with three speed modes, power-ups and 15 badges to chase, playable by swipe or on-screen D-pad."
+   }
+  },
+  "gd4ark-linkup": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Scan a grid of cute animal tiles, spot matching pairs and link them before the countdown runs out, chasing a higher score each round."
+   }
+  },
+  "ucfx-minimax-game-ai": {
+   "review": {
+    "by": "Claude",
+    "depth": 2,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "A clean neon-styled tic-tac-toe board where you can duel a friend or toggle an AI opponent that never loses."
+   }
+  },
+  "ipel-ns-shaft": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Drop down a endless shaft, hopping between platforms of different types while avoiding the spiked ceiling, with simple tap-to-steer controls and quick retries."
+   }
+  },
+  "mnito-factors-game": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Slide a tile through a grid of numbers, moving only between factors and multiples, to reach 1. It's a compact mental-math puzzle for phones."
+   }
+  },
+  "evedensity-mineworld": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 4,
+    "ai_built": "unknown",
+    "pitch": "Walk around a blocky voxel landscape, dig and place blocks to build your own structures, with touch controls on mobile."
+   }
+  },
+  "cheshire137-blicblock-js": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Colored blocks drop into a narrow well, and you line up three of a color to clear them before the stack climbs too high."
+   }
+  },
+  "mo7ammedd-color-quiz-application": {
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Match a hex code to the right colour swatch against a 10-second timer, which quickly trains your eye for colour values."
+   }
+  },
+  "rakeshid03-arrowpathpuzzle": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 5,
+    "ai_built": "unknown",
+    "pitch": "Rotate arrow tiles on a grid to build a route from your player to the checkered goal, with three board sizes."
+   }
+  },
+  "dmcinnes-html5-asteroids": {
+   "review": {
+    "by": "Claude",
+    "depth": 4,
+    "polish": 4,
+    "ai_built": "unknown",
+    "pitch": "Rotate and thrust a small triangular ship through drifting vector rocks, shooting them apart while dodging fragments in a faithful, stripped-down arcade loop."
+   }
+  },
+  "ljy969-deal-or-no-deal": {
+   "review": {
+    "by": "Claude",
+    "depth": 3,
+    "polish": 4,
+    "ai_built": "unknown",
+    "pitch": "Open 26 numbered briefcases, weigh the banker's rising offers against the remaining prize values, and gamble on whether to deal or keep going."
+   }
   }
  }
 }

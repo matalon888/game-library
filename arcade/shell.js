@@ -132,7 +132,7 @@
     if (g.linkout) return esc(g.category || 'Arcade') + ' · on ' + esc(g.host || 'creator site') + ' ↗';
     if (st && st.rating) return `<span class="star">${starsTxt(st)}</span> · ${esc(g.category || 'Arcade')}`;
     const p = praise(g).find(x => !/GitHub stars/.test(x.short) || ((g.public || {}).github || {}).stars >= 25);
-    return p ? esc(p.short) : esc(g.category || 'Arcade') + (g.review && g.review.ai_built !== 'no' ? ' · AI-made' : '');
+    return p ? esc(p.short) : esc(g.category || 'Arcade') + (g.review && !g.original && g.review.ai_built !== 'no' ? ' · AI-made' : '');
   };
 
   const ago = d => Math.floor((Date.now() - Date.parse(d)) / 864e5);
