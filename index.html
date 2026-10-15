@@ -360,7 +360,7 @@ const PICKS = ['moth3d-hydro-rush', 'hirosichen-ai-f1-racing-game', 'appleweipin
 let channels = [], chan = 0;
 const playUrl = g => 'play.html?g=' + encodeURIComponent(g.slug);
 fetch('games.json').then(r => r.json()).then(gs => {
-  $('#sub').textContent = `${gs.length} free games you play inside Claude, ChatGPT or Grok. Tap yours.`;
+  $('#sub').textContent = `${gs.length} free games, new ones every morning from your AI. Tap yours, then Send.`;
   $('#wallSmall').textContent = `${gs.length} games. Every tile is real. Tap one.`;
   const clips = gs.filter(g => g.clip), by = Object.fromEntries(clips.map(g => [g.slug, g]));
   channels = PICKS.map(s => by[s]).filter(Boolean);
