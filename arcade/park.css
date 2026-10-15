@@ -23,7 +23,7 @@ body.park a { color: inherit }
 /* ---------- top bar ---------- */
 .park .top { display: flex; align-items: center; justify-content: space-between; gap: 14px }
 .park .brand a { display: flex; align-items: center; gap: 10px; text-decoration: none }
-.park .logo { width: 50px; height: 50px; flex: none }
+.park .logo { width: 52px; height: 52px; flex: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,.25)) }
 .park .brand h1 { font: 800 30px/.9 var(--display); letter-spacing: -.045em; margin: 0 0 5px }
 .park .brand h1 span { color: #22A257 }
 @media (prefers-color-scheme: dark) { .park .brand h1 span { color: #7FE09A } }

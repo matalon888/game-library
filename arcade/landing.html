@@ -10,7 +10,7 @@
 <meta property="og:description" content="Get on the list. Your AI brings you new games every morning.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" href="brand/mark.svg" type="image/svg+xml">
+<link rel="icon" href="brand/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <link rel="preload" as="image" href="park/bg-gate.webp" media="(min-width: 700px)">
@@ -99,6 +99,8 @@ footer a { color: var(--muted) }
   .listed { bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) }
 }
 @media (prefers-reduced-motion: reduce) { .eyebrow i { animation: none } .ai, .rope, .listed { transition: none } .say { animation: none } }
+.patch { width: 118px; height: 118px; margin: 0 auto -4px; display: block; filter: drop-shadow(0 10px 22px rgba(0, 0, 0, .5)); transform: rotate(-6deg) }
+@media (max-width: 699px) { .patch { width: 84px; height: 84px } }
 </style>
 <script src="config.js"></script>
 </head>
@@ -106,10 +108,11 @@ footer a { color: var(--muted) }
 <main class="scene">
   <picture><source media="(max-width: 699px)" srcset="park/bg-gate-s.webp"><img class="bg" id="bg" src="park/bg-gate.webp" alt=""></picture>
   <header class="top">
-    <a class="brand" href="./" aria-label="AGENTPARK, open the park"><img src="brand/mark.svg" alt=""><b>agent<span>park</span></b></a>
+    <a class="brand" href="./" aria-label="AGENTPARK, open the park"><img src="brand/patch-mark.webp" alt=""><b>agent<span>park</span></b></a>
     <a class="walk" href="./">Walk in →</a>
   </header>
   <section class="hero">
+    <img class="patch" src="brand/patch.webp" alt="AGENTPARK">
     <span class="eyebrow"><i></i>The list is open</span>
     <h1>Get on the list.</h1>
     <p class="sub">Your AI brings you new games every morning.</p>
