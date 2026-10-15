@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Wingfleet: Space Shooter Powered by Your AI Agents</title>
+<meta name="description" content="Fly a neon starfighter while your AI coding agents fly as wingmen. Their tool calls fire missiles and lasers, passing tests drop smart bombs. Free 3D arcade shooter.">
+<meta property="og:title" content="Wingfleet: Space Shooter Powered by Your AI Agents">
+<meta property="og:description" content="Fly a neon starfighter while your AI coding agents fly as wingmen. Their tool calls fire missiles and lasers, passing tests drop smart bombs. Free 3D arcade shooter.">
+<meta name="theme-color" content="#05030f">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="flash"></div>
+<div id="tags"></div>
+<div id="hud">
+  <div class="tl"><div id="score">0</div><div id="wave">WAVE 1</div><div id="best">BEST 0</div></div>
+  <div class="tr">
+    <div class="btns"><button id="bBoard" title="World leaderboard">🏆</button><button id="bConnect">Connect</button><button id="bShare">Share</button><button id="bMute" title="Sound">🔊</button></div>
+    <div id="hull"></div>
+    <div id="me"></div>
+  </div>
+  <div id="combo"></div>
+  <div id="waitbar"></div>
+  <div id="bosshp"><span>MOTHERSHIP</span><i></i></div>
+  <div id="banner"></div>
+  <div id="feed"></div>
+  <div id="waiting">Waiting for your agents… <a href="#" id="wConnect">connect them</a></div>
+  <button id="super"><i></i><span>SUPER</span><small>SPACE</small></button>
+</div>
+<section id="menu" class="ov">
+  <div class="logo">WINGFLEET</div>
+  <p class="tagline">You fly. Your AI agents fly wingman.</p>
+  <div class="how">
+    <span>✔ tool result → <b>missile</b></span><span>edit → <b>laser</b></span><span>run → <b>rapid fire</b></span><span>read → <b>scanner</b></span><span>web → <b>long beam</b></span><span>tests pass → <b>smart bomb</b></span><span>commit → <b>shields</b></span><span>deploy → <b>mega laser</b></span><span>tokens → <b>super</b></span><span class="bad">✗ failure → wingman hit</span>
+  </div>
+  <div class="sect">SHIP</div><div class="ships" id="ships"></div>
+  <div class="sect">COLOURS</div><div class="sw" id="swatches"></div>
+  <button class="go" id="launch">LAUNCH</button>
+  <div class="keys">Drag or arrow keys to steer · auto-fire · Space for super</div>
+  <div class="rec" id="rec"></div>
+  <div class="today" id="today"></div>
+</section>
+<section id="over" class="ov" hidden>
+  <div class="logo small">SHIP DOWN</div>
+  <div class="big" id="oScore">0</div>
+  <div class="line" id="oLine"></div>
+  <div class="newbest" id="oBest"></div>
+  <div class="unl" id="oUnl"></div>
+  <div class="rank" id="oRank"></div>
+  <div class="today" id="oToday"></div>
+  <div class="row"><button class="go" id="again">FLY AGAIN</button></div>
+  <div class="row"><button class="ghost" id="hangar">HANGAR</button><button class="ghost" id="oShare">SHARE</button><button class="ghost" id="oBoard">🏆 BOARD</button></div>
+</section>
+<script type="module" src="game.js"></script>
+</body>
+</html>

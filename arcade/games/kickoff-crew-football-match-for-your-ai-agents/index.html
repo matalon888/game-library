@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Kickoff Crew: Football Match for Your AI Agents</title>
+<meta name="description" content="Connect Claude Code or Codex and your AI agents become a football team. Their tool calls pass the ball, passing tests shoot, and you coach every finish. Runs in your browser.">
+<meta property="og:title" content="Kickoff Crew: Football Match for Your AI Agents">
+<meta property="og:description" content="Your coding agents are the team. Edits are through balls, tests are shots, deploys are screamers. You coach, aim and save in a 3D stadium.">
+<meta name="theme-color" content="#16204a">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Bungee&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hud">
+  <div id="topL">
+    <div class="brand">KICKOFF<b>CREW</b></div>
+    <button id="bConnect" class="chip">Connect</button>
+    <button id="bClub" class="chip">Club</button>
+    <button id="bBoard" class="chip" title="World leaderboard">🏆</button>
+  </div>
+  <div id="board">
+    <div id="sb">
+      <div class="tm us"><i class="badge" id="usBadge"></i><span id="usName">CREW</span></div>
+      <div class="sc"><b id="sUs">0</b><span>:</span><b id="sThem">0</b></div>
+      <div class="tm them"><span id="themName">SEG</span><i class="badge" id="themBadge"></i></div>
+      <div id="clock">0'</div>
+    </div>
+    <div id="mom"><span class="end us"></span><div class="track"><i id="momFill"></i><b id="momBall">⚽</b></div><span class="end them"></span></div>
+    <div id="fixture">Matchday 1/10</div>
+    <div id="calls"></div>
+  </div>
+  <div id="topR">
+    <div id="tactics" class="seg" title="Tactics">
+      <button data-t="attack">ATK</button><button data-t="balanced">BAL</button><button data-t="bus">DEF</button>
+    </div>
+    <button id="bPep" class="chip pep" title="Pep talk: 20 s boost">📣 <span>Pep talk</span> <b id="pepN">2</b><i id="pepBar"></i></button>
+    <button id="bShare" class="chip">Share</button>
+  </div>
+  <div id="feed"></div>
+  <div id="team"></div>
+  <div id="wait" hidden><b>Waiting for your agents…</b><span>Start Claude Code or Codex and they walk out of the tunnel. The rival club is warming up.</span></div>
+  <div id="banner"><h1></h1><p></p></div>
+  <div id="pops"></div>
+  <div id="aim" hidden>
+    <div class="aimHead"><span id="aimTitle">SHOT CHANCE</span> <b id="aimWho"></b></div>
+    <div id="gm">
+      <div class="mouth"><div class="z zl"></div><div class="z zm"></div><div class="z zr"></div></div>
+      <div id="ret"><i></i></div>
+      <div id="tgt"><span class="sweet"></span><span class="ring"></span><i>⚽</i></div>
+    </div>
+    <div id="aimHint">Tap when the marker is in a green corner</div>
+    <div class="timer"><i id="aimBar"></i></div>
+  </div>
+  <div id="lbox"><i></i><i></i></div>
+  <div id="replay">● REPLAY</div>
+  <div id="flash"></div>
+</div>
+
+<section id="ft" class="modal" hidden></section>
+<section id="club" class="modal" hidden>
+  <header><h2>Club</h2><button class="x" data-close>✕</button></header>
+  <div class="tabs"><button data-tab="table" class="on">Table</button><button data-tab="trophies">Trophies</button><button data-tab="kits">Kits</button><button data-tab="today">Today</button></div>
+  <div id="clubBody"></div>
+</section>
+<script type="module" src="game.js"></script>
+</body>
+</html>

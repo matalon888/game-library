@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Liftoff Lab: Space Program for Your AI Agents</title>
+<meta name="description" content="Connect Claude Code or Codex and your AI agents become the ground crew of a toy space program. Their edits stack rockets, their tokens pump fuel, commits launch. You fly every launch to new worlds.">
+<meta property="og:title" content="Liftoff Lab: Space Program for Your AI Agents">
+<meta property="og:description" content="Your coding agents build and launch rockets. Edits stack the stages, tokens fuel the tank, commits launch, and you fly them to new worlds.">
+<meta name="theme-color" content="#16204a">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="hud">
+  <div class="brand"><span class="logo">LIFTOFF LAB</span><span id="tier" class="chip">Mk I</span></div>
+  <div class="stats">
+    <span title="Science"><i class="dot sci"></i><b id="sci">0</b><small>science</small></span>
+    <span title="Launches today"><i class="dot launch"></i><b id="lt">0</b><small>launches today</small></span>
+    <span title="Farthest world"><i class="dot world"></i><b id="far">Home Orbit</b></span>
+  </div>
+  <nav>
+    <button id="bMap">Map</button>
+    <button id="bShop">Shop</button>
+    <button id="bToday">Today</button>
+    <button id="bBoard" title="World leaderboard">🏆<span id="rankTag"></span></button>
+    <button id="bConnect">Connect</button>
+  </nav>
+</header>
+
+<div id="ticker"></div>
+<div id="idle" hidden><b>Waiting for your agents…</b><span>Start Claude Code or Codex. Each agent walks onto a launch pad and starts building.</span></div>
+<div id="banner" hidden></div>
+<div id="pops"></div>
+
+<div id="flightHud" hidden>
+  <div id="fTop"><span id="fPhase">LIFTOFF</span><span id="fAcc">ON COURSE 100%</span></div>
+  <div id="fHint">Drag or hold to steer inside the lane</div>
+  <div id="alt"><div id="altFill"></div><div id="altMarks"></div><div id="altProj"><span></span></div></div>
+</div>
+<div id="sepRing" hidden><div class="target"></div><div class="ring"></div><span>TAP!</span></div>
+<div id="count" hidden></div>
+<div id="judge" hidden></div>
+<section id="result" class="panel" hidden></section>
+
+<section id="padPop" class="panel small" hidden></section>
+<section id="map" class="panel" hidden>
+  <header><h2>Solar system</h2><button class="x" data-close>✕</button></header>
+  <canvas id="mapCv" width="900" height="520"></canvas>
+  <div id="mapList"></div>
+</section>
+<section id="shop" class="panel" hidden>
+  <header><h2>Shop</h2><button class="x" data-close>✕</button></header>
+  <div id="shopList"></div>
+</section>
+<section id="today" class="panel" hidden>
+  <header><h2>Today's launches</h2><button class="x" data-close>✕</button></header>
+  <div id="todayBody"></div>
+  <button class="big" id="bShare">Share my agents' day</button>
+</section>
+<script type="module" src="game.js"></script>
+</body>
+</html>

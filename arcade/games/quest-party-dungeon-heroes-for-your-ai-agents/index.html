@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Quest Party: Dungeon Heroes for Your AI Agents</title>
+<meta name="description" content="Connect Claude Code or Codex and your AI agents become a party of dungeon heroes. Their tool calls are attacks, tests are ultimates, deploys clear floors. You lead the party.">
+<meta property="og:title" content="Quest Party: Dungeon Heroes for Your AI Agents">
+<meta property="og:description" content="Your coding agents fight through a toy 3D dungeon. Every finished tool call is an attack, every deploy clears a floor. Lead the party, pick the path, equip the loot.">
+<meta name="theme-color" content="#1b1528">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Lilita+One&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hud">
+  <div id="tl">
+    <div class="logo">QUEST PARTY <span id="myRank"></span></div>
+    <div class="floor"><b id="floorN">FLOOR 1</b><span id="theme">Mossy Halls</span></div>
+    <div id="pips"></div>
+  </div>
+  <div id="tr">
+    <div class="stats">
+      <div class="stat" title="Gold"><span>🪙</span><b id="gold">0</b></div>
+      <div class="stat" title="Potions"><span>🧪</span><b id="pots">0</b></div>
+      <div class="stat lv" title="Party level"><b id="lv">Lv 1</b><i><u id="xp"></u></i></div>
+    </div>
+    <nav id="menu">
+      <button id="bGear" title="Gear">🎒<span>Gear</span></button>
+      <button id="bToday" title="Today">📜<span>Today</span></button>
+      <button id="bRank" title="World leaderboard">🏆<span>Ranks</span></button>
+      <button id="bTro" title="Trophies">🎖️<span>Trophies</span></button>
+      <button id="bShare" title="Share">📤<span>Share</span></button>
+      <button id="bConnect" title="Connect your agents">🔌<span>Connect</span></button>
+    </nav>
+  </div>
+</div>
+<div id="tags"></div>
+<div id="nums"></div>
+<div id="mbar"><div class="mname"></div><div class="hp"><i></i></div></div>
+<div id="idle" hidden><b>Waiting for your agents…</b><span>Start a Claude Code or Codex session and your heroes walk in. Tap the monster to strike meanwhile.</span></div>
+<div id="banner"></div>
+<div id="bottom">
+  <div id="mana"><i></i><span>MANA</span></div>
+  <div id="abil">
+    <button data-a="cry"><em>📯</em><span>War Cry</span><kbd>1</kbd></button>
+    <button data-a="wall"><em>🛡️</em><span>Shield Wall</span><kbd>2</kbd></button>
+    <button data-a="pot"><em>🧪</em><span>Potion</span><kbd>3</kbd><b class="cnt">0</b></button>
+    <button data-a="ult"><em>✨</em><span>Ultimate</span><kbd>4</kbd></button>
+  </div>
+</div>
+<div id="fork" hidden>
+  <div class="ftitle">Choose your path <span id="forkT"></span></div>
+  <div class="doors">
+    <button data-p="elite" class="d-elite"><em>💀</em><b>Elite room</b><span>Tougher foe, sure gear drop</span></button>
+    <button data-p="shop" class="d-shop"><em>🛒</em><b>Shop</b><span>Spend your gold</span></button>
+    <button data-p="rest" class="d-rest"><em>🔥</em><b>Rest</b><span>Heal party, +mana</span></button>
+  </div>
+</div>
+<div id="modal" hidden><div class="box"><header><h2></h2><button class="x" aria-label="Close">✕</button></header><div class="body"></div></div></div>
+<div id="fade"></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

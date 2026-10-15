@@ -1,7 +1,8 @@
 // Deskfolk — an idle pixel office for your AI agents. Original RIFFCADE game: all art is drawn in code below.
 // Every Claude Code / Codex session the player runs becomes a worker at a desk; subagents pull up a stool.
 // Tool calls and tokens (read live from the player's own log folder, see feed.js) earn coins that grow the office.
-import { supported, watcher, saved, permitted, demo } from './feed.js';
+import { agents as connectAgents } from './kit/agents.js';
+import { board, flag } from './kit/board.js';
 
 // ------------------------------------------------------------------ save
 const KEY = 'deskfolk_v1';
@@ -107,13 +108,11 @@ const pops = [];
 function onEvents(list, info = {}) {
   rollDay();
   const live = !info.demo;
-  // each real event counts once, ever: only events newer than what the previous batches already counted
-  // (several tool calls and the token count of one message share a timestamp, so the mark moves after the batch)
-  const mark = { ...S.lastT };
+  // each real event counts once, ever: the kit marks it `counted` only the first time this game sees it
   for (const e of list) {
     const fresh = now() - e.t < 30 * 60e3;
-    const counted = info.demo ? true : e.t > (mark[e.src] || 0);
-    if (live && counted) S.lastT[e.src] = Math.max(S.lastT[e.src] || 0, e.t);
+    if (e.kind === 'result') continue;
+    const counted = info.demo ? true : e.counted;
     const st = info.demo ? demoDay : S.day;
     if (counted && new Date(e.t).toLocaleDateString('en-CA') === st.date) {
       if (e.kind === 'tool') {
@@ -394,10 +393,8 @@ function todayRender() {
     <div class="hours" title="Tool calls by hour">${d.hours.map(v => `<i style="height:${(v / hm * 100).toFixed(0)}%"></i>`).join('')}</div>`;
 }
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('.card').hidden = true);
-$('bShop').onclick = () => { $('today').hidden = true; $('start').hidden = true; $('shop').hidden = !$('shop').hidden; shopRender(); };
-$('bToday').onclick = () => { $('shop').hidden = true; $('start').hidden = true; $('today').hidden = !$('today').hidden; todayRender(); };
-$('bConnect').onclick = () => { $('shop').hidden = $('today').hidden = true; $('start').hidden = false; };
-$('demoConnect').onclick = e => { e.preventDefault(); $('start').hidden = false; };
+$('bShop').onclick = () => { $('today').hidden = true; $('shop').hidden = !$('shop').hidden; shopRender(); };
+$('bToday').onclick = () => { $('shop').hidden = true; $('today').hidden = !$('today').hidden; todayRender(); };
 
 // share card: the office + today's numbers, as a PNG
 $('bShare').onclick = async () => {
@@ -409,69 +406,32 @@ $('bShare').onclick = async () => {
   o.fillStyle = '#f6f0e3'; o.font = '30px "Space Grotesk", sans-serif';
   const topTool = Object.entries(d.toolCounts).sort((a, b) => b[1] - a[1])[0];
   o.fillText(`${d.tools.toLocaleString()} tool calls · ${fmt(d.tokens)} tokens · ${d.peak} at once${topTool ? ' · top tool ' + toolName(topTool[0]) : ''}`, 40, 578);
-  o.fillStyle = '#b9b2c8'; o.font = '22px "Space Grotesk", sans-serif'; o.fillText('Deskfolk · riffcade.com', 40, 612);
+  const pr = B.profile();
+  o.fillStyle = '#b9b2c8'; o.font = '22px "Space Grotesk", sans-serif'; o.fillText(`${pr ? flag(pr.country) + ' ' + pr.name + ' · ' : ''}Ship Score ${B.ship().score} · Deskfolk · riffcade.com`, 40, 612);
   const blob = await new Promise(res => out.toBlob(res, 'image/png'));
   const file = new File([blob], 'deskfolk-today.png', { type: 'image/png' });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) return await navigator.share({ files: [file], title: 'My AI agents today', text: 'My AI agents today, on Deskfolk', url: location.href.split('?')[0] }); } catch (e) { return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'deskfolk-today.png'; a.click();
 };
 
-// ------------------------------------------------------------------ connecting
-const connected = [];
-window.deskfolkConnect = h => connect(h, false);   // used by the automated QA run
-let demoRun = null;
-function startDemo() {
-  if (demoRun || connected.length) return;
-  demoMode = true; demoCoins = 0; demoDay = newDay(); $('demoTag').hidden = false; demoRun = demo(onEvents); hud();
-}
-function stopDemo() {
-  if (!demoRun) return; demoRun.stop(); demoRun = null; demoMode = false; $('demoTag').hidden = true;
-  for (const a of [...agents.values()]) if (a.id.startsWith('d:')) release(a);
-  hud();
-}
-async function connect(handle, ask) {
-  if (!(await permitted(handle, ask))) return false;
-  const w = watcher(handle, onEvents);
-  try {
-    const src = await w.start();
-    stopDemo(); connected.push(w); await saved.add(handle).catch(() => {});
-    $('start').hidden = true; toast(`Connected to ${src === 'codex' ? 'Codex' : 'Claude Code'}. Your agents will show up as they work.`);
-    hud(); return true;
-  } catch (e) { toast('⚠️ ' + e.message); return false; }
-}
-document.querySelectorAll('[data-src]').forEach(b => b.onclick = async () => {
-  if (!supported) return;
-  try {
-    const h = await showDirectoryPicker({ id: 'deskfolk-' + b.dataset.src, mode: 'read' });
-    await connect(h, true);
-  } catch (e) { if (e.name !== 'AbortError') toast('⚠️ ' + (e.message || 'Could not open that folder')); }
+// ------------------------------------------------------------------ connecting (shared kit) + world leaderboard
+// players who connected before the kit existed keep their "already counted" mark, so nothing pays twice
+try { if (!localStorage.getItem('agents_mark_deskfolk') && S.lastT) localStorage.setItem('agents_mark_deskfolk', JSON.stringify(S.lastT)); } catch (e) {}
+let B, demoStarted = false;
+const A = connectAgents({
+  game: 'deskfolk', title: 'DESKFOLK', tagline: 'An idle office for your AI agents.', accent: '#ffcf5a', demoAgents: 5,
+  about: 'Every Claude Code or Codex session you run becomes a little worker at a desk. Subagents pull up a stool. Every tool call earns a coin, and coins grow the office.',
+  onEvents(list, info) {
+    if (info.demo && !demoStarted) { demoStarted = true; demoMode = true; demoCoins = 0; demoDay = newDay(); }
+    if (!info.demo) B && B.onAgentEvents(list);
+    onEvents(list, info);
+    if (!info.demo) B && B.submit(S.day.tools);
+  },
+  onConnect() { demoMode = false; demoStarted = false; for (const a of [...agents.values()]) if (a.id.startsWith('d:')) release(a); hud(); },
 });
-$('bDemo').onclick = () => { $('start').hidden = true; startDemo(); };
-if (!supported) { $('noFs').hidden = false; document.querySelectorAll('[data-src]').forEach(b => b.disabled = true); }
-
-// drag a folder onto the page
-addEventListener('dragover', e => { e.preventDefault(); $('drop').hidden = false; });
-addEventListener('dragleave', e => { if (!e.relatedTarget) $('drop').hidden = true; });
-addEventListener('drop', async e => {
-  e.preventDefault(); $('drop').hidden = true;
-  const it = e.dataTransfer.items && e.dataTransfer.items[0];
-  if (it && it.getAsFileSystemHandle) { const h = await it.getAsFileSystemHandle(); if (h && h.kind === 'directory') return connect(h, true); }
-  toast('⚠️ Drop the folder itself (.claude or .codex), in Chrome or Edge.');
-});
-
-// returning players: reconnect what they connected before (a click is needed if the browser asks again)
-(async () => {
-  hud();
-  let list = [];
-  try { list = supported ? await saved.list() : []; } catch (e) {}
-  let any = false;
-  for (const h of list) if (await connect(h, false)) any = true;
-  if (any) return;
-  if (list.length) {
-    const b = document.createElement('button'); b.className = 'big'; b.textContent = 'Reconnect my agents';
-    b.onclick = async () => { for (const h of list) await connect(h, true); };
-    document.querySelector('#start .btns').prepend(b);
-  }
-  startDemo();                                  // the office behind the start card is the demo, so it's never empty
-  if (new URLSearchParams(location.search).has('demo')) $('start').hidden = true;
-})();
+B = board({ game: 'deskfolk', label: 'Tool calls today', A });
+const connected = A.connected;
+window.deskfolkConnect = h => A.connectHandle(h);   // used by the automated QA run
+$('bConnect').onclick = () => { $('shop').hidden = $('today').hidden = true; A.open(); };
+$('bBoard').onclick = () => B.open();
+hud();

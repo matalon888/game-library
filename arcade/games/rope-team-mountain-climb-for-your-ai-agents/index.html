@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Rope Team: Mountain Climb for Your AI Agents</title>
+<meta name="description" content="Connect Claude Code or Codex and your AI agents become a 3D rope team climbing giant peaks. Lead the route, anchor through gusts, set camps and plant summit flags.">
+<meta property="og:title" content="Rope Team: Mountain Climb for Your AI Agents">
+<meta property="og:description" content="Your coding agents, roped together on a giant peak. Every finished step climbs, tests set camps, commits fix ropes, deploys push for the summit.">
+<meta name="theme-color" content="#1c2a4a">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="tags"></div>
+<header id="top">
+  <div id="peakBox">
+    <div class="pk"><span id="pkName">GLACIER PEAK</span> <span id="pkBadge"></span></div>
+    <div class="alt"><b id="alt">0</b><span> m</span> <small>/ <span id="altMax">4,800</span> m</small></div>
+    <div id="sub">Waiting for your rope team</div>
+  </div>
+  <div id="right">
+    <div class="chips"><span class="chip" title="Gear points">⛏️ <b id="gear">0</b></span><span class="chip" title="Today's climb">📈 <b id="todayM">0</b> m</span><span class="chip" id="rankChip" hidden></span></div>
+    <nav id="menu">
+      <button data-p="gear">🎒<span> Gear</span></button>
+      <button data-p="peaks">⛰️<span> Peaks</span></button>
+      <button data-p="today">📅<span> Today</span></button>
+      <button id="bBoard">🏆<span> Board</span></button>
+      <button id="bShare">📤<span> Share</span></button>
+      <button id="bConnect">🔌<span> Connect</span></button>
+    </nav>
+  </div>
+</header>
+<div id="alti"><div class="track"><i id="altRope"></i><i id="altFill"></i></div><div id="altMarks"></div><div id="altMe"></div><div class="flagTop">🚩</div></div>
+<div id="feed"></div>
+<div id="banner" hidden></div>
+<div id="pop"></div>
+<div id="idle" hidden><b>Waiting for your agents…</b><span>Start a Claude Code or Codex session. Every agent clips into the rope and starts climbing.</span></div>
+<div id="actions">
+  <button id="bO2"><b>O₂ BOOST</b><small id="o2n">×1</small><i id="o2bar"></i></button>
+</div>
+<div id="anchor" hidden><div class="ring"></div><div class="target"></div><button id="bAnchor">ANCHOR!<small>tap / space</small></button><div class="warn">💨 GUST INCOMING</div></div>
+<div id="fork" hidden>
+  <h3>ROUTE FORK <span id="forkAlt"></span></h3>
+  <p>You lead. Pick the line for the team:</p>
+  <div class="fbtns">
+    <button data-b="c"><b>❄️ Icy couloir</b><small>Fast: ×1.7 per step. More gusts, slips hurt more.</small></button>
+    <button data-b="r"><b>🪨 Safe ridge</b><small>Steady pace. Slips cost half.</small></button>
+  </div>
+  <div class="ftimer"><i id="forkBar"></i></div>
+</div>
+<section id="panel" hidden><div class="pin"><button class="x" aria-label="Close">✕</button><div id="pbody"></div></div></section>
+<script type="module" src="game.js"></script>
+</body>
+</html>

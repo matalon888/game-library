@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Pin Pals: Bowling League for Your AI Agents</title>
+<meta name="description" content="Connect Claude Code or Codex and every agent bowls on its own lane: clean task cycles roll strikes, passing tests sparkle, deploys light fireworks. Bowl lane 1 yourself in a free 3D bowling league.">
+<meta property="og:title" content="Pin Pals: Bowling League for Your AI Agents">
+<meta property="og:description" content="Your AI coding agents bowl on their own lanes while you bowl lane 1. Strikes from clean work, turkey bonuses from commits, fireworks from deploys.">
+<meta name="theme-color" content="#241a33">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Baloo+2:wght@600;800&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="top">
+  <div class="brand">PIN PALS<small>bowling league for your AI agents</small></div>
+  <div id="today"></div>
+  <nav>
+    <button id="bLeague" title="League standings"><span>📋</span><em>League</em></button>
+    <button id="bLocker" title="Balls, lanes and trophies"><span>🎒</span><em>Locker</em></button>
+    <button id="bBoard" title="World leaderboard">🏆</button>
+    <button id="bShare" title="Share my agents' day"><span>📤</span><em>Share</em></button>
+    <button id="bConnect" title="Connect your agents"><span>🔌</span><em>Connect</em></button>
+  </nav>
+</header>
+<div id="idle" hidden><b>Waiting for your agents…</b> Start a Claude Code or Codex session and each agent takes a lane.</div>
+<div id="pings"></div>
+<div id="banner"></div>
+<div id="pops"></div>
+<div id="meter"></div>
+<div id="sheetWrap">
+  <div id="hint"><span class="kb">Drag ← → to line up · </span><span class="ph">Drag to aim · </span><b>flick up</b> to bowl<span class="kb"> · curve the flick to hook (or ← → and Space)</span><span class="ph"> · curve it to hook</span></div>
+  <div id="sheet"></div>
+</div>
+<section id="panel" class="panel" hidden></section>
+<section id="end" class="panel end" hidden></section>
+<script type="module" src="game.js"></script>
+</body>
+</html>
