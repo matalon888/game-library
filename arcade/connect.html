@@ -76,6 +76,12 @@ body.no3d .flat { display: block }
 .promise { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-top: 1px solid #ffffff22; padding-top: 22px }
 .promise li { font-size: 15px; color: var(--muted) }
 .promise li b { display: block; color: var(--paper); font-size: 17px; margin-bottom: 2px }
+.daily { display: grid; gap: 12px; border-top: 1px solid #ffffff22; padding-top: 22px }
+.daily p { font-size: 15px; color: var(--muted) }
+.daily p b { color: var(--paper); font-size: 17px }
+.dbtns { display: flex; flex-wrap: wrap; gap: 10px }
+.dbtn { font-weight: 700; font-size: 15px; padding: 11px 16px; border-radius: 999px; border: 2px solid var(--lilac); background: transparent; color: var(--paper); cursor: pointer; text-decoration: none }
+.dbtn:hover { background: var(--lilac); color: var(--ink) }
 .promise li:nth-child(1) b::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--acid); margin-right: 8px }
 .promise li:nth-child(2) b::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--lilac); margin-right: 8px }
 .promise li:nth-child(3) b::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--coral); margin-right: 8px }
@@ -122,7 +128,7 @@ body.open .sheet { transform: none }
 .btn.dark { background: var(--ink); color: var(--paper); box-shadow: 0 5px 0 #000 }
 .step { margin: 0; font-size: 15px; color: #45474d }
 .step b { color: var(--ink) }
-.toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 18px); transform: translate(-50%, -20px); background: var(--acid); color: var(--ink); padding: 10px 16px; border-radius: 999px; font-weight: 700; opacity: 0; transition: .18s; pointer-events: none; z-index: 9 }
+.toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 18px); transform: translate(-50%, -20px); background: var(--acid); color: var(--ink); padding: 10px 16px; border-radius: 999px; font-weight: 700; opacity: 0; transition: .18s; pointer-events: none; z-index: 9; width: max-content; max-width: calc(100vw - 32px); text-align: center }
 .toast.on { opacity: 1; transform: translate(-50%, 0) }
 .step.note{opacity:.7;font-size:.86em}.step.note a{color:inherit;text-decoration:underline}
 .fine { font-size: 13px; color: var(--muted) }
@@ -186,6 +192,13 @@ body.open .sheet { transform: none }
       <li><b>Unbroken</b>No ads mid-round.</li>
       <li><b>Fresh</b>New games twice a day.</li>
     </ul>
+    <div class="daily">
+      <p><b>New games every morning.</b> Ask your AI once.</p>
+      <div class="dbtns">
+        <button class="dbtn" id="dailyClaude">Claude (Pro/Max)</button>
+        <a class="dbtn" id="dailyGpt" target="_blank" rel="noopener">ChatGPT: opens with the prompt, tap Send</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -224,8 +237,24 @@ const HOSTS = {
     steps: ['<b>Add connector</b>, name <b>🎮 RIFFCADE</b>, paste, save.'] }
 };
 const $ = s => document.querySelector(s);
-const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800); };
-function open(k) {
+const toast = (t, ms = 1800) => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), ms); };
+// ---------------------------------------------------------------- new games every morning
+// Claude warns on pre-filled claude.ai/new?q= links, so the prompt goes on the clipboard and Claude opens empty.
+const DAILY = "Every morning, show me today's new RIFFCADE games.";
+const legacyCopy = t => {
+  const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove(); return ok;
+};
+const copyText = t => navigator.clipboard && isSecureContext ? navigator.clipboard.writeText(t).then(() => true, () => legacyCopy(t)) : Promise.resolve(legacyCopy(t));
+$('#dailyClaude').onclick = () => {
+  const copied = copyText(DAILY); // starts while this page still has focus
+  window.open('https://claude.ai/new', '_blank', 'noopener');
+  copied.then(ok => toast(ok ? 'Prompt copied, paste it into Claude and send.' : 'Paste this into Claude: ' + DAILY, 3000));
+};
+$('#dailyGpt').href = 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY);
+function openSheet(k) {
   const phone = device !== 'desktop', h = phone && HOSTS[k].phone ? { ...HOSTS[k], ...HOSTS[k].phone } : HOSTS[k];
   $('#sheet').innerHTML = `<button class="x" id="x" aria-label="Close">×</button><h2 id="sheetTitle">${LOGOS[k]}${h.name}</h2>
     <a class="btn" id="add" href="${phone && h.appAdd ? h.appAdd : h.add}" target="_blank" rel="noopener">${h.addLabel}</a>
@@ -241,7 +270,7 @@ function open(k) {
 const close = () => document.body.classList.remove('open');
 $('#veil').onclick = close;
 addEventListener('keydown', e => e.key === 'Escape' && close());
-document.querySelectorAll('.ai').forEach(b => b.onclick = () => open(b.dataset.k));
+document.querySelectorAll('.ai').forEach(b => b.onclick = () => openSheet(b.dataset.k));
 // ---------------------------------------------------------------- Add to Home Screen, per phone + browser
 const SHARE = '<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#15171B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8"/></svg></span>';
 const PLUS = '<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#15171B" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>';
