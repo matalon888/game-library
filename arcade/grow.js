@@ -253,7 +253,7 @@
       const key = e => { if (e.key === 'Escape') { e.preventDefault(); cancel(); } };
       addEventListener('keydown', key);
       if (nx) {
-        t = setInterval(() => { n--; const c = $('gCount'); if (n > 0) { if (c) c.textContent = `Starting in ${n}`; return; } stop(); ev('next_go'); finish('went'); go(nx.slug, '&from=next'); }, 1000);
+        t = setInterval(() => { if (!document.contains(o)) return stop(); n--; const c = $('gCount'); if (n > 0) { if (c) c.textContent = `Starting in ${n}`; return; } stop(); ev('next_go'); finish('went'); go(nx.slug, '&from=next'); }, 1000);
         $('gGo').onclick = () => { ev('next_go'); finish('went'); go(nx.slug, '&from=next'); };
         $('gPick').onclick = () => { ev('next_pick'); finish('went'); goHome(); };
         $('gGo').focus({ preventScroll: true });
