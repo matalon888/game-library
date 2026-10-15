@@ -201,14 +201,15 @@
       <b>${esc(g.name)}</b><span>${fresh ? `<span class="new">${madeTxt(g.made)}</span>` : metaLine(g, stats[g.slug])}</span></a>`;
     const row = (g, i) => `<a class="row" href="${href(g)}"${tgt(g)}${dd(g)}><span class="rank">${i + 1}</span><img src="${esc(art(g))}" alt="" loading="lazy">
       <div><b>${esc(g.name)}</b><p>${esc(g.blurb || '')}</p><span class="sub">${metaLine(g, stats[g.slug])}</span></div><span class="get">PLAY</span></a>`;
-    const shelf = (title, list, see, fresh) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>
+    const AI_DESC = '<p class="shelf-desc"><b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch, and the tokens they use fill your fuel, mana or coins. You play alongside them. It only counts your agents\' activity, it never spends tokens. 🏆 World leaderboards with country flags.</p>';
+    const shelf = (title, list, see, fresh) => list.length ? `<section class="shelf"><header><h2>${esc(title)}</h2>${see ? `<a href="#" data-see="${esc(see)}">See all</a>` : ''}</header>${see === 'Connect your AI' ? AI_DESC : ''}
       <div class="rail">${list.slice(0, 15).map(g => tile(g, fresh)).join('')}</div></section>` : '';
 
     function draw() {
       $('cats').querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.c === 'All' && !cat) || b.dataset.c === cat)));
       if (cat) {
         const list = cat === 'Desktop' ? desk : COLLS.includes(cat) ? collList(cat) : gs.filter(g => (g.category || 'Arcade') === cat);
-        $('shelves').innerHTML = `<section class="chart"><header><h2>${cat === 'Desktop' ? (PC ? 'Desktop games' : 'Desktop games · play on your computer') : 'Top ' + esc(cat)}</h2><span class="eyebrow">${list.length} games</span></header>${list.map(row).join('')}</section>`;
+        $('shelves').innerHTML = `<section class="chart"><header><h2>${cat === 'Desktop' ? (PC ? 'Desktop games' : 'Desktop games · play on your computer') : 'Top ' + esc(cat)}</h2><span class="eyebrow">${list.length} games</span></header>${cat === 'Connect your AI' ? AI_DESC : ''}${list.map(row).join('')}</section>`;
         return;
       }
       // "Just made": newest creations first, whatever day we added them
@@ -234,6 +235,7 @@
       <div><div class="eyebrow">Continue</div><b>${esc(last.name)}</b></div><span class="go">Play</span></a>`;
     renderInstall();
     autoPrompt();
+    if (window.Grow && !EMBED) window.Grow.home(every);  // config.js flags: today's challenge + streak (grow.js)
   }
 
   // ---------------------------------------------------------------- player
@@ -244,12 +246,15 @@
 
   async function play() {
     const slug = new URLSearchParams(location.search).get('g');
-    const g = (await games()).find(x => x.slug === slug);
+    const all = await games();
+    const g = all.find(x => x.slug === slug);
     if (!g) { location.replace(EMBED ? './?embed=chat' : './'); return; }
     if (g.linkout) { location.replace(g.external); return; }
-    // came from the daily AI task (riffcade.com/today links carry ?ref=daily): counted like a button click, no ids
-    const REF = new URLSearchParams(location.search).get('ref') === 'daily' ? 'daily' : null;
+    // came from the daily AI task (today page links carry ?ref=daily-<ai>): counted like a button click, no ids
+    const REF = (r => /^daily(-(chatgpt|claude|gemini|perplexity|other))?$/.test(r || '') ? r : null)(new URLSearchParams(location.search).get('ref'));
     if (REF) api('/api/click', { button: REF });
+    const grow = !EMBED && window.Grow;  // config.js flags (grow.js): auto-next, challenge, subscribe card, ads
+    if (grow) grow.onLoad(g, all);
     document.title = g.name + ' · RIFFCADE';
     $('title').textContent = g.name;
     const stage = $('stage');
@@ -396,7 +401,10 @@
     }
     addEventListener('resize', checkRotate);
 
-    const goHome = () => adBreak(started, () => { location.href = './'; });
+    const goHome = async () => {
+      if (grow && await grow.leave(started)) return;  // grow.js took over: share card, subscribe card, Next, ads
+      adBreak(started, () => { location.href = './'; });
+    };
     const leave = () => {
       const rated = store.get('rated', {});
       if (started && Date.now() - started > 30000 && !rated[g.slug]) return rateSheet(g, goHome);
@@ -425,6 +433,7 @@
       try { frame.contentWindow.focus(); } catch (e) {}
       if (g.controls) controls(g.controls, frame);
       bubble(g, { leave, credits });
+      if (grow) grow.onStart(frame);
       setTimeout(() => { fit(); checkRotate(); autoFit(); }, 250);
     };
 

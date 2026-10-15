@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>RIFFCADE counts</title>
+<style>
+:root { --bg: #F5F3E9; --ink: #15171B; --muted: #5d626d; --line: #dcd8ca; --hi: #e9e3ff }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #15171B; --ink: #eceae2; --muted: #9aa0ad; --line: #2c2f37; --hi: #2a2550 } }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, sans-serif }
+main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px }
+h1 { font-size: 22px; margin: 0 0 4px }
+p { color: var(--muted); margin: 0 0 16px }
+.wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--bg) }
+thead th { font-size: 12px; color: var(--muted); font-weight: 600; vertical-align: bottom; white-space: normal; min-width: 64px }
+tr.total td { font-weight: 700; background: var(--hi) }
+td.z { color: var(--muted) }
+</style>
+</head>
+<body>
+<main>
+<h1>RIFFCADE counts</h1>
+<p>Per UTC day from riffcade.com (never the chat versions). A session is one browser tab; no lasting ids. Last 30 days.</p>
+<div class="wrap"><table id="t"><thead></thead><tbody><tr><td>Loading…</td></tr></tbody></table></div>
+</main>
+<script>
+const COLS = [
+  ['Sessions', d => d.sessions],
+  ['Games', d => e(d, 'game')],
+  ['Games / session', d => d.sessions ? (e(d, 'game') / d.sessions).toFixed(2) : '–'],
+  ['Challenge plays', d => e(d, 'challenge_play')],
+  ['Challenge done', d => e(d, 'challenge_done')],
+  ['Shares', d => e(d, 'share')],
+  ['/c/ arrivals', d => e(d, 'c_arrival')],
+  ['Next shown', d => e(d, 'next_shown')],
+  ['Next played', d => e(d, 'next_go')],
+  ['Next cancel', d => e(d, 'next_cancel')],
+  ['Daily card shown', d => e(d, 'sub_shown')],
+  ['Tap ChatGPT', d => e(d, 'sub_tap_chatgpt')],
+  ['Tap Claude', d => e(d, 'sub_tap_claude')],
+  ['Tap WhatsApp', d => e(d, 'sub_tap_whatsapp')],
+  ['In-app → browser', d => e(d, 'sub_inapp_open')],
+  ['?ref=daily visits', d => e(d, 'ref_daily')],
+  ['Banners', d => e(d, 'ad_banner')],
+  ['Interstitials', d => e(d, 'ad_interstitial')],
+  ['Rewarded offered', d => e(d, 'ad_rewarded_offer')],
+  ['Rewarded done', d => e(d, 'ad_rewarded_done')],
+  ['Consent yes', d => e(d, 'consent_accept')],
+  ['Consent no', d => e(d, 'consent_decline')],
+];
+const e = (d, k) => d.events[k] || 0;
+fetch('https://mcp.riffcade.com/api/ev-stats', { cache: 'no-store' }).then(r => r.json()).then(({ days }) => {
+  const rows = Object.entries(days).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  const total = { sessions: 0, events: {} };
+  rows.forEach(([, d]) => { total.sessions += d.sessions; for (const k in d.events) total.events[k] = (total.events[k] || 0) + d.events[k]; });
+  const cell = v => `<td class="${v === 0 ? 'z' : ''}">${typeof v === 'number' ? v.toLocaleString('en-US') : v}</td>`;
+  document.querySelector('#t thead').innerHTML = `<tr><th>Day</th>${COLS.map(c => `<th>${c[0]}</th>`).join('')}</tr>`;
+  document.querySelector('#t tbody').innerHTML = (rows.length ? `<tr class="total"><td>30 days</td>${COLS.map(c => cell(c[1](total))).join('')}</tr>` : '<tr><td>No data yet.</td></tr>') +
+    rows.map(([day, d]) => `<tr><td>${day}</td>${COLS.map(c => cell(c[1](d))).join('')}</tr>`).join('');
+}).catch(() => { document.querySelector('#t tbody').innerHTML = '<tr><td>Could not load the counts.</td></tr>'; });
+</script>
+</body>
+</html>
