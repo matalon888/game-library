@@ -258,7 +258,7 @@ const DAILY_CARD_ENABLED = true;
 // The AI reads riffcade.com/today (plain HTML, rebuilt with every catalogue update by build_today.py).
 // habits.js: the prompt variant this browser gets while PROMPT_TEST runs (else DAILY_PROMPT)
 const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
-const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.';
+const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus 3 games from each category, each with its cover picture, one line and its link, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.';
 // anonymous click count per button (button name + time, nothing else), like play counts
 const countClick = button => (window.RiffConsent && (RiffConsent.ga('daily_button_tap', { ai: button }), RiffConsent.ga('prompt_tap', { ai: button, prompt_variant: PV, placement: 'landing' }), RiffConsent.pixel('DailyButtonTap', true)),
   ['chatgpt', 'claude'].includes(button) && fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button: 'ptap-' + PV }) }).catch(() => {}), fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {}));
@@ -301,7 +301,7 @@ $('#veil').onclick = close;
 addEventListener('keydown', e => e.key === 'Escape' && close());
 // onboarding = the daily agent: each AI opens with the morning prompt (Claude empty: it warns on pre-filled links),
 // and the prompt is always on the clipboard too (log-in screens and apps can drop it). The plugin is the small link below.
-const DAILY_OPEN = { claude: 'https://claude.ai/new', chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
+const DAILY_OPEN = { claude: 'https://claude.ai/new?q=' + encodeURIComponent(DAILY), chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
 // back from the AI: did its agent fetch today.agentpark.co with this browser's code? (habits.js agentWatch)
 if (window.RiffHabits) RiffHabits.agentWatch((state, k) => { const n = (HOSTS[k] || {}).name || 'your AI';
   toast(state === 'connected' ? '✅ ' + n + ' is connected. Your games are in the chat, new ones every morning.'
@@ -312,7 +312,7 @@ document.querySelectorAll('.ai').forEach(b => {
     countClick(k);
     if (window.RiffHabits) RiffHabits.agentTapped(k);
     copyText(DAILY).then(ok => toast(!ok ? 'Paste this into ' + HOSTS[k].name + ': ' + DAILY
-      : k === 'claude' ? 'Prompt copied, paste it into Claude and send.' : 'Tap Send. (Prompt copied too, in case you need to log in.)', 3200));
+      : 'Tap Send in ' + HOSTS[k].name + '. Box empty? Tap it, Paste, Send (the prompt is copied).', 3600));
   });
 });
 document.querySelectorAll('[data-plug]').forEach(a => a.onclick = e => { e.preventDefault(); openSheet(a.dataset.plug); });

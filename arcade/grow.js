@@ -302,7 +302,7 @@
       ev('sub_shown');
       // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
       const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
-      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.';
+      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus 3 games from each category, each with its cover picture, one line and its link, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.';
       const back = 'https://agentpark.co/arcade/?sub=1';
       const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
         ${iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari</a><p>Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b>, or copy the link.</p><button class="btn ghost" id="gCopyLink">Copy link</button>`
@@ -312,7 +312,7 @@
         <div class="g-fresh">${fresh.map(g => `<figure><img src="${esc(art(g))}" alt=""><figcaption>${esc(g.name)}</figcaption></figure>`).join('')}</div>
         ${escapeHtml}
         <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">ChatGPT: tap Send, that's it</a>
-        <a class="btn" id="gClaude" href="https://claude.ai/new" target="_blank" rel="noopener">Claude (Pro/Max)</a>
+        <a class="btn" id="gClaude" href="https://claude.ai/new?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">Claude (Pro/Max)</a>
         ${C.WHATSAPP_CHANNEL_URL ? `<a class="btn" id="gWa" href="${esc(C.WHATSAPP_CHANNEL_URL)}" target="_blank" rel="noopener">WhatsApp Channel</a>` : ''}
         <button class="btn ghost" id="gSubClose">Not now</button>`);
       const close = () => { o.remove(); removeEventListener('keydown', key); done(); };
@@ -323,8 +323,8 @@
       $('gGpt').onclick = () => { tap('chatgpt'); copyText(P).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
       $('gClaude').onclick = () => {
         tap('claude');
-        // the link itself opens Claude (a tapped claude.ai/new opens the app on phones); the prompt goes on the clipboard
-        copyText(P).then(ok => toast(ok ? 'Prompt copied: paste it into Claude and send.' : 'Paste this into Claude: ' + P));
+        // the link opens Claude with the prompt filled in (claude.ai/new?q=, the app on phones); it goes on the clipboard too
+        copyText(P).then(ok => toast(ok ? 'Tap Send in Claude. Box empty? Paste, then Send.' : 'Paste this into Claude: ' + P));
       };
       if ($('gWa')) $('gWa').onclick = () => tap('whatsapp');
       if ($('gOpen')) $('gOpen').onclick = () => ev('sub_inapp_open');

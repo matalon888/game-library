@@ -99,7 +99,7 @@ chips = "".join(f'<a href="#{k}">{e(t)}</a>' for k, t, _, gs in shelves[3:])
 rows = "\n".join(f'<section class="shelf" id="{k}"><header><h2>{e(t)}</h2><span>{e(sub)}</span></header>'
                  f'<div class="row">{"".join(tile(g, f"{k}-{i + 1}") for i, g in enumerate(gs))}</div></section>' for k, t, sub, gs in shelves if gs)
 text = "\n".join(f'<h3>{EMOJI.get(c, "🎮")} {e(c)}</h3><ul>' + "".join(
-    f'<li>{"🆕 " if x["new"] else ""}<b>{e(x["name"])}</b>: {e(x["pitch"])} <a href="{e(x["play_url"])}">{e(x["play_url"])}</a></li>' for x in xs) + '</ul>'
+    f'<li><img src="{e(x["image"])}" alt="{e(x["name"])} cover" width="48" height="80" loading="lazy"><span>{"🆕 " if x["new"] else ""}<b>{e(x["name"])}</b>: {e(x["pitch"])} <a href="{e(x["play_url"])}">{e(x["play_url"])}</a></span></li>' for x in xs) + '</ul>'
     for c, xs in data["categories"].items() if xs)
 gs_ = score(gotd)
 ld = json.dumps({"@context": "https://schema.org", "@type": "ItemList", "name": f"AGENTPARK new games, {date}",
@@ -173,7 +173,10 @@ main {{ max-width: 1100px; margin: 0 auto; padding: max(18px, env(safe-area-inse
 .list {{ font-size: 14px; color: var(--muted) }}
 .list summary {{ font: 700 15px var(--body); color: var(--ink); cursor: pointer }}
 .list h3 {{ font-size: 15px; color: var(--ink); margin: 14px 0 4px }}
-.list ul {{ margin: 0; padding-left: 18px; display: grid; gap: 4px }}
+.list ul {{ margin: 0; padding: 0; list-style: none; display: grid; gap: 8px }}
+.list li, .list .gl {{ display: flex; gap: 10px; align-items: flex-start }}
+.list li img, .list .gl img {{ width: 48px; height: 80px; object-fit: cover; border-radius: 8px; flex: none; background: var(--line) }}
+.list li span {{ min-width: 0 }}
 .list a {{ text-decoration: underline; overflow-wrap: anywhere }}
 .daily {{ margin: 0; font-size: 14px; background: var(--surface); border: 1px dashed var(--line); border-radius: 16px; padding: 12px 16px }}
 footer {{ font-size: 13px; color: var(--muted) }}
@@ -189,7 +192,7 @@ footer a {{ text-decoration: underline }}
 <span class="btn">▶ Play free</span><span class="meta">{e(EMOJI.get(gotd['category'], '🎮'))} {e(gotd['category'])}{f" · ★ {gs_:.1f}" if gs_ else ""}{" · best on a computer" if gotd.get("desk_only") else ""}</span></div></a></div>
 <details class="list pad"><summary>📋 Today's list with links</summary>
 <p>Game of the day, then today's picks in each category (🆕 = just added), one line each with its link. They change every day. All free, in the browser.</p>
-<p>🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
+<p class="gl"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="48" height="80">🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
 {text}
 <p>All the games with pictures: <a href="https://today.agentpark.co">https://today.agentpark.co</a></p>
 </details>

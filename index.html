@@ -82,6 +82,13 @@ h1 { font: 800 clamp(46px, 8.5vw, 92px)/.9 var(--display); letter-spacing: -.04e
   display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px); background: var(--card); color: var(--dark); padding: 12px 18px 12px 12px; border-radius: 20px;
   box-shadow: 0 20px 50px -12px rgba(0, 0, 0, .7); transition: .35s cubic-bezier(.2, 1.3, .4, 1); font-size: 14.5px }
 .listed.on { opacity: 1; transform: translate(-50%, 0) }
+.psheet { position: fixed; inset: 0; z-index: 30; display: none; place-items: end center; background: rgba(14,20,40,.45); padding: 16px }
+.psheet.on { display: grid }
+.psheet > div { width: min(420px, 100%); background: #fff; color: #1E1B33; border-radius: 22px; padding: 18px; display: grid; gap: 10px; margin-bottom: env(safe-area-inset-bottom, 0px) }
+.psheet b { font-size: 17px } .psheet p { margin: 0 }
+.psheet textarea { font: 13px/1.4 system-ui, sans-serif; height: 74px; border: 1px solid #F0E2C8; border-radius: 12px; padding: 8px; resize: none }
+.psheet .go { background: #22A257; color: #fff; text-align: center; font-weight: 800; padding: 14px; border-radius: 999px; text-decoration: none }
+.psheet button { background: none; border: 0; color: #6E6A84; font: inherit; padding: 6px }
 .listed .ok { width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--grass); color: #fff; display: grid; place-items: center; font: 800 18px var(--display) }
 .listed b { display: block; font: 800 16px/1.2 var(--display) }
 
@@ -140,10 +147,11 @@ footer a { color: var(--muted) }
   // ---------------------------------------------------------------- the daily agent (same flow as connect.html)
   const MCP = 'https://mcp.riffcade.com/mcp';
   const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
-  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.';
+  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus 3 games from each category, each with its cover picture, one line and its link, and the page link to see them all. Then make this a daily task every morning at 8am and confirm it is scheduled.';
   const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', grok: 'Grok' };
-  // Claude warns on pre-filled links and Gemini has none, so both open empty with the prompt on the clipboard
-  const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new', gemini: 'https://gemini.google.com/app', grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
+  // ChatGPT, Claude and Grok take the prompt in the link (Claude shows a caution line, Grok a Send? dialog); Gemini has no such
+  // link, so its button first shows a Paste-then-Send sheet with the prompt already copied. Every tap also copies the prompt.
+  const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new?q=' + encodeURIComponent(DAILY), gemini: 'https://gemini.google.com/app', grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
   const post = button => fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {});
   // anonymous click count per button (button name + time, nothing else), like play counts
   const countClick = k => {
@@ -163,16 +171,33 @@ footer a { color: var(--muted) }
   document.querySelectorAll('.ai').forEach(a => {
     const k = a.dataset.k; a.href = OPEN[k];
     // a real link (no preventDefault): on phones it opens the AI's app; the gate opens here at the same time
-    a.addEventListener('click', () => {
+    a.addEventListener('click', e => {
       countClick(k);
       if (window.RiffHabits) RiffHabits.agentTapped(k);
+      if (k === 'gemini' && !a.dataset.go) { e.preventDefault(); copyText(DAILY).then(ok => pasteSheet(ok)); return; }
       copyText(DAILY).then(ok => {
         if (!ok) return listed('Paste this into ' + NAMES[k] + ':', DAILY, 9000);
-        listed("You're on the list.", k === 'claude' || k === 'gemini' ? 'Prompt copied. Paste it into ' + NAMES[k] + ' and send.' : 'Tap Send in ' + NAMES[k] + '. (Prompt copied too, in case you log in first.)');
+        listed("You're on the list.", 'Tap Send in ' + NAMES[k] + '. Box empty? Tap it, Paste, Send (the prompt is copied).');
       });
       letIn(k);
     });
   });
+
+  // Gemini: no pre-filled links, so: the prompt is copied, then one clear step before it opens
+  function pasteSheet(ok) {
+    let d = $('pasteSheet');
+    if (!d) {
+      d = document.createElement('div'); d.id = 'pasteSheet'; d.className = 'psheet'; d.setAttribute('role', 'dialog');
+      d.innerHTML = '<div><b>Prompt copied ✓</b><p>In Gemini: tap the message box, tap <b>Paste</b>, then <b>Send</b>.</p><textarea readonly></textarea>'
+        + '<a class="go" target="_blank" rel="noopener" href="https://gemini.google.com/app">Open Gemini</a><button type="button">Cancel</button></div>';
+      document.body.appendChild(d);
+      d.querySelector('button').onclick = () => d.classList.remove('on');
+      d.querySelector('.go').onclick = () => { copyText(DAILY); setTimeout(() => d.classList.remove('on'), 400); };
+    }
+    d.querySelector('textarea').value = DAILY;
+    d.querySelector('p').innerHTML = ok ? 'In Gemini: tap the message box, tap <b>Paste</b>, then <b>Send</b>.' : 'Copy the prompt below, then in Gemini paste it and tap <b>Send</b>.';
+    d.classList.add('on');
+  }
 
   // back from the AI: did its agent fetch today.agentpark.co with this browser's code? (habits.js agentWatch)
   if (window.RiffHabits) RiffHabits.agentWatch((state, k) => {
