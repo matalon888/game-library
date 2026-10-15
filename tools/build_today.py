@@ -52,17 +52,24 @@ shelves = [("new", "✨ New this week", "The best of the newest", best(new_shown
 shelves += [(f"c-{c.lower().replace(' & ', '-').replace(' ', '-')}", f"{EMOJI.get(c, '🎮')} {c}", f"{sum(g['category'] == c for g in ok)} games",
              best([g for g in shown if g["category"] == c])[:SHELF]) for c in cats]
 
-def pick_cat(c):  # the list an AI quotes: this week's best new games in the category first, then its best overall
-    gs = [g for g in shown if g["category"] == c]
-    new = best([g for g in gs if g in new_shown[:80]])
-    return (new + [g for g in best(gs) if g not in new])[:PER_CAT]
+def pick_cat(c):
+    """The list an AI quotes, different every day: games added today or yesterday first, then a window that moves PER_CAT
+    places a day through the category's good games (Park score 6+, best first), so the picks rotate even on days with
+    nothing new; a category of 30 games repeats only after 10 days."""
+    gs = [g for g in shown if g["category"] == c and g is not gotd]
+    new = best([g for g in gs if fresh(g)])
+    pool = [g for g in best(gs) if g not in new]
+    good = [g for g in pool if (score(g) or 0) >= 6]
+    if len(good) >= 7 * PER_CAT: pool = good  # big categories keep to their good games; small ones use all, so a week never repeats
+    off = (today.toordinal() * PER_CAT) % len(pool) if pool else 0
+    return (new + pool[off:] + pool[:off])[:PER_CAT]
 
 data = {"title": "AGENTPARK: new games", "date": today.isoformat(), "more": f"{SITE}/today", "total": len(ok),
         "game_of_the_day": {"name": gotd["name"], "category": gotd["category"], "pitch": pitch(gotd), "image": img(gotd), "play_url": play(gotd, "gotd")},
         "games": [{"name": g["name"], "category": g["category"], "blurb": g.get("blurb") or "", "pitch": pitch(g), "score": score(g),
                    "added": g.get("added"), "desktop_only": bool(g.get("desk_only")), "image": img(g), "play_url": play(g, i + 1)}
                   for i, g in enumerate(newest[:NEW])],
-        "categories": {c: [{"name": g["name"], "pitch": pitch(g), "image": img(g), "play_url": play(g, f"list-{c}")}
+        "categories": {c: [{"name": g["name"], "new": fresh(g), "pitch": pitch(g), "image": img(g), "play_url": play(g, f"list-{c}")}
                            for g in pick_cat(c)] for c in cats}}
 for path in ((os.path.join(ROOT, "arcade/today.json"),) if SITE_LAYOUT else (os.path.join(ROOT, "arcade/today.json"), os.path.join(OUT, "arcade/today.json"))):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -92,7 +99,7 @@ chips = "".join(f'<a href="#{k}">{e(t)}</a>' for k, t, _, gs in shelves[3:])
 rows = "\n".join(f'<section class="shelf" id="{k}"><header><h2>{e(t)}</h2><span>{e(sub)}</span></header>'
                  f'<div class="row">{"".join(tile(g, f"{k}-{i + 1}") for i, g in enumerate(gs))}</div></section>' for k, t, sub, gs in shelves if gs)
 text = "\n".join(f'<h3>{EMOJI.get(c, "🎮")} {e(c)}</h3><ul>' + "".join(
-    f'<li><b>{e(x["name"])}</b>: {e(x["pitch"])} <a href="{e(x["play_url"])}">{e(x["play_url"])}</a></li>' for x in xs) + '</ul>'
+    f'<li>{"🆕 " if x["new"] else ""}<b>{e(x["name"])}</b>: {e(x["pitch"])} <a href="{e(x["play_url"])}">{e(x["play_url"])}</a></li>' for x in xs) + '</ul>'
     for c, xs in data["categories"].items() if xs)
 gs_ = score(gotd)
 ld = json.dumps({"@context": "https://schema.org", "@type": "ItemList", "name": f"AGENTPARK new games, {date}",
@@ -181,7 +188,7 @@ footer a {{ text-decoration: underline }}
 <div><small>GAME OF THE DAY</small><h2>{e(gotd['name'])}</h2><p>{e(pitch(gotd))}</p>
 <span class="btn">▶ Play free</span><span class="meta">{e(EMOJI.get(gotd['category'], '🎮'))} {e(gotd['category'])}{f" · ★ {gs_:.1f}" if gs_ else ""}{" · best on a computer" if gotd.get("desk_only") else ""}</span></div></a></div>
 <details class="list pad"><summary>📋 Today's list with links</summary>
-<p>Game of the day, then the best new games in each category, one line each with its link. 💻 = best on a computer. All free, in the browser.</p>
+<p>Game of the day, then today's picks in each category (🆕 = just added), one line each with its link. They change every day. All free, in the browser.</p>
 <p>🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
 {text}
 <p>All the games with pictures: <a href="https://today.agentpark.co">https://today.agentpark.co</a></p>
