@@ -52,13 +52,18 @@ shelves = [("new", "✨ New this week", "The best of the newest", best(new_shown
 shelves += [(f"c-{c.lower().replace(' & ', '-').replace(' ', '-')}", f"{EMOJI.get(c, '🎮')} {c}", f"{sum(g['category'] == c for g in ok)} games",
              best([g for g in shown if g["category"] == c])[:SHELF]) for c in cats]
 
+def pick_cat(c):  # the list an AI quotes: this week's best new games in the category first, then its best overall
+    gs = [g for g in shown if g["category"] == c]
+    new = best([g for g in gs if g in new_shown[:80]])
+    return (new + [g for g in best(gs) if g not in new])[:PER_CAT]
+
 data = {"title": "AGENTPARK: new games", "date": today.isoformat(), "more": f"{SITE}/today", "total": len(ok),
         "game_of_the_day": {"name": gotd["name"], "category": gotd["category"], "pitch": pitch(gotd), "image": img(gotd), "play_url": play(gotd, "gotd")},
         "games": [{"name": g["name"], "category": g["category"], "blurb": g.get("blurb") or "", "pitch": pitch(g), "score": score(g),
                    "added": g.get("added"), "desktop_only": bool(g.get("desk_only")), "image": img(g), "play_url": play(g, i + 1)}
                   for i, g in enumerate(newest[:NEW])],
         "categories": {c: [{"name": g["name"], "pitch": pitch(g), "image": img(g), "play_url": play(g, f"list-{c}")}
-                           for g in best([g for g in shown if g["category"] == c])[:PER_CAT]] for c in cats}}
+                           for g in pick_cat(c)] for c in cats}}
 for path in ((os.path.join(ROOT, "arcade/today.json"),) if SITE_LAYOUT else (os.path.join(ROOT, "arcade/today.json"), os.path.join(OUT, "arcade/today.json"))):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
@@ -158,8 +163,8 @@ main {{ max-width: 1100px; margin: 0 auto; padding: max(18px, env(safe-area-inse
 .t strong {{ font-size: 14px; line-height: 1.2; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }}
 .t small {{ font-size: 12px; color: var(--muted) }}
 @media (min-width: 720px) {{ .row {{ grid-auto-columns: 150px }} .hero {{ grid-template-columns: 200px minmax(0, 1fr); padding: 22px }} }}
-.list {{ font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px }}
-.list h2 {{ font: 800 18px var(--display); color: var(--ink); margin: 0 0 4px }}
+.list {{ font-size: 14px; color: var(--muted) }}
+.list summary {{ font: 700 15px var(--body); color: var(--ink); cursor: pointer }}
 .list h3 {{ font-size: 15px; color: var(--ink); margin: 14px 0 4px }}
 .list ul {{ margin: 0; padding-left: 18px; display: grid; gap: 4px }}
 .list a {{ text-decoration: underline; overflow-wrap: anywhere }}
@@ -175,13 +180,15 @@ footer a {{ text-decoration: underline }}
 <span class="cv"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="600" height="1000"></span>
 <div><small>GAME OF THE DAY</small><h2>{e(gotd['name'])}</h2><p>{e(pitch(gotd))}</p>
 <span class="btn">▶ Play free</span><span class="meta">{e(EMOJI.get(gotd['category'], '🎮'))} {e(gotd['category'])}{f" · ★ {gs_:.1f}" if gs_ else ""}{" · best on a computer" if gotd.get("desk_only") else ""}</span></div></a></div>
+<details class="list pad"><summary>📋 Today's list with links</summary>
+<p>Game of the day, then the best new games in each category, one line each with its link. 💻 = best on a computer. All free, in the browser.</p>
+<p>🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
+{text}
+<p>All the games with pictures: <a href="https://today.agentpark.co">https://today.agentpark.co</a></p>
+</details>
 <nav class="chips pad" aria-label="Categories">{chips}</nav>
 {f'<div class="pad">{challenge}</div>' if challenge else ""}
 {rows}
-<section class="list pad"><h2>Today's picks, in words</h2>
-<p>The newest and best in each category, one line each. 💻 = best on a computer. All games are free and play in the browser.</p>
-{text}
-</section>
 <p class="pad daily">📬 <b>Want this every morning?</b> Tell your AI: <q>Make this a daily task at 8am.</q> ChatGPT, Claude and Grok can all do it. No sign-up.</p>
 <footer class="pad">See all {len(ok)} games in the park: <a href="{SITE}">{SITE.replace('https://', '')}</a>. New games every day.</footer>
 </main>
