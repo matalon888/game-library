@@ -11,7 +11,7 @@ const NAME = 'Dialock: Spin Lock Puzzle';
 const S = createStage({ fov: 34, shadowSize: 7 });
 const { scene, camera, sun, hemi } = S;
 sun.position.set(-3, 14, 5); sun.intensity = 1.4; hemi.intensity = 1.3;
-const ui = createUI({ title: 'DIALOCK', hint: 'Drag the dials to line up the gaps', hand: '👆', score: false });
+const ui = createUI({ title: 'DIALOCK', hint: 'Tap a dial to turn it · or drag', hand: '👆', score: false });
 const D = daily('dialock', ui, { name: NAME });
 const save = store('dialock');
 const F = flow('dialock');

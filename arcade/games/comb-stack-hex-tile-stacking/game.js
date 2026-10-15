@@ -10,7 +10,7 @@ const NAME = 'Comb Stack: Hex Tile Stacking';
 const S = createStage({ fov: 30, shadowSize: 7 });
 const { scene, camera, sun, hemi, renderer } = S;
 sun.position.set(-3, 14, 6); sun.intensity = 1.45; hemi.intensity = 1.3;
-const ui = createUI({ title: 'COMB<br>STACK', hint: 'Drag a stack onto the board', hand: '👆', score: false });
+const ui = createUI({ title: 'COMB<br>STACK', hint: 'Tap a stack, then tap the board · or drag', hand: '👆', score: false });
 const D = daily('combstack', ui, { name: NAME });
 const save = store('combstack');
 const F = flow('combstack');
