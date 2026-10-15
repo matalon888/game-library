@@ -166,6 +166,27 @@
     "pitch": "Drag jelly blocks onto an 8x8 board, fill rows and columns to blast them, and chain combos for a huge score.",
     "image": "https://agentpark.co/arcade/covers/jellyfit-block-puzzle.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=jellyfit-block-puzzle&ref=daily&pos=list-Puzzle"
+   },
+   {
+    "name": "Spotwise: Domino Logic Puzzle",
+    "new": true,
+    "pitch": "Place every domino so each coloured region hits its rule: exact sums, less than, more than, all equal or all different.",
+    "image": "https://agentpark.co/arcade/covers/spotwise-domino-logic-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=spotwise-domino-logic-puzzle&ref=daily&pos=list-Puzzle"
+   },
+   {
+    "name": "Inkpath: Number Line Puzzle",
+    "new": true,
+    "pitch": "Draw one line through the numbered dots in order and fill every square.",
+    "image": "https://agentpark.co/arcade/covers/inkpath-number-line-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=inkpath-number-line-puzzle&ref=daily&pos=list-Puzzle"
+   },
+   {
+    "name": "Solune: Sun & Moon Logic Puzzle",
+    "new": true,
+    "pitch": "Fill the grid with suns and moons: half and half in every line, never three alike, follow the = and × signs.",
+    "image": "https://agentpark.co/arcade/covers/solune-sun-moon-logic-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=solune-sun-moon-logic-puzzle&ref=daily&pos=list-Puzzle"
    }
   ],
   "Arcade": [
@@ -189,6 +210,27 @@
     "pitch": "Carve a spinning log on the lathe to match the target shape, then paint your piece.",
     "image": "https://agentpark.co/arcade/covers/chip-spin-wood-carving-lathe.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=chip-spin-wood-carving-lathe&ref=daily&pos=list-Arcade"
+   },
+   {
+    "name": "Swingaroo: Rope Swing Stunt Game",
+    "new": true,
+    "pitch": "Hold to rope the nearest ring, swing, and let go to fly, flip and bounce your way to the finish line.",
+    "image": "https://agentpark.co/arcade/covers/swingaroo-rope-swing-stunt-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=swingaroo-rope-swing-stunt-game&ref=daily&pos=list-Arcade"
+   },
+   {
+    "name": "Plumplop: Drop & Combine",
+    "new": true,
+    "pitch": "Drop berries, plums and peaches into the crate and squish two of a kind into a bigger one, all the way to the melon.",
+    "image": "https://agentpark.co/arcade/covers/plumplop-drop-combine.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=plumplop-drop-combine&ref=daily&pos=list-Arcade"
+   },
+   {
+    "name": "Cube Trek",
+    "new": true,
+    "pitch": "Drag block pieces onto an 8x8 grid, clearing full rows and columns to free gems or hit score targets across quest levels.",
+    "image": "https://agentpark.co/arcade/covers/cube-trek.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=cube-trek&ref=daily&pos=list-Arcade"
    }
   ],
   "Action": [
@@ -212,6 +254,27 @@
     "pitch": "Line up ricochet shots off walls to take out goons, set off TNT and spare the hostage, all within three bullets per room.",
     "image": "https://agentpark.co/arcade/covers/ricochet-rex.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=ricochet-rex&ref=daily&pos=list-Action"
+   },
+   {
+    "name": "HELLGRID",
+    "new": true,
+    "pitch": "Fight through three reactor sectors in a first-person shooter, with textures and sound all generated in code, until the rift gate opens.",
+    "image": "https://agentpark.co/arcade/covers/markcastle-hellgrid.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=markcastle-hellgrid&ref=daily&pos=list-Action"
+   },
+   {
+    "name": "Starfall Scavenger",
+    "new": true,
+    "pitch": "Drift through a neon debris field with auto-firing weapons, collecting upgrades and fighting bosses across four acts in short roguelite runs.",
+    "image": "https://agentpark.co/arcade/covers/hanazar-games-starfall-scavenger.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=hanazar-games-starfall-scavenger&ref=daily&pos=list-Action"
+   },
+   {
+    "name": "Dropzone",
+    "new": true,
+    "pitch": "Loot, build and harvest while outlasting 23 bots as the storm closes in.",
+    "image": "https://agentpark.co/arcade/covers/thecraftman-dropzone.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=thecraftman-dropzone&ref=daily&pos=list-Action"
    }
   ],
   "Racing": [
@@ -235,6 +298,27 @@
     "pitch": "Explore open worlds, race AI opponents, drift, use nitro, perform stunts and collect stars.",
     "image": "https://agentpark.co/arcade/covers/ebinezer-cloud-torqueverse-3d.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=ebinezer-cloud-torqueverse-3d&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Thrill Loop: Roller Coaster Ride",
+    "new": true,
+    "pitch": "Hold to build speed and release to brake, matching pace to track sections so every rider stays aboard through loops, jumps and hairpins.",
+    "image": "https://agentpark.co/arcade/covers/thrill-loop-roller-coaster-ride.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=thrill-loop-roller-coaster-ride&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Stormchase: Endless Turn Runner",
+    "new": true,
+    "pitch": "Swipe through corners, jump gaps and slide under arches along a floating pink causeway while a grumpy thundercloud rumbles close behind you.",
+    "image": "https://agentpark.co/arcade/covers/stormchase-endless-turn-runner.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=stormchase-endless-turn-runner&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Brick Climb",
+    "new": true,
+    "pitch": "Race rivals across a brick-strewn floor, collecting only your colour to stack and lay as stairs, then climb first to the next level.",
+    "image": "https://agentpark.co/arcade/covers/brick-climb.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=brick-climb&ref=daily&pos=list-Racing"
    }
   ],
   "Strategy": [
@@ -258,6 +342,27 @@
     "pitch": "Lay out roads and buildings to build an isometric city on a grid.",
     "image": "https://agentpark.co/arcade/covers/victorqribeiro-isocity.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=victorqribeiro-isocity&ref=daily&pos=list-Strategy"
+   },
+   {
+    "name": "The Last Pawn",
+    "new": true,
+    "pitch": "Play as a lone black pawn on a chessboard, swiping to dodge the white pieces' moves and capturing them to build a score.",
+    "image": "https://agentpark.co/arcade/covers/gbrln-the-last-pawn.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=gbrln-the-last-pawn&ref=daily&pos=list-Strategy"
+   },
+   {
+    "name": "Rope Team: Mountain Climb for Your AI Agents",
+    "new": true,
+    "pitch": "Your coding agents' real activity drives a low-poly mountain ascent, while you choose routes at forks, anchor through gusts and spend gear.",
+    "image": "https://agentpark.co/arcade/covers/rope-team-mountain-climb-for-your-ai-agents.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=rope-team-mountain-climb-for-your-ai-agents&ref=daily&pos=list-Strategy"
+   },
+   {
+    "name": "Quest Party: Dungeon Heroes for Your AI Agents",
+    "new": true,
+    "pitch": "Your real coding sessions become a dungeon party whose tool calls, test passes and commits trigger attacks, ultimates and treasure while you time abilities.",
+    "image": "https://agentpark.co/arcade/covers/quest-party-dungeon-heroes-for-your-ai-agents.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=quest-party-dungeon-heroes-for-your-ai-agents&ref=daily&pos=list-Strategy"
    }
   ],
   "3D": [
@@ -281,6 +386,27 @@
     "pitch": "Fly a quadcopter through an infinite procedurally generated white city.",
     "image": "https://agentpark.co/arcade/covers/jason9075-skyline-rush.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=jason9075-skyline-rush&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Globe Country Quiz",
+    "new": true,
+    "pitch": "Spin a WebGL globe and identify the highlighted country.",
+    "image": "https://agentpark.co/arcade/covers/sameralsayed-globe-country-quiz.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=sameralsayed-globe-country-quiz&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Scary Classroom Hide & Seek",
+    "new": true,
+    "pitch": "Hide from a threat in a low-poly haunted classroom, on desktop or mobile.",
+    "image": "https://agentpark.co/arcade/covers/bossmancom-scary-classroom-hide-seek.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bossmancom-scary-classroom-hide-seek&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Operation Ironhold",
+    "new": false,
+    "pitch": "Clear a container yard of ten hostiles in three minutes using four weapons, ADS, double jumps and a sniper scope.",
+    "image": "https://agentpark.co/arcade/covers/starknightt-operation-ironhold.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=starknightt-operation-ironhold&ref=daily&pos=list-3D"
    }
   ],
   "Word & Math": [
@@ -304,6 +430,27 @@
     "pitch": "Cross out equal digits or pairs that add up to 10, add rows when stuck, and clear the whole board.",
     "image": "https://agentpark.co/arcade/covers/tenpair-digit-pairs-puzzle.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=list-Word & Math"
+   },
+   {
+    "name": "Doublink: Chain Merge Puzzle",
+    "new": true,
+    "pitch": "Swipe a chain through matching and doubling tiles to merge them into ever bigger powers of two.",
+    "image": "https://agentpark.co/arcade/covers/doublink-chain-merge-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=doublink-chain-merge-puzzle&ref=daily&pos=list-Word & Math"
+   },
+   {
+    "name": "Seekaloo: Word Search Puzzle",
+    "new": true,
+    "pitch": "Swipe across themed letter grids to circle hidden words before moving on to bigger grids.",
+    "image": "https://agentpark.co/arcade/covers/seekaloo-word-search-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=seekaloo-word-search-puzzle&ref=daily&pos=list-Word & Math"
+   },
+   {
+    "name": "Cipherleaf: Quote Code Puzzle",
+    "new": true,
+    "pitch": "Crack the number code to reveal a famous quote or proverb, one letter at a time.",
+    "image": "https://agentpark.co/arcade/covers/cipherleaf-quote-code-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=cipherleaf-quote-code-puzzle&ref=daily&pos=list-Word & Math"
    }
   ],
   "Sports": [
@@ -327,6 +474,27 @@
     "pitch": "Your coding agents become football players, with their tool calls driving passes and shots while you coach through tactics, pep talks and timed finishes.",
     "image": "https://agentpark.co/arcade/covers/kickoff-crew-football-match-for-your-ai-agents.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=kickoff-crew-football-match-for-your-ai-agents&ref=daily&pos=list-Sports"
+   },
+   {
+    "name": "Pin Pals: Bowling League for Your AI Agents",
+    "new": true,
+    "pitch": "Bowl lane 1 with flick-aimed hook shots while your AI coding agents roll their own lanes, with task results deciding strikes, splits and turkey bonuses.",
+    "image": "https://agentpark.co/arcade/covers/pin-pals-bowling-league-for-your-ai-agents.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=pin-pals-bowling-league-for-your-ai-agents&ref=daily&pos=list-Sports"
+   },
+   {
+    "name": "Plunge Peak: Cliff Diving",
+    "new": true,
+    "pitch": "Leap off the cliff, hold to flip, let go to straighten up and rip a clean head-first entry.",
+    "image": "https://agentpark.co/arcade/covers/plunge-peak-cliff-diving.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=plunge-peak-cliff-diving&ref=daily&pos=list-Sports"
+   },
+   {
+    "name": "Noggin Cup: 1v1 Soccer",
+    "new": true,
+    "pitch": "Drag to run, tap to jump-kick and outscore a big-noggin rival in a 60-second 1v1 soccer match.",
+    "image": "https://agentpark.co/arcade/covers/noggin-cup-1v1-soccer.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=noggin-cup-1v1-soccer&ref=daily&pos=list-Sports"
    }
   ],
   "Idle": [
@@ -350,6 +518,27 @@
     "pitch": "Coding agents' activity builds and fuels rockets at launch pads, then you steer each launch through rings to reach progressively farther planets.",
     "image": "https://agentpark.co/arcade/covers/liftoff-lab-space-program-for-your-ai-agents.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=liftoff-lab-space-program-for-your-ai-agents&ref=daily&pos=list-Idle"
+   },
+   {
+    "name": "Bellhop Boss",
+    "new": true,
+    "pitch": "Drag your bellhop around a pastel hotel, checking in guests and collecting cash to buy new rooms and staff, unlocking themed floors.",
+    "image": "https://agentpark.co/arcade/covers/bellhop-boss.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bellhop-boss&ref=daily&pos=list-Idle"
+   },
+   {
+    "name": "Deskfolk: Idle Office for Your AI Agents",
+    "new": true,
+    "pitch": "Watch a charming pixel office fill with workers as your real AI coding sessions run, with each tool call earning coins for upgrades.",
+    "image": "https://agentpark.co/arcade/covers/deskfolk-idle-office-for-your-ai-agents.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=deskfolk-idle-office-for-your-ai-agents&ref=daily&pos=list-Idle"
+   },
+   {
+    "name": "City Clicker",
+    "new": true,
+    "pitch": "Click to grow and build up a city through incremental upgrades.",
+    "image": "https://agentpark.co/arcade/covers/johntoopublic-cityclicker.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=johntoopublic-cityclicker&ref=daily&pos=list-Idle"
    }
   ],
   "Cards": [
@@ -373,6 +562,13 @@
     "pitch": "Open a category card, then stack every word that belongs to it before your moves run out.",
     "image": "https://agentpark.co/arcade/covers/kindred-cards-word-category-solitaire.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=kindred-cards-word-category-solitaire&ref=daily&pos=list-Cards"
+   },
+   {
+    "name": "Ridgeline: Peaks Solitaire",
+    "new": true,
+    "pitch": "Chain cards one rank up or down to clear three peaks, building streaks across color-themed levels, with a daily seeded puzzle.",
+    "image": "https://agentpark.co/arcade/covers/ridgeline-peaks-solitaire.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=ridgeline-peaks-solitaire&ref=daily&pos=list-Cards"
    }
   ],
   "Kids": [
@@ -396,6 +592,13 @@
     "pitch": "Rub muddy toy trucks clean with a sponge, rinse and dry them, then add stickers, with a new vehicle each level.",
     "image": "https://agentpark.co/arcade/covers/sudsy-lane-kids-car-wash-game.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=sudsy-lane-kids-car-wash-game&ref=daily&pos=list-Kids"
+   },
+   {
+    "name": "Tinty: Pixel Color by Number",
+    "new": true,
+    "pitch": "Pick a colour and drag to fill the numbered pixels of 57 cute pictures.",
+    "image": "https://agentpark.co/arcade/covers/tinty-pixel-color-by-number.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=tinty-pixel-color-by-number&ref=daily&pos=list-Kids"
    }
   ],
   "Makeover": [
@@ -419,6 +622,13 @@
     "pitch": "Wash, cut, dye and style a client's hair to match a reference look, with funny client requests driving each short level.",
     "image": "https://agentpark.co/arcade/covers/snip-studio-hair-salon-makeover.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=snip-studio-hair-salon-makeover&ref=daily&pos=list-Makeover"
+   },
+   {
+    "name": "Goo Lab: Slime Simulator ASMR",
+    "new": true,
+    "pitch": "Drip dyes into glue, stir to match the recipe card, then squish and poke the soft slime, with add-ins and scoring across stages.",
+    "image": "https://agentpark.co/arcade/covers/goo-lab-slime-simulator-asmr.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=goo-lab-slime-simulator-asmr&ref=daily&pos=list-Makeover"
    }
   ],
   "Retro": [
