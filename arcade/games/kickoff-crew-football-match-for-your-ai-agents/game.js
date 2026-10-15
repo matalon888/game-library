@@ -24,7 +24,10 @@ const BOTS = [
   { name: 'Bitwise Wanderers', short: 'BIT', color: '#19b5a5', str: 0.46 },
   { name: 'Lintshire Town', short: 'LIN', color: '#5b6b8c', str: 0.4 },
 ];
-const CLUB = s => s === US.short ? US : BOTS.find(b => b.short === s);
+// the rival's team in a live duel (B.rival()), or null: then the computer clubs play as before
+let RIV = null;
+const rivalClub = rv => ({ name: `${rv.flag || ''} ${rv.name}`.trim(), short: String(rv.name || 'Rival').slice(0, 12), color: rv.sim ? '#dfe4ec' : rv.color, str: 0.55, flag: rv.flag || '', sim: !!rv.sim, rival: true });
+const CLUB = s => s === US.short ? US : s === 'RIV' ? rivalClub((M && M.rv) || RIV || { name: 'Rival', sim: true }) : BOTS.find(b => b.short === s);
 const KITS = [
   { id: 'classic', name: 'Classic White', shorts: '#f4f4f4', need: 0 },
   { id: 'night', name: 'Night Shift', shorts: '#1f2747', need: 6 },
@@ -271,6 +274,134 @@ const rivalKeeper = makeActor('them', '#20c997', { robot: true, shorts: rivalSho
 rivalKeeper.mesh.body.material = rivalShirt; rivalKeeper.mesh.armL.children[0].material = rivalKeeper.mesh.armR.children[0].material = rivalKeeper.mesh.body.material; rivalKeeper.keeper = true;
 ourKeeper.pos.set(-L + 0.8, 0, 0); rivalKeeper.pos.set(L - 0.8, 0, 0);
 
+// ---------------------------------------------------------------- the rival's team, live (a duel on the world board)
+// No duel: the computer club, plain silver robots (unchanged). Real rival: their agents walk out as people in the rival's
+// own colour, each named by its callsign. Simulated rival: silver robots with callsign tags, marked "simulated".
+// Their finished steps (B.onRival) drive their players: passed tests / commits / deploys = a shot on your goal.
+const rivHumanShorts = mat('#f4f4f4'), RIV_ORDER = [4, 1, 2, 0, 3];
+const BIGCAT = c => c === 'test' || c === 'commit' || c === 'deploy';
+const RVERB = { test: 'passes tests', commit: 'commits', deploy: 'deploys', edit: 'edits', run: 'runs a step', read: 'reads the code', web: 'searches the web', delegate: 'sends a helper', other: 'finishes a step' };
+const RFAIL = { test: 'fails tests', commit: 'fails to commit', deploy: 'botches a deploy' };
+const rvSnap = r => ({ key: r.key, name: r.name, country: r.country, flag: r.flag, color: r.color, sim: !!r.sim });
+const rwho = a => (a && a.label && RIV ? `${RIV.name}'s ${a.label}` : opp().short);
+const darker = c => '#' + new THREE.Color(c).multiplyScalar(0.55).getHexString();
+function nearRival(c) { if (!RIV || RIV.sim) return false; const a = new THREE.Color(c), b = new THREE.Color(RIV.color); return Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 0.45; }
+let rivLook = 'bots', rivStatus = '';
+function reskin(a, color, robot) {
+  const old = a.mesh; scene.remove(old);
+  a.mesh = makeMan(color, { robot, shorts: robot ? rivalShorts : rivHumanShorts });
+  if (a.keeper && !robot) a.mesh.armL.children[0].material = a.mesh.armR.children[0].material = a.mesh.body.material;
+  a.mesh.position.copy(a.pos); a.mesh.rotation.y = old.rotation.y; a.tag = null; a.bub = null; a.tagKey = '';
+}
+// a rival name tag: flag + callsign, plus a small pill saying whether the agent is Claude Code (CC) or Codex (CX)
+function rivalCanvas(text, bg, mark) {
+  const w = 320, [c, g] = cv(w, 84), fg = lightText(bg) ? '#16204a' : '#fff';
+  g.font = '800 42px "Baloo 2", system-ui, sans-serif'; const tw0 = g.measureText(text).width;
+  g.font = '800 22px "Baloo 2", system-ui, sans-serif'; const mw = mark ? g.measureText(mark).width + 16 : 0;
+  const tw = Math.min(w - 8, tw0 + 36 + (mark ? mw + 8 : 0)), x = (w - tw) / 2;
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.roundRect(x, 12, tw, 66, 22); g.fill();
+  g.fillStyle = bg; g.beginPath(); g.roundRect(x, 6, tw, 66, 22); g.fill(); g.lineWidth = 5; g.strokeStyle = '#fff'; g.stroke();
+  g.font = '800 42px "Baloo 2", system-ui, sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'left'; g.fillStyle = fg;
+  const tx = x + 18; g.fillText(text, tx, 41, tw - 36 - (mark ? mw + 8 : 0));
+  if (mark) { const mx = x + tw - 14 - mw; g.fillStyle = fg === '#fff' ? 'rgba(255,255,255,.28)' : 'rgba(22,32,74,.16)'; g.beginPath(); g.roundRect(mx, 24, mw, 30, 10); g.fill(); g.fillStyle = fg; g.font = '800 22px "Baloo 2", system-ui, sans-serif'; g.fillText(mark, mx + 8, 40); }
+  return c;
+}
+function rivalTag(a, text, bg, mark = '') {
+  if (!text) { if (a.tag) a.tag.visible = false; a.tagKey = ''; return; }
+  const key = text + bg + mark; if (a.tagKey === key) { a.tag.visible = true; return; } a.tagKey = key;
+  const c = rivalCanvas(text, bg, mark);
+  if (a.tag) setSprite(a.tag, c); else { a.tag = makeSprite(c); a.tag.position.y = 2.2; a.mesh.add(a.tag); }
+  a.tag.visible = true;
+}
+function syncRival() {
+  const r = B ? B.rival() : null; RIV = r || null;
+  const look = r ? `${r.key}|${r.sim ? 'sim' : r.color}` : 'bots';
+  if (look !== rivLook) {
+    const was = rivLook; rivLook = look;
+    const robot = !r || r.sim;
+    for (const a of [...rivals, rivalKeeper]) reskin(a, robot ? SILVER : a.keeper ? darker(r.color) : r.color, robot);
+    if (r) { say(`⚔️ Live duel: ${r.flag} ${r.name}'s agents take the field${r.sim ? ' (simulated)' : ''}`, r.sim ? '#dfe4ec' : r.color); toast(`⚔️ ${r.flag} ${r.name}'s agents are the other team${r.sim ? ' (simulated)' : ''}`, 3500); }
+    else if (was !== 'bots') say('The duel is over: the league club is back', '#ffffff');
+    if (M && !M.ended) { if (r) { M.opp = 'RIV'; M.rv = rvSnap(r); } else if (M.opp === 'RIV') { M.opp = BOTS[D().league.md % BOTS.length].short; delete M.rv; } }
+    dressRivals(true); rivStatus = '';
+  }
+  if (r && M && !M.ended && M.opp === 'RIV') M.rv = rvSnap(r);
+  // roster: one player per rival agent (max 5); spare shirts play without a name
+  const ags = r ? (r.agents || []).slice(0, 5) : [], off = !!(r && !r.sim && r.online === false);
+  const bg = r ? (r.sim ? SILVER : r.color) : SILVER;
+  rivals.forEach(a => { a.rk = null; });
+  RIV_ORDER.forEach((slot, i) => {
+    const a = rivals[slot], ag = ags[i];
+    if (ag) {
+      const waiting = ag.state === 'waiting';
+      a.rk = ag.k; a.label = ag.name; a.src = ag.src;
+      rivalTag(a, `${off ? '😴' : waiting ? '✋' : r.flag} ${ag.name}${ag.sub ? ' +' + ag.sub : ''}`, bg, ag.src === 'codex' ? 'CX' : 'CC');
+      a.raise = waiting && !off; a.speed = 5.6 * (off ? 0.45 : waiting ? 0.6 : 1);
+    } else { a.label = ''; rivalTag(a, r && off ? '😴' : '', bg); a.raise = false; a.speed = 5.6 * (off ? 0.45 : 1); }
+  });
+  const st = r ? `${r.sim}|${off}|${ags.map(a => a.name + a.state).join()}` : '';
+  if (st !== rivStatus) { rivStatus = st; dressRivals(false); }
+}
+const RQ = []; let rqT = 0, rivShotCd = 4, rivSay = 0;
+function onRivalEvents(events, r) {
+  RIV = r; syncRival();
+  for (const e of events) RQ.push(e);
+  while (RQ.length > 8) { const i = RQ.findIndex(x => !BIGCAT(x.cat)); RQ.splice(i < 0 ? 0 : i, 1); }
+}
+function rivalActor(ag) {
+  return rivals.find(x => x.rk === ag.k) || rivals.find(x => x.label && x.label === ag.name) || pick(rivals.filter(x => x.rk).length ? rivals.filter(x => x.rk) : rivals);
+}
+function sprintTo(a, dest, extra = 0) { a.tgt.copy(dest).setY(0); a.hz = dest.z; const d = a.pos.distanceTo(a.tgt); a.sprint = d / (a.speed * 2.4) + 0.2; a.lock = a.sprint + extra; return clamp(d / (a.speed * 2.4), 0.5, 1.6); }
+function rivalGets(a, np) {   // the ball goes to rival player a, at pitch progress np
+  const dest = new V3(xOf(np), 0.21, clamp(a.pos.z, -9, 9));
+  const dur = sprintTo(a, dest, 0.3); P.poss = 'them'; P.holder = null; P.p = np;
+  kick(dest, dur, 0.5, () => give(a));
+}
+function rivalAction(e) {
+  if (!RIV) return;
+  const a = rivalActor(e.agent), who = `${RIV.name}'s ${e.agent.name}`, col = RIV.sim ? SILVER : RIV.color, big = BIGCAT(e.cat);
+  bubble(a, e.ok ? (big ? '★ ' : '') + (CATWORD[e.cat] || 'step') : '✗ error', e.ok ? (big ? '#ffd23f' : '#ffffff') : '#ff5a5f', e.ok ? '#16204a' : '#fff', 1400);
+  const live = M && !M.ended && P.mode === 'play' && (demoMode || AG.size > 0);
+  if (!live) { if (big) say(e.ok ? `${who} ${RVERB[e.cat]} in the warm-up` : `${who} ${RFAIL[e.cat]} in the warm-up`, col); return; }
+  if (e.ok && big) {
+    if (rivShotCd <= 0) return rivalShot(a, who, e.cat, col);
+    rivalGets(a, Math.max(0.2, P.p - 0.2)); wpop('SURGE!', a.pos, col, 19);
+    say(`${who} ${RVERB[e.cat]}: ${RIV.name}'s team surge forward`, col); P.cAway = 0.7; return;
+  }
+  if (e.ok) {
+    if (P.poss === 'them') {
+      if (P.holder !== a) rivalGets(a, Math.max(0.16, P.p - 0.08)); else P.p = Math.max(0.16, P.p - 0.06);
+      wpop(e.cat === 'edit' ? 'THROUGH BALL' : e.cat === 'web' ? 'LONG BALL' : 'PASS', a.pos, col, 15);
+      if (++rivSay % 3 === 0) say(`${who} ${RVERB[e.cat] || RVERB.other}: ${pick(['neat pass', 'keeps it moving', 'one-two', 'into space'])}`, col);
+    } else if (P.holder && !P.holder.keeper && Math.random() < 0.22) {
+      const from = P.holder; rivalGets(a, P.p); wpop('INTERCEPTED', a.pos, col, 18);
+      say(`${who} ${RVERB[e.cat] || RVERB.other} and nicks it off ${from.label || 'the crew'}`, col); tone(220, 0.12, 'square', 0.05, 0.8);
+    } else wpop('press!', a.pos, '#ffffff', 14);
+    return;
+  }
+  // a failure: their miss
+  if (P.poss === 'them' && P.holder && P.holder.team === 'them') {
+    if (big && P.p < 0.5) return rivalMiss(a, who, e.cat, col);
+    const l = field(), to = l.length ? nearest(l, ball.pos) : ourKeeper;
+    kick(new V3(to.pos.x, 0.21, to.pos.z), 0.5, 0.3, () => give(to)); P.poss = 'us'; P.holder = null; P.p = Math.min(0.6, P.p + 0.05);
+    wpop('GIVEAWAY', a.pos, '#ff6b6b', 18); say(`${who} hits an error: ${US.short} win it back`, col); tone(640, 0.08, 'triangle', 0.08, 1.3);
+  } else { wpop('SLIPS', a.pos, '#ff6b6b', 15); P.p = Math.min(0.86, P.p + 0.03); if (++rivSay % 2 === 0) say(`${who} hits an error and slips`, col); }
+}
+function rivalShot(a, who, cat, col) {
+  rivShotCd = 14; const stole = P.poss === 'us' && P.holder;
+  const dest = new V3(xOf(0.13), 0.21, clamp(a.pos.z * 0.4, -5, 5)), dur = sprintTo(a, dest, 0.4);
+  P.poss = 'them'; P.holder = null; P.p = 0.13;
+  kick(dest, dur, 1.2, () => { give(a); if (P.mode === 'play') startSave(cat === 'deploy' ? 'deploy' : cat === 'test' ? 'tests passed' : 'commit'); });
+  wpop(stole ? 'STOLEN!' : cat === 'deploy' ? 'ROCKET RUN' : 'BREAKAWAY', a.pos, col, 20);
+  say(`${who} ${RVERB[cat]}, and shoots!`, col); P.cAway = 1; P.crowd = 1; tone(300, 0.15, 'square', 0.05, 0.8);
+}
+function rivalMiss(a, who, cat, col) {
+  P.mode = 'shot'; const z = (Math.random() < 0.5 ? -1 : 1) * (GW + rnd(0.8, 2.2));
+  if (P.holder !== a) { a.pos.lerp(ball.pos, 0.5); }
+  kick(new V3(-L - 1.5, rnd(1.6, 3.2), z), 0.8, 0.9, () => { P.mode = 'play'; ball.pos.set(-L + 1.2, 0.21, 0); give(ourKeeper); P.poss = 'us'; P.p = 0.1; });
+  wpop('BLAZED OVER!', a.pos, '#ff6b6b', 22); say(`${who} ${RFAIL[cat]}, and blazes it over!`, col); P.cHome = 0.8; roar(0.04);
+}
+
 // ball
 const ball = (() => {
   const [c, g] = cv(256, 128); g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 128); g.fillStyle = '#1d2033';
@@ -285,7 +416,7 @@ function kick(to, dur, h = 0.3, onLand = null) { ball.fl = { from: ball.pos.clon
 const AG = new Map();
 let colorIdx = 0;
 const field = () => actors.filter(a => a.rec);
-function freeColor() { const used = new Set([...AG.values()].map(r => r.color)); for (let i = 0; i < AGCOL.length; i++) { const c = AGCOL[(colorIdx + i) % AGCOL.length]; if (!used.has(c)) { colorIdx = (colorIdx + i + 1) % AGCOL.length; return c; } } return AGCOL[colorIdx++ % AGCOL.length]; }
+function freeColor() { const used = new Set([...AG.values()].map(r => r.color)); for (let i = 0; i < AGCOL.length; i++) { const c = AGCOL[(colorIdx + i) % AGCOL.length]; if (!used.has(c) && !nearRival(c)) { colorIdx = (colorIdx + i + 1) % AGCOL.length; return c; } } return AGCOL[colorIdx++ % AGCOL.length]; }
 function agentRec(e) {
   let r = AG.get(e.agent);
   if (!r) {
@@ -336,15 +467,21 @@ const minute = () => Math.min(90, Math.floor((M ? M.clock : 0) / MATCH * 90));
 // ---------------------------------------------------------------- match flow
 function newMatch(data) {
   const lg = data.league, opp = BOTS[lg.md % BOTS.length];
-  return { md: lg.md, season: lg.season, opp: opp.short, us: 0, them: 0, clock: 0, scorers: [], shots: 0, passes: 0, saves: 0, trailed: false, ended: false, demo: demoMode, agentGoals: {}, agentPasses: {} };
+  return { md: lg.md, season: lg.season, opp: RIV ? 'RIV' : opp.short, rv: RIV ? rvSnap(RIV) : undefined, us: 0, them: 0, clock: 0, scorers: [], shots: 0, passes: 0, saves: 0, trailed: false, ended: false, demo: demoMode, agentGoals: {}, agentPasses: {} };
 }
-const opp = () => CLUB(M ? M.opp : BOTS[D().league.md % BOTS.length].short);
-function dressRivals() {
+const opp = () => CLUB(M ? M.opp : RIV ? 'RIV' : BOTS[D().league.md % BOTS.length].short);
+function dressRivals(paint = true) {
   const o = opp();
-  crowd.paint(US.color, o.color);
-  $('themName').textContent = o.short; $('themBadge').style.background = o.color; $('usBadge').style.background = US.color;
+  if (paint) crowd.paint(US.color, o.color);
+  $('themName').innerHTML = o.rival ? `<span class="fl">${o.flag}</span><span class="nm">${esc(o.short)}</span>` : esc(o.short);
+  $('themBadge').style.background = o.color; $('usBadge').style.background = US.color;
   document.documentElement.style.setProperty('--them', o.color);
-  const lg = D().league; $('fixture').innerHTML = `<span class="ss">Season ${lg.season} · </span>Matchday ${Math.min(lg.md + 1, 10)}/10 · vs ${o.name}`;
+  const lg = D().league;
+  if (o.rival) {
+    const r = RIV, ags = r ? (r.agents || []) : [], off = r && !r.sim && r.online === false;
+    const st = !r ? 'duel over' : r.sim ? 'simulated' : off ? '😴 offline' : !ags.length ? 'waiting for their agents…' : `${ags.filter(a => a.state === 'working').length}/${ags.length} agents working`;
+    $('fixture').innerHTML = `<span class="ss">⚔️ Live duel · </span>vs ${esc(o.name)}'s agents · <small class="rst">${st}</small>`;
+  } else $('fixture').innerHTML = `<span class="ss">Season ${lg.season} · </span>Matchday ${Math.min(lg.md + 1, 10)}/10 · vs ${o.name}`;
 }
 function ensureMatch(demo) {
   if (M && M.demo === demo && !M.ended) return;
@@ -466,16 +603,17 @@ function shotChance(pl, power, cat) {
   pl.glow = 1; banner(power ? 'SCREAMER' : 'CHANCE!', `${pl.label} is through on goal`, '#ffd23f'); tone(880, 0.1, 'triangle', 0.1, 1.5);
   P.crowd = 1;
 }
-function startSave() {
-  const shooter = P.holder; if (!shooter) return;
+function startSave(why = '') {
+  const shooter = P.holder; if (!shooter || aim.on) return;
+  const who = rwho(shooter);
   P.mode = 'aim'; aim.on = true; aim.t = 0; aim.save = { u: rnd(0.2, 0.92) * (Math.random() < 0.5 ? -1 : 1), v: rnd(0.15, 0.85) }; aim.shooter = shooter;
-  aim.dur = TAC[P.tactic].saveT * (1.1 - opp().str * 0.3);
+  aim.dur = TAC[P.tactic].saveT * (1.1 - opp().str * 0.3) * (why === 'deploy' ? 0.85 : 1);
   const el = $('aim'); el.hidden = false; el.classList.add('save');
-  $('aimTitle').textContent = 'SAVE IT!'; $('aimWho').textContent = `${opp().short} shoot`;
+  $('aimTitle').textContent = 'SAVE IT!'; $('aimWho').textContent = shooter.label ? `${who}${why ? ' · ' + why : ''}` : `${opp().short} shoot`;
   $('aimHint').textContent = 'Tap when the ring turns green';
   $('ret').hidden = true; const tg = $('tgt'); tg.hidden = false;
   tg.style.left = (50 + aim.save.u / 1.25 * 50) + '%'; tg.style.top = (10 + (1 - aim.save.v) * 110) * (phone() ? 0.81 : 1) + 'px';
-  banner('SHOT!', `${opp().name} are through`, opp().color); tone(300, 0.2, 'square', 0.06, 0.7);
+  banner('SHOT!', shooter.label ? `${who} is through on goal` : `${opp().name} are through`, opp().color); tone(300, 0.2, 'square', 0.06, 0.7);
 }
 function aimUpdate(rdt) {
   if (!aim.on) return;
@@ -529,7 +667,7 @@ function resolveSave(tapped) {
     if (!saved) return goalScored('them', shooter);
     P.mode = 'play'; M.saves++; D().career.saves++; save();
     wpop('WHAT A SAVE!', ourKeeper.pos, '#ffd23f', 24); banner('SAVED!', 'Your keeper reads it', '#ffd23f'); P.cHome = 1; P.shake = 0.3; roar(0.05);
-    say(`Save! The keeper keeps ${opp().short} out`, '#ffd23f');
+    say(shooter && shooter.label ? `Save! The keeper denies ${rwho(shooter)}` : `Save! The keeper keeps ${opp().short} out`, '#ffd23f');
     const leads = field().filter(a => !a.sub); P.p = 0.22;
     if (leads.length) { const to = nearest(leads, new V3(-12, 0, 0)); kick(new V3(xOf(0.22), 0.21, to.pos.z * 0.5), 0.8, 1.6, () => give(to)); to.tgt.set(xOf(0.22), 0, to.pos.z * 0.5); to.lock = 1; P.poss = 'us'; }
     else give(ourKeeper);
@@ -551,7 +689,7 @@ function goalScored(team, scorer, power = false) {
   if (us) M.us++; else M.them++;
   if (M.us < M.them) M.trailed = true;
   const r = scorer && scorer.rec;
-  M.scorers.push({ label: us ? (scorer.label || 'crew') : o.short, min: minute(), us, power, sub: !!(r && r.sub), color: us ? scorer.color : o.color });
+  M.scorers.push({ label: us ? (scorer.label || 'crew') : (scorer && scorer.label) || o.short, min: minute(), us, power, sub: !!(r && r.sub), color: us ? scorer.color : o.color });
   ripple(us ? 1 : -1, ball.pos.z, ball.pos.y);
   P.shake = us ? 1 : 0.4; flashScreen(us ? 0.7 : 0.3); updateScore(true);
   if (us) {
@@ -566,9 +704,9 @@ function goalScored(team, scorer, power = false) {
     if (!demoMode) { REAL.today.goals++; B && B.submit(REAL.today.goals); }
     award('first_goal', true); award('screamer', power); award('super_sub', r && r.sub); award('hat', r && M.agentGoals[r.tag] >= 3);
   } else {
-    P.cAway = 1; banner('GOAL', `${o.name} · ${minute()}'`, o.color); tone(200, 0.4, 'sawtooth', 0.06, 0.6);
+    const sl = scorer && scorer.label; P.cAway = 1; banner('GOAL', `${o.name}${sl ? ' · ' + sl : ''} · ${minute()}'`, o.color); tone(200, 0.4, 'sawtooth', 0.06, 0.6);
     if (scorer) { scorer.cele = 2.6; scorer.tgt.set(-L + 4, 0, Math.sign(scorer.pos.z || 1) * (W - 2)); }
-    say(`${o.name} score. ${US.short} ${M.us}–${M.them} ${o.short}`, o.color);
+    say(sl ? `${rwho(scorer)} scores! ${US.short} ${M.us}–${M.them} ${o.short}` : `${o.name} score. ${US.short} ${M.us}–${M.them} ${o.short}`, o.color);
     if (!demoMode) REAL.today.conceded++;
   }
   save();
@@ -613,10 +751,13 @@ function fullTime() {
   if (!M || M.ended) return;
   P.mode = 'ft'; M.ended = true; whistle(3); closeAim();
   const d = D(), lg = d.league, o = opp(), us = M.us, them = M.them, c = d.career;
-  record2(lg.table, US.short, o.short, us, them);
-  const rest = BOTS.filter(b => b.short !== o.short).sort(() => Math.random() - 0.5);
-  for (let i = 0; i + 1 < rest.length; i += 2) record2(lg.table, rest[i].short, rest[i + 1].short, poisson(1 + (rest[i].str - rest[i + 1].str) * 2), poisson(1 + (rest[i + 1].str - rest[i].str) * 2));
-  lg.md++;
+  const duel = !!o.rival;   // a duel against a real player's agents: career counts, the league table waits
+  if (!duel) {
+    record2(lg.table, US.short, o.short, us, them);
+    const rest = BOTS.filter(b => b.short !== o.short).sort(() => Math.random() - 0.5);
+    for (let i = 0; i + 1 < rest.length; i += 2) record2(lg.table, rest[i].short, rest[i + 1].short, poisson(1 + (rest[i].str - rest[i + 1].str) * 2), poisson(1 + (rest[i + 1].str - rest[i].str) * 2));
+    lg.md++;
+  }
   c.matches++; c.gf += us; c.ga += them;
   const res = us > them ? 'W' : us < them ? 'L' : 'D';
   if (res === 'W') { c.w++; c.pts += 3; } else if (res === 'D') { c.d++; c.pts++; } else c.l++;
@@ -627,14 +768,14 @@ function fullTime() {
   checkKits();
   const pos = sorted(lg.table).findIndex(([k]) => k === US.short) + 1;
   let seasonLine = '';
-  if (lg.md >= 10) {
+  if (!duel && lg.md >= 10) {
     if (pos === 1) { c.titles++; award('champ', true); d.kits = d.kits || ['classic']; if (!d.kits.includes('gold')) { d.kits.push('gold'); newBits.push('👕 Gilded kit'); } }
     seasonLine = `Season ${lg.season} over: you finished ${ord(pos)}${pos === 1 ? ' and lift the trophy!' : '.'}`;
     d.lastSeason = { season: lg.season, pos, table: sorted(lg.table) };
     d.league = freshLeague(lg.season + 1);
   }
   const motm = Object.entries(M.agentPasses).map(([k, v]) => [k, v + (M.agentGoals[k] || 0) * 6]).sort((a, b) => b[1] - a[1])[0];
-  d.last = { us, them, opp: o.short, oppName: o.name, res, md: M.md, season: M.season, scorers: M.scorers, motm: motm ? motm[0] : null, pos, demo: demoMode };
+  d.last = { us, them, opp: o.rival ? 'RIV' : o.short, club: { name: o.name, short: o.short, color: o.color, rival: !!o.rival, sim: !!o.sim }, oppName: o.name, res, md: M.md, season: M.season, scorers: M.scorers, motm: motm ? motm[0] : null, pos, demo: demoMode };
   d.match = null; save(true);
   showFT(seasonLine);
 }
@@ -644,15 +785,15 @@ function tableHTML(tab) {
 }
 function rankLine() { const p = B && B.profile(); if (!p || demoMode) return ''; let r = null; try { r = JSON.parse(localStorage.getItem('board_rank_agent-football')); } catch (e) {} return `${flag(p.country)} ${esc(p.name)}${r ? ` · #${r} today` : ''}`; }
 function showFT(seasonLine) {
-  const d = D(), l = d.last, o = CLUB(l.opp), el = $('ft');
+  const d = D(), l = d.last, o = l.club || CLUB(l.opp), el = $('ft');
   const goalsUs = l.scorers.filter(s => s.us).map(s => `${esc(s.label)} ${s.min}'${s.power ? ' 🚀' : ''}`).join(', ') || 'none';
   const lg = d.league, rk = rankLine();
   el.innerHTML = `<h2>${l.res === 'W' ? 'FULL TIME · WIN!' : l.res === 'D' ? 'FULL TIME · DRAW' : 'FULL TIME'}</h2>
-    <div class="ftScore"><span>${US.short}</span><span class="num">${l.us} : ${l.them}</span><span style="color:${o.color}">${o.short}</span></div>
+    <div class="ftScore"><span>${US.short}</span><span class="num">${l.us} : ${l.them}</span><span style="color:${o.color}">${esc(o.rival ? o.name : o.short)}</span></div>
     <p class="ftLine">Goals: <b>${goalsUs}</b></p>
     ${l.motm ? `<p class="ftLine">Player of the match: <b>${esc(l.motm)}</b></p>` : ''}
     <p class="ftLine">${l.res === 'W' ? '+3 points' : l.res === 'D' ? '+1 point' : 'No points'} · ${ord(l.pos)} in the table${rk ? ` · ${rk}` : ''}</p>
-    ${seasonLine ? `<p class="ftLine"><b>${seasonLine}</b></p>` : `<div class="season"><i style="width:${lg.md * 10}%"></i></div><p class="ftLine">Season ${lg.season}: matchday ${lg.md}/10 played</p>`}
+    ${o.rival ? `<p class="ftLine">⚔️ Duel vs ${esc(o.name)}'s agents${o.sim ? ' (simulated)' : ''} · the league waits for the next match</p>` : seasonLine ? `<p class="ftLine"><b>${seasonLine}</b></p>` : `<div class="season"><i style="width:${lg.md * 10}%"></i></div><p class="ftLine">Season ${lg.season}: matchday ${lg.md}/10 played</p>`}
     ${newBits.length ? `<div class="ftNew">${newBits.map(b => `<span>${b}</span>`).join('')}</div>` : ''}
     ${l.demo ? '<p class="ftLine">Demo friendly: connect your agents to play the real league.</p>' : ''}
     ${tableHTML(seasonLine && d.lastSeason ? Object.fromEntries(d.lastSeason.table) : lg.table)}
@@ -711,7 +852,7 @@ function hud() {
   const m = $('mom'); m.classList.toggle('them', P.poss === 'them'); $('momFill').style.width = (P.p * 100) + '%'; $('momBall').style.left = (P.p * 100) + '%';
   const steps = r => stepsToday.get(r.id) || r.passes;
   const f = [...AG.values()].sort((a, b) => b.goals - a.goals || steps(b) - steps(a));
-  $('team').innerHTML = `<h4><span>YOUR AGENTS · ${f.length}</span><span title="successful steps today · goals">✓ ⚽</span></h4><p class="legend">Each player is one of your Claude Code / Codex sessions, named after its project folder. Silver robots are the computer team.</p>` + (f.length ? f.slice(0, 9).map(r => `<div class="r"><span class="d" style="background:${r.color}"></span><span class="n">${esc(r.tag)}${r.sub ? '<small>sub</small>' : ''}${r.actor ? '' : '<small>bench</small>'}${r.waiting ? ' 🙋' : ''}</span><span class="s" title="successful steps today">${steps(r)}</span><span class="g">${r.goals ? '⚽' + r.goals : ''}</span></div>`).join('') + (f.length > 9 ? `<div class="r"><span></span><span class="n"><small>+${f.length - 9} more</small></span></div>` : '') : '<div class="r"><span></span><span class="n"><small>no agents on the pitch yet</small></span></div>');
+  $('team').innerHTML = `<h4><span>YOUR AGENTS · ${f.length}</span><span title="successful steps today · goals">✓ ⚽</span></h4><p class="legend">Each player is one of your Claude Code / Codex sessions, named after its project folder. ${RIV ? `Opponents: ${esc(RIV.flag + ' ' + RIV.name)}'s agents, live${RIV.sim ? ' (simulated)' : ''}.` : 'Silver robots are the computer team.'}</p>` + (f.length ? f.slice(0, 9).map(r => `<div class="r"><span class="d" style="background:${r.color}"></span><span class="n">${esc(r.tag)}${r.sub ? '<small>sub</small>' : ''}${r.actor ? '' : '<small>bench</small>'}${r.waiting ? ' 🙋' : ''}</span><span class="s" title="successful steps today">${steps(r)}</span><span class="g">${r.goals ? '⚽' + r.goals : ''}</span></div>`).join('') + (f.length > 9 ? `<div class="r"><span></span><span class="n"><small>+${f.length - 9} more</small></span></div>` : '') : '<div class="r"><span></span><span class="n"><small>no agents on the pitch yet</small></span></div>');
   const calls = f.filter(r => r.waiting).slice(0, phone() ? 1 : 2);
   const key = calls.map(r => r.id).join();
   if ($('calls').dataset.k !== key) { $('calls').dataset.k = key; $('calls').innerHTML = calls.map(r => `<button class="call" data-id="${esc(r.id)}">🙋 ${esc(r.tag)} wants the coach</button>`).join(''); $('calls').querySelectorAll('.call').forEach(b => b.onclick = e => { e.stopPropagation(); answer(AG.get(b.dataset.id)); }); }
@@ -779,6 +920,8 @@ const A = agents({
   onConnect() { if (demoMode) leaveDemo(); },
 });
 B = board({ game: 'agent-football', label: 'Goals', A });
+window.__B = B;
+B.onRival(onRivalEvents); setInterval(syncRival, 1200);
 window.__A = window.A = A;
 Object.defineProperty(window, 'tally', { get: () => ({ today: { ...REAL.today, labels: REAL.today.labels.length }, careerPasses: REAL.career.passes, match: M && { us: M.us, them: M.them, clock: Math.round(M.clock), passes: M.passes, demo: M.demo }, agents: AG.size }) });
 window.__feed = (list, info = {}) => handle(list, info);
@@ -808,9 +951,9 @@ async function share() {
   g.fillStyle = '#c7cbe6'; g.font = '800 26px "Baloo 2", system-ui'; g.fillText('My AI agents today', 50, 118);
   const d = D(), l = M && (M.us || M.them || M.clock > 20) ? { us: M.us, them: M.them, opp: M.opp, live: true } : d.last;
   if (l) {
-    const o = CLUB(l.opp); g.font = '64px Bungee, Impact, sans-serif'; g.textAlign = 'right'; g.fillStyle = '#fff';
-    g.fillText(`${US.short} ${l.us}–${l.them} ${o.short}`, 1150, 92); g.textAlign = 'right'; g.font = '800 24px "Baloo 2", system-ui'; g.fillStyle = '#c7cbe6';
-    g.fillText(l.live ? `Live · ${minute()}' vs ${o.name}` : `Full time vs ${o.name}`, 1150, 126); g.textAlign = 'left';
+    const o = l.live ? opp() : (l.club || CLUB(l.opp)); g.font = '64px Bungee, Impact, sans-serif'; g.textAlign = 'right'; g.fillStyle = '#fff';
+    g.fillText(`${US.short} ${l.us}–${l.them} ${o.rival ? o.short.toUpperCase() : o.short}`, 1150, 92); g.textAlign = 'right'; g.font = '800 24px "Baloo 2", system-ui'; g.fillStyle = '#c7cbe6';
+    g.fillText(`${l.live ? `Live · ${minute()}'` : 'Full time'} vs ${o.name}${o.rival ? "'s agents" : ''}`, 1150, 126); g.textAlign = 'left';
   }
   const t = REAL.today, stats = demoMode ? [[M ? M.passes : 0, 'passes'], [M ? M.shots : 0, 'shots'], [M ? M.us : 0, 'goals'], [AG.size, 'agents']] : [[t.passes, 'passes'], [t.tests + t.commits + t.deploys, 'shots'], [t.goals, 'goals'], [Math.max(t.labels.length, AG.size), 'projects']];
   stats.forEach(([v, k], i) => { const x = 50 + i * 280; g.fillStyle = 'rgba(14,18,44,.8)'; g.beginPath(); g.roundRect(x, 470, 250, 110, 20); g.fill(); g.fillStyle = '#b8ff3c'; g.font = '56px Bungee, Impact, sans-serif'; g.fillText(fmtK(v), x + 22, 535); g.fillStyle = '#c7cbe6'; g.font = '800 24px "Baloo 2", system-ui'; g.fillText(k, x + 24, 566); });
@@ -833,7 +976,8 @@ function moveActor(a, dt, t) {
   if (a.leaving > 0) { a.leaving -= dt; if (a.leaving <= 0) return removeActor(a); }
   if (a.lock > 0) a.lock -= dt;
   if (a.cele > 0) a.cele -= dt;
-  tmp.subVectors(a.tgt, a.pos); tmp.y = 0; const dist = tmp.length(), sp = a.speed * (a.team === 'us' && P.pep > 0 ? 1.18 : 1) * (a.cele > 0 ? 1.2 : 1);
+  if (a.sprint > 0) a.sprint -= dt;
+  tmp.subVectors(a.tgt, a.pos); tmp.y = 0; const dist = tmp.length(), sp = a.speed * (a.team === 'us' && P.pep > 0 ? 1.18 : 1) * (a.cele > 0 ? 1.2 : 1) * (a.sprint > 0 ? 2.4 : 1);
   if (dist > 0.06) { const step = Math.min(dist, sp * dt); a.pos.addScaledVector(tmp, step / dist); a.run = lerp(a.run, clamp(dist / 1.0, 0, 1), 0.15); a.face = Math.atan2(tmp.x, tmp.z); }
   else { a.run = lerp(a.run, 0, 0.12); a.face = Math.atan2(ball.pos.x - a.pos.x, ball.pos.z - a.pos.z); }
   let dr = a.face - a.mesh.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); a.mesh.rotation.y += dr * Math.min(1, dt * 10);
@@ -902,7 +1046,7 @@ loop((dt60, t) => {
         M.clock += dt; P.shotCd -= dt;
         if (P.pep > 0) P.pep -= dt;
         if (P.poss === 'them' && P.holder && !ball.fl) {
-          P.p -= dt * 0.08 * (0.7 + opp().str) * TAC[P.tactic].rival;
+          P.p -= dt * 0.08 * (0.7 + opp().str) * TAC[P.tactic].rival * (RIV ? (!RIV.sim && RIV.online === false ? 0.4 : 0.7) : 1);
           P.rivalPassT -= dt;
           if (P.rivalPassT <= 0 && !P.holder.keeper) { P.rivalPassT = rnd(1.4, 2.4); const to = pick(rivals.filter(r => r !== P.holder)); const dest = new V3(xOf(Math.max(0.1, P.p - 0.05)), 0.21, clamp(to.pos.z, -9, 9)); to.tgt.copy(dest).setY(0); to.lock = 0.8; to.hz = dest.z; kick(dest, 0.55, 0.2, () => give(to)); P.holder = null; }
           if (P.holder && P.holder.keeper) { P.rivalPassT -= dt; if (P.rivalPassT <= -0.6) { const to = rivals[(Math.random() * 4) | 0]; P.p = 0.62; const dest = new V3(xOf(0.62), 0.21, clamp(to.pos.z, -8, 8)); to.tgt.copy(dest).setY(0); to.lock = 1.3; kick(dest, 1.1, 3.5, () => give(to)); P.holder = null; P.rivalPassT = 1.5; } }
@@ -915,6 +1059,9 @@ loop((dt60, t) => {
         if (!demoMode) { recT += dt; if (recT > 3) { recT = 0; save(); } }
       }
     }
+    // the rival's live steps, one by one
+    if (rivShotCd > 0) rivShotCd -= dt;
+    if (RQ.length && !aim.on && !ball.fl && (P.mode === 'play' || P.mode === 'wait')) { rqT -= rdt; if (rqT <= 0) { rivalAction(RQ.shift()); rqT = RQ.length > 3 ? 0.6 : 1.1; } }
     if (P.mode === 'goal') { P.modeT -= rdt; if (P.modeT <= 0) startReplay(); }
     if (!M && AG.size === 0) { P.mode = 'wait'; }
     if (P.mode === 'wait' && P.holder == null && !ball.fl) give(rivals[4]);

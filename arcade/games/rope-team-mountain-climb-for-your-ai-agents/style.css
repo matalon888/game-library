@@ -96,3 +96,21 @@ button{font:inherit;color:inherit;cursor:pointer}
   .fbtns button b{font-size:16px}
 }
 [hidden]{display:none!important}
+/* the rival's rope team (live duels only) */
+.tag.rvtag{border-style:solid;background:rgba(14,20,40,.82)}
+.tag.rvtag .rf{font-size:12px;margin-right:3px}
+.tag.rvtag small{font-size:10px;opacity:.7;margin-left:4px;font-weight:700}
+#rv{position:fixed;left:12px;top:calc(124px + env(safe-area-inset-top));width:330px;z-index:7;pointer-events:none;--rc:#c9ced8}
+#rv .rvh{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--rc);color:#141a2e;border-radius:14px 14px 0 0;padding:2px 12px;font-weight:800}
+#rv .rvn{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#rv .rvs{font-size:12px;white-space:nowrap;opacity:.85}
+#rv .rvv{position:relative;height:180px;border:3px solid var(--rc);border-top:0;border-bottom:0}
+#rv .rvo{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(14,20,40,.82);border-radius:10px;padding:3px 12px;font-weight:800;font-size:14px;white-space:nowrap}
+#rv .rvv.off .rvo{display:block}
+#rv .rvk{background:rgba(14,20,40,.86);border:3px solid var(--rc);border-top:0;border-bottom:0;padding:0 10px;min-height:20px;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rv .rvk.bad{color:#ffb0a0}
+#rv .rvr{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;background:rgba(14,20,40,.9);border:3px solid var(--rc);border-top:0;border-radius:0 0 14px 14px;padding:1px 10px 4px}
+#rv .rvr b{font-size:22px;color:var(--rc);line-height:1.1}#rv .rvr span{font-weight:800;font-size:13px}#rv .rvr small{width:100%;font-size:12px;opacity:.75;font-weight:700;margin-top:-3px}
+#altRv{position:absolute;left:-8px;width:22px;height:22px;border-radius:50%;background:var(--rc,#c9ced8);border:3px solid #141a2e;transform:translateY(50%);bottom:0;transition:bottom .4s;box-shadow:0 2px 6px rgba(0,0,0,.4);font-size:12px;line-height:16px;text-align:center;z-index:2}
+#rvLine{font-size:13px;font-weight:700;margin-top:2px;white-space:nowrap}#rvLine b{color:var(--rc)}#rvLine i{font-style:normal;font-weight:800}#rvLine .w{color:#9fffb0}#rvLine .l{color:#ffb0a0}
+@media (min-width:641px){body.rv-on .ag-wait{top:calc(440px + env(safe-area-inset-top));transform:none}}
+@media (max-width:640px){#rv{left:8px;top:calc(132px + env(safe-area-inset-top));width:190px}#rv .rvv{height:110px}#rv .rvs{display:none}#rv .rvn{font-size:13px}#rv .rvk{font-size:11px}#rv .rvr b{font-size:17px}#rvLine{font-size:11px}}

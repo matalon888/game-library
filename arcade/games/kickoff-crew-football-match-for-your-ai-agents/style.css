@@ -161,3 +161,8 @@ table.lg .sw { display: inline-block; width: 10px; height: 10px; border-radius: 
 @media (max-width: 760px) and (min-aspect-ratio: 4/5) { .brand { display: none; } #team { display: none; } }
 
 #team .legend { margin: 2px 0 6px; font-size: 11px; line-height: 1.3; color: rgba(255,255,255,.62); max-width: 230px; }
+/* the rival's team in a live duel */
+#sb .tm .fl { font-family: system-ui, sans-serif; font-size: 18px; line-height: 1; }
+#sb .tm .nm { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#fixture .rst { font-weight: 700; opacity: .8; }
+@media (max-aspect-ratio: 4/5) { #sb .tm .nm { max-width: 72px; } #sb .tm .fl { font-size: 15px; } }

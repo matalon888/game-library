@@ -102,12 +102,12 @@ function setOwner(ln, owner) {
 function drawScreen(ln) {
   const sc = ln.w.screen;
   if (!ln.owner) {
-    const anyAgents = lanes.some(l => l !== P && l.owner);
+    const anyAgents = lanes.some(l => l !== P && !l.rival && l.owner);
     sc.draw({ label: 'OPEN LANE', color: '#4a3f6b', lane: ln.i + 1, idle: anyAgents ? 'OPEN LANE' : 'WAITING FOR AGENTS', sub: anyAgents ? 'room for one more agent' : 'start a Claude Code or Codex session' });
     return;
   }
   const r = ln.disp;
-  sc.draw({ label: ln.owner.name, color: ln.owner.color, lane: ln.i + 1, fr: frames(r), totalNow: runningTotal(r), big: ln.big, sub: ln.lastGame != null ? 'last game ' + ln.lastGame : ln === P ? 'best ' + (S.player.high || 0) : '' });
+  sc.draw({ label: ln.owner.name, color: ln.owner.color, lane: ln.i + 1, fr: frames(r), totalNow: runningTotal(r), big: ln.big, sub: ln.rival ? rvStatus(true) : ln.lastGame != null ? 'last game ' + ln.lastGame : ln === P ? 'best ' + (S.player.high || 0) : '' });
 }
 
 // ================================================================== sound
@@ -143,11 +143,11 @@ let shake = 0;
 // ================================================================== agents -> lanes
 let colorI = 0;
 function laneFor(lead, label, create = true) {
-  let ln = lanes.find(l => l !== P && l.owner && l.owner.id === lead);
+  let ln = lanes.find(l => l !== P && !l.rival && l.owner && l.owner.id === lead);
   if (ln || !create) return ln;
-  ln = lanes.find(l => l !== P && !l.owner);
+  ln = lanes.find(l => l !== P && !l.rival && !l.owner);
   if (!ln) { // evict the quietest agent
-    ln = lanes.filter(l => l !== P).sort((a, b) => a.owner.last - b.owner.last)[0];
+    ln = lanes.filter(l => l !== P && !l.rival).sort((a, b) => a.owner.last - b.owner.last)[0];
   }
   const same = lanes.filter(l => l.owner && l.owner.label === label).length;
   const g = AG().ag[lead];
@@ -249,7 +249,7 @@ function onEvents(list, info) {
   if (info.backfill) {
     const parts = Object.entries(awayTally).map(([l, a]) => `${l} ${a.frames} frame${a.frames > 1 ? 's' : ''}${a.strikes ? ` (${a.strikes} X)` : ''}`);
     if (parts.length) toast('🎳 While you were away: ' + parts.slice(0, 4).join(', '), 7000);
-    for (const ln of lanes) if (ln.owner && ln !== P) { if (status(ln.disp).fresh) resetPins(ln); drawScreen(ln); const g = store.ag[ln.owner.id]; if (g && ln.tag) ln.tag.draw(dotsOf(g.cyc)); }
+    for (const ln of lanes) if (ln.owner && ln !== P && !ln.rival) { if (status(ln.disp).fresh) resetPins(ln); drawScreen(ln); const g = store.ag[ln.owner.id]; if (g && ln.tag) ln.tag.draw(dotsOf(g.cyc)); }
   }
   save(); hud(); submitBoard();
 }
@@ -307,7 +307,7 @@ function settle(ln) {
     snd.strike(q); W.flash(ln === P ? 1 : 0.5);
     confetti(scene, new THREE.Vector3(ln.X, 0.6, -L - 0.3), ln === P ? 90 : 40);
     if (ln === P) { shake = 0.25; banner('STRIKE!', S.player.run >= 3 ? `${S.player.run} in a row` : ''); }
-    else popAt(ln, -L * 0.45, 1.2, rec.test ? 'TEST STRIKE!' : 'STRIKE!', '#ffd23f', 30);
+    else popAt(ln, -L * 0.45, 1.2, ln.rival ? `${rec.who} STRIKE!` : rec.test ? 'TEST STRIKE!' : 'STRIKE!', '#ffd23f', 30);
     ln.big = { text: 'STRIKE!', color: '#ffd23f' };
     for (const s of ln.subs.values()) s.hop = 1;
   } else if (tag === 'spare') {
@@ -324,8 +324,9 @@ function settle(ln) {
   }
   if (ln !== P) {
     if (rec.commit) turkeyBonus(ln);
-    if (rec.deploy) perfectFrame(ln);
+    if (rec.deploy) perfectFrame(ln, rec);
     ln.disp = rec.rolls.slice();
+    if (ln.rival) rivalSettled(ln, rec, tag, n);
     if (rec.over) { ln.lastGame = rec.score; ln.big = { text: 'GAME ' + rec.score, color: '#ffd23f' }; popAt(ln, -4, 2, `${ln.owner.name}: ${rec.score}`, ln.owner.color, 24); }
   }
   ln.reaction = tag; drawScreen(ln);
@@ -340,10 +341,11 @@ function turkeyBonus(ln) {
   if (ln.tag) ln.tag.draw(dotsOf(freshCyc()));
 }
 const rockets = [];
-function perfectFrame(ln) {
+function perfectFrame(ln, rec) {
   for (let k = 0; k < 4; k++) rockets.push({ x: ln.X + (k - 1.5) * 0.4, y: 0.2, z: -L + 1.5 - k * 0.5, vy: 0.11 + k * 0.012, ln, delay: k * 14, c: COLORS[(k * 3) % COLORS.length] });
   popAt(ln, -6, 2.2, 'PERFECT FRAME! +10', '#7de8ff', 26); W.flash(0.8);
-  if (!A.demo || ln === P) banner('PERFECT FRAME', `${ln.owner ? ln.owner.name : ''} deployed`, '#7de8ff');
+  if (ln.rival && RV) banner('PERFECT FRAME', `${RV.flag} ${RV.name}'s ${rec && rec.who || 'agent'} deployed`, '#7de8ff');
+  else if (!A.demo || ln === P) banner('PERFECT FRAME', `${ln.owner ? ln.owner.name : ''} deployed`, '#7de8ff');
 }
 
 // ---- per-frame lane update
@@ -357,8 +359,8 @@ function updateLane(ln, dt, t) {
   const b = ln.bowler, w = ln.w, ball = w.ball, sec = dt / 60;
   ln.pt += sec;
   if (ln !== P && ln.owner && ln.phase === 'idle') {
-    while (ln.queue.length > 2) { const r = ln.queue.shift(); ln.disp = r.rolls.slice(); if (r.over) { ln.lastGame = r.score; } if (r.commit || r.deploy) { if (r.deploy) perfectFrame(ln); } drawScreen(ln); }
-    if (ln.queue.length) startRoll(ln, ln.queue.shift());
+    while (ln.queue.length > 2) { const r = ln.queue.shift(); ln.disp = r.rolls.slice(); if (r.over) { ln.lastGame = r.score; } if (r.commit || r.deploy) { if (r.deploy) perfectFrame(ln, r); } drawScreen(ln); }
+    if (ln.queue.length) (ln.rival ? rivalStart : startRoll)(ln, ln.queue.shift());
   }
   // bowler
   if (b) {
@@ -568,13 +570,13 @@ function hud() {
   const fr = frames(S.game);
   $('sheet').innerHTML = `<div class="who"><i style="background:#ffd23f"></i>YOU</div>` + fr.map((f, i) => `<div class="fr ${i === st.frame && !st.over ? 'cur' : ''}"><span class="n">${i + 1}</span><span class="m">${f.marks.map(m => `<em class="${m === 'X' ? 'x' : m === '/' ? 's' : ''}">${m || ''}</em>`).join('')}</span><span class="c">${f.cum ?? ''}</span></div>`).join('') + `<div class="tot"><span class="n">TOTAL</span><b>${runningTotal(S.game)}</b></div>`;
   // today strip
-  const agentsOn = lanes.filter(l => l !== P && l.owner).length;
+  const agentsOn = lanes.filter(l => l !== P && !l.rival && l.owner).length;
   $('today').innerHTML = `<span title="Agents on the lanes">🎳 <b>${agentsOn}</b> bowling</span><span title="Agent frames today">🧾 <b>${T.frames}</b> frame${T.frames === 1 ? '' : 's'}</span><span title="Agent strikes today">⚡ <b>${T.strikes}</b> X</span><span title="Tests passed today">🧪 <b>${T.tests}</b></span><span title="Commits today">🦃 <b>${T.commits}</b></span><span title="Deploys today">🎆 <b>${T.deploys}</b></span>`;
   const p = B && B.profile(), rank = (() => { try { return JSON.parse(localStorage.getItem('board_rank_' + GAME)); } catch (e) { return null; } })();
   $('bBoard').innerHTML = p && rank && !A.demo ? `🏆 ${flag(p.country)} #${rank}` : '🏆';
 }
 function updateIdle() {
-  const none = !lanes.some(l => l !== P && l.owner);
+  const none = !lanes.some(l => l !== P && !l.rival && l.owner);
   $('idle').hidden = !none;
 }
 
@@ -688,10 +690,198 @@ function baseCam() {
 baseCam(); cam.pos.copy(cam.tp); cam.look.copy(cam.tl);
 addEventListener('resize', () => { baseCam(); });
 
+// ================================================================== the rival's team, live (duels)
+// In a live duel lane 2, right next to yours, belongs to the rival. Their agents are a real team on the bench there,
+// each with its callsign tag, in the rival's colour (silver robots + "simulated" for the house bot). Every finished
+// step one of their agents makes is one ball by that agent: tests / commits / deploys are big strike chances, a failure
+// is a gutter or a miss. Their team game sits on the lane screen and on a second row of the score sheet, under yours.
+const SIM_COL = '#dfe4ec', RV_MAX = 5, RL = lanes[1];
+let RV = null, rvKey = '', rvRolls = [], rvLast = null, rvFeed = null, rvIdleT = 0, rvPins = { me: 0, them: 0 };
+const bench = new Map();                        // k -> { mesh, tag, a, i }
+const robotMat = new THREE.MeshStandardMaterial({ color: '#cfd5df', metalness: 0.55, roughness: 0.28 });
+function makeRivalBowler(color, seed, sim) {
+  const b = makeBowler(color, seed, 0.8);
+  if (sim) {
+    b.traverse(o => { if (o.isMesh) o.material = robotMat; });
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.22), robotMat); ant.position.y = 1.78; b.add(ant);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), new THREE.MeshBasicMaterial({ color: '#ff5d6d' })); bulb.position.y = 1.9; b.add(bulb);
+  }
+  return b;
+}
+function rivalTag(color) {
+  const c = document.createElement('canvas'); c.width = 360; c.height = 128; const x = c.getContext('2d');
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  spr.scale.set(0.9, 0.32, 1); spr.renderOrder = 11;
+  const dark = (() => { const n = parseInt(color.slice(1), 16); return ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114) / 255 > 0.6; })();
+  spr.draw = (name, sub, icon = '') => {
+    x.clearRect(0, 0, 360, 128);
+    const F = "'Bungee', 'Baloo 2', system-ui, sans-serif", t = (icon ? icon + ' ' : '') + name;
+    x.font = `34px ${F}`; let w = x.measureText(t).width + 44; x.font = "800 26px 'Baloo 2', system-ui, sans-serif"; w = Math.min(350, Math.max(w, x.measureText(sub).width + 30));
+    x.fillStyle = 'rgba(15,10,30,.88)'; x.beginPath(); x.roundRect(180 - w / 2, 4, w, 112, 22); x.fill();
+    x.fillStyle = color; x.beginPath(); x.roundRect(180 - w / 2 + 5, 9, w - 10, 56, 18); x.fill();
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = `34px ${F}`; x.fillStyle = dark ? '#1a1030' : '#ffffff'; x.fillText(t, 180, 39, w - 24);
+    x.font = "800 26px 'Baloo 2', system-ui, sans-serif"; x.fillStyle = '#f6f0e3'; x.fillText(sub, 180, 92, w - 20);
+    tex.needsUpdate = true;
+  };
+  return spr;
+}
+const rvCol = () => RV && (RV.sim ? SIM_COL : RV.color);
+function rvStatus(short) {
+  if (!RV) return '';
+  const ags = RV.agents || [], w = ags.filter(a => a.state === 'working').length, wt = ags.filter(a => a.state === 'waiting').length;
+  if (RV.sim) return short ? 'simulated rival' : `${ags.length} agents · simulated rival`;
+  if (!RV.online) return short ? 'offline' : '😴 offline · slow default play';
+  return short ? `${w} of ${ags.length} working` : `🟢 ${w} of ${ags.length} working${wt ? ` · ✋ ${wt} waiting` : ''}`;
+}
+function clearRival() {
+  for (const b of bench.values()) RL.w.g.remove(b.mesh); bench.clear();
+  RL.bowler = null; RL.rival = false; RV = null; rvKey = ''; rvFeed = null;
+  freeLane(RL); $('duel').hidden = true; $('rsheet').hidden = true; hud();
+}
+function syncRival() {
+  const r = B && B.rival();
+  if (!r) { if (RV) clearRival(); return; }
+  const col = r.sim ? SIM_COL : r.color, fresh = rvKey !== r.key;
+  if (fresh) {
+    if (RV || RL.rival) { for (const b of bench.values()) RL.w.g.remove(b.mesh); bench.clear(); }
+    if (RL.owner && !RL.rival) freeLane(RL);       // one of your agents had this lane: it moves over on its next step
+    rvKey = r.key; rvRolls = []; rvLast = null; rvPins = { me: 0, them: 0 };
+    RL.rival = true;
+    setOwner(RL, { id: '⚔', label: r.name, name: `${r.flag} ${r.name.toUpperCase()}'S TEAM`, color: col, seed: 7, last: Infinity });
+    if (RL.bowler) RL.w.g.remove(RL.bowler); RL.bowler = null; RL.tag = null;
+    RL.disp = []; resetPins(RL);
+    toast(`⚔️ ${r.flag} ${r.name}'s team is on lane 2${r.sim ? ' (simulated rival)' : ''}. Every step their agents finish is a ball.`, 6000);
+  }
+  RV = r;
+  let roster = (r.agents || []).slice(0, RV_MAX);
+  if (!roster.length) roster = [{ k: '_crew', name: r.name.slice(0, 10), src: 'claude', state: 'idle' }];
+  const keep = new Set(roster.map(a => a.k));
+  for (const [k, b] of bench) if (!keep.has(k)) { RL.w.g.remove(b.mesh); if (RL.bowler === b.mesh) RL.bowler = null; bench.delete(k); }
+  roster.forEach((a, i) => {
+    let b = bench.get(a.k);
+    if (!b) {
+      const m = makeRivalBowler(col, [...a.k].reduce((h, c) => h * 31 + c.charCodeAt(0), 7) >>> 0, r.sim);
+      const tag = rivalTag(col); m.add(tag);
+      b = { mesh: m, tag, a, i, st: '' }; m.position.set(0, 0, 2.5); RL.w.g.add(m); bench.set(a.k, b);
+    }
+    b.a = a; b.i = i;
+    const icon = !r.sim && !r.online ? '😴' : a.state === 'waiting' ? '✋' : '';
+    const sub = `${r.flag} ${r.name.slice(0, 12)} · ${a.src === 'codex' ? 'Codex' : 'Claude'}${r.sim ? ' · sim' : ''}`;
+    const st = a.name + icon + sub; if (st !== b.st) { b.st = st; b.tag.draw(a.name, sub, icon); }
+  });
+  RL.owner.name = `${r.flag} ${r.name.toUpperCase()}'S TEAM`; RL.owner.color = col;
+  if (!RL.bowler && RL.phase === 'idle') { const f = bench.values().next().value; if (f) RL.bowler = f.mesh; }
+  { const cur = [...bench.values()].find(b => b.mesh === RL.bowler); RL.waving = !!cur && cur.a.state === 'waiting' && RL.phase === 'idle'; }
+  drawScreen(RL); duelHud();
+}
+// one rival event = one ball by that agent
+function rvBall(e) {
+  const st = status(rvRolls), R = Math.random, cat = e.cat || 'other', ok = !!e.ok, big = ok && (cat === 'test' || cat === 'commit' || cat === 'deploy');
+  let pins;
+  if (st.fresh) {
+    if (!ok) pins = R() < 0.45 ? 0 : 1 + ((R() * 5) | 0);
+    else if (big) pins = R() < ({ deploy: 0.95, test: 0.85, commit: 0.75 })[cat] ? 10 : 9;
+    else pins = R() < 0.35 ? 10 : 7 + ((R() * 3) | 0);
+  } else {
+    const s = st.standing;
+    if (!ok) pins = R() < 0.6 ? 0 : Math.min(s, 1);
+    else if (big) pins = s;
+    else pins = R() < 0.65 ? s : Math.max(0, s - 1 - ((R() * 2) | 0));
+  }
+  rvRolls.push(pins);
+  const after = status(rvRolls), a = e.agent || {};
+  const rec = { pins, fresh: st.fresh, standing: st.standing, test: ok && cat === 'test', commit: ok && cat === 'commit', deploy: ok && cat === 'deploy', cat, ok,
+    rolls: rvRolls.slice(), over: after.over, score: after.over ? total(rvRolls) : null, seed: (Date.now() + R() * 1e6) | 0, k: a.k, who: a.name || 'Agent' };
+  if (after.over) { rvLast = rec.score; rvRolls = []; }
+  rvPins.them += pins;
+  return rec;
+}
+const VERB = { test: 'passes tests', commit: 'commits', deploy: 'deploys', edit: 'edits', run: 'runs a step', read: 'reads code', web: 'searches', delegate: 'sends a helper' };
+function onRivalEvents(list, r) {
+  syncRival(); if (!RV) return;
+  for (const e of list) {
+    const rec = rvBall(e); rec.what = e.ok ? VERB[e.cat] || 'finishes a step' : 'hits an error';
+    RL.queue.push(rec);
+  }
+  rvIdleT = 0; duelHud();
+}
+function rivalStart(ln, rec) {
+  const b = bench.get(rec.k) || bench.values().next().value;
+  if (!b) return startRoll(ln, rec);
+  ln.bowler = b.mesh; ln.rvRec = rec; ln.phase = 'stepup'; ln.pt = 0; ln.waving = false;
+  rvFeed = { t: Date.now(), ok: rec.ok, txt: `${RV.flag} ${RV.name}'s ${rec.who} ${rec.what}…` }; duelHud();
+}
+function rivalSettled(ln, rec, tag, n) {
+  const res = tag === 'strike' ? 'STRIKE!' : tag === 'spare' ? 'spare!' : tag === 'gutter' ? (rec.fresh ? 'gutter ball' : 'misses') : `${n} pin${n === 1 ? '' : 's'}`;
+  rvFeed = { t: Date.now(), ok: rec.ok && tag !== 'gutter', txt: `${RV ? RV.flag + ' ' + RV.name + "'s " : ''}${rec.who} ${rec.what}, ${res}` };
+  if (tag === 'strike' || rec.deploy) popAt(ln, STANCE, 2.3, `${rec.who} ${rec.deploy ? '🚀' : rec.commit ? '📦' : rec.test ? '🧪' : ''}`, rvCol(), 20);
+  if (rec.over) rvFeed.txt += ` · team game ${rec.score}`;
+  duelHud(); hud();
+}
+function rivalUpdate(dt, t) {
+  if (!RL.rival || !RV) return;
+  const sec = dt / 60, n = bench.size, off = !RV.sim && !RV.online;
+  // slow default play while they're offline, so their lane is never frozen
+  rvIdleT += sec;
+  if (off && rvIdleT > 22 && RL.phase === 'idle' && !RL.queue.length && n) {
+    rvIdleT = 0; const b = [...bench.values()][(Math.random() * n) | 0];
+    const rec = rvBall({ agent: { k: b.a.k, name: b.a.name }, cat: 'other', ok: Math.random() < 0.8 }); rec.what = 'bowls a lazy ball'; RL.queue.push(rec);
+  }
+  let k = 0;
+  for (const b of bench.values()) {
+    const m = b.mesh;
+    // the thrower stands full size; the bench is a smaller row behind (like your own agents' helpers)
+    const sc = lerp(m.scale.x, m === RL.bowler ? 0.86 : 0.6, 0.12); m.scale.setScalar(sc); b.tag.scale.set(0.9 * 0.8 / sc, 0.32 * 0.8 / sc, 1);
+    if (m === RL.bowler && RL.phase !== 'idle' && RL.phase !== 'stepup') continue;   // the thrower is posed by updateLane
+    if (m === RL.bowler && RL.phase === 'idle') { continue; }
+    if (m === RL.bowler && RL.phase === 'stepup') {
+      const u = Math.min(1, RL.pt / 0.75);
+      m.position.x = lerp(m.position.x, -0.28, 0.16); m.position.z = lerp(m.position.z, STANCE, 0.16); m.position.y = 0;
+      m.rotation.y = lerp(m.rotation.y, 0, 0.2); m.run(t, 0.6);
+      RL.w.ball.visible = true; RL.w.ball.position.set(PITCH / 2, 0.41, 1.75);
+      if (u >= 1) { m.position.set(-0.28, 0, STANCE); startRoll(RL, RL.rvRec); }
+      continue;
+    }
+    // bench: a row behind the line, staggered so the tags don't cover each other
+    const slots = Math.max(1, n - (RL.bowler ? 1 : 0)), i = k++;
+    const tx = slots === 1 ? 0.35 : -0.72 + i * (1.44 / (slots - 1)), tz = 2.3 + (i % 2) * 0.28;
+    const moving = Math.abs(m.position.x - tx) + Math.abs(m.position.z - tz) > 0.05;
+    m.position.x = lerp(m.position.x, tx, 0.08); m.position.z = lerp(m.position.z, tz, 0.08);
+    b.tag.position.y = 2.2 + (i % 2) * 0.5;
+    m.armR.rotation.set(0, 0, 0); m.armL.rotation.set(0, 0, 0); m.legL.rotation.x = m.legR.rotation.x = 0; m.body.position.y = 0.95;
+    if (moving) { m.run(t, 0.5); m.rotation.y = lerp(m.rotation.y, Math.PI, 0.15); }
+    else if (off) { m.rotation.y = lerp(m.rotation.y, 0, 0.1); m.body.position.y = 0.86; m.armR.rotation.z = 0.15; m.armL.rotation.z = -0.15; m.position.y = 0; }
+    else if (b.a.state === 'waiting') { m.rotation.y = lerp(m.rotation.y, Math.PI * 0.85, 0.1); m.armR.rotation.z = 2.6 + Math.sin(t * 9 + i) * 0.35; m.position.y = 0; }
+    else {
+      m.rotation.y = lerp(m.rotation.y, 0, 0.1);
+      const cheer = RL.phase === 'react' && (RL.reaction === 'strike' || RL.reaction === 'spare');
+      m.position.y = cheer ? Math.abs(Math.sin(t * 9 + i)) * 0.16 : 0;
+      if (cheer) { m.armR.rotation.z = 2.6; m.armL.rotation.z = -2.6; } else m.body.position.y = 0.95 + Math.sin(t * 2 + i) * 0.012;
+    }
+  }
+  if (RL.bowler) { const cur = [...bench.values()].find(b => b.mesh === RL.bowler); if (cur) cur.tag.position.y = 2.1; }
+}
+function duelHud() {
+  const el = $('duel'), rs = $('rsheet');
+  if (!RV) { el.hidden = true; rs.hidden = true; return; }
+  const col = rvCol(), me = RV.myScore, th = RV.score, fd = rvFeed && Date.now() - rvFeed.t < 15e3 ? rvFeed : null;
+  el.hidden = false; el.style.setProperty('--rc', col);
+  el.innerHTML = `<div class="vs"><b class="${me >= th ? 'w' : ''}">YOU ${me}</b><span>⚔️ duel pts</span><b class="${th > me ? 'w' : ''}">${th} ${RV.flag} ${esc(RV.name)}</b></div>
+    <div class="st">Lane 2 · ${esc(rvStatus(false))}</div><div class="fd ${fd && !fd.ok ? 'bad' : ''}">${fd ? esc(fd.txt) : RV.sim || RV.online ? 'their agents are warming up…' : 'waiting for them to come back online'}</div>`;
+  const fr = frames(RL.disp), st = status(RL.disp);
+  rs.hidden = false; rs.style.setProperty('--rc', col);
+  rs.innerHTML = `<div class="who"><i style="background:${col}"></i>${RV.flag} ${esc(RV.name.slice(0, 9).toUpperCase())}${RV.sim ? '<small>sim</small>' : ''}</div>` + fr.map((f, i) => `<div class="fr ${i === st.frame && !st.over ? 'cur' : ''}"><span class="m">${f.marks.map(m => `<em class="${m === 'X' ? 'x' : m === '/' ? 's' : ''}">${m || ''}</em>`).join('')}</span><span class="c">${f.cum ?? ''}</span></div>`).join('') + `<div class="tot"><span class="n">${RV.flag} ${esc(RV.name.slice(0, 8))}</span><b>${runningTotal(RL.disp)}</b></div>`;
+}
+setInterval(syncRival, 1500);
+setInterval(() => RV && duelHud(), 1000);
+
 // ================================================================== loop
 let lastSweepCheck = 0;
 loop((dt, t) => {
   for (const ln of lanes) updateLane(ln, dt, t);
+  rivalUpdate(dt, t);
   // the player's aim guide
   const ready = P.phase === 'ready' && !panelOpen();
   guide.visible = ready; guide.position.x = aimX; chevrons.forEach((c, k) => { c.visible = ready; c.position.set(aimX, 0.007, -0.5 - ((k * 0.8 + t * 1.2) % 3.2)); });
@@ -708,7 +898,7 @@ loop((dt, t) => {
   for (let i = turkeys.length - 1; i >= 0; i--) { const k = turkeys[i]; k.t += dt / 60; k.m.position.y = Math.abs(Math.sin(k.t * 8)) * 0.25 * Math.max(0, 1 - k.t / 2.5); k.m.rotation.y = Math.PI + Math.sin(k.t * 6) * 0.4; if (k.t > 1.8) k.m.position.x += 0.03 * dt; if (k.t > 3.2) { scene.remove(k.m); turkeys.splice(i, 1); } }
   for (let i = rockets.length - 1; i >= 0; i--) { const r = rockets[i]; if (r.delay > 0) { r.delay -= dt; continue; } r.y += r.vy * dt; r.vy -= 0.0025 * dt; if (Math.random() < 0.6) burst(scene, new THREE.Vector3(r.x, r.y, r.z), '#fff3b0', 1, { speed: 0.004, up: 0, size: 0.4, gravity: 0.001, shape: 'sphere' }); if (r.vy <= 0.01) { burst(scene, new THREE.Vector3(r.x, r.y, r.z), [r.c, '#ffffff', '#ffd23f'], 46, { speed: 0.09, up: 0.02, size: 0.55, gravity: 0.0015, shape: 'sphere' }); snd.pop(); rockets.splice(i, 1); } }
   // lanes go quiet after 30 min without events (real agents only)
-  if (!A.demo && t - lastSweepCheck > 10) { lastSweepCheck = t; for (const ln of lanes) if (ln !== P && ln.owner && Date.now() - ln.owner.last > LIVE && ln.phase === 'idle') freeLane(ln); }
+  if (!A.demo && t - lastSweepCheck > 10) { lastSweepCheck = t; for (const ln of lanes) if (ln !== P && !ln.rival && ln.owner && Date.now() - ln.owner.last > LIVE && ln.phase === 'idle') freeLane(ln); }
   if (T.date !== todayKey()) { T = freshToday(); hud(); }
   W.update(dt, t);
   W.render(camera);
@@ -722,7 +912,7 @@ const A = agents({
   onEvents(list, info) {
     if (wasDemo !== A.demo) { // switching demo <-> live: clear the lanes and the "today" numbers
       wasDemo = A.demo; D = null; T = freshToday();
-      for (const ln of lanes) if (ln !== P && ln.owner) freeLane(ln);
+      for (const ln of lanes) if (ln !== P && !ln.rival && ln.owner) freeLane(ln);
     }
     onEvents(list, info);
   },
@@ -730,6 +920,8 @@ const A = agents({
 });
 window.__A = A;
 const B = board({ game: GAME, label: 'Team pins', A });
+B.onRival(onRivalEvents);
+window.__B = B;
 window.__pp = { theme: () => W.themeKey, card: () => makeCard().toDataURL('image/png'), throw: (s, p, sp) => playerThrow(s, p, sp), aim: x => { aimX = x; }, state: () => ({ S, T, lanes: lanes.map(l => ({ owner: l.owner && l.owner.name, phase: l.phase, disp: l.disp, q: l.queue.length })) }) };
 hud(); updateIdle();
 document.fonts && document.fonts.ready.then(() => { lanes.forEach(drawScreen); W.themeKey = ''; W.setTheme(themeNow()); });

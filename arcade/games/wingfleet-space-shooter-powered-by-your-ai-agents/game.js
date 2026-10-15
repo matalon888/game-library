@@ -251,6 +251,8 @@ const pl = { g: null, x: 0, z: 0, tx: 0, tz: 0, vx: 0, hull: 3, shield: 1, inv: 
 let superM = 0;
 const enemies = [], bolts = [], ebullets = [], missiles = [];
 const wave = { n: 1, groups: 0, groupT: 1, boss: null, nextT: 0, escortT: 0 };
+// the rival's squadron in a live duel (null rival = the game is exactly the solo game)
+const RV = { r: null, key: null, ships: new Map(), kills: 0, mine: 0, dirty: false, syncT: 0, slowT: 2 };
 
 function rebuildShip() {
   const p = pl.g ? pl.g.position.clone() : new THREE.Vector3(0, 0, F.zBot - 4);
@@ -304,7 +306,15 @@ function hitE(e, dmg, color = '#fff', by = null) {
 function kill(e, by) {
   if (e.dead) return;
   const sz = e.type === 'boss' ? 4 : e.type === 'tank' ? 1.8 : 1;
-  boom(e.x, e.z, e.color, sz);
+  boom(e.x, e.z, by && by.rival ? by.color : e.color, sz);
+  // live duel: a kill by the rival's squadron scores for THEM in the kill race, never for the player's run
+  if (by && by.rival) {
+    RV.kills++; by.kills++; RV.dirty = true;
+    if (e.type === 'boss') { banner(`${RV.r ? RV.r.name.toUpperCase() : 'RIVAL'} TOOK THE MOTHERSHIP`, `${by.name} landed the last hit`, by.color); shake(1.2); }
+    else popAt(e.x, e.z, `${by.name} +1`, by.color, e.type === 'tank' ? 16 : 12);
+    removeEnemy(e); return;
+  }
+  if (RV.r) { RV.mine++; RV.dirty = true; }
   if (e.type === 'boss') { for (let i = 1; i < 7; i++) setTimeout(() => boom(e.x + (Math.random() - 0.5) * 6, e.z + (Math.random() - 0.5) * 5, ['#ffd23f', '#ff2255', '#ffffff'][i % 3], 2), i * 140); hitStop = 14; shake(1.6); flash('#fff', 0.7); punch = 1; banner('MOTHERSHIP DOWN', `+${fmt(e.score * Math.max(1, wave.n / 5))}`, '#ffd23f'); }
   else if (e.type === 'tank') { hitStop = Math.max(hitStop, 3); }
   if (state === 'play') {
@@ -618,6 +628,138 @@ function updFleet(dt, sec, t) {
   $('#waiting').classList.toggle('on', n === 0);
 }
 
+// ------------------------------------------------------------------ the rival's squadron (live duel only)
+// One ship per rival agent (max 5), flying a contest line ahead of you in the rival's colour. Their finished steps
+// fire for them; every enemy they finish counts for them in the kill race ("You 12 : 9 🇹🇷 Yusuf").
+const RVA = { edit: 'laser', run: 'rapid', read: 'scan', web: 'beam', test: 'bomb', commit: 'volley', deploy: 'mega', delegate: 'missile', other: 'missile' };
+const RVA_NAME = { missile: 'MISSILE', laser: 'LASER', rapid: 'RAPID FIRE', scan: 'SCANNER', beam: 'LONG BEAM', bomb: 'SMART BOMB', volley: 'MISSILE VOLLEY', mega: 'BIG BLAST' };
+const rvCol = r => r.sim ? '#dfe4ec' : r.color;
+const rvLive = r => r.sim || r.online;
+function rvMake(a, r) {
+  const col = rvCol(r), sch = r.sim ? { hull: '#9aa0ad', trim: '#e9edf3' } : { hull: '#' + new THREE.Color(col).multiplyScalar(0.62).getHexString(), trim: col };
+  const s = { k: a.k, name: a.name, src: a.src, state: a.state, rival: true, color: col, x: 0, z: F.zTop - 3, q: [], qT: 0, rapid: 0, rapidT: 0, kills: 0, flick: 0, spin: 0, mega: 0, pulse: 0, status: '', statusT: 0, ph: Math.random() * TAU, i: 0 };
+  s.g = buildShip(r.sim ? 'arrow' : 'manta', sch); s.g.scale.setScalar(0.74); scene.add(s.g);
+  s.trims = []; s.g.traverse(o => { if (o.isMesh && o.material.emissiveIntensity >= 1.4) s.trims.push(o.material); });
+  s.beacon = ownSprite('#ffffff', 1.6, GLOW, 0); s.beacon.position.set(0, 1.8, 0); s.g.add(s.beacon);
+  s.beam = makeBeam(col); s.beam.visible = false; scene.add(s.beam);
+  s.tag = document.createElement('div'); s.tag.className = 'tag rv'; s.tag.style.setProperty('--c', col);
+  s.tag.innerHTML = `<b>${r.flag} ${esc(a.name)}${a.src === 'codex' ? '<sup>CX</sup>' : ''}</b><i></i>`; $('#tags').appendChild(s.tag);
+  return s;
+}
+function rvDrop(s) {
+  ring(s.x, s.z, s.color, 2.4, 0.4); scene.remove(s.g); s.g.traverse(o => o.material && o.material.dispose());
+  scene.remove(s.beam); s.beam.mats.forEach(m => m.dispose()); s.tag.remove(); RV.ships.delete(s.k);
+}
+function rvClear() { for (const s of [...RV.ships.values()]) rvDrop(s); RV.r = null; RV.key = null; document.body.classList.remove('duel'); $('#rvbar').innerHTML = ''; }
+function rvSync() {
+  const r = B && B.rival ? B.rival() : null;
+  if (!r) { if (RV.r) rvClear(); return; }
+  if (RV.key !== r.key) { rvClear(); RV.key = r.key; RV.kills = 0; RV.mine = 0; }
+  RV.r = r; document.body.classList.add('duel');
+  let ags = (r.agents || []).slice(0, 5);
+  if (!ags.length) ags = [{ k: '_none', name: r.name, src: 'claude', state: 'idle', ph: true }];
+  const keep = new Set(ags.map(a => a.k));
+  for (const s of [...RV.ships.values()]) if (!keep.has(s.k)) rvDrop(s);
+  ags.forEach((a, i) => {
+    let s = RV.ships.get(a.k);
+    if (!s) { s = rvMake(a, r); RV.ships.set(a.k, s); s.x = (i - (ags.length - 1) / 2) * 2.5; ring(s.x, s.z, s.color, 3, 0.6); }
+    s.i = i; s.state = a.state; s.placeholder = !!a.ph; s.done = a.done || 0; s.sub = a.sub || 0;
+  });
+  rvPanel();
+}
+function rvPanel() {
+  const r = RV.r; if (!r) return; RV.dirty = false;
+  const ships = [...RV.ships.values()].filter(s => !s.placeholder), working = ships.filter(s => s.state === 'working').length;
+  const st = r.sim ? 'simulated rival · silver squadron' : !r.online ? `😴 ${esc(r.name)} is offline · their squadron is parked` : !ships.length ? `waiting for ${esc(r.name)}'s agents…` : `🟢 ${working} of ${ships.length} agents working`;
+  const lead = RV.mine > RV.kills ? 'me' : RV.kills > RV.mine ? 'them' : '';
+  $('#rvbar').style.setProperty('--c', rvCol(r));
+  $('#rvbar').innerHTML = `<div class="vs"><span class="me ${lead === 'me' ? 'lead' : ''}">YOU <b>${RV.mine}</b></span><em>KILL<br>RACE</em><span class="them ${lead === 'them' ? 'lead' : ''}"><b>${RV.kills}</b> ${r.flag} ${esc(r.name)}</span></div>
+    ${ships.length ? `<div class="ros">${ships.map(s => `<span class="${s.state}"><i></i>${esc(s.name)}${s.src === 'codex' ? ' ·cx' : ''}${s.kills ? ` <small>${s.kills}☠</small>` : ''}</span>`).join('')}</div>` : ''}
+    <div class="st">${st}</div>`;
+}
+function rvFeed(s, html, bad) {
+  const f = $('#feed'), d = document.createElement('div'); d.className = 'rv' + (bad ? ' bad' : '');
+  d.style.setProperty('--c', s.color); d.innerHTML = `${RV.r.flag} <b>${esc(RV.r.name)}'s ${esc(s.name)}</b> ${html}`; f.appendChild(d);
+  while (f.children.length > 5) f.firstChild.remove();
+  setTimeout(() => d.remove(), 6000);
+}
+function rvEvent(e) {
+  const r = RV.r; if (!r) return;
+  const s = RV.ships.get(e.agent.k) || [...RV.ships.values()].find(x => !x.placeholder); if (!s) return;
+  s.statusT = 1.6;
+  if (!e.ok) { s.flick = 0.8; s.spin = 1.1; s.status = '✗ error'; s.q.length = 0; sparks(s.x, s.z, '#ff5566', 10, 0.25, 0.35, 0.4); popAt(s.x, s.z - 0.6, '✗ MISFIRE', '#ff6b6b', 12); rvFeed(s, `${e.cat} ✗ → misfire, spins out`, true); SFX.fail(); return; }
+  const a = RVA[e.cat] || 'missile';
+  if (s.q.length < 8) s.q.push('missile'); if (a !== 'missile') s.q.push(a);
+  s.status = e.cat; s.pulse = 1;
+  rvFeed(s, `${e.cat} ✔ → ${RVA_NAME[a]}`);
+}
+function rvFire(s, a) {
+  const x = s.x, z = s.z, c = s.color, r = RV.r, who = `${r.name}'s ${s.name}`.toUpperCase();
+  switch (a) {
+    case 'missile': missile(x, z - 0.4, c, 3, s); break;
+    case 'laser': { const t = nearest(x, z - 6); if (t) { beam(x, z - 0.5, t.x, t.z, c, 0.24, 0.32); hitE(t, 6, c, s); sparks(t.x, t.z, c, 8, 0.3); } else beam(x, z - 0.5, x, z - 16, c, 0.2, 0.25); SFX.laser(); popAt(x, z - 0.8, 'LASER', c, 12); break; }
+    case 'rapid': s.rapid = 1; popAt(x, z - 0.8, 'RAPID', c, 12); break;
+    case 'scan': { ring(x, z, c, 14, 0.9, 0.5, 0.9); let n = 0; for (const e of enemies) if (Math.hypot(e.x - x, e.z - z) < 15) { e.scanned = 6; n++; } popAt(x, z - 0.8, n ? `SCAN · ${n}` : 'SCAN', c, 12); SFX.scan(); break; }
+    case 'beam': { beam(x, z - 0.6, x, F.zTop - 10, c, 0.45, 0.55); for (const e of enemies) if (e.z < z && Math.abs(e.x - x) < e.r + 0.55) hitE(e, 5, c, s); SFX.laser(); break; }
+    case 'volley': popAt(x, z - 0.9, 'COMMIT VOLLEY', c, 14); ring(x, z, c, 5, 0.5); for (let i = 0; i < 6; i++) setTimeout(() => RV.ships.has(s.k) && missile(s.x, s.z - 0.3, c, 3, s), i * 120); break;
+    case 'bomb': {
+      let n = 0; for (const e of enemies) { if (e.dead) continue; const d = Math.hypot(e.x - x, e.z - z); if (d > 12) continue; if (e.type === 'boss') hitE(e, e.max * 0.08, c, s); else if (e.bombT == null) { e.bombT = 0.1 + d * 0.03; e.bombBy = s; n++; } }
+      banner(`${who} PASSES TESTS`, `rival smart bomb · ${n} caught`, c); ring(x, z, c, 24, 0.9, 1); ring(x, z, '#ffffff', 14, 0.6, 1); flash(c, 0.12); shake(0.8); SFX.bomb(); break;
+    }
+    case 'mega': {
+      let n = 0; for (const e of enemies) { if (e.dead) continue; const d = Math.hypot(e.x - x, e.z - (z - 4)); if (d > 10) continue; if (e.type === 'boss') hitE(e, e.max * 0.12, c, s); else if (e.bombT == null) { e.bombT = 0.15 + d * 0.04; e.bombBy = s; n++; } }
+      s.mega = 3.2; boom(x, z - 2, c, 2.4); ring(x, z, c, 30, 1.1, 1); ring(x, z, '#ffffff', 18, 0.8, 1);
+      banner(`${who} DEPLOYS!`, `big blast${n ? ` · ${n} enemies vaporised` : ''} · ${r.flag} ${r.name} +${n} in the race`, c); flash(c, 0.25); shake(1.3); punch = 0.5; hitStop = Math.max(hitStop, 5); SFX.super(); break;
+    }
+  }
+}
+function updRival(dt, sec, t) {
+  const r = RV.r; if (!r) return;
+  const live = rvLive(r), ships = [...RV.ships.values()], n = Math.max(1, ships.length);
+  let zr = F.zTop + (F.zBot - F.zTop) * (portrait ? 0.4 : 0.36); const lane = Math.min(3.6, (F.W * 1.7) / n);
+  // at the menu the panel covers the top of the field: fly the rival line just under it so they stay in sight
+  const ov = !$('#menu').hidden ? $('#menu') : !$('#over').hidden ? $('#over') : null;
+  if (ov && state !== 'play') { const b = ov.getBoundingClientRect().bottom + 64; zr = Math.min(pl.z - 2.6, Math.max(zr, groundAt(0, 1 - 2 * b / innerHeight).z)); }
+  for (const s of ships) {
+    const x0 = (s.i - (n - 1) / 2) * lane, off = !live || s.placeholder, wait = !off && s.state === 'waiting';
+    let tx = x0 + Math.sin(t * 0.8 + s.ph) * 0.7, tz = zr + Math.sin(t * 1.1 + s.ph) * 0.4;
+    if (off || wait) tz += 2.2;
+    else { let best = null, bd = 1e9; for (const e of enemies) { if (e.dead || e.z > s.z - 1.5 || e.z < F.zTop - 1 || Math.abs(e.x - x0) > lane * 0.8 + 1) continue; const d = s.z - e.z; if (d < bd) { bd = d; best = e; } } if (best) tx = lerp(tx, best.x, 0.85); }
+    for (const o of ships) if (o !== s && Math.abs(o.x - s.x) < 2.3 && Math.abs(o.z - s.z) < 2) tx += (s.i < o.i ? -1 : 1) * 1.2;   // keep the line readable
+    tx = clamp(tx, -F.W, F.W);
+    const ox = s.x; s.x = lerp(s.x, tx, Math.min(1, 0.06 * dt)); s.z = lerp(s.z, tz, Math.min(1, 0.05 * dt));
+    const g = s.g; g.position.set(s.x, 0.25 + Math.sin(t * 2.6 + s.ph) * 0.1, s.z);
+    g.rotation.z = clamp(-(s.x - ox) / Math.max(dt, 0.01) * 1.4, -0.6, 0.6);
+    if (s.spin > 0) { s.spin -= sec; g.rotation.y += 0.35 * dt; } else g.rotation.y = 0;
+    s.pulse = Math.max(0, s.pulse - sec * 2.5);
+    const glow = off ? 0.2 : wait ? 0.8 + (Math.floor(t * 3) % 2) * 1.6 : 1.5 + s.pulse * 2.5;
+    for (const m of s.trims) m.emissiveIntensity = s.flick > 0 && Math.floor(t * 20) % 2 ? 4 : glow;
+    if (s.flick > 0) s.flick -= sec;
+    for (const en of g.engines) en.s.scale.setScalar(off ? 0.5 : 1 + Math.random() * 0.3 + s.pulse * 0.6);
+    s.beacon.material.opacity = wait ? (Math.floor(t * 3) % 2 ? 1 : 0.2) : 0;
+    if (!off && Math.random() < 0.5) part(s.x, 0.1, s.z + 0.9, s.color, 0.45, { vz: 0.1, life: 0.3, grow: 0.15, drag: 0.97 });
+    if (dt > 0 && s.spin <= 0) {
+      s.qT -= sec;
+      if (s.q.length && s.qT <= 0) { rvFire(s, s.q.shift()); s.qT = 0.22; s.pulse = 1; }
+      if (s.rapid > 0) { s.rapid -= sec; s.rapidT -= dt; if (s.rapidT <= 0) { s.rapidT = 3; bolt(s.x + (Math.random() - 0.5) * 0.4, s.z - 0.7, (Math.random() - 0.5) * 0.08, -1.0, 0.8, s.color, 0.9, s); } }
+    }
+    const mb = s.beam;
+    if (s.mega > 0 && dt > 0) {
+      s.mega -= sec; mb.visible = true; placeBeam(mb, s.x, s.z - 0.8, s.x, F.zTop - 10, Math.max(0.05, 0.9 + Math.sin(t * 40) * 0.12 - (s.mega < 0.4 ? (0.4 - s.mega) * 2 : 0)));
+      for (const e of enemies) if (!e.dead && e.z < s.z && Math.abs(e.x - s.x) < 1.1 + e.r * 0.7) hitE(e, 0.3 * dt, s.color, s);
+      if (Math.random() < 0.5) part(s.x + (Math.random() - 0.5) * 0.8, 0.4, s.z - 1.1, '#ffffff', 1.4, { life: 0.15 });
+    } else if (s.mega <= 0) mb.visible = false;
+    // name tag: flag + callsign in their colour, state underneath
+    const [px, py, vis] = toScreen(s.x, 0, s.z + 0.9);
+    s.tag.style.transform = `translate(${px}px,${py}px) translate(-50%,0)`; s.tag.style.display = vis ? '' : 'none';
+    s.statusT -= sec;
+    const txt = s.placeholder ? (live ? 'no agents online yet' : '😴 offline') : !live ? '😴 offline' : wait ? '✋ waiting' : s.spin > 0 ? '✗ misfire' : s.statusT > 0 ? s.status : s.kills ? `${s.kills} ☠` : '';
+    if (s._s !== txt) { s._s = txt; s.tag.querySelector('i').textContent = txt; s.tag.classList.toggle('off', off); s.tag.classList.toggle('wait', wait); }
+  }
+  // an offline rival's squadron only plinks slowly
+  if (!live && dt > 0) { RV.slowT -= sec; if (RV.slowT <= 0) { RV.slowT = 3; const s = ships[(Math.random() * ships.length) | 0]; if (s) bolt(s.x, s.z - 0.7, 0, -0.9, 0.7, s.color, 0.8, s); } }
+}
+
 // ------------------------------------------------------------------ today (from the logs) + fleet XP (counted only)
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
 let T = { hits: 0, fails: 0, tests: 0, commits: 0, deploys: 0, tokens: 0, agents: new Set() };
@@ -658,6 +800,8 @@ const A = agents({
 });
 window.__A = A;
 B = board({ game: 'agent-shooter', label: 'Points', A });
+window.__B = B;
+B.onRival(evs => { rvSync(); for (const e of evs) rvEvent(e); });
 if (D.score > 0) B.submit(D.score);
 const cardHidden = () => { const c = document.querySelector('.ag-card'); return !c || c.hidden; };
 
@@ -674,6 +818,7 @@ function hudFrame() {
   if (pct !== lastSuperPct) { lastSuperPct = pct; $('#super i').style.width = pct + '%'; $('#super span').textContent = superM >= 1 ? 'SUPER READY' : `SUPER ${pct}%`; $('#super').classList.toggle('ready', superM >= 1); }
   const c = $('#combo'); if (run.combo >= 3 && state === 'play') { const mult = 1 + Math.min(4, Math.floor(run.combo / 8) * 0.5); const s = `x${run.combo}<small>COMBO${mult > 1 ? ' · ' + mult + '× PTS' : ''}</small>`; if (c._s !== s) { c._s = s; c.innerHTML = s; } c.classList.add('on'); } else c.classList.remove('on');
   if (state === 'play') $('#score').textContent = fmt(run.score);
+  if (RV.dirty) rvPanel();
 }
 function meLine() { const p = B.profile(); if (!p) return ''; let r = null; try { r = JSON.parse(localStorage.getItem('board_rank_agent-shooter')); } catch (e) {} return `${flag(p.country)} ${esc(p.name)}${r ? ` · #${r} today` : ''}`; }
 const todayLine = () => T.agents.size ? `${A.demo ? 'Demo team' : 'Your agents'} today: ${fmt(T.hits)} hits · ${T.tests} tests passed · ${T.commits} commits · ${T.deploys} deploys` : 'Connect your agents: their work today becomes your firepower.';
@@ -704,7 +849,7 @@ function gameOver() {
   if (D.score > prevDay) B.submit(D.score);
   const fresh = unlockedNow().filter(x => !before.includes(x));
   $('#oScore').textContent = fmt(run.score);
-  $('#oLine').textContent = `Wave ${run.wave} · ${run.kills} kills · best combo x${run.bestCombo}${run.agentKills ? ` · wingmen got ${run.agentKills}` : ''}`;
+  $('#oLine').textContent = `Wave ${run.wave} · ${run.kills} kills · best combo x${run.bestCombo}${run.agentKills ? ` · wingmen got ${run.agentKills}` : ''}${RV.r ? ` · kill race: you ${RV.mine} : ${RV.kills} ${RV.r.flag} ${RV.r.name}` : ''}`;
   $('#oBest').textContent = run.score > prevBest && run.score > 0 ? '★ NEW BEST RUN ★' : run.score > prevDay && run.score > 0 ? '★ BEST RUN TODAY ★' : '';
   $('#oUnl').innerHTML = fresh.map(f => `🔓 Unlocked: ${esc(f)}`).join('<br>');
   const me = meLine(); $('#oRank').innerHTML = me ? me : A.demo ? '' : '🏆 Open the board to join the world leaderboard';
@@ -766,7 +911,7 @@ loop((rawDt, t) => {
   for (const n of nebula) { n.position.z += 0.012 * rawDt; if (n.position.z > 60) n.position.z -= 220; }
   planet.rotation.y += 0.0008 * rawDt; planet.position.z += 0.004 * rawDt; if (planet.position.z > 40) planet.position.z = -150;
   if (dt > 0) {
-    updPlayer(dt, sec, t); updEnemies(dt, sec); updWeapons(dt, sec); updFleet(dt, sec, t); updFx(dt);
+    updPlayer(dt, sec, t); updEnemies(dt, sec); updWeapons(dt, sec); updFleet(dt, sec, t); updRival(dt, sec, t); updFx(dt);
     // waves
     if (state !== 'dying') {
       if (wave.groups > 0) { wave.groupT -= sec; if (wave.groupT <= 0) { spawnGroup(); wave.groups--; wave.groupT = Math.max(0.65, 1.7 - wave.n * 0.1) * (state === 'attract' ? 1.2 : 1); } }
@@ -777,7 +922,8 @@ loop((rawDt, t) => {
       }
     }
     if (run.comboT > 0) { run.comboT -= sec; if (run.comboT <= 0) run.combo = 0; }
-  } else updFleet(0, 0, t);
+  } else { updFleet(0, 0, t); updRival(0, 0, t); }
+  RV.syncT -= rawDt / 60; if (RV.syncT <= 0) { RV.syncT = 1.5; rvSync(); }
   // camera: follow, shake, punch
   shk *= Math.pow(0.88, rawDt); punch *= Math.pow(0.9, rawDt);
   const sx = (Math.random() - 0.5) * shk, sy = (Math.random() - 0.5) * shk;

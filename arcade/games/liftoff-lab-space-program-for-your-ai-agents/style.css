@@ -76,6 +76,20 @@ nav button:hover{border-color:#ff9a5a}
 #result .new{display:inline-block;background:#3cf0c0;color:#08261d;font-weight:700;border-radius:999px;padding:4px 14px;margin:6px 0;animation:bnr .6s cubic-bezier(.3,1.6,.5,1)}
 #result .row{display:flex;justify-content:center;gap:18px;margin:8px 0;font-size:15px}#result .row b{display:block;font-size:24px}
 #padPop .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden;margin:3px 0 8px}#padPop .bar i{display:block;height:100%}
+/* live duel: altitude race vs the rival's launch site */
+#rvRace{position:fixed;left:50%;top:calc(62px + env(safe-area-inset-top));transform:translateX(-50%);z-index:7;width:min(460px,calc(100% - 24px));background:rgba(14,18,48,.84);border:2px solid var(--c,#ff5d5d);border-radius:16px;padding:6px 12px 7px;pointer-events:none;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+#rvRace .hd{font-weight:700;font-size:12px;letter-spacing:2px;color:#ffb27a;text-align:center;margin-bottom:2px}
+#rvRace .ln{display:grid;grid-template-columns:110px 1fr 72px;gap:8px;align-items:center;font-size:15px;margin:3px 0}
+#rvRace .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rvRace .tr{height:14px;border-radius:8px;background:rgba(255,255,255,.12);position:relative}
+#rvRace .tr i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;min-width:14px;transition:width .6s cubic-bezier(.3,1.4,.5,1)}
+#rvRace .tr em{position:absolute;right:-11px;top:50%;transform:translateY(-50%) rotate(45deg);font-style:normal;font-size:16px}
+#rvRace .me .tr i{background:linear-gradient(90deg,#ff7a2f,#ffd23f)} #rvRace .me .nm{color:#ffb27a}
+#rvRace .them .tr i{background:var(--c)} #rvRace .them .nm{color:var(--c)}
+#rvRace b{text-align:right;font-size:17px;white-space:nowrap} #rvRace .lead b{color:#9cf28a}
+#rvRace .st{font-size:12px;color:#c9c5e6;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.duel #banner{top:calc(176px + env(safe-area-inset-top))}
+body.duel #fTop{top:calc(228px + env(safe-area-inset-top))}
 @media (max-width:820px){
   #hud{flex-wrap:wrap;gap:6px 10px;padding-left:10px;padding-right:10px}
   .logo{font-size:20px}.stats{order:3;width:100%;gap:12px;font-size:13px}.stats b{font-size:16px}.stats small{display:none}
@@ -85,4 +99,6 @@ nav button:hover{border-color:#ff9a5a}
   #fTop{top:calc(122px + env(safe-area-inset-top))}#fTop span{font-size:13px;padding:4px 10px}
   #fHint{font-size:13px;bottom:calc(64px + env(safe-area-inset-bottom))}
   #banner{top:calc(96px + env(safe-area-inset-top));font-size:14px}
+  #rvRace{top:calc(104px + env(safe-area-inset-top));padding:4px 10px 5px} #rvRace .ln{grid-template-columns:86px 1fr 62px;font-size:13px} #rvRace b{font-size:14px}
+  body.duel #banner{top:calc(214px + env(safe-area-inset-top))} body.duel #fTop{top:calc(262px + env(safe-area-inset-top))}
 }

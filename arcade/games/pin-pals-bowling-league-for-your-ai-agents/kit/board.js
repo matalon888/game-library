@@ -14,7 +14,8 @@ import { toast } from './agents.js';
 
 const API = new URLSearchParams(location.search).get('lbapi') || 'https://mcp.riffcade.com';
 const POWER = '_power';
-const REPLY = '_reply';             // quick replies: times today you answered a waiting agent within 2 minutes
+const REPLY = '_reply';
+const CALL = 'Nova Atlas Echo Pixel Bolt Comet Orbit Rook Sage Spark Flint Vega Juno Iris Onyx Rex Zed Kiwi Taco Mochi Ziggy Luna Bram Odin'.split(' ');             // quick replies: times today you answered a waiting agent within 2 minutes
 const ISO = 'AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PR PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW'.split(' ');
 const TZ = { 'Europe/Lisbon': 'PT', 'Atlantic/Madeira': 'PT', 'Atlantic/Azores': 'PT', 'Europe/Dublin': 'IE', 'Europe/Brussels': 'BE', 'Europe/Zurich': 'CH', 'Europe/Vienna': 'AT', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI', 'Europe/Athens': 'GR', 'Europe/Prague': 'CZ', 'Europe/Budapest': 'HU', 'Europe/Bucharest': 'RO', 'Europe/Moscow': 'RU', 'Asia/Bangkok': 'TH', 'Asia/Jakarta': 'ID', 'Asia/Manila': 'PH', 'Asia/Hong_Kong': 'HK', 'Asia/Taipei': 'TW', 'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD', 'Asia/Riyadh': 'SA', 'Africa/Cairo': 'EG', 'Africa/Nairobi': 'KE', 'America/Bogota': 'CO', 'America/Lima': 'PE', 'America/Santiago': 'CL', 'Australia/Melbourne': 'AU', 'Pacific/Auckland': 'NZ', 'America/Vancouver': 'CA', 'Europe/London': 'GB', 'Europe/Madrid': 'ES', 'Europe/Paris': 'FR', 'Europe/Berlin': 'DE', 'Europe/Rome': 'IT', 'Europe/Amsterdam': 'NL', 'Europe/Kyiv': 'UA', 'Europe/Warsaw': 'PL', 'Europe/Istanbul': 'TR', 'Asia/Jerusalem': 'IL', 'Asia/Tel_Aviv': 'IL', 'Asia/Kolkata': 'IN', 'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR', 'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG', 'Asia/Dubai': 'AE', 'Australia/Sydney': 'AU', 'America/Sao_Paulo': 'BR', 'America/Mexico_City': 'MX', 'America/Toronto': 'CA', 'America/Buenos_Aires': 'AR', 'Africa/Lagos': 'NG', 'Africa/Johannesburg': 'ZA' };
 export const flag = cc => cc === 'XX' ? '🤖' : /^[A-Z]{2}$/.test(cc || '') ? String.fromCodePoint(...[...cc].map(c => 0x1f1e6 + c.charCodeAt(0) - 65)) : '🏳️';
@@ -56,6 +57,12 @@ const CSS = `
 .bd-chip .bd-vs{display:grid;grid-template-columns:auto auto auto;gap:6px;align-items:center;border-color:var(--ag-acc,#ffcf5a)} .bd-chip .bd-vs .w{color:#9cf28a} .bd-chip .bd-vs small{grid-column:1/-1;text-align:center;color:#b9b2c8}
 .bd-chip .bd-livec{font-size:12px;min-width:170px;display:grid;gap:2px} .bd-chip .bd-livec .t{font-weight:700;letter-spacing:.3px} .bd-chip .bd-livec .t i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff4d4d;margin-right:5px;animation:bdp 1.2s infinite}
 .bd-chip .bd-livec .c{color:#f6f0e3} .bd-chip .bd-livec .r{color:#d8d2e4} .bd-chip .bd-livec small{color:#8e88a0} @keyframes bdp{50%{opacity:.25}}
+.bd-chip .bd-rv{display:grid;gap:3px;min-width:200px;max-width:240px;border-width:2px} .bd-chip .bd-rv .hd{display:flex;align-items:center;gap:6px;font-size:14px} .bd-chip .bd-rv .hd .fl{font-size:18px} .bd-chip .bd-rv .hd i{margin-left:auto;width:12px;height:12px;border-radius:4px}
+.bd-chip .bd-rv .st{color:#b9b2c8;font-size:12px} .bd-chip .bd-rv .sc{display:flex;gap:6px;align-items:center;font-size:14px} .bd-chip .bd-rv .sc .w{color:#9cf28a} .bd-chip .bd-rv .sc small{margin-left:auto;color:#8e88a0}
+.bd-chip .bd-rv .ag{display:flex;flex-wrap:wrap;gap:4px} .bd-chip .bd-rv .ag span{background:rgba(255,255,255,.08);border-radius:999px;padding:1px 7px;font-size:11px} .bd-chip .bd-rv .ag i{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.bd-chip .bd-rv .fd{font-size:11.5px;color:#d8d2e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .bd-chip .bd-rv .fd.bad{color:#ff9d9d} .bd-chip .bd-rv .fd small{color:#8e88a0}
+@media (max-width:600px){.bd-chip{top:auto;bottom:calc(132px + env(safe-area-inset-bottom));transform:none;gap:4px} .bd-chip .bd-livec{display:none} .bd-chip .bd-rv{min-width:0;max-width:170px;padding:6px 9px} .bd-chip .bd-rv .ag,.bd-chip .bd-rv .fd:nth-of-type(n+2),.bd-chip .bd-rv .st{display:none} .bd-chip .bd-me1 small{display:none}}
+.bd .bd-team{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;margin:10px 0;border-left:4px solid var(--rc,#dfe4ec)} .bd .bd-team h3{margin:0 0 4px;font-size:15px} .bd .bd-team .row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:3px 0;border-top:1px solid rgba(255,255,255,.06)} .bd .bd-team i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
 .bd-chip .bd-cta{background:var(--ag-acc,#ffcf5a);color:#1b1408;font-weight:700;border:0}
 .bd .bd-duels{background:rgba(255,255,255,.05);border-radius:12px;padding:10px;margin:10px 0} .bd .bd-duels h3{margin:0 0 6px;font-size:15px}
 .bd .bd-duel{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid rgba(255,255,255,.07);font-size:14px}
@@ -86,6 +93,7 @@ export function board({ game, label = 'Score', A = null }) {
   const dur = ms => ms < 60e3 ? Math.round(ms / 1e3) + ' s' : Math.round(ms / 60e3) + ' min';
   function onAgentEvents(list) {
     if (A && A.demo) return;
+    trackMine(list);
     const q0 = reply.quick;
     for (const e of list) onReply(e);
     if (reply.quick > q0 || (reply.quick && !lastSent[REPLY])) queue(REPLY, reply.quick, { tools: reply.n, ok: reply.quick });
@@ -283,9 +291,10 @@ export function board({ game, label = 'Score', A = null }) {
     if (!p) chipEl.innerHTML = liveCard() + `<div class="bd-cta" data-join>🏁 ${linked ? 'Join the world race' : 'Race people worldwide'}</div><div data-open style="font-size:12px">🏆 World leaderboard</div>`;
     else {
       const rank = store.get('rank_' + POWER, null);
-      const vs = duels.filter(d => d.status === 'live').slice(0, 2).map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a']; const h = Math.max(0, Math.ceil((d.end - Date.now()) / 3600e3));
+      let vs = duels.filter(d => d.status === 'live').slice(0, 2).map(d => { const me = d[d.you], th = d[d.you === 'a' ? 'b' : 'a']; const h = Math.max(0, Math.ceil((d.end - Date.now()) / 3600e3));
         return `<div class="bd-vs" data-open><b class="${me.score >= th.score ? 'w' : ''}">You ${me.score}</b><span>⚔️</span><b class="${th.score > me.score ? 'w' : ''}">${th.score} ${th.name} ${flag(th.country)}</b><small>${h} h left</small></div>`; }).join('');
       const open = duels.filter(d => d.status === 'open').length;
+      if (riv) vs = rivalCard();
       chipEl.innerHTML = liveCard() + `<div class="bd-me1" data-open>${flag(p.country)} <b>${rank ? '#' + rank : '—'}</b> today<small title="${breakdown()}">⚡ ${fmt(ship.score)} agent points</small></div>${vs}${!vs ? (matching ? '<div>🔎 Finding you a rival…</div>' : linked ? '<div data-match>⚔️ Find a rival</div>' : '<div data-link>🔗 Link your agents to get a rival</div>') : ''}`;
     }
     chipEl.querySelectorAll('[data-open]').forEach(e => e.onclick = () => api.open(POWER));
@@ -325,11 +334,87 @@ export function board({ game, label = 'Score', A = null }) {
       return `${tbl ? '' : ''}<div class="bd-duel"><span>${th ? `vs ${th.name} ${flag(th.country)}${th.sim ? ' <small style="color:#8e88a0">· simulated</small>' : ''}` : 'Waiting for a rival'}</span><b>${th ? `${me.score}–${th.score}` : ''} ${d.status === 'live' ? '🔴' : d.status === 'over' ? (me.score > (th ? th.score : 0) ? '🏆' : '·') : ''}</b></div>${d.status !== 'open' ? tbl : ''}${d.status === 'open' ? `<div class="bd-link"><input readonly value="${duelLink(d.id)}"><button class="bd-save" data-copy="${duelLink(d.id)}">Copy</button>${d.you === 'a' ? `<button class="bd-save" data-botid="${d.id}" title="No friend around? The House Bot takes it">🤖</button>` : ''}</div>` : ''}`; }).join('') : '<p class="bd-fine" style="margin:0">No duels yet. Challenge a friend and send them the link.</p>'}
       <div style="display:flex;gap:8px;margin-top:8px"><button class="bd-save" data-new style="flex:1">⚔️ Challenge a friend</button><button class="bd-save" data-bot style="flex:1">🎲 Practice rival now</button></div>`;
     el.querySelector('.bd-tabs').before(box);
+    if (riv) {
+      const r = riv, rec = r.record, t = document.createElement('div'); t.className = 'bd-team'; t.style.setProperty('--rc', r.color);
+      t.innerHTML = `<h3>${r.flag} ${esc(r.name)}'s team ${r.sim ? '<small style="color:#8e88a0">· simulated rival</small>' : ''}</h3>
+        <p class="bd-fine" style="margin:0 0 6px">${r.sim ? 'No real player was free, so a simulated team plays you. It never appears on the world board.' : `${r.online ? '🟢 Online now' : '😴 Offline' + (r.lastSeen ? ', last seen ' + since(r.lastSeen) + ' ago' : '')}${rec ? ` · duels ${rec.w}W ${rec.l}L${rec.d ? ' ' + rec.d + 'D' : ''} · 🔥 ${rec.streak}-day streak` : ''}${r.today != null ? ` · ⚡ ${fmt(r.today)} today` : ''}`}</p>
+        ${(r.agents || []).map(a => `<div class="row"><span><i style="background:${dot(a.state)}"></i><b>${esc(a.name)}</b> <small style="color:#8e88a0">${a.src === 'codex' ? 'Codex' : 'Claude Code'}${a.sub ? ` · +${a.sub} helper${a.sub > 1 ? 's' : ''}` : ''}</small></span><span>${a.state}${a.done ? ` · ${a.done} done` : ''}</span></div>`).join('') || '<p class="bd-fine">No agents online right now.</p>'}
+        ${rivFeed.length ? `<div style="margin-top:6px">${rivFeed.slice(0, 5).map(e => `<div class="row"><span>${esc(feedLine(e))}</span><small>${since(e.t)} ago</small></div>`).join('')}</div>` : ''}
+        ${myTeam().length ? `<p class="bd-fine">Your rival sees your agents as: ${myTeam().slice(0, 6).map(a => `<b>${a.name}</b> (${esc(a.label)})`).join(', ')}. Only you see the project names.</p>` : ''}`;
+      box.after(t);
+    }
     box.querySelector('[data-new]').onclick = () => challenge();
     box.querySelector('[data-bot]').onclick = () => botDuel();
     box.querySelectorAll('[data-botid]').forEach(b => b.onclick = () => botDuel(b.dataset.botid));
     box.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => navigator.clipboard && navigator.clipboard.writeText(b.dataset.copy).then(() => b.textContent = 'Copied ✓'));
   };
+  // ---------------------------------------------------------------- the rival's team, live
+  // In a live duel both sides' games swap team snapshots through the server: each agent's callsign (never the project
+  // name), Claude or Codex, working / waiting / idle, and its finished steps. Games play the rival's agents as the
+  // opposing team: B.rival() for the roster, B.onRival(cb) for their finished steps as they happen.
+  const myAgents = new Map();                             // my lead agents: id → { k, name, src, last, kind, done, subs: Map }
+  const outbox = [], usedNames = new Set();
+  const hash = s => [...String(s)].reduce((a, c) => (a * 33 + c.charCodeAt(0)) >>> 0, 5381);
+  function callsignOf(id) { const m = myAgents.get(id); if (m) return m.name; let i = hash(id) % CALL.length; for (let n = 0; n < CALL.length && usedNames.has(CALL[i]); n++) i = (i + 1) % CALL.length; usedNames.add(CALL[i]); return CALL[i]; }
+  function trackMine(list) {
+    if (A && A.demo) return;
+    for (const e of list) {
+      const lead = e.parent || e.agent;
+      let m = myAgents.get(lead);
+      if (!m) { m = { k: (hash(lead) % 1e9).toString(36), name: callsignOf(lead), src: e.src, label: e.label, last: 0, kind: '', done: 0, subs: new Map() }; myAgents.set(lead, m); }
+      if (e.parent) m.subs.set(e.agent, e.t); else if (e.kind !== 'tokens') { m.last = Math.max(m.last, e.t); m.kind = e.kind; }
+      if (e.kind === 'result') { if (e.ok) m.done++; if (e.live) outbox.push({ k: m.k, cat: e.cat || 'other', ok: !!e.ok, t: e.t }); }
+    }
+    if (outbox.length > 60) outbox.splice(0, outbox.length - 60);
+  }
+  const myTeam = () => { const now = Date.now(); return [...myAgents.values()].filter(m => now - m.last < 3 * 3600e3).sort((a, b) => b.last - a.last).slice(0, 16)
+    .map(m => ({ k: m.k, name: m.name, src: m.src, label: m.label, state: m.kind === 'done' ? 'waiting' : now - m.last < 120e3 ? 'working' : 'idle', sub: [...m.subs.values()].filter(t => now - t < 120e3).length, done: m.done })); };
+  let riv = null, rivAfter = 0, rivDuel = null;
+  const rivCbs = [], rivFeed = [];
+  const PAL = ['#ff5d5d', '#4dabf7', '#ffd43b', '#9775fa', '#20c997', '#ff922b', '#f06595', '#5c7cfa'];
+  async function rivalTick() {
+    const p = profile(), linked = A && A.connected && A.connected.length && !A.demo;
+    if (!p) return;
+    try {
+      if (linked && duels.some(d => d.status === 'live')) {
+        const ev = outbox.splice(0, outbox.length);
+        await fetch(`${API}/api/team`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client, agents: myTeam().map(({ label, ...a }) => a), ev }) });
+      }
+      const j = await (await fetch(`${API}/api/rival?client=${client}&after=${rivAfter}`, { cache: 'no-store' })).json();
+      if (!j.duel) { riv = null; rivDuel = null; return; }
+      if (!rivDuel || rivDuel.id !== j.duel.id) { rivAfter = 0; rivFeed.length = 0; }
+      rivDuel = j.duel;
+      const r = j.rival, first = !riv || riv.key !== j.duel.id;
+      riv = { ...r, key: j.duel.id, color: r.sim ? '#dfe4ec' : PAL[hash(r.name + r.country) % PAL.length], flag: flag(r.country),
+        score: j.duel[j.duel.you === 'a' ? 'b' : 'a'].score, myScore: j.duel[j.duel.you].score, end: j.duel.end, detail: j.duel[j.duel.you === 'a' ? 'b' : 'a'].detail };
+      const byK = new Map((r.agents || []).map(a => [a.k, a]));
+      const ev = (r.events || []).filter(e => e.seq > rivAfter).map(e => ({ ...e, agent: byK.get(e.k) || { k: e.k, name: 'Agent', src: 'claude' } }));
+      if (r.events && r.events.length) rivAfter = Math.max(rivAfter, ...r.events.map(e => e.seq));
+      if (!first || r.sim) {                             // the first poll only sets the baseline (no replay of the last minutes)
+        const fresh = ev.filter(e => Date.now() - e.t < 90e3);
+        for (const e of fresh) rivFeed.unshift(e); rivFeed.splice(8);
+        if (fresh.length) rivCbs.forEach(cb => { try { cb(fresh, riv); } catch (er) { console.warn(er); } });
+      }
+      chip();
+    } catch (e) {}
+  }
+  setInterval(rivalTick, 3500); setTimeout(rivalTick, 2500);
+  const esc = x => String(x).replace(/[<>&"]/g, '');
+  const dot = st => st === 'working' ? '#9cf28a' : st === 'waiting' ? '#ffcf5a' : '#6b6580';
+  const since = t => { const s = Math.max(1, Math.round((Date.now() - t) / 1000)); return s < 60 ? s + 's' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h'; };
+  function rivalCard() {
+    const r = riv, h = Math.max(0, Math.ceil((r.end - Date.now()) / 3600e3)), ags = r.agents || [];
+    const status = r.sim ? `${ags.length} agents · simulated` : r.online ? `🟢 ${ags.filter(a => a.state === 'working').length} of ${ags.length} agents working` : `😴 offline${r.lastSeen ? ' · seen ' + since(r.lastSeen) + ' ago' : ''}`;
+    return `<div class="bd-rv" data-open style="border-color:${r.color}">
+      <div class="hd"><span class="fl">${r.flag}</span><b>${esc(r.name)}</b><i style="background:${r.color}"></i></div>
+      <div class="st">${status}</div>
+      <div class="sc"><b class="${r.myScore >= r.score ? 'w' : ''}">You ${r.myScore}</b><span>⚔️</span><b class="${r.score > r.myScore ? 'w' : ''}">${r.score}</b><small>${h} h left</small></div>
+      ${ags.length ? `<div class="ag">${ags.slice(0, 6).map(a => `<span title="${a.src === 'codex' ? 'Codex' : 'Claude Code'} · ${a.state}"><i style="background:${dot(a.state)}"></i>${esc(a.name)}${a.sub ? `+${a.sub}` : ''}</span>`).join('')}</div>` : ''}
+      ${rivFeed.slice(0, 2).map(e => `<div class="fd ${e.ok ? '' : 'bad'}">${esc(feedLine(e))} <small>${since(e.t)}</small></div>`).join('')}</div>`;
+  }
+  const VERB = { test: '🧪 passed tests', commit: '📦 committed', deploy: '🚀 deployed', edit: '✏️ edited', run: '▶️ ran a step', read: '🔍 read code', web: '🌐 searched', delegate: '👥 sent a helper', other: '✓ finished a step' };
+  const feedLine = e => `${e.agent.name} ${e.ok ? VERB[e.cat] || VERB.other : '✗ hit an error'}`;
+
   const api = {
     open(tab) { if (tab) which = tab; wrap.hidden = false; render(); loadDuels(); },
     close,
@@ -338,6 +423,13 @@ export function board({ game, label = 'Score', A = null }) {
     onAgentEvents,                       // pass every agents() batch here so the agent points board stays current
     ship: () => ({ ...ship }),
     replies: () => ({ quick: reply.quick, n: reply.n, median: median(reply.times) }),
+    // the rival's team in your live duel, or null: { name, country, flag, sim, online, color, agents: [{ k, name, src, state, sub, done }],
+    //   score, myScore, detail, record: { w, l, d, streak } | null, end }. Real rival → their colour; simulated → silver.
+    rival: () => riv,
+    // cb(events, rival): the rival's agents finished steps, as they happen. event { agent: { k, name, src }, cat, ok, t }
+    onRival(cb) { rivCbs.push(cb); },
+    // my own agents' public callsigns (what the rival sees): [{ name, src, label, state }]
+    myCallsigns: () => myTeam(),
     profile,
     challenge,
     botDuel,

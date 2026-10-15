@@ -157,15 +157,15 @@ const sb = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 1.13), new THREE.MeshBasi
 sb.position.set(0, 5.05, -7.75); scene.add(sb);
 { const back = new THREE.Mesh(rounded(3.1, 1.3, 0.25, 0.06), mat('#1b1f36')); back.position.set(0, 5.05, -7.92); scene.add(back); const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.1, 8), poleMat); post.position.set(0, 4.3, -7.95); scene.add(post); }
 let sbKey = '';
-function drawScoreboard(team, clock, you, line) {
-  const key = [team, clock, you, line].join('|'); if (key === sbKey) return; sbKey = key;
+function drawScoreboard(team, clock, you, line, o = {}) {
+  const key = [team, clock, you, line, o.lt, o.rt, o.rc].join('|'); if (key === sbKey) return; sbKey = key;
   const g = sbCanvas.getContext('2d'), W = 512, H = 200;
   g.fillStyle = '#0a0b14'; g.fillRect(0, 0, W, H); g.strokeStyle = '#ff7a2f'; g.lineWidth = 6; g.strokeRect(3, 3, W - 6, H - 6);
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '700 20px Rubik, sans-serif'; g.fillStyle = '#9aa3c9'; g.fillText('TEAM', 90, 30); g.fillText('SHOT', 256, 30); g.fillText('YOU', 422, 30);
+  g.font = '700 20px Rubik, sans-serif'; g.fillStyle = '#9aa3c9'; g.fillText(o.lt || 'TEAM', 90, 30, 160); g.fillText('SHOT', 256, 30); g.fillText(o.rt || 'YOU', 422, 30, 160);
   g.font = '64px Bungee, Impact, sans-serif'; g.fillStyle = '#ff4d3d'; g.shadowColor = '#ff4d3d'; g.shadowBlur = 16; g.fillText(team, 90, 92);
   g.fillStyle = '#ffb020'; g.shadowColor = '#ffb020'; g.font = '84px Bungee, Impact, sans-serif'; g.fillText(clock, 256, 96);
-  g.fillStyle = '#4ade80'; g.shadowColor = '#4ade80'; g.font = '64px Bungee, Impact, sans-serif'; g.fillText(you, 422, 92);
+  g.fillStyle = o.rc || '#4ade80'; g.shadowColor = o.rc || '#4ade80'; g.font = '64px Bungee, Impact, sans-serif'; g.fillText(you, 422, 92);
   g.shadowBlur = 0; g.font = '700 24px Rubik, sans-serif'; g.fillStyle = '#e8e3f5'; g.fillText(line, 256, 168);
   sbTex.needsUpdate = true;
 }
@@ -335,13 +335,17 @@ function tagSprite() {
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); sp.renderOrder = 20; sp.userData = { c, tex, key: '' }; tagsG.add(sp); return sp;
 }
-function drawTag(sp, text, color, mark) {
-  const key = text + color + mark; if (sp.userData.key === key) return; sp.userData.key = key;
+function drawTag(sp, text, color, mark, fill = false, pill = '') {
+  const key = text + color + mark + fill + pill; if (sp.userData.key === key) return; sp.userData.key = key;
   const { c, tex } = sp.userData, g = c.getContext('2d'); g.clearRect(0, 0, 512, 112);
-  g.font = '800 46px Rubik, sans-serif'; const label = (mark ? mark + ' ' : '') + text; const w = Math.min(500, g.measureText(label).width + 50);
-  g.fillStyle = 'rgba(12,12,26,.86)'; g.beginPath(); g.roundRect(256 - w / 2, 18, w, 76, 38); g.fill();
-  g.lineWidth = 6; g.strokeStyle = color; g.stroke();
-  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, 256, 58, 470); tex.needsUpdate = true;
+  g.font = '800 26px Rubik, sans-serif'; const pw = pill ? g.measureText(pill).width + 20 : 0;
+  g.font = '800 46px Rubik, sans-serif'; const label = (mark ? mark + ' ' : '') + text; const w = Math.min(500, g.measureText(label).width + 50 + (pill ? pw + 10 : 0));
+  const c0 = new THREE.Color(color), light = c0.r * 0.3 + c0.g * 0.59 + c0.b * 0.11 > 0.62, ink = fill && light ? '#141830' : '#fff';
+  g.fillStyle = fill ? color : 'rgba(12,12,26,.86)'; g.beginPath(); g.roundRect(256 - w / 2, 18, w, 76, 38); g.fill();
+  g.lineWidth = 6; g.strokeStyle = fill ? '#ffffff' : color; g.stroke();
+  g.fillStyle = ink; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, 256 - (pill ? (pw + 10) / 2 : 0), 58, 470 - pw);
+  if (pill) { const x = 256 + w / 2 - 22 - pw; g.fillStyle = ink === '#fff' ? 'rgba(255,255,255,.25)' : 'rgba(20,24,48,.16)'; g.beginPath(); g.roundRect(x, 40, pw, 36, 12); g.fill(); g.fillStyle = ink; g.font = '800 26px Rubik, sans-serif'; g.fillText(pill, x + pw / 2, 59); }
+  tex.needsUpdate = true;
 }
 
 class Baller {
@@ -383,7 +387,7 @@ class Baller {
       if (this.queue.length) this.co = shotScript(this, this.queue.shift());
       else if (this.leaving) this.co = leaveScript(this);
       else if (this.pos.distanceTo(this.home) > 0.3 && !this.you) this.co = runHome(this);
-      else { this.faceHoop(); this.pose = this.wave ? 'wave' : this.ball ? 'dribble' : 'idle'; }
+      else { this.faceHoop(); this.pose = this.wave ? 'wave' : this.offline ? 'sad' : this.ball ? 'dribble' : 'idle'; }
     }
     // turn, pose, squash, jump
     let d = this.rotT - this.rot; d = Math.atan2(Math.sin(d), Math.cos(d)); this.rot += d * Math.min(1, dt * 12); this.root.rotation.y = this.rot;
@@ -394,7 +398,8 @@ class Baller {
     // name tag
     const tagH = (portrait() ? 1.3 : 1) * (this.you ? 0.75 : 1) * (1 - 0.45 * camS.focus);
     this.tag.position.set(this.pos.x, this.pos.y + (this.you ? 1.85 : 2.15) * this.scale + 0.2, this.pos.z); this.tag.scale.set(1.95 * tagH * (this.parent ? 0.8 : 1), 0.43 * tagH * (this.parent ? 0.8 : 1), 1);
-    drawTag(this.tag, this.you ? 'YOU' : this.label, this.color, this.wave ? '✋' : this.fire ? '🔥' : this.parent ? '·' : '');
+    if (this.rival) drawTag(this.tag, `${this.flag} ${this.label}${this.sub ? ' +' + this.sub : ''}`, this.color, this.offline ? '😴' : this.wave ? '✋' : this.fire ? '🔥' : '', true, this.pill);
+    else drawTag(this.tag, this.you ? 'YOU' : this.label, this.color, this.wave ? '✋' : this.fire ? '🔥' : this.parent ? '·' : '');
   }
   remove() { this.dead = true; scene.remove(this.root); tagsG.remove(this.tag); if (this.ball) { this.ball.kill(); this.ball = null; } }
 }
@@ -530,7 +535,7 @@ function* shotScript(b, it) {
 let lastOop = 0;
 function findPasser(b) {
   for (const o of ballers.values()) if (o.parent === b.id && !o.co && !o.ball && !o.dead) return o;
-  for (const o of ballers.values()) if (o !== b && !o.you && !o.co && !o.ball && !o.queue.length && !o.dead && !o.leaving) return o;
+  for (const o of ballers.values()) if (o !== b && !o.you && !!o.rival === !!b.rival && !o.co && !o.ball && !o.queue.length && !o.dead && !o.leaving) return o;
   return null;
 }
 function dunkFx(b) {
@@ -542,6 +547,7 @@ function dunkFx(b) {
 let rimShake = 0, rimBend = 0;
 function scored(b, it) {
   if (b.you) return youScored(it);
+  if (b.rival) return rivalScored(b, it);
   b.streak = it.streak ?? b.streak + 1; if (!it.fromRookie) { b.made++; b.att++; }
   const wasFire = b.fire; b.fire = b.streak >= FIRE_N;
   const [type, , name] = shotOf(it.cat);
@@ -550,10 +556,12 @@ function scored(b, it) {
   else if (type === 'dunk' || (type === 'oop' && it.ok)) banner(type === 'oop' ? 'ALLEY-OOP!' : 'SLAM!', type === 'oop' ? '#3df2ff' : '#ffcf3a', b.label);
   pop(HOOP.clone().add(V(0, 0.55, 0)), `+${pts} ${type === 'three' ? 'SWISH 3' : name}`, b.fire ? '#ff9a3a' : '#ffffff', type === 'three' ? 30 : 26);
   if (round) { round.score += pts; round.team += pts; }
+  const du = duel(); if (du && !A.demo) { du.us += pts; persist(); }
   hudDirty = true;
 }
 function missed(b, it) {
   if (b.you) return youMissed(it);
+  if (b.rival) return rivalMissed(b, it);
   b.streak = 0; b.att++; if (b.fire) { b.fire = false; pop(b.pos.clone().add(V(0, 3, 0)), 'fire out', '#9aa3c9', 18); }
   hudDirty = true;
 }
@@ -577,8 +585,11 @@ function tally(e, demo) {
 // ---------------------------------------------------------------- agents → ballers
 function slots() { const s = [-20, 20, -46, 46, -70, 70, -33, 33, -58, 58]; return portrait() ? s.map(a => a * 0.62) : s; }
 function relayout() {
-  const leads = [...ballers.values()].filter(b => !b.you && !b.parent && !b.leaving).sort((a, b) => a.join - b.join);
-  const sl = slots(), R = portrait() ? 5.0 : 6.1;
+  const leads = [...ballers.values()].filter(b => !b.you && !b.parent && !b.leaving && !b.rival).sort((a, b) => a.join - b.join);
+  const sl = RIV ? (portrait() ? [16, 36, 56, 26, 46, 66, 8] : [16, 40, 64, 28, 52, 76, 8]) : slots(), R = portrait() ? 5.0 : 6.1;
+  // in a live duel your crew takes the right of the arc and the rival's agents the left
+  const rv = [...ballers.values()].filter(b => b.rival && !b.leaving).sort((a, b) => a.join - b.join);
+  rv.forEach((b, i) => { const a = -[18, 42, 66, 30, 54][i % 5] * (portrait() ? 0.85 : 1) * Math.PI / 180, r = (portrait() ? 4.6 : 5.6) + (i >= 3 ? 1.1 : 0); b.home.set(Math.sin(a) * r, 0, HOOP.z + Math.cos(a) * r); });
   leads.forEach((b, i) => { const a = (sl[i % sl.length] + (i >= sl.length ? 6 : 0)) * Math.PI / 180, r = R + (i >= sl.length ? 1 : 0); b.home.set(Math.sin(a) * r, 0, HOOP.z + Math.cos(a) * r); });
   for (const L of leads) {
     const kids = [...ballers.values()].filter(b => b.parent === L.id && !b.leaving);
@@ -592,10 +603,11 @@ function ensure(e) {
   let b = ballers.get(e.agent);
   if (b && !b.dead) return b;
   if (e.kind === 'end') return null;
-  const leads = [...ballers.values()].filter(x => !x.you && !x.parent && !x.leaving).length;
+  const leads = [...ballers.values()].filter(x => !x.you && !x.parent && !x.leaving && !x.rival).length;
   if (!e.parent && leads >= 10) return null;
   const lead = e.parent && ballers.get(e.parent);
-  const color = lead ? '#' + new THREE.Color(lead.color).lerp(new THREE.Color('#ffffff'), 0.35).getHexString() : COLORS[colorI++ % COLORS.length];
+  let color = lead ? '#' + new THREE.Color(lead.color).lerp(new THREE.Color('#ffffff'), 0.35).getHexString() : COLORS[colorI++ % COLORS.length];
+  for (let n = 0; !lead && n < COLORS.length && nearRival(color); n++) color = COLORS[colorI++ % COLORS.length];
   b = new Baller({ id: e.agent, parent: e.parent, label: e.label || 'agent', src: e.src, color, scale: e.parent ? 1.0 : 1.3 });
   const enter = V(lead ? lead.pos.x : (Math.random() < 0.5 ? -11 : 11), 0, lead ? lead.pos.z + 1 : -2 + Math.random() * 4); b.pos.copy(enter);
   ballers.set(e.agent, b); relayout();
@@ -642,6 +654,89 @@ function* rookieScript(b, it) {
     bl.free(V(side.x * 5, 2.5, side.z * 5), 2); pop(b.pos.clone().add(V(0, 2.6, 0)), 'TURNOVER', '#9aa3c9', 18);
   }
   yield* wait(0.5);
+}
+
+// ---------------------------------------------------------------- the rival's team, live (a duel on the world board)
+// In a live duel the rival's agents walk on court as the away crew on the left of the arc, one baller per agent (max 5),
+// named by callsign, in the rival's colour (a simulated rival plays as silver robots). Their finished steps are their shots
+// at the same hoop: edits = threes, commits / deploys = dunks, passed tests = alley-oops, failures = bricks.
+// Duel points (your crew vs theirs, since the duel started) sit on the scoreboard. No duel: nothing changes.
+let RIV = null, rivKey = '';
+const esc = s => String(s).replace(/[<>&"]/g, '');
+const RSILVER = '#dfe4ec';
+const rcol = () => (RIV ? (RIV.sim ? RSILVER : RIV.color) : RSILVER);
+const duel = () => (RIV && save.duel && save.duel.key === RIV.key ? save.duel : null);
+const RVERB = { test: 'passes tests', commit: 'commits', deploy: 'deploys', edit: 'edits', run: 'runs a step', read: 'reads the code', web: 'searches the web', delegate: 'sends a helper', other: 'finishes a step' };
+const RFAIL = { test: 'fails tests', commit: 'fails to commit', deploy: 'botches a deploy' };
+function nearRival(c) { if (!RIV || RIV.sim) return false; const a = new THREE.Color(c), b = new THREE.Color(RIV.color); return Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 0.45; }
+let callT = 0;
+function call(text, color = '#fff', ms = 3600) {
+  const el = $('call'); el.textContent = text; el.style.setProperty('--c', color); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  clearTimeout(callT); callT = setTimeout(() => el.classList.remove('on'), ms);
+}
+function robotize(b) {
+  const h = b.man.head; h.geometry = rounded(0.42, 0.36, 0.38, 0.1); h.material = glossy('#dde3ee');
+  const vis = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.09, 0.04), new THREE.MeshStandardMaterial({ color: '#60f0ff', emissive: '#60f0ff', emissiveIntensity: 0.9 })); vis.position.set(0, 0.03, 0.2); h.add(vis);
+  const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.2, 5), mat('#99a3b8')); ant.position.y = 0.27; h.add(ant);
+  const tip = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshStandardMaterial({ color: '#ff4d6d', emissive: '#ff4d6d', emissiveIntensity: 0.8 })); tip.position.y = 0.38; h.add(tip);
+  b.man.body.material = b.man.armL.children[0].material = b.man.armR.children[0].material = glossy(RSILVER, { metalness: 0.15, emissive: '#3a3f48' });
+}
+function syncRival() {
+  const r = B ? B.rival() : null, was = RIV; RIV = r || null;
+  const key = r ? `${r.key}|${r.sim ? 'sim' : r.color}` : '';
+  if (key !== rivKey) {
+    rivKey = key;
+    for (const b of ballers.values()) if (b.rival) b.leaving = true;
+    if (r) {
+      if (!save.duel || save.duel.key !== r.key) { save.duel = { key: r.key, us: 0, them: 0 }; persist(); }
+      call(`⚔️ Live duel: ${r.flag} ${r.name}'s agents are on court${r.sim ? ' (simulated)' : ''}`, rcol(), 5000);
+      toast(`⚔️ ${r.flag} ${r.name}'s agents are the away crew${r.sim ? ' (simulated)' : ''}`, 3500);
+    } else if (was) call('The duel is over. The court is yours again.', '#ffffff');
+    relayout(); hudDirty = true;
+  }
+  if (!r) return;
+  const ags = (r.agents || []).slice(0, 5), off = !r.sim && r.online === false, col = rcol(), ids = new Set();
+  for (const ag of ags) {
+    const id = `rv:${r.key}:${ag.k}`; ids.add(id);
+    let b = ballers.get(id);
+    if (!b || b.dead) {
+      b = new Baller({ id, label: ag.name, src: ag.src, color: col, scale: 1.25 }); b.rival = true; b.k = ag.k;
+      if (r.sim) robotize(b);
+      b.pos.set(-11.5, 0, -3 + Math.random() * 4); ballers.set(id, b); relayout(); hudDirty = true;
+      pop(V(-6, 3, -2), `${ag.name} checks in for ${r.name}`, col, 18);
+    }
+    b.label = ag.name; b.flag = r.flag; b.pill = ag.src === 'codex' ? 'CX' : 'CC'; b.sub = ag.sub || 0;
+    if (!b.co) b.wave = ag.state === 'waiting' && !off; b.offline = off; b.last = performance.now();
+  }
+  for (const b of ballers.values()) if (b.rival && !b.leaving && !ids.has(b.id)) { b.leaving = true; relayout(); hudDirty = true; }
+}
+function onRivalEvents(events, r) {
+  RIV = r; syncRival();
+  const team = [...ballers.values()].filter(x => x.rival && !x.leaving && !x.dead);
+  for (const e of events) {
+    const b = team.find(x => x.k === e.agent.k) || team.find(x => x.label === e.agent.name) || team[(Math.random() * team.length) | 0];
+    if (!b) continue;
+    b.wave = false;
+    const it = { cat: e.cat, ok: e.ok, pts: shotOf(e.cat)[1], who: `${r.name}'s ${e.agent.name}` };
+    if (b.queue.length < 3) b.queue.push(it); else { b.att++; if (e.ok) b.made++; }
+  }
+}
+function rivalScored(b, it) {
+  b.streak++; b.made++; b.att++;
+  const wasFire = b.fire; b.fire = b.streak >= FIRE_N;
+  const [type, , name] = shotOf(it.cat), col = rcol(), pts = it.pts * (b.fire ? 2 : 1);
+  const du = duel(); if (du) { du.them += pts; persist(); }
+  pop(HOOP.clone().add(V(0, 0.55, 0)), `+${pts} ${it.cat === 'edit' ? 'SWISH 3' : name}`, col, type === 'three' ? 28 : 24);
+  const big = type === 'dunk' || type === 'oop';
+  if (b.fire && !wasFire) { banner('THEY\'RE ON FIRE', col, `${it.who} · ${b.streak} in a row`); call(`🔥 ${it.who} is on fire: ${b.streak} in a row`, col); }
+  else if (big) { banner(type === 'oop' ? 'ALLEY-OOP' : 'SLAM!', col, it.who); call(`${it.who} ${RVERB[it.cat]}, and ${type === 'oop' ? 'throws it down off the lob!' : 'dunks it!'} +${pts}`, col); }
+  else call(`${it.who} ${RVERB[it.cat] || RVERB.other}: ${name.toLowerCase()} +${pts}`, col, 2600);
+  hudDirty = true;
+}
+function rivalMissed(b, it) {
+  b.streak = 0; b.att++; if (b.fire) { b.fire = false; pop(b.pos.clone().add(V(0, 3, 0)), 'fire out', '#9aa3c9', 18); }
+  call(`${it.who} ${RFAIL[it.cat] || 'hits an error'}: ${shotOf(it.cat)[0] === 'dunk' ? 'stuffed by the rim!' : 'brick!'}`, '#ff8a8a', 2800);
+  hudDirty = true;
 }
 
 // ---------------------------------------------------------------- you: the shooter + timing meter
@@ -839,7 +934,8 @@ const A = agents({
   onConnect() { for (const b of [...ballers.values()]) if (b.id.startsWith('d:')) { b.remove(); ballers.delete(b.id); } relayout(); hudDirty = true; },
 });
 B = board({ game: 'agent-hoops', label: 'Points', A });
-window.__A = A;
+window.__A = A; window.__B = B;
+B.onRival(onRivalEvents); setInterval(syncRival, 1200);
 
 // ---------------------------------------------------------------- HUD
 function renderHud() {
@@ -847,8 +943,12 @@ function renderHud() {
   $('wallet').textContent = `◆ ${save.wallet}` + (hype() > 1 ? `  ×${hype().toFixed(2)}` : '');
   const p = B.profile(), rk = myRank(); $('rankTag').textContent = p && !demo ? `${flag(p.country)}${rk ? ' #' + rk : ''}` : '';
   $('sTeam').textContent = d.team; $('sYou').textContent = `${me.myMade}/${me.myAtt}`;
-  const list = [...ballers.values()].filter(b => !b.you && !b.dead && !b.leaving).sort((a, b) => (a.parent ? ballers.get(a.parent)?.join ?? a.join : a.join) - (b.parent ? ballers.get(b.parent)?.join ?? b.join : b.join) || (a.parent ? 1 : 0) - (b.parent ? 1 : 0));
-  $('roster').innerHTML = list.slice(0, 12).map(b => `<div class="chip ${b.parent ? 'rk' : ''} ${b.wave ? 'wait' : ''} ${b.fire ? 'fire' : ''}" style="--c:${b.color}"><b>${b.wave ? '✋ ' : b.fire ? '🔥 ' : ''}${b.parent ? 'rookie' : b.label.replace(/</g, '&lt;')}</b><span>${b.made}/${b.att}</span></div>`).join('');
+  const list = [...ballers.values()].filter(b => !b.you && !b.dead && !b.leaving && !b.rival).sort((a, b) => (a.parent ? ballers.get(a.parent)?.join ?? a.join : a.join) - (b.parent ? ballers.get(b.parent)?.join ?? b.join : b.join) || (a.parent ? 1 : 0) - (b.parent ? 1 : 0));
+  const du = duel(), rv = [...ballers.values()].filter(b => b.rival && !b.dead && !b.leaving), rc = rcol(), off = RIV && !RIV.sim && RIV.online === false;
+  $('roster').innerHTML = (RIV ? `<div class="rhd" style="--c:#ff7a2f">YOUR CREW</div>` : '') + list.slice(0, RIV ? 7 : 12).map(b => `<div class="chip ${b.parent ? 'rk' : ''} ${b.wave ? 'wait' : ''} ${b.fire ? 'fire' : ''}" style="--c:${b.color}"><b>${b.wave ? '✋ ' : b.fire ? '🔥 ' : ''}${b.parent ? 'rookie' : b.label.replace(/</g, '&lt;')}</b><span>${b.made}/${b.att}</span></div>`).join('')
+    + (RIV ? `<div class="rhd" style="--c:${rc}">${RIV.flag} ${esc(RIV.name)}'s agents${RIV.sim ? ' · simulated' : off ? ' · 😴 offline' : !rv.length ? ' · waiting…' : ''}</div>` + rv.map(b => `<div class="chip rv ${b.wave ? 'wait' : ''} ${b.offline ? 'off' : ''}" style="--c:${rc}"><b>${b.offline ? '😴 ' : b.wave ? '✋ ' : b.fire ? '🔥 ' : ''}${esc(b.label)}<small>${b.pill}</small></b><span>${b.made}/${b.att}</span></div>`).join('') : '');
+  $('teamLbl').textContent = du ? 'CREW' : 'TEAM'; if (du) $('sTeam').textContent = du.us;
+  $('rivBox').hidden = !du; if (du) { $('rivName').textContent = `${RIV.flag} ${RIV.name}`; $('sRiv').textContent = du.them; $('sRiv').style.color = rc; }
   $('idle').hidden = demo || !A.connected.length || list.some(b => !b.parent);
 }
 
@@ -866,7 +966,7 @@ loop((dt60, t) => {
   if (youReady()) { you.pose = charging ? 'hold' : 'hold'; if (charging) { chargeT += rdt; you.squashT = 0.86; } }
   for (const bl of [...balls]) bl.update(DT, t);
   // agents that went quiet leave the court (real agents only)
-  if (!A.demo) for (const b of ballers.values()) if (!b.leaving && !b.co && now - b.last > 12 * 60e3) { b.leaving = true; relayout(); }
+  if (!A.demo) for (const b of ballers.values()) if (!b.leaving && !b.rival && !b.co && now - b.last > 12 * 60e3) { b.leaving = true; relayout(); }
   // hoop + net
   net.kick = Math.max(0, net.kick - DT * 2.2); net.sway = 1;
   rimBend = Math.max(0, rimBend - DT * 1.6); rimShake = Math.max(0, rimShake - DT * 0.8);
@@ -892,6 +992,8 @@ loop((dt60, t) => {
     hudT = 0.3; hudDirty = false; renderHud();
     const d = A.demo ? demoDay : day(), me = day();
     $('sClock').textContent = Math.ceil(shotClock);
-    drawScoreboard(String(round ? round.score : d.team), String(Math.ceil(shotClock)).padStart(2, '0'), `${me.myMade}`, round ? 'SHOOTOUT ROUND' : `FG ${pct(d.tMade, d.tAtt)} · ${[...ballers.values()].filter(b => !b.you && !b.parent && !b.dead).length} ON COURT`);
+    const du = duel();
+    if (du && !round) drawScoreboard(String(du.us), String(Math.ceil(shotClock)).padStart(2, '0'), String(du.them), `LIVE DUEL · YOU ${me.myMade}`, { lt: 'CREW', rt: `${RIV.flag} ${RIV.name}`.toUpperCase(), rc: rcol() });
+    else drawScoreboard(String(round ? round.score : d.team), String(Math.ceil(shotClock)).padStart(2, '0'), `${me.myMade}`, round ? 'SHOOTOUT ROUND' : `FG ${pct(d.tMade, d.tAtt)} · ${[...ballers.values()].filter(b => !b.you && !b.parent && !b.dead && !b.rival).length} ON COURT`);
   }
 });

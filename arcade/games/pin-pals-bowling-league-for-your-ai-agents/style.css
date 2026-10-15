@@ -35,20 +35,20 @@ nav button em{font-style:normal}
 #hint{font-size:15px;font-weight:600;background:rgba(18,12,36,.78);padding:4px 14px;border-radius:999px;text-shadow:0 1px 0 #000;transition:opacity .6s;text-align:center}
 #hint b{color:#ffd23f}
 #hint.gone{opacity:0}
-#sheet{display:flex;width:100%;background:rgba(14,9,30,.9);border:2px solid rgba(255,210,63,.55);border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:auto}
-#sheet .who{display:flex;align-items:center;gap:6px;padding:0 10px;font-family:Bungee,sans-serif;font-size:15px;color:#ffd23f;border-right:1px solid rgba(255,255,255,.15)}
-#sheet .who i{width:10px;height:10px;border-radius:50%}
-#sheet .fr{flex:1;min-width:0;border-right:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;align-items:center;padding:2px 0 4px}
-#sheet .fr:nth-child(11){flex:1.35}
-#sheet .fr.cur{background:rgba(255,210,63,.16)}
-#sheet .n{font-size:10px;opacity:.55;line-height:1.2}
-#sheet .m{display:flex;gap:2px;height:20px;font-family:Bungee,sans-serif;font-size:15px}
-#sheet .m em{font-style:normal;min-width:11px;text-align:center}
-#sheet .m em.x{color:#ffd23f}
-#sheet .m em.s{color:#7dff8a}
-#sheet .c{font-family:Bungee,sans-serif;font-size:16px;min-height:20px}
-#sheet .tot{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px;background:rgba(255,210,63,.12)}
-#sheet .tot b{font-family:Bungee,sans-serif;font-weight:400;font-size:24px;color:#ffd23f;line-height:1}
+:is(#sheet,#rsheet){display:flex;width:100%;background:rgba(14,9,30,.9);border:2px solid rgba(255,210,63,.55);border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:auto}
+:is(#sheet,#rsheet) .who{display:flex;align-items:center;gap:6px;padding:0 10px;font-family:Bungee,sans-serif;font-size:15px;color:#ffd23f;border-right:1px solid rgba(255,255,255,.15)}
+:is(#sheet,#rsheet) .who i{width:10px;height:10px;border-radius:50%}
+:is(#sheet,#rsheet) .fr{flex:1;min-width:0;border-right:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;align-items:center;padding:2px 0 4px}
+:is(#sheet,#rsheet) .fr:nth-child(11){flex:1.35}
+:is(#sheet,#rsheet) .fr.cur{background:rgba(255,210,63,.16)}
+:is(#sheet,#rsheet) .n{font-size:10px;opacity:.55;line-height:1.2}
+:is(#sheet,#rsheet) .m{display:flex;gap:2px;height:20px;font-family:Bungee,sans-serif;font-size:15px}
+:is(#sheet,#rsheet) .m em{font-style:normal;min-width:11px;text-align:center}
+:is(#sheet,#rsheet) .m em.x{color:#ffd23f}
+:is(#sheet,#rsheet) .m em.s{color:#7dff8a}
+:is(#sheet,#rsheet) .c{font-family:Bungee,sans-serif;font-size:16px;min-height:20px}
+:is(#sheet,#rsheet) .tot{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px;background:rgba(255,210,63,.12)}
+:is(#sheet,#rsheet) .tot b{font-family:Bungee,sans-serif;font-weight:400;font-size:24px;color:#ffd23f;line-height:1}
 .panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(620px,calc(100% - 24px));max-height:calc(100% - 100px);overflow:auto;background:rgba(18,12,36,.97);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:16px 18px;z-index:40;box-shadow:0 20px 60px rgba(0,0,0,.6);touch-action:pan-y}
 .panel[hidden]{display:none}
 .panel header{display:flex;justify-content:space-between;align-items:center}
@@ -105,3 +105,20 @@ nav button em{font-style:normal}
 .ph{display:none}
 @media (max-width:820px){.ph{display:inline}}
 @media (max-width:520px){#today span:nth-child(n+5){display:none}#pings{top:112px}.ping{font-size:13px;padding:5px 10px}}
+
+/* duel: the rival's team on lane 2 */
+#rsheet{border-color:var(--rc,#8e88a0);margin-top:-2px}
+#rsheet[hidden]{display:none}
+#rsheet .who{color:#f6f0e3;min-width:118px;white-space:nowrap;font-size:13px}
+#rsheet .who small{font-family:'Baloo 2',sans-serif;font-size:11px;opacity:.7;margin-left:2px}
+:is(#sheet,#rsheet) .who{min-width:118px;box-sizing:border-box}
+#rsheet .fr{padding-top:3px}
+#duel{position:fixed;left:14px;top:74px;z-index:15;width:min(340px,calc(100% - 28px));padding:8px 12px;border-radius:14px;border:2px solid var(--rc,#8e88a0);background:linear-gradient(90deg,rgba(18,12,36,.92),color-mix(in srgb,var(--rc,#888) 35%,rgba(18,12,36,.92)));box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:none}
+#duel[hidden]{display:none}
+#duel .vs{display:flex;align-items:center;gap:8px;font-family:Bungee,sans-serif;font-size:16px;white-space:nowrap}
+#duel .vs span{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:12px;opacity:.75}
+#duel .vs b{font-weight:400}#duel .vs b:last-child{margin-left:auto;overflow:hidden;text-overflow:ellipsis}#duel .vs .w{color:#9cf28a}
+#duel .st{font-size:13px;font-weight:700;opacity:.9}
+#duel .fd{font-size:13px;font-weight:700;color:#ffe9a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:18px}#duel .fd.bad{color:#ff9d9d}
+@media (max-width:700px){#duel{top:auto;bottom:calc(178px + env(safe-area-inset-bottom));left:8px;width:calc(100% - 16px);padding:5px 10px}#duel .vs{font-size:14px}}
+@media (max-width:820px){#rsheet .who{display:none}#rsheet .tot .n{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}

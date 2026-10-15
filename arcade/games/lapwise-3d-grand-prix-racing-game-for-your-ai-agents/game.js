@@ -45,7 +45,7 @@ const unlockedTrack = t => P.races >= t.need, unlockedLivery = l => l.need(P);
 document.body.insertAdjacentHTML('beforeend', `
 <div id="lines"></div>
 <div id="hud">
-  <div id="tower"><div class="th"><b>LAP <span id="lapN">1</span>/<span id="lapT">3</span></b><span id="trk" class="tn"></span></div><div id="rows"></div></div>
+  <div id="tower"><div class="th"><b>LAP <span id="lapN">1</span>/<span id="lapT">3</span></b><span id="trk" class="tn"></span></div><div id="duelBox" hidden></div><div id="rows"></div></div>
   <div id="btns"><button id="bBoard" title="World leaderboard">🏆</button><button id="bCam" title="Camera (C)">🎥</button><button id="bToday" title="Today">📅</button><button id="bGarage" title="Garage">🔧</button><button id="bShare" title="Share">📤</button><button id="bConnect" title="Connect your agents">🔌</button></div>
   <div id="lightsHud"><i></i><i></i><i></i><i></i><i></i></div>
   <div id="ticker"></div>
@@ -76,7 +76,15 @@ button{font-family:inherit;cursor:pointer}
 .row .p{font-family:'Russo One';font-size:13px;text-align:right;opacity:.85}.row .c{height:16px;border-radius:2px}
 .row .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row .g{font-size:13px;text-align:right;opacity:.8;font-variant-numeric:tabular-nums}
 .row .st{font-size:11px;text-align:center;border-radius:4px;padding:0 3px;font-weight:800;letter-spacing:.5px}
-.row.you{background:rgba(255,210,63,.18)}.row.sel{outline:2px solid #ffd23f;outline-offset:-2px}.row.purple{background:rgba(160,80,255,.55)}
+#tower.duel{width:292px}
+.row.you{background:rgba(255,210,63,.18)}.row.rv{background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 34%,transparent),transparent 85%)}
+#duelBox{padding:6px 9px 7px;background:linear-gradient(90deg,rgba(255,210,63,.22),color-mix(in srgb,var(--rc,#888) 40%,transparent));border-top:1px solid rgba(255,255,255,.08);font-weight:700}
+#duelBox .vs{display:flex;align-items:center;gap:6px;font:15px 'Russo One'}#duelBox .vs .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}#duelBox .vs .t.them{flex-shrink:1;min-width:0}#duelBox .vs .n{font-size:19px}#duelBox .vs .x{opacity:.7;font-size:11px;white-space:nowrap}
+#duelBox .vs .them{margin-left:auto;text-align:right}#duelBox .vs .w{color:#9cf28a}
+#duelBox .st{font-size:13px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#duelBox .st i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;background:var(--rc)}
+#duelBox .fd{font-size:13px;color:#ffe9a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:16px}#duelBox .fd.bad{color:#ff9d9d}
+.duelres{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px;padding:8px 12px;border-radius:12px;background:linear-gradient(90deg,rgba(255,210,63,.18),color-mix(in srgb,var(--rc) 35%,transparent));font:17px 'Russo One'}
+.duelres span{font-size:13px;opacity:.8;width:100%}.duelres .w{color:#9cf28a}.duelres i{opacity:.6;font-style:normal}.duelres small{font:700 13px 'Saira Condensed';opacity:.7;margin-left:auto}.row.sel{outline:2px solid #ffd23f;outline-offset:-2px}.row.purple{background:rgba(160,80,255,.55)}
 .row .fuel{grid-column:3/6;height:3px;border-radius:2px;background:rgba(255,255,255,.12);margin-top:-1px}.row .fuel i{display:block;height:100%;border-radius:2px;background:#5cf2a0}
 #btns{position:absolute;right:10px;top:10px;display:flex;gap:6px}
 #btns button{width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(14,16,32,.78);color:#fff;font-size:19px}
@@ -124,6 +132,7 @@ button{font-family:inherit;cursor:pointer}
 @media (max-width:700px){
  #tower{width:164px;top:8px;left:8px}.row{grid-template-columns:16px 4px 1fr 36px;font-size:13px;padding:2px 6px;gap:4px}.row .g{display:none}.row .st{font-size:10px}
  #tower .th{font-size:13px;padding:5px 8px}#tower .th .tn{display:none}
+ #duelBox{padding:4px 6px}#duelBox .vs{font-size:12px;gap:4px}#duelBox .vs .n{font-size:15px}#duelBox .st,#duelBox .fd{font-size:11px}
  #lightsHud{top:230px;gap:7px;padding:8px 10px}#lightsHud i{width:26px;height:26px}
  #btns{display:grid;grid-template-columns:repeat(3,38px);gap:5px;right:8px;top:8px}#btns button{width:38px;height:38px;font-size:17px}
  #speedo{right:8px;top:96px;bottom:auto;width:96px;padding:5px}#speedo b{font-size:28px}#ypos{font-size:18px}
@@ -136,19 +145,29 @@ button{font-family:inherit;cursor:pointer}
 document.head.appendChild(css);
 
 // ---------------------------------------------------------------- textures / small helpers
-function tagCanvas(text, color, icon = '') {
-  const c = document.createElement('canvas'); c.width = 320; c.height = 84; const g = c.getContext('2d');
-  g.font = '700 44px "Saira Condensed",system-ui'; const t = (icon ? icon + ' ' : '') + text, w = Math.min(310, g.measureText(t).width + 40);
-  g.fillStyle = 'rgba(14,16,32,.86)'; g.beginPath(); g.roundRect((320 - w) / 2, 6, w, 62, 16); g.fill();
-  g.fillStyle = color; g.fillRect((320 - w) / 2 + 10, 14, 7, 46);
-  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 160 + 5, 39, 280);
-  g.fillStyle = 'rgba(14,16,32,.86)'; g.beginPath(); g.moveTo(150, 68); g.lineTo(170, 68); g.lineTo(160, 80); g.fill();
+function tagCanvas(text, color, icon = '', sub = '') {
+  // sub: a second line (the rival's flag + player name); the whole tag is then filled in the team colour
+  const H = sub ? 116 : 84, c = document.createElement('canvas'); c.width = 320; c.height = H; const g = c.getContext('2d');
+  g.font = '700 44px "Saira Condensed",system-ui'; const t = (icon ? icon + ' ' : '') + text;
+  let w = g.measureText(t).width + 40; if (sub) { g.font = '700 26px "Saira Condensed",system-ui'; w = Math.max(w, g.measureText(sub).width + 36); } w = Math.min(310, w);
+  const bh = sub ? 94 : 62;
+  g.fillStyle = 'rgba(14,16,32,.86)'; g.beginPath(); g.roundRect((320 - w) / 2, 6, w, bh, 16); g.fill();
+  if (sub) { g.fillStyle = color; g.beginPath(); g.roundRect((320 - w) / 2 + 4, 10, w - 8, 52, 12); g.fill(); }
+  else { g.fillStyle = color; g.fillRect((320 - w) / 2 + 10, 14, 7, 46); }
+  g.font = '700 44px "Saira Condensed",system-ui';
+  const dark = sub && lum(color) > 0.55;
+  g.fillStyle = dark ? '#14182a' : '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 160 + (sub ? 0 : 5), sub ? 37 : 39, 280);
+  if (sub) { g.font = '700 26px "Saira Condensed",system-ui'; g.fillStyle = '#fff'; g.fillText(sub, 160, 80, 290); }
+  g.fillStyle = 'rgba(14,16,32,.86)'; g.beginPath(); g.moveTo(150, bh + 6); g.lineTo(170, bh + 6); g.lineTo(160, bh + 18); g.fill();
   return c;
 }
-function makeTag(text, color) {
-  const tex = new THREE.CanvasTexture(tagCanvas(text, color)); tex.colorSpace = THREE.SRGBColorSpace;
+function lum(hex) { const n = parseInt(String(hex).slice(1), 16); return ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114) / 255; }
+function makeTag(text, color, sub = '') {
+  const tex = new THREE.CanvasTexture(tagCanvas(text, color, '', sub)); tex.colorSpace = THREE.SRGBColorSpace;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
-  s.scale.set(3.8, 1.0, 1); s.position.y = 2.8; s.renderOrder = 10; s.userData.redraw = (t, c, i) => { tex.image = tagCanvas(t, c, i); tex.needsUpdate = true; }; return s;
+  s.userData.sub = sub;
+  const fit = () => { const h = s.userData.sub ? 116 : 84; s.scale.set(3.8, 3.8 * h / 320, 1); s.position.y = 2.8 + (h - 84) / 320 * 1.9; };
+  fit(); s.renderOrder = 10; s.userData.redraw = (t, c, i) => { tex.image = tagCanvas(t, c, i, s.userData.sub); tex.needsUpdate = true; fit(); }; return s;
 }
 const smokeTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const r = g.createRadialGradient(32, 32, 2, 32, 32, 30); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); return t; })();
 
@@ -213,9 +232,9 @@ function place(obj, s, lat, lift = 0, yaw = 0) {
 const racers = [], partners = new Map(), byId = new Map();
 const oils = [], pads = [], smoke = [];
 let selected = null, boostTokens = 1, teamRes = [], colorI = 0;
-function newRacer({ id, name, color, c2 = '#ffffff', you = false, liv = null }) {
+function newRacer({ id, name, color, c2 = '#ffffff', you = false, liv = null, sub = '' }) {
   const car = makeCar(color, c2, liv || {}); scene.add(car.g);
-  const tag = makeTag(name, color); car.g.add(tag);
+  const tag = makeTag(name, color, sub); car.g.add(tag);
   const r = { id, name, color, you, car, tag, dist: 0, lat: 0, laneI: 1, v: 0, act: 0.6, fuel: 0.7, wear: 0, damage: 0, spinT: 0, spinA: 0, boostT: 0, turboT: 0, drsT: 0, padT: 0, purpleT: 0,
     mode: 'race', pitCall: false, forced: false, waiting: false, stopT: 0, slot: 0, finished: false, finishPos: 0, bonus: 0, q: [], qT: 0, lastT: Date.now(), partners: 0, crew: null, ok: 0, fail: 0, wob: 0, draft: 0, tagState: '' };
   racers.push(r); byId.set(id, r); assignSlots(); return r;
@@ -326,6 +345,11 @@ function switchProfile(demo) {
   buildYou(); toPracticeOrGrid();
 }
 const agentRacers = () => racers.filter(r => !r.you);
+const ownRacers = () => racers.filter(r => !r.you && !r.rival);
+// how a car is named in commentary / standings: the rival's cars carry the rival's flag + name
+const nm = r => r.rival && RV ? `${RV.flag} ${RV.name}'s ${r.name}` : r.name;
+const short = (t, n) => t.length > n ? t.slice(0, n - 1) + '…' : t;
+const rowName = r => r.rival && RV ? (isPhone() ? `${RV.flag} ${r.name}` : `${RV.flag} ${short(RV.name, 10)} · ${r.name}`) : r.name;
 
 function applyEvent(r, e, partner) {
   const racing = state === 'race' || state === 'practice';
@@ -344,10 +368,11 @@ function applyEvent(r, e, partner) {
       if (!r.waiting) { r.waiting = true; r.pitCall = true; tone(988, 0.12, 'sine', 0.06, 1); setTimeout(() => tone(1318, 0.18, 'sine', 0.06, 1), 120); }
       break;
     case 'result':
-      teamRes.push(e.ok); if (teamRes.length > 40) teamRes.shift();
+      if (!r.rival) { teamRes.push(e.ok); if (teamRes.length > 40) teamRes.shift(); }
       if (e.ok) { r.ok++; r.act += 1; if (racing) r.v += 1.5; }
       else r.fail++;
       if (!racing) break;
+      if (r.rival) { rivalMove(r, e); break; }
       if (!e.ok) spinOut(r, e.cat === 'test');
       else if (e.cat === 'test') turbo(r);
       else if (e.cat === 'commit') purple(r);
@@ -379,17 +404,30 @@ function spinOut(r, big) {
   puff(r.car.g.position, '#e8e8f0', 10, 1.2); burst(scene, _v.copy(r.car.g.position).setY(r.car.g.position.y + 0.6), ['#ffd23f', '#ff8a1f', '#ffffff'], 14, { speed: 0.2, up: 0.1, size: 0.35, gravity: 0.01 });
   tone(140, 0.25, 'sawtooth', 0.05, 0.4);
   if (oils.length < 7) addOil(r.dist, r.lat);
-  if (r.damage >= 4 && !r.pitCall) { r.pitCall = true; r.forced = true; ticker(`${r.name}: BOX BOX`, 'car damaged, forced pit stop', '#ff3b5c'); }
-  else if (r === selected || distTo(r) < 70) ticker(`${r.name} SPINS`, 'tool failed', r.color, 0.7);
+  if (r.damage >= 4 && !r.pitCall) { r.pitCall = true; r.forced = true; ticker(`${nm(r)}: BOX BOX`, 'car damaged, forced pit stop', '#ff3b5c'); }
+  else if (r === selected || distTo(r) < 70) ticker(`${nm(r)} SPINS`, 'tool failed', r.color, 0.7);
   if (distTo(r) < 40) shake = Math.max(shake, 0.5);
 }
 function turbo(r) {
   r.turboT = 3; r.v += 6; crowdHype = 2.5; tone(330, 0.35, 'sawtooth', 0.04, 2.6);
-  ticker(`${r.name} TURBO`, 'tests passed', r.color); camCut(r); shake = Math.max(shake, 0.35);
+  ticker(`${nm(r)} TURBO`, 'tests passed', tcol(r), r.rival ? 0.8 : 1); camCut(r); shake = Math.max(shake, 0.35);
   if (you && pads.length < 4 && state === 'race') addPad(you.dist + 50 + Math.random() * 30, LANES[(Math.random() * 4) | 0]);
 }
-function purple(r) { r.purpleT = 2.5; if (state === 'race' && r.bonus < 3) r.bonus++; r.v += 3; tone(784, 0.1, 'triangle', 0.06, 1); setTimeout(() => tone(1175, 0.18, 'triangle', 0.06, 1), 90); ticker(`${r.name} PURPLE SECTOR`, 'commit · +1 bonus point', '#c08bff', 0.8); }
-function drs(r) { r.drsT = 5; r.v += 4; crowdHype = 3; tone(200, 0.6, 'sawtooth', 0.04, 3.2); ticker(`${r.name} DRS OPEN`, 'deployed · overtaking boost', '#5cd2ff'); camCut(r); }
+function purple(r) { r.purpleT = 2.5; if (state === 'race' && r.bonus < 3) r.bonus++; r.v += 3; tone(784, 0.1, 'triangle', 0.06, 1); setTimeout(() => tone(1175, 0.18, 'triangle', 0.06, 1), 90); ticker(`${nm(r)} PURPLE SECTOR`, 'commit · +1 bonus point', '#c08bff', 0.8); }
+function drs(r) { r.drsT = 5; r.v += 4; crowdHype = 3; tone(200, 0.6, 'sawtooth', 0.04, 3.2); ticker(`${nm(r)} DRS OPEN`, 'deployed · overtaking boost', '#5cd2ff', r.rival ? 0.8 : 1); camCut(r); }
+const tcol = r => r.rival && r.color === SIM_COL ? '#e8ecf4' : r.color;
+// the rival's agents: their finished steps drive their cars. Deploy = big boost, tests = turbo, commit = purple sector,
+// failure = a wobble that costs speed (no oil, no damage: that's for your own team's crashes)
+function rivalMove(r, e) {
+  if (!e.ok) {
+    r.wobT = 1.1; r.v *= 0.55; puff(r.car.g.position, '#e8e8f0', 5, 0.9); tone(150, 0.18, 'sawtooth', 0.03, 0.5);
+    if (r === selected || distTo(r) < 60) ticker(`${nm(r)} WOBBLES`, 'their step failed', tcol(r), 0.65);
+    return;
+  }
+  if (e.cat === 'test') turbo(r);
+  else if (e.cat === 'commit') purple(r);
+  else if (e.cat === 'deploy') { drs(r); r.boostT = 3; r.v += 4; }
+}
 const distTo = r => (you ? r.car.g.position.distanceTo(you.car.g.position) : 99);
 function addOil(dist, lat) {
   const m = new THREE.Mesh(new THREE.CircleGeometry(1.4, 18), new THREE.MeshStandardMaterial({ color: '#15151c', roughness: 0.15, metalness: 0.4, transparent: true, opacity: 0.85 }));
@@ -437,11 +475,12 @@ function order() {
 function endRace() {
   state = 'results'; slow = 1; slowCam = false; cut = null;
   const ord = order().filter(r => r.dist > 0 || r.finished);
-  const res = ord.map((r, i) => ({ name: r.name, color: r.color, you: r.you, pos: i + 1, pts: (POINTS[i] || 0) + r.bonus, bonus: r.bonus, laps: Math.min(P.laps, Math.floor(Math.max(0, r.dist) / TR.L)), dnf: !r.finished }));
+  const res = ord.map((r, i) => ({ name: r.rival && RV ? `${RV.flag} ${RV.name} · ${r.name}` : r.name, rival: !!r.rival, color: r.color, you: r.you, pos: i + 1, pts: (POINTS[i] || 0) + r.bonus, bonus: r.bonus, laps: Math.min(P.laps, Math.floor(Math.max(0, r.dist) / TR.L)), dnf: !r.finished }));
   const before = new Set(LIVERIES.filter(unlockedLivery).map(l => l.id).concat(TRACKS.filter(unlockedTrack).map(t => t.id)));
   P.races++; P.raceInSeason++; rollToday(); P.today.races++;
   const me = res.find(x => x.you);
-  for (const x of res) P.standings[x.name] = (P.standings[x.name] || 0) + x.pts;
+  for (const x of res) if (!x.rival) P.standings[x.name] = (P.standings[x.name] || 0) + x.pts;   // the rival's cars race, but don't join your season table
+  const duel = RV && res.some(x => x.rival) ? { me: res.filter(x => !x.rival).reduce((a, x) => a + x.pts, 0), them: res.filter(x => x.rival).reduce((a, x) => a + x.pts, 0), name: RV.name, flag: RV.flag, color: RV.color, sim: RV.sim } : null;
   if (me) { if (me.pos === 1) P.wins++; if (me.pos <= 3) P.podiums++; P.today.pts += me.pts; P.today.best = P.today.best ? Math.min(P.today.best, me.pos) : me.pos; }
   P.lastPodium = res.slice(0, 3).map(x => ({ name: x.name, color: x.color }));
   let champ = null;
@@ -455,7 +494,8 @@ function endRace() {
   const fresh = after.filter(x => !before.has(x)).map(id => (LIVERIES.find(l => l.id === id) || {}).name ? `livery ${LIVERIES.find(l => l.id === id).name}` : `track ${TRACKS.find(t => t.id === id).name}`);
   saveP();
   if (!isDemo() && B) B.submit(P.today.pts);
-  results = { res, standingsNow, champ, fresh, season: champ ? P.season - 1 : P.season, race: champ ? PER_SEASON : P.raceInSeason };
+  results = { res, standingsNow, champ, fresh, duel, season: champ ? P.season - 1 : P.season, race: champ ? PER_SEASON : P.raceInSeason };
+  if (duel) setTimeout(() => ticker(duel.me >= duel.them ? 'YOUR TEAM WINS THE DUEL RACE' : `${duel.flag} ${duel.name.toUpperCase()}'S TEAM TAKES IT`, `${duel.me} – ${duel.them} team points`, duel.me >= duel.them ? '#ffd23f' : duel.color === SIM_COL ? '#e8ecf4' : duel.color, 0.8), 700);
   buildPodium(res.slice(0, 3));
   setTimeout(renderResults, 1300);
   [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'triangle', 0.06, 1), i * 110));
@@ -493,7 +533,8 @@ function renderSetup() {
   const ty = Object.entries(TYRES).map(([k, t]) => chip(t.name, k === P.tyre, false, `data-tyre="${k}"`, t.col)).join('');
   const lp = [3, 5].map(n => chip(n + ' laps', n === P.laps, false, `data-laps="${n}"`)).join('');
   const lv = LIVERIES.map(l => chip(unlockedLivery(l) ? l.name : '🔒', l.id === P.livery, !unlockedLivery(l), `data-liv="${l.id}" title="${l.txt}"`, l.c1)).join('');
-  el.innerHTML = `<h2>RACE ${P.raceInSeason + 1} · SEASON ${P.season}</h2><p class="sub">${agentRacers().length} agent car${agentRacers().length === 1 ? '' : 's'} on the grid${isDemo() ? ' (demo team)' : ''}. You are their race engineer, and you drive car YOU.</p>
+  el.innerHTML = `<h2>RACE ${P.raceInSeason + 1} · SEASON ${P.season}</h2><p class="sub">${ownRacers().length} agent car${ownRacers().length === 1 ? '' : 's'} on the grid${isDemo() ? ' (demo team)' : ''}. You are their race engineer, and you drive car YOU.</p>
+    ${RV ? `<p class="sub" style="color:${RV.sim ? '#e8ecf4' : RV.color}">⚔️ Duel: ${RV.flag} <b>${esc(RV.name)}</b>'s team lines up with ${racers.filter(r => r.rival).length} car${racers.filter(r => r.rival).length === 1 ? '' : 's'}: ${racers.filter(r => r.rival).map(r => esc(r.name)).join(', ')}${RV.sim ? ' (simulated rival)' : !RV.online ? ' (offline)' : ''}.</p>` : ''}
     <h3>TRACK</h3><div class="chips">${tr}</div><h3>TYRE STRATEGY</h3><div class="chips">${ty}</div><p class="sub" style="font-size:14px">${TYRES[P.tyre].about}</p>
     <h3>DISTANCE</h3><div class="chips">${lp}</div><h3>YOUR LIVERY</h3><div class="chips">${lv}</div>
     <button class="big" id="bGo">LIGHTS OUT <span id="auto"></span></button>`;
@@ -510,12 +551,13 @@ function renderSetup() {
 function rankLine() { const p = B && B.profile(); if (!p || isDemo()) return ''; let rk = null; try { rk = JSON.parse(localStorage.getItem('board_rank_' + GAME)); } catch (e) {} return `${flag(p.country)} ${p.name}${rk ? ` · #${rk} today` : ''}`; }
 function renderResults() {
   if (state !== 'results' || !results) return;
-  const { res, standingsNow, champ, fresh, season, race } = results, el = $('results'); el.hidden = false;
+  const { res, standingsNow, champ, fresh, season, race, duel } = results, el = $('results'); el.hidden = false;
   const me = res.find(x => x.you), pod = [res[1], res[0], res[2]];
   const hs = [40, 56, 30];
   el.innerHTML = `<button class="x" id="rx">✕</button><h2>🏁 CHEQUERED FLAG</h2><p class="sub">${theme.name} · race ${race} of ${PER_SEASON}, season ${season}${me ? ` · you finished <b>P${me.pos}</b> (+${me.pts} pts)` : ''}${rankLine() ? `<span class="rk">${rankLine()}</span>` : ''}</p>
-    <div class="pod">${pod.map((x, i) => x ? `<div><span style="color:${x.color}">●</span> ${x.name}<i style="height:${hs[i]}px;background:${['#dfe4ee', '#ffd23f', '#e0965a'][i]}">${[2, 1, 3][i]}</i></div>` : '<div></div>').join('')}</div>
-    <div class="cols"><div><h3>RESULT</h3><table class="tbl">${res.map(x => `<tr${x.you ? ' style="color:#ffd23f"' : ''}><td class="r">${x.pos}</td><td><span class="sw" style="background:${x.color}"></span>${x.name}${x.dnf ? ' <small style="opacity:.6">(not classified)</small>' : ''}</td><td class="r">${x.bonus ? `<small style="color:#c08bff">+${x.bonus} purple</small> ` : ''}+${x.pts}</td></tr>`).join('')}</table></div>
+    ${duel ? `<div class="duelres" style="--rc:${duel.color}"><span>⚔️ TEAM BATTLE</span><b class="${duel.me >= duel.them ? 'w' : ''}">YOUR TEAM ${duel.me}</b><i>–</i><b class="${duel.them > duel.me ? 'w' : ''}">${duel.them} ${duel.flag} ${esc(duel.name)}</b>${duel.sim ? '<small>simulated rival</small>' : ''}</div>` : ''}
+    <div class="pod">${pod.map((x, i) => x ? `<div><span style="color:${x.color}">●</span> ${esc(x.name)}<i style="height:${hs[i]}px;background:${['#dfe4ee', '#ffd23f', '#e0965a'][i]}">${[2, 1, 3][i]}</i></div>` : '<div></div>').join('')}</div>
+    <div class="cols"><div><h3>RESULT</h3><table class="tbl">${res.map(x => `<tr${x.you ? ' style="color:#ffd23f"' : ''}><td class="r">${x.pos}</td><td><span class="sw" style="background:${x.color}"></span>${esc(x.name)}${x.dnf ? ' <small style="opacity:.6">(not classified)</small>' : ''}</td><td class="r">${x.bonus ? `<small style="color:#c08bff">+${x.bonus} purple</small> ` : ''}+${x.pts}</td></tr>`).join('')}</table></div>
     <div>${champ ? `<div class="unl">🏆 SEASON ${season} CHAMPION: ${champ[0]} (${champ[1]} pts)</div>` : ''}
     <h3>CHAMPIONSHIP${champ ? ' (FINAL)' : ''}</h3><table class="tbl">${standingsNow.slice(0, 6).map(([n, p], i) => `<tr${n === 'YOU' ? ' style="color:#ffd23f"' : ''}><td class="r">${i + 1}</td><td>${n}</td><td class="r">${p}</td></tr>`).join('')}</table></div></div>
     ${fresh.length ? `<div class="unl">Unlocked: ${fresh.join(', ')}</div>` : ''}
@@ -580,16 +622,16 @@ window.__share = share;
 let camMode = 'chase';
 function steer(d) { if (!you || you.mode !== 'race' || !(state === 'race' || state === 'practice')) return; you.laneI = clamp(you.laneI + d, 0, 3); tone(600 + d * 40, 0.04, 'sine', 0.04, 1.2); }
 function boostSel() {
-  const r = selected || you; if (!r || boostTokens < 1 || state !== 'race') return;
+  const r = selected && !selected.rival ? selected : you; if (!r || boostTokens < 1 || state !== 'race') return;
   boostTokens--; r.boostT = 4; r.v += 4; ticker(`ENGINEER BOOST → ${r.name}`, 'one token per lap', '#ffd23f', 0.8); tone(440, 0.3, 'sawtooth', 0.05, 2);
 }
-function pitSel() { const r = selected || you; if (!r || state !== 'race' || r.pitCall || r.mode !== 'race') return; r.pitCall = true; ticker(`${r.name}: BOX BOX`, 'pit call: new tyres, repairs', '#ff3b5c', 0.8); tone(520, 0.08, 'square', 0.05, 1); setTimeout(() => tone(520, 0.08, 'square', 0.05, 1), 140); }
+function pitSel() { const r = selected && !selected.rival ? selected : you; if (!r || state !== 'race' || r.pitCall || r.mode !== 'race') return; r.pitCall = true; ticker(`${r.name}: BOX BOX`, 'pit call: new tyres, repairs', '#ff3b5c', 0.8); tone(520, 0.08, 'square', 0.05, 1); setTimeout(() => tone(520, 0.08, 'square', 0.05, 1), 140); }
 $('sL').onpointerdown = e => { e.stopPropagation(); steer(-1); };
 $('sR').onpointerdown = e => { e.stopPropagation(); steer(1); };
 $('bBoost').onclick = boostSel; $('bPit').onclick = pitSel;
 $('bCam').onclick = () => { camMode = { chase: 'tv', tv: 'heli', heli: 'chase' }[camMode]; toast('Camera: ' + { chase: 'chase cam', tv: 'TV cam', heli: 'helicopter' }[camMode], 1500); };
 $('bToday').onclick = renderToday; $('bGarage').onclick = renderGarage; $('bShare').onclick = share; $('bConnect').onclick = () => A.open(); $('bBoard').onclick = () => B.open();
-$('banner').onclick = () => { const r = racers.find(x => x.waiting && !x.you); if (r) { selected = r; cut = { r, t: 3 }; } };
+$('banner').onclick = () => { const r = racers.find(x => x.waiting && !x.you && !x.rival); if (r) { selected = r; cut = { r, t: 3 }; } };
 addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') steer(-1);
@@ -616,7 +658,11 @@ input({
 $('rows').addEventListener('pointerdown', e => { const row = e.target.closest('.row'); if (row) { selected = byId.get(row.dataset.id) || null; tone(700, 0.05, 'sine', 0.05, 1.2); } });
 
 // ---------------------------------------------------------------- simulation
-function engineTarget(r) { return (9 + 6.4 * Math.min(r.act, 4.2)) * (0.85 + 0.2 * r.fuel); }
+function engineTarget(r) {
+  // a rival car always has a little pace (their team is "on track" even between events); offline = slow default play
+  const act = r.rival ? Math.max(r.act, r.offline ? 0.12 : 0.3) : r.act;
+  return (9 + 6.4 * Math.min(act, 4.2)) * (0.85 + 0.2 * (r.rival ? 0.7 : r.fuel));
+}
 function tyreF(r) { const t = TYRES[P.tyre]; return t.mult * (1 - 0.35 * clamp(r.wear - 0.4, 0, 1)); }
 function teamRate() { return teamRes.length ? teamRes.filter(Boolean).length / teamRes.length : 0.85; }
 const pitR = s => (((s + PIT.before) % TR.L) + TR.L) % TR.L;
@@ -628,24 +674,24 @@ function updateRacer(r, sec) {
   while (r.q.length && r.qT <= 0) { const { e, partner } = r.q.shift(); applyEvent(r, e, partner); r.qT += 0.14; }
   if (r.qT < 0) r.qT = 0;
   r.act *= Math.exp(-sec / 7);
-  for (const k of ['boostT', 'turboT', 'drsT', 'padT', 'purpleT']) r[k] = Math.max(0, r[k] - sec);
+  for (const k of ['boostT', 'turboT', 'drsT', 'padT', 'purpleT', 'wobT']) r[k] = Math.max(0, (r[k] || 0) - sec);
   const moving = state === 'race' || state === 'practice' || (state === 'results');
   if (!moving) { place(r.car.g, r.dist, r.lat, 0); idleRev(r, sec); return; }
   if (state === 'race' || state === 'practice') r.fuel = Math.max(0, r.fuel - 0.012 * sec);
   // target speed
   let tgt;
   if (r.you) {
-    const ag = agentRacers(); const base = ag.length ? ag.reduce((a, x) => a + engineTarget(x), 0) / ag.length : 17;
+    const ag = ownRacers(); const base = ag.length ? ag.reduce((a, x) => a + engineTarget(x), 0) / ag.length : 17;
     tgt = Math.max(11, base) * (0.92 + 0.36 * teamRate());
   } else tgt = engineTarget(r) * (1 + 0.06 * r.partners);
   tgt *= tyreF(r) * (1 - 0.07 * r.damage);
-  if (r.boostT > 0) tgt *= 1.4; if (r.turboT > 0) tgt *= 1.35; if (r.drsT > 0) tgt *= 1.28; if (r.padT > 0) tgt *= 1.45; if (r.draft > 0) tgt *= 1.12;
+  if (r.boostT > 0) tgt *= 1.4; if (r.turboT > 0) tgt *= 1.35; if (r.drsT > 0) tgt *= 1.28; if (r.padT > 0) tgt *= 1.45; if (r.draft > 0) tgt *= 1.12; if (r.wobT > 0) tgt *= 0.6;
   if (r.finished || state === 'results') tgt = Math.min(tgt, 12);
   // pit lane
   const pr = pitR(r.dist);
   if (r.mode === 'race' && r.pitCall && state !== 'grid' && pr < 4 && r.prevPr > TR.L - 20) { r.mode = 'pitIn'; }
   if (r.mode === 'pitIn') { tgt = Math.min(tgt, 18); if (pr >= garageR(r) - 0.5) { r.mode = 'stopped'; r.v = 0; r.stopT = r.waiting ? 1e9 : r.forced ? 4.5 : 2.6; showCrew(r, true); } }
-  if (r.mode === 'stopped') { tgt = 0; r.v = 0; r.stopT -= sec; if (r.waiting) r.stopT = Math.max(r.stopT, 0.5); if (r.stopT <= 0) { r.mode = 'pitOut'; r.wear = 0; r.damage = 0; r.forced = false; r.pitCall = false; showCrew(r, false); if (state === 'race') ticker(`${r.name} OUT`, 'fresh tyres', r.color, 0.6); } }
+  if (r.mode === 'stopped') { tgt = 0; r.v = 0; r.stopT -= sec; if (r.waiting) r.stopT = Math.max(r.stopT, 0.5); if (r.stopT <= 0) { r.mode = 'pitOut'; r.wear = 0; r.damage = 0; r.forced = false; r.pitCall = false; showCrew(r, false); if (state === 'race') ticker(`${nm(r)} OUT`, 'fresh tyres', tcol(r), 0.6); } }
   if (r.mode === 'pitOut') { tgt = Math.min(tgt, 18); if (pr >= PIT.outR - 1 || pr < garageR(r) - 5) r.mode = 'race'; }
   r.prevPr = pr;
   // spin
@@ -682,10 +728,10 @@ function updateRacer(r, sec) {
   // finish
   if (state === 'race' && !r.finished && r.dist >= P.laps * TR.L) {
     r.finished = true; r.finishPos = ++finishers;
-    if (finishers === 1) { finishT = 0; flagDone = true; confetti(scene, r.car.g.position.clone().setY(r.car.g.position.y + 3), 70); ticker(`${r.name} WINS!`, theme.name, r.color); shake = 0.6; tone(1046, 0.3, 'triangle', 0.07, 1); setTimeout(() => { slow = 1; slowCam = false; }, 1400); }
+    if (finishers === 1) { finishT = 0; flagDone = true; confetti(scene, r.car.g.position.clone().setY(r.car.g.position.y + 3), 70); ticker(`${nm(r)} WINS!`, theme.name, tcol(r)); shake = 0.6; tone(1046, 0.3, 'triangle', 0.07, 1); setTimeout(() => { slow = 1; slowCam = false; }, 1400); }
   }
   // pose
-  const yaw = r.spinT > 0 ? r.spinA : (lt - r.lat) * -0.08;
+  const yaw = r.spinT > 0 ? r.spinA : (lt - r.lat) * -0.08 + (r.wobT > 0 ? Math.sin(r.wobT * 22) * 0.35 * r.wobT : 0);
   place(r.car.g, r.dist, r.lat, 0, yaw);
   // visuals
   for (const w of r.car.wheels) w.children[0].rotation.x = w.children[1].rotation.x += r.v * sec / 0.45;
@@ -698,15 +744,15 @@ function updateRacer(r, sec) {
   if (r.damage >= 2 && Math.random() < 0.06 * r.damage) puff(_v.copy(r.car.g.position).setY(r.car.g.position.y + 0.8), '#5a5a66', 1, 0.8);
   if (Math.abs(F.k) > 0.02 && r.v > 18 && Math.random() < 0.08) puff(r.car.g.position, '#ffffff', 1, 0.6);
   // tag icon
-  const st = r.waiting ? '✋' : r.mode !== 'race' ? '🔧' : r.drsT > 0 ? '💨' : r.turboT > 0 ? '🔥' : '';
-  if (st !== r.tagState) { r.tagState = st; r.tag.userData.redraw(r.name, r.you ? '#ffd23f' : r.color, st); }
+  const st = (r.waiting ? '✋' : r.mode !== 'race' ? '🔧' : r.drsT > 0 ? '💨' : r.turboT > 0 ? '🔥' : r.wobT > 0 ? '💫' : '') + (r.rival ? '|' + r.tag.userData.sub : '');
+  if (st !== r.tagState) { r.tagState = st; r.tag.userData.redraw(r.name, r.you ? '#ffd23f' : r.color, st.split('|')[0]); }
   r.tag.material.opacity = r === selected || r.you ? 1 : 0.92;
 }
 function idleRev(r, sec) {
   r.car.flame.scale.setScalar(state === 'lights' && Math.random() < 0.15 ? 0.4 : 0.001);
   r.car.body.position.y = state === 'lights' ? Math.sin(performance.now() / 30 + r.dist) * 0.03 : 0;
-  const st = r.waiting ? '✋' : '';
-  if (st !== r.tagState) { r.tagState = st; r.tag.userData.redraw(r.name, r.you ? '#ffd23f' : r.color, st); }
+  const st = (r.waiting ? '✋' : '') + (r.rival ? '|' + r.tag.userData.sub : '');
+  if (st !== r.tagState) { r.tagState = st; r.tag.userData.redraw(r.name, r.you ? '#ffd23f' : r.color, st.split('|')[0]); }
 }
 function showCrew(r, on) {
   if (r.crew) { scene.remove(r.crew); r.crew = null; }
@@ -789,22 +835,23 @@ function updateHud(realSec) {
   $('rows').innerHTML = show.map(r => {
     const pos = ord.indexOf(r) + 1;
     const gapS = r === lead ? (state === 'race' ? 'LEADER' : '') : r.finished ? 'FIN' : `+${Math.max(0, (lead.dist - r.dist) / avgV).toFixed(1)}`;
-    const stt = r.waiting ? ['✋', '#ffd23f', '#1b1408'] : r.mode !== 'race' ? ['PIT', '#ff3b5c', '#fff'] : r.spinT > 0 ? ['SPIN', '#ff8a1f', '#fff'] : r.drsT > 0 ? ['DRS', '#5cd2ff', '#06202a'] : r.turboT > 0 ? ['TURBO', '#ff8a1f', '#fff'] : r.damage >= 2 ? ['DMG', '#7a2030', '#fff'] : r.partners ? ['+' + r.partners, '#2b2d42', '#fff'] : ['', 'transparent', '#fff'];
-    return `<div class="row${r.you ? ' you' : ''}${r === selected ? ' sel' : ''}${r.purpleT > 0 ? ' purple' : ''}" data-id="${r.id}"><span class="p">${pos}</span><span class="c" style="background:${r.color}"></span><span class="n">${r.name}</span><span class="g">${gapS}</span><span class="st" style="background:${stt[1]};color:${stt[2]}">${stt[0]}</span>${r.you ? '' : `<span class="fuel"><i style="width:${Math.round(r.fuel * 100)}%"></i></span>`}</div>`;
+    const stt = r.waiting ? ['✋', '#ffd23f', '#1b1408'] : r.mode !== 'race' ? ['PIT', '#ff3b5c', '#fff'] : r.spinT > 0 ? ['SPIN', '#ff8a1f', '#fff'] : r.wobT > 0 ? ['WOBBLE', '#ff8a1f', '#fff'] : r.offline ? ['OFF', '#4a4f66', '#cfd3e0'] : r.drsT > 0 ? ['DRS', '#5cd2ff', '#06202a'] : r.turboT > 0 ? ['TURBO', '#ff8a1f', '#fff'] : r.damage >= 2 ? ['DMG', '#7a2030', '#fff'] : r.partners ? ['+' + r.partners, '#2b2d42', '#fff'] : ['', 'transparent', '#fff'];
+    return `<div class="row${r.you ? ' you' : ''}${r.rival ? ' rv' : ''}${r === selected ? ' sel' : ''}${r.purpleT > 0 ? ' purple' : ''}" data-id="${r.id}"${r.rival ? ` style="--rc:${r.color}"` : ''}><span class="p">${pos}</span><span class="c" style="background:${r.color}"></span><span class="n">${esc(rowName(r))}</span><span class="g">${gapS}</span><span class="st" style="background:${stt[1]};color:${stt[2]}">${stt[0]}</span>${r.you || r.rival ? '' : `<span class="fuel"><i style="width:${Math.round(r.fuel * 100)}%"></i></span>`}</div>`;
   }).join('');
   $('kmh').textContent = you ? Math.round(you.v * 7) : 0;
   $('ypos').textContent = state === 'race' || state === 'results' ? 'P' + (ord.indexOf(you) + 1) : state === 'practice' ? 'PRACTICE' : 'GRID';
   $('rate').textContent = Math.round(teamRate() * 100) + '%';
+  duelHud();
   const sel = selected && byId.has(selected.id) ? selected : you;
-  $('engName').innerHTML = `<span style="color:${sel.color === '#ffffff' ? '#ffd23f' : sel.color}">●</span> ${sel.name}${sel === you ? ' (your car)' : ''}`;
+  $('engName').innerHTML = `<span style="color:${sel.color === '#ffffff' ? '#ffd23f' : sel.color}">●</span> ${esc(nm(sel))}${sel === you ? ' (your car)' : sel.rival ? ' <small style="opacity:.7">(rival · ' + (sel.src === 'codex' ? 'Codex' : 'Claude Code') + ')</small>' : ''}`;
   const t = TYRES[P.tyre], wear = Math.round(clamp(1 - Math.max(0, sel.wear - 0.4) * 0.6, 0, 1) * 100);
-  $('engInfo').textContent = `${t.name} tyres ${wear}% · damage ${'■'.repeat(sel.damage)}${'□'.repeat(Math.max(0, 4 - sel.damage))}${sel.you ? '' : ` · fuel ${Math.round(sel.fuel * 100)}%`}${sel.pitCall ? ' · boxing' : ''}`;
+  $('engInfo').textContent = `${t.name} tyres ${wear}% · damage ${'■'.repeat(sel.damage)}${'□'.repeat(Math.max(0, 4 - sel.damage))}${sel.you || sel.rival ? '' : ` · fuel ${Math.round(sel.fuel * 100)}%`}${sel.pitCall ? ' · boxing' : ''}${sel.rival ? ' · boost/pit only for your team' : ''}`;
   $('tok').textContent = boostTokens; $('bBoost').disabled = boostTokens < 1 || state !== 'race';
   $('bPit').disabled = state !== 'race' || sel.pitCall || sel.mode !== 'race' || (sel.damage === 0 && sel.wear < 0.5);
   const showEng = state === 'race' || state === 'practice';
   $('eng').style.display = showEng ? '' : 'none'; $('sL').style.display = $('sR').style.display = showEng ? '' : 'none';
   $('speedo').style.display = state === 'results' ? 'none' : '';
-  const w = racers.filter(r => r.waiting && !r.you);
+  const w = racers.filter(r => r.waiting && !r.you && !r.rival);
   const bt = w.length ? `✋ ${w.map(r => r.name).slice(0, 2).join(', ')}${w.length > 2 ? ` +${w.length - 2}` : ''} ${w.length > 1 ? 'are' : 'is'} in the pit, waiting for you` : '';
   if (bt !== lastBanner) { lastBanner = bt; $('banner').hidden = !bt || state === 'results'; $('banner').textContent = bt; }
   $('wait').hidden = !(state === 'practice' && !isDemo());
@@ -862,6 +909,68 @@ loop((dt, t) => {
   updateHud(realSec);
 });
 
+// ---------------------------------------------------------------- the rival's team, live (duels)
+// In a live duel the rival's agents race as real cars: one per agent (max 5), callsign tags, in the rival's colour
+// (silver + "simulated" for the house bot). Their finished steps (B.onRival) drive them like your agents drive yours.
+const SIM_COL = '#dfe4ec', RIVAL_MAX = 5;
+const esc = x => String(x).replace(/[<>&"]/g, '');
+let RV = null, rvKey = '', rvFeed = [];
+const rvSub = (a, r) => `${r.flag} ${r.name} · ${a.src === 'codex' ? 'Codex' : 'Claude Code'}${r.sim ? ' · SIM' : !r.online ? ' · OFFLINE' : ''}`;
+function syncRival() {
+  const r = B && B.rival();
+  if (!r) { if (RV) { RV = null; rvKey = ''; rvFeed = []; for (const x of racers.filter(x => x.rival)) removeRacer(x); if (state === 'grid') renderSetup(); } return; }
+  if (rvKey !== r.key) { for (const x of racers.filter(x => x.rival)) removeRacer(x); rvKey = r.key; rvFeed = []; }
+  RV = r;
+  const col = r.sim ? SIM_COL : r.color;
+  let roster = (r.agents || []).slice(0, RIVAL_MAX);
+  if (!roster.length) roster = [{ k: '_crew', name: r.name.slice(0, 10), src: 'claude', state: 'idle' }];   // their team still has a car on the grid
+  const keep = new Set(roster.map(a => 'rv:' + a.k));
+  let changed = false;
+  for (const x of racers.filter(x => x.rival && !keep.has(x.id))) { removeRacer(x); changed = true; }
+  for (const a of roster) {
+    let x = byId.get('rv:' + a.k);
+    if (!x) {
+      x = newRacer({ id: 'rv:' + a.k, name: a.name, color: col, c2: r.sim ? '#59606f' : '#14182a', liv: {}, sub: rvSub(a, r) });
+      Object.assign(x, { rival: true, rk: a.k, src: a.src, act: 1 });
+      if (state === 'race') { const back = Math.min(...racers.filter(o => o !== x).map(o => o.dist)); x.dist = (isFinite(back) ? back : 0) - 12; x.laneI = (Math.random() * 4) | 0; x.lat = LANES[x.laneI]; }
+      else if (state === 'practice') x.dist = you ? you.dist + 20 + Math.random() * 40 : 0;
+      changed = true;
+    }
+    x.lastT = Date.now(); x.offline = !r.sim && !r.online; x.src = a.src;
+    const sub = rvSub(a, r); if (sub !== x.tag.userData.sub) x.tag.userData.sub = sub;
+    if (a.state === 'waiting' && !x.waiting) { x.waiting = true; x.pitCall = true; }
+    else if (a.state !== 'waiting' && x.waiting) wake(x);
+  }
+  if (changed) { if (state === 'grid') { gridUp(); renderSetup(); } else if (state === 'lights') gridUp(); else if (state === 'practice' && agentRacers().length) toGrid(); }
+}
+function onRivalEvents(list, r) {
+  syncRival();
+  for (const e of list) {
+    const x = byId.get('rv:' + (e.agent && e.agent.k)) || racers.find(o => o.rival);
+    if (!x) continue;
+    x.lastT = Date.now();
+    x.q.push({ e: { kind: 'result', cat: e.cat || 'other', ok: !!e.ok, t: e.t }, partner: null });
+    const what = !e.ok ? '✗ step failed → wobble' : { test: '🧪 tests pass → TURBO', commit: '📦 commits → purple sector', deploy: '🚀 deploys → DRS + boost', edit: '✏️ edit → throttle', run: '▶️ run → throttle', read: '🔍 reads → throttle' }[e.cat] || '✓ step → throttle';
+    rvFeed.unshift({ t: Date.now(), ok: !!e.ok, txt: `${r.flag} ${r.name}'s ${x.name} ${what}` }); rvFeed.length = Math.min(rvFeed.length, 4);
+  }
+}
+function duelHud() {
+  const el = $('duelBox');
+  $('tower').classList.toggle('duel', !!RV && !isPhone());
+  if (!RV) { if (!el.hidden) el.hidden = true; return; }
+  el.hidden = false; el.style.setProperty('--rc', RV.sim ? SIM_COL : RV.color);
+  const ord = order(), inRaceNow = state === 'race' || state === 'results';
+  let me = 0, th = 0;
+  if (inRaceNow) ord.forEach((r, i) => { const p = (POINTS[i] || 0) + r.bonus; if (r.rival) th += p; else me += p; });
+  else { me = RV.myScore; th = RV.score; }
+  const ags = RV.agents || [], working = ags.filter(a => a.state === 'working').length, waiting = ags.filter(a => a.state === 'waiting').length;
+  const st = RV.sim ? `${ags.length} agents · simulated rival` : RV.online ? `🟢 ${working} of ${ags.length} working${waiting ? ` · ✋ ${waiting} waiting` : ''}` : '😴 offline · cruising slowly';
+  const fd = rvFeed[0] && Date.now() - rvFeed[0].t < 12e3 ? rvFeed[0] : null;
+  el.innerHTML = `<div class="vs"><span class="t">YOU</span><span class="n ${me >= th ? 'w' : ''}">${me}</span><span class="x">${isPhone() ? '⚔️' : inRaceNow ? 'RACE PTS' : '⚡ DUEL'}</span><span class="n ${th > me ? 'w' : ''}">${th}</span><span class="t them">${RV.flag} ${esc(isPhone() ? short(RV.name, 7) : RV.name)}</span></div>
+    <div class="st">${st}</div><div class="fd ${fd && !fd.ok ? 'bad' : ''}">${fd ? esc(fd.txt) : RV.online || RV.sim ? 'their agents are on track…' : 'waiting for them to come back online'}</div>`;
+}
+setInterval(syncRival, 1500);
+
 // ---------------------------------------------------------------- connect + leaderboard
 let B = null;
 const A = agents({
@@ -870,6 +979,8 @@ const A = agents({
   onEvents: (list, info) => onBatch(list, info),
 });
 B = board({ game: GAME, label: 'Race points today', A });
+B.onRival(onRivalEvents);
+window.__B = B;
 window.__A = A;
 window.__G = { get state() { return state; }, get slowCam() { return slowCam; }, get L() { return TR.L; }, racers, get P() { return P; }, todayS, lightsOut, endRace, share, loadTrack: id => { P.track = id; loadTrack(id); assignSlots(); gridUp(); } };
 

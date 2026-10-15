@@ -170,6 +170,7 @@ function measurePath() { let L = 0; const a = new THREE.Vector3(), b = new THREE
 
 // ------------------------------------------------------------------ world (rebuilt per peak)
 let world = new THREE.Group(); scene.add(world);
+let rvReady = false;   // set once the rival module below is initialised
 let fixedMesh = null, summitFlag = null, lavaLight = null, aurora = null, campGroup = null;
 const flagMat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, side: THREE.DoubleSide });
 function makeFlag(color, h = 1.4, w = 0.6) {
@@ -272,6 +273,7 @@ function buildWorld() {
     world.add(aurora);
   }
   for (const c of climbers.values()) { c.s = c.sT = clamp(G.teamS, 0, 1); }
+  if (rvReady && RV.on) { RV.route = null; rvRoute(); }
 }
 
 // ------------------------------------------------------------------ climbers
@@ -322,10 +324,10 @@ const liveClimbers = () => [...climbers.values()].filter(c => !c.leaving);
 // verlet ropes between consecutive roped climbers
 const ropes = new Map();
 const ropeMat = mat('#ff3d6e', { roughness: 0.45 });
-function ropeStep(key, a, b, dt) {
+function ropeStep(key, a, b, dt, rmat = ropeMat) {
   let r = ropes.get(key);
   const N = 12;
-  if (!r) { r = { p: [], o: [], mesh: new THREE.Mesh(new THREE.BufferGeometry(), ropeMat) }; for (let i = 0; i < N; i++) { const q = a.clone().lerp(b, i / (N - 1)); r.p.push(q); r.o.push(q.clone()); } r.mesh.castShadow = true; scene.add(r.mesh); ropes.set(key, r); }
+  if (!r) { r = { p: [], o: [], mesh: new THREE.Mesh(new THREE.BufferGeometry(), rmat) }; for (let i = 0; i < N; i++) { const q = a.clone().lerp(b, i / (N - 1)); r.p.push(q); r.o.push(q.clone()); } r.mesh.castShadow = true; scene.add(r.mesh); ropes.set(key, r); }
   const pk = PK(), rest = Math.max(a.distanceTo(b) * 1.04, 2.2) / (N - 1), wind = G.wind.clone().multiplyScalar(0.004 * (1 + G.gustAmt * 5));
   r.p[0].copy(a); r.p[N - 1].copy(b);
   for (let i = 1; i < N - 1; i++) { const p = r.p[i], o = r.o[i], vx = (p.x - o.x) * 0.97, vy = (p.y - o.y) * 0.97, vz = (p.z - o.z) * 0.97; o.copy(p); p.x += vx + wind.x * dt; p.y += vy - 0.012 * dt; p.z += vz + wind.z * dt; }
@@ -430,6 +432,7 @@ function fixRope(c, anim) {
 function summit(anim) {
   const pk = PK(), P = curP(), i = S.peak;
   S.summits[i]++; S.day.summits++; S.life.summits++; gearUp(25);
+  if (anim && rvReady && RV.on && RV.st) { RV.st.me++; rvSave(); feed(null, `🏁 you beat ${esc(RV.r.flag + ' ' + RV.r.name)} to the top of ${pk.name}`); }
   if (!S.best[i] || P.moves < S.best[i]) S.best[i] = P.moves;
   const unlockedNew = S.unlocked < PEAKS.length && i === S.unlocked - 1;
   if (unlockedNew) S.unlocked++;
@@ -663,9 +666,188 @@ const A = agents({
 });
 B = board({ game: 'agent-summit', label: 'Altitude (m)', A });
 window.__A = A; window.__B = B; window.__G = G;
+B.onRival((evs, r) => { rivalSync(); for (const e of evs) { try { rvEvent(e, r); } catch (er) { console.warn(er); } } });
+setInterval(rivalSync, 1500); setTimeout(rivalSync, 300);
 Object.defineProperty(window, 'tally', { get: () => ({ mode, peak: S.peak, m: Math.round(curP().m), day: { ...S.day, agents: Object.keys(S.day.agents).length }, life: S.life, climbers: climbers.size }) });
 $('bConnect').onclick = () => A.open();
 $('bBoard').onclick = () => B.open();
+
+// ------------------------------------------------------------------ the rival's rope team (live duel)
+// In a live duel the rival's agents climb the same mountain on a parallel route (wands in their team colour), one
+// named climber per agent. Their finished steps move them up, tests set their camps, commits fix their ropes,
+// deploys are their summit pushes, failures make them slip. A live camera window follows them; the altimeter shows both.
+const RTH = 0.42, RCAP = 5;
+const RVERB = { edit: 'edits', read: 'reads the map', run: 'runs a step', test: 'passes tests', commit: 'commits', deploy: 'deploys', web: 'radios for weather', delegate: 'hires a porter', other: 'finishes a step' };
+const RV = { r: null, key: '', on: false, st: null, cl: new Map(), route: null, ticker: [], hudT: 0 };
+const rcam = new THREE.PerspectiveCamera(42, 1.6, 0.1, 600);
+const rvEl = document.createElement('div'); rvEl.id = 'rv'; rvEl.hidden = true;
+rvEl.innerHTML = `<div class="rvh"><span class="rvn"></span><span class="rvs"></span></div><div class="rvv"><div class="rvo">😴 offline · their team is resting</div></div><div class="rvk"></div><div class="rvr"></div>`;
+document.body.appendChild(rvEl);
+const rvView = rvEl.querySelector('.rvv');
+rvReady = true;
+const altRv = document.createElement('div'); altRv.id = 'altRv'; altRv.hidden = true; $('alti').appendChild(altRv);
+const rvLine = document.createElement('div'); rvLine.id = 'rvLine'; rvLine.hidden = true; $('peakBox').appendChild(rvLine);
+const rvCol = () => RV.r ? (RV.r.sim ? '#c9ced8' : RV.r.color) : '#c9ced8';
+const rvRopeMat = mat('#c9ced8', { roughness: 0.45 });
+function rPathAt(s, out = new THREE.Vector3(), lift = 0.28) {
+  s = clamp(s, 0, 1); const pk = PK(), th = pathTh(pk, s, ['r', 'r']) + RTH * (1 - smooth(0.9, 1, s)), y = Y0 + (pk.YT - 0.4 - Y0) * s;
+  const rr = Math.max(surfR(pk, th, y), capR(pk, y)) + lift; return out.set(Math.cos(th) * rr, y, Math.sin(th) * rr);
+}
+const rvLoad = key => {
+  try { const j = JSON.parse(localStorage.getItem('agent_summit_rival')); if (j && j.key === key) return j; } catch (e) {}
+  const L = mode === 'live' ? S : load('live'); return { key, peak: L.peak, m: L.P[L.peak].m, fixed: 0, camps: [], me: 0, them: 0 };
+};
+const rvSave = () => { if (RV.st) try { localStorage.setItem('agent_summit_rival', JSON.stringify(RV.st)); } catch (e) {} };
+function rvRoute() {   // the rival's line up the mountain: wands with their team-colour flags, their camps
+  if (!RV.on) return;
+  if (RV.route) world.remove(RV.route);
+  const g = new THREE.Group(), col = rvCol(), fm = flagMat(col), wm = mat('#2b2b38'), wg = new THREE.CylinderGeometry(0.03, 0.03, 0.8, 5), fg = new THREE.PlaneGeometry(0.26, 0.16);
+  for (let s = 0.02; s < 0.97; s += 0.022) { const p = rPathAt(s, new THREE.Vector3(), 0.55), w = new THREE.Mesh(wg, wm); w.position.copy(p); w.position.y += 0.2; const f = new THREE.Mesh(fg, fm); f.position.set(0.13, 0.33, 0); w.add(f); g.add(w); }
+  for (const m of (RV.st.camps || []).slice(-RCAP)) g.add(rvTent(m, col));
+  world.add(g); RV.route = g;
+}
+function rvTent(m, col) { const t = makeTent(col, 0.85), p = rPathAt(m / PK().h), th = Math.atan2(p.z, p.x), o = new THREE.Vector3(Math.cos(th), 0, Math.sin(th)); t.position.copy(p).addScaledVector(o, 0.9); t.position.y -= 0.2; t.lookAt(t.position.x + o.x, t.position.y, t.position.z + o.z); return t; }
+function rvClimber(a) {
+  let c = RV.cl.get(a.k); if (c) return c;
+  const col = rvCol(), g = stickman(col, ['#ffd7ba', '#e0a77c', '#c58a5c', '#8d5a3b'][hash(a.k) % 4], 1);
+  const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.23, 16, 8, 0, TAU, 0, Math.PI / 2), mat(RV.r && RV.r.sim ? '#eef1f6' : new THREE.Color(col).lerp(new THREE.Color('#ffffff'), 0.45))); helmet.position.y = 1.55; helmet.castShadow = true;
+  const eyeM = mat('#1b1b26'); for (const x of [-0.07, 0.07]) { const ey = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), eyeM); ey.position.set(x, 1.5, 0.18); g.add(ey); }
+  const pack = new THREE.Mesh(rounded(0.36, 0.44, 0.22, 0.06), mat(new THREE.Color(col).multiplyScalar(0.6))); pack.position.set(0, 1.0, -0.25); pack.castShadow = true;
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.55, 6), mat('#4a3a2a')); shaft.position.set(0, -0.62, 0.1); shaft.rotation.x = 1.3; g.armR.add(shaft);
+  g.add(helmet, pack); g.position.y = -0.1;
+  const root = new THREE.Group(); root.add(g); scene.add(root);
+  const tag = document.createElement('div'); tag.className = 'tag rvtag'; tag.style.setProperty('--c', col);
+  tag.innerHTML = `<span class="rf"></span><span class="nm"></span><small>${a.src === 'codex' ? 'Codex' : 'Claude'}</small><span class="st"></span>`;
+  tag.querySelector('.nm').textContent = a.name; tag.querySelector('.rf').textContent = RV.r ? RV.r.flag : '';
+  tagsEl.appendChild(tag);
+  c = { k: a.k, name: a.name, root, g, tag, st: tag.querySelector('.st'), s: RV.st.m / PK().h, sT: 0, swing: 0, dangle: 0, sit: false, born: now(), state: a.state, i: 0 };
+  RV.cl.set(a.k, c); return c;
+}
+function rvRemove(c) { scene.remove(c.root); c.tag.remove(); RV.cl.delete(c.k); }
+function rvClear() { for (const c of [...RV.cl.values()]) rvRemove(c); if (RV.route) world.remove(RV.route); RV.route = null; for (const [k, r] of ropes) if (k.startsWith('R:')) { scene.remove(r.mesh); r.mesh.geometry.dispose(); ropes.delete(k); } }
+function rivalSync() {
+  const r = B && B.rival ? B.rival() : null;
+  RV.r = r;
+  if (!r) { if (RV.on) { RV.on = false; rvClear(); rvEl.hidden = altRv.hidden = rvLine.hidden = true; stage.autoRender = true; document.body.classList.remove('rv-on'); } return; }
+  const ck = r.sim ? 'sim' : r.color;
+  if (!RV.on || RV.key !== r.key || RV.ck !== ck) {
+    rvClear(); RV.on = true; RV.key = r.key; RV.ck = ck; RV.st = rvLoad(r.key); RV.ticker = [];
+    rvEl.hidden = altRv.hidden = rvLine.hidden = false; stage.autoRender = false; document.body.classList.add('rv-on'); rvRoute();
+  }
+  if (RV.st.peak !== S.peak) { RV.st.peak = S.peak; RV.st.m = curP().m; RV.st.fixed = 0; RV.st.camps = []; rvSave(); rvRoute(); rvSay(`New race on ${PK().name}`); }
+  rvEl.style.setProperty('--rc', rvCol()); altRv.style.setProperty('--rc', rvCol()); rvLine.style.setProperty('--rc', rvCol());
+  const seen = new Set();
+  (r.agents || []).slice(0, 5).forEach((a, i) => { seen.add(a.k); const c = rvClimber(a); c.i = i; c.state = a.state; });
+  for (const [k, c] of RV.cl) if (!seen.has(k)) rvRemove(c);
+  rvView.classList.toggle('off', !r.sim && !r.online);
+  rvHud();
+}
+function rvSay(s, bad) { RV.ticker.unshift({ s, bad, t: Date.now() }); RV.ticker.splice(4); rvHud(); }
+function rfeed(name, text) {
+  const r = RV.r; if (!r) return;
+  const d = document.createElement('div'); d.style.setProperty('--c', rvCol());
+  d.innerHTML = `<b>${r.flag} ${esc(r.name)}'s ${esc(name)}</b> ${text}`; feedEl.appendChild(d);
+  while (feedEl.children.length > 6) feedEl.firstChild.remove();
+  setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 1000); }, 7000);
+}
+function rvHud() {
+  const r = RV.r; if (!r || !RV.st) return;
+  const ags = r.agents || [], pk = PK(), them = RV.st.m, me = curP().m, d = me - them;
+  rvEl.querySelector('.rvn').textContent = `${r.flag} ${r.name}'s rope team`;
+  rvEl.querySelector('.rvs').textContent = r.sim ? `${ags.length} climbers · simulated` : r.online ? `🟢 ${ags.filter(a => a.state === 'working').length}/${ags.length} climbing` : '😴 offline';
+  const tk = RV.ticker[0], k = rvEl.querySelector('.rvk');
+  k.textContent = tk && Date.now() - tk.t < 20000 ? tk.s : (ags.length ? ags.map(a => a.name).join(' · ') : 'no climbers on the rope right now');
+  k.classList.toggle('bad', !!(tk && tk.bad && Date.now() - tk.t < 20000));
+  rvEl.querySelector('.rvr').innerHTML = `<b>${fmt(them)} m</b><span>${Math.abs(d) < 1 ? 'level with you' : d > 0 ? `${fmt(d)} m below you` : `${fmt(-d)} m above you`}</span><small>⚡ ${r.myScore}–${r.score}${RV.st.me || RV.st.them ? ` · summits ${RV.st.me}–${RV.st.them}` : ''}</small>`;
+  rvLine.innerHTML = `⚔️ vs ${r.flag} <b></b> · ${fmt(them)} m ${d >= 0 ? '<i class="w">you lead</i>' : '<i class="l">they lead</i>'}`; rvLine.querySelector('b').textContent = r.name;
+  altRv.style.bottom = clamp(them / pk.h, 0, 1) * 100 + '%'; altRv.textContent = r.flag;
+}
+function rvAdd(dm) {
+  const pk = PK(), st = RV.st; st.m += dm;
+  if (st.m >= pk.h) {
+    st.them++; st.m = 0; st.fixed = 0; st.camps = []; rvRoute();
+    pop(`🚩 ${RV.r.flag} ${RV.r.name.toUpperCase()} SUMMITS!`, `their rope team topped ${pk.name} first · they start again from the base`, rvCol(), 2);
+    rvSay(`${RV.r.name}'s team summits ${pk.name}!`); fireworks(2);
+  }
+}
+// one of the rival's agents finished a step
+function rvEvent(e, r) {
+  const c = RV.cl.get(e.agent.k); if (!c || !RV.st) return;
+  const st = RV.st, name = c.name;
+  if (!e.ok) {
+    const lost = Math.min(STEP * 2, Math.max(0, st.m - st.fixed)); st.m -= lost; c.dangle = 1;
+    rvSay(`${name} slipped! ${lost > 0 ? `−${fmt(lost)} m` : 'their fixed rope held'}`, true); rfeed(name, `😱 slipped${lost > 0 ? ` · −${fmt(lost)} m` : ' · fixed rope held'}`);
+  } else {
+    c.swing = 1; rvAdd(STEP);
+    if (e.cat === 'test') { st.camps = [...(st.camps || []), st.m].slice(-RCAP); if (RV.route) RV.route.add(rvTent(st.m, rvCol())); rvSay(`${name} passes tests: camp at ${fmt(st.m)} m`); rfeed(name, `⛺ passes tests · camp at ${fmt(st.m)} m`); }
+    else if (e.cat === 'commit') { st.fixed = st.m; rvSay(`${name} commits: fixed ropes to ${fmt(st.m)} m`); rfeed(name, `🪢 commits · fixed ropes to ${fmt(st.m)} m`); }
+    else if (e.cat === 'deploy') { rvAdd(150); rvSay(`${name} deploys: summit push +150 m!`); rfeed(name, '🚀 deploys · summit push +150 m'); toast(`🚀 ${r.flag} ${r.name}'s ${name} deployed: their team pushes +150 m`, 3000); const lead = [...RV.cl.values()][0]; if (lead) burst(scene, lead.root.position.clone().add(new THREE.Vector3(0, 2, 0)), [rvCol(), '#ffffff', '#ffd23f'], 30, { speed: 0.14, up: 0.16, size: 0.7 }); }
+    else if (Math.random() < 0.3) rvSay(`${name} ${RVERB[e.cat] || RVERB.other} · +${STEP} m`);
+  }
+  rvSave(); rvHud();
+}
+// per frame: move the rival climbers along their route, rope them, render the main view and their camera window
+function rvFrame(dt, t) {
+  if (!RV.on) return;
+  const r = RV.r, off = r && !r.sim && !r.online, pk = PK(), list = [...RV.cl.values()].sort((a, b) => a.i - b.i);
+  list.forEach((c, idx) => {
+    c.sT = clamp(RV.st.m / pk.h - idx * gapS, 0, 1); const ds = c.sT - c.s; c.s += ds * Math.min(1, 0.06 * dt);
+    const p = rPathAt(c.s, tmp), th = Math.atan2(p.z, p.x), out = tmp2.set(Math.cos(th), 0, Math.sin(th)), rt = c.root, g = c.g;
+    rt.position.copy(p);
+    const ahead = rPathAt(Math.min(1, c.s + 0.004), new THREE.Vector3()).sub(p).setY(0).normalize();
+    const sit = off || c.state === 'waiting' || c.state === 'idle';
+    const look = sit ? out.clone() : ahead.multiplyScalar(0.8).addScaledVector(out, -0.6); rt.lookAt(rt.position.x + look.x, rt.position.y, rt.position.z + look.z);
+    g.rotation.set(0, 0, 0); g.scale.set(1, 1, 1); g.position.y = -0.1;
+    if (c.dangle > 0) {
+      c.dangle -= 0.012 * dt; const k = Math.sin(c.dangle * Math.PI); rt.position.y -= 1.6 * k; rt.position.addScaledVector(out, 0.7 * k);
+      g.rotation.z = Math.sin(t * 9) * 0.5 * k; g.armL.rotation.set(0, 0, -2.6); g.armR.rotation.set(0, 0, 2.6); c.st.textContent = ' 😱';
+    } else if (sit) {
+      g.position.y = -0.55; g.legL.rotation.set(-1.45, 0, 0); g.legR.rotation.set(-1.45, 0, 0); g.armL.rotation.set(0, 0, 0);
+      g.armR.rotation.set(0, 0, c.state === 'waiting' && !off ? 2.5 + Math.sin(t * 8) * 0.35 : 0.2); rt.position.addScaledVector(out, 0.45);
+      c.st.textContent = off ? ' 😴' : c.state === 'waiting' ? ' 👋' : ' ☕';
+    } else {
+      g.armL.rotation.set(0, 0, 0); g.armR.rotation.set(0, 0, 0); g.legL.rotation.set(0, 0, 0); g.legR.rotation.set(0, 0, 0);
+      g.run(t * 0.55, Math.abs(ds) * pathLen > 0.05 ? 0.7 : 0.08); g.armL.rotation.x = -1.2;
+      if (c.swing > 0) { c.swing -= 0.06 * dt; const k = 1 - c.swing; g.armR.rotation.x = k < 0.35 ? lerp(0, -2.7, k / 0.35) : lerp(-2.7, -0.4, (k - 0.35) / 0.65); }
+      c.st.textContent = '';
+    }
+    rt.scale.setScalar(Math.min(1, (now() - c.born) / 400));
+  });
+  for (let i = 0; i < list.length - 1; i++) { const a = list[i].root.position.clone(), b = list[i + 1].root.position.clone(); a.y += 0.85; b.y += 0.85; ropeStep('R:' + list[i].k + '|' + list[i + 1].k, a, b, dt, rvRopeMat); }
+  rvRopeMat.color.set(rvCol());
+  // the main view (its tags are placed by the main loop), then the camera window on their lead climber
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight); renderer.render(scene, camera);
+  const lead = list[0], focus = lead ? lead.root.position.clone() : rPathAt(RV.st.m / pk.h, new THREE.Vector3());
+  if (list.length > 1) focus.lerp(list[list.length - 1].root.position, 0.3);
+  RV.focus = RV.focus ? RV.focus.lerp(focus, 0.08 * dt) : focus.clone();
+  const rc = rvView.getBoundingClientRect();
+  if (rc.width > 10 && !rvEl.hidden) {
+    const asp = rc.width / rc.height; if (Math.abs(rcam.aspect - asp) > 0.001) { rcam.aspect = asp; rcam.updateProjectionMatrix(); }
+    const fth = Math.atan2(RV.focus.z, RV.focus.x), fr = Math.hypot(RV.focus.x, RV.focus.z), az = fth + 0.2 + Math.sin(t * 0.09) * 0.06, D = 6.6;
+    rcam.position.set(Math.cos(az) * (fr + D), RV.focus.y + 2.2, Math.sin(az) * (fr + D)); rcam.lookAt(RV.focus.x, RV.focus.y + 0.9, RV.focus.z);
+    const y = innerHeight - rc.bottom;
+    renderer.setScissorTest(true); renderer.setViewport(rc.left, y, rc.width, rc.height); renderer.setScissor(rc.left, y, rc.width, rc.height);
+    renderer.render(scene, rcam);
+    renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight);
+  }
+  // rival name tags: in the main view when they are on screen, otherwise inside their window
+  for (const c of list) {
+    const base = c.root.position.clone(); base.y += 2.15;
+    tmp.copy(base).project(camera);
+    let x, y, vis = tmp.z < 1 && Math.abs(tmp.x) < 1.05 && Math.abs(tmp.y) < 1.05;
+    if (vis) { x = (tmp.x + 1) / 2 * innerWidth; y = (1 - tmp.y) / 2 * innerHeight; if (x > rc.left && x < rc.right && y > rc.top && y < rc.bottom) vis = false; }
+    if (!vis) { tmp.copy(base).project(rcam); if (tmp.z < 1 && Math.abs(tmp.x) < 1 && Math.abs(tmp.y) < 1) { x = rc.left + (tmp.x + 1) / 2 * rc.width; y = rc.top + (1 - tmp.y) / 2 * rc.height; vis = true; } }
+    c.tag.style.display = vis ? '' : 'none'; c.scr = vis ? { x, y } : null;
+  }
+  const placed = [];   // nudge overlapping rival tags upward so every callsign stays readable
+  for (const c of list.filter(c => c.scr).sort((a, b) => b.scr.y - a.scr.y)) {
+    if (!c.tw || Math.random() < 0.01) { c.tw = c.tag.offsetWidth || 70; c.th = c.tag.offsetHeight || 20; }
+    let y = c.scr.y;
+    for (let pass = 0; pass < 4; pass++) { let hit = false; for (const o of placed) if (Math.abs(o.x - c.scr.x) < (o.w + c.tw) / 2 + 2 && Math.abs(o.y - y) < c.th + 1) { y = o.y - c.th - 1; hit = true; } if (!hit) break; }
+    placed.push({ x: c.scr.x, y, w: c.tw }); c.tag.style.transform = `translate(${c.scr.x}px,${y}px) translate(-50%,-100%)`;
+  }
+  if ((RV.hudT += dt / 60) > 1) { RV.hudT = 0; rvHud(); }
+}
 
 // ------------------------------------------------------------------ sky by the real clock
 const KEY = [ // hour, sky top, horizon, sun colour, sun int, hemi int, night
@@ -815,7 +997,7 @@ loop((dt, t) => {
     const a = roped[i].root.position.clone(), b = roped[i + 1].root.position.clone(); a.y += 0.85; b.y += 0.85;
     ropeStep(roped[i].id + '|' + roped[i + 1].id, a, b, dt);
   }
-  for (const [k, r] of ropes) if (!r.alive) { scene.remove(r.mesh); r.mesh.geometry.dispose(); ropes.delete(k); }
+  for (const [k, r] of ropes) if (!r.alive && !(RV.on && k.startsWith('R:') && RV.cl.size > 1)) { scene.remove(r.mesh); r.mesh.geometry.dispose(); ropes.delete(k); }
   // tents popping in, flags waving
   for (let i = popping.length - 1; i >= 0; i--) { const o = popping[i]; o.pop += 0.04 * dt; const k = o.pop; o.scale.setScalar(k >= 1 ? 1 : Math.max(0.01, 1 + 2.7 * (k - 1) ** 3 + 1.7 * (k - 1) ** 2)); if (k >= 1) { o.scale.setScalar(1); popping.splice(i, 1); } }
   for (const f of wavers) { f.rotation.y = Math.sin(t * 3 + f.id) * 0.35 * (1 + G.gustAmt); f.scale.y = 1 + Math.sin(t * 7 + f.id) * 0.05; }
@@ -852,6 +1034,7 @@ loop((dt, t) => {
   sun.position.copy(G.focus).addScaledVector(G.lightDir || up, 40); sun.target.position.copy(G.focus); sun.shadow.camera.far = 90;
   // HUD
   hud(L, roped);
+  rvFrame(dt, t);
 });
 
 let hudT = 0;

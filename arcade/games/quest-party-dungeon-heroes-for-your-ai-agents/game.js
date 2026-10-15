@@ -1001,10 +1001,228 @@ const A = agents({
 });
 window.__A = A;
 B = board({ game: 'agent-dungeon', label: 'Quest Points', A });
+window.__B = B;
+B.onRival((evs, r) => { rivalSync(); for (const e of evs) { try { rvEvent(e, r); } catch (er) { console.warn(er); } } });
 window.__qp = () => ({ mode, save, today, heroes: heroes.size });
+
+// ================================================================ the rival's party (live duel)
+// In a live duel the rival's agents are a second party, one hero per agent (callsign tags, the rival's team colour,
+// silver when simulated), fighting through their own dungeon in a chamber you watch through a scrying window.
+// Their finished steps are their hits, passed tests their ultimates, commits their chests, deploys clear their floor,
+// failures let their monster hit back. Their floor races yours.
+const ROFF = new THREE.Vector3(0, 420, 0), RH2 = 3.5;
+const rcam = new THREE.PerspectiveCamera(30, 1.6, 0.1, 200);
+const rat = (s, t, y = 0.17) => at(s, t, y).add(ROFF);
+const RSLOTS = [[-0.9, -0.85], [-0.9, 0.85], [-2.1, -1.7], [-2.1, 0], [-2.1, 1.7]];
+const RCLS = ['knight', 'mage', 'rogue', 'ranger', 'summoner'];
+const RVERB = { edit: 'edits', read: 'reads the code', run: 'runs a step', test: 'passes the tests', commit: 'commits', deploy: 'deploys', web: 'searches the web', delegate: 'sends a helper', other: 'finishes a step' };
+const RV = { r: null, key: '', on: false, room: null, heroes: new Map(), mon: null, st: null, ticker: [], light: null, flames: [] };
+const rvEl = document.createElement('div'); rvEl.id = 'rv'; rvEl.hidden = true;
+rvEl.innerHTML = `<div class="rvh"><span class="rvn"></span><span class="rvs"></span></div><div class="rvv" id="rvView"><div class="rvt"></div><div class="rvo">😴 offline · their party rests</div></div><div class="rvm"><span class="mn"></span><span class="hp"><i></i></span></div><div class="rvk"></div><div class="rvr"></div>`;
+document.body.appendChild(rvEl);
+const rvView = rvEl.querySelector('.rvv'), rvTags = rvEl.querySelector('.rvt');
+const rvLoad = key => { try { const j = JSON.parse(localStorage.getItem('questparty_rival')); if (j && j.key === key) return j; } catch (e) {} const real = mode === 'real' ? save : (S.get('save', null) || {}); return { key, floor: Math.max(1, real.floor || 1), room: 0, hp: null, kills: 0 }; };
+const rvSave = () => { if (RV.st) try { localStorage.setItem('questparty_rival', JSON.stringify(RV.st)); } catch (e) {} };
+const rvCol = () => RV.r ? (RV.r.sim ? '#c9ced8' : RV.r.color) : '#c9ced8';
+function rvBuildRoom() {
+  if (RV.room) scene.remove(RV.room);
+  const g = new THREE.Group(); g.position.copy(ROFF); RV.room = g; scene.add(g); RV.flames = [];
+  const th = THEMES[Math.floor((RV.st.floor - 1) / 5) % THEMES.length], r = rng(RV.st.floor * 131 + 7), pick = a => a[(r() * a.length) | 0], col = rvCol();
+  const base = mesh(rounded(RH2 * 2 + 0.6, 1.4, RH2 * 2 + 0.6, 0.2), M(th.base), 0, -0.85, 0); g.add(base);
+  g.add(mesh(rounded(RH2 * 2 + 0.9, 0.26, RH2 * 2 + 0.9, 0.1), M(col), 0, -0.2, 0, false));       // a rim in the rival's team colour
+  const n = (RH2 * 2) ** 2, tiles = new THREE.InstancedMesh(tileGeo, M('#ffffff'), n), m4 = new THREE.Matrix4(), c = new THREE.Color(); let k = 0;
+  for (let x = -RH2; x < RH2; x++) for (let z = -RH2; z < RH2; z++) { m4.makeTranslation(x + 0.5, -0.02 + (r() - 0.5) * 0.06, z + 0.5); tiles.setMatrixAt(k, m4); tiles.setColorAt(k++, c.set(pick(th.floor))); }
+  g.add(tiles);
+  const bricks = new THREE.InstancedMesh(brickGeo, M('#ffffff'), 120), q = new THREE.Quaternion(), yA = new THREE.Vector3(0, 1, 0), sc = new THREE.Vector3(1, 1, 1); k = 0;
+  for (let row = 0; row < 5; row++) { const y = 0.4 + row * 0.5, off = row % 2 ? 0.5 : 0;
+    for (let i = -RH2 - 1; i < RH2; i++) { const x = i + off + 0.5; if (x < -RH2 - 0.2 || x > RH2 + 0.2) continue;
+      m4.compose(new THREE.Vector3(x, y, -RH2 - 0.3), q.identity(), sc); bricks.setMatrixAt(k, m4); bricks.setColorAt(k++, c.set(pick(th.wall)));
+      m4.compose(new THREE.Vector3(-RH2 - 0.3, y, x), q.setFromAxisAngle(yA, Math.PI / 2), sc); bricks.setMatrixAt(k, m4); bricks.setColorAt(k++, c.set(pick(th.wall))); } }
+  bricks.count = k; g.add(bricks);
+  for (const x of [-1.6, 1.4]) { const b = mesh(new THREE.BoxGeometry(0.8, 1.25, 0.05), M(col), x, 1.75, -RH2 + 0.02); g.add(b); const t = mesh(new THREE.ConeGeometry(0.42, 0.35, 3), b.material, x, 0.98, -RH2 + 0.02); t.rotation.set(0, 0, Math.PI); g.add(t); }
+  for (const [x, z] of [[-RH2 + 0.1, 0.8], [0.1, -RH2 + 0.1]]) { const f = mesh(new THREE.ConeGeometry(0.14, 0.4, 6), new THREE.MeshBasicMaterial({ color: th.torch }), x, 2.1, z, false); g.add(f); RV.flames.push(f); }
+  const L = new THREE.PointLight(th.torch, 7, 11, 1.3); L.position.set(-1, 2.6, -1); g.add(L); RV.light = L;
+  const D = new THREE.DirectionalLight('#ffe7c9', 1.1); D.position.set(4, 9, 6); D.target.position.set(0, 0, 0); g.add(D, D.target);
+}
+function rvSpawn(drop = true) {
+  if (RV.mon) scene.remove(RV.mon.g);
+  const st = RV.st, boss = isBossFloor(st.floor);
+  let type, name;
+  if (boss) [type, name] = BOSSES[(Math.floor(st.floor / 5) - 1) % BOSSES.length];
+  else { const r = rng(st.floor * 53 + st.room * 11 + 5); type = MTYPES[(r() * MTYPES.length) | 0]; name = MNAMES[type]; }
+  const g = buildMonster(type, false), sc = boss ? 1.45 : 1.05, max = boss ? 10 : 4;
+  g.scale.setScalar(sc); g.position.copy(rat(1.75, 0)); g.lookAt(rat(-3, 0)); if (drop) g.position.y += 6;
+  scene.add(g);
+  RV.mon = { g, type, name, boss, max, hp: st.hp != null ? Math.min(st.hp, max) : max, sc, flash: 0, sq: 0, lunge: 0, lungeAt: null, dead: false, falling: drop, vy: 0 };
+  st.hp = RV.mon.hp; rvSave(); rvHud();
+}
+function rvHero(a) {
+  let h = RV.heroes.get(a.k);
+  if (h) return h;
+  const cls = RCLS[hash(a.k + a.name) % RCLS.length];
+  h = { k: a.k, name: a.name, src: a.src, cls, counts: {}, swing: 0, cast: 0, cheer: 0, flash: 0, sq: 0, drop: 1, state: a.state, slot: 0, busy: false };
+  h.g = buildHeroMesh(rvCol(), cls); h.g.scale.setScalar(0.82); scene.add(h.g);
+  const tg = document.createElement('div'); tg.className = 'tag rvtag'; tg.style.setProperty('--c', rvCol());
+  tg.innerHTML = `<div class="wait">✋ waiting</div><div class="nm"><span class="ic"></span><span class="lb"></span><span class="cls"></span></div>`;
+  tg.querySelector('.lb').textContent = a.name; tg.querySelector('.ic').textContent = CLASSES[cls].ic; tg.querySelector('.cls').textContent = a.src === 'codex' ? 'Codex' : 'Claude';
+  rvTags.appendChild(tg); h.tag = tg;
+  h.home = rat(RSLOTS[0][0], RSLOTS[0][1]); h.g.position.copy(h.home); h.g.position.y += 4;
+  RV.heroes.set(a.k, h);
+  return h;
+}
+function rvClear() {
+  for (const h of RV.heroes.values()) { scene.remove(h.g); h.tag.remove(); }
+  RV.heroes.clear(); if (RV.mon) scene.remove(RV.mon.g); RV.mon = null; if (RV.room) scene.remove(RV.room); RV.room = null;
+}
+function rivalSync() {
+  const r = B && B.rival ? B.rival() : null;
+  RV.r = r;
+  if (!r) { if (RV.on) { RV.on = false; rvClear(); rvEl.hidden = true; stage.autoRender = true; document.body.classList.remove('rv-on'); } return; }
+  const colChanged = RV.on && RV.colKey !== (r.sim ? 'sim' : r.color);
+  if (!RV.on || RV.key !== r.key || colChanged) {
+    rvClear(); RV.on = true; RV.key = r.key; RV.st = rvLoad(r.key); RV.ticker = []; RV.colKey = r.sim ? 'sim' : r.color;
+    rvBuildRoom(); rvSpawn(false); rvEl.hidden = false; stage.autoRender = false; document.body.classList.add('rv-on');
+  }
+  rvEl.style.setProperty('--rc', rvCol());
+  const seen = new Set();
+  (r.agents || []).slice(0, 5).forEach((a, i) => { seen.add(a.k); const h = rvHero(a); h.slot = i; h.state = a.state; h.name = a.name; h.tag.classList.toggle('waiting', a.state === 'waiting' && r.online !== false); });
+  for (const [k, h] of RV.heroes) if (!seen.has(k)) { poof(h.g.position, rvCol()); scene.remove(h.g); h.tag.remove(); RV.heroes.delete(k); }
+  rvView.classList.toggle('off', !r.sim && !r.online);
+  rvHud();
+}
+function rvHud() {
+  const r = RV.r; if (!r || !RV.st) return;
+  const ags = r.agents || [], f = RV.st.floor, me = save.floor;
+  rvEl.querySelector('.rvn').textContent = `${r.flag} ${r.name}'s party`;
+  rvEl.querySelector('.rvs').textContent = r.sim ? `${ags.length} heroes · simulated` : r.online ? `🟢 ${ags.filter(a => a.state === 'working').length}/${ags.length} fighting` : '😴 offline';
+  if (RV.mon) { rvEl.querySelector('.mn').textContent = `FLOOR ${f} · ${RV.mon.boss ? '👑 ' : ''}${RV.mon.name}`; rvEl.querySelector('.hp i').style.width = clamp(RV.mon.hp / RV.mon.max, 0, 1) * 100 + '%'; }
+  const lead = f > me ? `${r.name} leads by ${f - me} floor${f - me > 1 ? 's' : ''}` : f < me ? `you lead by ${me - f} floor${me - f > 1 ? 's' : ''}` : 'neck and neck';
+  rvEl.querySelector('.rvr').innerHTML = `<b>You F${me}</b><i></i><b style="color:var(--rc)">F${f} ${r.flag}</b><small>${lead} · ⚡ ${r.myScore}–${r.score}</small>`;
+  const tk = RV.ticker[0];
+  rvEl.querySelector('.rvk').innerHTML = tk && Date.now() - tk.t < 20000 ? `<span class="${tk.bad ? 'bad' : ''}"></span>` : '';
+  if (tk && Date.now() - tk.t < 20000) rvEl.querySelector('.rvk span').textContent = tk.s;
+}
+function rvSay(s, bad) { RV.ticker.unshift({ s, bad, t: Date.now() }); RV.ticker.splice(4); rvHud(); }
+const _p = new THREE.Vector3();
+function rvScr(p) { const rc = rvView.getBoundingClientRect(); _p.copy(p).project(rcam); return { x: (_p.x + 1) / 2 * rc.width, y: (1 - _p.y) / 2 * rc.height, ok: _p.z < 1 }; }
+function rnum(pos, text, color = '#fff', cls = '') {
+  const s = rvScr(pos); const d = document.createElement('div'); d.className = 'num small ' + cls; d.textContent = text; d.style.color = color;
+  d.style.left = s.x + (Math.random() - 0.5) * 20 + 'px'; d.style.top = s.y + 'px'; rvTags.appendChild(d); setTimeout(() => d.remove(), 1000);
+}
+const rvHit = () => RV.mon ? RV.mon.g.position.clone().setY(RV.mon.g.position.y + 0.95 * RV.mon.sc) : rat(1.75, 0, 1);
+function rvDamage(n, color, big) {
+  const m = RV.mon; if (!m || m.dead || m.falling) return;
+  m.hp = Math.max(0, m.hp - n); m.flash = 1; m.sq = big ? 1.3 : 0.7; RV.st.hp = m.hp;
+  rnum(rvHit(), big ? `✦${n}!` : `-${n}`, big ? '#fff' : color, big ? 'ult' : '');
+  burst(scene, rvHit(), [color, '#ffffff'], big ? 20 : 6, { speed: big ? 0.13 : 0.08, up: 0.05, size: big ? 0.8 : 0.5, gravity: 0.004 });
+  if (m.hp <= 0) rvKill(); rvSave(); rvHud();
+}
+function rvKill() {
+  const m = RV.mon, st = RV.st, r = RV.r; m.dead = true;
+  tween(0.45, p => { m.g.scale.setScalar(m.sc * (1 + p * 0.3) * (1 - p)); m.g.rotation.y += 0.3; }, () => scene.remove(m.g));
+  burst(scene, rvHit(), ['#ffcf5a', '#ffffff', rvCol()], 24, { speed: 0.13, up: 0.1, size: 0.7 });
+  st.kills++; st.room++; st.hp = null;
+  for (const h of RV.heroes.values()) h.cheer = 1;
+  if (m.boss && r) { toast(`👑 ${r.flag} ${r.name}'s party defeated ${m.name}!`, 3500); rvSay(`${r.name}'s party defeated ${m.name}!`); }
+  if (st.room >= perFloor(st.floor)) wait(0.9, rvDescend); else wait(0.8, () => rvSpawn(true));
+  rvSave();
+}
+function rvDescend(byDeploy) {
+  const st = RV.st, r = RV.r; if (!r) return;
+  st.floor++; st.room = 0; st.hp = null; rvSave();
+  rvBuildRoom(); rvSpawn(true);
+  for (const h of RV.heroes.values()) { h.drop = 1; h.g.position.y += 4; }
+  const me = save.floor, f = st.floor;
+  rvSay(`${r.name}'s party descends to floor ${f}${byDeploy ? ' (deploy!)' : ''}`);
+  toast(`⤵ ${r.flag} ${r.name}'s party reached floor ${f}${f > me ? `, ahead of you (F${me})` : f === me ? ', level with you' : ` (you: F${me})`}`, 3500);
+  rvHud();
+}
+// one of the rival's agents finished a step
+function rvEvent(e, r) {
+  const h = RV.heroes.get(e.agent.k); if (!h) return;
+  const m = RV.mon, col = rvCol(), who = h.name;
+  h.counts[e.cat] = (h.counts[e.cat] || 0) + 1;
+  if (!e.ok) {
+    rvSay(`${who} hit an error, ${m && !m.dead ? m.name : 'the monster'} strikes back`, true);
+    if (m && !m.dead && !m.falling) { m.lunge = 1; m.lungeAt = h; wait(0.18, () => { h.flash = 1; h.sq = 1; rnum(h.g.position.clone().setY(h.g.position.y + 2), 'OUCH', '#ff7070', 'hurt'); }); }
+    return;
+  }
+  if (e.cat === 'deploy') { rvSay(`${who} deploys: the whole floor is cleared!`); toast(`🚀 ${r.flag} ${r.name}'s ${who} deployed and cleared floor ${RV.st.floor}`, 3000); if (m && !m.dead) { h.cast = 1; shoot(h.g.position.clone().setY(h.g.position.y + 1.8), rvHit(), 'big', '#7cc8ff', () => { if (RV.mon && !RV.mon.dead) { RV.mon.dead = true; scene.remove(RV.mon.g); } burst(scene, rvHit(), ['#7cc8ff', '#ffffff'], 24, { speed: 0.14, up: 0.1, size: 0.8 }); wait(0.5, () => rvDescend(true)); }); } return; }
+  if (!m || m.dead || m.falling) { h.cheer = 0.8; return; }
+  if (e.cat === 'test') {
+    rvSay(`${who} passes the tests: ULTIMATE!`); h.cheer = 0.6;
+    const p0 = h.g.position.clone().setY(h.g.position.y + 1.6);
+    h.busy = true; tween(0.3, p => { h.g.position.y = h.home.y + Math.sin(p * Math.PI) * 1.3; h.g.rotation.y += 0.5; }, () => { h.busy = false; h.g.position.y = h.home.y; }); wait(0.3, () => shoot(p0, rvHit(), 'big', col === '#c9ced8' ? '#ff9cf0' : col, () => rvDamage(3, col, true)));
+    return;
+  }
+  if (e.cat === 'commit') {
+    rvSay(`${who} commits: a treasure chest!`);
+    const cp = rat(-0.2 + (Math.random() - 0.5), 1.4, 0.6); sparkle(cp, '#ffe14d', 18); rnum(cp, '🧰 +loot', '#ffcf5a', 'gold');
+  } else if (Math.random() < 0.35) rvSay(`${who} ${RVERB[e.cat] || RVERB.other} and hits ${m.name}`);
+  // the hit itself, class-flavoured
+  const home = h.home.clone(), tgt = rvHit();
+  if (h.cls === 'knight' || h.cls === 'rogue') {
+    if (h.busy) return rvDamage(1, col);
+    h.busy = true; const to = rat(1.75 - 1.05 * m.sc, h.cls === 'rogue' ? 0.5 : 0);
+    tween(0.16, p => h.g.position.lerpVectors(home, to, p * p), () => { h.swing = 1; rvDamage(1, col); tween(0.22, p => h.g.position.lerpVectors(to, home, p), () => { h.busy = false; }); });
+  } else { h.cast = 1; shoot(h.g.position.clone().setY(h.g.position.y + 1.4), tgt, h.cls === 'ranger' ? 'arrow' : 'orb', h.cls === 'mage' ? '#6fe3ff' : col, () => rvDamage(1, col)); }
+}
+// per frame: animate the rival party and draw their chamber into the scrying window
+function rvFrame(sec, t) {
+  if (!RV.on) return;
+  const r = RV.r, off = r && !r.sim && !r.online, mp = RV.mon ? RV.mon.g.position : rat(1.75, 0);
+  for (const f of RV.flames) f.scale.set(1, 0.85 + Math.sin(t * 11 + f.id) * 0.1 + Math.random() * 0.08, 1);
+  for (const h of RV.heroes.values()) {
+    const g = h.g, s = RSLOTS[h.slot] || RSLOTS[0]; h.home = rat(s[0], s[1]);
+    if (h.drop) { g.position.y = Math.max(h.home.y, g.position.y - 0.25 * sec * 60); if (g.position.y <= h.home.y + 0.001) h.drop = 0; }
+    else if (!h.busy) { g.position.x = lerp(g.position.x, h.home.x, 0.12); g.position.z = lerp(g.position.z, h.home.z, 0.12); g.position.y = h.home.y; }
+    if (!g.position.lengthSq() || Math.abs(g.position.y - ROFF.y) > 50) g.position.copy(h.home);
+    const ang = Math.atan2(mp.x - g.position.x, mp.z - g.position.z); g.rotation.y = lerp(g.rotation.y, ang, 0.15);
+    h.swing = Math.max(0, h.swing - sec * 4); h.cast = Math.max(0, h.cast - sec * 3); h.cheer = Math.max(0, h.cheer - sec); h.flash = Math.max(0, h.flash - sec * 4); h.sq = Math.max(0, h.sq - sec * 3);
+    const waiting = h.state === 'waiting' && !off, resting = off || h.state === 'idle';
+    g.body.position.y = resting ? -0.18 : Math.sin(t * 5 + hash(h.k)) * 0.04 + (h.cheer > 0 ? Math.abs(Math.sin(h.cheer * 10)) * 0.4 : 0);
+    g.body.scale.set(1.3 * (1 + h.sq * 0.25), 1.3 * (1 - h.sq * 0.25), 1.3 * (1 + h.sq * 0.25));
+    g.armR.rotation.x = waiting ? -2.8 + Math.sin(t * 8) * 0.4 : -h.swing * 2.4 - h.cast * 1.6 + (h.cheer > 0 ? -2.8 : 0);
+    g.armL.rotation.x = h.cheer > 0 ? -2.8 : h.cls === 'ranger' ? -1.4 : -0.3;
+    for (const mm of g.mats) { if (!mm.userData.e0) { mm.userData.e0 = mm.emissive.clone(); mm.userData.ei = mm.emissiveIntensity; } mm.emissive.copy(mm.userData.e0).lerp(new THREE.Color('#ff2a2a'), h.flash); mm.emissiveIntensity = h.flash > 0 ? 1 : mm.userData.ei; }
+    g.ring.material.opacity = 0.45 + Math.sin(t * 3) * 0.15;
+    h.sp = rvScr(g.position.clone().setY(g.position.y + (resting ? 1.9 : 2.25)));
+  }
+  // name tags: nudge overlapping ones upward so every callsign stays readable
+  const placed = [];
+  for (const h of [...RV.heroes.values()].sort((a, b) => b.sp.y - a.sp.y)) {
+    if (!h.tw || Math.random() < 0.01) { h.tw = h.tag.offsetWidth || 70; h.th = 20; }
+    let y = h.sp.y;
+    for (let pass = 0; pass < 4; pass++) { let hit = false; for (const o of placed) if (Math.abs(o.x - h.sp.x) < (o.w + h.tw) / 2 + 2 && Math.abs(o.y - y) < h.th + 1) { y = o.y - h.th - 1; hit = true; } if (!hit) break; }
+    placed.push({ x: h.sp.x, y, w: h.tw }); h.tag.style.left = h.sp.x + 'px'; h.tag.style.top = y + 'px';
+  }
+  const m = RV.mon;
+  if (m && !m.dead) {
+    const g = m.g, base = rat(1.75, 0);
+    if (m.falling) { m.vy += 0.02 * sec * 60; g.position.y -= m.vy * sec * 60; if (g.position.y <= base.y) { g.position.y = base.y; m.falling = false; m.vy = 0; m.sq = 1.1; burst(scene, base.clone().setY(base.y + 0.2), '#d8cbb0', 8, { speed: 0.08, up: 0.03, size: 0.6 }); } }
+    m.sq = Math.max(0, m.sq - sec * 4); m.flash = Math.max(0, m.flash - sec * 9); m.lunge = Math.max(0, m.lunge - sec * 3);
+    const idle = Math.sin(t * 2.6); g.body.scale.set(1 + m.sq * 0.3, 1 - m.sq * 0.3 + idle * 0.02, 1 + m.sq * 0.3);
+    if (!m.falling) { const to = m.lungeAt && m.lungeAt.g ? m.lungeAt.g.position : rat(-2, 0); const dir = new THREE.Vector3().subVectors(to, base).setY(0).normalize(), l = Math.sin(m.lunge * Math.PI) * 1.1; g.position.x = base.x + dir.x * l; g.position.z = base.z + dir.z * l; }
+    if (g.wings) { g.wings[0].rotation.y = Math.sin(t * 14) * 0.8; g.wings[1].rotation.y = -Math.sin(t * 14) * 0.8; }
+    for (const mm of g.mats) { mm.emissive.copy(mm.userData.e0).lerp(new THREE.Color('#ffffff'), m.flash * 0.7); mm.emissiveIntensity = m.flash > 0 ? Math.max(mm.userData.ei, m.flash * 0.45) : mm.userData.ei; }
+  }
+  // render: the main dungeon, then the rival's chamber into the window
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight);
+  renderer.render(scene, camera);
+  const rc = rvView.getBoundingClientRect(); if (rc.width < 10 || rvEl.hidden) return;
+  const asp = rc.width / rc.height; if (Math.abs(rcam.aspect - asp) > 0.001) { rcam.aspect = asp; rcam.updateProjectionMatrix(); }
+  const look = ROFF.clone().add(at(-0.2, 0.2, 0.6)); rcam.position.copy(CAMDIR).multiplyScalar(asp < 1.2 ? 17 : 13.5).add(look); rcam.lookAt(look);
+  const y = innerHeight - rc.bottom;
+  renderer.setScissorTest(true); renderer.setViewport(rc.left, y, rc.width, rc.height); renderer.setScissor(rc.left, y, rc.width, rc.height);
+  renderer.setClearColor('#120d1c', 1); renderer.clear();
+  renderer.render(scene, rcam);
+  renderer.setClearColor(0x000000, 0); renderer.setScissorTest(false); renderer.setViewport(0, 0, innerWidth, innerHeight);
+  if ((RV.hudT = (RV.hudT || 0) + sec) > 1) { RV.hudT = 0; rvHud(); }
+}
 
 // ================================================================ frame loop
 buildRoom(); spawnMonster(true); hud();
+setInterval(rivalSync, 1500); setTimeout(rivalSync, 300);
 const look = new THREE.Vector3(), camBase = new THREE.Vector3();
 let camDist = 20, lastSec = performance.now() / 1000, tagT = 0;
 function fitCamera() {
@@ -1107,4 +1325,5 @@ loop((dt, t) => {
   }
   if (tagT > 0.25) tagT = 0;
   if (mon) { const s = scr(mon.g.position.clone().setY(mon.g.position.y + (mon.boss ? 4.4 : mon.type === 'bat' ? 2.4 * mon.sc : 2.3 * mon.sc))); const mb = $('#mbar'); mb.style.left = s.x + 'px'; mb.style.top = s.y + 'px'; mb.style.opacity = mon.dead ? 0 : 1; }
+  rvFrame(sec, t);
 });

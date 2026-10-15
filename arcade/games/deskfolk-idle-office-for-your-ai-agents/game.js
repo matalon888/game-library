@@ -18,12 +18,15 @@ const rollDay = () => { if (S.day.date !== today()) S.day = newDay(); };
 const cv = document.getElementById('c'), cx = cv.getContext('2d');
 const W = 256, H = 174;
 let scale = 4, ox = 0, oy = 0, dpr = 1;
+// in a live duel the rival's office sits across the street, below ours (RH tall, GAP of street between)
+const RH = 124, GAP = 10;
+let RVon = false;
 function fit() {
   dpr = Math.min(2, devicePixelRatio || 1);
   cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
-  const top = 56 * dpr;
-  scale = Math.max(1, Math.min(cv.width / W, (cv.height - top) / H));
-  ox = (cv.width - W * scale) / 2; oy = top + (cv.height - top - H * scale) / 2;
+  const top = 56 * dpr, HH = H + (RVon ? GAP + RH : 0);
+  scale = Math.max(1, Math.min(cv.width / W, (cv.height - top) / HH));
+  ox = (cv.width - W * scale) / 2; oy = top + (cv.height - top - HH * scale) / 2;
 }
 addEventListener('resize', fit); fit();
 const r = (x, y, w, h, c) => { cx.fillStyle = c; cx.fillRect(Math.round(x), Math.round(y), w, h); };
@@ -350,13 +353,130 @@ function frame() {
   drawPlants();
   // coin pops
   for (const p of pops) { const k = (now() - p.t) / 1100, a = p.a; const sx = a.seat && !a.parent ? a.seat.x : a.x, sy = a.seat && !a.parent ? a.seat.y - 30 : a.y - 30; cx.globalAlpha = 1 - k; text(p.s, sx + 9, sy - k * 10, '#ffcf5a', 5); cx.globalAlpha = 1; }
+  if (RVon && RV.r) drawRival();
   const waiting = [...agents.values()].filter(a => !a.parent && !a.seat).length;
   if (waiting) text(`+${waiting} waiting for a desk`, 40, 70, '#ffcf5a', 4);
   if (!agents.size && !demoMode && connected.length) text('Waiting for your agents to start working…', W / 2, 104, '#b9b2c8', 5);
 }
 let last = performance.now();
-function loop(t) { const dt = Math.min(0.1, (t - last) / 1000); last = t; T += dt; update(dt); frame(); requestAnimationFrame(loop); }
+function loop(t) { const dt = Math.min(0.1, (t - last) / 1000); last = t; T += dt; update(dt); rivalUpdate(dt); frame(); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
+
+// ------------------------------------------------------------------ the rival's office (live duel)
+// In a live duel the office across the street is the rival's: one desk per rival agent (callsign on the plate),
+// everyone in the rival's team colour (silver robots when the rival is simulated). Their finished steps make
+// them type, read, run; tests / commits / deploys make them jump up and celebrate; failures flash red.
+const RV = { r: null, key: '', ags: new Map(), fx: [], ticker: [], toastT: 0, flash: 0 };
+const RCAT = { edit: 'type', read: 'read', run: 'term', test: 'term', web: 'web', delegate: 'boss', commit: 'type', deploy: 'type', other: 'type' };
+const RVERB = { edit: 'edits', read: 'reads the code', run: 'runs a step', test: 'passes the tests', commit: 'commits', deploy: 'deploys', web: 'searches the web', delegate: 'sends a helper', other: 'finishes a step' };
+const RWORD = { edit: 'EDIT', read: 'READ', run: 'RUN', test: 'TESTS', commit: 'COMMIT', deploy: 'DEPLOY', web: 'WEB', delegate: 'HELPER', other: 'STEP' };
+const BIG = { test: '🧪', commit: '📦', deploy: '🚀' };
+function rivalSync() {
+  const r = B && B.rival ? B.rival() : null;
+  if (!!r !== RVon) { RVon = !!r; fit(); }
+  RV.r = r;
+  if (!r) { RV.ags.clear(); return; }
+  if (RV.key !== r.key) { RV.key = r.key; RV.ags.clear(); RV.ticker.length = 0; }
+  const seen = new Set();
+  (r.agents || []).slice(0, 5).forEach((a, i) => {
+    seen.add(a.k);
+    let w = RV.ags.get(a.k);
+    if (!w) { const h = hash(a.k + a.name); w = { k: a.k, h, pal: { skin: pick(PAL.skin, h, 0), hair: pick(PAL.hair, h, 3), shirt: '#fff' }, act: 'think', toolAt: 0, blink: 0, cel: 0, fail: 0, cat: '', lastEvt: 0 }; RV.ags.set(a.k, w); }
+    Object.assign(w, { name: a.name, src: a.src, state: a.state, sub: a.sub || 0, done: a.done || 0, i });
+    w.pal.shirt = r.sim ? '#c9ced8' : r.color;
+  });
+  for (const k of [...RV.ags.keys()]) if (!seen.has(k)) RV.ags.delete(k);
+}
+function rivalEvent(e, r) {
+  const w = RV.ags.get(e.agent.k); if (!w) return;
+  w.act = RCAT[e.cat] || 'type'; w.toolAt = now(); w.cat = e.cat; w.ok = e.ok; w.lastEvt = now();
+  const who = `${r.flag} ${r.name}'s ${w.name}`;
+  if (!e.ok) { w.fail = 1.8; RV.ticker.unshift({ s: `${w.name} hit an error`, bad: true, t: now() }); }
+  else {
+    RV.ticker.unshift({ s: `${w.name} ${RVERB[e.cat] || RVERB.other}`, t: now() });
+    if (BIG[e.cat]) {
+      w.cel = 1.8; RV.flash = 1;
+      const x = deskX(w.i, RV.ags.size);
+      for (let i = 0; i < 26; i++) RV.fx.push({ x, y: 74, vx: (Math.random() - 0.5) * 70, vy: -30 - Math.random() * 50, c: [r.color, '#ffd866', '#ffffff', '#ff6fb5'][i % 4], life: 1.2 + Math.random() * 0.6 });
+      if (now() - RV.toastT > 3500) { RV.toastT = now(); toast(`${BIG[e.cat]} ${who} ${RVERB[e.cat]}!`); }
+    }
+  }
+  RV.ticker.splice(3);
+}
+function rivalUpdate(dt) {
+  for (const w of RV.ags.values()) { w.cel = Math.max(0, w.cel - dt); w.fail = Math.max(0, w.fail - dt); if (Math.random() < dt * 0.4) w.blink = 0.15; w.blink = Math.max(0, w.blink - dt); }
+  RV.flash = Math.max(0, RV.flash - dt * 1.5);
+  for (let i = RV.fx.length - 1; i >= 0; i--) { const p = RV.fx[i]; p.vy += 90 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; if (p.life <= 0) RV.fx.splice(i, 1); }
+}
+const deskX = (i, n) => n <= 1 ? W / 2 : 34 + i * (188 / (n - 1));
+function robot(w, x, y, pose) {   // the simulated rival: plain silver robots
+  const hy = y - 14 + (pose === 'sit' ? 2 : 0), sl = pose === 'sleep';
+  r(x, hy - 3, 1, 3, '#9aa3b2'); r(x - 1, hy - 4, 3, 1, sl ? '#6b7280' : '#ff6fb5');
+  r(x - 4, hy, 8, 7, '#dfe4ec'); r(x - 4, hy + 6, 8, 1, '#aab2c0');
+  r(x - 3, hy + 2, 6, 2, sl ? '#4b5563' : '#3fd0ff');
+  if (!sl && !w.blink) { r(x - 2, hy + 2, 1, 1, '#e6fbff'); r(x + 1, hy + 2, 1, 1, '#e6fbff'); }
+  r(x - 4, hy + 7, 8, 5, '#c9ced8'); r(x - 5, hy + 7, 1, 3, '#aab2c0'); r(x + 4, hy + 7, 1, 3, '#aab2c0'); r(x - 1, hy + 8, 2, 2, '#9aa3b2');
+  if (pose === 'stand') { r(x - 3, hy + 12, 2, 3, '#8b93a3'); r(x + 1, hy + 12, 2, 3, '#8b93a3'); }
+}
+function rivalWorker(w, x, y, pose, sim) { if (sim) robot(w, x, y, pose); else person(w, x, y, pose); }
+function drawRival() {
+  const R = RV.r, sim = R.sim, off = !sim && !R.online, col = sim ? '#c9ced8' : R.color, n = RV.ags.size;
+  cx.setTransform(scale, 0, 0, scale, ox, oy + H * scale);
+  // the street between the two offices
+  r(0, 0, W, GAP, '#2b2838'); for (let x = 4; x < W; x += 16) r(x, GAP / 2 - 0.5, 8, 1, '#ffd866');
+  cx.setTransform(scale, 0, 0, scale, ox, oy + (H + GAP) * scale);
+  // wall with the rival's sign, floor tiles in a cooler tone
+  r(0, 0, W, 38, '#2f3550'); r(0, 0, W, 3, col); r(0, 35, W, 3, '#232840');
+  for (let x = 0; x < W; x += 16) r(x, 3, 1, 32, '#363d5c');
+  for (let y = 38; y < RH; y += 8) for (let x = 0; x < W; x += 8) r(x, y, 8, Math.min(8, RH - y), ((x + y) / 8) % 2 ? '#4a5068' : '#535a74');
+  // sign board
+  const name = String(R.name).slice(0, 14).toUpperCase();
+  cx.font = '6px Silkscreen, monospace'; const label = `${name}'S OFFICE`, tw = cx.measureText(label).width + 22;
+  r(W / 2 - tw / 2, 7, tw, 15, '#15121f'); r(W / 2 - tw / 2, 21, tw, 1, col);
+  const glow = 0.12 + RV.flash * 0.3; cx.globalAlpha = glow; r(W / 2 - tw / 2 - 2, 5, tw + 4, 19, col); cx.globalAlpha = 1;
+  text(R.flag, W / 2 - tw / 2 + 8, 18, '#fff', 7);
+  text(label, W / 2 + 6, 18, col, 6);
+  // status lamp (left) and the duel score (right)
+  const st = sim ? ['SIMULATED', '#b9b2c8'] : R.online ? ['ONLINE', '#9cf28a'] : ['OFFLINE', '#8e88a0'];
+  r(6, 11, 4, 4, st[1]); text(st[0], 13, 15, st[1], 4, 'left');
+  text(`${[...RV.ags.values()].filter(w => w.state === 'working').length}/${n} AT WORK`, 6, 26, '#b9b2c8', 3.6, 'left');
+  r(W - 58, 8, 52, 20, '#15121f');
+  text('DUEL', W - 32, 14, '#8e88a0', 3.6);
+  const me = R.myScore || 0, th = R.score || 0;
+  text(`YOU ${me}`, W - 44, 24, me >= th ? '#9cf28a' : '#f6f0e3', 5); text('-', W - 28, 24, '#8e88a0', 5); text(`${th}`, W - 15, 24, th > me ? col : '#f6f0e3', 5);
+  // desks
+  const y = 90;
+  if (!n) text(off ? 'Everyone went home.' : 'No agents at their desks right now.', W / 2, 74, '#b9b2c8', 4.4);
+  for (const w of RV.ags.values()) {
+    const x = deskX(w.i, n), recent = now() - w.toolAt < 7000, waiting = w.state === 'waiting', asleep = off || (w.state === 'idle' && !recent);
+    r(x - 6, y - 21, 12, 13, '#3b3550'); r(x - 5, y - 20, 10, 10, '#4a4466');
+    if (w.cel > 0) {   // jumps out of the chair, arms up
+      const j = Math.abs(Math.sin(w.cel * 9)) * 6;
+      rivalWorker(w, x, y - 8 - j, 'stand', sim);
+      r(x - 6, y - 26 - j, 1, 4, sim ? '#c9ced8' : w.pal.shirt); r(x + 5, y - 26 - j, 1, 4, sim ? '#c9ced8' : w.pal.shirt);
+    } else rivalWorker(w, x, y - 6, asleep ? 'sleep' : 'sit', sim);
+    r(x - 18, y - 2, 36, 4, '#a8744a'); r(x - 18, y + 2, 36, 9, '#8a5a36'); r(x - 18, y + 2, 36, 1, col);
+    r(x - 16, y + 11, 2, 4, '#5b3f2c'); r(x + 14, y + 11, 2, 4, '#5b3f2c');
+    r(x - 6, y - 7, 12, 6, '#cfd0dc'); r(x - 1, y - 5, 2, 2, '#b4b5c4');
+    const g = w.fail > 0 ? '#ff5d5d' : recent ? (GLOW[w.act] || col) : '#3a3550';
+    r(x - 6, y - 2, 12, 1, g); if (recent || w.fail > 0) { cx.globalAlpha = 0.25; r(x - 8, y - 11, 16, 2, g); cx.globalAlpha = 1; }
+    text(String(w.name).slice(0, 10).toUpperCase(), x, y + 8.5, sim ? '#eef1f6' : '#fff2d8', 3.8);
+    text(w.src === 'codex' ? 'CODEX' : 'CLAUDE', x, y + 20, '#8e88a0', 3.2);
+    if (w.sub) text(`+${w.sub}`, x + 15, y - 9, col, 3.6);
+    if (w.fail > 0) { r(x - 9, y - 33, 18, 9, '#ff5d5d'); r(x - 1, y - 24, 2, 2, '#ff5d5d'); text('ERROR', x, y - 26.5, '#fff', 3.6); }
+    else if (w.cel > 0) { text(`${RWORD[w.cat] || ''}!`, x, y - 40 + Math.sin(T * 10) * 1.5, col, 5); }
+    else if (waiting && !off) hand(x, y - 30);
+    else if (recent) bubble(x, y - 31, w.act, RWORD[w.cat] || '');
+    else if (asleep) zz(x + 5, y - 24);
+  }
+  for (const p of RV.fx) { cx.globalAlpha = Math.min(1, p.life * 2); r(p.x, p.y, 2, 2, p.c); } cx.globalAlpha = 1;
+  // commentary ticker (latest finished step)
+  const tk = RV.ticker[0];
+  if (tk && now() - tk.t < 15000) { r(0, RH - 9, W, 9, 'rgba(10,8,18,.7)'); text(`${R.flag} ${tk.s}`, W / 2, RH - 2.5, tk.bad ? '#ff9d9d' : '#f6f0e3', 4); }
+  if (off) { cx.globalAlpha = 0.38; r(0, 38, W, RH - 38, '#05040a'); cx.globalAlpha = 1; text('OFFLINE · LIGHTS OUT', W / 2, 62, '#b9b2c8', 4.6); }
+  if (sim) text('SIMULATED RIVAL', W - 6, 34, '#8e88a0', 3.2, 'right');
+  cx.setTransform(scale, 0, 0, scale, ox, oy);
+}
 
 // ------------------------------------------------------------------ HUD + panels
 const $ = id => document.getElementById(id);
@@ -430,6 +550,9 @@ const A = connectAgents({
   onConnect() { demoMode = false; demoStarted = false; for (const a of [...agents.values()]) if (a.id.startsWith('d:')) release(a); hud(); },
 });
 B = board({ game: 'deskfolk', label: 'Tool calls today', A });
+window.__B = B;
+B.onRival((evs, r) => { rivalSync(); for (const e of evs) rivalEvent(e, r); });
+setInterval(rivalSync, 1500); setTimeout(rivalSync, 300);
 const connected = A.connected;
 window.deskfolkConnect = h => A.connectHandle(h);   // used by the automated QA run
 $('bConnect').onclick = () => { $('shop').hidden = $('today').hidden = true; A.open(); };

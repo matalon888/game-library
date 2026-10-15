@@ -1,4 +1,4 @@
-// RIFFCADE consent: one banner for everything that needs it (Google Analytics, the Meta pixel, personalised ads).
+// AGENTPARK consent: one blocking choice for everything that needs it (Google Analytics, the Meta pixel, personalised ads).
 // Nothing loads until the visitor taps Accept: no gtag.js, no fbevents.js, no cookieless pings. "No thanks" or no answer = off.
 // Used by the landing page and the arcade (never the chat versions, /today, privacy, terms or support).
 // API (window.RiffConsent): state(), accepted(), ga(name, params), setUser(props), pixel(name, custom), setKids(bool), onChange(fn), open().
@@ -44,21 +44,48 @@
       .forEach(n => ['', '; domain=.' + location.hostname.replace(/^www\./, ''), '; domain=' + location.hostname].forEach(d => { document.cookie = n + '=; Max-Age=0; path=/' + d; }));
   }
 
-  const css = `.rc-banner{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:2147483000;max-width:520px;margin:0 auto;background:#fff;color:#15171B;border-radius:18px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,.4);display:grid;gap:10px;font:14px/1.4 'Space Grotesk',system-ui,sans-serif}
-.rc-banner p{margin:0}.rc-banner a{color:#5a46d6}.rc-banner div{display:flex;gap:8px;justify-content:flex-end}
-.rc-banner button{border:0;border-radius:999px;padding:9px 16px;font:700 14px/1 inherit;cursor:pointer}.rc-yes{background:#AC9CFF;color:#0b0e1a}.rc-no{background:transparent;color:#15171B;box-shadow:inset 0 0 0 1px #c9ccd4}`;
+  // A blocking choice: the page waits behind a dimmed backdrop until the visitor picks one. Both answers are equal-sized,
+  // one tap each, and "No thanks" never costs anything (nothing is withheld). No dismiss by backdrop or Escape.
+  const css = `.rc-veil{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;padding:20px;background:rgba(14,18,34,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:rcIn .25s ease both}
+.rc-card{position:relative;width:min(400px,100%);background:#FFFDF8;color:#1E1B33;border-radius:28px;padding:62px 24px 22px;box-shadow:0 30px 80px rgba(0,0,0,.45);display:grid;gap:14px;text-align:center;font:15px/1.45 'DM Sans','Space Grotesk',system-ui,-apple-system,sans-serif;animation:rcPop .38s cubic-bezier(.2,1.4,.4,1) both}
+.rc-card img{position:absolute;left:50%;top:-58px;width:112px;height:112px;object-fit:contain;transform:translateX(-50%);filter:drop-shadow(0 10px 14px rgba(0,0,0,.3))}
+.rc-card h2{margin:0;font:800 23px/1.1 'Bricolage Grotesque','Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;color:#1E1B33}
+.rc-card p{margin:0;color:#5D5973}.rc-card a{color:#1D8A4A;font-weight:700}
+.rc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.rc-card button{border:0;border-radius:999px;padding:14px 10px;font:700 15.5px/1 'DM Sans',system-ui,sans-serif;cursor:pointer;transition:transform .15s}
+@media (pointer:fine){}.rc-card:focus{outline:none}.rc-card button:active{transform:scale(.97)}.rc-card button:focus-visible{outline:3px solid #8F7DFF;outline-offset:2px}
+.rc-yes{background:#1E1B33;color:#fff}.rc-no{background:#F1EBDD;color:#1E1B33}
+html.rc-lock,html.rc-lock body{overflow:hidden}
+@keyframes rcIn{from{opacity:0}}@keyframes rcPop{from{opacity:0;transform:translateY(24px) scale(.94)}}
+@media (prefers-reduced-motion:reduce){.rc-veil,.rc-card{animation:none}}`;
+  // assets resolve next to this script, whatever page (and <base>) loaded it
+  const HERE = (document.currentScript && document.currentScript.src) || location.href;
+  const at = f => new URL(f, HERE).href;
   function open() {
     if (!needed || document.getElementById('rcBanner')) return;
     if (!document.getElementById('rcCss')) { const st = document.createElement('style'); st.id = 'rcCss'; st.textContent = css; document.head.appendChild(st); }
     const b = document.createElement('div');
-    b.id = 'rcBanner'; b.className = 'rc-banner'; b.setAttribute('role', 'dialog'); b.setAttribute('aria-label', 'Privacy choices');
+    b.id = 'rcBanner'; b.className = 'rc-veil';
     const list = parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0];
-    b.innerHTML = `<p>Allow ${list}? They stay off unless you accept. <a href="${location.pathname.includes('/arcade/') ? '' : '/arcade/'}privacy.html">Privacy</a></p>
-      <div><button class="rc-no" type="button">No thanks</button><button class="rc-yes" type="button">Accept</button></div>`;
+    b.innerHTML = `<div class="rc-card" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="rcT" aria-describedby="rcD">
+      <img src="${at('park/owl-icecream.webp')}" alt="">
+      <h2 id="rcT">Before you come in</h2>
+      <p id="rcD">May we use ${list}? Nothing loads unless you accept, and every game works the same either way. <a href="${at('privacy.html')}">Privacy</a></p>
+      <div class="rc-row"><button class="rc-no" type="button">No thanks</button><button class="rc-yes" type="button">Accept</button></div></div>`;
     document.body.appendChild(b);
+    document.documentElement.classList.add('rc-lock');
+    const btns = [...b.querySelectorAll('button')];
+    // keep keyboard focus inside the card until a choice is made
+    b.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { e.preventDefault(); return; }
+      if (e.key !== 'Tab') return;
+      const i = btns.indexOf(document.activeElement); e.preventDefault();
+      btns[(i + (e.shiftKey ? btns.length - 1 : 1)) % btns.length].focus();
+    });
+    setTimeout(() => b.firstElementChild.focus({ preventScroll: true }), 50);   // focus the card (no ring on a button until they tab)
     const pick = v => {
       const was = state();
-      save(v); b.remove();
+      save(v); b.remove(); document.documentElement.classList.remove('rc-lock');
       if (v === 'accepted') start(); else if (was === 'accepted') stop();
       listeners.forEach(f => { try { f(v); } catch (e) {} });
     };

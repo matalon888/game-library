@@ -168,3 +168,26 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tpop{position:fixed;left:16px;top:calc(118px + env(safe-area-inset-top));z-index:8;background:linear-gradient(#ffdf7a,#ffb938);color:#3a1a05;border-radius:12px;padding:5px 12px;font:16px 'Lilita One',sans-serif;box-shadow:0 4px 0 #a5711a,0 0 18px rgba(255,207,90,.5);animation:tpop 3.2s ease-out forwards;pointer-events:none}
 @keyframes tpop{0%{opacity:0;transform:translateX(-30px) scale(.8)}8%{opacity:1;transform:none}85%{opacity:1}100%{opacity:0}}
 @media (max-width:640px){.tpop{top:calc(160px + env(safe-area-inset-top));font-size:14px}}
+/* the rival's party: a scrying window into their chamber (live duels only) */
+#rv{position:fixed;left:16px;top:calc(104px + env(safe-area-inset-top));width:360px;z-index:5;pointer-events:none;font-family:'Baloo 2',system-ui,sans-serif;--rc:#c9ced8}
+#rv .rvh{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--rc);color:#16101f;border-radius:14px 14px 0 0;padding:3px 12px;font-weight:800;font-size:15px}
+#rv .rvh .rvn{font-family:'Lilita One',sans-serif;font-weight:400;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rv .rvh .rvs{font-size:12px;white-space:nowrap;opacity:.85}
+#rv .rvv{position:relative;height:210px;border:3px solid var(--rc);border-top:0;border-bottom:0;overflow:hidden;box-shadow:inset 0 0 24px rgba(0,0,0,.6)}
+#rv .rvt{position:absolute;inset:0}
+#rv .rvt .tag .nm{font-size:12px;line-height:18px;border-color:var(--rc);padding:0 7px 0 4px}
+#rv .rvt .tag .cls{font-size:10px}
+#rv .rvt .num{font-size:20px}#rv .rvt .num.ult{font-size:30px}#rv .rvt .num.gold{font-size:16px}#rv .rvt .num.hurt{font-size:16px}
+#rv .rvo{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(10,8,18,.8);border-radius:10px;padding:3px 12px;font-weight:800;font-size:14px;color:#cfc6dd;white-space:nowrap}
+#rv .rvv.off .rvo{display:block}#rv .rvv.off{filter:saturate(.35) brightness(.7)}
+#rv .rvm{display:flex;align-items:center;gap:8px;background:rgba(12,9,20,.9);border:3px solid var(--rc);border-top:0;border-bottom:0;padding:2px 10px;font-weight:800;font-size:12.5px;color:#fff3dc}
+#rv .rvm .mn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+#rv .rvm .hp{width:86px;height:7px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}#rv .rvm .hp i{display:block;height:100%;background:#ff5a5a;transition:width .25s}
+#rv .rvk{background:rgba(12,9,20,.9);border:3px solid var(--rc);border-top:0;border-bottom:0;padding:0 10px;min-height:20px;font-size:12.5px;font-weight:700;color:#e9e2f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rv .rvk .bad{color:#ff9d9d}
+#rv .rvr{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:rgba(12,9,20,.92);border:3px solid var(--rc);border-top:0;border-radius:0 0 14px 14px;padding:3px 10px 5px;font-size:14px;color:#fff}
+#rv .rvr b{font-family:'Lilita One',sans-serif;font-weight:400;font-size:18px;color:#ffcf5a}
+#rv .rvr i{height:2px;background:linear-gradient(90deg,#ffcf5a,var(--rc));border-radius:2px}
+#rv .rvr small{grid-column:1/-1;color:#b9b2c8;font-size:12px;font-weight:700;margin-top:-3px}
+@media (max-width:640px){#rv{left:8px;top:calc(96px + env(safe-area-inset-top));width:200px}#rv .rvv{height:118px}#rv .rvh .rvs{display:none}#rv .rvh .rvn{font-size:14px}#rv .rvk{font-size:11px}#rv .rvr b{font-size:15px}}
+@media (min-width:641px){body.rv-on .ag-wait{top:auto;bottom:24px;transform:none}}

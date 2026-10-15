@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AGENTPARK · New games every morning from your AI</title>
+<meta name="description" content="Get on the list: your AI checks AGENTPARK every morning and brings you the newest free games. Works with ChatGPT, Claude, Gemini and Grok.">
+<meta name="theme-color" content="#151A3A">
+<meta property="og:title" content="AGENTPARK · New games every morning from your AI">
+<meta property="og:description" content="Get on the list. Your AI brings you new games every morning.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<link rel="preload" as="image" href="park/bg-gate.webp" media="(min-width: 700px)">
+<link rel="preload" as="image" href="park/bg-gate-s.webp" media="(max-width: 699px)">
+<style>
+:root {
+  --ink: #FFFDF8; --muted: #CFCBE6; --night: #12163A; --card: rgba(255, 253, 248, .97); --dark: #1E1B33; --grass: #34B866; --gold: #FFC93C; --velvet: #B3122E;
+  --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif; --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent }
+html, body { margin: 0; height: 100% }
+body { background: var(--night); color: var(--ink); font: 16px/1.45 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden }
+a { color: inherit }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px }
+
+/* the scene fills the first screen; everything else sits on it */
+.scene { position: relative; min-height: 100svh; overflow: hidden; isolation: isolate }
+.scene .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 55% 100%; z-index: -2 }
+.scene::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 70% 55% at 50% 30%, rgba(10, 12, 40, .62), transparent 75%), linear-gradient(180deg, rgba(10, 12, 40, .55), transparent 30%, transparent 70%, rgba(8, 9, 30, .35)) }
+
+.top { position: relative; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px 0; max-width: 1200px; margin: 0 auto }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none }
+.brand img { width: 40px; height: 40px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0, 0, 0, .35) }
+.brand b { font: 800 22px/1 var(--display); letter-spacing: -.02em }
+.brand b span { color: #7FE09A }
+.walk { font: 700 14px var(--body); text-decoration: none; padding: 10px 16px; border-radius: 999px; background: rgba(255, 255, 255, .12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18) }
+
+.hero { position: relative; z-index: 6; text-align: center; display: grid; justify-items: center; gap: 12px; padding: clamp(28px, 7vh, 72px) 20px 0; max-width: 680px; margin: 0 auto }
+.eyebrow { font: 700 12px/1 var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); display: inline-flex; align-items: center; gap: 8px }
+.eyebrow i { width: 8px; height: 8px; border-radius: 50%; background: #7FE09A; box-shadow: 0 0 0 4px rgba(127, 224, 154, .25); animation: blink 1.6s ease-in-out infinite }
+@keyframes blink { 50% { opacity: .35 } }
+h1 { font: 800 clamp(46px, 8.5vw, 92px)/.9 var(--display); letter-spacing: -.04em; margin: 0; text-shadow: 0 6px 30px rgba(0, 0, 0, .45) }
+.sub { margin: 0; font-size: clamp(16px, 2.2vw, 20px); color: var(--ink); text-shadow: 0 2px 12px rgba(0, 0, 0, .6); max-width: 34ch; text-wrap: balance }
+.ais { display: grid; grid-template-columns: repeat(4, auto); gap: 10px; margin-top: 10px }
+.ai { display: inline-flex; align-items: center; justify-content: center; gap: 9px; text-decoration: none; background: var(--card); color: var(--dark); font: 700 16px/1 var(--body);
+  padding: 14px 20px 14px 16px; border-radius: 999px; box-shadow: 0 12px 28px -10px rgba(0, 0, 0, .6); transition: transform .2s cubic-bezier(.2, 1.4, .4, 1), box-shadow .2s; white-space: nowrap }
+.ai:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 18px 34px -12px rgba(0, 0, 0, .7) }
+.ai:active { transform: scale(.97) }
+.ai .lg { width: 22px; height: 22px; flex: none; background: var(--c, #111); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat }
+.ai[data-k="chatgpt"] .lg { --m: url(logos/openai.svg); --c: #0D0D0D }
+.ai[data-k="claude"] .lg { --m: url(logos/claude.svg); --c: #D97757 }
+.ai[data-k="gemini"] .lg { --m: url(logos/googlegemini.svg); background: linear-gradient(135deg, #4F8DFD 10%, #9168F0 55%, #E86B8A 95%) }
+.ai[data-k="grok"] .lg { --m: url(logos/grok.svg); --c: #0D0D0D }
+.how { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); text-shadow: 0 1px 8px rgba(0, 0, 0, .7) }
+.alt { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; font-size: 14px }
+.alt a { color: var(--ink); font-weight: 700; text-decoration: none; text-shadow: 0 1px 8px rgba(0, 0, 0, .7) }
+.alt a.small { font-weight: 500; color: var(--muted); text-decoration: underline; text-underline-offset: 3px }
+
+/* the queue: residents behind a velvet rope, the keeper at the gate */
+.stage { position: absolute; inset: 0; z-index: 4; pointer-events: none }
+.who { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; will-change: transform; user-select: none; -webkit-user-select: none }
+.who .bd { width: 100%; height: 100%; transform-origin: 50% 100% }
+.who img { width: 100%; height: 100%; display: block; pointer-events: none; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .45)) brightness(.97) }
+.who::after { content: ""; position: absolute; left: 16%; right: 16%; bottom: -5px; height: 10px; border-radius: 50%; background: rgba(0, 0, 0, .45); filter: blur(4px); z-index: -1 }
+.who.float::after { bottom: -18px; opacity: .5 }
+.rope { position: absolute; left: 0; top: 0; overflow: visible; z-index: 5; pointer-events: none }
+.rope .cord { transition: transform .55s cubic-bezier(.6, 0, .9, .6), opacity .55s .25s }
+.rope.open .cord { transform: translateY(var(--drop)); opacity: 0 }
+.say { position: absolute; z-index: 9; width: 230px; padding: 10px 13px; border-radius: 16px; background: var(--card); color: var(--dark); font: 600 14px/1.3 var(--body);
+  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, .55); animation: pop .28s cubic-bezier(.2, 1.4, .4, 1) both; pointer-events: none }
+.say::after { content: ""; position: absolute; left: var(--tail, 30px); bottom: -7px; width: 14px; height: 14px; background: inherit; transform: rotate(45deg); border-radius: 3px }
+.say.out { transition: opacity .3s, transform .3s; opacity: 0; transform: translateY(-6px) }
+@keyframes pop { from { opacity: 0; transform: scale(.6) translateY(10px) } }
+
+.listed { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); z-index: 20; transform: translate(-50%, 30px); opacity: 0; pointer-events: none;
+  display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px); background: var(--card); color: var(--dark); padding: 12px 18px 12px 12px; border-radius: 20px;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, .7); transition: .35s cubic-bezier(.2, 1.3, .4, 1); font-size: 14.5px }
+.listed.on { opacity: 1; transform: translate(-50%, 0) }
+.listed .ok { width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--grass); color: #fff; display: grid; place-items: center; font: 800 18px var(--display) }
+.listed b { display: block; font: 800 16px/1.2 var(--display) }
+
+footer { position: relative; z-index: 6; background: var(--night); padding: 18px 20px calc(env(safe-area-inset-bottom, 0px) + 22px); text-align: center; color: var(--muted); font-size: 13px }
+footer nav { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap }
+footer a { color: var(--muted) }
+
+@media (max-width: 699px) {
+  .scene .bg { object-position: 56% 100% }
+  .top { padding-inline: 16px }
+  .brand b { font-size: 19px } .brand img { width: 36px; height: 36px }
+  .walk { padding: 9px 13px; font-size: 13px }
+  .hero { padding-inline: 16px; gap: 10px }
+  .ais { grid-template-columns: 1fr 1fr; width: 100%; max-width: 360px; gap: 8px }
+  .ai { padding: 13px 10px; font-size: 15.5px }
+  .listed { bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) }
+}
+@media (prefers-reduced-motion: reduce) { .eyebrow i { animation: none } .ai, .rope, .listed { transition: none } .say { animation: none } }
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<main class="scene">
+  <picture><source media="(max-width: 699px)" srcset="park/bg-gate-s.webp"><img class="bg" id="bg" src="park/bg-gate.webp" alt=""></picture>
+  <header class="top">
+    <a class="brand" href="./" aria-label="AGENTPARK, open the park"><img src="icons/icon-192.png" alt=""><b>AGENT<span>PARK</span></b></a>
+    <a class="walk" href="./">Walk in →</a>
+  </header>
+  <section class="hero">
+    <span class="eyebrow"><i></i>The list is open</span>
+    <h1>Get on the list.</h1>
+    <p class="sub">Your AI brings you new games every morning.</p>
+    <div class="ais" role="group" aria-label="Start your daily games with">
+      <a class="ai" data-k="chatgpt" target="_blank" rel="noopener"><span class="lg"></span>ChatGPT</a>
+      <a class="ai" data-k="claude" target="_blank" rel="noopener"><span class="lg"></span>Claude</a>
+      <a class="ai" data-k="gemini" target="_blank" rel="noopener"><span class="lg"></span>Gemini</a>
+      <a class="ai" data-k="grok" target="_blank" rel="noopener"><span class="lg"></span>Grok</a>
+    </div>
+    <p class="how">One tap, send the prompt, done. Free.</p>
+    <div class="alt"><a href="./">Or walk straight in →</a><a class="small" href="connect.html">Play inside ChatGPT / Claude</a></div>
+  </section>
+  <div class="stage" id="stage" aria-hidden="true"></div>
+</main>
+<div class="listed" id="listed" role="status"><span class="ok">✓</span><span><b id="lT">You're on the list.</b><span id="lS">Send the prompt. Your first games arrive tomorrow morning.</span></span></div>
+<footer><nav><a href="./">The park</a><a href="connect.html">Plugin</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav></footer>
+<script src="consent.js"></script>
+<script src="habits.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------------------------------------------------------------- the daily agent (same flow as connect.html)
+  const MCP = 'https://mcp.riffcade.com/mcp';
+  const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
+  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Every morning, check https://today.riffcade.com and send me the 5 newest games with their links.';
+  const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', grok: 'Grok' };
+  // Claude warns on pre-filled links and Gemini has none, so both open empty with the prompt on the clipboard
+  const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new', gemini: 'https://gemini.google.com/app', grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
+  const post = button => fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {});
+  // anonymous click count per button (button name + time, nothing else), like play counts
+  const countClick = k => {
+    if (window.RiffConsent) { RiffConsent.ga('daily_button_tap', { ai: k }); RiffConsent.ga('prompt_tap', { ai: k, prompt_variant: PV, placement: 'landing' }); RiffConsent.pixel('DailyButtonTap', true); }
+    if (k === 'chatgpt' || k === 'claude') post('ptap-' + PV);
+    post(k);
+  };
+  const legacyCopy = t => {
+    const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    ta.remove(); return ok;
+  };
+  const copyText = t => navigator.clipboard && isSecureContext ? navigator.clipboard.writeText(t).then(() => true, () => legacyCopy(t)) : Promise.resolve(legacyCopy(t));
+  let listedT;
+  const listed = (title, line, ms) => { $('lT').textContent = title; $('lS').textContent = line; $('listed').classList.add('on'); clearTimeout(listedT); listedT = setTimeout(() => $('listed').classList.remove('on'), ms || 5200); };
+  document.querySelectorAll('.ai').forEach(a => {
+    const k = a.dataset.k; a.href = OPEN[k];
+    // a real link (no preventDefault): on phones it opens the AI's app; the gate opens here at the same time
+    a.addEventListener('click', () => {
+      countClick(k);
+      copyText(DAILY).then(ok => {
+        if (!ok) return listed('Paste this into ' + NAMES[k] + ':', DAILY, 9000);
+        listed("You're on the list.", k === 'claude' || k === 'gemini' ? 'Prompt copied. Paste it into ' + NAMES[k] + ' and send.' : 'Tap Send in ' + NAMES[k] + '. (Prompt copied too, in case you log in first.)');
+      });
+      letIn(k);
+    });
+  });
+
+  // ---------------------------------------------------------------- the queue
+  const LINES = {
+    'agent-token': ['First in line. I queued at 6 am.', 'Tokens ready. Games please.'],
+    'robot-map': ['The map says the fun is just past that gate.', 'I made a plan. Step one: get in.'],
+    'duck-net': ['I\'m on the list. Under "Duck".', 'Shh. Acting natural.'],
+    'penguin-skates': ['Do they let skates in? Asking for me.', 'Whoa. Okay. Standing still is hard.'],
+    'cat-binoculars': ['I can see a new game from here.', 'Scouting the VIP section.'],
+    'bear-kite': ['Is the kite on the list too?', 'Been here since the ferris wheel lit up.'],
+    'dog-trophy': ['I won the queue. Do I get in?', 'Already brought my trophy.'],
+    'octopus-juggle': ['Eight arms, one wristband.', 'Juggling while I wait. Professional.'],
+    'hippo-cheer': ['Let us in! Let us in!', 'I brought pom-poms for the bouncer.'],
+    keeper: ['Tonight\'s list: anyone whose AI checks in every morning.', 'No sign-up. Just tell your AI. I\'ll know.'],
+  };
+  const PHONE_Q = ['agent-token', 'robot-map', 'duck-net', 'penguin-skates'];
+  const DESK_Q = ['hippo-cheer', 'octopus-juggle', 'bear-kite', 'dog-trophy', 'cat-binoculars', 'penguin-skates', 'duck-net', 'robot-map', 'agent-token'];
+  const stage = $('stage'), bg = $('bg');
+  let CAST = {}, crowd = [], keeper = null, rope = null, G = null, busy = false;
+
+  // where a point of the 1536x1024 gate picture lands on screen (the picture is object-fit: cover, bottom-anchored)
+  function geo() {
+    const W = stage.clientWidth, H = stage.clientHeight, s = Math.max(W / 1536, H / 1024);
+    const px = parseFloat(getComputedStyle(bg).objectPosition) / 100 || 0.55;
+    const ox = (W - 1536 * s) * px, oy = H - 1024 * s;
+    return { W, H, s, pt: (x, y) => [ox + x * s, oy + y * s] };
+  }
+  function make(name, h, extra) {
+    const [w0, h0] = CAST[name] || [1, 1];
+    const el = document.createElement('div');
+    el.className = 'who' + (extra || '');
+    el.style.width = (h * w0 / h0) + 'px'; el.style.height = h + 'px';
+    el.innerHTML = `<div class="bd"><img src="park/${name}.webp" alt="" draggable="false"></div>`;
+    stage.appendChild(el);
+    const a = { el, bd: el.firstChild, img: el.querySelector('img'), name, w: h * w0 / h0, h, x: 0, y: 0, t0: Math.random() * 9, jump: 0, sc: 1, op: 1, walk: null };
+    el.addEventListener('click', () => poke(a));
+    return a;
+  }
+  function draw(a, t) {
+    let by = 0, sy = 1, rot = 0;
+    const tt = t + a.t0;
+    if (a.walk) { by = -Math.abs(Math.sin(tt * 9)) * 7; rot = Math.sin(tt * 9) * 4; }
+    else if (a.float) by = Math.sin(tt * 2) * 6;
+    else { sy = 1 + Math.sin(tt * 2.3) * 0.025; if (Math.sin(tt * 0.7) > 0.985) by = -4; }
+    if (a.jump > 0) { const j = Math.sin(a.jump * Math.PI); by -= j * a.h * 0.32; }
+    a.el.style.transform = `translate3d(${a.x}px, ${a.y}px, 0) scale(${a.sc})`;
+    a.el.style.opacity = a.op;
+    a.bd.style.transform = `translateY(${by}px) rotate(${rot}deg) scale(${a.flip ? -1 : 1}, ${sy})`;
+  }
+  function layout() {
+    stage.querySelectorAll('.who, .rope, .say').forEach(e => e.remove());
+    G = geo();
+    const { W, H } = G, phone = W < 700;
+    const names = (phone ? PHONE_Q : DESK_Q).filter(n => CAST[n]);
+    const h = phone ? Math.min(128, H * 0.15) : Math.min(150, H * 0.165);
+    const ground = H - (phone ? Math.max(60, H * 0.075) : H * 0.09);   // feet line on the plaza
+    // keeper: on the right, facing the queue
+    keeper = make(CAST.keeper ? 'keeper' : 'robot-map', h * 1.15);
+    keeper.x = phone ? W - keeper.w - 6 : Math.min(W - keeper.w - 30, W * 0.72); keeper.y = ground - keeper.h; keeper.name = 'keeper'; keeper.flip = true;   // the picture gestures right; ours points at the queue
+    // the queue: single file from the left edge up to the keeper
+    const right = keeper.x - 6;
+    let x = right;
+    crowd = [];
+    for (const n of names) {
+      const a = make(n, n === 'agent-token' ? h * 0.8 : h, n === 'agent-token' ? ' float' : '');
+      if (n === 'agent-token') a.float = true;
+      x -= a.w * (phone ? 0.78 : 0.86);
+      if (x < -a.w * 0.25) { a.el.remove(); break; }
+      a.x = a.homeX = x; a.y = a.homeY = ground - a.h - (a.float ? h * 0.25 : 0); a.flip = n === 'penguin-skates';
+      crowd.push(a);
+    }
+    crowd.reverse().forEach((a, i) => { a.el.style.zIndex = 2 + i; });   // left to right
+    keeper.el.style.zIndex = 30;
+    // velvet rope in front of their legs, brass posts at both ends and between
+    const ry = ground - h * 0.32, rx0 = Math.max(4, (crowd[0] ? crowd[0].x : 0) - 10), rx1 = keeper.x + keeper.w * 0.2;
+    const posts = [rx0, (rx0 + rx1) / 2, rx1].filter((p, i, l) => i !== 1 || rx1 - rx0 > 300);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'rope'); svg.setAttribute('width', W); svg.setAttribute('height', H);
+    svg.style.zIndex = 25; svg.style.setProperty('--drop', (ground - ry - h * 0.05) + 'px');
+    let d = '';
+    for (let i = 0; i < posts.length - 1; i++) { const a = posts[i], b = posts[i + 1]; d += `M${a} ${ry} Q${(a + b) / 2} ${ry + h * 0.22} ${b} ${ry} `; }
+    svg.innerHTML = `<defs><linearGradient id="rv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E23552"/><stop offset="1" stop-color="#7E0A1F"/></linearGradient>
+      <linearGradient id="br" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8A5A12"/><stop offset=".45" stop-color="#FFE28A"/><stop offset="1" stop-color="#A86F16"/></linearGradient></defs>
+      <g class="cord"><path d="${d}" fill="none" stroke="#3a0610" stroke-opacity=".5" stroke-width="${h * 0.075}" transform="translate(0 4)"/>
+      <path d="${d}" fill="none" stroke="url(#rv)" stroke-width="${h * 0.065}" stroke-linecap="round"/></g>
+      ${posts.map(p => `<g><rect x="${p - h * 0.025}" y="${ry - h * 0.03}" width="${h * 0.05}" height="${ground - ry + h * 0.02}" rx="${h * 0.02}" fill="url(#br)"/>
+        <ellipse cx="${p}" cy="${ground + 1}" rx="${h * 0.13}" ry="${h * 0.035}" fill="url(#br)"/><circle cx="${p}" cy="${ry - h * 0.045}" r="${h * 0.05}" fill="url(#br)"/></g>`).join('')}`;
+    stage.appendChild(svg); rope = svg;
+    // where they walk to: the open gate, on the path into the park
+    G.gate = G.pt(840, 600);
+  }
+  function poke(a, line) {
+    a.jump = 0.001;
+    const L = line ? [line] : LINES[a.name]; if (!L) return;
+    stage.querySelectorAll('.say').forEach(s => s.remove());
+    const s = document.createElement('div'); s.className = 'say'; s.textContent = L[Math.floor(Math.random() * L.length)];
+    const W = stage.clientWidth, cx = a.x + a.w / 2, left = Math.max(8, Math.min(W - 238, cx - 115));
+    s.style.left = left + 'px'; s.style.top = Math.max(8, a.y - 70) + 'px'; s.style.setProperty('--tail', Math.max(16, Math.min(210, cx - left)) + 'px');
+    stage.appendChild(s);
+    setTimeout(() => s.classList.add('out'), 2700); setTimeout(() => s.remove(), 3100);
+  }
+  // the payoff: the keeper lifts the rope and the whole queue walks through the gate into the park
+  function letIn(k) {
+    if (!keeper || busy) return;
+    busy = true;
+    if (CAST['keeper-yes']) { keeper.img.src = 'park/keeper-yes.webp'; keeper.flip = false; }   // lifts the rope on the queue side
+    poke(keeper, `Name? …Ah, you're with ${NAMES[k]}. Go on in.`);
+    if (reduce) { setTimeout(reset, 4000); return; }
+    rope.classList.add('open');
+    const order = crowd.slice().sort((a, b) => b.x - a.x);   // front of the queue goes first
+    order.forEach((a, i) => setTimeout(() => { a.walk = { t: 0, x0: a.x, y0: a.y, dur: 1.9 }; }, 350 + i * 260));
+    setTimeout(reset, 350 + order.length * 260 + 3200);
+  }
+  function reset() {
+    if (CAST.keeper) { keeper.img.src = 'park/keeper.webp'; keeper.flip = true; }
+    rope.classList.remove('open');
+    crowd.forEach((a, i) => { a.walk = null; a.x = a.homeX - 40; a.y = a.homeY; a.sc = 1; a.op = 0; a.back = { t: -i * 0.15 }; });
+    busy = false;
+  }
+  let last = 0;
+  function loop(now) {
+    const t = now / 1000, dt = Math.min(0.05, last ? t - last : 0); last = t;
+    for (const a of crowd) {
+      if (a.walk) {
+        const w = a.walk; w.t += dt / w.dur; const p = Math.min(1, w.t), e = p * p * (3 - 2 * p);
+        const [gx, gy] = G.gate;
+        a.x = w.x0 + (gx - a.w * 0.5 * 0.35 - w.x0) * e; a.y = w.y0 + (gy - a.h * 0.35 - w.y0) * e;
+        a.sc = 1 - 0.65 * e; a.op = p < 0.75 ? 1 : 1 - (p - 0.75) / 0.25;
+        a.el.style.transformOrigin = '0 0'; a.el.style.zIndex = 1;
+      } else if (a.back) {
+        a.back.t += dt; const p = Math.max(0, Math.min(1, a.back.t / 0.6));
+        a.op = p; a.x = a.homeX - 40 * (1 - p);
+        if (p >= 1) { a.back = null; a.el.style.zIndex = ''; crowd.slice().reverse().forEach((c, i) => { c.el.style.zIndex = 2 + i; }); }
+      }
+      if (a.jump > 0) { a.jump += dt * 1.8; if (a.jump >= 1) a.jump = 0; }
+      draw(a, t);
+    }
+    if (keeper) { if (keeper.jump > 0) { keeper.jump += dt * 1.8; if (keeper.jump >= 1) keeper.jump = 0; } draw(keeper, t); }
+    // now and then someone in line gets restless
+    if (!busy && crowd.length && Math.random() < dt * 0.12) crowd[Math.floor(Math.random() * crowd.length)].jump = 0.001;
+    requestAnimationFrame(loop);
+  }
+  fetch('park/cast.json').then(r => r.json()).catch(() => ({})).then(c => {
+    CAST = c;
+    const go = () => { layout(); crowd.concat(keeper).forEach(a => draw(a, 0)); };
+    bg.complete ? go() : bg.addEventListener('load', go, { once: true });
+    let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (!busy) go(); }, 150); });
+    if (!reduce) requestAnimationFrame(loop);
+  });
+})();
+</script>
+</body>
+</html>

@@ -293,6 +293,8 @@ class Rocket {
 
 // pads
 const pads = [];
+// the rival's launch site in a live duel (null rival = the solo game, unchanged)
+const RVR = { r: null, key: null, pad: null, crew: new Map(), me: 0, them: 0, flying: [], syncT: 0, dirty: true, status: '' };
 function makePad(i) {
   const pad = { i, g: new THREE.Group(), rocket: new Rocket(), crew: [], color: COLORS[i % COLORS.length], shake: 0, test: 0, arms: 0 };
   const base = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.95, 0.55, 8), M.concrete); base.position.y = 0.27; base.receiveShadow = true; base.castShadow = true;
@@ -323,11 +325,12 @@ function buildPads() {
 }
 let home = { pos: new V3(0, 10, 30), look: new V3(0, 4, 0) }, span = 20;
 function layout() {
-  const n = pads.length, cols = portrait() ? Math.min(2, n) : n, rows = Math.ceil(n / cols), dx = 7.4, dz = 9;
-  pads.forEach((p, i) => { const r = Math.floor(i / cols), c = i % cols, inRow = Math.min(cols, n - r * cols); p.g.position.set((c - (inRow - 1) / 2) * dx + (rows > 1 && r % 2 ? 0 : 0), 0, -r * dz + (rows - 1) * dz * 0.5); });
-  span = (cols - 1) * dx + 8.5;
+  const items = (RVR.pad ? [RVR.pad] : []).concat(pads);
+  const n = items.length, cols = portrait() ? Math.min(2, n) : n, rows = Math.ceil(n / cols), dx = RVR.pad ? 7.8 : 7.4, dz = 9;
+  items.forEach((p, i) => { const r = Math.floor(i / cols), c = i % cols, inRow = Math.min(cols, n - r * cols); p.g.position.set((c - (inRow - 1) / 2) * dx + (rows > 1 && r % 2 ? 0 : 0), 0, -r * dz + (rows - 1) * dz * 0.5); });
+  span = (cols - 1) * dx + 8.5 + (RVR.pad ? 4.5 : 0);
   const vfov = camera.fov * Math.PI / 180, hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
-  const tall = 13 + (rows - 1) * 4.5, dW = (span / 2) / Math.tan(hfov / 2), dH = (tall / 2) / Math.tan(vfov / 2), d = Math.max(dW, dH) * 0.9 + 2;
+  const tall = 13 + (rows - 1) * 4.5 + (RVR.pad ? 2 : 0), dW = (span / 2) / Math.tan(hfov / 2), dH = (tall / 2) / Math.tan(vfov / 2), d = Math.max(dW, dH) * 0.9 + 2;
   const cz = 0;
   home = { pos: new V3(0, 2.5 + d * (rows > 1 ? 0.3 : 0.2) + (rows - 1) * 3, cz + d), look: new V3(0, (rows > 1 ? 3.4 : 4.6) + (rows - 1) * 0.4, cz - (rows - 1) * 2) };
   sun.shadow.camera.left = -span - 6; sun.shadow.camera.right = span + 6; sun.shadow.camera.updateProjectionMatrix();
@@ -554,6 +557,7 @@ function onEvents(list, info) {
     if (e.kind === 'end') { const a = crew.get(e.agent); if (a && !back) a.leaving = 1; else if (a) remove(a); }
     if (back && e.counted) { if (e.kind === 'result' && e.ok && e.cat === 'edit') away.parts++; if (e.kind === 'tokens') away.fuel += e.tokens; }
     if (e.counted || e.live) apply(e, e.live && !back);
+    if (RVR.r && !isDemo && !back && e.live && e.kind === 'result' && e.ok) rvMine(ALT[e.cat] != null ? ALT[e.cat] : 0.05);
   }
   if (back && away && (away.parts || away.launches)) {
     const gained = S.sciTotal - away.sci;
@@ -724,6 +728,7 @@ function arrive() {
   d.launches.push({ t: Date.now(), planet: idx, acc: Math.round(acc * 100), sci, color: f.colors[0] || '#fff', seps: f.judgeLog.join(' ') });
   f.planet = makePlanet(P_, 9); f.planet.position.set(f.x + (portrait() ? 0 : -1), f.y + 40, f.z - 34); f.planet.scale.setScalar(0.3); scene.add(f.planet);
   f.result = { idx, sci, acc, first: v.first, reach };
+  if (RVR.r && mode === 'live') { f.result.km = f.colors.length * 0.25 * f.eff; rvMine(f.result.km); }
   setTimeout(() => showResult(), 1300);
   snd.win(); if (v.first) setTimeout(() => confetti(scene, f.rocket.g.position.clone().add(new V3(0, 3, 2)), 90), 1300);
   save(); hud();
@@ -734,10 +739,157 @@ function showResult() {
   const rk = rankLine();
   fh.result.innerHTML = `<div class="kind">REACHED ${P_.kind.toUpperCase()}</div><h2>${P_.name}</h2>${r.first ? '<div class="new">NEW WORLD UNLOCKED</div>' : ''}
     <div class="row"><span><b>+${r.sci}</b>science</span><span><b>${Math.round(r.acc * 100)}%</b>on course</span><span><b>${Math.round(r.reach)}</b>reach</span></div>
-    <p class="fine">${f.judgeLog.length ? 'Separations: ' + f.judgeLog.join(' · ') : 'Single stage rocket'}${f.go ? ' · GO bonus +10%' : ''}${rk ? ' · ' + rk : ''}</p>
+    <p class="fine">${f.judgeLog.length ? 'Separations: ' + f.judgeLog.join(' · ') : 'Single stage rocket'}${f.go ? ' · GO bonus +10%' : ''}${rk ? ' · ' + rk : ''}</p>${r.km ? `<p class="fine">Altitude race: <b>+${kmS(r.km)}</b> · You ${kmS(RVR.me)} vs ${RVR.r ? RVR.r.flag + ' ' + esc(RVR.r.name) : 'rival'} ${kmS(RVR.them)}</p>` : ''}
     ${r.idx < PLANETS.length - 1 ? `<p class="fine">Next world: ${PLANETS[r.idx + 1].name} needs reach ${PLANETS[r.idx + 1].req}. Bigger stacks and cleaner flights go further.</p>` : '<p class="fine">You reached the edge of the map!</p>'}
     <button class="big" id="bBack">Back to the pads</button>`;
   fh.result.hidden = false; $('bBack').onclick = () => endFlight(false);
+}
+
+// ------------------------------------------------------------------ the rival's launch site (live duel only)
+// Their pad stands at the left end of your row, painted in their colour, built by their named agents. Each of their
+// finished steps moves their program on (edit = a part, test = GO, commit = liftoff, deploy = a big boost) and adds
+// altitude to the race against yours. A real rival plays in r.color; a simulated one is silver and says so.
+const ALT = { edit: 0.2, run: 0.1, test: 1, commit: 1.5, deploy: 2, read: 0.05, web: 0.05, delegate: 0.05, other: 0.05 };
+const RV_MAX = 9;
+const kmS = k => (k >= 100 ? Math.round(k) : k.toFixed(1)) + ' km';
+const rvCol = r => r.sim ? '#dfe4ec' : r.color;
+const rvTagCol = r => r.sim ? '#5d6478' : r.color;
+function rvLoad() { try { const j = JSON.parse(localStorage.getItem('liftoff_lab_race')); if (j && j.key === RVR.key) { RVR.me = j.me || 0; RVR.them = j.them || 0; return; } } catch (e) {} RVR.me = 0; RVR.them = 0; }
+function rvSave() { try { localStorage.setItem('liftoff_lab_race', JSON.stringify({ key: RVR.key, me: RVR.me, them: RVR.them })); } catch (e) {} }
+function makeRivalPad(r) {
+  const col = rvCol(r), cm = partMat(col), tc = rvTagCol(r);
+  const pad = { g: new THREE.Group(), rocket: new Rocket(), color: col, shake: 0, test: 0, crane: 0, rework: 0, go: false, arms: 0, statusSpr: null };
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(2.7, 2.95, 0.55, 8), M.concrete); base.position.y = 0.27;
+  const ring = new THREE.Mesh(new THREE.CylinderGeometry(2.74, 2.74, 0.14, 8, 1, true), cm); ring.position.y = 0.5;
+  const trench = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 4.2), M.dark); trench.position.set(0, 0.56, -0.6);
+  const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.9, 0.6, 16, 1, true), new THREE.MeshStandardMaterial({ color: '#4a5068', metalness: 0.4, roughness: 0.4, side: THREE.DoubleSide })); mount.position.y = 0.85;
+  // a painted apron in their colour and a dashed border between their site and yours
+  const apronR = new THREE.Mesh(new THREE.CircleGeometry(3.6, 40), new THREE.MeshStandardMaterial({ color: col, transparent: true, opacity: 0.35, roughness: 0.8 })); apronR.rotation.x = -Math.PI / 2; apronR.position.y = 0.22;
+  pad.g.add(base, ring, trench, mount, apronR);
+  for (let k = 0; k < 7; k++) { const d = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.8), cm); d.position.set(3.9, 0.24, -4.2 + k * 1.4); pad.g.add(d); }
+  pad.rocket.g.position.set(0, MOUNT + 0.02, 0); pad.g.add(pad.rocket.g);
+  pad.gantry = makeGantry(RV_MAX * PART_H + 3); pad.gantry.traverse(m => { if (m.isMesh && m.material === M.red) m.material = cm; }); pad.gantry.position.set(-1.75, 0.55, -0.15); pad.gantry.rotation.y = Math.PI; pad.g.add(pad.gantry);
+  pad.tank = makeTank(); pad.tank.position.set(2.25, 0.55, -0.5); pad.tank.liq.scale.y = 0.7; pad.g.add(pad.tank);
+  pad.lamps = ['#ff4040', '#ffb020', '#30e090'].map((c, k) => { const l = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 8), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.1 })); l.position.set(-1.1 + k * 0.32, 0.72, 2.45); pad.g.add(l); return l; });
+  const lp = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.3, 0.2), M.dark); lp.position.set(-0.78, 0.62, 2.48); pad.g.add(lp);
+  pad.sign = label(`${r.flag} ${r.name}`, tc, { w: 2.6 }); pad.sign.position.set(0, 0.35, 3.3); pad.g.add(pad.sign);
+  pad.title = label(`${r.flag} ${r.name.toUpperCase()}'S PAD`, tc, { w: 4.6 }); pad.title.position.set(0, RV_MAX * PART_H + 5.2, 0); pad.g.add(pad.title);
+  cast(pad.g); apronR.castShadow = false; world.add(pad.g);
+  return pad;
+}
+function rvStatusSign(text) {
+  const rp = RVR.pad; if (!rp || RVR.status === text) return; RVR.status = text;
+  if (rp.statusSpr) { rp.g.remove(rp.statusSpr); rp.statusSpr = null; }
+  if (text) { rp.statusSpr = label(text, '#2c3044', { w: 3.2 }); rp.statusSpr.position.set(0, RV_MAX * PART_H + 4.3, 0); rp.g.add(rp.statusSpr); }
+}
+function rvCrewAdd(a, r, i) {
+  const col = rvCol(r), txt = `${r.flag} ${a.name}${a.src === 'codex' ? ' ·cx' : ''}`;
+  const m = engineer(col, txt);
+  if (r.sim) { m.remove(m.tag); m.tag = label(txt, rvTagCol(r), { w: 2.9 }); m.tag.position.y = 2.35; m.add(m.tag); }
+  const p = RVR.pad.g.position; m.position.set(p.x + (i % 2 ? 2 : -2), 0.55, p.z + 9);
+  world.add(m);
+  const c = { k: a.k, name: a.name, m, i, state: a.state, st: 0, bob: Math.random() * 6 };
+  RVR.crew.set(a.k, c); return c;
+}
+function rvClear() {
+  for (const c of RVR.crew.values()) world.remove(c.m); RVR.crew.clear();
+  for (const f of RVR.flying) world.remove(f.R.g); RVR.flying.length = 0;
+  if (RVR.pad) world.remove(RVR.pad.g);
+  RVR.pad = null; RVR.r = null; RVR.key = null; RVR.status = '';
+  document.body.classList.remove('duel'); $('rvRace').hidden = true; layout(); buildDecos();
+}
+function rvSync() {
+  const r = B && B.rival ? B.rival() : null;
+  if (!r) { if (RVR.r) rvClear(); return; }
+  if (RVR.key !== r.key) { rvClear(); RVR.key = r.key; rvLoad(); }
+  RVR.r = r;
+  if (!RVR.pad) { RVR.pad = makeRivalPad(r); layout(); buildDecos(); document.body.classList.add('duel'); }
+  const ags = (r.agents || []).slice(0, 5), keep = new Set(ags.map(a => a.k));
+  for (const c of [...RVR.crew.values()]) if (!keep.has(c.k)) { world.remove(c.m); RVR.crew.delete(c.k); }
+  ags.forEach((a, i) => { const c = RVR.crew.get(a.k) || rvCrewAdd(a, r, i); c.i = i; c.state = a.state; });
+  rvStatusSign(r.sim ? 'SIMULATED RIVAL' : !r.online ? '😴 OFFLINE' : !ags.length ? 'NO AGENTS YET' : '');
+  RVR.dirty = true;
+}
+function rvLaunch() {
+  const rp = RVR.pad, n = rp.rocket.parts.length; if (n < 1) return 0;
+  const R = new Rocket(); rp.rocket.parts.forEach(p => R.add(p.userData.color));
+  const p0 = rp.g.position; R.g.position.set(p0.x, MOUNT + 0.02, p0.z); world.add(R.g);
+  RVR.flying.push({ R, v: 0, t: 0 });
+  const km = n * 0.25 * (rp.go ? 1.1 : 1);
+  rp.rocket.clear(); rp.go = false; rp.shake = 1;
+  return km;
+}
+function rvEvent(e) {
+  const r = RVR.r, rp = RVR.pad; if (!r || !rp) return;
+  const c = RVR.crew.get(e.agent.k), who = `${r.name}'s ${e.agent.name}`, col = rp.color, tc = rvTagCol(r);
+  const top = () => rp.g.position.clone().add(new V3(0, MOUNT + rp.rocket.height + 1.6, 0));
+  if (c) c.st = 1.4;
+  if (!e.ok) {
+    rp.rework = 1; smoke(rp.g.position.clone().add(new V3(0, MOUNT + Math.max(0.6, rp.rocket.height), 0.6)), { c0: '#8d8b99', c1: '#55535f', size: 0.8, grow: 2.4, life: 1.6 });
+    popAt(top(), `${e.agent.name}: rework`, '#ffb38a', 15); ticker(`${r.flag} ${who}: ✗ ${e.cat} failed, rework`, '#ff9d8a'); return;
+  }
+  let km = ALT[e.cat] != null ? ALT[e.cat] : 0.05, extra = 0;
+  if (e.cat === 'edit') {
+    if (rp.rocket.parts.length < RV_MAX) { rp.rocket.add(col, true); rp.crane = 1; ticker(`${r.flag} ${who} bolts on part ${rp.rocket.parts.length}`, tc); }
+  } else if (e.cat === 'run') { rp.test = 0.9; rp.shake = 0.4; ticker(`${r.flag} ${who} fires an engine test`, tc); }
+  else if (e.cat === 'test') { rp.go = true; popAt(top(), `${e.agent.name}: GO!`, col, 20); ticker(`${r.flag} ${who}: tests pass, GO for launch`, tc); }
+  else if (e.cat === 'commit') { extra = rvLaunch(); banner(`${r.flag} ${who} commits: ${extra ? 'liftoff! ' : ''}+${kmS(km + extra)}`, 3600); snd.rumble(); }
+  else if (e.cat === 'deploy') { extra = rvLaunch(); banner(`${r.flag} ${who} deploys: +${kmS(km + extra)}!`, 3600); snd.rumble(); for (let k = 0; k < 3; k++) setTimeout(() => RVR.pad && sparks(RVR.pad.g.position.clone().add(new V3(0, 6 + k * 2, 0)), col, 22), k * 150); }
+  else sparks(rp.g.position.clone().add(new V3(-1.75, 1.6 + Math.random() * 4, 0.6)), col, 6);
+  RVR.them += km + extra; RVR.dirty = true; rvSave();
+  popAt(rp.g.position.clone().add(new V3(1.6, MOUNT + rp.rocket.height + 0.6, 0)), `+${kmS(km + extra)}`, col, e.cat === 'commit' || e.cat === 'deploy' ? 22 : 15);
+}
+function rvMine(km, why) { if (!RVR.r || km <= 0) return; RVR.me += km; RVR.dirty = true; rvSave(); }
+function rvPanel() {
+  const r = RVR.r, el = $('rvRace'); if (!r) { el.hidden = true; return; } RVR.dirty = false;
+  const top = Math.max(5, RVR.me, RVR.them) * 1.12, ags = [...RVR.crew.values()], working = ags.filter(c => c.state === 'working').length;
+  const st = r.sim ? 'simulated rival · silver crew' : !r.online ? `😴 ${esc(r.name)} is offline · their crew is idle` : !ags.length ? `waiting for ${esc(r.name)}'s agents…` : `🟢 ${working} of ${ags.length} agents working · ${ags.map(c => esc(c.name)).join(', ')}`;
+  const lead = RVR.me > RVR.them ? 'me' : RVR.them > RVR.me ? 'them' : '';
+  el.style.setProperty('--c', rvCol(r));
+  el.innerHTML = `<div class="hd">ALTITUDE RACE</div>
+    <div class="ln me ${lead === 'me' ? 'lead' : ''}"><span class="nm">You</span><div class="tr"><i style="width:${RVR.me / top * 100}%"><em>🚀</em></i></div><b>${kmS(RVR.me)}</b></div>
+    <div class="ln them ${lead === 'them' ? 'lead' : ''}"><span class="nm">${r.flag} ${esc(r.name)}</span><div class="tr"><i style="width:${RVR.them / top * 100}%"><em>🚀</em></i></div><b>${kmS(RVR.them)}</b></div>
+    <div class="st">${st}</div>`;
+  el.hidden = false;
+}
+function rvUpdate(s, t) {
+  const rp = RVR.pad; if (!rp) return;
+  const r = RVR.r, live = r && (r.sim || r.online);
+  const landed = rp.rocket.update(s);
+  if (landed) { sparks(rp.g.position.clone().add(new V3(0, MOUNT + landed.position.y + PART_H, 0)), landed.userData.color, 12); shake = Math.max(shake, 0.05); }
+  const gy = rp.gantry; gy.beacon.material.emissiveIntensity = live && Math.sin(t * 4) > 0.2 ? 2.5 : 0.2;
+  gy.car.position.y = 1 + (Math.sin(t * 0.5 + 3) * 0.5 + 0.5) * (gy.top - 1.5) * (live ? 1 : 0);
+  if (rp.crane) rp.crane = Math.max(0, rp.crane - s * 1.2);
+  const hookY = Math.max(MOUNT + rp.rocket.height + 1.2 - 0.55, 1.5) - 0.55, hookTop = gy.top - 0.75, hy = lerp(hookTop, Math.min(hookTop, hookY), Math.sin(rp.crane * Math.PI));
+  gy.hook.position.y = hy; gy.cable.scale.y = Math.max(0.2, gy.top + 0.35 - hy); gy.cable.position.y = (gy.top + 0.35 + hy) / 2;
+  if (rp.test > 0) { rp.test -= s; const b = rp.g.position.clone().add(new V3(0, MOUNT - 0.35, 0)); if (rp.rocket.parts.length) { for (let k = 0; k < 3; k++) flame(b, 1.1); if (Math.random() < 0.5) smoke(b.clone().add(new V3(0, 0, 1.4)), { v: new V3(rnd(2), 0.8, 2.5), size: 0.8, grow: 3.5, life: 1.8 }); } else sparks(b, '#ffb000', 2); }
+  if (rp.rework) { rp.rework = Math.max(0, rp.rework - s * 2.5); const tp = rp.rocket.parts[rp.rocket.parts.length - 1]; if (tp) tp.rotation.z = Math.sin(rp.rework * 20) * 0.08 * rp.rework; }
+  if (rp.shake) { rp.shake = Math.max(0, rp.shake - s); rp.rocket.g.position.x = rnd(0.09 * rp.shake); } else rp.rocket.g.position.x = 0;
+  const ready = rp.rocket.parts.length >= MIN_PARTS;
+  rp.lamps[0].material.emissiveIntensity = !ready ? 1.6 : 0.1; rp.lamps[1].material.emissiveIntensity = ready && !rp.go ? 1.6 : 0.1; rp.lamps[2].material.emissiveIntensity = rp.go ? (Math.sin(t * 6) > 0 ? 2 : 1) : 0.1;
+  rp.title.position.y = RV_MAX * PART_H + 5.2 + Math.sin(t * 1.5) * 0.12;
+  // their rockets in flight: a short liftoff off the top of the screen
+  for (let k = RVR.flying.length - 1; k >= 0; k--) {
+    const f = RVR.flying[k]; f.t += s; const g = f.R.g, base = g.position.clone().add(new V3(0, -0.4, 0));
+    if (f.t < 1.1) { g.position.x = rp.g.position.x + rnd(0.04); if (Math.random() < 0.7) smoke(base.clone().add(new V3(rnd(1), 0, 1)), { v: new V3(rnd(5), 0.6, 2 + Math.random() * 2), size: 1.1, grow: 4, life: 2 }); for (let q = 0; q < 2; q++) flame(base, 1.1); continue; }
+    f.v += s * 7; g.position.y += f.v * s; for (let q = 0; q < 3; q++) flame(base, 1.3);
+    if (Math.random() < 0.7) smoke(base.clone().add(new V3(0, -1, 0)), { v: new V3(rnd(0.5), -2, rnd(0.5)), size: 0.9, grow: 3.2, life: 2.6, up: 0 });
+    if (g.position.y > 90) { world.remove(g); RVR.flying.splice(k, 1); }
+  }
+  // their crew: walk to a slot round their pad; hammer when a step lands, wave when waiting, slump when offline
+  const pp = rp.g.position;
+  for (const c of RVR.crew.values()) {
+    const m = c.m, sl = SLOTS[c.i % SLOTS.length], tgt = new V3(pp.x - sl[0], 0.55, pp.z + sl[1]);
+    c.st = Math.max(0, c.st - s);
+    const dx = tgt.x - m.position.x, dz = tgt.z - m.position.z, dd = Math.hypot(dx, dz);
+    if (dd > 0.08) { const sp_ = Math.min(dd, s * 3.2); m.position.x += dx / dd * sp_; m.position.z += dz / dd * sp_; m.rotation.y = Math.atan2(dx, dz); m.run(t, 1); continue; }
+    m.position.y = 0.55; m.armR.rotation.z = 0; m.head.position.x = 0;
+    if (!live) { m.rotation.y = lerp(m.rotation.y, 0.4, 0.05); m.armL.rotation.x = m.armR.rotation.x = 0.15; m.legL.rotation.x = m.legR.rotation.x = 0; m.body.position.y = 0.92; continue; }
+    if (c.st > 0) { m.rotation.y = Math.atan2(pp.x - m.position.x, pp.z - m.position.z); m.armR.rotation.x = -1.4 + Math.sin(t * 18) * 0.6; m.armL.rotation.x = -0.6; m.legL.rotation.x = m.legR.rotation.x = 0; continue; }
+    if (c.state === 'waiting') { m.rotation.y = lerp(m.rotation.y, 0, 0.2); m.armR.rotation.z = 2.6 + Math.sin(t * 10) * 0.4; m.armR.rotation.x = 0; m.armL.rotation.x = 0; m.position.y = 0.55 + Math.abs(Math.sin(t * 5)) * 0.08; continue; }
+    if (c.state === 'working') { m.rotation.y = Math.atan2(pp.x - m.position.x, pp.z - m.position.z); m.armR.rotation.x = -1.0 + Math.sin(t * 6 + c.bob) * 0.3; m.armL.rotation.x = -0.4; continue; }
+    m.rotation.y = lerp(m.rotation.y, Math.sin(t * 0.3 + c.bob) * 0.5, 0.05); m.armL.rotation.x = m.armR.rotation.x = Math.sin(t * 1.5 + c.bob) * 0.08; m.legL.rotation.x = m.legR.rotation.x = 0;
+  }
 }
 
 // ------------------------------------------------------------------ camera, input, loop
@@ -853,8 +1005,10 @@ loop((dt, t) => {
   // launches
   if (flight) flightUpdate(s);
   else { cooldown -= s; if (cooldown <= 0 && queue.length) { const i = queue.shift(); if (padSt(i).parts.length >= 1) startFlight(i); } }
+  rvUpdate(s, t);
   updateP(s); updateCamera(s);
-  hudT -= s; if (hudT <= 0) { hudT = 0.5; idleCheck(); }
+  hudT -= s; if (hudT <= 0) { hudT = 0.5; idleCheck(); if (RVR.dirty) rvPanel(); }
+  RVR.syncT -= s; if (RVR.syncT <= 0) { RVR.syncT = 1.5; rvSync(); }
 });
 
 // ------------------------------------------------------------------ HUD + panels
@@ -967,4 +1121,6 @@ const A = agents({
 });
 window.__A = A;
 B = board({ game: 'agent-rockets', label: 'Science', A });
+window.__B = B;
+B.onRival(evs => { rvSync(); for (const e of evs) rvEvent(e); });
 window.__game = { sepTap: () => sepTap(), get S() { return S; }, get mode() { return mode; }, real, crew, pads, queue, get flight() { return flight; } };
