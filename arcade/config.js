@@ -22,12 +22,12 @@ window.RIFFCADE = {
   "WHATSAPP_CHANNEL_URL": "",
   "META_PIXEL_ID": "1143064938054197",
   "GA4_ID": "G-N62V18VZ3S",
-  "DAILY_PROMPT": "Every morning, open https://today.agentpark.co and send me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures.",
+  "DAILY_PROMPT": "Right now, open https://today.agentpark.co and show me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.",
   "PROMPT_TEST": false,
   "PROMPTS": {
-    "a": "Every morning, open https://today.agentpark.co and send me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures.",
-    "b": "Every morning, open https://today.agentpark.co and pick 6 games I'd enjoy from different categories, one line and a link each, plus the page link to see them all with pictures.",
-    "c": "Every morning, open https://today.agentpark.co and give me 8 games for a quick break, grouped by category, one line and a link each, plus the page link to see them all with pictures."
+    "a": "Right now, open https://today.agentpark.co and show me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.",
+    "b": "Right now, open https://today.agentpark.co and pick 6 games I'd enjoy from different categories, one line and a link each, plus the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.",
+    "c": "Right now, open https://today.agentpark.co and give me 8 games for a quick break, grouped by category, one line and a link each, plus the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled."
   },
   "TIERS": { "strong_days_7": 4, "strong_daily_days_7": 3, "okay_days_7": 2, "okay_games_today": 3, "okay_minutes_7": 10 },
   "CHALLENGE_EPOCH": "2026-10-15",

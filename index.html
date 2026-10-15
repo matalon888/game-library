@@ -128,7 +128,7 @@ footer a { color: var(--muted) }
   </section>
   <div class="stage" id="stage" aria-hidden="true"></div>
 </main>
-<div class="listed" id="listed" role="status"><span class="ok">✓</span><span><b id="lT">You're on the list.</b><span id="lS">Send the prompt. Your first games arrive tomorrow morning.</span></span></div>
+<div class="listed" id="listed" role="status"><span class="ok">✓</span><span><b id="lT">You're on the list.</b><span id="lS">Send the prompt. Your first games arrive right away, then every morning.</span></span></div>
 <footer><nav><a href="./">The park</a><a href="connect.html">Plugin</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav></footer>
 <script src="consent.js"></script>
 <script src="habits.js"></script>
@@ -140,7 +140,7 @@ footer a { color: var(--muted) }
   // ---------------------------------------------------------------- the daily agent (same flow as connect.html)
   const MCP = 'https://mcp.riffcade.com/mcp';
   const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
-  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Every morning, open https://today.agentpark.co and send me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures.';
+  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.';
   const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', grok: 'Grok' };
   // Claude warns on pre-filled links and Gemini has none, so both open empty with the prompt on the clipboard
   const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new', gemini: 'https://gemini.google.com/app', grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
@@ -165,12 +165,21 @@ footer a { color: var(--muted) }
     // a real link (no preventDefault): on phones it opens the AI's app; the gate opens here at the same time
     a.addEventListener('click', () => {
       countClick(k);
+      if (window.RiffHabits) RiffHabits.agentTapped(k);
       copyText(DAILY).then(ok => {
         if (!ok) return listed('Paste this into ' + NAMES[k] + ':', DAILY, 9000);
         listed("You're on the list.", k === 'claude' || k === 'gemini' ? 'Prompt copied. Paste it into ' + NAMES[k] + ' and send.' : 'Tap Send in ' + NAMES[k] + '. (Prompt copied too, in case you log in first.)');
       });
       letIn(k);
     });
+  });
+
+  // back from the AI: did its agent fetch today.agentpark.co with this browser's code? (habits.js agentWatch)
+  if (window.RiffHabits) RiffHabits.agentWatch((state, k) => {
+    const n = NAMES[k] || 'your AI';
+    if (state === 'connected') listed('Your ' + n + ' agent is connected.', 'Your games are in the chat now, and new ones arrive every morning.', 8000);
+    else if (state === 'missing') listed(n + " didn't check in yet.", 'Did you tap Send? Tap ' + n + ' again and send the prompt.', 9000);
+    else if (state === 'stopped') listed('Your morning games stopped.', 'Tap ' + n + ' to turn them back on.', 9000);
   });
 
   // ---------------------------------------------------------------- the queue

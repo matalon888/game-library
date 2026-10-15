@@ -284,6 +284,13 @@
     return false;
   }
 
+  // back from the AI: did its agent fetch today.agentpark.co with this browser's code? (habits.js agentWatch)
+  if (RH && RH.agentWatch) RH.agentWatch((state, k) => {
+    const n = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', grok: 'Grok' }[k] || 'Your AI';
+    toast(state === 'connected' ? '✅ ' + n + ' is connected. Your games are in the chat, new ones every morning.'
+      : state === 'missing' ? n + " didn't check in yet. Did you tap Send?" : 'Your morning games stopped. Ask ' + n + ' to turn the daily task back on.', 6000);
+  });
+
   // ---------------------------------------------------------------- "New games every morning" (SUBSCRIBE_V2)
   const subDue = () => C.SUBSCRIBE_V2 && ls.get('subDay', null) !== today();
   const ua = navigator.userAgent;
@@ -295,13 +302,13 @@
       ev('sub_shown');
       // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
       const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
-      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Every morning, open https://today.agentpark.co and send me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures.';
+      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Right now, open https://today.agentpark.co and show me the game of the day plus the best new games in each category, one line and a link each, and the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.';
       const back = 'https://agentpark.co/arcade/?sub=1';
       const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
         ${iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari</a><p>Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b>, or copy the link.</p><button class="btn ghost" id="gCopyLink">Copy link</button>`
           : `<a class="btn big" id="gOpen" href="intent://agentpark.co/arcade/?sub=1#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a>`}
         <b>2. Then pick your AI</b></div>` : '';
-      const o = card('g-sub', `<div class="eyebrow">New games every morning</div><h2>Get tomorrow's games in your AI</h2>
+      const o = card('g-sub', `<div class="eyebrow">New games every morning</div><h2>Get new games in your AI, every morning</h2>
         <div class="g-fresh">${fresh.map(g => `<figure><img src="${esc(art(g))}" alt=""><figcaption>${esc(g.name)}</figcaption></figure>`).join('')}</div>
         ${escapeHtml}
         <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">ChatGPT: tap Send, that's it</a>
@@ -311,7 +318,7 @@
       const close = () => { o.remove(); removeEventListener('keydown', key); done(); };
       const key = e => { if (e.key === 'Escape') close(); };
       addEventListener('keydown', key);
-      const tap = ch => { ev('sub_tap_' + ch); pixel('DailyButtonTap', true); ga('prompt_tap', { ai: ch, prompt_variant: RH ? RH.variant() : 'a', placement: 'arcade_card', player_tier: tierNow }); fetch(API + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button: 'ptap-' + (RH ? RH.variant() : 'a') }) }).catch(() => {}); };
+      const tap = ch => { if (RH && RH.agentTapped) RH.agentTapped(ch); ev('sub_tap_' + ch); pixel('DailyButtonTap', true); ga('prompt_tap', { ai: ch, prompt_variant: RH ? RH.variant() : 'a', placement: 'arcade_card', player_tier: tierNow }); fetch(API + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button: 'ptap-' + (RH ? RH.variant() : 'a') }) }).catch(() => {}); };
       // the prompt goes on the clipboard too: if ChatGPT stops for a log-in, or its app opens without it, they paste
       $('gGpt').onclick = () => { tap('chatgpt'); copyText(P).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
       $('gClaude').onclick = () => {

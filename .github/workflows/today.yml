@@ -1,0 +1,23 @@
+# Rebuilds today.agentpark.co (today.html + arcade/today.json) twice a day from arcade/games.json, so every AI's morning
+# task sees today's date and a new game of the day even when the Mac that adds games is off. tools/build_today.py is a copy
+# of ~/game-librarian/build_today.py, refreshed on every publish from the Mac.
+name: today
+on:
+  schedule:
+    - cron: "30 5 * * *"
+    - cron: "30 17 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: TODAY_LAYOUT=site python3 tools/build_today.py
+      - run: |
+          git config user.name "agentpark-today"; git config user.email "actions@users.noreply.github.com"
+          git add today.html arcade/today.json
+          git diff --cached --quiet && exit 0
+          git commit -qm "today: $(date -u +%F)"
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q && exit 0; sleep 5; done; exit 1

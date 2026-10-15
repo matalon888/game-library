@@ -1,7 +1,10 @@
 // RIFFCADE player habits, kept on the device (localStorage), never with an id: which days they played, how many games and
 // minutes, whether they came from their AI's daily task. From that: a tier (weak / okay / strong) for analytics, and the
 // daily-prompt variant this browser is shown (the A/B test in config.js PROMPTS, when PROMPT_TEST is on).
-// API (window.RiffHabits): profile(), tier(), gameStart(), gameEnd(seconds), daily(ai), source(), variant(), prompt().
+// The prompt also carries this browser's random agent code (?u=, no id beyond it), so the page can ask whether its own AI
+// agent ran: right after the tap (connected / missing) and on later visits (stopped). See agentTapped() and agentWatch().
+// API (window.RiffHabits): profile(), tier(), gameStart(), gameEnd(seconds), daily(ai), source(), variant(), prompt(),
+// agentCode(), agentTapped(ai), agentWatch(cb).
 (function () {
   if (new URLSearchParams(location.search).get('embed') === 'chat') return;
   const C = window.RIFFCADE || {};
@@ -72,11 +75,46 @@
   function prompt() {
     const v = variant();
     const text = (C.PROMPT_TEST && PROMPTS[v]) || C.DAILY_PROMPT || PROMPTS.a || '';
-    return C.PROMPT_TEST ? text.replace(/https:\/\/today\.riffcade\.com\/?(?![?\w])/, 'https://today.riffcade.com/?v=' + v) : text;
+    return text.replace(/(https:\/\/today\.(?:agentpark\.co|riffcade\.com))\/?(?![?\w])/, (m, base) => base + '/?u=' + agentCode() + (C.PROMPT_TEST ? '&v=' + v : ''));
+  }
+
+  // ---- did this browser's daily agent run? today.agentpark.co/?u=<code> fetches are logged by code (arcade-api /api/agent)
+  const AGENT_API = 'https://mcp.riffcade.com/api/agent?u=';
+  function agentCode() {
+    let u; try { u = localStorage.getItem('ap.u'); } catch (e) {}
+    if (!/^[a-z0-9]{10}$/.test(u || '')) {
+      u = Array.from(crypto.getRandomValues(new Uint8Array(10)), b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+      try { localStorage.setItem('ap.u', u); } catch (e) {}
+    }
+    return u;
+  }
+  const tapGet = () => { try { return JSON.parse(localStorage.getItem('ap.tap')) || null; } catch (e) { return null; } };
+  const tapSet = t => { try { localStorage.setItem('ap.tap', JSON.stringify(t)); } catch (e) {} };
+  function agentTapped(ai) { tapSet({ ai, at: Date.now(), ok: 0 }); }
+  // cb(state, ai): 'connected' once, at the first fetch after the latest tap; 'missing' when 3 minutes pass with none;
+  // 'stopped' when it ran before but not in the last 48 hours. Polls only while the page is visible.
+  function agentWatch(cb) {
+    let timer = null;
+    const check = async () => {
+      clearTimeout(timer);
+      const t = tapGet(); if (!t || document.hidden) return;
+      let st; try { st = await (await fetch(AGENT_API + agentCode(), { cache: 'no-store' })).json(); } catch (e) { return; }
+      const last = st.last ? Date.parse(st.last) : 0;
+      if (last > t.at - 5000) {
+        if (!t.ok) { t.ok = 1; tapSet(t); cb('connected', t.ai); }
+        else if (Date.now() - last > 48 * 3600e3) cb('stopped', t.ai);
+      } else if (Date.now() - t.at < 3 * 60e3) timer = setTimeout(check, 4000);
+      else if (!t.ok && !t.told) { t.told = 1; tapSet(t); cb('missing', t.ai); }
+      else if (t.ok && Date.now() - t.at > 48 * 3600e3) cb('stopped', t.ai);
+    };
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+    addEventListener('pageshow', check);
+    check();
+    return check;
   }
 
   window.RiffHabits = {
-    profile, tier, source, variant, prompt,
+    profile, tier, source, variant, prompt, agentCode, agentTapped, agentWatch,
     gameStart() { today().g++; save(h); },
     gameEnd(seconds) { if (seconds > 0 && seconds < 6 * 3600) { today().s += Math.round(seconds); save(h); } },
     daily(ai) { const t = today(); t.d = 1; if (ai) h.ai = ai; save(h); },
