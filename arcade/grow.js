@@ -135,6 +135,7 @@
 
   function onLoad(g, gs) {
     G = g; all = gs;
+    if (window.ArcadeDiag) ArcadeDiag.load(g);
     kids = g.category === 'Kids' || (g.tags || []).includes('Kids');
     RC.setKids(kids); // consent.js starts GA / the pixel now (never on a Kids game)
     if (q.get('ref') === 'c') once('c_arrival.' + g.slug, 'c_arrival');
@@ -151,6 +152,7 @@
   function endGame(reason) {
     if (!t0 || endSent) return Promise.resolve();
     endSent = true;
+    if (window.ArcadeDiag) ArcadeDiag.end(reason);
     const secs = (Date.now() - t0) / 1000;
     if (RH) RH.gameEnd(secs);
     // GA batches events for ~5 s and drops them when the page goes: this one is beaconed at once (consent.js gaNow)
@@ -159,6 +161,7 @@
   addEventListener('pagehide', () => endGame('close'));
 
   function onStart(frame) {
+    if (window.ArcadeDiag) ArcadeDiag.start(G, frame);
     const list = played(); if (!list.includes(G.slug)) list.push(G.slug); ss.set('played', list);
     const count = ss.get('games', 0) + 1; ss.set('games', count);
     ev('game');

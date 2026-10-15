@@ -44,9 +44,13 @@ function ringGeo(i) {
   return g;   // the gap is centred on local +X
 }
 const base = new THREE.Group(); scene.add(base);
+// free a removed board's GPU memory (shared cog shapes stay)
+const freeTree = o => o.traverse(x => { if (!x.isMesh) return; if (x.geometry !== COG && x.geometry !== TOOTH) x.geometry.dispose(); [].concat(x.material).forEach(m => m && m.dispose()); });
+// free a removed board's GPU memory (shared cog shapes stay)
+const freeTree = o => o.traverse(x => { if (!x.isMesh) return; if (x.geometry !== COG && x.geometry !== TOOTH) x.geometry.dispose(); [].concat(x.material).forEach(m => m && m.dispose()); });
 let maxR = 3;
 function buildBase(n) {
-  base.clear();
+  freeTree(base); base.clear();
   maxR = rOut(n - 1) + 0.55;
   const plate = new THREE.Mesh(new THREE.CylinderGeometry(maxR, maxR + 0.05, 0.3, 72), mat('#ffffff', { roughness: 0.5 })); plate.position.y = -0.15; plate.receiveShadow = true; plate.castShadow = true; base.add(plate);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(maxR, 0.09, 12, 72), glossy('#f1e4d8')); rim.rotation.x = Math.PI / 2; rim.position.y = 0.0; base.add(rim);
@@ -99,7 +103,7 @@ let lvl = null;
 function build() {
   const fk = F.k(), seed = D.seed ? D.seed : level * 6151 + 3;
   lvl = design(level, seed, fk);
-  for (const r of rings) scene.remove(r.g);
+  for (const r of rings) { scene.remove(r.g); freeTree(r.g); }
   buildBase(lvl.n);
   rings = []; pos = lvl.pos.slice(); links = lvl.L;
   for (let i = 0; i < lvl.n; i++) {
