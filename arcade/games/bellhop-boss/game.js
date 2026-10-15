@@ -1,6 +1,5 @@
 // Bellhop Boss — original idle hotel tycoon. Drag to walk your bellhop: check guests in at the desk, clean rooms,
 // scoop up the cash stacks and pour them into upgrade pads (new rooms, a receptionist, a housekeeper).
-// Inspired by the mechanic of My Perfect Hotel (SayGames). All code and art original.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded, stickman, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

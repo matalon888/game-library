@@ -1,6 +1,5 @@
 // Spin Bakes: Cake Decorating Game — original cake-decorating game. Hold to pipe icing rings on a spinning cake
 // (release and switch colour as each layer closes), smooth it with the scraper, shake toppings on top. Match the order.
-// Inspired by the mechanic of Icing on the Cake (Crazy Labs). All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';

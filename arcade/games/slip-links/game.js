@@ -1,5 +1,4 @@
 // Slip Links — original game. Chains are knotted over a board of pegs; tap the chain lying on top to slip it free.
-// Inspired by the mechanic of Go Knots 3D (Rollic). All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, mat, rounded, sfx, tone, buzz, burst, confetti, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

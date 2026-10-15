@@ -1,6 +1,5 @@
 // Cube Trek — original 8×8 block puzzle with quest goals. Drag one of three pieces onto the board; full rows and
 // columns burst. Quest levels: free every gem on the board (or hit a score target). Game over when nothing fits.
-// Inspired by the mechanic of Blocky Quest (SayGames). All code and art original.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

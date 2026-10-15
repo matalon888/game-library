@@ -1,6 +1,5 @@
 // Snip Studio: Hair Salon Makeover — original hair-salon game. Rub to lather, swipe the scissors along the cut line,
 // spray the dye, pick the style — then the client turns to the mirror. Match the reference look to clear the level.
-// Inspired by the mechanic of Hair Salon (Pazu Games). All code and art original (three.js primitives + verlet hair).
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';

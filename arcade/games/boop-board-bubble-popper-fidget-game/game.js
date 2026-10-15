@@ -1,10 +1,10 @@
-// Boop Board — original pop-it fidget game for kids. Every level is a squishy rainbow critter board full of bubbles:
+// Boop Board — original bubble-popper fidget game for kids. Every level is a squishy rainbow critter board full of bubbles:
 // press (or swipe across) them to pop them all before the sun-clock runs out. From level 3 a few bubbles puff back up.
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 
-const NAME = 'Boop Board: Pop It Fidget Game';
+const NAME = 'Boop Board: Bubble Popper Fidget Game';
 const S = store('boopboard');
 let level = S.get('level', 1), best = S.get('best', 0);
 const F = flow('boopboard');

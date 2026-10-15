@@ -1,10 +1,10 @@
-// Froggle — original bubble shooter for kids. Tippy the pond frog blows bubbles: aim, let go, match 3 of a colour to pop them.
+// Froggle — original bubble-popping game for kids. Tippy the pond frog blows bubbles: aim, let go, match 3 of a colour to pop them.
 // Bubbles left hanging fall into the pond, and ladybugs trapped in bubbles fly free. Clear the board before the bubbles run out.
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 
-const NAME = 'Froggle: Bubble Shooter';
+const NAME = 'Froggle: Pond Bubble Pop';
 const S = store('froggle');
 let level = S.get('level', 1), best = S.get('best', 0);
 const F = flow('froggle');

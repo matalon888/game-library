@@ -1,6 +1,5 @@
 // Tip Top: Nail Salon Makeover — original nail-art game. Shape the acrylic, file to length, polish, stamp the art,
 // then the reveal: the whole hand gets the look. Match the client's order card to clear the level.
-// Inspired by the mechanic of Acrylic Nails! (CrazyLabs). All code and art original (three.js primitives + canvas paint).
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';

@@ -1,6 +1,5 @@
 // Sticky Nook — original cosy sticker-decorating game. Peel stickers off the tray and press them onto their outlined
 // spots in an isometric dollhouse room; every sticker brings the room's colour back.
-// Inspired by the mechanic of My Sticker Room (SayGames). All code and art original (drawn live with canvas 2D).
 import { createUI, input, loop, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

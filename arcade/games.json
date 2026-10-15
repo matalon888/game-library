@@ -6192,7 +6192,7 @@
  {
   "slug": "snip-snack",
   "name": "Snip Snack",
-  "blurb": "Cut the ropes and feed the candy to the sleepy hedgehog.",
+  "blurb": "Snip the strings and drop the sweet to the sleepy hedgehog.",
   "category": "Puzzle",
   "author": "RIFFCADE",
   "credit": "An original RIFFCADE game",
@@ -7124,8 +7124,8 @@
   "clip": "clips/letterloom-anagram-crossword-puzzle.mp4"
  },
  {
-  "slug": "ridgeline-tripeaks-solitaire",
-  "name": "Ridgeline: TriPeaks Solitaire",
+  "slug": "ridgeline-peaks-solitaire",
+  "name": "Ridgeline: Peaks Solitaire",
   "blurb": "Clear the three peaks one card higher or lower.",
   "category": "Cards",
   "author": "RIFFCADE",
@@ -7143,15 +7143,15 @@
    "Daily puzzles"
   ],
   "original": true,
-  "repo_dir": "ridgeline-tripeaks-solitaire",
+  "repo_dir": "ridgeline-peaks-solitaire",
   "external": null,
   "made": null,
   "platform": "phone",
   "public": null,
-  "cover": "covers/ridgeline-tripeaks-solitaire.webp",
-  "thumb": "covers/ridgeline-tripeaks-solitaire.webp",
-  "icon": "art/ridgeline-tripeaks-solitaire.webp",
-  "clip": "clips/ridgeline-tripeaks-solitaire.mp4"
+  "cover": "covers/ridgeline-peaks-solitaire.webp",
+  "thumb": "covers/ridgeline-peaks-solitaire.webp",
+  "icon": "art/ridgeline-peaks-solitaire.webp",
+  "clip": "clips/ridgeline-peaks-solitaire.mp4"
  },
  {
   "slug": "lantern-pairs-mahjong-solitaire",
@@ -7214,8 +7214,8 @@
   "clip": "clips/ninefold-daily-sudoku-puzzle.mp4"
  },
  {
-  "slug": "boop-board-pop-it-fidget-game",
-  "name": "Boop Board: Pop It Fidget Game",
+  "slug": "boop-board-bubble-popper-fidget-game",
+  "name": "Boop Board: Bubble Popper Fidget Game",
   "blurb": "Pop every bubble on the rainbow critters.",
   "category": "Kids",
   "author": "RIFFCADE",
@@ -7233,15 +7233,15 @@
    "Kids"
   ],
   "original": true,
-  "repo_dir": "boop-board-pop-it-fidget-game",
+  "repo_dir": "boop-board-bubble-popper-fidget-game",
   "external": null,
   "made": null,
   "platform": "phone",
   "public": null,
-  "cover": "covers/boop-board-pop-it-fidget-game.webp",
-  "thumb": "covers/boop-board-pop-it-fidget-game.webp",
-  "icon": "art/boop-board-pop-it-fidget-game.webp",
-  "clip": "clips/boop-board-pop-it-fidget-game.mp4"
+  "cover": "covers/boop-board-bubble-popper-fidget-game.webp",
+  "thumb": "covers/boop-board-bubble-popper-fidget-game.webp",
+  "icon": "art/boop-board-bubble-popper-fidget-game.webp",
+  "clip": "clips/boop-board-bubble-popper-fidget-game.mp4"
  },
  {
   "slug": "peekaboo-pals-animal-memory-match",
@@ -7274,8 +7274,8 @@
   "clip": "clips/peekaboo-pals-animal-memory-match.mp4"
  },
  {
-  "slug": "froggle-bubble-shooter",
-  "name": "Froggle: Bubble Shooter",
+  "slug": "froggle-pond-bubble-pop",
+  "name": "Froggle: Pond Bubble Pop",
   "blurb": "Aim, match three bubbles and free the ladybugs.",
   "category": "Arcade",
   "author": "RIFFCADE",
@@ -7293,15 +7293,15 @@
    "Kids"
   ],
   "original": true,
-  "repo_dir": "froggle-bubble-shooter",
+  "repo_dir": "froggle-pond-bubble-pop",
   "external": null,
   "made": null,
   "platform": "phone",
   "public": null,
-  "cover": "covers/froggle-bubble-shooter.webp",
-  "thumb": "covers/froggle-bubble-shooter.webp",
-  "icon": "art/froggle-bubble-shooter.webp",
-  "clip": "clips/froggle-bubble-shooter.mp4"
+  "cover": "covers/froggle-pond-bubble-pop.webp",
+  "thumb": "covers/froggle-pond-bubble-pop.webp",
+  "icon": "art/froggle-pond-bubble-pop.webp",
+  "clip": "clips/froggle-pond-bubble-pop.mp4"
  },
  {
   "slug": "sudsy-lane-kids-car-wash-game",

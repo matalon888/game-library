@@ -1,6 +1,5 @@
 // Steady Wheels — original careful-driving / parking game. Hold to drive, slide to steer the wheel, tap the lever for
 // reverse; follow the road and stop the vehicle inside the green bay without scraping anything.
-// Inspired by the mechanic of Vehicle Masters (SayGames). All code and art original.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

@@ -1,5 +1,5 @@
 // Shelf Snap — original game. Unpack the shopping baskets and snap every grocery into its outlined spot on the fridge
-// shelves. Inspired by the mechanic of Fill The Fridge! (Rollic). All code and art original (three.js primitives).
+// shelves. All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

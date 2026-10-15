@@ -1,6 +1,5 @@
 // Goo Lab: Slime Simulator ASMR — original DIY-slime game. Drip dyes into the glue and stir, pour activator into the
 // stretchy zone, sprinkle the add-ins, then squish and poke the soft-body slime. Scored against the recipe card.
-// Inspired by the mechanic of DIY slime ASMR simulators. All code and art original (three.js height-field soft body).
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';

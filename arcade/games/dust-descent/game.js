@@ -1,5 +1,4 @@
 // Dust Descent — original downhill MTB racer. First-person handlebars, canyon trail, rivals, boost pads, kickers.
-// Inspired by the mechanic of RUSH: Xtreme (SayGames). All code and art original (three.js primitives + canvas textures).
 import { THREE, createStage, createUI, input, loop, confetti, burst, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

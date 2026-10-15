@@ -1,6 +1,5 @@
 // Squish Gate — original game. A wobbly jelly slides down a runway; drag up to make it tall and thin, down to make it
 // short and wide, and squeeze through every cut-out gate. Snug fits build combos and fever; the finish ladder pays out.
-// Inspired by the mechanic of Jelly Shift (SayGames). All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 

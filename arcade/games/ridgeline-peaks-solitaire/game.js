@@ -1,11 +1,11 @@
-// Ridgeline — original TriPeaks solitaire (the classic public card game). Tap a face-up card one rank above or below
+// Ridgeline — original three-peaks solitaire (the classic public card game). Tap a face-up card one rank above or below
 // the waste card; build streaks; draw from the stock when stuck. Deals are seeded and checked solvable before you see them.
 import { createUI, store, buzz, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
-const NAME = 'Ridgeline: TriPeaks Solitaire';
+const NAME = 'Ridgeline: Peaks Solitaire';
 const S = store('ridgeline');
 const F = flow('ridgeline');
 const ui = createUI({ title: 'Ridgeline', hint: 'Tap to deal', hand: '', score: false });
@@ -13,7 +13,7 @@ cardTheme({ accent: '#d6a24a' });
 const D = daily('ridgeline', ui, { name: NAME });
 const fx = fx2d(11);
 const doneToday = S.get('daily_' + todayKey(), null);
-startCard(ui, D, { kicker: D.isDaily ? 'Daily deal' : 'TriPeaks solitaire', doneLine: doneToday ? (D.isDaily ? `Cleared today · ${doneToday.s.toLocaleString()} pts` : 'Daily deal cleared ✓') : null });
+startCard(ui, D, { kicker: D.isDaily ? 'Daily deal' : 'three-peaks solitaire', doneLine: doneToday ? (D.isDaily ? `Cleared today · ${doneToday.s.toLocaleString()} pts` : 'Daily deal cleared ✓') : null });
 if (D.isDaily) ui.els.win.querySelector('p').innerHTML = 'Daily deal<span data-l hidden></span>';
 ui.els.win.querySelector('h1').textContent = 'Peaks cleared!';
 

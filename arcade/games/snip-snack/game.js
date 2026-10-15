@@ -8,7 +8,7 @@ import { flow } from './kit/flow.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 12 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'SNIP<br>SNACK', hint: 'Swipe to cut the rope', hand: '✂️', score: false });
+const ui = createUI({ title: 'SNIP<br>SNACK', hint: 'Swipe to snip the strings', hand: '✂️', score: false });
 document.body.style.setProperty('--bg1', '#f0c58f'); document.body.style.setProperty('--bg2', '#d9a46a'); document.body.style.setProperty('--ui', '#ff6f91');
 const css = document.createElement('style');
 css.textContent = `.hc-card h1{color:#fff;text-shadow:0 6px 0 #c2456b,0 10px 18px rgba(120,50,20,.25)}

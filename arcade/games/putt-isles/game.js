@@ -1,4 +1,4 @@
-// Putt Isles — original sky mini-golf battle. Drag back like a slingshot to aim + power, release to putt. Beat the rivals to the cup.
+// Putt Isles — original sky mini-golf duel. Drag back like a slingshot to aim + power, release to putt. Beat the rivals to the cup.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { part, merge, canvasTex } from './geo.js';

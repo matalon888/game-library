@@ -1,5 +1,4 @@
 // Swirl Tee — original tie-dye game. Pick the fold, bind the shirt, squirt dye into each section, unfold for the reveal.
-// Inspired by the mechanic of Tie Dye (CrazyLabs). All code and art original (three.js primitives + canvas-painted fabric).
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 
