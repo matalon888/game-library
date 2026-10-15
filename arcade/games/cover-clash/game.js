@@ -230,7 +230,7 @@ function shoot() {
     tracer(tmp.clone(), aimAt.clone());
     const dmg = head ? 2 : 1; e.hp -= dmg; e.flash = 1;
     burst(scene, aimAt.clone(), ['#ffd166', '#ff8c42', '#ffffff'], 8, { speed: 0.07, up: 0.05, size: 0.45, life: 0.6 });
-    ui.pop(head ? 'HEADSHOT!' : '-' + dmg * 10, head ? '#ffd166' : '#ffffff', head ? 34 : 24, 30 + Math.random() * 6);
+    ui.pop(head ? 'BULLSEYE!' : '-' + dmg * 10, head ? '#ffd166' : '#ffffff', head ? 34 : 24, 30 + Math.random() * 6);
     if (e.hp <= 0) kill(e, aimAt);
   } else {
     // bullet hits their cover: splinters
@@ -246,7 +246,7 @@ function kill(e, at) {
   e.rag = { v: dir.multiplyScalar(3.2).setY(2.6), w: -6 - Math.random() * 2, rot: 0, y0: e.g.position.y, bounced: false, spinY: (Math.random() - 0.5) * 3 };
   sfx.smash(); buzz([20, 20, 30]); burst(scene, at.clone(), ['#ffd166', '#ff5d5d', '#ffffff'], 18, { speed: 0.12, up: 0.1, size: 0.6 });
   const last = killed === totalEnemies;
-  if (last) { slow = 0.14; slowT = 1.5; killCam = e; ui.pop('FINAL KILL!', '#ffd166', 44, 28); winPending = true; }
+  if (last) { slow = 0.14; slowT = 1.5; killCam = e; ui.pop('FINAL HIT!', '#ffd166', 44, 28); winPending = true; }
   else ui.pop(['ELIMINATED!', 'DOWN!', 'NICE SHOT!'][Math.floor(Math.random() * 3)], '#ffffff', 34, 24);
   if (!last && enemies.every(x => x.dead)) setTimeout(() => { if (state === 'play') { wave++; spawnWave(); } }, 1200);
 }

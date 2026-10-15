@@ -1,0 +1,31 @@
+# Cloudflare Workers config for the lockstep relay (free plan friendly).
+#
+# Deploy:
+#   cd server/cloudflare
+#   npx wrangler login        # one-time, opens a browser
+#   npx wrangler deploy       # ships the Worker + Durable Object
+#
+# After deploy, wrangler prints your URL, e.g. https://sotw-relay.<you>.workers.dev
+# Use it as wss://sotw-relay.<you>.workers.dev and set DEFAULT_RELAY in src/main.js to
+# match (or paste it into the game's Multiplayer → Advanced field).
+
+name = "sotw-relay"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Lock the relay to this game's origins. Wildcards ('*') cover Vercel's rotating preview
+# URLs and production aliases (all start with "aethercraft-") plus the clean prod host.
+# https://*.discordsays.com is the origin the game runs under as a Discord Activity —
+# Discord proxies the relay to here from https://<app-id>.discordsays.com.
+# Add a custom domain here too if you point one at the game. Empty = open (dev).
+[vars]
+ALLOWED_ORIGINS = "https://aethercraft.vercel.app,https://aethercraft-*.vercel.app,https://*.discordsays.com"
+
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "RelayHub"
+
+# SQLite-backed Durable Objects are required to stay on the Workers FREE plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RelayHub"]

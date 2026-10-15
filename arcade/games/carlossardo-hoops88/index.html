@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>HOOPS '88 — Retro Arcade Basketball</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="crt">
+    <div class="game-shell">
+      <header class="hud">
+        <div id="blockScore" class="hud-block">
+          <span id="lblScore" class="hud-label">SCORE</span>
+          <span id="score" class="hud-value">000</span>
+        </div>
+        <div class="hud-block">
+          <span class="hud-label">TIME</span>
+          <span id="time" class="hud-value">60</span>
+        </div>
+        <div id="blockCombo" class="hud-block">
+          <span id="lblCombo" class="hud-label">COMBO</span>
+          <span id="combo" class="hud-value">x1</span>
+        </div>
+        <div id="blockBest" class="hud-block">
+          <span class="hud-label">BEST</span>
+          <span id="best" class="hud-value">000</span>
+        </div>
+      </header>
+
+      <div class="canvas-wrap">
+        <canvas id="game" width="480" height="640"></canvas>
+
+        <!-- Start screen -->
+        <div id="startScreen" class="overlay">
+          <h1 class="title">HOOPS<span class="title-year">'88</span></h1>
+          <p class="subtitle">RETRO ARCADE BASKETBALL</p>
+          <div class="instructions">
+            <p class="ctrl-p1">P1 ◄ ► / A D — MOVE &nbsp; ▲ ▼ / W S — ARC &nbsp; SPACE — SHOOT</p>
+            <p class="ctrl-p2">P2 ◄ ► — MOVE &nbsp; ▲ ▼ — ARC &nbsp; ENTER — SHOOT</p>
+            <p>HOLD shoot to charge, RELEASE to fire. SINK baskets!</p>
+            <p class="ctrl-touch">TAP &amp; HOLD the on-screen pads to MOVE &amp; AIM &nbsp; · &nbsp; HOLD SHOOT to charge, RELEASE to fire.</p>
+          </div>
+          <div class="btn-row">
+            <button id="startBtn" class="arcade-btn">1 PLAYER ▸</button>
+            <button id="startBtn2" class="arcade-btn alt">2 PLAYERS · 1v1 ▸</button>
+          </div>
+          <p class="hint">1v1: both players share the hoop — most points in 60s WINS.</p>
+        </div>
+
+        <!-- Game over screen -->
+        <div id="overScreen" class="overlay hidden">
+          <h1 class="title small">GAME OVER</h1>
+          <p id="winnerLine" class="winner-line hidden">PLAYER 1 WINS</p>
+          <p class="final-line">FINAL SCORE</p>
+          <p id="finalScore" class="final-score">000</p>
+          <p id="newBest" class="new-best hidden">★ NEW HIGH SCORE ★</p>
+          <button id="againBtn" class="arcade-btn">PLAY AGAIN</button>
+        </div>
+
+        <!-- Touch controls (mobile, 1-player only) -->
+        <div id="touchControls" class="touch-controls hidden" aria-hidden="true">
+          <div class="touch-cluster touch-move">
+            <button class="touch-btn" data-touch="left" aria-label="Move left">◄</button>
+            <button class="touch-btn" data-touch="right" aria-label="Move right">►</button>
+          </div>
+          <div class="touch-cluster touch-arc">
+            <button class="touch-btn" data-touch="up" aria-label="Raise arc">▲</button>
+            <button class="touch-btn" data-touch="down" aria-label="Lower arc">▼</button>
+          </div>
+          <button class="touch-btn touch-shoot" data-touch="shoot" aria-label="Hold to charge, release to shoot">SHOOT</button>
+        </div>
+      </div>
+
+      <footer class="foot">
+        <span id="message" class="message">READY</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

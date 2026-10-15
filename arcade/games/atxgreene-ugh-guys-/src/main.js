@@ -1,0 +1,1654 @@
+// Entry point: main menu, faction selection, game lifecycle and loop.
+import { FACTIONS } from './data.js';
+import { BIOMES, MAP_SIZES } from './terrain.js';
+import { Game } from './game.js';
+import { AI } from './ai.js';
+import { Controls } from './controls.js';
+import { UI } from './ui.js';
+import { Sound, Music } from './audio.js';
+import { Settings } from './settings.js';
+import { LockstepSession, WebSocketTransport } from './net.js';
+import { initDiscord, isDiscordActivity } from './discord.js';
+import { onGameOver as achievementsOnGameOver, recordsSummary } from './achievements.js';
+import { MISSIONS, missionById, missionIndex } from './campaign.js';
+
+const TRAITS = {
+  covenant: 'Balanced economy · strong defenses · disciplined bronze infantry · temple favor',
+  watchers: 'Elite expensive units · forbidden knowledge tech · devastating casters',
+  nephilim: 'Brutal melee · fast raids · giants that level cities · weak economy',
+};
+
+let current = null; // { game, ai, controls, ui, raf }
+const SAVE_KEY = 'sotw_save_v1';
+
+// The faction the local player commands — drives the ambient drone's key and the
+// unit acknowledge blips, so each side sounds like itself.
+const seatFaction = (game) => game?.factionKeys?.[game.localPlayer] ?? game?.pfKey ?? 'menu';
+const AUTOSAVE_SECONDS = 45;
+
+// Fixed-timestep simulation. The sim advances in deterministic SIM_DT ticks
+// decoupled from the render framerate — the prerequisite for lockstep multiplayer
+// (every client must step the sim identically regardless of its refresh rate) and
+// for bit-exact replays. Rendering, camera and HUD still run once per animation
+// frame on real time. MAX_STEPS caps catch-up after a stall so we drop backlog
+// instead of spiralling; MAX_FRAME clamps a single huge gap (e.g. a backgrounded tab).
+const SIM_HZ = 60;
+const SIM_DT = 1 / SIM_HZ;
+const MAX_STEPS = 5;
+const MAX_FRAME = 0.25;
+
+function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } }
+
+// Number of AI opponents for a skirmish (1 = classic 1v1; 2–3 = free-for-all).
+function opponentCount() {
+  const n = parseInt(Settings.get('opponents'), 10);
+  return n >= 1 && n <= 3 ? n : 1;
+}
+
+// Selected game mode for a fresh match ('standard' skirmish | 'survival' The Deluge).
+function selectedMode() {
+  return Settings.get('mode') === 'survival' ? 'survival' : 'standard';
+}
+
+// The Daily Trial: one fixed, shared challenge per UTC day. Everything — seed, land,
+// mood, mode, faction, difficulty — derives deterministically from the date, so every
+// player faces the identical trial and can compare fates.
+function dailyConfig() {
+  const date = new Date().toISOString().slice(0, 10);          // YYYY-MM-DD (UTC)
+  let h = 2166136261;                                           // FNV-1a over the date
+  for (const c of date) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  const seed = h >>> 0;
+  const day = Math.floor(Date.parse(date) / 86400000);
+  const biomes = Object.keys(BIOMES);
+  const biome = biomes[seed % biomes.length];
+  const factions = Object.keys(FACTIONS);
+  return {
+    date, seed, biome,
+    timeOfDay: BIOMES[biome].moods[day % BIOMES[biome].moods.length],
+    mode: day % 2 ? 'survival' : 'standard',                    // alternates daily
+    faction: factions[day % factions.length],
+    difficulty: 'hard',
+  };
+}
+
+function saveGame(silent) {
+  // campaign missions replay from the menu; they aren't autosaved as skirmishes
+  if (!current || current.game.over || current.game.mode === 'campaign') return false;
+  try {
+    const g = current.game;
+    const payload = { data: g.serialize(), meta: { faction: g.pfKey, enemy: g.efKey,
+      biome: g.map.biome.name, time: Math.floor(g.time), at: Date.now() } };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    if (!silent) current.ui.toast('⌖ Campaign saved.');
+    refreshContinue();
+    return true;
+  } catch (e) { if (!silent) current?.ui.toast('Save failed — storage may be full.'); return false; }
+}
+
+// never lose progress to a closed/refreshed tab
+window.addEventListener('beforeunload', () => { try { saveGame(true); } catch {} });
+
+function loadSavedGame() {
+  let raw; try { raw = localStorage.getItem(SAVE_KEY); } catch { return; }
+  if (!raw) return;
+  try {
+    const { data } = JSON.parse(raw);
+    showLoading(() => startGameNow(data.pf, data.ef, data));
+  } catch (e) { console.error('Load failed', e); }
+}
+
+// ---------- campaign: mission select, briefing, progress ----------
+function campaignProgress() { return Settings.get('campaign') || {}; }
+// a mission is unlocked if it's the first, or the previous one is completed
+function missionUnlocked(id) {
+  const i = missionIndex(id);
+  if (i <= 0) return true;
+  return !!campaignProgress()[MISSIONS[i - 1].id];
+}
+let _activeMission = null;
+
+function showCampaign() {
+  const ov = document.getElementById('campaign');
+  if (!ov) return;
+  const prog = campaignProgress();
+  const done = MISSIONS.filter(m => prog[m.id]).length;
+  document.getElementById('camp-head').textContent = `The Chronicle of the Fields — ${done}/${MISSIONS.length} won`;
+  document.getElementById('camp-list').innerHTML = MISSIONS.map(m => {
+    const unlocked = missionUnlocked(m.id), complete = !!prog[m.id];
+    const state = complete ? '✦' : unlocked ? '▸' : '🔒';
+    return `<button class="camp-mission ${unlocked ? '' : 'locked'} ${complete ? 'done' : ''}" data-id="${m.id}" ${unlocked ? '' : 'disabled'}>
+      <span class="camp-act">Act ${m.act}</span>
+      <span class="camp-name">${state} ${m.name}</span>
+      <span class="camp-obj">${m.objective}</span></button>`;
+  }).join('');
+  ov.querySelectorAll('.camp-mission').forEach(b => {
+    b.onclick = () => { if (!b.disabled) { Sound.click(); showBriefing(b.dataset.id); } };
+  });
+  ov.classList.add('show');
+  document.getElementById('camp-close').onclick = () => { Sound.click(); ov.classList.remove('show'); };
+}
+
+function showBriefing(id) {
+  const m = missionById(id); if (!m) return;
+  const ov = document.getElementById('briefing');
+  document.getElementById('brief-act').textContent = `Act ${m.act}`;
+  document.getElementById('brief-name').textContent = m.name;
+  document.getElementById('brief-text').textContent = m.brief;
+  document.getElementById('brief-obj').textContent = `Objective: ${m.objective}`;
+  document.getElementById('brief-faction').textContent = `You lead: ${FACTIONS[m.faction].name}`;
+  ov.classList.add('show');
+  document.getElementById('brief-begin').onclick = () => { Sound.click(); ov.classList.remove('show'); startCampaignMission(id); };
+  document.getElementById('brief-back').onclick = () => { Sound.click(); ov.classList.remove('show'); showCampaign(); };
+}
+
+function startCampaignMission(id) {
+  const m = missionById(id); if (!m) return;
+  _activeMission = m;
+  document.getElementById('campaign')?.classList.remove('show');
+  window.__forceOpts = {
+    mode: 'campaign', mission: m, biome: m.biome, timeOfDay: m.mood,
+    seed: m.seed, mapSize: m.mapSize, difficulty: m.difficulty || 'normal',
+  };
+  showLoading(() => startGameNow(m.faction, m.enemy || null));
+}
+
+// Records panel: achievements + headline bests, rendered from local storage.
+function showRecords() {
+  const ov = document.getElementById('records');
+  if (!ov) return;
+  const r = recordsSummary();
+  const done = r.achievements.filter(a => a.done).length;
+  document.getElementById('rec-head').textContent =
+    `🏆 Records — ${done}/${r.achievements.length} achievements`;
+  document.getElementById('rec-bests').innerHTML =
+    `<span>🌊 Deepest stand: <b>wave ${r.bestWave}</b></span>` +
+    `<span>☀ Daily Trials: <b>${r.dailyWon}</b> won of <b>${r.dailyDone}</b></span>`;
+  document.getElementById('rec-list').innerHTML = r.achievements.map(a =>
+    `<div class="rec-item ${a.done ? 'done' : ''}"><span class="rec-mark">${a.done ? '✦' : '·'}</span>` +
+    `<span><b>${a.name}</b><br><i>${a.desc}</i></span></div>`).join('');
+  ov.classList.add('show');
+  document.getElementById('rec-close').onclick = () => ov.classList.remove('show');
+}
+
+function togglePause(force) {
+  if (!current || current.game.over) return;
+  const g = current.game;
+  g.paused = force === undefined ? !g.paused : force;
+  current.ui.setPaused(g.paused, hasSave());
+}
+
+function refreshContinue() {
+  const btn = document.getElementById('btn-continue');
+  if (!btn) return;
+  if (hasSave()) {
+    btn.style.display = 'inline-block';
+    try { const m = JSON.parse(localStorage.getItem(SAVE_KEY)).meta;
+      btn.textContent = `Continue — ${FACTIONS[ (JSON.parse(localStorage.getItem(SAVE_KEY)).data.pf) ]?.name || 'campaign'} · ${Math.floor(m.time/60)}:${String(m.time%60).padStart(2,'0')}`;
+    } catch { btn.textContent = 'Continue Campaign'; }
+  } else btn.style.display = 'none';
+}
+
+function buildMenu() {
+  const wrap = document.getElementById('faction-cards');
+  wrap.innerHTML = '';
+  for (const f of Object.values(FACTIONS)) {
+    const card = document.createElement('div');
+    card.className = 'fcard ' + f.key;
+    card.innerHTML = `<h2 style="color:${f.colorCss}">${f.name}</h2><p>${f.desc}</p>
+      <div class="traits">${TRAITS[f.key]}</div>`;
+    card.onclick = () => { Sound.click(); startGame(f.key); };
+    wrap.appendChild(card);
+  }
+  const cont = document.getElementById('btn-continue');
+  if (cont) cont.onclick = () => { Sound.click(); loadSavedGame(); };
+  // watch-a-replay: pick a .json the player previously downloaded
+  const rb = document.getElementById('btn-replay');
+  const rf = document.getElementById('replay-file');
+  if (rb && rf) {
+    rb.style.display = 'inline-block';
+    rb.onclick = () => { Sound.click(); rf.value = ''; rf.click(); };
+    rf.onchange = () => { if (rf.files && rf.files[0]) loadReplayFile(rf.files[0]); };
+  }
+  // multiplayer lobby (lockstep over a relay)
+  const mpb = document.getElementById('btn-mp');
+  if (mpb) {
+    mpb.style.display = 'inline-block';
+    mpb.onclick = () => { Sound.click(); openLobby(); };
+    document.getElementById('mp-quick').onclick = () => { Sound.click(); lobbyQuickMatch(); };
+    document.getElementById('mp-host2').onclick = () => { Sound.click(); lobbyHost(); };
+    document.getElementById('mp-join2').onclick = () => { Sound.click(); lobbyJoin(); };
+    document.getElementById('mp-code').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); lobbyJoin(); } };
+    document.getElementById('mp-ready').onclick = () => { Sound.click(); lobbyToggleReady(); };
+    document.getElementById('mp-start').onclick = () => { Sound.click(); lobbyStart(); };
+    document.getElementById('mp-copy').onclick = () => { Sound.click(); lobbyCopyInvite(); };
+    document.getElementById('mp-cancel-qm').onclick = () => { Sound.click(); lobbyCancelQuickMatch(); };
+    document.getElementById('mp-close').onclick = () => { Sound.click(); closeLobby(); };
+    document.getElementById('mp-cl-quit').onclick = () => { Sound.click(); returnToMenu(); };
+    const nameInput = document.getElementById('mp-name');
+    if (nameInput) {
+      nameInput.value = Settings.get('mpName') || '';
+      nameInput.onchange = () => { Settings.set('mpName', nameInput.value.trim()); _mp.transport?.setName?.(nameInput.value.trim()); };
+    }
+    document.getElementById('mp-faction').onchange = () => {
+      const f = document.getElementById('mp-faction').value;
+      Settings.set('mpFaction', f); _mp.transport?.setFaction?.(f);
+    };
+  }
+  // difficulty picker (persisted; applied to new games via Settings → game.difficulty)
+  const diffWrap = document.getElementById('menu-diff');
+  if (diffWrap) {
+    const sync = () => { for (const b of diffWrap.querySelectorAll('button'))
+      b.classList.toggle('on', b.dataset.d === Settings.get('difficulty')); };
+    for (const b of diffWrap.querySelectorAll('button'))
+      b.onclick = () => { Sound.click(); Settings.set('difficulty', b.dataset.d); sync(); };
+    sync();
+  }
+  // skirmish setup: opponent + land selectors (Random by default)
+  const enemySel = document.getElementById('sel-enemy');
+  if (enemySel) {
+    enemySel.innerHTML = '<option value="random">Random</option>' +
+      Object.values(FACTIONS).map(f => `<option value="${f.key}">${f.name}</option>`).join('');
+    enemySel.value = Settings.get('enemy') || 'random';
+    enemySel.onchange = () => Settings.set('enemy', enemySel.value);
+  }
+  const biomeSel = document.getElementById('sel-biome');
+  if (biomeSel) {
+    biomeSel.innerHTML = '<option value="random">Random</option>' +
+      Object.entries(BIOMES).map(([k, b]) => `<option value="${k}">${b.name}</option>`).join('');
+    biomeSel.value = Settings.get('biome') || 'random';
+    biomeSel.onchange = () => Settings.set('biome', biomeSel.value);
+  }
+  const sizeSel = document.getElementById('sel-mapsize');
+  if (sizeSel) {
+    const labels = { standard: 'Standard', large: 'Large', huge: 'Huge' };
+    sizeSel.innerHTML = Object.keys(MAP_SIZES).map(k =>
+      `<option value="${k}">${labels[k] || k} (${MAP_SIZES[k]}×${MAP_SIZES[k]})</option>`).join('');
+    sizeSel.value = MAP_SIZES[Settings.get('mapSize')] ? Settings.get('mapSize') : 'standard';
+    sizeSel.onchange = () => Settings.set('mapSize', sizeSel.value);
+  }
+  // opponent count: 1 = classic 1v1; 2–3 add extra AI seats for a free-for-all
+  const oppSel = document.getElementById('sel-opponents');
+  if (oppSel) {
+    oppSel.innerHTML = [1, 2, 3].map(n =>
+      `<option value="${n}">${n} (${n + 1}-player${n > 1 ? ' free-for-all' : ''})</option>`).join('');
+    oppSel.value = String(opponentCount());
+    oppSel.onchange = () => Settings.set('opponents', oppSel.value);
+  }
+  // mode: classic skirmish, or The Deluge (survive escalating monster waves)
+  const modeSel = document.getElementById('sel-mode');
+  if (modeSel) {
+    modeSel.innerHTML = '<option value="standard">Skirmish</option><option value="survival">The Deluge (survival)</option>';
+    modeSel.value = selectedMode();
+    const syncMode = () => {
+      // opponent pickers mean nothing against the flood
+      const survival = modeSel.value === 'survival';
+      if (enemySel) enemySel.disabled = survival;
+      if (oppSel) oppSel.disabled = survival;
+    };
+    modeSel.onchange = () => { Settings.set('mode', modeSel.value); syncMode(); };
+    syncMode();
+  }
+  // Daily Trial: one shared, date-seeded challenge per day
+  const daily = document.getElementById('btn-daily');
+  if (daily) {
+    const cfg = dailyConfig();
+    const done = (Settings.get('daily') || {})[cfg.date];
+    daily.textContent = `☀ Daily Trial — ${cfg.date}` +
+      (done ? (done.won ? ' ✓ won' : cfg.mode === 'survival' ? ` (wave ${done.wave})` : ' (fell)') : '');
+    daily.onclick = () => {
+      Sound.click();
+      window.__forceOpts = { seed: cfg.seed, biome: cfg.biome, timeOfDay: cfg.timeOfDay,
+        mode: cfg.mode, daily: cfg.date, difficulty: cfg.difficulty };
+      showLoading(() => startGameNow(cfg.faction, null));
+    };
+  }
+  // Records: achievements + bests
+  const rec = document.getElementById('btn-records');
+  if (rec) rec.onclick = () => { Sound.click(); showRecords(); };
+  // Campaign: the five-mission story arc
+  const camp = document.getElementById('btn-campaign');
+  if (camp) camp.onclick = () => { Sound.click(); showCampaign(); };
+  refreshContinue();
+}
+
+// ---------- replays ----------
+// Download the just-played match as a deterministic replay file (seed + the player
+// command stream). Re-watched via startReplay, which re-runs the sim in lockstep.
+function downloadReplay() {
+  const rep = current?.game?.exportReplay?.();
+  if (!rep) { current?.ui.toast('No replay available for this match.'); return; }
+  const blob = new Blob([JSON.stringify(rep)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const t = Math.floor(rep.frames.length / 60);
+  a.href = url; a.download = `sotw-replay-${rep.header.pf}-vs-${rep.header.ef}-${t}s.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+function loadReplayFile(file) {
+  const fr = new FileReader();
+  fr.onload = () => {
+    let rep; try { rep = JSON.parse(fr.result); } catch { alert('Not a valid replay file.'); return; }
+    if (!rep || rep.app !== 'sotw' || !rep.header || !rep.frames) { alert('Not a Shadow of the Watchers replay.'); return; }
+    showLoading(() => startReplay(rep));
+  };
+  fr.readAsText(file);
+}
+
+function buildIdMap(game) {
+  const m = new Map();
+  for (const u of game.units) m.set(u.id, u);
+  for (const b of game.buildings) m.set(b.id, b);
+  for (const r of game.resources) m.set(r.id, r);
+  return m;
+}
+
+// One AI per non-local seat. Single source of the ai/ais wiring so skirmish, replays
+// and the headless probes all drive AI seats identically (a replayed FFA match must
+// re-run every AI, not just seat 1). game.ai stays aliased to the first AI because
+// save/load persists that seat's strategic state.
+function spawnAIs(game) {
+  game.ais = [];
+  // survival has no rival seats — the wave director IS the opposition
+  if (game.mode !== 'survival') for (let o = 1; o < game.numPlayers; o++) game.ais.push(new AI(game, o));
+  game.ai = game.ais[0] || null;
+}
+
+function startReplay(rep) {
+  stopGame();
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('minimap-wrap').style.display = 'block';
+  document.getElementById('panel').style.display = 'flex';
+  document.getElementById('gameover').style.display = 'none';
+
+  const h = rep.header;
+  const container = document.getElementById('game-container');
+  const game = new Game(container, h.pf, h.ef, { seed: h.seed, biome: h.biomeKey,
+    timeOfDay: h.timeOfDay, mapSize: h.mapSize, difficulty: h.difficulty, replay: true,
+    factions: h.factions, mode: h.mode });   // FFA replays rebuild every seat (absent in old files → 1v1)
+  const ui = new UI(game, returnToMenu);
+  const controls = new Controls(game, ui);
+  ui.controls = controls; game.controls = controls;
+  spawnAIs(game);              // the AIs re-run deterministically from the seed
+  controls.onPause = () => { game.paused = !game.paused; ui.setPaused(game.paused, false); };
+  ui.onPause = controls.onPause; ui.onResume = () => { game.paused = false; ui.setPaused(false, false); };
+  if (game.qualityMode !== 'auto') game.setQualityMode(game.qualityMode);
+  window.__game = game; window.__controls = controls;
+  controls.intro = 0; ui.hideIntroCard();
+  ui.toast(`▶ Replay — ${game.map.biome.name}. ${FACTIONS[h.pf].name} vs ${FACTIONS[h.ef].name}.`);
+
+  const frames = rep.frames;
+  let fi = 0, desynced = false, done = false;
+  let last = performance.now(), acc = 0;
+  const loop = (now) => {
+    current.raf = requestAnimationFrame(loop);
+    const rawDt = (now - last) / 1000;
+    const dt = Math.min(0.05, rawDt);
+    last = now;
+    // consume recorded ticks at the pace they were recorded (real-time on any
+    // display refresh), advancing the deterministic sim one logged frame at a time
+    if (!game.paused && !done) {
+      acc += Math.min(MAX_FRAME, rawDt);
+      let steps = 0;
+      while (acc >= SIM_DT && fi < frames.length && steps < MAX_STEPS * 4) {
+        const f = frames[fi++];
+        if (f.c) { const map = buildIdMap(game); for (const rec of f.c) game.dispatchRecorded(rec, map); }
+        if (f.k !== undefined && !desynced && game.checksum() !== f.k) {
+          desynced = true; ui.toast('⚠ Replay desynced — the simulation diverged from the recording.');
+        }
+        game.update(f.d);
+        acc -= f.d; steps++;
+      }
+      game.replayDesync = desynced;
+      if (fi >= frames.length) { done = true; game.replayDone = true; ui.toast(desynced ? 'Replay ended (desynced).' : '▣ Replay complete.'); }
+    }
+    Music.setIntensity(0);
+    controls.updateCamera(dt);
+    ui.update(dt);
+    game.render();
+  };
+  current = { game, ai: game.ai, controls, ui, raf: requestAnimationFrame(loop) };
+}
+
+function showLoading(then) {
+  document.getElementById('menu').style.display = 'none';
+  const loading = document.getElementById('loading');
+  loading.style.display = 'flex';
+  requestAnimationFrame(() => setTimeout(() => { then(); loading.style.display = 'none'; }, 30));
+}
+
+// ---------- multiplayer lobby + lockstep match ----------
+let _mp = {};   // { transport, isHost, you, players }
+let _chatCleanup = null;   // tears down in-match chat key listeners between games
+
+// Append one line to a chat log. `from` is the sender's seat; `youSeat` is the local
+// seat, so we can colour our own lines differently. `sys` marks a system notice.
+function appendChat(logEl, { from, text, sys }, youSeat) {
+  if (!logEl) return null;
+  const div = document.createElement('div');
+  if (sys) { div.className = 'cm cm-sys'; div.textContent = text; }
+  else {
+    const mine = from === youSeat;
+    div.className = 'cm ' + (mine ? 'cm-me' : 'cm-them');
+    const who = document.createElement('b');
+    who.textContent = (mine ? 'You' : `Player ${(from ?? 0) + 1}`) + ': ';
+    div.appendChild(who);
+    div.appendChild(document.createTextNode(text));
+  }
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+  return div;
+}
+
+// The hosted relay players reach by default — no setup, no URLs. Overridable via the
+// Advanced panel (e.g. ws://localhost:8787 for dev) or a ?relay= query param.
+//
+// Points at the Cloudflare Worker deployed from server/cloudflare (free plan, always-on,
+// no cold starts). Deployed via .github/workflows/deploy-relay.yml.
+const DEFAULT_RELAY = 'wss://sotw-relay.atxgreene.workers.dev';
+const CODE_WORDS = ['RAVEN', 'ASHEN', 'IRON', 'GRAVE', 'WOLF', 'EMBER', 'STORM', 'THORN',
+  'DUSK', 'FROST', 'BONE', 'OMEN', 'RUIN', 'VEIL', 'WRAITH', 'TIDE'];
+
+function genCode() {
+  const w = CODE_WORDS[Math.floor(Math.random() * CODE_WORDS.length)];
+  const n = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${w}-${n}`;
+}
+// A code is also the relay room name; normalize so "raven 7f2a" and "RAVEN-7F2A" match.
+function codeToRoom(code) { return String(code).trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-'); }
+
+function relayUrl() {
+  let url = document.getElementById('mp-url').value.trim() || DEFAULT_RELAY;
+  if (!/^wss?:\/\//.test(url)) url = /^https?:\/\//.test(url) ? url.replace(/^https?/, 'ws') : 'ws://' + url;
+  return url;
+}
+// True only once a real relay is set (default deployed, ?relay=, or a saved/Advanced URL).
+function relayReady() {
+  if (!relayUrl().includes('YOUR-SUBDOMAIN')) return true;
+  mpStatus('No relay configured yet. Deploy server/cloudflare (free) and set DEFAULT_RELAY, ' +
+    'or run a local relay and paste ws://localhost:8787 into Advanced.');
+  return false;
+}
+function mpStatus(t) { const s = document.getElementById('mp-status'); if (s) s.textContent = t || ''; }
+function setStage(stage) {
+  _mp.stage = stage;
+  for (const s of ['choose', 'search', 'room'])
+    document.getElementById('mp-stage-' + s).style.display = s === stage ? 'block' : 'none';
+}
+
+function openLobby(prefillCode) {
+  const fSel = document.getElementById('mp-faction');
+  fSel.innerHTML = Object.values(FACTIONS).map(f => `<option value="${f.key}">${f.name}</option>`).join('');
+  fSel.value = Settings.get('mpFaction') && FACTIONS[Settings.get('mpFaction')] ? Settings.get('mpFaction') : 'covenant';
+  const nameInput = document.getElementById('mp-name');
+  if (nameInput && !nameInput.value) nameInput.value = Settings.get('mpName') || '';
+  // relay: query override > saved > default; shown only inside Advanced.
+  // Heal stale endpoints: the relay moved off Fly.io to Cloudflare, but returning players
+  // have the dead wss://…fly.dev saved in localStorage (and we re-save it on start), so
+  // drop any retired host and fall back to the current default.
+  const isStaleRelay = (u) => !u || /fly\.dev/i.test(u);
+  let savedRelay = Settings.get('mpRelay');
+  if (isStaleRelay(savedRelay)) { savedRelay = ''; Settings.set('mpRelay', ''); }
+  const qsRelay = new URLSearchParams(location.search).get('relay');
+  document.getElementById('mp-url').value =
+    (qsRelay && !isStaleRelay(qsRelay)) ? qsRelay : (savedRelay || DEFAULT_RELAY);
+  document.getElementById('lobby-chat').style.display = 'none';
+  document.getElementById('lobby-chat-log').innerHTML = '';
+  document.getElementById('mp-start').disabled = true;
+  document.getElementById('mp-ready').classList.remove('on');
+  document.getElementById('mp-invite').style.display = 'none';
+  mpStatus('');
+  setStage('choose');
+  document.getElementById('lobby').classList.add('show');
+  _mp = { stage: 'choose' };
+  if (prefillCode) {
+    document.getElementById('mp-code').value = prefillCode;
+    lobbyJoin(prefillCode);
+  }
+}
+
+function hideLobbyPanel() { document.getElementById('lobby').classList.remove('show'); }
+
+function closeLobby() {
+  hideLobbyPanel();
+  if (_mp.pingTimer) { clearInterval(_mp.pingTimer); _mp.pingTimer = null; }
+  try { _mp.transport?.cancelQuickMatch?.(); } catch {}
+  try { _mp.transport?.close?.(); } catch {}
+  _mp = {};
+}
+
+function localName() {
+  return (document.getElementById('mp-name').value.trim() || 'Commander');
+}
+function localFaction() { return document.getElementById('mp-faction').value; }
+
+// Connect (once) to the relay for a given room and wire every channel. Reused by host,
+// join, and quick match — they differ only in the room and which stage they show.
+function ensureTransport(room) {
+  if (_mp.transport) { try { _mp.transport.close(); } catch {} }
+  Settings.set('mpRelay', document.getElementById('mp-url').value.trim());
+  const chatLog = document.getElementById('lobby-chat-log');
+  const transport = new WebSocketTransport(relayUrl(), room, {
+    name: localName(), faction: localFaction(),
+    onError: () => mpStatus('Could not reach the relay. Check the address in Advanced, or try again.'),
+  });
+  _mp.transport = transport;
+
+  transport.onStatus = (st) => {
+    if (st === 'reconnecting') mpStatus('Connection lost — reconnecting…');
+    else if (st === 'reconnected') mpStatus('Reconnected.');
+  };
+  transport.onLobby = (msg) => {
+    const grew = (_mp.players?.length || 0) < msg.players.length;
+    const left = msg.left;
+    Object.assign(_mp, { you: msg.you, players: msg.players, names: msg.names || [],
+      readies: msg.readies || [], factions: msg.factions || [] });
+    if (msg.auto && _mp.stage !== 'room') onQuickMatched();   // paired → drop into a room
+    renderPlayers();
+    document.getElementById('lobby-chat').style.display = 'block';
+    if (grew && _mp.stage === 'room') appendChat(chatLog, { sys: true, text: `${(msg.names||[])[msg.players.length-1] || 'A player'} joined.` });
+    if (left) appendChat(chatLog, { sys: true, text: 'A player left.' });
+  };
+  transport.onChat = (msg) => appendChat(chatLog, { from: msg.from, text: msg.text }, _mp.you);
+  transport.onStart = (msg) => {
+    if (_mp.started) return;
+    // Race guard: if we joined between the host clicking Start and the relay processing
+    // it, the header's seat list may not cover our seat — entering would seat us as the
+    // neutral pseudo-player and corrupt the match. Bail out instead.
+    const seats = (msg.header?.factions?.length >= 2 ? msg.header.factions.length : 2);
+    if (_mp.you >= seats || _mp.you >= (msg.players?.length ?? 2)) {
+      mpStatus('The match started just before you joined — ask for a new code.');
+      try { transport.close(); } catch {}
+      setStage('choose');
+      return;
+    }
+    _mp.started = true;
+    beginNetMatch(transport, msg.header, _mp.you, msg.players);
+  };
+  transport.onPong = (msg) => updatePing(Date.now() - msg.t);
+  transport.onReject = (msg) => {
+    const why = msg.reason === 'full' ? 'That room is already full.'
+      : msg.reason === 'started' ? 'That match has already begun — ask for a new code.'
+      : msg.reason === 'busy' ? 'The relay is at capacity — try again shortly.'
+      : 'The relay refused the connection.';
+    mpStatus(why);
+    try { transport.close(); } catch {}
+    if (_mp.pingTimer) { clearInterval(_mp.pingTimer); _mp.pingTimer = null; }
+    _mp.transport = null;
+    setStage('choose');
+  };
+
+  // chat input (bound once per connect)
+  const chatInput = document.getElementById('lobby-chat-input');
+  chatInput.onkeydown = (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+    transport.sendChat(text);
+    appendChat(chatLog, { from: _mp.you, text }, _mp.you);
+    chatInput.value = '';
+  };
+
+  // liveness ping for the connection indicator
+  if (_mp.pingTimer) clearInterval(_mp.pingTimer);
+  _mp.pingTimer = setInterval(() => transport.ping(), 2500);
+  transport.ping();
+  return transport;
+}
+
+function lobbyHost() {
+  if (!relayReady()) return;
+  const code = genCode();
+  _mp.code = code; _mp.isAuto = false;
+  ensureTransport(codeToRoom(code));
+  document.getElementById('mp-code-display').textContent = code;
+  document.getElementById('mp-invite').style.display = 'flex';
+  document.getElementById('mp-copy').classList.remove('done');
+  document.getElementById('mp-copy').textContent = '⧉ Copy link';
+  setStage('room');
+  mpStatus('Share the code or link. The match starts when both players ready up.');
+}
+
+function lobbyJoin(code) {
+  if (!relayReady()) return;
+  code = code || document.getElementById('mp-code').value;
+  if (!code || !code.trim()) { mpStatus('Enter an invite code to join.'); return; }
+  _mp.code = codeToRoom(code); _mp.isAuto = false;
+  ensureTransport(_mp.code);
+  document.getElementById('mp-code-display').textContent = _mp.code;
+  document.getElementById('mp-invite').style.display = 'flex';
+  setStage('room');
+  mpStatus('Joined. Ready up when you are set.');
+}
+
+function lobbyQuickMatch() {
+  if (!relayReady()) return;
+  _mp.isAuto = true;
+  // a throwaway holding room; the relay pulls us into the queue and pairs us elsewhere
+  ensureTransport('__lobby_' + Math.random().toString(36).slice(2, 8));
+  _mp.transport.quickMatch(localName());
+  setStage('search');
+  mpStatus('Looking for an opponent…');
+}
+function lobbyCancelQuickMatch() {
+  try { _mp.transport?.cancelQuickMatch?.(); _mp.transport?.close?.(); } catch {}
+  _mp.transport = null;
+  if (_mp.pingTimer) { clearInterval(_mp.pingTimer); _mp.pingTimer = null; }
+  setStage('choose');
+  mpStatus('');
+}
+
+// Quick match paired us: show the room, auto-ready, and let seat 0 auto-launch.
+function onQuickMatched() {
+  document.getElementById('mp-invite').style.display = 'none';
+  setStage('room');
+  mpStatus('Opponent found! Locking in…');
+  _mp.ready = true;
+  document.getElementById('mp-ready').classList.add('on');
+  _mp.transport.sendReady(true);
+}
+
+function lobbyToggleReady() {
+  _mp.ready = !_mp.ready;
+  document.getElementById('mp-ready').classList.toggle('on', _mp.ready);
+  _mp.transport?.sendReady(_mp.ready);
+}
+
+function lobbyCopyInvite() {
+  const link = `${location.origin}${location.pathname}?join=${encodeURIComponent(_mp.code)}`;
+  const btn = document.getElementById('mp-copy');
+  const done = () => { btn.classList.add('done'); btn.textContent = '✓ Copied'; };
+  navigator.clipboard?.writeText(link).then(done, () => {
+    // fallback for non-secure contexts
+    const t = document.createElement('textarea'); t.value = link; document.body.appendChild(t);
+    t.select(); try { document.execCommand('copy'); done(); } catch {} t.remove();
+  });
+}
+
+// Render the seat list with names, factions, and ready state, and gate the Start button.
+function renderPlayers() {
+  const wrap = document.getElementById('mp-players');
+  if (!wrap) return;
+  const n = _mp.players?.length || 0;
+  wrap.innerHTML = '';
+  for (let i = 0; i < Math.max(2, n); i++) {
+    const present = i < n;
+    const name = present ? (_mp.names[i] || `Player ${i + 1}`) : 'Waiting for opponent…';
+    const fac = present && _mp.factions[i] && FACTIONS[_mp.factions[i]] ? FACTIONS[_mp.factions[i]].name : '';
+    const ready = present && _mp.readies[i];
+    const row = document.createElement('div');
+    row.className = `mp-player p${i}` + (i === _mp.you ? ' you' : '') + (present ? '' : ' empty');
+    row.innerHTML = `<span class="mp-seat"></span><span class="mp-pname">${name}${fac ? ' · ' + fac : ''}</span>` +
+      (present ? `<span class="mp-rs ${ready ? 'on' : 'off'}">${ready ? '● Ready' : '○ Not ready'}</span>` : '<span class="mp-rs off">—</span>');
+    wrap.appendChild(row);
+  }
+  const allReady = n >= 2 && _mp.readies.slice(0, n).every(Boolean);
+  // seat 0 owns the launch; everyone else just readies up
+  document.getElementById('mp-start').disabled = !(_mp.you === 0 && allReady);
+  if (_mp.isAuto && _mp.you === 0 && allReady && !_mp.started) lobbyStart();   // quick match auto-launches
+}
+
+function updatePing(ms) {
+  _mp.pingMs = ms;
+  const el = document.getElementById('mp-ping');
+  if (el) {
+    el.className = 'mp-ping ' + (ms < 80 ? 'good' : ms < 160 ? 'ok' : 'bad');
+    el.innerHTML = `ping <b>${Math.round(ms)}ms</b>`;
+  }
+  const nel = document.getElementById('net-ping');
+  if (nel && current && current.game && current.game.net) {
+    nel.style.display = 'block';
+    nel.className = ms < 80 ? 'good' : ms < 160 ? 'ok' : 'bad';
+    nel.textContent = `▲ ${Math.round(ms)}ms`;
+  }
+}
+
+function lobbyStart() {
+  if (!_mp.transport || _mp.you !== 0 || _mp.startSent) return;
+  _mp.startSent = true;
+  // One faction per seat present in the room (2–4). Missing/invalid picks fall back to
+  // a rotation over the live faction registry so every seat always has a valid key.
+  const n = Math.max(2, _mp.players?.length ?? 0);
+  const fkeys = Object.keys(FACTIONS);
+  const factions = [];
+  for (let i = 0; i < n; i++) {
+    const f = _mp.factions[i];
+    factions.push(f && FACTIONS[f] ? f : (i === 0 ? (localFaction() || fkeys[0]) : fkeys[i % fkeys.length]));
+  }
+  const bsel = Settings.get('biome');
+  const biomeKeys = Object.keys(BIOMES);
+  const biomeKey = bsel && bsel !== 'random' ? bsel : biomeKeys[Math.floor(Math.random() * biomeKeys.length)];
+  const moods = BIOMES[biomeKey].moods;
+  const msel = Settings.get('mapSize');
+  const header = {
+    seed: Math.floor(Math.random() * 1e9), biomeKey,
+    timeOfDay: moods[Math.floor(Math.random() * moods.length)],
+    mapSize: MAP_SIZES[msel] ? msel : 'standard',
+    difficulty: 'normal', factions,
+    pf: factions[0], ef: factions[1],   // back-compat fields
+  };
+  // the relay echoes 'start' back to seat 0 too, so all clients begin via onStart
+  _mp.transport.sendMessage({ kind: 'start', header });
+}
+
+// A 3-2-1 launch countdown over the menu, then drop into the match. Both clients run it
+// when the 'start' packet arrives, so they enter together (the lockstep prime keeps the
+// sim itself frame-exact regardless of a few ms of skew here).
+function runCountdown(then) {
+  const ov = document.getElementById('mp-countdown');
+  const num = document.getElementById('mp-cd-num');
+  if (!ov || !num) { then(); return; }
+  hideLobbyPanel();
+  ov.classList.add('show');
+  let n = 3;
+  num.textContent = n;
+  const tick = () => {
+    n--;
+    if (n > 0) { num.textContent = n; num.style.animation = 'none'; void num.offsetWidth; num.style.animation = ''; setTimeout(tick, 1000); }
+    else if (n === 0) { num.textContent = 'GO'; setTimeout(tick, 700); }
+    else { ov.classList.remove('show'); then(); }
+  };
+  setTimeout(tick, 1000);
+}
+
+function beginNetMatch(transport, header, you, players) {
+  if (_mp.pingTimer) { clearInterval(_mp.pingTimer); _mp.pingTimer = null; }
+  runCountdown(() => showLoading(() => startNetGame(transport, header, you, players)));
+  // keep a light ping going during the match for the HUD indicator
+  _mp.pingTimer = setInterval(() => { try { transport.ping(); } catch {} }, 2500);
+}
+
+// In-match chat overlay. Enter opens a one-line composer; Enter again sends, Escape
+// cancels. Messages ride the relay's chat channel (never the lockstep stream, so they
+// can't desync the sim) and fade after a few seconds so they don't clutter the field.
+function setupMatchChat(transport, youSeat) {
+  const wrap = document.getElementById('match-chat');
+  const log = document.getElementById('match-chat-log');
+  const input = document.getElementById('match-chat-input');
+  if (!wrap || !log || !input) return;
+  log.innerHTML = '';
+  wrap.style.display = 'flex';
+  wrap.classList.remove('typing');
+
+  const FADE_MS = 9000;
+  const add = (m) => {
+    const div = appendChat(log, m, youSeat);
+    if (!div) return;
+    div.style.transition = 'opacity 1.2s';
+    setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 1300); }, FADE_MS);
+  };
+
+  transport.onChat = (msg) => add({ from: msg.from, text: msg.text });
+
+  const openComposer = () => {
+    wrap.classList.add('typing');
+    input.focus();
+    // surface any faded lines while composing so you can read the thread
+    for (const c of log.children) { c.style.transition = ''; c.style.opacity = '1'; }
+  };
+  const closeComposer = () => { wrap.classList.remove('typing'); input.value = ''; input.blur(); };
+
+  const onKey = (e) => {
+    if (e.key === 'Enter' && document.activeElement !== input) {
+      // don't hijack Enter while another field (settings, etc.) is focused
+      if (e.target && e.target.tagName === 'INPUT') return;
+      e.preventDefault();
+      openComposer();
+    }
+  };
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (text) { transport.sendChat(text); add({ from: youSeat, text }); }
+      closeComposer();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeComposer();
+    }
+    e.stopPropagation();
+  };
+  window.addEventListener('keydown', onKey);
+
+  // touch has no Enter key — a 💬 button opens the same composer
+  const chatBtn = document.getElementById('btn-chat');
+  if (chatBtn) { chatBtn.style.display = 'block'; chatBtn.onclick = () => openComposer(); }
+
+  // tear down when the match ends so listeners don't leak into the next game
+  _chatCleanup = () => {
+    window.removeEventListener('keydown', onKey);
+    input.onkeydown = null;
+    if (chatBtn) { chatBtn.style.display = 'none'; chatBtn.onclick = null; }
+    wrap.style.display = 'none';
+    wrap.classList.remove('typing');
+    log.innerHTML = '';
+  };
+}
+
+// A networked, human-vs-human lockstep match. Both clients run the identical
+// deterministic sim; game.cmd routes input to the session, and each turn's gathered
+// commands are applied at the turn boundary on every client. No local AI.
+function startNetGame(transport, header, you, players) {
+  stopGame();
+  document.getElementById('lobby').classList.remove('show');
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('minimap-wrap').style.display = 'block';
+  document.getElementById('groupbar')?.classList.add('show');
+  document.getElementById('panel').style.display = 'flex';
+  document.getElementById('gameover').style.display = 'none';
+
+  const container = document.getElementById('game-container');
+  // N seats: header.factions lists every player's faction; fall back to pf/ef for
+  // headers from an older client. The HEADER is the authority on how many seats the
+  // match has — if the relay seated a straggler after the host clicked Start, every
+  // client trims the roster to the header so the lockstep session never waits on a
+  // seat the sim doesn't model (the straggler itself bails in onStart).
+  const factions = header.factions && header.factions.length >= 2 ? header.factions : [header.pf, header.ef];
+  players = players.filter(p => p < factions.length);
+  const game = new Game(container, factions[0], factions[1], {
+    seed: header.seed, biome: header.biomeKey, timeOfDay: header.timeOfDay,
+    mapSize: header.mapSize, difficulty: header.difficulty, localPlayer: you, factions,
+  });
+  const ui = new UI(game, returnToMenu);
+  const controls = new Controls(game, ui);
+  ui.controls = controls; game.controls = controls;
+  game.rec = null;   // net matches aren't recorded by the single-stream recorder
+  controls.onPause = () => {};   // no pause in a live net match
+  if (game.qualityMode !== 'auto') game.setQualityMode(game.qualityMode);
+  window.__game = game; window.__controls = controls;
+
+  const session = new LockstepSession({
+    players, localId: you, transport, turnLength: 3, delay: 2,
+    onDesync: () => { game.netDesync = true; ui.toast('⚠ Desync — the match has drifted out of sync.'); },
+  });
+  game.net = session;     // game.cmd now defers commands to the session
+  game.on('gameover', (w) => achievementsOnGameOver(game, w, (t) => ui.toast(t)));
+  session.start();
+  controls.intro = 0; ui.hideIntroCard();
+  ui.toast(`⚔ Networked match — you are Player ${you + 1} (${FACTIONS[factions[you]]?.name || ''}). Press Enter to chat.`);
+  Sound.setFaction(seatFaction(game));
+  if (Settings.get('music')) Music.play(seatFaction(game));
+
+  setupMatchChat(transport, you);
+
+  // connection overlay: shown when the socket drops or the sim stalls waiting on a peer
+  const conn = document.getElementById('mp-connlost');
+  const connTitle = document.getElementById('mp-cl-title');
+  const connSub = document.getElementById('mp-cl-sub');
+  let socketDown = false;
+  const showConn = (on, title, sub) => {
+    if (conn) { conn.classList.toggle('show', on); if (on && title) { connTitle.textContent = title; connSub.textContent = sub || ''; } }
+  };
+  transport.onStatus = (st) => {
+    if (st === 'reconnecting') { socketDown = true; showConn(true, 'Connection lost', 'Reconnecting to the relay…'); }
+    else if (st === 'reconnected') { socketDown = false; showConn(false); ui.toast('✓ Reconnected.'); }
+  };
+
+  let last = performance.now(), acc = 0, tickInTurn = 0, stallStart = 0;
+  const loop = (now) => {
+    current.raf = requestAnimationFrame(loop);
+    const rawDt = (now - last) / 1000;
+    const dt = Math.min(0.05, rawDt);
+    last = now;
+    acc = Math.min(MAX_FRAME, acc + rawDt);
+    let steps = 0, stalled = false;
+    while (acc >= SIM_DT && steps < MAX_STEPS) {
+      // a turn spans turnLength ticks; commands for the turn apply at its first tick
+      if (tickInTurn === 0) {
+        if (!session.ready()) { stalled = true; break; }   // hold until every peer's packet arrives
+        const cmds = session.commandsForCurrentTurn();
+        if (cmds.length) { const map = buildIdMap(game); for (const c of cmds) game.dispatchRecorded(c.cmd, map); }
+      }
+      game.update(SIM_DT);
+      acc -= SIM_DT; steps++;
+      if (++tickInTurn >= session.ticksPerTurn) { tickInTurn = 0; session.advance(game.checksum()); }
+    }
+    if (steps >= MAX_STEPS) acc = 0;
+    // Surface a waiting-on-opponent overlay if we've been blocked a beat (but not while
+    // the socket itself is reconnecting — that message takes precedence).
+    if (stalled && !socketDown) {
+      if (!stallStart) stallStart = now;
+      if (now - stallStart > 900) showConn(true, 'Waiting for opponent…', 'Their game has fallen behind or dropped.');
+    } else if (!socketDown) {
+      stallStart = 0; showConn(false);
+    }
+    Music.setIntensity(game.over ? 0 : game.combatHeat);
+    controls.updateCamera(dt);
+    ui.update(dt);
+    game.render();
+  };
+  current = { game, ai: null, controls, ui, raf: requestAnimationFrame(loop) };
+}
+
+function startGame(playerFactionKey) {
+  // resolve opponent + land from the skirmish-setup selectors (Random by default).
+  // Validate against the live roster so a stale/renamed persisted key can't crash start.
+  const enemySel = Settings.get('enemy');
+  const enemyKey = enemySel && FACTIONS[enemySel] && enemySel !== playerFactionKey ? enemySel : null;
+  const biomeSel = Settings.get('biome');
+  const biome = biomeSel && biomeSel !== 'random' ? biomeSel : null;
+  // world generation takes a moment — paint the loading screen first
+  showLoading(() => startGameNow(playerFactionKey, enemyKey, null, biome));
+}
+
+function startGameNow(playerFactionKey, enemyKey, loadData, biome) {
+  stopGame();
+  const loading = !!loadData;
+  if (!enemyKey) { // new game: enemy is a random different faction
+    const others = Object.keys(FACTIONS).filter(k => k !== playerFactionKey);
+    enemyKey = others[Math.floor(Math.random() * others.length)];
+  }
+
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('minimap-wrap').style.display = 'block';
+  document.getElementById('groupbar')?.classList.add('show');
+  document.getElementById('panel').style.display = 'flex';
+  document.getElementById('gameover').style.display = 'none';
+
+  const container = document.getElementById('game-container');
+  // Free-for-all: the local player is seat 0, then N AI opponents fill seats 1..N.
+  // Saved games are always 1v1 (FFA isn't persisted). Seat 1 uses the chosen enemy
+  // faction; extra seats take random factions.
+  // Campaign missions dictate their own opponent count: 1 AI seat if the mission has an
+  // enemy faction, else none (its foes are scripted neutrals). Skirmish uses the menu.
+  const mission = window.__forceOpts?.mission || null;
+  const opponents = loading ? 1 : mission ? (mission.enemy ? 1 : 0) : opponentCount();
+  const others = Object.keys(FACTIONS).filter(k => k !== playerFactionKey);
+  const aiFactions = Array.from({ length: opponents }, (_, i) =>
+    i === 0 ? enemyKey : others[Math.floor(Math.random() * others.length)]);
+  const factions = [playerFactionKey, ...aiFactions];
+  // mode: an explicit override (Daily Trial / tests) wins, else the menu selection;
+  // loads carry their own mode inside the save
+  const mode = window.__forceOpts?.mode ?? selectedMode();
+  const opts = loadData ? { load: loadData }
+    : { mode, ...(window.__forceOpts || {}), ...(biome ? { biome } : {}), factions };
+  const game = new Game(container, playerFactionKey, enemyKey, opts);
+  window.__forceOpts = null;   // one-shot override, never leaks into the next match
+  const ui = new UI(game, returnToMenu);
+  const controls = new Controls(game, ui);
+  ui.controls = controls;
+  game.controls = controls;
+  controls.onPause = () => togglePause();
+  ui.onPause = () => togglePause();
+  ui.onResume = () => togglePause(false);
+  ui.onSave = () => saveGame();
+  ui.onLoad = () => { togglePause(false); loadSavedGame(); };
+  ui.onSaveAvailable = hasSave;
+  ui.onDownloadReplay = downloadReplay;
+  spawnAIs(game);
+  if (loading && game.ai && game._aiState) Object.assign(game.ai, game._aiState);
+  // records + achievements observe every finished offline match
+  game.on('gameover', (w) => achievementsOnGameOver(game, w, (t) => ui.toast(t)));
+  // campaign: persist progress on victory and wire the end-screen's Next/Retry button
+  if (game.mode === 'campaign' && mission) {
+    ui.campaign = { mission, hasNext: !!MISSIONS[missionIndex(mission.id) + 1] };
+    ui.onCampaignNext = () => {
+      const next = MISSIONS[missionIndex(mission.id) + 1];
+      if (next) showBriefing(next.id); else { returnToMenu(); showCampaign(); }
+    };
+    ui.onCampaignRetry = () => startCampaignMission(mission.id);
+    game.on('gameover', (w) => {
+      if (w !== 0) return;
+      const p = campaignProgress(); p[mission.id] = { at: Date.now() }; Settings.set('campaign', p);
+    });
+  }
+  // pin quality if the player chose a fixed level (auto leaves the loop in charge)
+  if (game.qualityMode !== 'auto') game.setQualityMode(game.qualityMode);
+  window.__game = game; window.__controls = controls;
+
+  Sound.setFaction(seatFaction(game));
+  if (Settings.get('music')) Music.play(seatFaction(game));   // user gesture (faction click) already unlocked audio
+
+  if (loading) { controls.intro = 0; ui.hideIntroCard(); ui.toast(`Campaign restored — ${game.map.biome.name}.`); }
+  else if (game.mode === 'campaign') {
+    ui.showIntroCard(FACTIONS[playerFactionKey]);
+    ui.toast(`Act ${mission.act} — ${mission.name}`);
+    ui.toast(`⚑ Objective: ${mission.objective}`);
+  }
+  else if (game.mode === 'survival') {
+    ui.showIntroCard(FACTIONS[playerFactionKey]);
+    ui.toast(`${game.map.biome.name} — the Deluge gathers. The first wave breaks in little over a minute; build fast.`);
+  } else {
+    ui.showIntroCard(FACTIONS[playerFactionKey]);
+    ui.toast(`${game.map.biome.name} — the ${FACTIONS[enemyKey].name} stir beyond the ridge…`);
+    showCoachHints();   // gentle first-match nudges (only on a fresh game)
+    // announce the wild encounters seeded onto this map, staggered after the opener
+    (game.wildEventNotes || []).forEach((note, i) => setTimeout(() => ui.toast(note), 5500 + i * 4500));
+  }
+
+  let last = performance.now();
+  let acc = 0;
+  let slowFrames = 0, totalFrames = 0, autosaveT = AUTOSAVE_SECONDS;
+  const loop = (now) => {
+    current.raf = requestAnimationFrame(loop);
+    const rawDt = (now - last) / 1000;
+    const dt = Math.min(0.05, rawDt);   // clamped, for non-sim per-frame work
+    last = now;
+    // auto quality: after warmup, sustained slow frames drop bloom + pixel ratio
+    totalFrames++;
+    if (totalFrames > 40 && !game.lowQuality && game.autoQuality) {
+      slowFrames = rawDt > 0.045 ? slowFrames + 1 : Math.max(0, slowFrames - 2);
+      if (slowFrames > 25) game.setLowQuality();
+    }
+    // silent autosave on a steady cadence so Continue always resumes the latest
+    if (!game.paused && !game.over) {
+      autosaveT -= dt;
+      if (autosaveT <= 0) { autosaveT = AUTOSAVE_SECONDS; saveGame(true); }
+    }
+    // fixed-timestep simulation (pause freezes only the sim, not camera/HUD)
+    if (!game.paused) {
+      acc += Math.min(MAX_FRAME, rawDt);
+      let steps = 0;
+      while (acc >= SIM_DT && steps < MAX_STEPS) {
+        game.update(SIM_DT);
+        acc -= SIM_DT; steps++;
+        if (game.over) { acc = 0; break; }
+      }
+      if (steps >= MAX_STEPS) acc = 0;   // drop backlog rather than spiral
+    }
+    Music.setIntensity(game.paused || game.over ? 0 : game.combatHeat);  // score swells with battle
+    controls.updateCamera(dt);           // camera + HUD stay responsive while paused
+    ui.update(dt);
+    game.render();
+  };
+  current = { game, ai: game.ai, controls, ui, raf: requestAnimationFrame(loop) };
+}
+
+function stopGame() {
+  if (_chatCleanup) { try { _chatCleanup(); } catch {} _chatCleanup = null; }
+  document.getElementById('mp-connlost')?.classList.remove('show');
+  const np = document.getElementById('net-ping'); if (np) np.style.display = 'none';
+  if (!current) return;
+  cancelAnimationFrame(current.raf);
+  current.game.dispose();
+  current = null;
+}
+
+function returnToMenu() {
+  saveGame(true);   // autosave on abandon (no-op if the match is already over)
+  stopGame();
+  if (_mp.pingTimer) { clearInterval(_mp.pingTimer); _mp.pingTimer = null; }
+  try { _mp.transport?.close?.(); } catch {}
+  _mp = {};
+  document.getElementById('lobby')?.classList.remove('show');
+  // hand the in-game score back to the calm menu ambience (audio is already unlocked here)
+  if (Settings.get('music')) Music.play('menu'); else Music.stop();
+  hideCoach();
+  document.getElementById('help')?.classList.remove('show');
+  document.getElementById('settings').style.display = 'none';
+  document.getElementById('menu').style.display = 'flex';
+  document.getElementById('topbar').style.display = 'none';
+  document.getElementById('minimap-wrap').style.display = 'none';
+  document.getElementById('groupbar')?.classList.remove('show');
+  const op = document.getElementById('objective-panel'); if (op) op.style.display = 'none';
+  document.getElementById('panel').style.display = 'none';
+  document.getElementById('gameover').style.display = 'none';
+  const pm = document.getElementById('pausemenu'); if (pm) pm.style.display = 'none';
+  const dlg = document.getElementById('dialogue'); if (dlg) dlg.classList.remove('show');
+  const ic = document.getElementById('introcard'); ic.style.display = 'none'; ic.classList.remove('show');
+  document.getElementById('toasts').innerHTML = '';
+  const ov = document.getElementById('overlay');
+  ov.getContext('2d').clearRect(0, 0, ov.width, ov.height);
+  refreshContinue();
+}
+
+// ---------- onboarding coach: a STATE-REACTIVE tutor ----------
+// Instead of firing four toasts on a timer regardless of what the player is doing, the
+// coach watches the live game and surfaces each lesson the moment its trigger is met —
+// and only if the player hasn't already done the thing. Ordered so it teaches the core
+// loop (gather → build → train → attack) in sequence, plus context nudges (idle workers,
+// first contact, supply block). Runs in the UI layer only; never touches the sim.
+let coachTimer = null, coachHideT = null;
+function hideCoach() {
+  clearInterval(coachTimer); coachTimer = null;
+  clearTimeout(coachHideT); coachHideT = null;
+  document.getElementById('coach')?.classList.remove('show');
+}
+function showCoachHints() {
+  if (Settings.get('coachSeen')) return;     // once per player, ever (Settings → Replay tips resets)
+  const el = document.getElementById('coach');
+  if (!el) return;
+
+  const mine = (g, pred) => g.units.filter(u => u.owner === g.localPlayer && !u.dead && pred(u));
+  const hasBuilding = (g, pred) => g.buildings.some(b => b.owner === g.localPlayer && !b.dead && pred(b));
+  const survival = () => current?.game?.mode === 'survival';
+
+  // Each step: id, when(game) trigger, text. `once:false` steps can re-fire (idle workers).
+  const STEPS = [
+    { id: 'gather', text: '⛏  Drag-select your laborers, then tap grain or timber to gather. Workers win wars.',
+      when: (g) => g.time > 2 },
+    { id: 'build', text: '🏗  Tap Build (B) with a laborer selected. A granary raises your population cap.',
+      when: (g) => mine(g, u => u.def.worker && u.gatherNode).length >= 1 || g.time > 28 },
+    { id: 'supply', text: '⌂  Population capped — raise a granary (or your faction\'s supply building) to train more.', once: true,
+      when: (g) => { const p = g.players[g.localPlayer]; return p.supplyCap - p.supplyUsed <= 1 && p.supplyCap > 0 && p.supplyCap < 60; } },
+    { id: 'army', text: '⚔  Build a barracks and train soldiers from it — an army is how you win.',
+      when: (g) => hasBuilding(g, b => b.complete && !b.def.main && b.def.trains?.some(k => !g.players[g.localPlayer].faction.units[k].worker)) },
+    { id: 'attack', text: () => survival()
+        ? '🌊  The Deluge is coming. Mass soldiers and hold near your hall — waves march on YOU.'
+        : '⚔  Select your soldiers and use Attack-Move (F) to advance on the enemy\'s seat of power.',
+      when: (g) => mine(g, u => !u.def.worker && u.def.attack).length >= 2 },
+    { id: 'contact', text: '⚠  You\'re under attack! Tap the red alert to jump there, and rally your fighters.', once: true,
+      when: (g) => g.combatHeat > 0.15 && mine(g, u => u.owner === g.localPlayer).length > 0 && g.lastAlertPos },
+    { id: 'idle', text: '⛏  Idle laborers are wasted wages — tap the ⛏ (top bar) to find and put them to work.', once: true,
+      when: (g) => g.time > 45 && mine(g, u => u.def.worker && u.state === 'idle').length >= 3 },
+    { id: 'help', text: '☰  Tip: the ? button lists every control. Press it any time.',
+      when: (g) => g.time > 150 },
+  ];
+  const shown = new Set();
+  let busyUntil = 0;
+
+  const display = (text) => {
+    el.textContent = typeof text === 'function' ? text() : text;
+    el.classList.add('show');
+    busyUntil = performance.now() + 8200;
+    clearTimeout(coachHideT);
+    coachHideT = setTimeout(() => el.classList.remove('show'), 8000);
+  };
+
+  coachTimer = setInterval(() => {
+    const g = current?.game;
+    if (!g || g.over || g.paused) return;
+    if (performance.now() < busyUntil) return;   // let the current tip breathe
+    for (const s of STEPS) {
+      if (shown.has(s.id)) continue;
+      if (s.when(g)) {
+        // an ordered core step is skipped (already satisfied) rather than shown late —
+        // e.g. if the player already has an army, don't teach "build a barracks"
+        shown.add(s.id);
+        display(s.text);
+        break;
+      }
+    }
+    if (shown.size >= STEPS.length) hideCoach();
+  }, 1000);
+
+  Settings.set('coachSeen', true);
+}
+
+// ---------- settings panel + help + touch notice (bound once) ----------
+function bindShell() {
+  // iOS ignores the viewport's user-scalable=no, so a pinch (even on the HUD, away
+  // from the canvas which already preventDefaults its touches) would zoom the whole
+  // page and strand the player off-screen. Suppressing the Safari gesture events
+  // stops page pinch-zoom everywhere; CSS touch-action handles double-tap zoom.
+  for (const t of ['gesturestart', 'gesturechange', 'gestureend'])
+    document.addEventListener(t, e => e.preventDefault(), { passive: false });
+
+  // apply persisted audio volumes immediately
+  Sound.setVolume(Settings.get('sfxVol'));
+  Music.setVolume(Settings.get('musicVol'));
+
+  const $ = id => document.getElementById(id);
+  const settings = $('settings');
+  const openSettings = () => { syncSettingsUI(); settings.style.display = 'flex'; };
+  const closeSettings = () => { settings.style.display = 'none'; };
+
+  $('btn-settings')?.addEventListener('click', openSettings);
+  $('set-close')?.addEventListener('click', closeSettings);
+  settings?.addEventListener('click', e => { if (e.target === settings) closeSettings(); });
+
+  // brightness
+  const bright = $('set-bright'), brightVal = $('set-bright-val');
+  bright?.addEventListener('input', () => {
+    const v = parseFloat(bright.value);
+    brightVal.textContent = Math.round(v * 100) + '%';
+    Settings.set('brightness', v);
+    current?.game.setBrightness(v);
+  });
+  // quality segmented control
+  for (const b of document.querySelectorAll('#set-quality button')) {
+    b.addEventListener('click', () => {
+      const q = b.dataset.q;
+      Settings.set('quality', q);
+      current?.game.setQualityMode(q);
+      syncSeg('set-quality', 'q', q);
+    });
+  }
+  // music on/off
+  for (const b of document.querySelectorAll('#set-music button')) {
+    b.addEventListener('click', () => {
+      const on = b.dataset.m === 'on';
+      Settings.set('music', on);
+      if (on) { Music.play(current ? seatFaction(current.game) : 'menu'); } else Music.stop();
+      syncSeg('set-music', 'm', b.dataset.m);
+    });
+  }
+  // volumes
+  const mvol = $('set-mvol'), mvolVal = $('set-mvol-val');
+  mvol?.addEventListener('input', () => {
+    const v = parseFloat(mvol.value);
+    mvolVal.textContent = Math.round(v * 100) + '%';
+    Settings.set('musicVol', v); Music.setVolume(v);
+  });
+  const svol = $('set-svol'), svolVal = $('set-svol-val');
+  svol?.addEventListener('input', () => {
+    const v = parseFloat(svol.value);
+    svolVal.textContent = Math.round(v * 100) + '%';
+    Settings.set('sfxVol', v); Sound.setVolume(v);
+    Sound.select();   // audible preview
+  });
+
+  // re-arm the first-match coaching tips (they otherwise show only once, ever)
+  $('set-tips')?.addEventListener('click', () => {
+    Settings.set('coachSeen', false);
+    Sound.click();
+    const b = $('set-tips'); if (b) { b.textContent = 'Tips will replay next match ✓'; b.disabled = true; }
+  });
+
+  // help / hotkey reference
+  const help = $('help');
+  const toggleHelp = () => help?.classList.toggle('show');
+  $('btn-help')?.addEventListener('click', toggleHelp);
+  window.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === '?') toggleHelp();
+    if (e.key === 'Escape') {
+      if (settings.style.display === 'flex') closeSettings();
+      else help?.classList.remove('show');
+    }
+  });
+
+  // "best on desktop" notice on touch / coarse-pointer devices
+  const touch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+  if (touch && !Settings.get('touchNoteDismissed')) {
+    const note = $('touchnote');
+    note?.classList.add('show');
+    $('touchnote-x')?.addEventListener('click', () => {
+      note.classList.remove('show'); Settings.set('touchNoteDismissed', true);
+    });
+    setTimeout(() => note?.classList.remove('show'), 12000);
+  }
+}
+
+function syncSeg(groupId, attr, value) {
+  for (const b of document.querySelectorAll(`#${groupId} button`))
+    b.classList.toggle('on', b.dataset[attr] === value);
+}
+function syncSettingsUI() {
+  const $ = id => document.getElementById(id);
+  const b = Settings.get('brightness');
+  $('set-bright').value = b; $('set-bright-val').textContent = Math.round(b * 100) + '%';
+  const mv = Settings.get('musicVol');
+  $('set-mvol').value = mv; $('set-mvol-val').textContent = Math.round(mv * 100) + '%';
+  const sv = Settings.get('sfxVol');
+  $('set-svol').value = sv; $('set-svol-val').textContent = Math.round(sv * 100) + '%';
+  syncSeg('set-quality', 'q', Settings.get('quality'));
+  syncSeg('set-music', 'm', Settings.get('music') ? 'on' : 'off');
+  const tips = $('set-tips');
+  if (tips) { tips.disabled = false; tips.textContent = Settings.get('coachSeen') ? 'Replay tips' : 'Tips armed ✓'; }
+}
+
+// test/debug hook: drive deterministic replay playback from a recording object
+window.__startReplay = startReplay;
+
+// Test hooks for headless CI. The art-spec renderer (3072² shadows, bloom) is so
+// heavy under a runner's software-WebGL that the rAF loop can render barely a frame
+// per second, which would starve the fixed-timestep sim of wall-clock time. The sim
+// itself is deterministic and render-independent, so tests step it directly — the
+// same "drive the engine, not the clock" approach the smoke tests already use to
+// skip the intro flyover. This advances the live match's sim without waiting on frames.
+window.__stepSim = (seconds) => {
+  const g = window.__game;
+  if (!g) return 0;
+  const n = Math.max(1, Math.round(seconds * SIM_HZ));
+  for (let i = 0; i < n; i++) g.update(SIM_DT);
+  return g.time;
+};
+
+// Re-run a recorded replay synchronously through a fresh deterministic Game, with the
+// exact same dispatch + per-frame checksum comparison as the live (rAF-driven) replay
+// loop in startReplay — just without rendering, so it can't be starved by a slow GPU.
+// Sets window.__game.replayDone / replayDesync for the smoke test to read.
+window.__runReplaySync = (rep) => {
+  stopGame();
+  const h = rep.header;
+  const container = document.getElementById('game-container');
+  const game = new Game(container, h.pf, h.ef, { seed: h.seed, biome: h.biomeKey,
+    timeOfDay: h.timeOfDay, mapSize: h.mapSize, difficulty: h.difficulty, replay: true,
+    factions: h.factions, mode: h.mode });   // FFA replays rebuild every seat (absent in old files → 1v1)
+  spawnAIs(game);              // the AIs re-run deterministically from the seed
+  if (game.qualityMode !== 'auto') game.setQualityMode(game.qualityMode);
+  window.__game = game; window.__controls = null;
+  let desynced = false;
+  for (const f of rep.frames) {
+    if (f.c) { const map = buildIdMap(game); for (const rec of f.c) game.dispatchRecorded(rec, map); }
+    if (f.k !== undefined && !desynced && game.checksum() !== f.k) desynced = true;
+    game.update(f.d);
+  }
+  game.replayDesync = desynced;
+  game.replayDone = true;
+  current = { game, ai: game.ai, controls: null, ui: null, raf: 0 };
+  return { desync: desynced, frames: rep.frames.length };
+};
+
+// Shared bootstrap for the headless FFA probes: a fresh N-player game with an AI on
+// every non-local seat, wired into the same globals the live paths use.
+function bootHeadlessFFA(numPlayers, seed) {
+  stopGame();
+  const fkeys = Object.keys(FACTIONS);
+  const factions = Array.from({ length: numPlayers }, (_, i) => fkeys[i % fkeys.length]);
+  const biome = Object.keys(BIOMES)[0];
+  const g = new Game(document.getElementById('game-container'), factions[0], factions[1],
+    { seed, biome, timeOfDay: BIOMES[biome].moods[0], factions });
+  spawnAIs(g);
+  window.__game = g; window.__controls = null;
+  current = { game: g, ai: g.ai, controls: null, ui: null, raf: 0 };
+  return g;
+}
+
+// Headless free-for-all determinism probe (used by the smoke suite). Builds two N-player
+// games from an identical (seed, biome, mood, faction list), steps both the same number
+// of sim ticks, and reports whether their checksums match — i.e. that the multi-player
+// simulation is bit-for-bit deterministic (the prerequisite for >2-player lockstep) — plus
+// per-seat supply/army tallies proving every AI seat actually plays (trains units).
+window.__ffaCheck = (numPlayers = 4, ticks = 600) => {
+  const run = () => {
+    const g = bootHeadlessFFA(numPlayers, 1234567);
+    for (let i = 0; i < ticks; i++) g.update(1 / SIM_HZ);
+    return {
+      sum: g.checksum(),
+      numPlayers: g.numPlayers,
+      neutral: g.NEUTRAL,
+      mains: g.buildings.filter(b => b.def.main && b.owner < g.NEUTRAL && !b.dead).length,
+      owners: [...new Set(g.buildings.filter(b => b.def.main).map(b => b.owner))].sort((a, b) => a - b),
+      supply: g.players.slice(0, g.numPlayers).map(p => ({ used: p.supplyUsed, cap: p.supplyCap })),
+      unitsPerSeat: Array.from({ length: g.numPlayers }, (_, o) =>
+        g.units.filter(u => u.owner === o && !u.dead).length),
+    };
+  };
+  const a = run(), b = run();
+  return { a, b, deterministic: a.sum === b.sum };
+};
+
+// Headless free-for-all victory probe: build an N-player game, raze every opponent's
+// main, and report whether the match ended as a win for the local seat (last standing).
+window.__ffaVictoryCheck = (numPlayers = 3) => {
+  const g = bootHeadlessFFA(numPlayers, 42);
+  g.update(1 / SIM_HZ);
+  const enemyMains = g.buildings.filter(b => b.def.main && g.isEnemyOwner(b.owner));
+  const n = enemyMains.length;
+  const toasts = [];
+  g.on('toast', (t) => toasts.push(t));
+  for (const b of enemyMains) if (!g.over) g.removeBuilding(b, null);
+  return { over: g.over, winner: g.winner, enemyMains: n, numPlayers: g.numPlayers,
+    eliminationToasts: toasts.length };
+};
+
+// Headless save/load round-trip probe: serialize a running N-player FFA game, restore it
+// through the exact path loadSavedGame uses, and report whether every seat survived.
+window.__ffaSaveCheck = (numPlayers = 3, ticks = 120) => {
+  let g = bootHeadlessFFA(numPlayers, 777);
+  for (let i = 0; i < ticks; i++) g.update(1 / SIM_HZ);
+  const data = g.serialize();
+  const before = {
+    units: g.units.filter(u => !u.dead).length,
+    buildings: g.buildings.filter(b => !b.dead).length,
+    neutralUnits: g.units.filter(u => u.owner === g.NEUTRAL && !u.dead).length,
+  };
+  stopGame();
+  g = new Game(document.getElementById('game-container'), data.pf, data.ef, { load: data });
+  spawnAIs(g);
+  window.__game = g; window.__controls = null;
+  current = { game: g, ai: g.ai, controls: null, ui: null, raf: 0 };
+  return {
+    before,
+    after: {
+      units: g.units.filter(u => !u.dead).length,
+      buildings: g.buildings.filter(b => !b.dead).length,
+      neutralUnits: g.units.filter(u => u.owner === g.NEUTRAL && !u.dead).length,
+    },
+    numPlayers: g.numPlayers,
+    ais: g.ais.length,
+  };
+};
+
+// Headless records probe: finish a match via the victory probe, run the achievements
+// evaluation exactly as the UI would, and report what unlocked + the records summary.
+window.__recordsCheck = () => {
+  const out = window.__ffaVictoryCheck(3);
+  const g = window.__game;
+  const toasts = [];
+  const fresh = achievementsOnGameOver(g, g.winner, (t) => toasts.push(t));
+  const summary = recordsSummary();
+  return { winner: g.winner, freshIds: fresh.map(a => a.id), toasts: toasts.length,
+    unlockedCount: summary.achievements.filter(a => a.done).length };
+};
+
+// Headless survival probe: run The Deluge deterministically and report wave/attacker
+// state; two identical runs must checksum-match (waves are sim events).
+window.__survivalCheck = (ticks = 5400) => {
+  const run = () => {
+    stopGame();
+    const biome = Object.keys(BIOMES)[0];
+    const g = new Game(document.getElementById('game-container'), 'covenant', 'watchers',
+      { seed: 424242, biome, timeOfDay: BIOMES[biome].moods[0], mode: 'survival' });
+    spawnAIs(g);
+    window.__game = g; window.__controls = null;
+    current = { game: g, ai: g.ai, controls: null, ui: null, raf: 0 };
+    for (let i = 0; i < ticks; i++) g.update(1 / SIM_HZ);
+    return {
+      sum: g.checksum(),
+      mode: g.mode, wave: g.wave, ais: g.ais.length,
+      mains: g.buildings.filter(b => b.def.main && !b.dead).map(b => b.owner),
+      raiders: g.units.filter(u => u.owner === g.NEUTRAL && !u.dead && !u.leash).length,
+      over: g.over,
+    };
+  };
+  const a = run(), b = run();
+  return { a, b, deterministic: a.sum === b.sum };
+};
+
+// Headless hero probe: verify the one-hero cap, that XP/levels accrue on kills, and
+// that a levelled hero round-trips through serialize/deserialize.
+window.__heroCheck = () => {
+  stopGame();
+  const g = new Game(document.getElementById('game-container'), 'covenant', 'watchers',
+    { seed: 5, biome: Object.keys(BIOMES)[0], timeOfDay: 'noon' });
+  window.__game = g; window.__controls = null;
+  current = { game: g, ai: null, controls: null, ui: null, raf: 0 };
+  const heroKey = Object.entries(g.players[0].faction.units).find(([, d]) => d.hero)[0];
+  const bp = g.map.basePlayer;
+  const noHeroYet = g.hasHero(0);                 // false before any hero exists
+  const hero = g.spawnUnit(0, heroKey, (bp.x + 2) * 2, (bp.y + 2) * 2);
+  const capBlockedWhileAlive = g.hasHero(0);      // the cap predicate sees the living hero
+  const startLevel = hero.level;
+  for (let i = 0; i < 30; i++) {
+    const foe = g.spawnUnit(1, g.players[1].faction.worker, hero.pos.x + 2, hero.pos.z + 2);
+    foe.die(hero);   // hero gets the kill credit → XP
+  }
+  const leveled = hero.level > startLevel;
+  const dmgScales = hero.effDmg(100) > 100;   // level damage bonus applied
+  const data = g.serialize();                 // save/load must preserve the rank
+  stopGame();
+  const g2 = new Game(document.getElementById('game-container'), data.pf, data.ef, { load: data });
+  window.__game = g2; current = { game: g2, ai: null, controls: null, ui: null, raf: 0 };
+  const restored = g2.units.find(u => u.hero);
+  const capFreeAfterDeath = (() => { hero.dead = true; return !g.hasHero(0); })();
+  return {
+    noHeroYet, capBlockedWhileAlive, capFreeAfterDeath,
+    leveled, level: hero.level, dmgScales,
+    savedLevel: restored?.level ?? 0, savedMaxHp: restored?.maxHp ?? 0, liveMaxHp: hero.maxHp,
+  };
+};
+
+// Headless wild-event probe: build a standard match on a fixed seed and report which
+// seeded encounters spawned + their announcements.
+window.__wildCheck = (seed) => {
+  stopGame();
+  const g = new Game(document.getElementById('game-container'), 'covenant', 'watchers',
+    { seed, biome: Object.keys(BIOMES)[0], timeOfDay: 'noon' });
+  window.__game = g; window.__controls = null;
+  current = { game: g, ai: null, controls: null, ui: null, raf: 0 };
+  return {
+    seed, r: g.map.seed % 100,
+    scott: g.units.some(u => u.key === 'scott'),
+    foe: !!g.fieldsOfEvil,
+    lairs: g.lairs?.length || 0,
+    notes: g.wildEventNotes || [],
+  };
+};
+
+// Headless audio-identity probe: no ears needed. Verifies the acknowledge blips are
+// drawn from each faction's own palette (and cycle), that the ambient drone switches
+// its faction voice, and that the new event stingers exist and don't throw.
+window.__audioCheck = () => {
+  Sound.setFaction('covenant'); Sound.select(); const cov = Sound._lastAck;
+  Sound.setFaction('nephilim'); Sound.select(); const nep = Sound._lastAck;
+  Sound.setFaction('watchers'); Sound.select(); const wat = Sound._lastAck;
+  // cycling: three consecutive selects for one faction should span >1 distinct pitch
+  Sound.setFaction('covenant');
+  const cycle = [0, 0, 0].map(() => { Sound.select(); return Sound._lastAck; });
+  const cycles = new Set(cycle).size > 1;
+  // drone voicing switches per faction (real Chromium has AudioContext)
+  let droneSwitched = false;
+  try {
+    Music.play('nephilim'); const a = Music._faction;
+    Music.play('watchers'); const b = Music._faction;
+    Music.stop();
+    droneSwitched = a === 'nephilim' && b === 'watchers';
+  } catch {}
+  // stingers must be callable without throwing
+  let stingersOk = true;
+  try { Sound.bossSlain(); Sound.achievement(); Sound.wave(1); Sound.wave(7); }
+  catch { stingersOk = false; }
+  const distinct = new Set([cov, nep, wat]).size === 3;
+  return { cov, nep, wat, distinct, cycles, droneSwitched, stingersOk };
+};
+
+// Headless upgrade probe: verifies a tier-2 upgrade is gated behind its tier-1 at the
+// simulation layer, and that the two tiers stack multiplicatively.
+window.__upgradeCheck = () => {
+  stopGame();
+  const g = new Game(document.getElementById('game-container'), 'covenant', 'watchers',
+    { seed: 7, biome: Object.keys(BIOMES)[0], timeOfDay: 'noon' });
+  window.__game = g; current = { game: g, ai: null, controls: null, ui: null, raf: 0 };
+  const p = g.players[0];
+  Object.assign(p.resources, { bronze: 99999, grain: 99999, favor: 99999, timber: 99999, knowledge: 99999 });
+  const bldg = { owner: 0, trainQueue: [] };
+  const dmg0 = p.dmgMult;
+  const tier2Blocked = g.queueUpgrade(bldg, 'cov_weapons2') === false && !p.upgrades.has('cov_weapons2');
+  const tier1Queued = g.queueUpgrade(bldg, 'cov_weapons') === true;
+  g.finishUpgrade(0, 'cov_weapons');
+  const dmg1 = p.dmgMult;
+  bldg.trainQueue = [];
+  const tier2Now = g.queueUpgrade(bldg, 'cov_weapons2') === true;   // unlocked once tier-1 done
+  g.finishUpgrade(0, 'cov_weapons2');
+  const dmg2 = p.dmgMult;
+  stopGame();
+  return { tier2Blocked, tier1Queued, tier2Now, dmg0, dmg1, dmg2 };
+};
+
+// Headless ability probe: exercises the two new ability types end-to-end.
+//  heal   — a Covenant temple_guard mends a wounded ally (and doesn't overheal).
+//  summon — a Nephilim shaman raises temporary raiders that don't cost supply and that
+//           crumble once their lifespan runs out.
+window.__abilityCheck = () => {
+  const mk = (pf, ef, seed) => {
+    stopGame();
+    const g = new Game(document.getElementById('game-container'), pf, ef,
+      { seed, biome: Object.keys(BIOMES)[0], timeOfDay: 'noon' });
+    window.__game = g; current = { game: g, ai: null, controls: null, ui: null, raf: 0 };
+    return g;
+  };
+  // — heal —
+  const g = mk('covenant', 'watchers', 3);
+  const bp = g.map.basePlayer;
+  const guard = g.spawnUnit(0, 'temple_guard', (bp.x + 2) * 2, (bp.y + 2) * 2);
+  const ally = g.spawnUnit(0, 'spearman', guard.pos.x + 2, guard.pos.z + 1);
+  ally.hp = 20; const healBefore = ally.hp;
+  guard.abilityCd = 0;
+  const healed = g.useAbility(guard);
+  const healAfter = ally.hp;
+
+  // — summon —
+  const g2 = mk('nephilim', 'covenant', 3);
+  const bp2 = g2.map.basePlayer;
+  const sha = g2.spawnUnit(0, 'shaman', (bp2.x + 2) * 2, (bp2.y + 2) * 2);
+  const supBefore = g2.players[0].supplyUsed;
+  sha.abilityCd = 0;
+  const summonOk = g2.useAbility(sha);
+  const summonedNow = g2.units.filter(u => u.owner === 0 && u.summoned && !u.dead).length;
+  const supAfter = g2.players[0].supplyUsed;    // summons must not add supply
+  window.__game = g2;
+  window.__stepSim(20);                          // outlast the 18 s lifespan
+  const summonedLater = g2.units.filter(u => u.owner === 0 && u.summoned && !u.dead).length;
+  stopGame();
+  return { healed, healBefore, healAfter, summonOk, summonedNow, supBefore, supAfter, summonedLater };
+};
+
+// Headless daily-share probe: injects a known result into the live match and returns the
+// shareable summary the end screen would produce.
+window.__dailyShareCheck = (over = {}) => {
+  const ui = current?.ui, g = current?.game;
+  if (!ui || !g) return null;
+  Object.assign(g, over.game || {});
+  if (over.stats) Object.assign(g.stats, over.stats);
+  return ui.dailyShareText(over.winner ?? 0);
+};
+
+// Headless campaign probe: build a mission by id and fast-forward `seconds`, reporting
+// that it boots in campaign mode, fires its beats (dialogue/spawns), and tracks the
+// objective. With forceWin, it satisfies the mission's win condition afterward and
+// steps once to prove the victory plumbing fires (endGame(0)).
+window.__campaignCheck = (id, seconds = 20, forceWin = false) => {
+  const m = missionById(id);
+  stopGame();
+  const factions = m.enemy ? [m.faction, m.enemy] : [m.faction];
+  const g = new Game(document.getElementById('game-container'), m.faction, m.enemy || 'watchers',
+    { seed: m.seed, biome: m.biome, timeOfDay: m.mood, mapSize: m.mapSize, mode: 'campaign', mission: m, factions });
+  let dialogues = 0; g.on('dialogue', () => dialogues++);   // count from here (onStart already ran)
+  g.ais = m.enemy ? [new AI(g, 1)] : []; g.ai = g.ais[0] || null;
+  window.__game = g; window.__controls = null;
+  current = { game: g, ai: g.ai, controls: null, ui: null, raf: 0 };
+  const ticks = Math.round(seconds * SIM_HZ);
+  for (let i = 0; i < ticks && !g.over; i++) g.update(1 / SIM_HZ);
+  const mid = {
+    id, mode: g.mode, objective: g.objective, dialogues,
+    beatsFired: g._camp.fired.size, beatCount: (m.beats || []).length,
+    hostiles: g.units.filter(u => u.owner === g.NEUTRAL && !u.dead && u.def.attack).length,
+    playerMain: !!(g.playerMain && !g.playerMain.dead),
+    over: g.over, winner: g.winner,
+  };
+  if (forceWin && !g.over) {
+    // satisfy each mission's win condition, then step to let updateCampaign end it
+    if (id === 'm1') g.units.forEach(u => { if (u.owner === g.NEUTRAL && u.def.attack) u.dead = true; });
+    else if (id === 'm2') g.buildings.forEach(b => { if (b.owner === 1 && b.def.main) b.dead = true; });
+    else if (id === 'm3') g.slainBosses.push('scott');
+    else if (id === 'm4') g.greeneRazed = true;
+    else if (id === 'm5') { for (let i = 0; i < SIM_HZ * 2; i++) { g.time = 361; g.update(1 / SIM_HZ); } }
+    g.update(1 / SIM_HZ);
+    mid.forcedOver = g.over; mid.forcedWinner = g.winner;
+  }
+  return mid;
+};
+
+// Boot. When running as a Discord Activity, complete the embedded-app handshake and
+// install the relay URL mapping BEFORE anything can open a socket; standalone play skips
+// it instantly. Never blocks the menu on failure.
+(async () => {
+  try { await initDiscord(); } catch (e) { console.warn('Discord init skipped', e); }
+  // Offline/installable PWA. Skipped inside the Discord Activity iframe (the proxied
+  // discordsays origin makes SW scope meaningless there) and on unsupported browsers.
+  if ('serviceWorker' in navigator && !isDiscordActivity()) {
+    try { navigator.serviceWorker.register('./sw.js'); } catch (e) { console.warn('SW registration failed', e); }
+  }
+  bindShell();
+  buildMenu();
+  // Menu ambience: WebAudio can't sound until the user interacts, so on the very first
+  // gesture (while still on the menu, no match running) fade in the calm neutral drone.
+  const startMenuAmbience = () => {
+    window.removeEventListener('pointerdown', startMenuAmbience);
+    window.removeEventListener('keydown', startMenuAmbience);
+    if (!current && Settings.get('music')) Music.play('menu');
+  };
+  window.addEventListener('pointerdown', startMenuAmbience, { once: false });
+  window.addEventListener('keydown', startMenuAmbience, { once: false });
+  // Deep-link: opening an invite link (?join=CODE) drops you straight into that lobby.
+  const code = new URLSearchParams(location.search).get('join');
+  if (code) { try { history.replaceState(null, '', location.pathname); } catch {} openLobby(code); }
+})();

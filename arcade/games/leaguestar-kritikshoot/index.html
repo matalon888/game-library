@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>KritikShoot — Survival Shooter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+  <div id="startScreen" class="screen glass-panel active" role="main" aria-label="Start Screen">
+    <div class="screen__inner">
+      <button id="muteBtn" class="btn btn--mute" aria-label="Toggle Sound">🔊</button>
+      <button id="howToPlayBtn" class="btn btn--mute btn--howto" aria-label="How to Play">?</button>
+      <button id="accessibilityBtn" class="btn btn--mute btn--accessibility" aria-label="Accessibility Settings">⚙</button>
+      <div class="logo-lockup">
+        <span class="logo-sub">— SURVIVAL SHOOTER —</span>
+        <h1 class="logo-title">KritikShoot</h1>
+        <div class="logo-line"></div>
+      </div>
+      <div class="start-form">
+        <label for="nicknameInput" class="sr-only">Enter Nickname</label>
+        <input
+          type="text"
+          id="nicknameInput"
+          class="input-field"
+          placeholder="Enter callsign…"
+          maxlength="15"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="startBtn" class="btn btn--primary">
+          <span class="btn__label">DEPLOY</span>
+          <span class="btn__glow"></span>
+        </button>
+        <div class="menu-utility-row">
+          <button id="leaderboardBtn" class="btn btn--menu-util" aria-haspopup="dialog">🏆 LEADERBOARD</button>
+          <button id="upgradesBtn" class="btn btn--menu-util" aria-haspopup="dialog">🛠 UPGRADES</button>
+        </div>
+        <label class="daily-toggle" for="dailyModeToggle">
+          <input type="checkbox" id="dailyModeToggle" />
+          <span class="daily-toggle__label">Daily Challenge <span id="dailyDateLabel" class="daily-toggle__date"></span></span>
+        </label>
+        <div id="dailyHistoryStrip" class="daily-history"></div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="gameCanvas" tabindex="0" aria-label="Game Canvas"></canvas>
+
+  <div id="rotatePrompt" class="rotate-prompt" role="alert" aria-live="assertive">
+    <div class="rotate-prompt__icon" aria-hidden="true">⟳</div>
+    <p class="rotate-prompt__text">Rotate your device to landscape to play</p>
+  </div>
+
+  <div id="mobileControls" class="mobile-ui" aria-hidden="true">
+    <div id="joystick" class="joystick" role="presentation">
+      <div class="joystick__knob"></div>
+    </div>
+    <button id="shootBtn" class="btn btn--shoot" aria-label="Shoot">FIRE</button>
+    <button id="weaponBtn" class="btn btn--weapon" aria-label="Switch Weapon">GUN</button>
+    <button id="pauseBtn" class="btn btn--pause" aria-label="Pause / Resume">⏸</button>
+    <button id="quitBtn"  class="btn btn--quit hidden" aria-label="Quit to Menu">⌂</button>
+  </div>
+
+  <button id="weaponBtnPC" class="btn btn--weapon-pc" aria-label="Switch Weapon (E)">GUN</button>
+
+  <div
+    id="levelUpScreen"
+    class="screen screen--overlay glass-panel hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Level Up — Choose Upgrade"
+  >
+    <div class="screen__inner screen__inner--compact">
+      <h2 class="screen__title">LEVEL UP</h2>
+      <p class="screen__subtitle">Select your upgrade, soldier.</p>
+      <div class="upgrade-grid" role="list">
+        <button class="btn btn--upgrade" data-type="speed"       role="listitem">⚡ Move Speed</button>
+        <button class="btn btn--upgrade" data-type="health"      role="listitem">❤ Max Health</button>
+        <button class="btn btn--upgrade" data-type="damage"      role="listitem">💥 Damage</button>
+        <button class="btn btn--upgrade" data-type="fireRate"    role="listitem">🔥 Fire Rate</button>
+        <button class="btn btn--upgrade" data-type="bulletSpeed" role="listitem">🚀 Bullet Speed</button>
+        <button class="btn btn--upgrade" data-type="critChance"  role="listitem">🎯 Crit Chance</button>
+        <button class="btn btn--upgrade" data-type="lifesteal"   role="listitem">🩸 Lifesteal</button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="instructionsScreen"
+    class="screen screen--overlay glass-panel hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="How to Play"
+  >
+    <div class="screen__inner screen__inner--compact howto-inner">
+      <button id="instructionsCloseBtn" class="btn btn--close" aria-label="Close">✕</button>
+      <h2 class="screen__title">HOW TO PLAY</h2>
+
+      <div class="howto-content">
+        <section class="howto-section">
+          <h3 class="howto-heading">Objective</h3>
+          <p class="howto-text">
+            Survive the waves. Kill enemies to earn XP and level up, dodge the
+            bosses that show up every few waves, and grab dropped coins —
+            they carry over between runs and can be spent in the shop.
+          </p>
+        </section>
+
+        <section id="howtoControlsDesktop" class="howto-section">
+          <h3 class="howto-heading">Desktop Controls</h3>
+          <ul class="howto-list">
+            <li><span class="howto-key">WASD</span> — Move</li>
+            <li><span class="howto-key">Mouse</span> — Aim</li>
+            <li><span class="howto-key">Arrows</span> — Aim (keyboard-only players; overrides mouse while held)</li>
+            <li><span class="howto-key">Click</span> (hold to keep firing) — Shoot</li>
+            <li><span class="howto-key">Space</span> — Shoot (toward aim, or nearest enemy)</li>
+            <li><span class="howto-key">E</span> / <span class="howto-key">Shift</span> — Switch weapon</li>
+            <li><span class="howto-key">Esc</span> — Pause</li>
+            <li><span class="howto-key">Q</span> — Quit to menu (while paused)</li>
+          </ul>
+        </section>
+
+        <section id="howtoControlsMobile" class="howto-section">
+          <h3 class="howto-heading">Mobile Controls</h3>
+          <ul class="howto-list">
+            <li><span class="howto-key">Joystick</span> (left side) — Move</li>
+            <li><span class="howto-key">Drag</span> (right side) — Aim</li>
+            <li><span class="howto-key">FIRE</span> button — Shoot</li>
+            <li><span class="howto-key">Weapon</span> button — Cycle weapon</li>
+            <li><span class="howto-key">⏸</span> — Pause</li>
+            <li><span class="howto-key">⌂</span> — Quit to menu (while paused)</li>
+          </ul>
+        </section>
+
+        <section class="howto-section">
+          <h3 class="howto-heading">Weapons</h3>
+          <p class="howto-text">
+            Cycle through three weapons: <strong>GUN</strong> → <strong>SHOTGUN</strong> → <strong>LASER</strong>,
+            each with its own spread, damage, and fire rate.
+          </p>
+        </section>
+
+        <section class="howto-section">
+          <h3 class="howto-heading">Upgrades</h3>
+          <p class="howto-text">
+            Leveling up lets you pick one upgrade: Move Speed, Max Health, Damage,
+            Fire Rate, Bullet Speed, Crit Chance, or Lifesteal. Coins collected in
+            a run also unlock permanent upgrades in the persistent shop between runs.
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="accessibilityScreen"
+    class="screen screen--overlay glass-panel hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Accessibility Settings"
+  >
+    <div class="screen__inner screen__inner--compact howto-inner">
+      <button id="accessibilityCloseBtn" class="btn btn--close" aria-label="Close">✕</button>
+      <h2 class="screen__title">ACCESSIBILITY</h2>
+
+      <div class="howto-content">
+        <section class="howto-section">
+          <h3 class="howto-heading">Screen Shake</h3>
+          <div class="a11y-row">
+            <input type="range" id="shakeIntensitySlider" class="a11y-slider" min="0" max="100" step="5" value="100" aria-label="Screen shake intensity" />
+            <span id="shakeIntensityValue" class="a11y-value">100%</span>
+          </div>
+        </section>
+
+        <section class="howto-section">
+          <h3 class="howto-heading">Text Size</h3>
+          <div class="a11y-row a11y-row--options" id="textSizeOptions" role="group" aria-label="HUD text size">
+            <button type="button" class="btn a11y-option" data-scale="1">Normal</button>
+            <button type="button" class="btn a11y-option" data-scale="1.25">Large</button>
+            <button type="button" class="btn a11y-option" data-scale="1.5">X-Large</button>
+          </div>
+        </section>
+
+        <section class="howto-section">
+          <h3 class="howto-heading">Shape-Only Enemy ID</h3>
+          <label class="a11y-row a11y-row--toggle">
+            <input type="checkbox" id="shapeOnlyToggle" />
+            <span class="howto-text">Thicker, high-contrast outlines so enemy type reads from silhouette alone, not just color.</span>
+          </label>
+        </section>
+
+        <section class="howto-section">
+          <h3 class="howto-heading">Colorblind-Safe Palette</h3>
+          <label class="a11y-row a11y-row--toggle">
+            <input type="checkbox" id="colorblindToggle" />
+            <span class="howto-text">Remaps enemy colors and health bars to a deuteranopia/protanopia-safe palette.</span>
+          </label>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="leaderboardScreen"
+    class="screen screen--overlay glass-panel hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Local Leaderboard"
+  >
+    <div class="screen__inner screen__inner--compact howto-inner">
+      <button id="leaderboardCloseBtn" class="btn btn--close" aria-label="Close">✕</button>
+      <h2 class="screen__title">LEADERBOARD</h2>
+      <div id="localLeaderboard" class="leaderboard" aria-label="Local Leaderboard"></div>
+    </div>
+  </div>
+
+  <div
+    id="upgradesScreen"
+    class="screen screen--overlay glass-panel hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Upgrade Depot"
+  >
+    <div class="screen__inner screen__inner--compact howto-inner">
+      <button id="upgradesCloseBtn" class="btn btn--close" aria-label="Close">✕</button>
+      <div id="coinShop" class="coin-shop" aria-label="Persistent Upgrade Shop"></div>
+    </div>
+  </div>
+
+  <div
+    id="ascensionScreen"
+    class="screen screen--overlay glass-panel hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Ascension — Choose your mod"
+  >
+    <div class="screen__inner screen__inner--compact">
+      <h2 class="screen__title">ASCENSION</h2>
+      <p class="screen__subtitle">Choose your mod, soldier.</p>
+      <div id="ascensionGrid" class="upgrade-grid upgrade-grid--ascension" role="list"></div>
+    </div>
+  </div>
+
+  <div id="gameOverActions" class="game-over-actions hidden">
+    <button id="restartBtn" class="btn btn--danger" aria-label="Restart Mission">↩ Play Again</button>
+    <button id="copyResultBtn" class="btn btn--menu hidden" aria-label="Copy Daily Result">📋 Copy Result</button>
+    <button id="menuBtn"    class="btn btn--menu"   aria-label="Return to Main Menu">⌂ Main Menu</button>
+  </div>
+
+  <script src="./game.js" defer></script>
+</body>
+</html>

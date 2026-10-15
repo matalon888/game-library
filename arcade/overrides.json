@@ -3225,7 +3225,8 @@
     "polish": 5,
     "ai_built": "unknown",
     "pitch": "Weave a skier downhill past trees and jumps while a yeti hunts you, in a simple endless chase that rewards quick reflexes."
-   }
+   },
+   "blurb": "Steer the skier downhill with your finger, dodge the trees and outrun the snow beast."
   },
   "ramazancetinkaya-snake-game": {
    "review": {
@@ -3315,7 +3316,13 @@
     "polish": 4,
     "ai_built": "unknown",
     "pitch": "Open 26 numbered briefcases, weigh the banker's rising offers against the remaining prize values, and gamble on whether to deal or keep going."
-   }
+   },
+   "name": "Briefcase Bluff",
+   "blurb": "Open briefcases one by one and decide whether to take the banker's offer."
+  },
+  "dmcinnes-html5-asteroids": {
+   "name": "Rock Blaster",
+   "blurb": "Rotate, thrust and blast drifting space rocks into smaller pieces before they hit you."
   }
  }
 }

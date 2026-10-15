@@ -14,7 +14,7 @@
 // ========================================
 const I18N = {
     zh: {
-        'app.title': 'Deal or No Deal - 美版经典游戏',
+        'app.title': 'Briefcase Bluff - 美版经典游戏',
 
         // 顶部控制：主题 / 语言
         'theme.label': '主题设置',
@@ -133,7 +133,7 @@ const I18N = {
     },
 
     en: {
-        'app.title': 'Deal or No Deal - Classic US Edition',
+        'app.title': 'Briefcase Bluff - Classic US Edition',
 
         'theme.label': 'Theme',
         'theme.menuAria': 'Select theme',

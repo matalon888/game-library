@@ -35,8 +35,8 @@
     if (p.github) out.push({ short: `${kNum(p.github.stars)} GitHub stars`, long: `${kNum(p.github.stars)} stars, ${kNum(p.github.forks)} forks on GitHub`, url: p.github.url });
     return out;
   };
-  const quote = g => { const q = (g.public || {}).quote; return q ? `<blockquote class="praise-quote">“${esc(q.text)}”<cite><a href="${esc(q.url)}" target="_blank" rel="noopener">${esc(q.who)} on ${esc(q.where)}</a></cite></blockquote>` : ''; };
-  const praiseList = g => { const l = praise(g); return (l.length ? `<ul class="praise">${l.map(x => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.long)}</a></li>`).join('')}</ul>` : '') + quote(g); };
+  const quote = g => { const q = (g.public || {}).quote; return q ? `<blockquote class="praise-quote">“${esc(q.text)}”<cite>${esc(q.who)} on ${esc(q.where)}</cite></blockquote>` : ''; };
+  const praiseList = g => { const l = praise(g); return (l.length ? `<ul class="praise">${l.map(x => `<li>${esc(x.long)}</li>`).join('')}</ul>` : '') + quote(g); };
 
   // ---------------------------------------------------------------- install prompt
   // Android Chrome: real one-tap install. iPhone: Apple allows no install button, so we point at the exact
@@ -171,7 +171,7 @@
     const COLLS = ['Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
     const inColl = (g, c) => (g.tags || []).includes(c);
     const collList = c => gs.filter(g => inColl(g, c));
-    const cats = [...new Set(COLLS.filter(c => collList(c).length).concat(desk.length ? ['Desktop'] : [], [...new Set(gs.map(g => g.category || 'Arcade'))].sort()))];
+    const cats = [...new Set(COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()))].concat(desk.length ? ['Desktop'] : []);
     let cat = store.get('cat', null), stats = {};
     if (cat && !cats.includes(cat)) cat = null;
     $('count').textContent = `${every.length} games · ${fresh} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
@@ -190,7 +190,7 @@
     }), { threshold: 0.6 }) : null;
     document.querySelectorAll('#feat video').forEach(v => io ? io.observe(v) : (v.src = v.dataset.src));
 
-    $('cats').innerHTML = ['All', ...cats].map(c => `<button class="chip" data-c="${esc(c)}" aria-pressed="${(c === 'All' && !cat) || c === cat}">${esc(c)}</button>`).join('');
+    $('cats').innerHTML = [...cats.filter(c => c === 'Desktop'), 'All', ...cats.filter(c => c !== 'Desktop')].map(c => `<button class="chip" data-c="${esc(c)}" aria-pressed="${(c === 'All' && !cat) || c === cat}">${esc(c)}</button>`).join('');
     $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; store.set('cat', cat); draw(); };
     document.addEventListener('click', e => { const s = e.target.closest('[data-see]'); if (!s) return; e.preventDefault(); cat = s.dataset.see; store.set('cat', cat); draw(); $('cats').scrollIntoView({ behavior: 'smooth' }); });
 
@@ -253,7 +253,23 @@
     const frame = document.createElement('iframe');
     frame.title = g.name;
     frame.allow = 'autoplay; fullscreen; gamepad';
-    frame.src = g.external || `games/${g.slug}/${g.entry}`;
+    const gameUrl = new URL(`games/${g.slug}/${g.entry}`, location.href).href;
+    // players never leave riffcade.com: no pop-ups or top-level navigation, off-site links hidden, and a frame
+    // that wanders off-site is sent back to the game
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-orientation-lock');
+    frame.src = gameUrl;
+    frame.addEventListener('load', () => {
+      let w;
+      try { w = frame.contentWindow; if (w.location.origin !== location.origin) throw 0; } catch (e) { frame.src = gameUrl; return; }
+      const doc = w.document;
+      const off = a => { try { return new URL(a.getAttribute('href'), w.location.href).origin !== location.origin; } catch (e) { return false; } };
+      const hide = root => root.querySelectorAll && root.querySelectorAll('a[href]').forEach(a => { if (off(a)) a.style.display = 'none'; });
+      hide(doc);
+      new w.MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches('a[href]') && off(n)) n.style.display = 'none'; hide(n); } })))
+        .observe(doc.documentElement, { childList: true, subtree: true });
+      doc.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href]'); if (a && off(a)) { e.preventDefault(); e.stopPropagation(); } }, true);
+      try { w.open = () => null; } catch (e) {}
+    });
     frame.className = 'fit';
     stage.appendChild(frame);
     const player = document.querySelector('.player');
@@ -384,8 +400,8 @@
       if ($('sheet')) { $('sheet').remove(); return; }
       const sh = document.createElement('div'); sh.className = 'sheet'; sh.id = 'sheet';
       sh.innerHTML = g.original ? `<h3>${esc(g.name)}</h3><p>${esc(g.credit)}, made for this arcade.</p><button class="btn" id="closeSheet">Close</button>` : `<h3>${esc(g.name)}</h3><p>By ${esc(g.author)}. ${esc(g.credit)}.</p>
-        <p>Licensed under ${esc(g.licence)}. Played here unmodified; the original licence file ships with the game.</p>
-        ${praise(g).length ? '<p>Elsewhere:</p>' + praiseList(g) : ''}<p><a href="${esc(g.source)}" target="_blank" rel="noopener">Source code</a></p><button class="btn" id="closeSheet">Close</button>`;
+        <p>Licensed under ${esc(g.licence)}; the original licence file ships with the game.</p>
+        ${praise(g).length ? '<p>Elsewhere:</p>' + praiseList(g) : ''}<p>Source code: ${esc((g.source || '').replace(/^https?:\/\//, ''))}</p><button class="btn" id="closeSheet">Close</button>`;
       stage.appendChild(sh);
       $('closeSheet').onclick = () => sh.remove();
     };

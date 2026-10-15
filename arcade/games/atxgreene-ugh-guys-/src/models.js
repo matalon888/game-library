@@ -1,0 +1,1311 @@
+// Procedural low-poly models. Style: dark obsidian/ash world, faction identity
+// carried by emissive glow accents. All builders return a THREE.Group whose
+// origin sits at ground level.
+import * as THREE from 'three';
+import { stoneMaps, blockMaps, woodMaps, boneMaps } from './textures.js';
+
+// Attach a procedural PBR surface to a material; brightens base color to
+// compensate for the albedo multiply.
+function applySurface(m, kind, gain = 1.9) {
+  const s = kind === 'wood' ? woodMaps() : kind === 'bone' ? boneMaps()
+    : kind === 'blocks' ? blockMaps() : stoneMaps();
+  m.map = s.map; m.normalMap = s.normalMap; m.roughnessMap = s.roughnessMap;
+  m.normalScale = new THREE.Vector2(0.6, 0.6);
+  m.color.multiplyScalar(gain);
+}
+
+const matCache = new Map();
+function mat(color, opts = {}) {
+  const key = color + '|' + JSON.stringify(opts);
+  if (!matCache.has(key)) {
+    const m = new THREE.MeshStandardMaterial({
+      color, roughness: opts.rough ?? 0.85, metalness: opts.metal ?? 0.1,
+      emissive: opts.emissive ?? 0x000000, emissiveIntensity: opts.ei ?? 1,
+      flatShading: true,
+    });
+    // textured surfaces for the common structural materials (not for glows)
+    if (!opts.emissive) {
+      if (color === 0x3d3228 || color === 0x2e2620) applySurface(m, 'wood');
+      else if (color === 0x6b6457) applySurface(m, 'bone');
+      else if (color === 0x26262c || color === 0x1b1b20) applySurface(m, 'stone');
+      else if (color === 0x3a3a40) applySurface(m, 'blocks');
+    }
+    matCache.set(key, m);
+  }
+  return matCache.get(key);
+}
+
+export function glowMat(color, intensity = 1.6) {
+  return mat(0x111114, { emissive: color, ei: intensity, rough: 0.5 });
+}
+
+const DARK = 0x26262c, DARKER = 0x1b1b20, ASH = 0x3a3a40, BONE = 0x9c8d72, WOOD = 0x3d3228;
+const LEATHER = 0x4a3526, CLOTH = 0x33304a, LINEN = 0xbfb49a, SKIN = 0x7a6450, HIDE = 0x5a4736;
+// bronze with a little metalness so it catches the env reflections
+const bronzeMat = () => mat(0x8a6a30, { metal: 0.55, rough: 0.45 });
+
+// shared additive material for soft fire light-shafts (god-rays); cached once
+let _godRayMat = null;
+const godRayMat = () => (_godRayMat ||= new THREE.MeshBasicMaterial({
+  color: 0xffa850, transparent: true, opacity: 0.1,
+  blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+}));
+
+function prim(geo, material, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
+  const m = new THREE.Mesh(geo, material);
+  m.position.set(x, y, z); m.rotation.set(rx, ry, rz);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+const box = (w, h, d, m, ...p) => prim(new THREE.BoxGeometry(w, h, d), m, ...p);
+const cyl = (rt, rb, h, m, seg = 6, ...p) => prim(new THREE.CylinderGeometry(rt, rb, h, seg), m, ...p);
+const cone = (r, h, m, seg = 6, ...p) => prim(new THREE.ConeGeometry(r, h, seg), m, ...p);
+const sph = (r, m, ...p) => prim(new THREE.SphereGeometry(r, 6, 5), m, ...p);
+const torus = (R, r, m, ...p) => prim(new THREE.TorusGeometry(R, r, 6, 14), m, ...p);
+// a two-segment limb (upper + lower with a joint kink) — adds readable anatomy
+function limb(grp, m, x, y, z, len, thick, lean = 0, side = 1) {
+  const seg = len / 2;
+  grp.add(cyl(thick, thick * 0.85, seg, m, 5, x, y - seg / 2, z, lean, 0, 0));
+  grp.add(sph(thick * 0.95, m, x + Math.sin(lean) * seg, y - seg, z + Math.cos(lean) * 0 - 0));
+  grp.add(cyl(thick * 0.8, thick * 0.7, seg, m, 5, x + side * 0.02, y - seg * 1.5, z, -lean * 0.5, 0, 0));
+}
+
+// ---------- units ----------
+// Each unit builder receives (body, glow) materials derived from faction colors.
+
+const unitBuilders = {
+  // ---- Covenant Cities ----
+  worker(b, g, a) {
+    const grp = new THREE.Group();
+    const cloth = mat(LEATHER);
+    grp.add(cyl(0.16, 0.24, 0.62, cloth, 6, 0, 0.42, 0));        // tunic, slightly hunched
+    grp.add(box(0.34, 0.34, 0.26, mat(WOOD), 0, 0.95, -0.18));   // load basket on the back
+    grp.add(cyl(0.05, 0.05, 0.05, a, 6, 0, 0.78, 0.1));          // faction-color sash collar
+    grp.add(sph(0.14, mat(SKIN), 0, 0.92, 0.02));                // head
+    grp.add(box(0.3, 0.09, 0.32, a, 0, 1.0, 0));                 // faction work-cap
+    limb(grp, cloth, 0.18, 0.62, 0.05, 0.4, 0.06, 0.7);          // arms gripping tool
+    limb(grp, cloth, -0.16, 0.62, 0.05, 0.36, 0.06, 0.5);
+    limb(grp, mat(DARK), 0.09, 0.2, 0, 0.36, 0.07);              // legs
+    limb(grp, mat(DARK), -0.09, 0.2, 0, 0.36, 0.07);
+    grp.add(cyl(0.035, 0.04, 1.1, mat(WOOD), 4, 0.26, 0.6, 0.18, 0, 0, -0.35)); // mattock haft
+    grp.add(box(0.2, 0.1, 0.08, mat(DARK), 0.5, 0.95, 0.18, 0, 0, -0.35));      // mattock head
+    return grp;
+  },
+  spearman(b, g, a) {
+    const grp = new THREE.Group();
+    grp.add(box(0.36, 0.5, 0.24, b, 0, 0.62, 0));               // bronze cuirass torso
+    grp.add(box(0.4, 0.12, 0.28, bronzeMat(), 0, 0.9, 0));      // shoulder yoke
+    grp.add(box(0.16, 0.5, 0.05, a, 0, 0.66, 0.13));            // faction tabard down the chest
+    grp.add(cyl(0.06, 0.1, 0.2, mat(LEATHER), 6, 0, 0.45, 0));  // belt/kilt waist
+    grp.add(cone(0.2, 0.22, a, 8, 0, 0.32, 0));                 // faction-blue pteruges kilt
+    grp.add(sph(0.13, mat(SKIN), 0, 1.06, 0));                  // head
+    grp.add(cyl(0.15, 0.16, 0.2, bronzeMat(), 8, 0, 1.1, 0));   // conical helm
+    grp.add(cone(0.05, 0.34, g, 4, 0, 1.36, -0.04, -0.2));      // tall crest
+    limb(grp, mat(SKIN), -0.24, 0.78, 0.02, 0.42, 0.06, 0.3);   // shield arm
+    limb(grp, mat(SKIN), 0.24, 0.78, 0.05, 0.42, 0.06, -0.4);   // spear arm
+    limb(grp, mat(DARK), 0.1, 0.34, 0, 0.34, 0.07);
+    limb(grp, mat(DARK), -0.1, 0.34, 0, 0.34, 0.07);
+    grp.add(cyl(0.28, 0.28, 0.08, bronzeMat(), 14, -0.34, 0.62, 0.08, Math.PI / 2, 0, 0)); // round shield
+    grp.add(cyl(0.2, 0.2, 0.085, a, 14, -0.34, 0.62, 0.1, Math.PI / 2, 0, 0));  // shield rondel (faction color)
+    grp.add(torus(0.12, 0.03, g, -0.34, 0.62, 0.14, 0, 0, 0));  // shield boss glow
+    grp.add(cyl(0.025, 0.025, 1.7, mat(WOOD), 5, 0.36, 0.85, 0)); // spear shaft
+    grp.add(cone(0.06, 0.28, bronzeMat(), 5, 0.36, 1.78, 0));     // spearhead
+    return grp;
+  },
+  archer(b, g) {                                                  // sling-archer, light & poised
+    const grp = new THREE.Group();
+    grp.add(cyl(0.14, 0.2, 0.52, mat(LINEN), 6, 0, 0.52, 0));     // short tunic
+    grp.add(cone(0.2, 0.26, mat(LINEN), 7, 0, 0.34, 0));          // skirt hem
+    grp.add(sph(0.12, mat(SKIN), 0, 0.92, 0.02));
+    grp.add(box(0.27, 0.08, 0.27, g, 0, 1.0, 0));                 // glowing headband
+    grp.add(box(0.06, 0.5, 0.22, mat(LEATHER), -0.02, 0.7, -0.16, 0.2)); // quiver on back
+    for (let i = 0; i < 3; i++) grp.add(cyl(0.01, 0.01, 0.3, mat(WOOD), 3, -0.02 + i * 0.04, 1.0, -0.2, 0.2));
+    limb(grp, mat(SKIN), 0.22, 0.74, 0.08, 0.46, 0.05, -0.7);     // extended sling arm
+    limb(grp, mat(SKIN), -0.2, 0.74, 0.05, 0.4, 0.05, 0.5);
+    limb(grp, mat(SKIN), 0.09, 0.32, 0.05, 0.34, 0.06, -0.15);    // striding legs
+    limb(grp, mat(SKIN), -0.09, 0.32, -0.05, 0.34, 0.06, 0.15);
+    grp.add(torus(0.16, 0.02, mat(LEATHER), 0.46, 0.62, 0.18, 0.4, 0.6, 0)); // whirling sling
+    grp.add(sph(0.05, mat(DARK), 0.46, 0.46, 0.18));              // sling stone
+    return grp;
+  },
+  chariot(b, g, a) {
+    const grp = new THREE.Group();
+    const horseMat = mat(ASH);
+    const horse = (x) => {
+      grp.add(box(0.28, 0.34, 0.85, horseMat, x, 0.62, 0.75));    // body
+      grp.add(box(0.18, 0.34, 0.22, horseMat, x, 0.86, 1.12));    // neck
+      grp.add(box(0.14, 0.18, 0.26, horseMat, x, 1.0, 1.28));     // head
+      grp.add(box(0.04, 0.22, 0.04, mat(DARKER), x, 1.12, 1.18)); // mane
+      [0.32, -0.32].forEach(zz => { grp.add(cyl(0.05, 0.04, 0.6, horseMat, 4, x, 0.3, 0.75 + zz)); });
+    };
+    horse(-0.22); horse(0.22);
+    grp.add(box(0.78, 0.34, 0.7, mat(WOOD), 0, 0.5, -0.25));       // chariot cab
+    grp.add(box(0.6, 0.46, 0.04, a, 0, 0.46, -0.6));              // faction war-banner on the cab
+    grp.add(box(0.82, 0.2, 0.06, bronzeMat(), 0, 0.72, -0.6));     // back rail
+    grp.add(box(0.08, 0.16, 0.7, g, 0.42, 0.62, -0.25));           // glowing side trim
+    grp.add(box(0.08, 0.16, 0.7, g, -0.42, 0.62, -0.25));
+    const wheel = (x) => {
+      grp.add(torus(0.34, 0.06, mat(DARKER), x, 0.34, -0.32, 0, Math.PI / 2, 0));
+      for (let i = 0; i < 6; i++) grp.add(cyl(0.02, 0.02, 0.62, mat(WOOD), 3, x, 0.34, -0.32, 0, 0, i / 6 * Math.PI));
+    };
+    wheel(-0.5); wheel(0.5);
+    grp.add(box(0.06, 0.06, 1.0, mat(WOOD), 0, 0.5, 0.4));         // yoke pole
+    // driver
+    grp.add(box(0.26, 0.42, 0.2, b, 0, 0.78, -0.25));
+    grp.add(sph(0.12, mat(SKIN), 0, 1.08, -0.25));
+    grp.add(cyl(0.13, 0.14, 0.16, bronzeMat(), 8, 0, 1.12, -0.25)); // helm
+    grp.add(cone(0.04, 0.22, g, 4, 0, 1.32, -0.27, -0.2));
+    grp.add(cyl(0.012, 0.012, 0.9, mat(LEATHER), 3, 0, 0.85, 0.25, 0.9)); // reins
+    return grp;
+  },
+  guard(b, g, a) {                                                 // temple guard — tower shield + glaive
+    const grp = new THREE.Group();
+    grp.add(box(0.42, 0.64, 0.3, b, 0, 0.68, 0));                  // heavy armored torso
+    grp.add(cone(0.3, 0.42, a, 8, 0, 0.34, 0));                    // faction-color robe hem
+    grp.add(box(0.5, 0.14, 0.34, bronzeMat(), 0, 1.0, 0));         // broad pauldrons
+    grp.add(sph(0.14, mat(SKIN), 0, 1.16, 0));
+    grp.add(cyl(0.16, 0.17, 0.24, bronzeMat(), 8, 0, 1.2, 0));     // tall helm
+    grp.add(box(0.5, 0.06, 0.06, g, 0, 1.42, 0));                  // winged halo bar
+    grp.add(cone(0.04, 0.18, g, 4, 0.26, 1.5, 0, 0, 0, -0.5));     // halo horns
+    grp.add(cone(0.04, 0.18, g, 4, -0.26, 1.5, 0, 0, 0, 0.5));
+    limb(grp, mat(DARK), 0.16, 0.36, 0, 0.36, 0.08);
+    limb(grp, mat(DARK), -0.16, 0.36, 0, 0.36, 0.08);
+    // tower shield (full-height) on the left
+    grp.add(box(0.46, 0.92, 0.1, mat(DARK), -0.42, 0.62, 0.1));
+    grp.add(box(0.12, 0.7, 0.03, g, -0.42, 0.62, 0.16));          // shield sigil
+    grp.add(torus(0.1, 0.02, g, -0.42, 0.62, 0.17, 0, 0, 0));
+    // glaive on the right
+    grp.add(cyl(0.035, 0.035, 1.5, mat(WOOD), 5, 0.42, 0.9, 0));
+    grp.add(cone(0.07, 0.4, bronzeMat(), 4, 0.42, 1.78, 0));
+    grp.add(box(0.04, 0.36, 0.02, g, 0.42, 1.74, 0.04));          // glaive edge glow
+    return grp;
+  },
+  prophet(b, g, a) {                                               // robed seer, raised hand, flame
+    const grp = new THREE.Group();
+    grp.add(cone(0.34, 0.95, mat(LINEN), 8, 0, 0.48, 0));          // outer robe
+    grp.add(cone(0.26, 0.7, b, 8, 0, 0.55, 0.02));                 // inner mantle (faction tint)
+    grp.add(box(0.5, 0.1, 0.18, a, 0, 0.95, 0));                   // faction shoulder shawl
+    grp.add(sph(0.13, mat(SKIN), 0, 1.12, 0.02));
+    grp.add(cone(0.16, 0.2, mat(LINEN), 7, 0, 1.26, 0));           // tall headwrap
+    grp.add(box(0.1, 0.22, 0.06, mat(LINEN), 0, 1.02, 0.12));      // beard
+    grp.add(torus(0.22, 0.02, g, 0, 1.42, 0, Math.PI / 2, 0, 0));  // halo ring above
+    limb(grp, mat(LINEN), 0.22, 0.84, 0.04, 0.5, 0.06, -1.1);      // raised hand
+    limb(grp, mat(LINEN), -0.2, 0.8, 0.04, 0.4, 0.06, 0.4);        // staff hand
+    grp.add(cyl(0.03, 0.035, 1.5, mat(WOOD), 5, -0.3, 0.75, 0));   // staff
+    grp.add(sph(0.1, g, -0.3, 1.55, 0));                           // staff flame
+    grp.add(sph(0.09, g, 0.34, 1.35, 0.04));                       // flame summoned over raised hand
+    return grp;
+  },
+
+  // ---- Watcher Remnant ----
+  starmetal(b, g, a) {                                             // star-iron juggernaut — silver plate
+    const grp = new THREE.Group();
+    grp.add(box(0.5, 0.7, 0.4, a, 0, 0.66, 0));                    // star-metal plated torso
+    grp.add(box(0.6, 0.2, 0.5, a, 0, 1.02, 0));                    // heavy gorget
+    grp.add(prim(new THREE.OctahedronGeometry(0.16), a, -0.34, 1.06, 0)); // shoulder spikes
+    grp.add(prim(new THREE.OctahedronGeometry(0.16), a, 0.34, 1.06, 0));
+    grp.add(box(0.26, 0.24, 0.26, a, 0, 1.22, 0));                 // faceted helm
+    grp.add(box(0.22, 0.04, 0.06, g, 0, 1.24, 0.16));              // visor slit glow
+    grp.add(box(0.14, 0.5, 0.04, g, 0, 0.66, 0.21));               // chest seam glow
+    grp.add(cone(0.34, 0.3, mat(DARKER), 6, 0, 0.32, 0));          // dark under-skirt
+    limb(grp, mat(DARKER), 0.2, 0.38, 0, 0.36, 0.09);
+    limb(grp, mat(DARKER), -0.2, 0.38, 0, 0.36, 0.09);
+    limb(grp, a, -0.3, 0.92, 0.04, 0.42, 0.07, 0.3);              // armored arms
+    limb(grp, a, 0.32, 0.92, 0.06, 0.44, 0.07, -0.3);
+    // planted greatsword
+    grp.add(box(0.12, 0.2, 0.12, mat(DARKER), 0.46, 0.5, 0.18));   // pommel/guard
+    grp.add(box(0.16, 1.3, 0.05, mat(0x6a7080, { metal: 0.6, rough: 0.35 }), 0.46, 1.2, 0.18));
+    grp.add(box(0.05, 1.2, 0.02, g, 0.46, 1.2, 0.21));             // blade fuller glow
+    return grp;
+  },
+  adept(b, g, a, g2) {                                             // hooded sigil-reader, floating
+    const grp = new THREE.Group();
+    grp.add(cone(0.3, 1.05, b, 7, 0, 0.55, 0));                    // long robe (no legs — hovers)
+    grp.add(cone(0.18, 0.4, mat(DARKER), 7, 0, 0.95, 0));          // hood
+    grp.add(sph(0.08, g2 || g, 0, 1.04, 0.1));                     // glowing face-void (sigil magenta)
+    grp.add(box(0.46, 0.12, 0.2, mat(DARKER), 0, 0.92, 0));        // shoulders
+    limb(grp, b, 0.24, 0.8, 0.06, 0.42, 0.05, -0.6);              // hand presenting orb
+    limb(grp, b, -0.22, 0.78, 0.04, 0.38, 0.05, 0.4);
+    grp.add(sph(0.1, g2 || g, 0.4, 0.66, 0.12));                  // sigil orb (magenta)
+    grp.add(torus(0.34, 0.025, g, 0, 1.2, 0, Math.PI / 2, 0, 0)); // two crossed sigil rings overhead
+    grp.add(torus(0.34, 0.025, g, 0, 1.2, 0, 0, 0, Math.PI / 2));
+    grp.add(sph(0.06, g2 || g, 0, 1.2, 0));
+    return grp;
+  },
+  skyfire(b, g, a, g2) {                                           // star-caller, orbiting rings
+    const grp = new THREE.Group();
+    grp.add(cone(0.34, 1.2, b, 7, 0, 0.6, 0));                     // tall robe
+    grp.add(cone(0.2, 0.42, mat(DARKER), 7, 0, 1.04, 0));          // cowl
+    grp.add(sph(0.07, g2 || g, 0, 1.12, 0.1));
+    grp.add(box(0.5, 0.12, 0.22, mat(DARKER), 0, 1.0, 0));
+    limb(grp, b, 0.24, 0.86, 0.05, 0.5, 0.05, -1.2);              // staff raised high
+    limb(grp, b, -0.22, 0.82, 0.05, 0.4, 0.05, 0.4);
+    grp.add(cyl(0.03, 0.03, 1.7, mat(DARKER), 5, 0.34, 0.95, 0)); // staff
+    grp.add(torus(0.22, 0.04, g, 0.34, 1.85, 0, Math.PI / 2, 0, 0)); // star ring at the tip
+    grp.add(sph(0.13, g, 0.34, 1.85, 0));                         // captive star
+    for (let i = 0; i < 3; i++)                                    // orbiting glyph rings (alternating hue)
+      grp.add(torus(0.4 + i * 0.06, 0.02, i % 2 ? (g2 || g) : g, 0, 1.0, 0, i * 0.7, i * 1.1, Math.PI / 2));
+    return grp;
+  },
+  hybrid(b, g) {                                                   // nephilim-hybrid abomination
+    const grp = new THREE.Group();
+    grp.add(box(0.7, 0.9, 0.5, b, 0, 0.95, 0));                    // hunched broad torso
+    grp.add(box(0.95, 0.3, 0.6, b, 0, 1.42, 0));                   // hulking shoulders
+    grp.add(box(0.26, 0.24, 0.34, mat(DARKER), 0, 1.66, 0.05));    // beast skull head
+    grp.add(box(0.16, 0.06, 0.1, g, 0, 1.66, 0.22));              // jaw glow
+    grp.add(cone(0.05, 0.4, mat(BONE), 4, -0.16, 1.78, 0.02, 0.3, 0, -0.3)); // horns
+    grp.add(cone(0.05, 0.4, mat(BONE), 4, 0.16, 1.78, 0.02, 0.3, 0, 0.3));
+    grp.add(box(0.26, 0.26, 0.05, g, 0, 1.05, 0.26));             // chest sigil glow
+    // ragged wings
+    grp.add(box(0.5, 0.7, 0.04, mat(DARKER), -0.6, 1.45, -0.1, 0, 0.5, 0.3));
+    grp.add(box(0.5, 0.7, 0.04, mat(DARKER), 0.6, 1.45, -0.1, 0, -0.5, -0.3));
+    limb(grp, b, -0.42, 1.2, 0.06, 0.6, 0.1, 0.3);               // long clawed arms
+    limb(grp, b, 0.42, 1.2, 0.06, 0.6, 0.1, -0.3);
+    grp.add(prim(new THREE.OctahedronGeometry(0.1), mat(BONE), -0.5, 0.62, 0.12)); // claws
+    grp.add(prim(new THREE.OctahedronGeometry(0.1), mat(BONE), 0.5, 0.62, 0.12));
+    limb(grp, b, 0.2, 0.55, 0, 0.5, 0.12);                       // digitigrade legs
+    limb(grp, b, -0.2, 0.55, 0, 0.5, 0.12);
+    return grp;
+  },
+
+  // ---- Nephilim Clans ----
+  raider(b, g, a) {                                                // lean, fast, war-axe
+    const grp = new THREE.Group();
+    grp.add(box(0.3, 0.5, 0.22, mat(HIDE), 0, 0.66, 0));          // bare hide torso
+    grp.add(box(0.36, 0.1, 0.26, a, 0, 0.92, 0));                 // dried-blood strap harness
+    grp.add(box(0.08, 0.4, 0.04, a, -0.14, 0.66, 0.12));         // war-sash
+    grp.add(box(0.16, 0.1, 0.04, g, 0, 0.74, 0.12));             // war-paint glow
+    grp.add(sph(0.13, mat(SKIN), 0, 1.04, 0.02));
+    grp.add(cyl(0.04, 0.02, 0.34, mat(DARK), 4, 0, 1.3, -0.06));  // topknot
+    grp.add(box(0.34, 0.06, 0.06, mat(BONE), 0, 1.14, 0));        // bone brow-band
+    limb(grp, mat(SKIN), 0.22, 0.78, 0.06, 0.46, 0.06, -0.6);     // axe arm cocked
+    limb(grp, mat(SKIN), -0.2, 0.78, 0.04, 0.42, 0.06, 0.5);
+    limb(grp, mat(SKIN), 0.1, 0.34, 0.06, 0.36, 0.07, -0.2);      // mid-stride
+    limb(grp, mat(SKIN), -0.1, 0.34, -0.06, 0.36, 0.07, 0.2);
+    grp.add(cyl(0.025, 0.025, 0.7, mat(WOOD), 4, 0.4, 0.85, 0.1, 0, 0, -0.4)); // axe haft
+    grp.add(box(0.04, 0.26, 0.18, mat(DARKER), 0.62, 1.05, 0.1, 0, 0, -0.4));  // axe blade
+    return grp;
+  },
+  warwagon(b, g) {                                                 // Easter egg: the Landonian Warwagon — a white GMC
+    const grp = new THREE.Group();
+    // light-grey body (not pure white) with low metalness + a tiny emissive floor:
+    // reads clean white in dark moods, holds its panel detail under bright sun
+    const white  = mat(0xc8ccd6, { rough: 0.62, metal: 0.08, emissive: 0x17181f, ei: 0.12 });
+    const wlow   = mat(0xb2b6c0, { rough: 0.66, metal: 0.08, emissive: 0x121217, ei: 0.1 });
+    const blk    = mat(0x141418);
+    const tire   = mat(0x0e0e12, { rough: 0.96 });
+    const glass  = mat(0x1c2838, { rough: 0.15, metal: 0.6 });
+    const red    = mat(0xc8181c, { emissive: 0xc8181c, ei: 0.35 });
+    const chrome = mat(0xc2c6cc, { rough: 0.2, metal: 0.85 });
+    const maroon = mat(0x6e2230);
+    // chassis + body
+    grp.add(box(1.04, 0.34, 2.18, wlow, 0, 0.46, 0));            // lower body
+    grp.add(box(1.0, 0.26, 1.5, white, 0, 0.70, 0.18));         // upper body
+    grp.add(box(0.94, 0.16, 0.64, white, 0, 0.80, 0.78, -0.06)); // hood (slight rake)
+    grp.add(box(0.5, 0.03, 0.5, wlow, 0, 0.89, 0.78, -0.06));   // hood crease
+    grp.add(box(1.06, 0.03, 0.95, red, 0, 0.62, 0.1));          // belt-line racing accent
+    // cab + roof + glass
+    grp.add(box(0.98, 0.46, 0.86, white, 0, 0.98, 0.06));       // cab
+    grp.add(box(0.9, 0.1, 0.78, white, 0, 1.22, 0.04));         // roof
+    grp.add(box(0.84, 0.34, 0.05, glass, 0, 1.02, 0.5, -0.5));  // raked windshield
+    grp.add(box(0.05, 0.28, 0.6, glass, 0.47, 1.0, 0.02));      // side window R
+    grp.add(box(0.05, 0.28, 0.6, glass, -0.47, 1.0, 0.02));     // side window L
+    grp.add(box(0.78, 0.24, 0.04, glass, 0, 1.0, -0.36));       // rear window
+    grp.add(box(0.06, 0.1, 0.04, blk, 0.56, 1.04, 0.44));       // mirror R
+    grp.add(box(0.06, 0.1, 0.04, blk, -0.56, 1.04, 0.44));      // mirror L
+    // bed: floor, side rails, tailgate
+    grp.add(box(1.0, 0.12, 0.88, wlow, 0, 0.64, -0.68));
+    grp.add(box(0.08, 0.26, 0.88, white, 0.48, 0.80, -0.68));
+    grp.add(box(0.08, 0.26, 0.88, white, -0.48, 0.80, -0.68));
+    grp.add(box(1.0, 0.26, 0.08, white, 0, 0.80, -1.10));       // tailgate
+    // front grille (GMC red slats in a chrome surround) + headlights + bumper
+    grp.add(box(0.8, 0.32, 0.06, chrome, 0, 0.72, 1.08));
+    grp.add(box(0.66, 0.24, 0.05, blk, 0, 0.72, 1.10));
+    for (let i = -2; i <= 2; i++) grp.add(box(0.6, 0.025, 0.045, red, 0, 0.64 + i * 0.05, 1.12));
+    grp.add(box(0.2, 0.12, 0.05, glowMat(0xfff3d0, 1.7), -0.36, 0.76, 1.10));
+    grp.add(box(0.2, 0.12, 0.05, glowMat(0xfff3d0, 1.7), 0.36, 0.76, 1.10));
+    grp.add(box(1.0, 0.1, 0.08, chrome, 0, 0.5, 1.13));         // front bumper
+    // rear bumper + taillights + exhaust
+    grp.add(box(1.0, 0.1, 0.08, chrome, 0, 0.5, -1.13));
+    grp.add(box(0.16, 0.12, 0.04, glowMat(0xd81818, 1.3), -0.36, 0.78, -1.12));
+    grp.add(box(0.16, 0.12, 0.04, glowMat(0xd81818, 1.3), 0.36, 0.78, -1.12));
+    grp.add(cyl(0.04, 0.04, 0.2, chrome, 6, 0.32, 0.36, -1.1, Math.PI / 2));
+    // roof light bar
+    grp.add(box(0.74, 0.07, 0.14, blk, 0, 1.31, 0.05));
+    for (let i = -2; i <= 2; i++) grp.add(box(0.1, 0.05, 0.1, glowMat(0xbfe0ff, 1.4), i * 0.15, 1.35, 0.06));
+    // wheels: tire + chrome hubcap + black fender flare
+    const wheel = (x, z) => {
+      grp.add(cyl(0.28, 0.28, 0.22, tire, 12, x, 0.28, z, 0, 0, Math.PI / 2));
+      grp.add(cyl(0.17, 0.17, 0.23, chrome, 8, x, 0.28, z, 0, 0, Math.PI / 2));
+      grp.add(box(0.27, 0.16, 0.52, blk, x, 0.5, z));
+    };
+    wheel(-0.54, 0.72); wheel(0.54, 0.72); wheel(-0.54, -0.66); wheel(0.54, -0.66);
+    // the Landonian — maroon blazer, shades, drink, one arm slung over the cab
+    grp.add(cyl(0.15, 0.18, 0.5, maroon, 7, 0, 1.02, -0.6));
+    grp.add(box(0.38, 0.16, 0.26, maroon, 0, 1.13, -0.6));       // shoulders / lapels
+    grp.add(box(0.12, 0.22, 0.1, mat(0xece4d0), 0, 1.06, -0.48)); // open collar
+    grp.add(sph(0.13, mat(SKIN), 0, 1.35, -0.6));               // head
+    grp.add(box(0.24, 0.06, 0.05, blk, 0, 1.38, -0.48));        // sunglasses
+    grp.add(box(0.22, 0.1, 0.2, mat(0x241712), 0, 1.45, -0.62)); // hair
+    grp.add(cyl(0.05, 0.05, 0.42, maroon, 5, 0.12, 1.16, -0.32, Math.PI / 2.3)); // arm on cab
+    grp.add(cyl(0.05, 0.05, 0.3, maroon, 5, -0.2, 1.12, -0.62, 0, 0, 0.7));      // raised arm
+    grp.add(cyl(0.05, 0.06, 0.12, mat(0xd8c89a), 6, -0.34, 1.26, -0.62));        // the drink
+    return grp;
+  },
+  landonian(b, g) {                                               // Easter egg clan: lean teal marauder + standard
+    const grp = new THREE.Group();
+    const teal = mat(0x1f8f8a), tealG = glowMat(0x39d6c6, 1.2);
+    grp.add(cyl(0.18, 0.24, 0.7, mat(HIDE), 6, 0, 0.5, 0));       // torso
+    grp.add(box(0.36, 0.1, 0.26, teal, 0, 0.86, 0));            // teal sash
+    grp.add(box(0.1, 0.46, 0.04, teal, -0.12, 0.62, 0.12));     // war-stripe
+    grp.add(sph(0.14, mat(SKIN), 0, 0.98, 0.02));
+    grp.add(box(0.3, 0.06, 0.3, teal, 0, 1.08, 0));            // teal headband
+    grp.add(cyl(0.04, 0.02, 0.3, mat(DARK), 4, 0, 1.28, -0.05)); // topknot
+    limb(grp, mat(SKIN), 0.22, 0.7, 0.06, 0.44, 0.06, -0.5);
+    limb(grp, mat(SKIN), -0.2, 0.7, 0.04, 0.4, 0.06, 0.4);
+    limb(grp, mat(SKIN), 0.1, 0.3, 0.05, 0.34, 0.07, -0.15);
+    limb(grp, mat(SKIN), -0.1, 0.3, -0.05, 0.34, 0.07, 0.15);
+    grp.add(box(0.06, 0.62, 0.04, mat(0x9aa0aa, { metal: 0.5, rough: 0.4 }), 0.36, 0.98, 0.12, 0, 0, -0.3)); // sword
+    grp.add(cyl(0.03, 0.03, 1.7, mat(WOOD), 4, -0.32, 0.9, -0.12)); // clan standard
+    grp.add(box(0.4, 0.52, 0.04, teal, -0.32, 1.55, -0.12));
+    grp.add(box(0.18, 0.22, 0.05, tealG, -0.32, 1.55, -0.09));
+    return grp;
+  },
+  boydonian(b, g) {                                               // Easter egg clan: heavy amber zealot + maul
+    const grp = new THREE.Group();
+    const amber = mat(0xc8842a), amberG = glowMat(0xff9a3c, 1.2);
+    grp.add(cyl(0.26, 0.34, 0.92, mat(HIDE), 6, 0, 0.6, 0));      // bulky torso
+    grp.add(cone(0.32, 0.44, amber, 8, 0, 0.34, 0));            // amber tabard
+    grp.add(box(0.56, 0.16, 0.34, mat(DARKER), 0, 1.02, 0));    // heavy shoulders
+    grp.add(box(0.2, 0.36, 0.04, amber, 0, 0.7, 0.18));        // amber stole
+    grp.add(sph(0.17, mat(SKIN), 0, 1.16, 0.02));
+    grp.add(cone(0.2, 0.26, amber, 6, 0, 1.36, 0));           // hood / cowl
+    limb(grp, mat(SKIN), 0.3, 0.88, 0.05, 0.5, 0.08, -0.55);
+    limb(grp, mat(SKIN), -0.27, 0.86, 0.04, 0.46, 0.08, 0.4);
+    limb(grp, mat(DARK), 0.15, 0.36, 0, 0.4, 0.09);
+    limb(grp, mat(DARK), -0.15, 0.36, 0, 0.4, 0.09);
+    grp.add(cyl(0.04, 0.04, 1.15, mat(WOOD), 4, 0.44, 0.95, 0.06, 0, 0, -0.3)); // maul haft
+    grp.add(box(0.32, 0.28, 0.32, mat(0x55504a), 0.7, 1.34, 0.06, 0, 0, -0.3)); // maul head
+    grp.add(cyl(0.03, 0.03, 1.75, mat(WOOD), 4, -0.36, 0.98, -0.12)); // clan standard
+    grp.add(box(0.42, 0.54, 0.04, amber, -0.36, 1.62, -0.12));
+    grp.add(box(0.18, 0.22, 0.05, amberG, -0.36, 1.62, -0.09));
+    return grp;
+  },
+  parker(b, g) {                                                   // Easter egg: Parker, the peaceful Shepherd of the Fields
+    const grp = new THREE.Group();
+    const robe = mat(LINEN), under = mat(0xd8cdb6), cloak = mat(0x46587e), hair = mat(0xc79a52);
+    const skin = mat(SKIN), gold = bronzeMat(), crystal = glowMat(0x4ec1ff, 2.0);
+    // --- body: belted linen tunic over a flared skirt ---
+    grp.add(cone(0.34, 0.66, robe, 8, 0, 0.33, 0));                // robe skirt to the ground
+    grp.add(cyl(0.2, 0.25, 0.5, robe, 8, 0, 0.78, 0));            // torso
+    grp.add(box(0.12, 0.34, 0.05, under, 0, 0.82, 0.19));         // under-tunic V at the chest
+    grp.add(cyl(0.255, 0.255, 0.1, mat(LEATHER), 8, 0, 0.6, 0));  // leather belt
+    grp.add(box(0.1, 0.09, 0.05, gold, 0, 0.6, 0.24));           // belt buckle
+    // --- legs / boots peeking from the hem ---
+    grp.add(box(0.11, 0.12, 0.18, mat(LEATHER), 0.1, 0.07, 0.05));
+    grp.add(box(0.11, 0.12, 0.18, mat(LEATHER), -0.1, 0.07, 0.05));
+    // --- neck + open, friendly face framed by curls ---
+    grp.add(cyl(0.07, 0.085, 0.13, skin, 6, 0, 1.04, 0.015));
+    grp.add(sph(0.15, skin, 0, 1.19, 0.03));                      // head
+    grp.add(sph(0.028, skin, 0, 1.17, 0.16));                    // little nose
+    grp.add(sph(0.115, hair, 0, 1.31, -0.05));                    // crown of curls
+    [[-0.12, 1.27, 0.0], [0.12, 1.27, 0.0], [-0.1, 1.18, -0.09], [0.1, 1.18, -0.09],
+     [0, 1.37, -0.02], [-0.09, 1.32, 0.07], [0.09, 1.32, 0.07]]
+      .forEach(([x, y, z]) => grp.add(sph(0.063, hair, x, y, z)));  // curl clusters framing an open face
+    // --- cloak: collar + shoulder drape + back panel, gold-trimmed ---
+    grp.add(cone(0.3, 0.62, cloak, 7, 0, 0.66, -0.13, 0.12, 0, 0)); // back of the cloak
+    grp.add(box(0.2, 0.28, 0.07, cloak, 0.2, 0.86, 0.04, 0, 0, 0.55)); // right shoulder drape
+    grp.add(box(0.2, 0.28, 0.07, cloak, -0.2, 0.86, 0.04, 0, 0, -0.55)); // left shoulder drape
+    grp.add(torus(0.16, 0.035, cloak, 0, 0.96, 0.02, Math.PI / 2, 0, 0)); // rolled collar
+    grp.add(torus(0.165, 0.014, gold, 0, 0.965, 0.03, Math.PI / 2, 0, 0)); // gold collar trim
+    grp.add(cyl(0.06, 0.06, 0.03, gold, 8, 0, 0.9, 0.18));        // round clasp (the art's emblem)
+    grp.add(box(0.03, 0.04, 0.02, crystal, 0, 0.9, 0.2));        // tiny lit sigil on the clasp
+    // --- pendant: blue gem on a cord ---
+    grp.add(cyl(0.006, 0.006, 0.16, mat(DARK), 4, 0, 0.85, 0.18));
+    grp.add(prim(new THREE.OctahedronGeometry(0.05), crystal, 0, 0.76, 0.2));
+    // --- arms: right grips the crook, left rests ---
+    limb(grp, robe, 0.24, 0.9, 0.05, 0.5, 0.07, -0.32);
+    grp.add(sph(0.06, skin, 0.34, 0.66, 0.13));                  // right hand on the shaft
+    limb(grp, robe, -0.24, 0.88, 0.05, 0.5, 0.07, 0.26);
+    grp.add(sph(0.06, skin, -0.32, 0.5, 0.12));                  // left hand
+    // --- the shepherd's crook: wooden shaft, gold-capped, glowing crystal ---
+    grp.add(cyl(0.038, 0.045, 1.62, mat(WOOD), 6, 0.34, 0.82, 0.12));
+    grp.add(torus(0.07, 0.022, gold, 0.34, 1.55, 0.12, Math.PI / 2, 0, 0)); // gold ferrule
+    grp.add(cyl(0.05, 0.05, 0.08, gold, 6, 0.34, 1.64, 0.12));   // crystal socket
+    grp.add(prim(new THREE.OctahedronGeometry(0.12), crystal, 0.34, 1.79, 0.12)); // crystal (bloom gives it the glow)
+    // --- a little lamb at his feet ---
+    const wool = mat(0xece8de), face = mat(0x4a4540);
+    grp.add(box(0.24, 0.18, 0.34, wool, -0.46, 0.19, 0.24));      // fleece body
+    [[-0.34, 0.3, 0.32], [-0.58, 0.3, 0.18], [-0.46, 0.32, 0.08]].forEach(([x, y, z]) => grp.add(sph(0.1, wool, x, y, z))); // wool puffs
+    grp.add(sph(0.085, wool, -0.42, 0.24, 0.44));                // head fleece
+    grp.add(sph(0.062, face, -0.42, 0.21, 0.5));                 // face
+    grp.add(cone(0.04, 0.07, face, 4, -0.5, 0.31, 0.42, 0, 0, 0.5)); // ears
+    grp.add(cone(0.04, 0.07, face, 4, -0.34, 0.31, 0.42, 0, 0, -0.5));
+    [[-0.36, 0.36], [-0.56, 0.36], [-0.36, 0.14], [-0.56, 0.14]].forEach(([x, z]) =>
+      grp.add(cyl(0.022, 0.022, 0.2, face, 4, x, 0.08, z)));      // four legs
+    return grp;
+  },
+  tucker(b, g) {                                                   // Easter egg: Tucker the Goldendoodle
+    const grp = new THREE.Group();
+    const fur    = mat(0xc49030);  // honey-gold
+    const furDk  = mat(0x8a6020);  // darker gold for depth
+    const furLt  = mat(0xe8bc68);  // highlights
+    const nose   = mat(0x1c1008);
+    const eye    = mat(0x1a1004, { emissive: 0x3a2408, ei: 0.3 });
+    const paw    = mat(0x6a4818);
+    // body — big fluffy oval
+    grp.add(sph(0.28, fur, 0, 0.32, 0));
+    grp.add(sph(0.24, furLt, 0, 0.34, 0.1));
+    grp.add(box(0.44, 0.22, 0.52, fur, 0, 0.28, 0));              // barrel body
+    // leg puffs
+    [[-0.16, 0.1, 0.18], [0.16, 0.1, 0.18], [-0.16, 0.1, -0.18], [0.16, 0.1, -0.18]].forEach(([x,y,z]) => {
+      grp.add(cyl(0.07, 0.07, 0.2, furDk, 5, x, y, z));
+      grp.add(sph(0.07, paw, x, 0.01, z));
+    });
+    // tail — curling upward at the back
+    grp.add(cyl(0.05, 0.03, 0.28, fur, 5, 0, 0.44, -0.26, -1.0, 0, 0));
+    grp.add(sph(0.06, furLt, 0, 0.58, -0.38));
+    // neck
+    grp.add(cyl(0.12, 0.15, 0.14, fur, 5, 0, 0.52, 0.18));
+    // head — big and round, goldendoodle style
+    grp.add(sph(0.22, fur, 0, 0.68, 0.2));
+    grp.add(sph(0.18, furLt, 0, 0.7, 0.24));
+    // floppy ears — hang down on each side
+    grp.add(box(0.09, 0.22, 0.18, furDk, -0.2, 0.58, 0.2, 0, 0, 0.25));
+    grp.add(box(0.09, 0.22, 0.18, furDk,  0.2, 0.58, 0.2, 0, 0, -0.25));
+    // snout puff
+    grp.add(sph(0.12, furLt, 0, 0.62, 0.35));
+    // nose
+    grp.add(sph(0.048, nose, 0, 0.64, 0.46));
+    // eyes
+    grp.add(sph(0.044, eye, -0.09, 0.72, 0.38));
+    grp.add(sph(0.044, eye,  0.09, 0.72, 0.38));
+    // fur poof on top
+    grp.add(sph(0.14, furDk, 0, 0.84, 0.14));
+    grp.add(sph(0.1, fur, -0.09, 0.87, 0.14));
+    grp.add(sph(0.1, fur,  0.09, 0.87, 0.14));
+    return grp;
+  },
+  gatsby(b, g) {                                                   // Easter egg: Gatsby the French Bulldog
+    const grp = new THREE.Group();
+    const fur    = mat(0x9e9296);  // grey-lilac brindle
+    const furDk  = mat(0x6a6070);  // darker stripe
+    const cream  = mat(0xd4c8b8);  // cream muzzle / chest
+    const nose   = mat(0x1e1418);
+    const eye    = mat(0x1a1220, { emissive: 0x28182e, ei: 0.35 });
+    const paw    = mat(0x504858);
+    // stocky barrel body — low and wide
+    grp.add(box(0.44, 0.28, 0.52, fur, 0, 0.24, 0));
+    grp.add(box(0.38, 0.16, 0.32, cream, 0, 0.27, 0.15));         // chest blaze
+    // four thick legs
+    [[-0.17, 0.1, 0.18], [0.17, 0.1, 0.18], [-0.17, 0.1, -0.17], [0.17, 0.1, -0.17]].forEach(([x,y,z]) => {
+      grp.add(cyl(0.075, 0.075, 0.2, fur, 5, x, y, z));
+      grp.add(sph(0.076, paw, x, 0.01, z));
+    });
+    // tiny tail nub
+    grp.add(sph(0.05, furDk, 0, 0.38, -0.27));
+    // short thick neck
+    grp.add(cyl(0.14, 0.18, 0.12, fur, 5, 0, 0.45, 0.16));
+    // big round head — frenchie proportions
+    grp.add(sph(0.24, fur, 0, 0.62, 0.2));
+    // forehead wrinkle ridges
+    grp.add(box(0.24, 0.03, 0.08, furDk, 0, 0.7, 0.32));
+    grp.add(box(0.18, 0.03, 0.06, furDk, 0, 0.76, 0.3));
+    // cream muzzle block (big pushed-in snout)
+    grp.add(sph(0.14, cream, 0, 0.58, 0.36));
+    // nose — flat, wide
+    grp.add(box(0.1, 0.04, 0.06, nose, 0, 0.61, 0.47));
+    // eyes — big and round
+    grp.add(sph(0.05, eye, -0.1, 0.67, 0.38));
+    grp.add(sph(0.05, eye,  0.1, 0.67, 0.38));
+    // bat ears — upright triangular cones
+    grp.add(cone(0.06, 0.2, furDk, 4, -0.18, 0.84, 0.18, 0, 0, -0.18));
+    grp.add(cone(0.06, 0.2, furDk, 4,  0.18, 0.84, 0.18, 0, 0,  0.18));
+    grp.add(cone(0.04, 0.14, fur, 4, -0.18, 0.82, 0.2, 0, 0, -0.16));
+    grp.add(cone(0.04, 0.14, fur, 4,  0.18, 0.82, 0.2, 0, 0,  0.16));
+    // jowls
+    grp.add(sph(0.09, cream, -0.14, 0.55, 0.36));
+    grp.add(sph(0.09, cream,  0.14, 0.55, 0.36));
+    return grp;
+  },
+  champion(b, g, a) {                                              // bone-club bruiser
+    const grp = new THREE.Group();
+    grp.add(box(0.5, 0.66, 0.36, mat(HIDE), 0, 0.78, 0));         // massive chest
+    grp.add(cone(0.4, 0.5, a, 8, 0, 0.4, 0));                    // dried-blood war-kilt
+    grp.add(box(0.5, 0.12, 0.05, a, 0, 0.6, 0.2));              // blood-daubed belt
+    grp.add(box(0.7, 0.2, 0.4, mat(BONE), 0, 1.16, 0));          // bone pauldrons
+    grp.add(prim(new THREE.DodecahedronGeometry(0.16), mat(BONE), -0.34, 1.22, 0));
+    grp.add(prim(new THREE.DodecahedronGeometry(0.16), mat(BONE), 0.34, 1.22, 0));
+    grp.add(sph(0.16, mat(SKIN), 0, 1.32, 0));
+    grp.add(box(0.34, 0.08, 0.34, mat(BONE), 0, 1.42, 0));       // bone circlet
+    grp.add(cone(0.07, 0.32, mat(BONE), 4, -0.18, 1.56, 0, 0, 0, 0.4)); // horns
+    grp.add(cone(0.07, 0.32, mat(BONE), 4, 0.18, 1.56, 0, 0, 0, -0.4));
+    grp.add(box(0.24, 0.12, 0.05, g, 0, 1.0, 0.19));            // chest war-paint glow
+    limb(grp, mat(SKIN), 0.34, 0.96, 0.05, 0.56, 0.1, -0.5);    // huge club arm
+    limb(grp, mat(SKIN), -0.32, 0.94, 0.04, 0.5, 0.09, 0.3);
+    limb(grp, mat(SKIN), 0.16, 0.4, 0, 0.42, 0.11);
+    limb(grp, mat(SKIN), -0.16, 0.4, 0, 0.42, 0.11);
+    grp.add(cyl(0.08, 0.16, 1.3, mat(BONE), 6, 0.6, 1.1, 0.05, 0, 0, -0.45)); // bone club
+    grp.add(prim(new THREE.DodecahedronGeometry(0.24), mat(BONE), 0.95, 1.55, 0.05)); // club head
+    return grp;
+  },
+  warbeast(b, g) {                                                 // spined quadruped
+    const grp = new THREE.Group();
+    grp.add(box(0.46, 0.42, 1.0, mat(HIDE), 0, 0.56, 0));         // body
+    grp.add(box(0.36, 0.34, 0.42, mat(HIDE), 0, 0.62, 0.62));     // chest
+    grp.add(box(0.3, 0.26, 0.34, mat(HIDE), 0, 0.66, 0.92));      // head
+    grp.add(box(0.2, 0.12, 0.12, mat(DARKER), 0, 0.58, 1.12));    // snout
+    grp.add(sph(0.05, g, -0.1, 0.74, 1.0)); grp.add(sph(0.05, g, 0.1, 0.74, 1.0)); // eyes
+    grp.add(cone(0.06, 0.22, mat(BONE), 4, -0.16, 0.78, 0.96, -0.3, 0, -0.3)); // tusks
+    grp.add(cone(0.06, 0.22, mat(BONE), 4, 0.16, 0.78, 0.96, -0.3, 0, 0.3));
+    for (let i = 0; i < 5; i++)                                    // spine ridge
+      grp.add(cone(0.07, 0.2 + (i % 2) * 0.1, mat(BONE), 4, 0, 0.82, 0.4 - i * 0.22));
+    [0.36, -0.34].forEach(z => {                                  // four legs
+      grp.add(cyl(0.08, 0.06, 0.5, mat(HIDE), 4, 0.2, 0.26, z));
+      grp.add(cyl(0.08, 0.06, 0.5, mat(HIDE), 4, -0.2, 0.26, z));
+    });
+    grp.add(cyl(0.06, 0.02, 0.6, mat(HIDE), 4, 0, 0.6, -0.6, -0.6)); // tail
+    return grp;
+  },
+  giant(b, g) {                                                    // mountain giant — towering, craggy
+    const grp = new THREE.Group();
+    limb(grp, mat(HIDE), -0.5, 1.0, 0, 1.0, 0.26);               // thick legs
+    limb(grp, mat(HIDE), 0.5, 1.0, 0, 1.0, 0.26);
+    grp.add(box(0.6, 0.4, 0.7, mat(LEATHER), 0, 0.45, 0));       // loin wrap
+    grp.add(box(1.4, 1.3, 0.85, mat(HIDE), 0, 1.7, 0));          // huge torso
+    grp.add(box(1.85, 0.5, 1.0, mat(HIDE), 0, 2.45, 0));         // massive shoulders
+    grp.add(prim(new THREE.DodecahedronGeometry(0.5), mat(0x4a4640), -1.0, 2.6, 0)); // boulder pauldron
+    grp.add(sph(0.4, mat(SKIN), 0.15, 2.95, 0.05));             // head (off-centre, brutish)
+    grp.add(box(0.6, 0.12, 0.5, mat(BONE), 0.15, 3.2, 0));      // bone brow
+    grp.add(sph(0.09, g, 0.0, 3.0, 0.32)); grp.add(sph(0.09, g, 0.3, 3.0, 0.32)); // glowing eyes
+    grp.add(box(0.8, 0.85, 0.1, g, 0, 1.85, 0.46));            // chest rune-slab
+    grp.add(torus(0.26, 0.04, mat(DARKER), 0, 1.85, 0.5, 0, 0, 0));
+    limb(grp, mat(HIDE), -1.2, 2.3, 0, 1.3, 0.28, 0.25);        // arms
+    limb(grp, mat(HIDE), 1.2, 2.3, 0, 1.3, 0.3, -0.2);
+    grp.add(cyl(0.16, 0.34, 2.0, mat(WOOD), 6, 1.4, 1.2, 0.35, 0.5)); // ripped-tree club
+    grp.add(prim(new THREE.DodecahedronGeometry(0.45), mat(0x2c3a2c), 1.95, 2.05, 0.6)); // root-ball
+    return grp;
+  },
+  shaman(b, g, a) {                                               // antlered skull-speaker
+    const grp = new THREE.Group();
+    grp.add(cone(0.3, 0.95, mat(HIDE), 7, 0, 0.5, 0));           // hide cloak
+    grp.add(box(0.4, 0.5, 0.1, a, 0, 0.7, -0.16));               // dried-blood back drape
+    grp.add(sph(0.14, mat(SKIN), 0, 1.06, 0.02));
+    grp.add(sph(0.17, mat(BONE), 0, 1.12, 0.04));               // skull headdress over face
+    grp.add(box(0.18, 0.06, 0.06, mat(DARKER), 0, 1.08, 0.16)); // skull eye band
+    grp.add(cone(0.1, 0.5, mat(BONE), 4, -0.14, 1.34, 0, 0.2, 0, 0.5)); // antlers
+    grp.add(cone(0.1, 0.5, mat(BONE), 4, 0.14, 1.34, 0, 0.2, 0, -0.5));
+    grp.add(cone(0.06, 0.26, mat(BONE), 4, -0.24, 1.5, 0, 0.3, 0, 0.6));
+    grp.add(cone(0.06, 0.26, mat(BONE), 4, 0.24, 1.5, 0, 0.3, 0, -0.6));
+    limb(grp, mat(HIDE), 0.24, 0.8, 0.04, 0.42, 0.06, -0.5);
+    limb(grp, mat(HIDE), -0.22, 0.78, 0.04, 0.38, 0.06, 0.4);
+    grp.add(cyl(0.03, 0.04, 1.4, mat(WOOD), 5, 0.32, 0.7, 0));   // staff
+    grp.add(sph(0.13, mat(BONE), 0.32, 1.5, 0));                // skull atop staff
+    grp.add(sph(0.07, g, 0.32, 1.52, 0.08));                    // ember in the skull
+    return grp;
+  },
+  // ---- Hero Units (one per faction, trainable from the main building late-game) ----
+  hero_nimrod(b, g, a) {                                         // Nimrod the Priest-King — grand sovereign
+    const grp = new THREE.Group();
+    const GOLD = mat(0xc8972a, { metal: 0.7, rough: 0.3 });
+    grp.add(cone(0.44, 1.15, mat(LINEN), 8, 0, 0.58, 0));         // outer ceremonial robe
+    grp.add(cone(0.32, 0.9, b, 8, 0, 0.62, 0.02));                // inner mantle (faction)
+    grp.add(box(0.68, 0.14, 0.3, GOLD, 0, 1.02, 0));              // golden pectoral breastplate
+    grp.add(box(0.12, 0.28, 0.08, a, 0, 0.86, 0.18));             // faction breastcloth
+    grp.add(sph(0.17, mat(SKIN), 0, 1.18, 0.02));                 // head
+    grp.add(cyl(0.2, 0.2, 0.06, GOLD, 12, 0, 1.32, 0));           // crown base ring
+    for (let i = 0; i < 5; i++) {                                  // five crown points
+      const a2 = (i / 5) * Math.PI * 2;
+      grp.add(cone(0.05, 0.28, GOLD, 5, Math.sin(a2) * 0.18, 1.46, Math.cos(a2) * 0.18));
+    }
+    grp.add(sph(0.07, g, 0, 1.58, 0));                            // crown apex glow
+    grp.add(torus(0.28, 0.025, g, 0, 1.55, 0, Math.PI / 2, 0, 0)); // larger halo
+    limb(grp, mat(LINEN), -0.28, 0.88, 0.05, 0.54, 0.07, 0.5);   // staff hand
+    limb(grp, mat(LINEN), 0.28, 0.9, 0.05, 0.5, 0.07, -0.9);     // raised blessing hand
+    grp.add(cyl(0.04, 0.05, 1.8, GOLD, 6, -0.4, 0.8, 0));         // golden staff shaft
+    grp.add(sph(0.14, g, -0.4, 1.82, 0));                         // divine orb atop staff
+    grp.add(sph(0.1, g, -0.4, 2.06, 0));                          // second floating orb
+    grp.add(sph(0.07, g, -0.28, 2.26, 0.1));                      // third orbiting point
+    grp.add(sph(0.11, g, 0.4, 1.46, 0.06));                       // flame hovering over blessed hand
+    return grp;
+  },
+  hero_fallen(b, g, a, g2) {                                      // The Fallen Watcher — corrupted angel
+    const grp = new THREE.Group();
+    const OBS = mat(0x18181e, { metal: 0.4, rough: 0.6 });
+    grp.add(box(0.58, 0.88, 0.48, a, 0, 0.82, 0));                // star-metal torso plate
+    grp.add(box(0.74, 0.2, 0.58, a, 0, 1.26, 0));                 // gorget
+    grp.add(box(0.28, 1.0, 0.04, g2 || g, 0, 0.82, 0.26));        // chest glyph seam (magenta)
+    grp.add(box(0.32, 0.3, 0.32, a, 0, 1.44, 0));                 // angular helm
+    grp.add(box(0.26, 0.06, 0.08, g2 || g, 0, 1.46, 0.18));       // visor-slit glow
+    grp.add(sph(0.08, g2 || g, -0.1, 1.52, 0.16));                // left eye glow
+    grp.add(sph(0.08, g2 || g, 0.1, 1.52, 0.16));                 // right eye glow
+    grp.add(cone(0.38, 0.38, OBS, 6, 0, 0.46, 0));                // dark under-skirt
+    limb(grp, mat(DARKER), 0.2, 0.42, 0, 0.4, 0.1);
+    limb(grp, mat(DARKER), -0.2, 0.42, 0, 0.4, 0.1);
+    limb(grp, a, -0.36, 1.0, 0.06, 0.52, 0.09, 0.3);             // armored arms
+    limb(grp, a, 0.36, 1.02, 0.06, 0.52, 0.09, -0.3);
+    // swept-back obsidian wings (two wide flat panels)
+    grp.add(box(0.08, 1.3, 0.7, OBS, -0.7, 1.4, -0.28, 0, 0, 0.45));
+    grp.add(box(0.08, 1.3, 0.7, OBS, 0.7, 1.4, -0.28, 0, 0, -0.45));
+    grp.add(box(0.05, 0.7, 0.4, OBS, -1.2, 0.9, -0.44, 0, 0, 0.6));
+    grp.add(box(0.05, 0.7, 0.4, OBS, 1.2, 0.9, -0.44, 0, 0, -0.6));
+    // forbidden blade held before the chest
+    grp.add(box(0.18, 1.7, 0.06, mat(0x6a7080, { metal: 0.8, rough: 0.2 }), 0, 0.9, 0.32));
+    grp.add(box(0.06, 1.6, 0.02, g2 || g, 0, 0.9, 0.35));        // blade glow seam
+    grp.add(box(0.36, 0.1, 0.08, a, 0, 0.26, 0.32));              // crossguard
+    return grp;
+  },
+  hero_og(b, g) {                                                  // Og, Last of the Giants — ancient titan
+    const grp = new THREE.Group();
+    const WAR = mat(0x1a1a1e, { rough: 0.9 });
+    limb(grp, mat(HIDE), -0.65, 1.2, 0, 1.3, 0.34);               // massive legs
+    limb(grp, mat(HIDE), 0.65, 1.2, 0, 1.3, 0.34);
+    grp.add(box(0.7, 0.5, 0.8, mat(LEATHER), 0, 0.55, 0));        // loin-wrap
+    grp.add(box(1.7, 1.5, 1.0, mat(HIDE), 0, 2.0, 0));            // vast torso
+    grp.add(box(2.2, 0.55, 1.15, mat(HIDE), 0, 2.8, 0));          // shoulders
+    // war-paint streaks across chest (dark bars)
+    grp.add(box(1.4, 0.1, 0.06, WAR, 0, 2.4, 0.52)); grp.add(box(1.2, 0.1, 0.06, WAR, 0, 2.2, 0.52));
+    grp.add(prim(new THREE.DodecahedronGeometry(0.6), mat(0x3e3c3a), -1.15, 2.95, 0)); // boulder pauldrons
+    grp.add(prim(new THREE.DodecahedronGeometry(0.6), mat(0x3e3c3a), 1.15, 2.95, 0));
+    grp.add(sph(0.5, mat(SKIN), 0.18, 3.4, 0.06));                // massive head
+    grp.add(box(0.72, 0.14, 0.56, mat(BONE), 0.18, 3.62, 0));     // bone brow
+    grp.add(sph(0.1, g, 0.02, 3.48, 0.38)); grp.add(sph(0.1, g, 0.36, 3.48, 0.38)); // eyes
+    // bone crown: circlet + three skull-spikes
+    grp.add(cyl(0.52, 0.52, 0.1, mat(BONE), 10, 0.18, 3.72, 0));  // crown band
+    grp.add(sph(0.18, mat(BONE), 0.18, 3.92, 0.46));
+    grp.add(sph(0.18, mat(BONE), -0.14, 3.92, -0.38));
+    grp.add(sph(0.18, mat(BONE), 0.52, 3.9, -0.16));
+    grp.add(sph(0.08, g, 0.18, 3.96, 0.46)); grp.add(sph(0.08, g, -0.14, 3.96, -0.38)); // skull eye-glows
+    grp.add(box(0.95, 1.0, 0.12, g, 0, 2.18, 0.52));              // chest rune-slab (glow)
+    grp.add(torus(0.32, 0.05, mat(DARKER), 0, 2.18, 0.56, 0, 0, 0));
+    limb(grp, mat(HIDE), -1.45, 2.7, 0, 1.6, 0.35, 0.25);         // arms
+    limb(grp, mat(HIDE), 1.45, 2.7, 0, 1.6, 0.36, -0.2);
+    // ancient chain-flail: shaft + boulder-head + chain links
+    grp.add(cyl(0.2, 0.4, 2.4, mat(WOOD), 6, 1.7, 1.5, 0.42, 0.5));
+    grp.add(prim(new THREE.DodecahedronGeometry(0.58), mat(0x2c3624), 2.3, 2.55, 0.7)); // weapon head
+    grp.add(sph(0.12, mat(BONE), 2.4, 3.1, 0.72)); grp.add(sph(0.1, mat(BONE), 2.6, 2.7, 0.82));
+    return grp;
+  },
+  devourer(b, g) {                                                // neutral guardian beast — hexapod maw
+    const grp = new THREE.Group();
+    grp.add(box(0.7, 0.5, 1.2, mat(0x3a3030), 0, 0.58, 0));      // low body
+    grp.add(box(0.6, 0.5, 0.55, mat(0x3a3030), 0, 0.66, 0.78));  // head block
+    grp.add(box(0.5, 0.18, 0.3, mat(DARKER), 0, 0.5, 1.0));      // lower jaw
+    grp.add(box(0.5, 0.18, 0.3, mat(DARKER), 0, 0.78, 1.02));    // upper jaw
+    for (let i = 0; i < 4; i++) {                                 // teeth
+      grp.add(cone(0.04, 0.16, mat(BONE), 4, -0.18 + i * 0.12, 0.6, 1.12, Math.PI));
+      grp.add(cone(0.04, 0.16, mat(BONE), 4, -0.18 + i * 0.12, 0.74, 1.12));
+    }
+    grp.add(box(0.4, 0.1, 0.1, g, 0, 0.66, 1.05));              // maw glow
+    grp.add(sph(0.06, g, -0.18, 0.92, 0.82)); grp.add(sph(0.06, g, 0.18, 0.92, 0.82)); // eyes
+    grp.add(sph(0.04, g, -0.26, 0.84, 0.74)); grp.add(sph(0.04, g, 0.26, 0.84, 0.74)); // extra eyes
+    for (let i = 0; i < 5; i++) grp.add(cone(0.09, 0.3, mat(BONE), 4, 0, 0.82, 0.3 - i * 0.22)); // back spines
+    [0.4, 0, -0.45].forEach(z => {                               // six legs
+      grp.add(cyl(0.09, 0.05, 0.5, mat(0x3a3030), 4, 0.3, 0.24, z, 0, 0, -0.3));
+      grp.add(cyl(0.09, 0.05, 0.5, mat(0x3a3030), 4, -0.3, 0.24, z, 0, 0, 0.3));
+    });
+    grp.add(cyl(0.12, 0.02, 0.9, mat(0x3a3030), 4, 0, 0.6, -0.9, -0.5)); // tail
+    grp.add(cone(0.08, 0.2, mat(BONE), 4, 0, 0.75, -1.3, -1.2));         // tail barb
+    return grp;
+  },
+
+  // ---- world bosses (rendered at boss scale ~2.6x) ----
+  boss_leviathan(b, g) {                                  // serpent of the drowned world
+    const grp = new THREE.Group();
+    const hide = mat(0x223038, { rough: 0.6, metal: 0.2 });
+    // rearing serpentine body — stacked segments curving up to the head
+    const seg = [[0, 0.4, -1.4, 0.55], [0, 0.7, -0.9, 0.6], [0, 1.05, -0.4, 0.62],
+                 [0, 1.4, 0.05, 0.58], [0, 1.7, 0.5, 0.5]];
+    for (const [x, y, z, r] of seg) grp.add(sph(r, hide, x, y, z));
+    grp.add(box(0.7, 0.55, 0.9, hide, 0, 1.85, 0.95));    // head block
+    grp.add(box(0.66, 0.2, 0.5, mat(DARKER), 0, 1.66, 1.35)); // lower jaw
+    grp.add(box(0.66, 0.22, 0.5, hide, 0, 2.02, 1.38));   // upper jaw
+    for (let i = 0; i < 5; i++) {                          // maw fangs
+      grp.add(cone(0.06, 0.22, mat(BONE), 4, -0.24 + i * 0.12, 1.74, 1.5, Math.PI));
+      grp.add(cone(0.06, 0.22, mat(BONE), 4, -0.24 + i * 0.12, 1.96, 1.5));
+    }
+    grp.add(box(0.5, 0.16, 0.16, g, 0, 1.84, 1.5));        // throat-glow
+    grp.add(sph(0.1, g, -0.22, 2.05, 1.2)); grp.add(sph(0.1, g, 0.22, 2.05, 1.2)); // eyes
+    // crest fins along the spine + flank fins
+    for (let i = 0; i < 5; i++) {
+      const z = -1.4 + i * 0.45;
+      grp.add(cone(0.14, 0.6 - i * 0.04, glowMat(0x2f7f8f, 0.5), 3, 0, 0.5 + i * 0.32, z, 0, 0, 0));
+    }
+    [[-1, 0.6], [1, 0.6]].forEach(([sx, y]) =>
+      grp.add(box(0.06, 0.5, 0.8, glowMat(0x2f7f8f, 0.4), sx * 0.6, y, -0.6, 0, 0, sx * 0.5)));
+    grp.add(sph(0.4, hide, 0, 0.3, -1.8)); grp.add(cone(0.16, 0.5, mat(BONE), 4, 0, 0.4, -2.2, -1.4)); // tail
+    return grp;
+  },
+
+  boss_titan(b, g) {                                       // Nephilim giant
+    const grp = new THREE.Group();
+    const flesh = mat(0x6a5240, { rough: 0.9 });
+    const wrap = mat(0x3a3026);
+    grp.add(box(1.5, 1.6, 0.95, flesh, 0, 2.2, 0));        // huge torso
+    grp.add(box(1.7, 0.5, 1.05, wrap, 0, 1.45, 0));        // gut wrap
+    grp.add(box(1.7, 0.4, 1.1, mat(DARK), 0, 3.0, 0));     // shoulder yoke
+    grp.add(box(0.55, 0.6, 0.55, flesh, 0, 3.55, 0.05));   // small head, hunched
+    grp.add(box(0.6, 0.18, 0.6, mat(BONE), 0, 3.9, 0));    // bone crown
+    for (let i = 0; i < 3; i++) grp.add(cone(0.08, 0.3, mat(BONE), 4, -0.2 + i * 0.2, 4.0, 0));
+    grp.add(sph(0.08, glowMat(0xff5530, 1.2), -0.16, 3.6, 0.32)); // eyes
+    grp.add(sph(0.08, glowMat(0xff5530, 1.2), 0.16, 3.6, 0.32));
+    // massive arms ending in boulder fists
+    [[-1, 1], [1, -1]].forEach(([s]) => {
+      grp.add(cyl(0.34, 0.3, 1.5, flesh, 5, s * 1.0, 2.5, 0, 0, 0, s * 0.25));   // upper arm
+      grp.add(cyl(0.3, 0.26, 1.4, flesh, 5, s * 1.35, 1.4, 0.1, s * 0.2, 0, s * 0.1)); // forearm
+      grp.add(sph(0.45, mat(0x4a4036), s * 1.5, 0.65, 0.18));                     // fist
+      grp.add(prim(new THREE.DodecahedronGeometry(0.34), mat(DARKER), s * 1.5, 0.65, 0.4)); // knuckle rock
+    });
+    // tree-trunk legs
+    [[-0.45], [0.45]].forEach(([x]) => {
+      grp.add(cyl(0.4, 0.34, 1.4, flesh, 5, x, 0.7, 0));
+      grp.add(box(0.55, 0.3, 0.8, mat(DARK), x, 0.15, 0.1));   // foot
+    });
+    grp.add(box(1.6, 0.2, 0.2, g, 0, 2.4, 0.5));            // glowing girdle sigil
+    return grp;
+  },
+
+  boss_sentinel(b, g) {                                    // Watcher construct, hovering
+    const grp = new THREE.Group();
+    const stone = mat(0x2c2e3a, { rough: 0.5, metal: 0.3 });
+    // floating geometric core
+    grp.add(prim(new THREE.OctahedronGeometry(0.95), stone, 0, 2.0, 0));
+    grp.add(prim(new THREE.OctahedronGeometry(0.45), glowMat(0xb07fff, 1.4), 0, 2.0, 0)); // inner eye
+    // stacked rune rings orbiting the core
+    grp.add(torus(1.3, 0.09, glowMat(0x6f8cff, 0.7), 0, 2.0, 0, Math.PI / 2, 0, 0));
+    grp.add(torus(1.1, 0.07, glowMat(0xb07fff, 0.6), 0, 2.0, 0, 0.5, 0.6, 0));
+    grp.add(torus(0.9, 0.06, glowMat(0x6f8cff, 0.6), 0, 2.0, 0, -0.5, -0.6, 0));
+    // crown of shards above, pendant shards below
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2;
+      grp.add(box(0.12, 0.6, 0.12, stone, Math.cos(a) * 0.7, 3.0, Math.sin(a) * 0.7, 0, a, 0.2));
+      grp.add(prim(new THREE.OctahedronGeometry(0.16), glowMat(0xb07fff, 1.0),
+        Math.cos(a) * 1.0, 0.9, Math.sin(a) * 1.0));
+    }
+    grp.add(cone(0.5, 1.0, stone, 6, 0, 0.6, 0, Math.PI)); // tapering base spire
+    grp.add(box(0.5, 0.16, 0.5, g, 0, 3.35, 0));           // apex sigil
+    return grp;
+  },
+
+  boss_scott(b, g) {                                       // Easter egg: Scott, the Green-Eyed Sentinel
+    const grp = new THREE.Group();
+    const white = mat(0xe6e7ea, { rough: 0.45, metal: 0.25 });  // bright stormtrooper plate
+    const black = mat(0x141417, { rough: 0.55, metal: 0.35 });  // undersuit + accents
+    const visor = mat(0x0b0b0d, { rough: 0.25, metal: 0.45 });  // glossy dark visor band
+    const eye = glowMat(0x66e23a, 1.9);                         // signature green optics
+    // armored legs + boots
+    [[-0.42], [0.42]].forEach(([x]) => {
+      grp.add(cyl(0.3, 0.26, 1.5, white, 6, x, 0.85, 0));        // greave
+      grp.add(box(0.42, 0.5, 0.42, white, x, 1.42, 0.02));       // thigh plate
+      grp.add(box(0.5, 0.3, 0.74, black, x, 0.18, 0.1));         // boot
+    });
+    grp.add(box(1.0, 0.5, 0.62, black, 0, 1.55, 0));             // hip belt
+    // torso — chestplate over a black core panel
+    grp.add(box(1.16, 1.3, 0.7, white, 0, 2.4, 0));              // chest
+    grp.add(box(1.22, 0.4, 0.74, black, 0, 1.9, 0));            // ab band
+    grp.add(box(0.5, 0.82, 0.42, black, 0, 2.5, 0.34));          // sternum panel
+    grp.add(box(0.16, 0.52, 0.06, eye, 0, 2.55, 0.58));         // green chest light
+    grp.add(box(0.7, 0.92, 0.34, black, 0, 2.5, -0.5));          // backpack
+    // pauldrons + arms ending in gauntlet fists
+    [[-1], [1]].forEach(([s]) => {
+      grp.add(sph(0.5, white, s * 0.96, 3.02, 0));               // shoulder dome
+      grp.add(cyl(0.26, 0.24, 1.3, white, 6, s * 1.06, 2.3, 0, 0, 0, s * 0.2));    // upper arm
+      grp.add(cyl(0.24, 0.2, 1.2, white, 6, s * 1.32, 1.2, 0.05, s * 0.16, 0, s * 0.05)); // forearm
+      grp.add(box(0.34, 0.36, 0.36, black, s * 1.46, 0.55, 0.12)); // gauntlet fist
+    });
+    // neck → helmet: white dome, dark T-visor, two round green eyes, side ear-pods
+    grp.add(cyl(0.24, 0.26, 0.22, black, 6, 0, 3.16, 0));        // neck
+    grp.add(sph(0.56, white, 0, 3.55, 0.02));                    // helmet dome
+    grp.add(box(0.64, 0.44, 0.62, white, 0, 3.5, 0));            // helmet shell (squares the brow)
+    grp.add(box(0.76, 0.26, 0.46, visor, 0, 3.5, 0.3));          // dark visor band across the eyes
+    grp.add(box(0.22, 0.5, 0.22, black, 0, 3.66, 0.16));         // dark central crest (the helmet's T)
+    grp.add(sph(0.12, eye, -0.19, 3.5, 0.5));                    // green left optic
+    grp.add(sph(0.12, eye, 0.19, 3.5, 0.5));                     // green right optic
+    grp.add(box(0.16, 0.3, 0.3, black, -0.58, 3.46, 0.0));       // ear pod
+    grp.add(box(0.16, 0.3, 0.3, black, 0.58, 3.46, 0.0));        // ear pod
+    return grp;
+  },
+};
+
+// ---------- buildings ----------
+
+const buildingBuilders = {
+  city_center(b, g) {
+    const grp = new THREE.Group();
+    grp.add(box(6.4, 1.2, 6.4, mat(ASH), 0, 0.6, 0));
+    grp.add(box(5.0, 1.2, 5.0, b, 0, 1.8, 0));
+    grp.add(box(3.6, 1.2, 3.6, mat(ASH), 0, 3.0, 0));
+    grp.add(box(2.2, 1.2, 2.2, b, 0, 4.2, 0)); // ziggurat tiers
+    grp.add(box(0.8, 1.4, 0.8, g, 0, 5.4, 0)); // eternal flame shrine
+    grp.add(box(1.2, 0.8, 0.4, mat(DARKER), 0, 0.9, 3.25)); // gate
+    return grp;
+  },
+  granary(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(1.1, 1.3, 1.8, mat(ASH), 8, -0.8, 0.9, 0));
+    grp.add(cone(1.2, 0.9, b, 8, -0.8, 2.2, 0));
+    grp.add(cyl(0.8, 1.0, 1.4, mat(ASH), 8, 1.0, 0.7, 0.4));
+    grp.add(cone(0.95, 0.7, b, 8, 1.0, 1.75, 0.4));
+    grp.add(box(0.5, 0.3, 0.1, g, -0.8, 1.0, 1.25));
+    return grp;
+  },
+  barracks(b, g, a) {
+    const grp = new THREE.Group();
+    grp.add(box(4.6, 1.6, 3.4, mat(ASH), 0, 0.8, 0));
+    grp.add(box(4.8, 0.5, 3.6, b, 0, 1.85, 0));
+    grp.add(box(0.4, 2.6, 0.4, b, -2.0, 1.3, 1.5));
+    grp.add(box(0.4, 2.6, 0.4, b, 2.0, 1.3, 1.5)); // banner posts
+    grp.add(box(0.32, 1.1, 0.06, a || g, -2.0, 2.35, 1.55));
+    grp.add(box(0.32, 1.1, 0.06, a || g, 2.0, 2.35, 1.55)); // faction-color banners
+    grp.add(box(0.16, 0.5, 0.04, g, -2.0, 2.05, 1.6));
+    grp.add(box(0.16, 0.5, 0.04, g, 2.0, 2.05, 1.6)); // glowing sigil on each banner
+    return grp;
+  },
+  foundry(b, g) {
+    const grp = new THREE.Group();
+    grp.add(box(4.2, 1.4, 4.2, mat(ASH), 0, 0.7, 0));
+    grp.add(cyl(0.7, 1.0, 2.4, b, 6, -1.0, 2.4, -0.8)); // chimney
+    grp.add(sph(0.3, g, -1.0, 3.7, -0.8)); // furnace glow
+    grp.add(box(1.6, 0.9, 1.6, mat(DARKER), 1.2, 1.85, 0.8));
+    grp.add(box(0.8, 0.15, 0.8, g, 1.2, 1.5, 0.8)); // molten pool
+    return grp;
+  },
+  temple(b, g) {
+    const grp = new THREE.Group();
+    grp.add(box(4.6, 0.8, 4.6, mat(ASH), 0, 0.4, 0));
+    for (const x of [-1.6, 0, 1.6]) for (const z of [-1.6, 1.6])
+      grp.add(cyl(0.25, 0.3, 2.4, b, 6, x, 2.0, z));
+    grp.add(box(4.8, 0.7, 4.8, b, 0, 3.55, 0)); // roof
+    grp.add(cone(0.5, 1.2, g, 4, 0, 4.5, 0)); // sacred flame pyramid
+    grp.add(box(0.9, 1.4, 0.2, mat(DARKER), 0, 1.5, 0)); // inner sanctum
+    return grp;
+  },
+  tower(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(1.0, 1.3, 3.6, mat(ASH), 6, 0, 1.8, 0));
+    grp.add(cyl(1.3, 1.1, 0.8, b, 6, 0, 4.0, 0));
+    grp.add(sph(0.22, g, 0, 4.6, 0)); // signal fire
+    return grp;
+  },
+  spire(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(2.4, 3.2, 1.4, mat(DARKER), 7, 0, 0.7, 0));
+    grp.add(cyl(1.2, 2.0, 3.4, b, 7, 0, 3.0, 0));
+    grp.add(cyl(0.4, 1.0, 2.6, mat(DARKER), 7, 0, 5.9, 0));
+    grp.add(sph(0.5, g, 0, 7.4, 0)); // captive star
+    for (let i = 0; i < 4; i++) {
+      const a = i / 4 * Math.PI * 2;
+      grp.add(box(0.3, 1.8, 0.3, mat(DARKER), Math.cos(a) * 2.6, 1.6, Math.sin(a) * 2.6, 0, 0, 0.3 * Math.cos(a)));
+      grp.add(sph(0.12, g, Math.cos(a) * 2.6, 2.6, Math.sin(a) * 2.6));
+    }
+    return grp;
+  },
+  starforge(b, g) {
+    const grp = new THREE.Group();
+    grp.add(box(2.6, 1.0, 2.6, mat(DARKER), 0, 0.5, 0));
+    const ring = prim(new THREE.TorusGeometry(0.9, 0.12, 6, 14), b, 0, 1.9, 0);
+    grp.add(ring);
+    grp.add(sph(0.35, g, 0, 1.9, 0)); // molten star fragment
+    return grp;
+  },
+  gate(b, g) {
+    const grp = new THREE.Group();
+    grp.add(box(4.4, 1.0, 1.6, mat(DARKER), 0, 0.5, 0));
+    const arch = prim(new THREE.TorusGeometry(1.7, 0.3, 6, 16, Math.PI), b, 0, 1.0, 0);
+    grp.add(arch);
+    const portal = prim(new THREE.CircleGeometry(1.4, 16), glowMat(0x7a3cff, 0.9), 0, 1.2, 0);
+    portal.material.side = THREE.DoubleSide;
+    grp.add(portal);
+    grp.add(box(0.5, 2.8, 0.5, b, -2.2, 1.4, 0));
+    grp.add(box(0.5, 2.8, 0.5, b, 2.2, 1.4, 0));
+    grp.add(sph(0.15, g, -2.2, 2.95, 0)); grp.add(sph(0.15, g, 2.2, 2.95, 0));
+    return grp;
+  },
+  archive(b, g) {
+    const grp = new THREE.Group();
+    grp.add(box(4.0, 2.2, 3.2, mat(DARKER), 0, 1.1, 0));
+    grp.add(box(4.4, 0.4, 3.6, b, 0, 2.4, 0));
+    for (const x of [-1.4, 0, 1.4]) grp.add(box(0.5, 1.4, 0.06, g, x, 1.2, 1.63)); // glowing tablet windows
+    grp.add(cone(0.7, 1.4, b, 4, 0, 3.3, 0));
+    grp.add(sph(0.16, g, 0, 4.1, 0));
+    return grp;
+  },
+  pit(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(2.2, 2.6, 0.9, mat(DARKER), 8, 0, 0.45, 0));
+    const pool = prim(new THREE.CircleGeometry(1.7, 12), glowMat(0x8f46ff, 0.8), 0, 0.95, 0, -Math.PI / 2);
+    grp.add(pool);
+    for (let i = 0; i < 5; i++) {
+      const a = i / 5 * Math.PI * 2;
+      grp.add(box(0.3, 1.6 + (i % 2) * 0.7, 0.3, b, Math.cos(a) * 2.3, 0.9, Math.sin(a) * 2.3, 0, a, 0.15));
+    }
+    return grp;
+  },
+  wtower(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(0.5, 1.1, 4.2, b, 5, 0, 2.1, 0));
+    const eye = sph(0.35, g, 0, 4.6, 0);
+    grp.add(eye);
+    grp.add(prim(new THREE.TorusGeometry(0.55, 0.06, 6, 12), mat(DARKER), 0, 4.6, 0));
+    return grp;
+  },
+  hearth(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(3.4, 4.0, 1.6, mat(ASH), 8, 0, 0.8, 0)); // mound
+    grp.add(cyl(2.0, 2.6, 1.4, b, 7, 0, 2.3, 0));
+    grp.add(cone(0.9, 2.0, g, 6, 0, 4.0, 0)); // great fire
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2;
+      grp.add(cone(0.25, 1.6, mat(BONE), 4, Math.cos(a) * 3.2, 1.6, Math.sin(a) * 3.2, 0, 0, 0.25 * Math.cos(a))); // ribs
+    }
+    return grp;
+  },
+  bonepit(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(1.6, 1.9, 0.8, mat(ASH), 7, 0, 0.4, 0));
+    grp.add(cone(0.3, 1.4, mat(BONE), 4, -0.6, 1.2, 0.3, 0, 0, 0.4));
+    grp.add(cone(0.3, 1.8, mat(BONE), 4, 0.5, 1.4, -0.4, 0, 0, -0.3));
+    grp.add(sph(0.4, mat(BONE), 0.2, 1.0, 0.5)); // skull
+    grp.add(sph(0.08, g, 0.1, 1.05, 0.85)); grp.add(sph(0.08, g, 0.32, 1.05, 0.82));
+    return grp;
+  },
+  lodge(b, g) {
+    const grp = new THREE.Group();
+    grp.add(box(4.4, 1.8, 3.4, b, 0, 0.9, 0));
+    grp.add(prim(new THREE.CylinderGeometry(0.1, 2.6, 1.6, 4), mat(WOOD), 0, 2.6, 0, 0, Math.PI / 4));
+    grp.add(cone(0.4, 2.2, mat(BONE), 4, -2.3, 1.6, 1.4, 0, 0, 0.3)); // tusks at door
+    grp.add(cone(0.4, 2.2, mat(BONE), 4, 2.3, 1.6, 1.4, 0, 0, -0.3));
+    grp.add(box(0.8, 1.2, 0.1, g, 0, 0.9, 1.73)); // firelight door
+    return grp;
+  },
+  house_of_greene(b, g) {                                         // Easter egg: a stately pre-flood manor
+    const grp = new THREE.Group();
+    const stone = mat(0x3a3a40);                                  // dressed masonry (textured)
+    const pale = mat(0x6a6658);                                   // pale columns / trim
+    const roof = mat(0x2a2620);
+    const greenG = glowMat(0x49c46a, 1.4);                        // House-of-Greene green
+    const green = mat(0x2f6f3a);
+    grp.add(box(5.2, 0.4, 4.2, stone, 0, 0.2, 0));               // platform
+    grp.add(box(4.2, 0.24, 0.9, pale, 0, 0.46, 1.75));          // entry steps
+    grp.add(box(4.0, 2.5, 2.8, stone, 0, 1.65, -0.4));          // main hall
+    grp.add(cone(3.1, 1.4, roof, 4, 0, 3.5, -0.4, 0, Math.PI / 4)); // hip roof
+    grp.add(box(0.7, 0.7, 0.7, pale, 0, 4.05, -0.4));           // cupola
+    grp.add(cone(0.55, 0.7, roof, 4, 0, 4.7, -0.4, 0, Math.PI / 4));
+    grp.add(sph(0.18, greenG, 0, 5.15, -0.4));                  // green finial
+    for (const x of [-1.5, -0.5, 0.5, 1.5]) {                    // portico columns
+      grp.add(cyl(0.18, 0.22, 2.0, pale, 8, x, 1.1, 1.5));
+      grp.add(box(0.36, 0.16, 0.36, pale, x, 2.18, 1.5));        // capital
+      grp.add(box(0.34, 0.16, 0.34, stone, x, 0.2, 1.5));        // base
+    }
+    grp.add(box(3.7, 0.3, 0.55, pale, 0, 2.32, 1.5));           // entablature
+    grp.add(cone(2.1, 0.8, roof, 4, 0, 2.75, 1.35, 0, Math.PI / 4)); // porch roof
+    grp.add(box(1.0, 1.5, 0.12, mat(DARKER), 0, 1.0, 0.98));    // doorway
+    grp.add(box(0.8, 1.3, 0.06, greenG, 0, 1.0, 1.05));         // glowing green doors
+    for (const x of [-1.35, 1.35]) grp.add(box(0.5, 0.72, 0.06, greenG, x, 1.6, 1.0)); // windows
+    for (const x of [-2.3, 2.3]) {                               // green clan banners
+      grp.add(cyl(0.06, 0.06, 3.0, mat(WOOD), 5, x, 1.5, 1.7));
+      grp.add(box(0.52, 1.1, 0.05, green, x, 2.45, 1.72));
+      grp.add(box(0.24, 0.5, 0.06, greenG, x, 2.55, 1.75));
+    }
+    return grp;
+  },
+  den(b, g) {
+    const grp = new THREE.Group();
+    grp.add(sph(2.4, mat(ASH), 0, 0.4, 0)); // rock dome
+    grp.add(box(1.6, 1.2, 0.4, mat(DARKER), 0, 0.7, 2.1));
+    grp.add(box(1.2, 0.8, 0.1, g, 0, 0.6, 2.32)); // glowing maw
+    grp.add(cone(0.25, 1.2, mat(BONE), 4, -1.4, 1.8, 1.2, 0.3));
+    grp.add(cone(0.25, 1.2, mat(BONE), 4, 1.4, 1.8, 1.2, -0.3));
+    return grp;
+  },
+  totem(b, g) {
+    const grp = new THREE.Group();
+    grp.add(cyl(0.5, 0.7, 3.8, mat(WOOD), 6, 0, 1.9, 0));
+    grp.add(sph(0.45, mat(BONE), 0, 2.4, 0));
+    grp.add(sph(0.4, mat(BONE), 0, 3.3, 0));
+    grp.add(sph(0.09, g, -0.14, 3.38, 0.32)); grp.add(sph(0.09, g, 0.14, 3.38, 0.32));
+    grp.add(sph(0.09, g, -0.13, 2.5, 0.38)); grp.add(sph(0.09, g, 0.13, 2.5, 0.38));
+    grp.add(box(2.0, 0.18, 0.18, mat(BONE), 0, 4.0, 0, 0, 0, 0.1));
+    return grp;
+  },
+  cairn(b, g) {
+    const grp = new THREE.Group();
+    grp.add(sph(1.2, mat(ASH), 0, 0.6, 0));
+    grp.add(sph(0.9, mat(ASH), 0.7, 1.2, 0.3));
+    grp.add(sph(0.7, b, -0.5, 1.6, -0.2));
+    grp.add(sph(0.55, mat(BONE), 0, 2.4, 0)); // giant's skull on top
+    grp.add(sph(0.1, g, -0.16, 2.45, 0.42)); grp.add(sph(0.1, g, 0.16, 2.45, 0.42));
+    return grp;
+  },
+};
+
+// ---------- resources & doodads ----------
+
+export function buildResourceNode(type) {
+  const grp = new THREE.Group();
+  if (type === 'grain') {
+    const m = mat(0x9c8434, { emissive: 0x6b5a14, ei: 0.25 });
+    for (let i = 0; i < 14; i++) {
+      const a = Math.random() * Math.PI * 2, r = Math.random() * 1.6;
+      grp.add(cone(0.14, 0.9 + Math.random() * 0.5, m, 4, Math.cos(a) * r, 0.45, Math.sin(a) * r));
+    }
+  } else if (type === 'timber') {
+    for (let i = 0; i < 3; i++) {
+      const x = (i - 1) * 1.1 + (Math.random() - 0.5), z = (Math.random() - 0.5) * 1.4;
+      grp.add(cyl(0.14, 0.22, 1.6, mat(0x2e2620), 5, x, 0.8, z));
+      grp.add(cone(0.8, 2.0, mat(0x24332a), 6, x, 2.4, z));
+    }
+  } else if (type === 'bronze') {
+    const m = mat(0x7a5024, { emissive: 0xa55f1e, ei: 0.35, metal: 0.5, rough: 0.5 });
+    grp.add(sph(1.0, mat(DARK), 0, 0.5, 0));
+    grp.add(prim(new THREE.OctahedronGeometry(0.55), m, -0.5, 1.0, 0.3));
+    grp.add(prim(new THREE.OctahedronGeometry(0.4), m, 0.6, 0.9, -0.2));
+    grp.add(prim(new THREE.OctahedronGeometry(0.3), m, 0.2, 1.3, 0.4));
+  } else if (type === 'knowledge') {
+    grp.add(box(1.0, 0.5, 1.0, mat(DARKER), 0, 0.25, 0));
+    grp.add(box(0.55, 3.2, 0.55, mat(DARK), 0, 1.85, 0));
+    grp.add(cone(0.4, 0.6, mat(DARK), 4, 0, 3.7, 0));
+    for (let y = 0.8; y < 3.2; y += 0.5)
+      grp.add(box(0.58, 0.18, 0.18, glowMat(0xb07fff, 1.2), 0, y, 0.22));
+  }
+  return grp;
+}
+
+// Timber scaffold that wraps a building under construction. `span` is footprint
+// world-width, `tall` the build height. Cheap: corner poles + lashing beams + planks.
+export function buildScaffold(span, tall) {
+  const grp = new THREE.Group();
+  const wood = mat(0x3d3228), rope = mat(0x2e2620);
+  const h = Math.max(2.2, tall * 0.95);
+  const r = span * 0.5 + 0.35;
+  const corners = [[-r, -r], [r, -r], [r, r], [-r, r]];
+  for (const [x, z] of corners) {
+    grp.add(cyl(0.09, 0.11, h, wood, 5, x, h / 2, z));
+    // angled brace
+    grp.add(cyl(0.05, 0.05, h * 0.7, wood, 4, x * 0.7, h * 0.4, z * 0.7, 0.35 * Math.sign(z || 1), 0, 0.35 * Math.sign(x || 1)));
+  }
+  for (const y of [h * 0.45, h * 0.82]) {
+    grp.add(box(r * 2 + 0.2, 0.07, 0.07, rope, 0, y, -r));
+    grp.add(box(r * 2 + 0.2, 0.07, 0.07, rope, 0, y, r));
+    grp.add(box(0.07, 0.07, r * 2 + 0.2, rope, -r, y, 0));
+    grp.add(box(0.07, 0.07, r * 2 + 0.2, rope, r, y, 0));
+    // a couple of working planks
+    grp.add(box(r * 1.6, 0.06, 0.4, wood, (Math.random() - 0.5) * r, y + 0.05, -r));
+  }
+  grp.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; } });
+  return grp;
+}
+
+// Flickering flame sprite cluster for burning/damaged buildings.
+export function buildFireCluster(n, scale = 1) {
+  const grp = new THREE.Group();
+  const fire = new THREE.MeshBasicMaterial({ color: 0xff7a30, transparent: true, opacity: 0.9,
+    blending: THREE.AdditiveBlending, depthWrite: false });
+  const core = new THREE.MeshBasicMaterial({ color: 0xffd66e, transparent: true, opacity: 0.95,
+    blending: THREE.AdditiveBlending, depthWrite: false });
+  for (let i = 0; i < n; i++) {
+    const f = new THREE.Mesh(new THREE.ConeGeometry(0.28 * scale, 0.8 * scale, 5), i % 2 ? core : fire);
+    f.position.set((Math.random() - 0.5) * scale * 1.6, 0.4 * scale, (Math.random() - 0.5) * scale * 1.6);
+    f.userData.phase = Math.random() * 6.28;
+    grp.add(f);
+  }
+  return grp;
+}
+
+export function buildDoodad(type) {
+  const grp = new THREE.Group();
+  if (type === 'rock') {
+    grp.add(prim(new THREE.DodecahedronGeometry(0.7 + Math.random() * 0.8), mat(DARK), 0, 0.4, 0, Math.random(), Math.random()));
+  } else if (type === 'monolith') {
+    grp.add(box(0.8, 3 + Math.random() * 2, 0.5, mat(DARKER), 0, 1.8, 0, 0, Math.random(), (Math.random() - 0.5) * 0.2));
+    if (Math.random() < 0.5) grp.add(box(0.84, 0.2, 0.2, glowMat(0x4a6a8a, 0.6), 0, 1.2, 0.18));
+  } else if (type === 'ruin') {
+    for (let i = 0; i < 3; i++)
+      grp.add(box(0.5, 0.6 + Math.random() * 1.4, 0.5, mat(ASH), (Math.random() - 0.5) * 2.4, 0.5, (Math.random() - 0.5) * 2.4, 0, Math.random()));
+  } else if (type === 'crystal') {
+    grp.add(prim(new THREE.OctahedronGeometry(0.5), glowMat(0x355a7a, 0.7), 0, 0.5, 0, 0.3, 0.5));
+  } else if (type === 'fallen_obelisk') {
+    // a toppled, half-buried Watcher pillar — broken sacred geometry
+    const ob = box(0.7, 4.5, 0.7, mat(DARKER), 0, 0.45, 0, 0, Math.random() * 0.5, Math.PI / 2 - 0.12);
+    grp.add(ob);
+    grp.add(box(0.74, 0.16, 0.16, glowMat(0x6f8cff, 0.5), 0.2, 0.55, 0.37));
+    grp.add(box(0.74, 0.16, 0.16, glowMat(0x6f8cff, 0.5), -1.0, 0.55, 0.37));
+    grp.add(prim(new THREE.DodecahedronGeometry(0.5), mat(DARK), 2.3, 0.3, 0.2)); // broken cap
+  } else if (type === 'altar') {
+    // abandoned offering altar, soot-stained
+    grp.add(cyl(1.1, 1.3, 0.5, mat(ASH), 8, 0, 0.25, 0));
+    grp.add(box(1.0, 0.7, 1.0, mat(0x3a3a40), 0, 0.85, 0));
+    grp.add(box(1.2, 0.18, 1.2, mat(DARK), 0, 1.28, 0));
+    grp.add(prim(new THREE.CircleGeometry(0.45, 10), glowMat(0xff6a30, 0.35), 0, 1.39, 0, -Math.PI / 2)); // cold embers
+  } else if (type === 'giant_bones') {
+    // half-buried Nephilim ribcage rising from the earth
+    const bm = mat(BONE);
+    grp.add(cyl(0.18, 0.22, 1.0, bm, 5, 0, 0.3, 0, 0, 0, 0.4)); // spine stub
+    for (let i = 0; i < 5; i++) {
+      const t = i / 4, x = (t - 0.5) * 2.4;
+      const rib = prim(new THREE.TorusGeometry(0.9 - Math.abs(t - 0.5) * 0.6, 0.1, 5, 9, Math.PI), bm,
+        x, 0.1, 0, 0, 0, 0);
+      rib.rotation.z = 0.1 * (i - 2);
+      grp.add(rib);
+    }
+  } else if (type === 'giant_weapon') {
+    // a colossal broken bronze blade thrust into the ground
+    grp.add(box(0.5, 5.0, 0.16, mat(0x6b5024, { metal: 0.5, rough: 0.5 }), 0, 1.6, 0, 0.12, 0.4, 0.18));
+    grp.add(box(0.9, 0.6, 0.4, mat(WOOD), 0, -0.7, 0, 0.12, 0.4, 0.18)); // buried hilt/guard
+    grp.add(prim(new THREE.DodecahedronGeometry(0.4), mat(DARK), 0.5, 0.1, 0.3));
+  } else if (type === 'boundary_stone') {
+    // inscribed kudurru boundary marker
+    grp.add(box(0.6, 1.7, 0.5, mat(0x46423a), 0, 0.85, 0, 0, Math.random(), 0.04));
+    grp.add(cone(0.42, 0.4, mat(0x46423a), 6, 0, 1.85, 0));
+    for (let y = 0.5; y < 1.5; y += 0.32)
+      grp.add(box(0.62, 0.1, 0.1, mat(0x2a2722), 0, y, 0.2));
+  } else if (type === 'dead_tree') {
+    // a sacred grove tree, long dead — gnarled silhouette
+    grp.add(cyl(0.18, 0.34, 2.6, mat(0x2a2218), 6, 0, 1.3, 0));
+    for (let i = 0; i < 5; i++) {
+      const a = i / 5 * Math.PI * 2;
+      grp.add(cyl(0.05, 0.11, 1.3, mat(0x2a2218), 4,
+        Math.cos(a) * 0.5, 2.2 + (i % 2) * 0.3, Math.sin(a) * 0.5, 0.5 + Math.random() * 0.4, a, 0));
+    }
+  } else if (type === 'tablet') {
+    // shattered clay tablet leaning in the dust
+    grp.add(box(1.0, 1.3, 0.14, mat(0x5a4a36), 0, 0.6, 0, -0.5, Math.random(), 0.1));
+    grp.add(box(0.5, 0.7, 0.14, mat(0x4a3c2c), 0.7, 0.25, 0.3, -0.7, Math.random(), 0.3)); // broken-off piece
+  } else if (type === 'cart') {
+    // an abandoned ox-cart, one wheel sunk, bed tilted toward the dust
+    const tilt = 0.18;
+    grp.add(box(1.5, 0.16, 0.85, mat(WOOD), 0, 0.62, 0, tilt, Math.random() * 0.4, 0));   // bed
+    grp.add(box(1.5, 0.32, 0.06, mat(0x2e2620), 0, 0.78, 0.42, tilt, 0, 0));               // side rails
+    grp.add(box(1.5, 0.32, 0.06, mat(0x2e2620), 0, 0.78, -0.42, tilt, 0, 0));
+    grp.add(cyl(0.05, 0.05, 1.8, mat(0x2e2620), 5, 0.4, 0.2, 0, 0, 0, Math.PI / 2 - 0.1)); // draught pole to the ground
+    for (const z of [0.5, -0.5]) {                                                          // spoked wheels
+      const w = new THREE.Group();
+      w.add(torus(0.42, 0.07, mat(0x2a2218), 0, 0, 0, 0, 0, 0));
+      for (let i = 0; i < 6; i++) w.add(cyl(0.03, 0.03, 0.8, mat(0x2a2218), 4, 0, 0, 0, 0, 0, i / 6 * Math.PI));
+      w.rotation.y = Math.PI / 2;
+      w.position.set(-0.5, 0.42, z);
+      grp.add(w);
+    }
+  } else if (type === 'grain_sacks') {
+    // a stack of bulging grain sacks, one split open
+    const burlap = mat(0x9a8456), burlap2 = mat(0x847043);
+    const sack = (x, y, z, s, m) => grp.add(prim(new THREE.SphereGeometry(s, 6, 5), m, x, y, z, 0, 0, 0));
+    sack(0, 0.32, 0, 0.36, burlap); sack(0.5, 0.3, 0.1, 0.34, burlap2);
+    sack(0.22, 0.34, 0.5, 0.34, burlap); sack(0.26, 0.74, 0.2, 0.32, burlap2);
+    grp.add(prim(new THREE.CircleGeometry(0.4, 8), mat(0xc9b87a), 0.7, 0.02, -0.4, -Math.PI / 2)); // spilled grain
+  } else if (type === 'wood_pile') {
+    // stacked cedar logs ready for the walls that never rose
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 4 - r; i++)
+      grp.add(cyl(0.16, 0.16, 1.7, mat(WOOD), 6, (i - (3 - r) / 2) * 0.36 + (r % 2) * 0.18, 0.16 + r * 0.3, 0, 0, 0, Math.PI / 2));
+  } else if (type === 'amphorae') {
+    // clustered clay storage jars, a couple toppled
+    const clay = mat(0x8a5a36), clay2 = mat(0x73492b);
+    const jar = (x, z, lean, m) => {
+      const j = new THREE.Group();
+      j.add(cyl(0.16, 0.26, 0.5, m, 7, 0, 0.35, 0));
+      j.add(cyl(0.26, 0.1, 0.5, m, 7, 0, 0.78, 0));
+      j.add(cone(0.08, 0.18, m, 6, 0, 1.08, 0));
+      j.position.set(x, 0, z); j.rotation.z = lean;
+      grp.add(j);
+    };
+    jar(0, 0, 0, clay); jar(0.5, 0.15, 0, clay2); jar(0.2, 0.5, 0, clay);
+    jar(-0.4, 0.4, Math.PI / 2 - 0.1, clay2);   // toppled
+  } else if (type === 'brazier') {
+    // a tripod fire-bowl, embers still glowing — sacred light against the dark
+    grp.add(cyl(0.45, 0.55, 0.25, bronzeMat(), 8, 0, 1.0, 0));            // bowl
+    grp.add(prim(new THREE.CircleGeometry(0.42, 10), glowMat(0xff7a30, 1.6), 0, 1.14, 0, -Math.PI / 2)); // embers
+    for (let i = 0; i < 3; i++) {                                          // legs
+      const a = i / 3 * Math.PI * 2;
+      grp.add(cyl(0.04, 0.05, 1.0, mat(0x2e2620), 4, Math.cos(a) * 0.32, 0.5, Math.sin(a) * 0.32, 0.18, a, 0));
+    }
+    grp.add(sph(0.12, glowMat(0xffb24a, 2.2), 0, 1.22, 0));               // flame core (bloom catches it)
+    // a soft god-ray light shaft rising from the flame (additive, no shadow; shared material)
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.12, 2.6, 10, 1, true), godRayMat());
+    shaft.position.set(0, 2.5, 0); shaft.castShadow = false; shaft.receiveShadow = false;
+    grp.add(shaft);
+  } else if (type === 'weapon_rack') {
+    // a rack of bronze spears, a shield leaned against it
+    grp.add(box(1.4, 0.14, 0.2, mat(WOOD), 0, 0.2, 0));                   // base beam
+    grp.add(box(1.4, 0.1, 0.14, mat(WOOD), 0, 1.2, 0));                   // top beam
+    grp.add(cyl(0.06, 0.06, 1.3, mat(WOOD), 4, -0.6, 0.7, 0));
+    grp.add(cyl(0.06, 0.06, 1.3, mat(WOOD), 4, 0.6, 0.7, 0));
+    for (let i = 0; i < 5; i++) {                                          // spears
+      const x = (i - 2) * 0.26;
+      grp.add(cyl(0.02, 0.02, 1.5, mat(0x3d3228), 4, x, 0.95, 0, (Math.random() - 0.5) * 0.1, 0, 0.04));
+      grp.add(cone(0.05, 0.18, bronzeMat(), 4, x, 1.72, 0));
+    }
+    grp.add(prim(new THREE.CircleGeometry(0.34, 8), bronzeMat(), 0.7, 0.5, 0.1, 0, 0.2, 0)); // leaning shield
+  } else if (type === 'banner') {
+    // a tall faction-neutral war banner, its cloth sculpted mid-furl
+    grp.add(cyl(0.05, 0.06, 3.2, mat(0x2e2620), 5, 0, 1.6, 0));           // pole
+    grp.add(cone(0.09, 0.22, bronzeMat(), 5, 0, 3.3, 0));                 // finial
+    const cloth = mat(0x7a2a22);                                          // dried-blood red
+    // a few panels stepped outward to fake a furl in the wind
+    for (let i = 0; i < 5; i++)
+      grp.add(box(0.06, 0.42, 0.7 - i * 0.02, cloth, 0.06 + Math.sin(i * 0.9) * 0.14, 2.7 - i * 0.42, 0, 0, Math.sin(i * 0.9) * 0.4, 0));
+  } else if (type === 'skull_totem') {
+    // a stacked-skull totem on a stake — Nephilim territory marker
+    grp.add(cyl(0.06, 0.08, 2.2, mat(0x2a2218), 5, 0, 1.1, 0));
+    for (let i = 0; i < 3; i++) grp.add(sph(0.2 - i * 0.02, mat(BONE), 0, 1.4 + i * 0.34, 0));
+    grp.add(box(0.5, 0.06, 0.06, mat(0x2a2218), 0, 1.5, 0, 0, 0.4, 0));   // crossbar
+  }
+  return grp;
+}
+
+// ---------- factory ----------
+
+const factionMats = new Map();
+
+// Subtle "living sigil" flicker on all faction glow materials.
+export function tickGlowMats(time) {
+  let i = 0;
+  for (const { g } of factionMats.values()) {
+    g.emissiveIntensity = 1.8 + Math.sin(time * 2.4 + i * 1.7) * 0.22;
+    i++;
+  }
+}
+function getFactionMats(color, glow, accent, glow2) {
+  const key = [color, glow, accent, glow2].join(':');
+  if (!factionMats.has(key)) {
+    // Dark body tinted toward faction color; bright emissive accent.
+    const c = new THREE.Color(color);
+    const body = new THREE.Color(0x35353e).lerp(c, 0.4);
+    const b = new THREE.MeshStandardMaterial({ color: body, roughness: 0.8, metalness: 0.15, flatShading: true });
+    applySurface(b, 'blocks');
+    // accent: faction's secondary material (Temple Blue cloth / Star-Metal Silver / Dried Blood)
+    const a = new THREE.MeshStandardMaterial({
+      color: accent ?? body.getHex(), roughness: 0.55, metalness: 0.35, flatShading: true,
+    });
+    factionMats.set(key, {
+      b, a,
+      g: new THREE.MeshStandardMaterial({ color: 0x111114, emissive: glow, emissiveIntensity: 1.8, roughness: 0.5, flatShading: true }),
+      g2: new THREE.MeshStandardMaterial({ color: 0x111114, emissive: glow2 ?? glow, emissiveIntensity: 1.9, roughness: 0.5, flatShading: true }),
+    });
+  }
+  return factionMats.get(key);
+}
+
+// Cache one template per (model, faction). The detailed geometry is built once;
+// every spawned unit is a light clone() that shares geometry + materials, so the
+// extra detail costs almost nothing per unit.
+const unitTemplates = new Map();
+export function buildUnitMesh(modelKey, color, glow, accent, glow2) {
+  const key = [modelKey, color, glow, accent, glow2].join('|');
+  let template = unitTemplates.get(key);
+  if (!template) {
+    const { b, g, a, g2 } = getFactionMats(color, glow, accent, glow2);
+    template = (unitBuilders[modelKey] || unitBuilders.worker)(b, g, a, g2);
+    const scale = modelKey.startsWith('boss_') ? 2.6 : modelKey.startsWith('hero_') ? 1.9 : 1.35;
+    template.scale.setScalar(scale);
+    template.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; } });
+    unitTemplates.set(key, template);
+  }
+  return template.clone();
+}
+
+export function buildBuildingMesh(modelKey, color, glow, accent, glow2) {
+  const { b, g, a, g2 } = getFactionMats(color, glow, accent, glow2);
+  const grp = (buildingBuilders[modelKey] || buildingBuilders.barracks)(b, g, a, g2);
+  grp.traverse(o => { if (o && o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  return grp;
+}

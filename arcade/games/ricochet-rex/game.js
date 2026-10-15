@@ -434,7 +434,7 @@ function killEnemy(e, dx, dy, cause, b = 0) {
   burst(scene, V(e.x, e.y + 1.4, 0.6), ['#ffffff', '#ffd23f', '#fff4a8'], 14, { speed: 0.11, up: 0.06, size: 0.9, shape: 'sphere', gravity: 0.002 });
   tone(300 + shotKills * 80, 0.12, 'triangle', 0.13, 0.5); tone(90, 0.18, 'square', 0.08, 0.5); buzz([25, 20, 25]); shake = Math.max(shake, 0.25);
   addScore(100 * Math.max(1, shotKills));
-  const multi = ['', '', 'DOUBLE KILL!', 'TRIPLE KILL!', 'QUAD KILL!', 'MEGA KILL!', 'MEGA KILL!'][Math.min(6, shotKills)];
+  const multi = ['', '', 'DOUBLE HIT!', 'TRIPLE HIT!', 'QUAD HIT!', 'MEGA HIT!', 'MEGA HIT!'][Math.min(6, shotKills)];
   const word = multi || (cause === 'boom' ? 'BOOM!' : cause === 'crush' ? 'CRUSHED!' : b > 0 ? 'RICOCHET!' : ['BULLSEYE!', 'GOTCHA!', 'NICE SHOT!'][Math.floor(Math.random() * 3)]);
   ui.pop(word, multi ? '#ffd23f' : '#ffffff', 36 + Math.min(4, shotKills) * 3, 27);
   ui.progress(killed / total);

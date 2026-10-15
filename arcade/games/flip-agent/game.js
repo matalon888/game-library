@@ -315,7 +315,7 @@ function killActor(a, dx, dy, part, how = 'shot') {
   if (a.kind === 'hostage') { lose('hostage'); return; }
   kills++; flipKills++;
   let pts = 10, txt = ['NICE!', 'GREAT!', 'COOL!'][Math.floor(Math.random() * 3)], col = '#ffffff';
-  if (part === 'head') { pts += 10; txt = 'HEADSHOT!'; col = '#ffd23f'; }
+  if (part === 'head') { pts += 10; txt = 'BULLSEYE!'; col = '#ffd23f'; }
   if (how === 'ricochet') { pts += 15; txt = 'RICOCHET!'; col = '#7cf3ff'; }
   if (how === 'boom') { pts += 5; txt = 'KABOOM!'; col = '#ff8a3d'; }
   if (flipKills >= 2) { pts += flipKills * 5; txt = ['', '', 'DOUBLE!', 'TRIPLE!', 'QUAD!', 'MAYHEM!'][Math.min(5, flipKills)]; col = '#ff5d8f'; }
