@@ -34,42 +34,6 @@
   "clip": null
  },
  {
-  "slug": "brianrisk-synthblast-threejs-game",
-  "name": "SYNTHBLAST",
-  "blurb": "Drive a tank through a synthwave 3D world and shoot enemies while managing armor and ammo.",
-  "category": "3D",
-  "author": "brianrisk",
-  "credit": "by brianrisk · Apache-2.0",
-  "licence": "Apache-2.0",
-  "source": "https://github.com/brianrisk/SYNTHBLAST-threejs-game",
-  "entry": "index.html",
-  "external": null,
-  "orientation": "landscape",
-  "controls": null,
-  "fit": null,
-  "added": "2026-10-14",
-  "stars": 142,
-  "flag": null,
-  "desk_only": true,
-  "review": {
-   "by": "Claude",
-   "depth": 5,
-   "polish": 6,
-   "ai_built": "unknown",
-   "pitch": "Drive a tank through a synthwave 3D world and blast enemies."
-  },
-  "tags": [
-   "Shooters"
-  ],
-  "made": "2022-08-05",
-  "platform": "desktop",
-  "public": null,
-  "cover": "covers/brianrisk-synthblast-threejs-game.webp",
-  "thumb": "covers/brianrisk-synthblast-threejs-game.webp",
-  "icon": "art/brianrisk-synthblast-threejs-game.webp",
-  "clip": "clips/brianrisk-synthblast-threejs-game.mp4"
- },
- {
   "slug": "miktaew-yet-another-idle-rpg",
   "name": "Yet Another Idle RPG",
   "blurb": "Explore locations, fight enemies, train skills and manage gear as your hero progresses.",

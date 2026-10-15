@@ -1,5 +1,5 @@
 // RIFFCADE arcade shell: home screen, player, on-screen controls, fit-to-screen, ads, install prompts.
-// Games run unmodified in a same-origin iframe; everything mobile-specific lives here.
+// Games run in a same-origin, sandboxed iframe; everything mobile-specific lives here.
 (function () {
   const API = 'https://mcp.riffcade.com';
   const EMBED = new URLSearchParams(location.search).get('embed') === 'chat'; // inside ChatGPT/Claude: no ads, no install prompts
