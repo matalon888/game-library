@@ -129,7 +129,7 @@ html.rc-lock,html.rc-lock body{overflow:hidden}
   if (!needed) return;
   start();
   const ready = () => {
-    if (!stored() && !US) open();
+    if (!stored() && !US && !window.RC_NO_POPUP) open();   // go.html sets RC_NO_POPUP: outside the US it just stays off (no tracking), no extra tap
     // "Privacy choices" in the footer: change your mind as easily as you chose (arcade .foot, landing footer nav)
     const foot = document.querySelector('.foot, footer nav');
     if (foot && !document.getElementById('rcChoices')) {
