@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: TODAY_LAYOUT=site python3 tools/build_today.py
+      - run: (pip install -q --break-system-packages pillow || pip install -q pillow || true); TODAY_LAYOUT=site python3 tools/build_today.py
       - run: |
           git config user.name "agentpark-today"; git config user.email "actions@users.noreply.github.com"
-          git add today.html arcade/today.json
+          git add today.html arcade/today.json arcade/today-poster.jpg
           git diff --cached --quiet && exit 0
           git commit -qm "today: $(date -u +%F)"
           for i in 1 2 3; do git pull -q --rebase origin main && git push -q && exit 0; sleep 5; done; exit 1

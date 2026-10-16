@@ -68,7 +68,7 @@ def pick_cat(c):
     return (new + pool[off:] + pool[:off])[:PER_CAT]
 
 data = {"title": "AGENTPARK: new games", "date": today.isoformat(), "more": f"{SITE}/today", "total": len(ok),
-        "game_of_the_day": {"name": gotd["name"], "category": gotd["category"], "pitch": pitch(gotd), "image": img(gotd), "play_url": play(gotd, "gotd")},
+        "poster": f"{SITE}/arcade/today-poster.jpg?d={today.isoformat()}", "game_of_the_day": {"name": gotd["name"], "category": gotd["category"], "pitch": pitch(gotd), "image": img(gotd), "play_url": play(gotd, "gotd")},
         "games": [{"name": g["name"], "category": g["category"], "blurb": g.get("blurb") or "", "pitch": pitch(g), "score": score(g),
                    "added": g.get("added"), "desktop_only": bool(g.get("desk_only")), "image": img(g), "play_url": play(g, i + 1)}
                   for i, g in enumerate(newest[:NEW])],
@@ -79,6 +79,72 @@ for path in ((os.path.join(ROOT, "arcade/today.json"),) if SITE_LAYOUT else (os.
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(data, f, indent=1, ensure_ascii=False); f.write("\n")
+
+
+# ---- today's poster: the game of the day and every category's picks in ONE picture with the names on it. Chats show a
+# web picture only after a tap (Claude: "Load Image") or not at all, so one picture of everything beats 80 covers.
+POSTER = f"{SITE}/arcade/today-poster.jpg?d={today.isoformat()}"   # the date makes every day a new URL (chat caches)
+def make_poster():
+    from PIL import Image, ImageDraw, ImageFont
+    font = os.path.join(OUT, "tools", "fonts", "Figtree.ttf")
+    def F(size, w="Bold"):
+        f = ImageFont.truetype(font, size)
+        try: f.set_variation_by_name(w)
+        except Exception: pass
+        return f
+    W, M, G, N = 1080, 28, 12, PER_CAT
+    cw = (W - 2 * M - (N - 1) * G) // N; ch = cw * 4 // 3
+    BG, INK, MUT, ACC, CARD = (20, 18, 43), (255, 255, 255), (178, 172, 214), (110, 231, 160), (38, 35, 72)
+    cats_ = [(c, xs) for c, xs in data["categories"].items() if xs]
+    H = 150 + 460 + len(cats_) * (66 + ch + 70) + 90
+    im = Image.new("RGB", (W, H), BG); d = ImageDraw.Draw(im)
+    def cover(g, w, h):
+        rel = g.get("thumb") or g.get("cover")
+        try: c = Image.open(os.path.join(ROOT, "arcade", rel)).convert("RGB")
+        except Exception: return Image.new("RGB", (w, h), CARD)
+        r = max(w / c.width, h / c.height); c = c.resize((round(c.width * r), round(c.height * r)), Image.LANCZOS)
+        return c.crop(((c.width - w) // 2, 0, (c.width - w) // 2 + w, h))   # keep the top: titles and heroes sit there
+    def fit(t, f, w, lines=2):
+        out, cur = [], ""
+        for word in t.split():
+            nxt = (cur + " " + word).strip()
+            if d.textlength(nxt, font=f) <= w: cur = nxt; continue
+            if cur: out.append(cur)
+            cur = word
+            if len(out) == lines: break
+        if cur and len(out) < lines: out.append(cur)
+        if len(out) == lines and " ".join(out) != t.strip():
+            while out[-1] and d.textlength(out[-1] + "…", font=f) > w: out[-1] = out[-1][:-1]
+            out[-1] = out[-1].rstrip() + "…"
+        return out
+    short = lambda n: n.split(":")[0].strip()
+    d.text((M, 34), "AGENTPARK Today", font=F(54, "Black"), fill=INK)
+    d.text((M, 100), f"{today:%A}, {today.day} {today:%B}  ·  {len(ok)} free games  ·  play at agentpark.co", font=F(26, "SemiBold"), fill=MUT)
+    y = 150; gw, gh = 300, 400
+    im.paste(cover(gotd, gw, gh), (M, y))
+    x = M + gw + 30; d.text((x, y + 4), "GAME OF THE DAY", font=F(26, "ExtraBold"), fill=ACC)
+    ty = y + 44
+    for ln in fit(gotd["name"], F(48, "Black"), W - x - M, 3): d.text((x, ty), ln, font=F(48, "Black"), fill=INK); ty += 56
+    ty += 10
+    for ln in fit(pitch(gotd), F(28, "Medium"), W - x - M, 6): d.text((x, ty), ln, font=F(28, "Medium"), fill=MUT); ty += 36
+    y += gh + 60
+    for c, xs in cats_:
+        d.text((M, y), c, font=F(40, "Black"), fill=INK)
+        d.text((W - M, y + 12), "more at agentpark.co", font=F(22, "SemiBold"), fill=MUT, anchor="ra")
+        y += 66
+        for i, x_ in enumerate(xs):
+            g = next(g for g in shown if g["name"] == x_["name"]); px = M + i * (cw + G)
+            im.paste(cover(g, cw, ch), (px, y))
+            if x_["new"]:
+                d.rounded_rectangle((px + 6, y + 6, px + 66, y + 34), 8, fill=(255, 77, 77)); d.text((px + 36, y + 20), "NEW", font=F(18, "Black"), fill=INK, anchor="mm")
+            for j, ln in enumerate(fit(short(x_["name"]), F(22, "Bold"), cw, 2)): d.text((px, y + ch + 8 + j * 26), ln, font=F(22, "Bold"), fill=INK)
+        y += ch + 70
+    d.text((W // 2, H - 50), "Every game is free in your browser: agentpark.co", font=F(28, "Bold"), fill=ACC, anchor="mm")
+    im.save(os.path.join(OUT, "arcade", "today-poster.jpg"), quality=74, optimize=True, progressive=True)
+try:
+    make_poster()
+except Exception as ex:   # no Pillow / font: the page still builds, just without the poster line
+    print("today: no poster:", ex); POSTER = ""
 
 e = html.escape
 date = f"{today:%A}, {today.day} {today:%B}"
@@ -204,6 +270,7 @@ footer a {{ text-decoration: underline }}
 <span class="btn">▶ Play free</span><span class="meta">{e(EMOJI.get(gotd['category'], '🎮'))} {e(gotd['category'])}{f" · ★ {gs_:.1f}" if gs_ else ""}{" · best on a computer" if gotd.get("desk_only") else ""}</span></div></a></div>
 <details class="list pad" open><summary>📋 Today's list with links</summary>
 <p>Game of the day, then 6 picks in every category (🆕 = just added), each with its cover, name and link. They change every day. All free, in the browser.</p>
+{f'<p class="poster">🖼️ <b>Today in one picture</b> (all of these games with their names): <a href="{e(POSTER)}">{e(POSTER)}</a></p>' if POSTER else ""}
 <p class="gl"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="48" height="80">🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
 <p>🎩 A game broken, or an idea for the park? Tell the Park Keeper (it reads every note): <a href="{SITE}/arcade/?keeper=1">{SITE}/arcade/?keeper=1</a></p>
 {text}
