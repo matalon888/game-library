@@ -1,0 +1,77 @@
+/* The Park Keeper: the library's feedback chat (keeper.js). Always night-dark, whatever the page theme. */
+.kp { --kp-bg: #0B0F1C; --kp-card: #121829; --kp-line: #222B45; --kp-ink: #EEF2FF; --kp-mute: #8E97B8; --kp-glow: #7DF4FF; --kp-leaf: #7FE09A;
+  position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); z-index: 14; font-family: var(--body, system-ui, sans-serif) }
+
+/* the button: the keeper's face, breathing, with fireflies */
+.kp-btn { position: relative; width: 66px; height: 66px; padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: #000 url(brand/keeper.webp) center/118% no-repeat;
+  box-shadow: 0 0 0 2px rgba(125, 244, 255, .55), 0 10px 26px -6px rgba(0, 0, 0, .55), 0 0 22px rgba(125, 244, 255, .35);
+  animation: kp-breathe 3.6s ease-in-out infinite; transition: transform .25s cubic-bezier(.2, 1.4, .4, 1) }
+.kp-btn:hover { transform: translateY(-3px) scale(1.06) }
+.kp-btn:active { transform: scale(.94) }
+.kp-btn:focus-visible { outline: 3px solid var(--kp-glow); outline-offset: 4px }
+.kp-btn i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #F8FF8A; box-shadow: 0 0 8px 2px rgba(240, 255, 120, .8); pointer-events: none; opacity: 0;
+  animation: kp-fly 4.2s ease-in-out infinite }
+.kp-btn i:nth-child(1) { left: -6px; top: 12px }
+.kp-btn i:nth-child(2) { right: -8px; top: 26px; animation-delay: 1.4s }
+.kp-btn i:nth-child(3) { left: 18px; top: -8px; animation-delay: 2.8s }
+.kp.open .kp-btn { box-shadow: 0 0 0 2px var(--kp-glow), 0 0 30px rgba(125, 244, 255, .6) }
+@keyframes kp-breathe { 50% { box-shadow: 0 0 0 2px rgba(125, 244, 255, .8), 0 10px 26px -6px rgba(0, 0, 0, .55), 0 0 34px rgba(125, 244, 255, .55) } }
+@keyframes kp-fly { 0%, 100% { opacity: 0; transform: translate(0, 0) } 30% { opacity: 1 } 60% { opacity: .9; transform: translate(6px, -10px) } 80% { opacity: 0; transform: translate(-4px, -16px) } }
+
+/* first-visit hint bubble */
+.kp-hint { position: absolute; right: 76px; bottom: 14px; width: max-content; max-width: 210px; padding: 9px 13px; border-radius: 14px 14px 4px 14px; background: var(--kp-card); color: var(--kp-ink);
+  border: 1px solid var(--kp-line); font: 500 13.5px/1.35 var(--body, system-ui); box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .6); cursor: pointer;
+  animation: kp-pop .45s cubic-bezier(.2, 1.4, .4, 1) both }
+.kp-hint b { color: var(--kp-glow); font-weight: 700 }
+
+/* the chat */
+.kp-panel { position: absolute; right: 0; bottom: 80px; width: min(370px, calc(100vw - 32px)); max-height: min(560px, calc(100dvh - 120px)); display: grid; grid-template-rows: auto 1fr auto;
+  background: radial-gradient(120% 60% at 50% 0%, #17203A 0%, var(--kp-bg) 60%); color: var(--kp-ink); border: 1px solid var(--kp-line); border-radius: 22px; overflow: hidden;
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, .7), 0 0 0 1px rgba(125, 244, 255, .06); transform-origin: 100% 100%; animation: kp-pop .32s cubic-bezier(.2, 1.3, .4, 1) both }
+.kp-panel[hidden] { display: none }
+@keyframes kp-pop { from { opacity: 0; transform: translateY(10px) scale(.92) } }
+.kp-head { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px; border-bottom: 1px solid var(--kp-line) }
+.kp-head .kp-ava { width: 42px; height: 42px; border-radius: 50%; background: #000 url(brand/keeper.webp) center/120% no-repeat; box-shadow: 0 0 0 1.5px rgba(125, 244, 255, .5), 0 0 14px rgba(125, 244, 255, .3); flex: none }
+.kp-head b { display: block; font: 800 16px/1.15 var(--display, system-ui) }
+.kp-head small { display: flex; align-items: center; gap: 6px; color: var(--kp-mute); font-size: 12px }
+.kp-head small::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--kp-leaf); box-shadow: 0 0 8px var(--kp-leaf) }
+.kp-x { margin-left: auto; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .06); color: var(--kp-mute); font: 400 22px/1 system-ui; cursor: pointer }
+.kp-x:hover { background: rgba(255, 255, 255, .12); color: var(--kp-ink) }
+
+.kp-log { overflow-y: auto; padding: 14px 14px 6px; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; overscroll-behavior: contain }
+.kp-m { max-width: 86%; padding: 9px 13px; border-radius: 16px; font-size: 14.5px; line-height: 1.42; white-space: pre-wrap; overflow-wrap: anywhere; animation: kp-in .28s ease-out both }
+.kp-m.k { align-self: flex-start; background: var(--kp-card); border: 1px solid var(--kp-line); border-bottom-left-radius: 5px }
+.kp-m.u { align-self: flex-end; background: linear-gradient(135deg, #2BC7D9, #5B8CFF); color: #061018; font-weight: 500; border-bottom-right-radius: 5px }
+@keyframes kp-in { from { opacity: 0; transform: translateY(6px) } }
+.kp-dots { display: inline-flex; gap: 4px; padding: 13px 14px }
+.kp-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--kp-glow); opacity: .35; animation: kp-dot 1s infinite }
+.kp-dots span:nth-child(2) { animation-delay: .15s } .kp-dots span:nth-child(3) { animation-delay: .3s }
+@keyframes kp-dot { 40% { opacity: 1; transform: translateY(-3px) } }
+.kp-chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 2px 0 4px; animation: kp-in .3s ease-out both }
+.kp-chips button { border: 1px solid rgba(125, 244, 255, .35); background: rgba(125, 244, 255, .07); color: var(--kp-ink); border-radius: 999px; padding: 8px 13px; font: 500 13.5px/1 var(--body, system-ui); cursor: pointer }
+.kp-chips button:hover, .kp-chips button:focus-visible { background: rgba(125, 244, 255, .18); border-color: var(--kp-glow); outline: none }
+
+.kp-form { display: grid; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--kp-line); background: rgba(5, 8, 16, .5) }
+.kp-row { display: flex; gap: 8px; align-items: flex-end }
+.kp-form textarea, .kp-form input:not(.kp-hp) { width: 100%; box-sizing: border-box; border: 1px solid var(--kp-line); background: var(--kp-card); color: var(--kp-ink); border-radius: 14px;
+  font: 400 15px/1.4 var(--body, system-ui); padding: 10px 12px; resize: none }
+.kp-form textarea { min-height: 44px; max-height: 130px }
+.kp-form input:not(.kp-hp) { font-size: 13.5px; padding: 8px 12px; border-radius: 12px }
+.kp-form textarea:focus, .kp-form input:focus { outline: none; border-color: rgba(125, 244, 255, .6); box-shadow: 0 0 0 3px rgba(125, 244, 255, .12) }
+.kp-form ::placeholder { color: #6A7394 }
+.kp-send { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--kp-glow); color: #061018; cursor: pointer; display: grid; place-items: center;
+  box-shadow: 0 0 16px rgba(125, 244, 255, .45); transition: transform .15s, opacity .15s }
+.kp-send:disabled { opacity: .35; box-shadow: none; cursor: default }
+.kp-send:not(:disabled):hover { transform: scale(1.07) }
+.kp-send svg { width: 20px; height: 20px }
+.kp-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0 }
+.kp-note { margin: 0; color: var(--kp-mute); font-size: 11.5px; text-align: center }
+
+@media (max-width: 520px) {
+  .kp-panel { position: fixed; left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); width: auto }
+  .kp-btn { width: 60px; height: 60px }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kp-btn, .kp-btn i, .kp-panel, .kp-m, .kp-hint, .kp-chips, .kp-dots span { animation: none }
+  .kp-btn i { opacity: .7 }
+}
