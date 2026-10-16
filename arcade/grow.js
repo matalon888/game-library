@@ -317,9 +317,14 @@
       ls.set('subDay', today());
       ev('sub_shown');
       // per AI: one that already runs this browser's daily task gets the list-only prompt (no second task)
-      const PF = ai => (RH && RH.prompt(ai)) || P;
+      // the game they were just playing (or, back from the Facebook browser in Safari, the one in ?lg=) rides along as &g= on the
+      // today link, and the first reply ends with it: the ad promised a game opening from the chat (arcade-api today(): "Your game")
+      const yg0 = G || gs.find(x => x.slug === q.get('lg')), yg = yg0 && yg0.chat_safe !== false ? yg0 : null;   // casino games never go to the AI
+      const withGame = t => !yg ? t : t.replace(/(https:\/\/today\.(?:agentpark\.co|riffcade\.com)\/\?u=[a-z0-9]+)/, '$1&g=' + encodeURIComponent(yg.slug))
+        + ` Only today: finish your reply with my game "${yg.name}" so I can keep playing (its link is at the top of the page under "Your game").`;
+      const PF = ai => withGame((RH && RH.prompt(ai)) || P);
       const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Right now, open https://today.agentpark.co (add today\'s date to the link as d=YYYY-MM-DD, so you get today\'s page and not a saved copy) and start your reply with its link as "📸 See today\'s games with pictures". Then show the page\'s "Today in one picture" poster as an image. Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don\'t search the web for pictures of them: other games share these names. Then check my scheduled tasks: if a daily AGENT PARK games task already exists, don\'t create another, just tell me it is on. If not, make this a daily task every morning at 8am and confirm it is scheduled.';
-      const back = 'https://agentpark.co/arcade/?sub=1' + (RH && RH.agentCode ? '&apu=' + RH.agentCode() : '');
+      const back = 'https://agentpark.co/arcade/?sub=1' + (RH && RH.agentCode ? '&apu=' + RH.agentCode() : '') + (G ? '&lg=' + encodeURIComponent(G.slug) : '');
       // short on purpose: they don't know us yet. In the Facebook / Instagram browser ChatGPT and Claude open signed out, so
       // there the one step is Safari / Chrome (it comes back here with ?sub=1 and the same code, and shows the AI buttons).
       const esc1 = metaInApp && !fromEscape;
