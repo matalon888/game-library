@@ -141,7 +141,7 @@
     return pool[Math.floor(Math.random() * Math.min(pool.length, 12))] || null; // among the best-ranked few, so it's not always the same one
   }
   // the feed (config.js FEED): upright one-thumb games on our kit, shuffled once per tab with the hand-checked ones first.
-  // Feeds the swipe-up rail under every game and the round-over picks. Skips games played this tab.
+  // Feeds the next-game rail under every game and the round-over picks. Skips games played this tab.
   function feed() {
     let f = ss.get('feed', null);
     if (!f) {
@@ -248,8 +248,8 @@
     });
   }
 
-  // ---------------------------------------------------------------- swipe up for the next game (every game on the web)
-  // A strip under the game: "Next game: <name>  ↑ Swipe up". Swipe it up (or tap it) and the next game slides in and starts by
+  // ---------------------------------------------------------------- next game button (every game on the web)
+  // A strip under the game: "Next game: <name>  [Next game ▶]". Click the button and the next game slides in and starts by
   // itself (shell.js autostart via ap.auto), like the next Reel: someone who doesn't like this game gets another one instead
   // of closing the tab. The strip sits under the game, never on it, so the game keeps all its own swipes.
   function swipeTo(nx, how) {
@@ -260,24 +260,19 @@
     o.innerHTML = `<img src="${esc(nx.cover || art(nx))}" alt=""><div><small>Next game</small><b>${esc(nx.name)}</b></div>`;
     document.body.appendChild(o);
     requestAnimationFrame(() => o.classList.add('in'));
-    setTimeout(() => go(nx.slug, '&from=' + how), 260);
+    setTimeout(() => go(nx.slug, '&from=' + how), 900);   // a beat on the next game's cover, so the switch reads as a switch
   }
   function rail() {
     const p = document.querySelector('.player');
     if (!p || $('gRail') || kids) return;
     const nx = feedNext(); if (!nx) return;
     const r = document.createElement('div'); r.id = 'gRail'; r.className = 'g-rail';
-    r.setAttribute('role', 'button'); r.setAttribute('aria-label', 'Next game: ' + nx.name);
-    r.innerHTML = `<img src="${esc(art(nx))}" alt=""><span class="g-rt"><small>Next game</small><b>${esc(nx.name)}</b></span><span class="g-up"><i aria-hidden="true">↑</i>Swipe up</span>`;
+    r.innerHTML = `<img src="${esc(art(nx))}" alt=""><span class="g-rt"><small>Next game</small><b>${esc(nx.name)}</b></span><button type="button" class="g-next" aria-label="Next game: ${esc(nx.name)}">Next game ▶</button>`;
     p.appendChild(r); p.classList.add('has-rail');
     setTimeout(() => { const l = document.createElement('link'); l.rel = 'prefetch'; l.href = `games/${nx.slug}/${nx.entry || 'index.html'}`; document.head.appendChild(l); }, 4000);
-    let y0 = null, dy = 0;
-    r.addEventListener('pointerdown', e => { y0 = e.clientY; dy = 0; try { r.setPointerCapture(e.pointerId); } catch (x) {} });
-    r.addEventListener('pointermove', e => { if (y0 == null) return; dy = Math.min(0, e.clientY - y0); r.style.transform = `translateY(${Math.round(dy * 0.5)}px)`; });
-    r.addEventListener('pointerup', () => { if (y0 == null) return; const d = dy; y0 = null; r.style.transform = ''; if (d < -24) swipeTo(nx, 'swipe'); else if (d > -8) swipeTo(nx, 'tap'); });
-    r.addEventListener('pointercancel', () => { y0 = null; r.style.transform = ''; });
-    r.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); swipeTo(nx, 'tap'); } });
-    r.tabIndex = 0;
+    // only a real click on the button moves on (no swipes, no taps on the strip): a stray touch near the game's bottom edge must never switch games
+    const t0 = Date.now();
+    r.querySelector('.g-next').addEventListener('click', () => { if (Date.now() - t0 > 1500) swipeTo(nx, 'tap'); });
   }
 
   // ---------------------------------------------------------------- round over (our kit games report 'lost'): play again or 3 others

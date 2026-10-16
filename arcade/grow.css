@@ -52,20 +52,19 @@ body > .g-sub .eyebrow { color: #e4ff5a; font-weight: 700; letter-spacing: .12em
 .g-sub .g-pros { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: -2px 0 6px }
 .g-sub .g-pros span { font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.1); white-space: nowrap }
 
-/* swipe up for the next game: a strip under the game (grid row after the stage and the pad), never over it */
+/* next game: a strip under the game (grid row after the stage and the pad), never over it */
 .player.has-rail.playing { grid-template-rows: 1fr auto auto }
 .g-rail { display: none; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 7px 12px; background: #0b0d12; border-top: 1px solid rgba(255,255,255,.08);
-  color: #fff; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; transition: transform .15s }
+  color: #fff; user-select: none; -webkit-user-select: none }
 .player.playing .g-rail { display: grid }
 .g-rail img { width: 34px; height: 34px; border-radius: 9px; object-fit: cover }
 .g-rail .g-rt { min-width: 0; line-height: 1.15 }
 .g-rail small { display: block; font-size: 11px; color: rgba(255,255,255,.55); letter-spacing: .04em; text-transform: uppercase }
 .g-rail b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.g-rail .g-up { display: flex; align-items: center; gap: 6px; font: 700 13px var(--display, system-ui); color: var(--coin, #e5ff54); white-space: nowrap }
-.g-rail .g-up i { font-style: normal; font-size: 18px; animation: gUp 1.4s ease-in-out infinite }
-@keyframes gUp { 50% { transform: translateY(-4px) } }
+.g-rail .g-next { border: 0; border-radius: 999px; padding: 9px 16px; background: var(--coin, #e5ff54); color: #0b0d12; font: 800 14px var(--display, system-ui); white-space: nowrap; cursor: pointer }
+.g-rail .g-next:active { transform: scale(.96) }
 .g-swap { position: fixed; inset: 0; z-index: 60; background: #0b0d12; display: grid; place-items: center; align-content: center; gap: 16px; text-align: center; color: #fff;
-  transform: translateY(100%); transition: transform .25s ease-out }
+  transform: translateY(100%); transition: transform .45s ease-out }
 .g-swap.in { transform: none }
 .g-swap img { width: min(70vw, 300px); aspect-ratio: 1; object-fit: cover; border-radius: 28px }
 .g-swap small { display: block; font-size: 12px; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: .06em }
@@ -75,4 +74,4 @@ body > .g-sub .eyebrow { color: #e4ff5a; font-weight: 700; letter-spacing: .12em
 .g-picks button { border: 0; background: none; color: inherit; padding: 0; cursor: pointer; display: grid; gap: 5px; font: 600 12px/1.2 system-ui, sans-serif }
 .g-picks img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover }
 .g-picks span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-@media (prefers-reduced-motion: reduce) { .g-rail .g-up i { animation: none } .g-swap { transition: none } }
+@media (prefers-reduced-motion: reduce) { .g-swap { transition: none } }
