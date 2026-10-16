@@ -80,7 +80,7 @@
     let ok = false;
     try {
       const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
-        kind: kind || 'other', text, contact: mail.value.trim() || null, hp: hp.value || null, page: location.pathname, u: ls.get('ap.u'), plat }) });
+        kind: kind || 'other', text, contact: mail.value.trim() || null, hp: hp.value || null, page: location.pathname + (viaLink ? '?keeper' : ''), u: ls.get('ap.u'), plat }) });
       ok = r.ok;
       if (r.status === 429) { d.remove(); say('k', "Whoa, that's a lot of notes. Give me a minute to catch up and try again."); busy = false; grow(); return; }
     } catch (err) {}
@@ -96,6 +96,10 @@
     }
     busy = false; grow();
   });
+
+  // ?keeper=1 (the link on the Today page the daily AIs read) opens the chat straight away
+  const viaLink = new URLSearchParams(location.search).has('keeper');
+  if (viaLink) { ls.set('ap.kp.seen', '1'); setTimeout(open, 400); }
 
   // a one-time hint, a few seconds in, so people know the keeper exists
   // (waits while the privacy popup or another sheet is up, and gives up after a minute)

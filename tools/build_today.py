@@ -186,6 +186,10 @@ main {{ max-width: 1100px; margin: 0 auto; padding: max(18px, env(safe-area-inse
 .list li span {{ min-width: 0 }}
 .list a {{ text-decoration: underline; overflow-wrap: anywhere }}
 .daily {{ margin: 0; font-size: 14px; background: var(--surface); border: 1px dashed var(--line); border-radius: 16px; padding: 12px 16px }}
+.keeper {{ display: flex; align-items: center; gap: 14px; margin-inline: max(16px, env(safe-area-inset-left)) 16px; padding: 14px 16px; border-radius: 20px; background: #0B0F1C; color: #EEF2FF; box-shadow: 0 0 0 1px rgba(125,244,255,.18), var(--shadow) }}
+.keeper .kav {{ flex: none; width: 52px; height: 52px; border-radius: 50%; background: #000 center/120% no-repeat; box-shadow: 0 0 0 2px rgba(125,244,255,.55), 0 0 18px rgba(125,244,255,.35) }}
+.keeper span:not(.kav) {{ flex: 1; min-width: 0 }} .keeper b {{ display: block; font-size: 15px }} .keeper small {{ font-size: 13px; color: #8E97B8 }}
+.keeper i {{ font: 800 22px var(--display); font-style: normal; color: #7DF4FF }}
 footer {{ font-size: 13px; color: var(--muted) }}
 footer a {{ text-decoration: underline }}
 </style>
@@ -202,11 +206,13 @@ footer a {{ text-decoration: underline }}
 <p class="gl"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="48" height="80">🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
 {text}
 <p>All the games with pictures: <a href="https://today.agentpark.co">https://today.agentpark.co</a></p>
+<p>🎩 A game broken, or an idea for the park? Tell the Park Keeper (it reads every note): <a href="{SITE}/arcade/?keeper=1">{SITE}/arcade/?keeper=1</a></p>
 </details>
 <nav class="chips pad" aria-label="Categories">{chips}</nav>
 {f'<div class="pad">{challenge}</div>' if challenge else ""}
 {rows}
 <p class="pad daily">📬 <b>Want this every morning?</b> Tell your AI: <q>Make this a daily task at 8am.</q> ChatGPT, Claude and Grok can all do it. No sign-up.</p>
+<a class="pad keeper" href="{SITE}/arcade/?keeper=1"><span class="kav" style="background-image:url('{SITE}/arcade/brand/keeper.webp')"></span><span><b>Something broken? Got an idea?</b><small>Tell the Park Keeper. The builders read every note, every morning.</small></span><i>→</i></a>
 <footer class="pad">See all {len(ok)} games in the park: <a href="{SITE}">{SITE.replace('https://', '')}</a>. New games every day.</footer>
 </main>
 </body>
