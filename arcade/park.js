@@ -249,7 +249,7 @@
     }
     const latest = LATEST = all.reduce((m, g) => (g.added > m ? g.added : m), '');
     $('count').textContent = `${all.length} games · ${all.filter(g => g.added === latest).length} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
-    $('heroN').textContent = all.length;
+    if ($('heroN')) $('heroN').textContent = all.length;
 
     world();
     const tabs = () => {
