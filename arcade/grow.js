@@ -174,6 +174,7 @@
     const count = ss.get('games', 0) + 1; ss.set('games', count);
     ev('game');
     t0 = Date.now();
+    try { if (!sessionStorage.getItem('ap.t1')) sessionStorage.setItem('ap.t1', String(t0)); } catch (e) {}   // first game start of the tab
     if (RH) RH.gameStart();
     ga('game_start', { game_id: G.slug, game_category: G.category || '', original: G.original ? 'yes' : 'no', source: src, list_position: pos, challenge: chN ? 'yes' : 'no', session_game_n: count, player_tier: tierNow });
     // Meta: every game start is a standard ViewContent (what ads optimise for); the 1st and 2nd of a session are custom events too
@@ -325,8 +326,12 @@
       // two versions of the line, one per browser (kept), counted as sub_line_a / sub_line_b next to sub_shown and the taps
       let line = ls.get('subLine', null); if (line !== 'a' && line !== 'b') { line = Math.random() < 0.5 ? 'a' : 'b'; ls.set('subLine', line); }
       ev('sub_line_' + line);
+      // how fast this visitor got from the ad tap to playing (attrib.js ap.t0 → first game start), the case against an app install
+      let fast = 0; try { const t0 = +sessionStorage.getItem('ap.t0'), t1 = +sessionStorage.getItem('ap.t1'); if (t0 && t1 > t0) fast = Math.max(1, Math.round((t1 - t0) / 1000)); } catch (e) {}
+      if (fast > 20) fast = 0;
       const o = card('g-sub', `<div class="eyebrow">Free</div><h2>Your free AI game center</h2>
-        <p class="g-sub-why">${line === 'b' ? 'No more app installs. New games every morning.' : 'Add it to your AI. New games every morning.'}</p>
+        <p class="g-sub-why">${fast ? `You were playing in <b>${fast} seconds</b>. ` : ''}${line === 'b' ? 'No more app installs.' : 'No download, no app store.'}</p>
+        <div class="g-pros"><span>⚡ Instant</span><span>📦 No storage</span><span>🎮 New games daily</span><span>💸 Free</span></div>
         ${esc1 ? (iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari to add it</a><p class="g-hint">Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b></p>`
             : `<a class="btn big" id="gOpen" href="intent://${back.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome to add it</a>`)
           : `<a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(PF('chatgpt'))}" target="_blank" rel="noopener">Add to ChatGPT</a>
