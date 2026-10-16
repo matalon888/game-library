@@ -128,6 +128,7 @@ page = f"""<!doctype html>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <script type="application/ld+json">{ld}</script>
+<link rel="stylesheet" href="{SITE}/arcade/keeper.css">
 <style>
 :root {{ --bg: #FFF6E6; --surface: #FFFFFF; --ink: #1E1B33; --muted: #6E6A84; --line: #F0E2C8; --grass: #22A257; --sun: #FFC93C; --coral: #FF6A55;
   --shadow: 0 1px 0 rgba(30,27,51,.04), 0 12px 28px -12px rgba(76,52,18,.28); --display: "Bricolage Grotesque", system-ui, sans-serif; --body: "DM Sans", system-ui, -apple-system, sans-serif; color-scheme: light }}
@@ -204,9 +205,9 @@ footer a {{ text-decoration: underline }}
 <details class="list pad" open><summary>📋 Today's list with links</summary>
 <p>Game of the day, then 6 picks in every category (🆕 = just added), each with its cover, name and link. They change every day. All free, in the browser.</p>
 <p class="gl"><img src="{e(img(gotd))}" alt="{e(gotd['name'])} cover" width="48" height="80">🏆 <b>Game of the day: {e(gotd['name'])}</b>: {e(pitch(gotd))} <a href="{e(play(gotd, 'gotd'))}">{e(play(gotd, 'gotd'))}</a></p>
+<p>🎩 A game broken, or an idea for the park? Tell the Park Keeper (it reads every note): <a href="{SITE}/arcade/?keeper=1">{SITE}/arcade/?keeper=1</a></p>
 {text}
 <p>All the games with pictures: <a href="https://today.agentpark.co">https://today.agentpark.co</a></p>
-<p>🎩 A game broken, or an idea for the park? Tell the Park Keeper (it reads every note): <a href="{SITE}/arcade/?keeper=1">{SITE}/arcade/?keeper=1</a></p>
 </details>
 <nav class="chips pad" aria-label="Categories">{chips}</nav>
 {f'<div class="pad">{challenge}</div>' if challenge else ""}
@@ -215,6 +216,7 @@ footer a {{ text-decoration: underline }}
 <a class="pad keeper" href="{SITE}/arcade/?keeper=1"><span class="kav" style="background-image:url('{SITE}/arcade/brand/keeper.webp')"></span><span><b>Something broken? Got an idea?</b><small>Tell the Park Keeper. The builders read every note, every morning.</small></span><i>→</i></a>
 <footer class="pad">See all {len(ok)} games in the park: <a href="{SITE}">{SITE.replace('https://', '')}</a>. New games every day.</footer>
 </main>
+<script src="{SITE}/arcade/keeper.js" defer></script>
 </body>
 </html>
 """
