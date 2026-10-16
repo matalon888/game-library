@@ -1,9 +1,10 @@
-# Rebuilds today.agentpark.co (today.html + arcade/today.json) twice a day from arcade/games.json, so every AI's morning
+# Rebuilds today.agentpark.co (today.html + arcade/today.json) three times a day (00:15, 05:30, 17:30 UTC) from arcade/games.json, so every AI's morning
 # task sees today's date and a new game of the day even when the Mac that adds games is off. tools/build_today.py is a copy
 # of ~/game-librarian/build_today.py, refreshed on every publish from the Mac.
 name: today
 on:
   schedule:
+    - cron: "15 0 * * *"
     - cron: "30 5 * * *"
     - cron: "30 17 * * *"
   workflow_dispatch:

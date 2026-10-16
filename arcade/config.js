@@ -9,6 +9,7 @@
 //   META_PIXEL_ID    Meta pixel, fires only after the visitor accepts in the consent banner (empty = no pixel)
 //   GA4_ID           Google Analytics 4 (G-…): Consent Mode, cookieless until Accept; mirrors every /api/ev event (empty = off)
 //   CHALLENGE_EPOCH  day #1 of the daily challenge (UTC); CHALLENGE_GAMES the curated rotation, in order
+//   SHOW_PROMPT      the prompt for a browser whose AI already runs the daily task (habits.js hasDaily): today's list, no second task
 //   PROMPT_TEST      A/B test of the daily prompt: each browser gets one of PROMPTS (a = DAILY_PROMPT, the control), carried as
 //                    today.riffcade.com/?v=<x> so taps, the AI's daily fetch and the visits from its links are credited to it
 //   TIERS            weak / okay / strong player thresholds (habits.js): strong = played on strong_days_7 of the last 7 days,
@@ -22,12 +23,13 @@ window.RIFFCADE = {
   "WHATSAPP_CHANNEL_URL": "",
   "META_PIXEL_ID": "1143064938054197",
   "GA4_ID": "G-N62V18VZ3S",
-  "DAILY_PROMPT": "Right now, open https://today.agentpark.co and start your reply with its link as \"📸 See today's games with pictures\". Then show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category. Then make this a daily task every morning at 8am and confirm it is scheduled.",
+  "DAILY_PROMPT": "Right now, open https://today.agentpark.co and start your reply with its link as \"📸 See today's games with pictures\". Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don't search the web for pictures of them: other games share these names. Then check my scheduled tasks: if a daily AGENT PARK games task already exists, don't create another, just tell me it is on. If not, make this a daily task every morning at 8am and confirm it is scheduled.",
+  "SHOW_PROMPT": "Right now, open https://today.agentpark.co and start your reply with its link as \"📸 See today's games with pictures\". Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don't search the web for pictures of them: other games share these names. My daily AGENT PARK task is already set, so don't create or change any task.",
   "PROMPT_TEST": false,
   "PROMPTS": {
-    "a": "Right now, open https://today.agentpark.co and start your reply with its link as \"📸 See today's games with pictures\". Then show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category. Then make this a daily task every morning at 8am and confirm it is scheduled.",
-    "b": "Right now, open https://today.agentpark.co and pick 6 games I'd enjoy from different categories, one line and a link each, plus the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled.",
-    "c": "Right now, open https://today.agentpark.co and give me 8 games for a quick break, grouped by category, one line and a link each, plus the page link to see them all with pictures. Then make this a daily task every morning at 8am and confirm it is scheduled."
+    "a": "Right now, open https://today.agentpark.co and start your reply with its link as \"📸 See today's games with pictures\". Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don't search the web for pictures of them: other games share these names. Then check my scheduled tasks: if a daily AGENT PARK games task already exists, don't create another, just tell me it is on. If not, make this a daily task every morning at 8am and confirm it is scheduled.",
+    "b": "Right now, open https://today.agentpark.co and pick 6 games I'd enjoy from different categories, one line and a link each, plus the page link to see them all with pictures. Then, unless I already have a daily AGENT PARK games task, make this a daily task every morning at 8am and confirm it is scheduled.",
+    "c": "Right now, open https://today.agentpark.co and give me 8 games for a quick break, grouped by category, one line and a link each, plus the page link to see them all with pictures. Then, unless I already have a daily AGENT PARK games task, make this a daily task every morning at 8am and confirm it is scheduled."
   },
   "TIERS": { "strong_days_7": 4, "strong_daily_days_7": 3, "okay_days_7": 2, "okay_games_today": 3, "okay_minutes_7": 10 },
   "CHALLENGE_EPOCH": "2026-10-15",

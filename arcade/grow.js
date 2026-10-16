@@ -298,7 +298,7 @@
   });
 
   // ---------------------------------------------------------------- "New games every morning" (SUBSCRIBE_V2)
-  const subDue = () => C.SUBSCRIBE_V2 && ls.get('subDay', null) !== today();
+  const subDue = () => C.SUBSCRIBE_V2 && ls.get('subDay', null) !== today() && !(RH && RH.hasDaily && ['chatgpt', 'claude', 'grok'].some(RH.hasDaily));   // not for someone whose AI already runs it
   const ua = navigator.userAgent;
   const metaInApp = /FBAN|FBAV|Instagram/.test(ua);
   const iPhone = /iPhone|iPad|iPod/.test(ua);
@@ -308,7 +308,9 @@
       ev('sub_shown');
       // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
       const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
-      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Right now, open https://today.agentpark.co and start your reply with its link as "📸 See today\'s games with pictures". Then show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category. Then make this a daily task every morning at 8am and confirm it is scheduled.';
+      // per AI: one that already runs this browser's daily task gets the list-only prompt (no second task)
+      const PF = ai => (RH && RH.prompt(ai)) || P;
+      const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Right now, open https://today.agentpark.co and start your reply with its link as "📸 See today\'s games with pictures". Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don\'t search the web for pictures of them: other games share these names. Then check my scheduled tasks: if a daily AGENT PARK games task already exists, don\'t create another, just tell me it is on. If not, make this a daily task every morning at 8am and confirm it is scheduled.';
       const back = 'https://agentpark.co/arcade/?sub=1';
       const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
         ${iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari</a><p>Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b>, or copy the link.</p><button class="btn ghost" id="gCopyLink">Copy link</button>`
@@ -317,8 +319,8 @@
       const o = card('g-sub', `<div class="eyebrow">New games every morning</div><h2>Get new games in your AI, every morning</h2>
         <div class="g-fresh">${fresh.map(g => `<figure><img src="${esc(art(g))}" alt=""><figcaption>${esc(g.name)}</figcaption></figure>`).join('')}</div>
         ${escapeHtml}
-        <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">ChatGPT: tap Send, that's it</a>
-        <a class="btn" id="gClaude" href="https://claude.ai/new?q=${encodeURIComponent(P)}" target="_blank" rel="noopener">Claude (Pro/Max)</a>
+        <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(PF('chatgpt'))}" target="_blank" rel="noopener">ChatGPT: tap Send, that's it</a>
+        <a class="btn" id="gClaude" href="https://claude.ai/new?q=${encodeURIComponent(PF('claude'))}" target="_blank" rel="noopener">Claude (Pro/Max)</a>
         ${C.WHATSAPP_CHANNEL_URL ? `<a class="btn" id="gWa" href="${esc(C.WHATSAPP_CHANNEL_URL)}" target="_blank" rel="noopener">WhatsApp Channel</a>` : ''}
         <button class="btn ghost" id="gSubClose">Not now</button>`);
       const close = () => { o.remove(); removeEventListener('keydown', key); done(); };
@@ -326,11 +328,11 @@
       addEventListener('keydown', key);
       const tap = ch => { if (RH && RH.agentTapped) RH.agentTapped(ch); ev('sub_tap_' + ch); pixel('DailyButtonTap', true); ga('prompt_tap', { ai: ch, prompt_variant: RH ? RH.variant() : 'a', placement: 'arcade_card', player_tier: tierNow }); fetch(API + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button: 'ptap-' + (RH ? RH.variant() : 'a') }) }).catch(() => {}); };
       // the prompt goes on the clipboard too: if ChatGPT stops for a log-in, or its app opens without it, they paste
-      $('gGpt').onclick = () => { tap('chatgpt'); copyText(P).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
+      $('gGpt').onclick = () => { tap('chatgpt'); copyText(PF('chatgpt')).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
       $('gClaude').onclick = () => {
         tap('claude');
         // the link opens Claude with the prompt filled in (claude.ai/new?q=, the app on phones); it goes on the clipboard too
-        copyText(P).then(ok => toast(ok ? 'Tap Send in Claude. Box empty? Paste, then Send.' : 'Paste this into Claude: ' + P));
+        copyText(PF('claude')).then(ok => toast(ok ? 'Tap Send in Claude. Box empty? Paste, then Send.' : 'Paste this into Claude: ' + PF('claude')));
       };
       if ($('gWa')) $('gWa').onclick = () => tap('whatsapp');
       if ($('gOpen')) $('gOpen').onclick = () => ev('sub_inapp_open');

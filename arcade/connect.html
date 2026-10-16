@@ -258,7 +258,7 @@ const DAILY_CARD_ENABLED = true;
 // The AI reads riffcade.com/today (plain HTML, rebuilt with every catalogue update by build_today.py).
 // habits.js: the prompt variant this browser gets while PROMPT_TEST runs (else DAILY_PROMPT)
 const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
-const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and start your reply with its link as "📸 See today\'s games with pictures". Then show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category. Then make this a daily task every morning at 8am and confirm it is scheduled.';
+const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and start your reply with its link as "📸 See today\'s games with pictures". Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don\'t search the web for pictures of them: other games share these names. Then check my scheduled tasks: if a daily AGENT PARK games task already exists, don\'t create another, just tell me it is on. If not, make this a daily task every morning at 8am and confirm it is scheduled.';
 // anonymous click count per button (button name + time, nothing else), like play counts
 const countClick = button => (window.RiffConsent && (RiffConsent.ga('daily_button_tap', { ai: button }), RiffConsent.ga('prompt_tap', { ai: button, prompt_variant: PV, placement: 'landing' }), RiffConsent.pixel('DailyButtonTap', true)),
   ['chatgpt', 'claude'].includes(button) && fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button: 'ptap-' + PV }) }).catch(() => {}), fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {}));
@@ -301,19 +301,24 @@ $('#veil').onclick = close;
 addEventListener('keydown', e => e.key === 'Escape' && close());
 // onboarding = the daily agent: each AI opens with the morning prompt (Claude empty: it warns on pre-filled links),
 // and the prompt is always on the clipboard too (log-in screens and apps can drop it). The plugin is the small link below.
-const DAILY_OPEN = { claude: 'https://claude.ai/new?q=' + encodeURIComponent(DAILY), chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
+// an AI that already runs this browser's daily task gets the list-only prompt, so a second tap makes no second task
+const dailyFor = k => (window.RiffHabits && RiffHabits.prompt(k)) || DAILY;
+const DAILY_BASE = { claude: 'https://claude.ai/new?q=', chatgpt: 'https://chatgpt.com/?q=', grok: 'https://grok.com/?q=' };
+const dailyOpen = k => DAILY_BASE[k] + encodeURIComponent(dailyFor(k));
+addEventListener('ap:daily', () => document.querySelectorAll('.ai').forEach(b => { b.href = dailyOpen(b.dataset.k); }));
 if (window.RiffHabits) RiffHabits.ob('view');
 // back from the AI: did its agent fetch today.agentpark.co with this browser's code? (habits.js agentWatch)
 if (window.RiffHabits) RiffHabits.agentWatch((state, k) => { const n = (HOSTS[k] || {}).name || 'your AI';
   toast(state === 'connected' ? '✅ ' + n + ' is connected. Your games are in the chat, new ones every morning.'
     : state === 'missing' ? n + " didn't check in yet. Did you tap Send? Tap " + n + ' again.' : 'Your morning games stopped. Tap ' + n + ' to turn them back on.', 6000); });
 document.querySelectorAll('.ai').forEach(b => {
-  const k = b.dataset.k; b.href = DAILY_OPEN[k];
+  const k = b.dataset.k; b.href = dailyOpen(k);
   b.addEventListener('click', () => {
+    const on = window.RiffHabits && RiffHabits.hasDaily(k), P = dailyFor(k); b.href = dailyOpen(k);
     countClick(k);
     if (window.RiffHabits) RiffHabits.agentTapped(k);
-    copyText(DAILY).then(ok => (window.RiffHabits && RiffHabits.ob(ok ? 'copied' : 'copy_fail', k), toast(!ok ? 'Paste this into ' + HOSTS[k].name + ': ' + DAILY
-      : 'Tap Send in ' + HOSTS[k].name + '. Box empty? Tap it, Paste, Send (the prompt is copied).', 3600)));
+    copyText(P).then(ok => (window.RiffHabits && RiffHabits.ob(ok ? 'copied' : 'copy_fail', k), toast(!ok ? 'Paste this into ' + HOSTS[k].name + ': ' + P
+      : (on ? 'Your daily games already run in ' + HOSTS[k].name + ". This opens today's list, no new task. " : '') + 'Tap Send in ' + HOSTS[k].name + '. Box empty? Tap it, Paste, Send (the prompt is copied).', 3600)));
   });
 });
 document.querySelectorAll('[data-plug]').forEach(a => a.onclick = e => { e.preventDefault(); openSheet(a.dataset.plug); });

@@ -3,7 +3,7 @@
 // daily-prompt variant this browser is shown (the A/B test in config.js PROMPTS, when PROMPT_TEST is on).
 // The prompt also carries this browser's random agent code (?u=, no id beyond it), so the page can ask whether its own AI
 // agent ran: right after the tap (connected / missing) and on later visits (stopped). See agentTapped() and agentWatch().
-// API (window.RiffHabits): profile(), tier(), gameStart(), gameEnd(seconds), daily(ai), source(), variant(), prompt(),
+// API (window.RiffHabits): profile(), tier(), gameStart(), gameEnd(seconds), daily(ai), source(), variant(), prompt(ai), hasDaily(ai),
 // agentCode(), agentTapped(ai), agentWatch(cb), ob(step, ai) (the onboarding log).
 (function () {
   if (new URLSearchParams(location.search).get('embed') === 'chat') return;
@@ -72,9 +72,11 @@
     if (!v || !PROMPTS[v]) { const ks = Object.keys(PROMPTS); v = ks[Math.floor(Math.random() * ks.length)]; try { localStorage.setItem('arcade.pv', v); } catch (e) {} }
     return v;
   }
-  function prompt() {
+  // prompt(ai): when that AI already runs this browser's daily task (hasDaily), the list-only SHOW_PROMPT, so a second tap
+  // doesn't make the AI create a second task (each one spends the user's messages every morning)
+  function prompt(ai) {
     const v = variant();
-    const text = (C.PROMPT_TEST && PROMPTS[v]) || C.DAILY_PROMPT || PROMPTS.a || '';
+    const text = (ai && hasDaily(ai) && C.SHOW_PROMPT) || (C.PROMPT_TEST && PROMPTS[v]) || C.DAILY_PROMPT || PROMPTS.a || '';
     return text.replace(/(https:\/\/today\.(?:agentpark\.co|riffcade\.com))\/?(?![?\w])/, (m, base) => base + '/?u=' + agentCode() + (C.PROMPT_TEST ? '&v=' + v : ''));
   }
 
@@ -93,6 +95,11 @@
   const tapGet = () => { try { return JSON.parse(localStorage.getItem('ap.tap')) || null; } catch (e) { return null; } };
   const tapSet = t => { try { localStorage.setItem('ap.tap', JSON.stringify(t)); } catch (e) {} };
   function agentTapped(ai) { tapSet({ ai, at: Date.now(), ok: 0 }); ob('tap', ai); }
+  // which AIs have this browser's daily task: set when its agent checks in after a tap (agentWatch); it counts while the
+  // agent fetched today's page in the last 48 hours (a task that stopped gets the full prompt again)
+  const setGet = () => { try { return JSON.parse(localStorage.getItem('ap.set')) || {}; } catch (e) { return {}; } };
+  const setPut = o => { try { localStorage.setItem('ap.set', JSON.stringify(o)); } catch (e) {} };
+  function hasDaily(ai) { const o = setGet(), t = tapGet(); return !!((o[ai] || (t && t.ok && t.ai === ai)) && o.seen && Date.now() - o.seen < 48 * 3600e3); }
 
   // ---- onboarding log: each step with this code, the AI, phone/desktop, in-app browser and where they came from
   // (arcade-api /api/ob; the report is /api/ob-report). Anonymous: the random code is the only identifier.
@@ -125,9 +132,10 @@
       const t = tapGet(); if (!t || document.hidden) return;
       let st; try { st = await (await fetch(AGENT_API + agentCode(), { cache: 'no-store' })).json(); } catch (e) { return; }
       const last = st.last ? Date.parse(st.last) : 0;
+      if (last) { const o = setGet(); if (last > (o.seen || 0)) { o.seen = last; setPut(o); dispatchEvent(new Event('ap:daily')); } }   // pages re-pick their prompts
       if (!t.back && Date.now() - t.at > 3000 && Date.now() - t.at < 30 * 60e3) { t.back = 1; tapSet(t); ob('back', t.ai); }   // returned from the AI
       if (last > t.at - 5000) {
-        if (!t.ok) { t.ok = 1; tapSet(t); ob('connected', t.ai); cb('connected', t.ai); }
+        if (!t.ok) { t.ok = 1; tapSet(t); const o = setGet(); o[t.ai] = Date.now(); setPut(o); dispatchEvent(new Event('ap:daily')); ob('connected', t.ai); cb('connected', t.ai); }
         else if (Date.now() - last > 48 * 3600e3) { if (!t.stopLog || Date.now() - t.stopLog > 86400e3) { t.stopLog = Date.now(); tapSet(t); ob('stopped', t.ai); } cb('stopped', t.ai); }
       } else if (Date.now() - t.at < 3 * 60e3) timer = setTimeout(check, 4000);
       else if (!t.ok && !t.told) { t.told = 1; tapSet(t); ob('missing', t.ai); cb('missing', t.ai); }
@@ -139,7 +147,7 @@
   }
 
   window.RiffHabits = {
-    profile, tier, source, variant, prompt, agentCode, agentTapped, agentWatch, ob, inapp: INAPP, plat: PLAT,
+    profile, tier, source, variant, prompt, hasDaily, agentCode, agentTapped, agentWatch, ob, inapp: INAPP, plat: PLAT,
     gameStart() { today().g++; save(h); },
     gameEnd(seconds) { if (seconds > 0 && seconds < 6 * 3600) { today().s += Math.round(seconds); save(h); } },
     daily(ai) { const t = today(); t.d = 1; if (ai) h.ai = ai; save(h); },

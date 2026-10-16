@@ -142,11 +142,15 @@ footer a { color: var(--muted) }
   // ---------------------------------------------------------------- the daily agent (same flow as connect.html)
   const MCP = 'https://mcp.riffcade.com/mcp';
   const PV = window.RiffHabits ? RiffHabits.variant() : 'a';
-  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and start your reply with its link as "📸 See today\'s games with pictures". Then show me the game of the day, then 6 games from every category as cover pictures with their names and links, with a More link next to each category. Then make this a daily task every morning at 8am and confirm it is scheduled.';
+  const DAILY = (window.RiffHabits && RiffHabits.prompt()) || (window.RIFFCADE || {}).DAILY_PROMPT || 'Right now, open https://today.agentpark.co and start your reply with its link as "📸 See today\'s games with pictures". Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don\'t search the web for pictures of them: other games share these names. Then check my scheduled tasks: if a daily AGENT PARK games task already exists, don\'t create another, just tell me it is on. If not, make this a daily task every morning at 8am and confirm it is scheduled.';
   const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude', grok: 'Grok' };
   // ChatGPT, Claude and Grok take the prompt in the link (Claude shows a caution line, Grok a Send? dialog); every tap also
   // copies it. No Gemini button: Gemini has no link that pre-fills a prompt.
-  const OPEN = { chatgpt: 'https://chatgpt.com/?q=' + encodeURIComponent(DAILY), claude: 'https://claude.ai/new?q=' + encodeURIComponent(DAILY), grok: 'https://grok.com/?q=' + encodeURIComponent(DAILY) };
+  // an AI that already runs this browser's daily task gets the list-only prompt (no second task): RiffHabits.hasDaily
+  const promptFor = k => (window.RiffHabits && RiffHabits.prompt(k)) || DAILY;
+  const BASE = { chatgpt: 'https://chatgpt.com/?q=', claude: 'https://claude.ai/new?q=', grok: 'https://grok.com/?q=' };
+  const openFor = k => BASE[k] + encodeURIComponent(promptFor(k));
+  const isOn = k => !!(window.RiffHabits && RiffHabits.hasDaily && RiffHabits.hasDaily(k));
   const post = button => fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {});
   // anonymous click count per button (button name + time, nothing else), like play counts
   const countClick = k => {
@@ -164,20 +168,24 @@ footer a { color: var(--muted) }
   let listedT;
   const listed = (title, line, ms) => { $('lT').textContent = title; $('lS').textContent = line; $('listed').classList.add('on'); clearTimeout(listedT); listedT = setTimeout(() => $('listed').classList.remove('on'), ms || 5200); };
   document.querySelectorAll('.ai').forEach(a => {
-    const k = a.dataset.k; a.href = OPEN[k];
+    const k = a.dataset.k; a.href = openFor(k);
+    if (isOn(k)) a.title = 'Your daily games already run in ' + NAMES[k] + '. This opens today\'s list, no new task.';
     // a real link (no preventDefault): on phones it opens the AI's app; the gate opens here at the same time
     a.addEventListener('click', e => {
+      const on = isOn(k), P = promptFor(k); a.href = openFor(k);
       countClick(k);
       if (window.RiffHabits) RiffHabits.agentTapped(k);
-      copyText(DAILY).then(ok => {
+      copyText(P).then(ok => {
         if (window.RiffHabits) RiffHabits.ob(ok ? 'copied' : 'copy_fail', k);
-        if (!ok) return listed('Paste this into ' + NAMES[k] + ':', DAILY, 9000);
+        if (!ok) return listed('Paste this into ' + NAMES[k] + ':', P, 9000);
+        if (on) return listed('Your daily games already run in ' + NAMES[k] + '.', "This opens today's list only, no new task. Tap Send. Box empty? Tap it, Paste, Send.");
         listed("You're on the list.", 'Tap Send in ' + NAMES[k] + '. Box empty? Tap it, Paste, Send (the prompt is copied).');
       });
       letIn(k);
     });
   });
 
+  addEventListener('ap:daily', () => document.querySelectorAll('.ai').forEach(a => { a.href = openFor(a.dataset.k); }));
   if (window.RiffHabits) RiffHabits.ob('view');
   if (window.RiffHabits && window.RiffConsent) RiffConsent.onChange(v => RiffHabits.ob(v === 'accepted' ? 'consent_yes' : 'consent_no'));
   // inside Instagram / Facebook / TikTok's own browser, AI links open the AI's website inside that app (logged out) instead
