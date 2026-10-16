@@ -41,9 +41,49 @@
     else fetch(API + '/api/diag', { method: 'POST', keepalive: true, headers: { 'content-type': 'text/plain' }, body }).catch(() => {});
   }
   setInterval(() => flush(false), 15000);
-  addEventListener('pagehide', () => { if (game) endRun('close'); push('page_end', { secs: Math.round((performance.now() - T0) / 1000) }); flush(true); });
+  setTimeout(() => flush(false), 3000);   // early first batch: most visitors who leave do it within seconds
+  addEventListener('pagehide', () => { if (game) endRun('close'); push('page_end', { secs: Math.round((performance.now() - T0) / 1000), taps, scroll: maxScroll, kinds: byKind }); flush(true); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) flush(true); });
-  push('page', {});
+  push('page', { page: location.pathname.split('/').pop() || 'index', bot: navigator.webdriver === true || /HeadlessChrome|Playwright|puppeteer/i.test(navigator.userAgent) ? 1 : 0 });
+
+  // ---- what happened on the page before (or instead of) a game: why visitors leave without playing
+  // perf: how long the page took to show (time to first byte, DOM ready, load, largest paint) and how much it downloaded.
+  // ui: the consent card / install sheet appearing and being answered, the first tap and what it hit, taps by kind,
+  // how far they scrolled, when they switched away. Labels only (card / chip / play / button text), never typed text.
+  const ms = () => Math.round(performance.now() - T0);
+  let lcp = 0; try { new PerformanceObserver(l => { const e = l.getEntries().pop(); if (e) lcp = Math.round(e.startTime); }).observe({ type: 'largest-contentful-paint', buffered: true }); } catch (e) {}
+  addEventListener('load', () => setTimeout(() => {
+    const n = performance.getEntriesByType('navigation')[0] || {};
+    const kb = Math.round(performance.getEntriesByType('resource').reduce((a, r) => a + (r.transferSize || 0), n.transferSize || 0) / 1024);
+    push('perf', { ttfb: Math.round(n.responseStart || 0), dom: Math.round(n.domContentLoadedEventEnd || 0), load: Math.round(n.loadEventEnd || performance.now()), lcp, kb });
+  }, 300));
+  const seen = new Set();
+  const ui = (what, data) => push('ui', Object.assign({ what, ms: ms() }, data || {}));
+  new MutationObserver(() => {
+    if (document.getElementById('rcBanner') && !seen.has('consent')) { seen.add('consent'); ui('consent_shown'); }
+    if (document.querySelector('.isheet') && !seen.has('install')) { seen.add('install'); ui('install_shown'); }
+    if (document.querySelector('.slowbar') && !seen.has('slow')) { seen.add('slow'); ui('slow_shown'); }
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  if (RC.onChange) RC.onChange(v => ui('consent_' + (v === 'accepted' ? 'yes' : 'no')));
+  const kind = t => {
+    const el = t && t.closest ? t : null; if (!el) return 'other';
+    if (el.closest('#rcBanner')) return 'consent';
+    if (el.closest('.isheet')) return 'install';
+    if (el.closest('#go')) return 'play';
+    if (el.closest('[data-slug]')) return 'game_card';
+    if (el.closest('.chip')) return 'category';
+    if (el.closest('.mode')) return 'mode';
+    if (el.closest('.ai, [data-k]')) return 'ai_button';
+    const b = el.closest('a, button'); if (b) return (b.tagName === 'A' ? 'link:' : 'btn:') + (b.getAttribute('aria-label') || b.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 24);
+    return 'blank';
+  };
+  let taps = 0, firstTap = false, maxScroll = 0; const byKind = {};
+  addEventListener('pointerdown', e => {
+    const k = kind(e.target); taps++; byKind[k] = (byKind[k] || 0) + 1;
+    if (!firstTap) { firstTap = true; ui('first_tap', { on: k, x: Math.round(e.clientX / innerWidth * 100), y: Math.round(e.clientY / innerHeight * 100) }); }
+  }, true);
+  addEventListener('scroll', () => { const h = document.documentElement.scrollHeight - innerHeight; if (h > 0) maxScroll = Math.max(maxScroll, Math.round(100 * scrollY / h)); }, { passive: true });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && !seen.has('hidden')) { seen.add('hidden'); ui('left', { taps, scroll: maxScroll, kinds: byKind }); } });
   addEventListener('error', e => push('error', { slug: game && game.slug, where: 'page', msg: String(e.message || e).slice(0, 200), src: (e.filename || '').split('/').slice(-2).join('/') + ':' + (e.lineno || 0) }));
 
   // ---- one game run ----
