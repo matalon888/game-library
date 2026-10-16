@@ -21,7 +21,7 @@
 
   const fbclid = q.get('fbclid');
   const adTab = !!fbclid || /^(meta|facebook|instagram|fb|ig)$/i.test(q.get('utm_source') || '');
-  if (adTab) sset('ap.fromAd', '1');
+  if (adTab) { sset('ap.fromAd', '1'); sset('arcade.s.src0', 'meta'); }   // diag.js channel label, kept across the jump to the game
   if (fbclid && /^[\w-]{10,500}$/.test(fbclid)) {
     const old = get('ap.fbc');
     if (!old || !old.endsWith('.' + fbclid)) set('ap.fbc', 'fb.1.' + Date.now() + '.' + fbclid);

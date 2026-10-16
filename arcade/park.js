@@ -242,10 +242,22 @@
     if (qc) { const m = ['mobile', ...Object.keys(MODES)].find(k => k !== 'ai' && catsFor(k).some(([c]) => c === qc)); if (m) { mode = m; cat = qc; } }
     // From an ad: straight into the best-scored phone game of that shelf (or of the whole park), once per tab. Visitors who
     // landed on a list from an ad almost never picked a game (diagnostics, Oct 16); Back from the game shows the shelf.
+    // Picks: our own one-thumb, held-upright games that start on a tap (ad visitors in the Facebook app left landscape and heavy
+    // 3D games at "Turn your phone", and hard puzzles without a tap, Oct 16). One at random from the shelf's list, so the
+    // reports show which keeps people; shelves without a list use the best-scored upright game. play.html then starts it on its own.
     if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) {
-      const pool = inMode('mobile').filter(g => !g.linkout && g.category !== 'Kids' && !(g.tags || []).includes('Kids') && (!qc || catOf(g, qc)));
-      const pick = byScore(pool.length ? pool : inMode('mobile'))[0];
-      if (pick) { try { sessionStorage.setItem('ap.jumped', '1'); } catch (e) {} location.replace(K.href(pick)); return; }
+      // (games that wait for the first move: runners like neon-hop / squish-gate lose a life before a newcomer has tapped)
+      const AD_PICK = { '': ['ricochet-rex', 'bolt-twist', 'flip-agent', 'cube-trek'], '3D': ['cube-trek', 'bolt-twist', 'flip-agent'],
+        Action: ['ricochet-rex', 'flip-agent', 'stretch-dash'], Racing: ['tiptoe-tower', 'marble-dash'], Arcade: ['cube-trek', 'ricochet-rex', 'bolt-twist'],
+        Puzzle: ['bolt-twist', 'untwine', 'swirl-tee'], Strategy: ['turf-rush'], Idle: ['viral-den', 'bellhop-boss'], 'Word & Math': ['think-twice'] };
+      const ok = g => g && !g.linkout && g.orientation !== 'landscape' && g.category !== 'Kids' && !(g.tags || []).includes('Kids');
+      const mob = inMode('mobile'), listed = (AD_PICK[qc || ''] || []).map(s => mob.find(g => g.slug === s)).filter(ok);
+      const pool = mob.filter(g => ok(g) && (!qc || catOf(g, qc)));
+      const pick = listed.length ? listed[Math.floor(Math.random() * listed.length)] : byScore(pool.length ? pool : mob.filter(ok))[0];
+      if (pick) {
+        try { sessionStorage.setItem('ap.jumped', '1'); sessionStorage.setItem('ap.auto', pick.slug); if (!qc) sessionStorage.setItem('ap.aiAd', '1'); } catch (e) {}
+        location.replace(K.href(pick)); return;
+      }
     }
     const latest = LATEST = all.reduce((m, g) => (g.added > m ? g.added : m), '');
     $('count').textContent = `${all.length} games · ${all.filter(g => g.added === latest).length} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;

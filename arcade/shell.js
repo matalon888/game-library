@@ -457,6 +457,34 @@
       setTimeout(() => { fit(); checkRotate(); autoFit(); }, 250);
     };
 
+    // From an ad (park.js picked this game): start it without the PLAY tap, then tap past the game's own start card (our kit
+    // games), so the first thing a visitor sees is the game moving. Visitors from the AI-chat ads also see what the ad promised:
+    // the "play something" chat moment, for a few seconds over the running game.
+    let auto = null; try { auto = sessionStorage.getItem('ap.auto'); } catch (e) {}
+    if (auto === g.slug && !EMBED) {
+      let aiAd = false; try { sessionStorage.removeItem('ap.auto'); aiAd = sessionStorage.getItem('ap.aiAd') === '1'; sessionStorage.removeItem('ap.aiAd'); } catch (e) {}
+      ov.classList.add('autostart');
+      const kick = () => {
+        if (!$('go')) return;
+        $('go').click();
+        let n = 0;
+        const t = setInterval(() => {   // the start card can appear a moment after load (fonts, 3D scene)
+          try {
+            const w = frame.contentWindow, c = w.document.querySelector('.hc-card:not(.hc-hidden)');
+            if ((w.__game && w.__game.state === 'play') || ++n > 25) return clearInterval(t);
+            if (c) c.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true }));
+          } catch (e) { clearInterval(t); }
+        }, 200);
+        if (aiAd) {
+          const m = document.createElement('div'); m.className = 'aichat'; m.setAttribute('aria-hidden', 'true');
+          m.innerHTML = `<div class="you">play something</div><div class="ai">Here you go: <b>${esc(g.name)}</b> 🎮</div>`;
+          document.body.appendChild(m); setTimeout(() => m.classList.add('out'), 4200); setTimeout(() => m.remove(), 5000);
+        }
+      };
+      if (frame.contentDocument && frame.contentDocument.readyState === 'complete' && frame.contentWindow.location.href !== 'about:blank') kick();
+      else frame.addEventListener('load', () => setTimeout(kick, 150), { once: true });
+    }
+
     $('info').onclick = credits;
     $('back').onclick = leave;
   }

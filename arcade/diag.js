@@ -30,7 +30,7 @@
     return { ua: n.userAgent, lang: n.language, tz: Intl.DateTimeFormat().resolvedOptions().timeZone, sw: screen.width, sh: screen.height,
       vw: innerWidth, vh: innerHeight, dpr: devicePixelRatio, touch: matchMedia('(pointer: coarse)').matches, mem: n.deviceMemory || null,
       cores: n.hardwareConcurrency || null, net: c.effectiveType || null, pwa: matchMedia('(display-mode: standalone)').matches || n.standalone === true,
-      src: q.get('utm_source') || q.get('ref') || (document.referrer ? new URL(document.referrer).hostname : 'direct'), camp: q.get('utm_term') || q.get('utm_campaign') || null };
+      src: SRC, camp: q.get('utm_term') || q.get('utm_campaign') || null };
   }
   function flush(beacon) {
     if (!queue.length && sentDevice) return;
@@ -136,6 +136,7 @@
       game = { slug: g.slug, cat: g.category || '', frame, t0: performance.now(), loadMs: Math.round(performance.now() - T0), errors: [], freezes: [], frames: 0, slow: 0,
         taps: 0, rage: 0, rageAt: [], stuck: 0, lastRage: 0, lastStuck: 0, lastState: '', progressAt: performance.now() };
       try { watch(frame, g); } catch (e) { game.errors.push('diag: ' + e.message); }
+      push('start', { slug: g.slug, cat: g.category || '' }); flush(false);   // counted even if the in-app browser is closed mid-game
     },
     end(reason) { endRun(reason); },
   };

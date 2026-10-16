@@ -271,3 +271,13 @@ body .doc .band span:nth-child(1) { background: var(--bg); color: var(--paper) }
   background: rgba(20, 22, 30, .94); color: #fff; font: 600 14px/1.3 system-ui, sans-serif; padding: 8px 8px 8px 16px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,.4); max-width: calc(100vw - 24px) }
 .slowbar .lite, .slowbar a { background: #FFC93C; color: #1E1B33; border: 0; border-radius: 999px; padding: 8px 14px; font: 800 14px system-ui, sans-serif; text-decoration: none; white-space: nowrap; cursor: pointer }
 .slowbar [aria-label=Close] { background: none; border: 0; color: #aaa; font-size: 16px; padding: 4px 8px; cursor: pointer }
+/* from an ad: the game starts on its own, so the cover shows only the load bar */
+.overlay.autostart .box > :not(.loadbar) { visibility: hidden }
+/* the "play something" chat moment shown to visitors from the AI-chat ads, over the running game */
+.aichat { position: fixed; z-index: 30; left: 50%; top: calc(64px + env(safe-area-inset-top)); transform: translateX(-50%); width: min(320px, calc(100% - 32px));
+  display: grid; gap: 8px; pointer-events: none; transition: opacity .6s, transform .6s }
+.aichat > div { padding: 10px 14px; border-radius: 18px; font: 600 15px/1.3 system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.25); max-width: 85% }
+.aichat .you { animation: aichatIn .35s ease-out both; justify-self: end; background: #2f6bff; color: #fff; border-bottom-right-radius: 6px }
+.aichat .ai { justify-self: start; background: #fff; color: #111; border-bottom-left-radius: 6px; animation: aichatIn .35s .7s ease-out both }
+.aichat.out { opacity: 0; transform: translate(-50%, -12px) }
+@keyframes aichatIn { from { opacity: 0; transform: translateY(8px) } }
