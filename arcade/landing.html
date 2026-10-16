@@ -135,8 +135,13 @@ footer a { color: var(--muted) }
 <script src="habits.js"></script>
 <script src="attrib.js"></script>
 <script>
-// from an ad: into the park, which opens its best phone game (park.js), once per tab
-if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) location.replace('/arcade/' + location.search);
+// from an ad: straight into a game that starts on its own (play.html), once per tab. Same picks as park.js AD_PICK[''];
+// going direct skips the park page (about 3 s in the Facebook app). Ads with a ?cat= link land in the park, which picks per shelf.
+if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) {
+  const P = ['ricochet-rex', 'bolt-twist', 'flip-agent', 'cube-trek'], pick = P[Math.floor(Math.random() * P.length)];
+  try { sessionStorage.setItem('ap.jumped', '1'); sessionStorage.setItem('ap.auto', pick); sessionStorage.setItem('ap.aiAd', '1'); } catch (e) {}
+  location.replace('/arcade/play.html?g=' + pick);
+}
 </script>
 <script>
 (function () {
