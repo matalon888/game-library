@@ -12,6 +12,16 @@
     ((crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now()).replace(/[^\w-]/g, '').slice(0, 36);
   try { sessionStorage.setItem('arcade.s.sid', JSON.stringify(sid)); } catch (e) {}
   const T0 = performance.now();
+  // the channel this tab came in on (meta / daily-ai / a referrer / direct): a label, not about the person, sent with every batch
+  const SRC = (() => {
+    let s; try { s = sessionStorage.getItem('arcade.s.src0'); } catch (e) {}
+    if (s) return s;
+    const q = new URLSearchParams(location.search), u = (q.get('utm_source') || '').toLowerCase();
+    s = q.get('fbclid') || /^(meta|facebook|instagram|fb|ig)$/.test(u) ? 'meta' : /^daily/.test(q.get('ref') || '') ? 'ai-daily' : u ? u.replace(/[^\w.-]/g, '').slice(0, 30)
+      : document.referrer && !/agentpark\.co|riffcade\.com/.test(document.referrer) ? new URL(document.referrer).hostname.slice(0, 40) : 'direct';
+    try { sessionStorage.setItem('arcade.s.src0', s); } catch (e) {}
+    return s;
+  })();
   let queue = [], kids = false, sentDevice = false;
   const push = (type, data) => { if (!kids) queue.push({ type, at: Date.now(), ...data }); };
 
@@ -25,7 +35,7 @@
   function flush(beacon) {
     if (!queue.length && sentDevice) return;
     const ok = RC.state() === 'accepted';
-    const body = JSON.stringify({ sid, consent: ok, page: location.pathname.split('/').pop() || 'index', device: ok && !sentDevice ? device() : null, events: queue.splice(0, 60) });
+    const body = JSON.stringify({ sid, src: SRC, consent: ok, page: location.pathname.split('/').pop() || 'index', device: ok && !sentDevice ? device() : null, events: queue.splice(0, 60) });
     if (ok) sentDevice = true;
     if (beacon && navigator.sendBeacon) navigator.sendBeacon(API + '/api/diag', new Blob([body], { type: 'text/plain' }));
     else fetch(API + '/api/diag', { method: 'POST', keepalive: true, headers: { 'content-type': 'text/plain' }, body }).catch(() => {});

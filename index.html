@@ -134,6 +134,11 @@ footer a { color: var(--muted) }
 <footer><nav><a href="./">The park</a><a href="connect.html">Plugin</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav></footer>
 <script src="consent.js"></script>
 <script src="habits.js"></script>
+<script src="attrib.js"></script>
+<script>
+// from an ad: into the park, which opens its best phone game (park.js), once per tab
+if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) location.replace('/arcade/' + location.search);
+</script>
 <script>
 (function () {
   const $ = id => document.getElementById(id);
@@ -154,7 +159,8 @@ footer a { color: var(--muted) }
   const post = button => fetch(MCP.replace(/\/mcp$/, '') + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button }) }).catch(() => {});
   // anonymous click count per button (button name + time, nothing else), like play counts
   const countClick = k => {
-    if (window.RiffConsent) { RiffConsent.ga('daily_button_tap', { ai: k }); RiffConsent.ga('prompt_tap', { ai: k, prompt_variant: PV, placement: 'landing' }); RiffConsent.pixel('DailyButtonTap', true); }
+    if (window.RiffConsent) { RiffConsent.ga('daily_button_tap', { ai: k }); RiffConsent.ga('prompt_tap', { ai: k, prompt_variant: PV, placement: 'landing' }); RiffConsent.pixel('DailyButtonTap', true, {}, 'tap.' + Date.now().toString(36)); }
+    if (window.ApAttrib) ApAttrib.conv('DailyButtonTap', { ai: k });
     if (k === 'chatgpt' || k === 'claude') post('ptap-' + PV);
     post(k);
   };

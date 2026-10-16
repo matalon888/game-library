@@ -240,6 +240,13 @@
     // Ad / share deep link: /arcade/?cat=Puzzle opens that shelf, in the first mode that has it (phones first).
     const qc = new URLSearchParams(location.search).get('cat');
     if (qc) { const m = ['mobile', ...Object.keys(MODES)].find(k => k !== 'ai' && catsFor(k).some(([c]) => c === qc)); if (m) { mode = m; cat = qc; } }
+    // From an ad: straight into the best-scored phone game of that shelf (or of the whole park), once per tab. Visitors who
+    // landed on a list from an ad almost never picked a game (diagnostics, Oct 16); Back from the game shows the shelf.
+    if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) {
+      const pool = inMode('mobile').filter(g => !g.linkout && g.category !== 'Kids' && !(g.tags || []).includes('Kids') && (!qc || catOf(g, qc)));
+      const pick = byScore(pool.length ? pool : inMode('mobile'))[0];
+      if (pick) { try { sessionStorage.setItem('ap.jumped', '1'); } catch (e) {} location.replace(K.href(pick)); return; }
+    }
     const latest = LATEST = all.reduce((m, g) => (g.added > m ? g.added : m), '');
     $('count').textContent = `${all.length} games · ${all.filter(g => g.added === latest).length} new ${latest === new Date().toISOString().slice(0, 10) ? 'today' : 'on ' + latest}`;
     $('heroN').textContent = all.length;

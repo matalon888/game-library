@@ -65,7 +65,12 @@
   // ---------------------------------------------------------------- consent (consent.js: one banner, decline by default)
   // Ads stay non-personalised until "Accept". Kids games: never personalised ads, never GA or the pixel.
   let kids = false;
-  const pixel = (n, custom, params) => RC.pixel(n, custom, params);
+  // every Meta event goes twice with one id: the browser pixel and our server (attrib.js → Conversions API); Meta keeps one
+  const pixel = (n, custom, params) => {
+    const eid = n + '.' + (G ? G.slug : 'x') + '.' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    RC.pixel(n, custom, params, eid);
+    if (window.ApAttrib) ApAttrib.conv(n, G ? { slug: G.slug, name: G.name, cat: G.category || 'Arcade' } : {}, eid, kids);
+  };
   RC.onChange(v => { ev(v === 'accepted' ? 'consent_accept' : 'consent_decline'); if (window.RiffAds) window.RiffAds.consent(v === 'accepted' && !kids); });
 
   // ---------------------------------------------------------------- ads (adapter loads only when ADS_ENABLED)

@@ -121,8 +121,10 @@
   }
   document.addEventListener('click', e => { if (e.target.closest('[data-open-install]')) openSheet(); });
   // shown once, and only after the consent card is gone (it used to open underneath it and never be seen)
+  // never over a game's Play button, and not before the visitor has played once (it covered PLAY for new iPhone visitors)
   function autoPrompt() {
     if (!canPrompt() || snoozed() || store.get('promptedOnce2', false)) return;
+    if (store.get('plays', 0) < 1 || /play\.html$/.test(location.pathname)) return;
     if (document.documentElement.classList.contains('rc-lock') || document.querySelector('.isheet')) return setTimeout(autoPrompt, 700);
     setTimeout(() => { if (canPrompt() && !store.get('promptedOnce2', false) && !document.documentElement.classList.contains('rc-lock')) { store.set('promptedOnce2', true); openSheet(); } else autoPrompt(); }, 900);
   }

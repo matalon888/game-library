@@ -1,12 +1,17 @@
 // AGENTPARK consent: one blocking choice for everything that needs it (Google Analytics, the Meta pixel, personalised ads).
-// Nothing loads until the visitor taps Accept: no gtag.js, no fbevents.js, no cookieless pings. "No thanks" or no answer = off.
+// Outside the US nothing loads until the visitor taps Accept: no gtag.js, no fbevents.js, no cookieless pings. "No thanks" or no answer = off.
+// In the US (device time zone is a US one) it's on by default, as US law allows, with no popup: "Privacy choices" in the
+// footer turns it off (stored 'declined' wins from then on).
 // Used by the landing page and the arcade (never the chat versions, /today, privacy, terms or support).
 // API (window.RiffConsent): state(), accepted(), ga(name, params), setUser(props), pixel(name, custom), setKids(bool), onChange(fn), open().
 (function () {
   if (new URLSearchParams(location.search).get('embed') === 'chat') return;
   const C = window.RIFFCADE || {};
   const KEY = 'arcade.consent';
-  const state = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } }; // 'accepted' | 'declined' | null
+  const US = /^(America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Juneau|Sitka|Metlakatla|Yakutat|Nome|Adak|Boise|Detroit|Menominee|Indiana\/.+|Kentucky\/.+|North_Dakota\/.+)|Pacific\/Honolulu|US\/.+)$/
+    .test((() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { return ''; } })());
+  const stored = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } };
+  const state = () => stored() || (US ? 'accepted' : null); // 'accepted' | 'declined' | null
   const save = v => { try { v == null ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} };
   const parts = [C.GA4_ID && 'analytics (Google Analytics)', C.META_PIXEL_ID && 'ad measurement (Meta)', C.ADS_ENABLED && 'personalised ads'].filter(Boolean);
   const needed = parts.length > 0;
@@ -116,13 +121,15 @@ html.rc-lock,html.rc-lock body{overflow:hidden}
     },
     // GA user properties (player tier, habits): same gate as events
     setUser(props) { if (!C.GA4_ID || state() !== 'accepted' || kids) return; const f = () => window.gtag && gtag('set', 'user_properties', props); started ? f() : queue.push(f); },
-    pixel(name, custom, params) { if (!C.META_PIXEL_ID || state() !== 'accepted' || kids) return; const f = () => window.fbq && fbq(custom ? 'trackCustom' : 'track', name, params || {}); started ? f() : queue.push(f); },
+    // eid: the same event id our server sends to Meta (attrib.js), so Meta counts the event once
+    pixel(name, custom, params, eid) { if (!C.META_PIXEL_ID || state() !== 'accepted' || kids) return; const f = () => window.fbq && fbq(custom ? 'trackCustom' : 'track', name, params || {}, eid ? { eventID: eid } : undefined); started ? f() : queue.push(f); },
+    us: US,
   };
 
   if (!needed) return;
   start();
   const ready = () => {
-    if (!state()) open();
+    if (!stored() && !US) open();
     // "Privacy choices" in the footer: change your mind as easily as you chose (arcade .foot, landing footer nav)
     const foot = document.querySelector('.foot, footer nav');
     if (foot && !document.getElementById('rcChoices')) {
