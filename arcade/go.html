@@ -96,8 +96,10 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
     if (RH && RH.agentTapped) RH.agentTapped(AI);
     // a Lead for Meta: the browser pixel and our server, one event id (Meta keeps one)
     const eid = 'lead.' + (code || 'x') + '.' + AI;
-    RC.pixel && RC.pixel('Lead', false, { content_name: 'agent_' + AI }, eid);
-    if (window.ApAttrib) ApAttrib.conv('Lead', { name: 'agent_' + AI }, eid);
+    if (q.get('test') !== '1') {   // our own test taps (?test=1) are not a Lead for Meta
+      RC.pixel && RC.pixel('Lead', false, { content_name: 'agent_' + AI }, eid);
+      if (window.ApAttrib) ApAttrib.conv('Lead', { name: 'agent_' + AI }, eid);
+    }
     if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(P).catch(() => {});   // if the AI opens empty, it can be pasted
     if (INAPP) setTimeout(() => { $('hint').hidden = false; }, 1500);
   });
