@@ -58,12 +58,12 @@
   const LIST = C.CHALLENGE_GAMES || [];
   const challengeSlug = n => LIST.length && n >= 1 ? LIST[(n - 1) % LIST.length] : null;
 
-  // ---------------------------------------------------------------- styles (loaded only when a feature is on)
+  // ---------------------------------------------------------------- styles (always: the next-game bar is on every web game)
   // the free AGENTPARK app in your AI (the daily prompt card): for everyone with SUBSCRIBE_V2, and always for ad visitors (after
   // their second game: the ads sell 'the free game app for AI', and coming back every day is the goal, not one game)
   const AD = !!(window.ApAttrib && ApAttrib.fromAd()), SUB = C.SUBSCRIBE_V2 || AD || q.get('sub') === '1';
   const anyOn = C.AUTO_NEXT || C.DAILY_CHALLENGE || SUB || C.ADS_ENABLED;
-  if (anyOn) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'grow.css'; document.head.appendChild(l); }
+  { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'grow.css'; document.head.appendChild(l); }
 
   // ---------------------------------------------------------------- consent (consent.js: one banner, decline by default)
   // Ads stay non-personalised until "Accept". Kids games: never personalised ads, never GA or the pixel.
