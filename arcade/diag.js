@@ -94,11 +94,12 @@
     w.addEventListener('error', e => r.errors.push(String(e.message || 'error').slice(0, 200) + ' @' + (e.filename || '').split('/').pop() + ':' + (e.lineno || 0)));
     w.addEventListener('unhandledrejection', e => r.errors.push(('promise: ' + String((e.reason && e.reason.message) || e.reason)).slice(0, 200)));
     w.document.addEventListener('webglcontextlost', () => r.errors.push('webgl context lost'), true);
-    // frames: a gap over 2 s while the tab is visible = a freeze; also the share of slow (>50 ms) frames
+    // frames: a gap over 2 s while the tab is visible = a freeze; also the share of slow (>50 ms) frames. fps is over the time the
+    // frames were counted (visible), not the whole run: the in-app browsers report the page hidden for long stretches
     let last = 0;
     const tick = t => {
       if (game !== r) return;
-      if (last && !w.document.hidden && !document.hidden) { const d = t - last; r.frames++; if (d > 50) r.slow++; if (d > 2000) r.freezes.push(Math.round(d)); }
+      if (last && !w.document.hidden && !document.hidden) { const d = t - last; r.frames++; r.visMs += d; if (d > 50) r.slow++; if (d > 2000) r.freezes.push(Math.round(d)); }
       last = w.document.hidden || document.hidden ? 0 : t; w.requestAnimationFrame(tick);
     };
     w.requestAnimationFrame(tick);
@@ -118,7 +119,7 @@
   function endRun(reason) {
     const r = game; if (!r) return; game = null;
     const secs = Math.round((performance.now() - r.t0) / 1000);
-    push('game', { slug: r.slug, cat: r.cat, secs, reason, load_ms: r.loadMs, fps: r.frames ? Math.round(r.frames / Math.max(1, secs)) : null,
+    push('game', { slug: r.slug, cat: r.cat, secs, reason, load_ms: r.loadMs, fps: r.frames && r.visMs > 500 ? Math.round(r.frames * 1000 / r.visMs) : null, vis_s: Math.round(r.visMs / 1000),
       slow_pct: r.frames ? Math.round(100 * r.slow / r.frames) : null, freezes: r.freezes.slice(0, 5), errors: [...new Set(r.errors)].slice(0, 5),
       taps: r.taps, rage: r.rage, rage_at: r.rageAt.slice(0, 5), stuck: r.stuck, quick_quit: secs < 15, final: (() => { try { return state(r.frame.contentWindow); } catch (e) { return ''; } })() });
     flush(false);
@@ -133,7 +134,7 @@
     },
     start(g, frame) {
       if (game) endRun('next');
-      game = { slug: g.slug, cat: g.category || '', frame, t0: performance.now(), loadMs: Math.round(performance.now() - T0), errors: [], freezes: [], frames: 0, slow: 0,
+      game = { slug: g.slug, cat: g.category || '', frame, t0: performance.now(), loadMs: Math.round(performance.now() - T0), errors: [], freezes: [], frames: 0, visMs: 0, slow: 0,
         taps: 0, rage: 0, rageAt: [], stuck: 0, lastRage: 0, lastStuck: 0, lastState: '', progressAt: performance.now() };
       try { watch(frame, g); } catch (e) { game.errors.push('diag: ' + e.message); }
       push('start', { slug: g.slug, cat: g.category || '' }); flush(false);   // counted even if the in-app browser is closed mid-game

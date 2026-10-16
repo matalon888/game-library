@@ -460,12 +460,14 @@
 
     // From an ad (park.js picked this game): start it without the PLAY tap, then tap past the game's own start card (our kit
     // games), so the first thing a visitor sees is the game moving. Visitors from the AI-chat ads also see what the ad promised:
-    // the "play something" chat moment, for a few seconds over the running game.
+    // the "play something" chat moment
+    // first (aiIntro, ~2.5 s while the game loads behind it), then the game starts.
     let auto = null; try { auto = sessionStorage.getItem('ap.auto'); } catch (e) {}
     if (auto === g.slug && !EMBED) {
       let aiAd = false; try { sessionStorage.removeItem('ap.auto'); aiAd = sessionStorage.getItem('ap.aiAd') === '1'; sessionStorage.removeItem('ap.aiAd'); } catch (e) {}
       ov.classList.add('autostart');
-      const kick = () => {
+      const intro = aiAd ? aiIntro(g) : Promise.resolve();
+      const kick = () => intro.then(() => {
         if (!$('go')) return;
         $('go').click();
         let n = 0;
@@ -476,18 +478,28 @@
             if (c) c.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true }));
           } catch (e) { clearInterval(t); }
         }, 200);
-        if (aiAd) {
-          const m = document.createElement('div'); m.className = 'aichat'; m.setAttribute('aria-hidden', 'true');
-          m.innerHTML = `<div class="you">play something</div><div class="ai">Here you go: <b>${esc(g.name)}</b> 🎮</div>`;
-          document.body.appendChild(m); setTimeout(() => m.classList.add('out'), 4200); setTimeout(() => m.remove(), 5000);
-        }
-      };
+      });
       if (frame.contentDocument && frame.contentDocument.readyState === 'complete' && frame.contentWindow.location.href !== 'about:blank') kick();
       else frame.addEventListener('load', () => setTimeout(kick, 150), { once: true });
     }
 
     $('info').onclick = credits;
     $('back').onclick = leave;
+  }
+
+  // The opening for visitors from the AI-chat ads: what the ad promised, played out. They "type" play something, the AI answers
+  // with this game, and the chat zooms into it. The game loads behind it; resolves when the game should start. A tap skips it.
+  function aiIntro(g) {
+    return new Promise(done => {
+      const m = document.createElement('div'); m.className = 'aiintro'; m.setAttribute('aria-hidden', 'true');
+      m.innerHTML = `<div class="ai-chat"><div class="ai-you"><span>play something</span></div><div class="ai-dots"><i></i><i></i><i></i></div>
+        <div class="ai-ai">Here you go 🎮<div class="ai-game"><img src="${esc(art(g))}" alt=""><div><b>${esc(g.name)}</b><small>Free · no download</small></div><span>▶</span></div></div></div>`;
+      document.body.appendChild(m);
+      let t = 0;
+      const end = () => { clearTimeout(t); if (m.classList.contains('out')) return; m.classList.add('out'); setTimeout(() => m.remove(), 450); done(); };
+      t = setTimeout(end, 2700);
+      m.addEventListener('pointerdown', end);
+    });
   }
 
   // ---------------------------------------------------------------- ratings (real players only)

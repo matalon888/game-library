@@ -281,3 +281,27 @@ body .doc .band span:nth-child(1) { background: var(--bg); color: var(--paper) }
 .aichat .ai { justify-self: start; background: #fff; color: #111; border-bottom-left-radius: 6px; animation: aichatIn .35s .7s ease-out both }
 .aichat.out { opacity: 0; transform: translate(-50%, -12px) }
 @keyframes aichatIn { from { opacity: 0; transform: translateY(8px) } }
+
+/* the AI-chat ad opening (shell.js aiIntro): "play something" → the AI answers with the game → zoom into it */
+.aiintro { position: fixed; inset: 0; z-index: 70; background: #f4f5f8; display: grid; align-content: center; justify-items: center; padding: 24px 16px;
+  transition: opacity .4s, transform .4s; font: 500 16px/1.35 system-ui, -apple-system, sans-serif; color: #111 }
+.aiintro.out { opacity: 0; transform: scale(1.15); pointer-events: none }
+.ai-chat { width: min(360px, 100%); display: grid; gap: 12px }
+.ai-you { justify-self: end; background: #2f6bff; color: #fff; padding: 11px 16px; border-radius: 20px 20px 6px 20px; animation: aiIn .3s .1s both }
+.ai-you span { display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: bottom; width: 13ch; animation: aiType .7s .2s steps(14) both }
+.ai-dots { justify-self: start; display: flex; gap: 5px; background: #fff; padding: 14px 16px; border-radius: 20px 20px 20px 6px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  animation: aiIn .25s 1s both, aiGone .01s 1.6s forwards }
+.ai-dots i { width: 7px; height: 7px; border-radius: 50%; background: #999; animation: aiDot .9s infinite }
+.ai-dots i:nth-child(2) { animation-delay: .15s } .ai-dots i:nth-child(3) { animation-delay: .3s }
+.ai-ai { justify-self: start; display: grid; gap: 10px; background: #fff; padding: 12px 14px; border-radius: 20px 20px 20px 6px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  width: 85%; animation: aiIn .3s 1.6s both }
+.ai-dots, .ai-ai { grid-row: 2; grid-column: 1; align-self: start }
+.ai-game { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; background: #f1f3f7; border-radius: 14px; padding: 8px }
+.ai-game img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover }
+.ai-game b { display: block; font-size: 15px } .ai-game small { color: #666; font-size: 12px }
+.ai-game span { width: 34px; height: 34px; border-radius: 50%; background: #111; color: #fff; display: grid; place-items: center; font-size: 13px }
+@keyframes aiIn { from { opacity: 0; transform: translateY(10px) } }
+@keyframes aiType { from { width: 0 } }
+@keyframes aiDot { 50% { opacity: .3 } }
+@keyframes aiGone { to { opacity: 0; visibility: hidden } }
+@media (prefers-reduced-motion: reduce) { .aiintro *, .aiintro { animation-duration: .01s !important; transition: none } }

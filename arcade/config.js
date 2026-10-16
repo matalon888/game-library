@@ -12,6 +12,7 @@
 //   SHOW_PROMPT      the prompt for a browser whose AI already runs the daily task (habits.js hasDaily): today's list, no second task
 //   PROMPT_TEST      A/B test of the daily prompt: each browser gets one of PROMPTS (a = DAILY_PROMPT, the control), carried as
 //                    today.riffcade.com/?v=<x> so taps, the AI's daily fetch and the visits from its links are credited to it
+//   FEED             the swipe-up / round-over feed (grow.js): upright one-thumb games on our kit, the first 9 hand-checked (shown first)
 //   TIERS            weak / okay / strong player thresholds (habits.js): strong = played on strong_days_7 of the last 7 days,
 //                    or came from their AI's daily task on strong_daily_days_7 days; okay = okay_days_7 days, okay_games_today
 //                    games today or okay_minutes_7 minutes this week; everyone else is weak
@@ -31,6 +32,7 @@ window.RIFFCADE = {
     "b": "Right now, open https://today.agentpark.co and pick 6 games I'd enjoy from different categories, one line and a link each, plus the page link to see them all with pictures. Then, unless I already have a daily AGENT PARK games task, make this a daily task every morning at 8am and confirm it is scheduled.",
     "c": "Right now, open https://today.agentpark.co and give me 8 games for a quick break, grouped by category, one line and a link each, plus the page link to see them all with pictures. Then, unless I already have a daily AGENT PARK games task, make this a daily task every morning at 8am and confirm it is scheduled."
   },
+  "FEED": ["ricochet-rex", "bolt-twist", "flip-agent", "cube-trek", "tiptoe-tower", "stretch-dash", "untwine", "swirl-tee", "marble-dash", "tube-rush", "sky-evolve", "turf-rush", "horde-blast", "gulp-city", "brick-climb", "shade-shop", "pose-rush", "dust-descent", "steady-wheels", "bellhop-boss", "sticky-nook", "chilly-chute", "viral-den", "dress-diva", "cover-clash", "latte-jam", "time-knives", "kickback", "smash-dummy", "glow-keys", "munch-buddies", "color-groove", "cloud-leap", "honk-out", "knit-flow", "swarm-streets", "paint-glide", "doodle-legs", "ring-peel", "squad-surge", "splitstream", "slip-links", "shelf-snap", "slab-up", "switchback", "flip-volt", "drip-doodle", "smooch-roll", "core-crusher", "girder-go", "snip-snack", "fort-fling", "bumpy-buggy", "skyline-scope", "rack-attack", "putt-isles", "fling-feud", "paw-lagoon", "whisker-stack"],
   "TIERS": { "strong_days_7": 4, "strong_daily_days_7": 3, "okay_days_7": 2, "okay_games_today": 3, "okay_minutes_7": 10 },
   "CHALLENGE_EPOCH": "2026-10-15",
   "CHALLENGE_GAMES": [
