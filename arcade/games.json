@@ -28,7 +28,13 @@
   },
   "made": "2026-07-10",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 2,
+    "stars": 2,
+    "url": "https://github.com/jarvis-llm-codec/gridx"
+   }
+  },
   "cover": "covers/jarvis-llm-codec-gridx.webp",
   "thumb": "covers/jarvis-llm-codec-gridx.webp",
   "icon": "art/jarvis-llm-codec-gridx.webp",
@@ -63,7 +69,13 @@
   },
   "made": "2026-08-14",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 2,
+    "url": "https://github.com/jason-c-dev/iridium-reach-demo"
+   }
+  },
   "cover": "covers/jason-c-dev-iridium-reach.webp",
   "thumb": "covers/jason-c-dev-iridium-reach.webp",
   "icon": "art/jason-c-dev-iridium-reach.webp",
@@ -98,7 +110,13 @@
   },
   "made": "2026-07-27",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/eddiebelaval/sands-of-the-restless"
+   }
+  },
   "cover": "covers/eddiebelaval-sands-of-the-restless.webp",
   "thumb": "covers/eddiebelaval-sands-of-the-restless.webp",
   "icon": "art/eddiebelaval-sands-of-the-restless.webp",
@@ -134,7 +152,13 @@
   },
   "made": "2026-06-10",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 0,
+    "url": "https://github.com/markcastle/hellgrid"
+   }
+  },
   "cover": "covers/markcastle-hellgrid.webp",
   "thumb": "covers/markcastle-hellgrid.webp",
   "icon": "art/markcastle-hellgrid.webp",
@@ -169,7 +193,13 @@
   },
   "made": "2026-08-16",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/Hanazar-Games/claude-opus5-aigc-webgame-project"
+   }
+  },
   "cover": "covers/hanazar-games-starfall-scavenger.webp",
   "thumb": "covers/hanazar-games-starfall-scavenger.webp",
   "icon": "art/hanazar-games-starfall-scavenger.webp",
@@ -204,7 +234,13 @@
   },
   "made": "2026-06-20",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 2,
+    "url": "https://github.com/alliterhorst/neon-vanguard"
+   }
+  },
   "cover": "covers/alliterhorst-neon-vanguard.webp",
   "thumb": "covers/alliterhorst-neon-vanguard.webp",
   "icon": "art/alliterhorst-neon-vanguard.webp",
@@ -239,7 +275,13 @@
   },
   "made": "2024-12-23",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 8,
+    "stars": 41,
+    "url": "https://github.com/llm-chess-arena/llm-chess-arena"
+   }
+  },
   "cover": "covers/llm-chess-arena.webp",
   "thumb": "covers/llm-chess-arena.webp",
   "icon": "art/llm-chess-arena.webp",
@@ -274,7 +316,13 @@
   },
   "made": "2025-12-21",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 3,
+    "stars": 9,
+    "url": "https://github.com/SonghaiFan/frankie-poker"
+   }
+  },
   "cover": "covers/songhaifan-frankie-poker.webp",
   "thumb": "covers/songhaifan-frankie-poker.webp",
   "icon": "art/songhaifan-frankie-poker.webp",
@@ -311,7 +359,13 @@
   },
   "made": "2026-07-13",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 2,
+    "url": "https://github.com/oyekamal/offline-llm-chat"
+   }
+  },
   "cover": "covers/oyekamal-ai-overlord.webp",
   "thumb": "covers/oyekamal-ai-overlord.webp",
   "icon": "art/oyekamal-ai-overlord.webp",
@@ -346,7 +400,13 @@
   },
   "made": "2022-12-24",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 102,
+    "stars": 202,
+    "url": "https://github.com/LostRuins/lite.koboldai.net"
+   }
+  },
   "cover": "covers/lostruins-koboldai-lite.webp",
   "thumb": "covers/lostruins-koboldai-lite.webp",
   "icon": "art/lostruins-koboldai-lite.webp",
@@ -7340,7 +7400,13 @@
   "tags": [],
   "made": "2025-11-21",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 713,
+    "stars": 6444,
+    "url": "https://github.com/pshenok/server-survival"
+   }
+  },
   "cover": "covers/pshenok-server-survival.webp",
   "thumb": "covers/pshenok-server-survival.webp",
   "icon": "art/pshenok-server-survival.webp",
@@ -7376,6 +7442,11 @@
   "made": "2012-12-25",
   "platform": "phone",
   "public": {
+   "github": {
+    "forks": 143,
+    "stars": 551,
+    "url": "https://github.com/basicallydan/skifree.js"
+   },
    "hn": {
     "points": 157,
     "comments": 61,
@@ -7422,7 +7493,18 @@
   "tags": [],
   "made": "2019-10-05",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 45,
+    "stars": 314,
+    "url": "https://github.com/felixmariotto/Edelweiss"
+   },
+   "itch": {
+    "rating": 4.2,
+    "count": 6,
+    "url": "https://felixmrtt.itch.io/edelweiss"
+   }
+  },
   "cover": "covers/felixmariotto-edelweiss.webp",
   "thumb": "covers/felixmariotto-edelweiss.webp",
   "icon": "art/felixmariotto-edelweiss.webp",
@@ -7457,7 +7539,13 @@
   ],
   "made": "2023-11-09",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 75,
+    "stars": 164,
+    "url": "https://github.com/ramazancetinkaya/snake-game"
+   }
+  },
   "cover": "covers/ramazancetinkaya-snake-game.webp",
   "thumb": "covers/ramazancetinkaya-snake-game.webp",
   "icon": "art/ramazancetinkaya-snake-game.webp",
@@ -7613,7 +7701,13 @@
   "tags": [],
   "made": "2018-09-03",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 28,
+    "stars": 85,
+    "url": "https://github.com/gd4Ark/linkup"
+   }
+  },
   "cover": "covers/gd4ark-linkup.webp",
   "thumb": "covers/gd4ark-linkup.webp",
   "icon": "art/gd4ark-linkup.webp",
@@ -7687,7 +7781,13 @@
   ],
   "made": "2017-08-06",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 8,
+    "stars": 29,
+    "url": "https://github.com/iPel/NS-SHAFT"
+   }
+  },
   "cover": "covers/ipel-ns-shaft.webp",
   "thumb": "covers/ipel-ns-shaft.webp",
   "icon": "art/ipel-ns-shaft.webp",
@@ -7721,7 +7821,13 @@
   "tags": [],
   "made": "2016-10-27",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 7,
+    "stars": 20,
+    "url": "https://github.com/mnito/factors-game"
+   }
+  },
   "cover": "covers/mnito-factors-game.webp",
   "thumb": "covers/mnito-factors-game.webp",
   "icon": "art/mnito-factors-game.webp",
@@ -7754,7 +7860,13 @@
   "tags": [],
   "made": "2026-06-02",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 6,
+    "stars": 20,
+    "url": "https://github.com/EVEDensity/MineWorld"
+   }
+  },
   "cover": "covers/evedensity-mineworld.webp",
   "thumb": "covers/evedensity-mineworld.webp",
   "icon": "art/evedensity-mineworld.webp",
@@ -8063,7 +8175,13 @@
   "tags": [],
   "made": "2026-07-13",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 1,
+    "url": "https://github.com/dongsebastian86-lab/dsebastian-poker-game"
+   }
+  },
   "cover": "covers/dongsebastian86-lab-dsebastian-poker-game.webp",
   "thumb": "covers/dongsebastian86-lab-dsebastian-poker-game.webp",
   "icon": "art/dongsebastian86-lab-dsebastian-poker-game.webp",
@@ -8457,7 +8575,13 @@
   "tags": [],
   "made": "2026-10-01",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/markldn/forager"
+   }
+  },
   "cover": "covers/markldn-forager.webp",
   "thumb": "covers/markldn-forager.webp",
   "icon": "art/markldn-forager.webp",
@@ -8490,7 +8614,13 @@
   "tags": [],
   "made": "2026-06-08",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 1,
+    "stars": 0,
+    "url": "https://github.com/platret/caldera-minesweeper"
+   }
+  },
   "cover": "covers/platret-caldera-minesweeper.webp",
   "thumb": "covers/platret-caldera-minesweeper.webp",
   "icon": "art/platret-caldera-minesweeper.webp",
@@ -8523,7 +8653,13 @@
   "tags": [],
   "made": "2026-07-02",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/wellingtonhzt/lara-world-game"
+   }
+  },
   "cover": "covers/wellingtonhzt-lara-world-game.webp",
   "thumb": "covers/wellingtonhzt-lara-world-game.webp",
   "icon": "art/wellingtonhzt-lara-world-game.webp",
@@ -8556,7 +8692,13 @@
   "tags": [],
   "made": "2026-05-08",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/emrezdemir/echo-game.io"
+   }
+  },
   "cover": "covers/emrezdemir-echo-game-io.webp",
   "thumb": "covers/emrezdemir-echo-game-io.webp",
   "icon": "art/emrezdemir-echo-game-io.webp",
@@ -8589,7 +8731,13 @@
   "tags": [],
   "made": "2026-03-25",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/henrik-me/guesswhatisnext"
+   }
+  },
   "cover": "covers/henrik-me-guesswhatisnext.webp",
   "thumb": "covers/henrik-me-guesswhatisnext.webp",
   "icon": "art/henrik-me-guesswhatisnext.webp",
@@ -8622,7 +8770,13 @@
   "tags": [],
   "made": "2026-07-10",
   "platform": "desktop",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/ohnotnow/soladroid"
+   }
+  },
   "cover": "covers/ohnotnow-soladroid.webp",
   "thumb": "covers/ohnotnow-soladroid.webp",
   "icon": "art/ohnotnow-soladroid.webp",
@@ -8655,7 +8809,13 @@
   "tags": [],
   "made": "2026-07-17",
   "platform": null,
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 0,
+    "url": "https://github.com/bonitadreama/token-cart-tycoon"
+   }
+  },
   "cover": "covers/bonitadreama-token-cart-tycoon.webp",
   "thumb": "covers/bonitadreama-token-cart-tycoon.webp",
   "icon": "art/bonitadreama-token-cart-tycoon.webp",
@@ -8708,7 +8868,13 @@
   "external": null,
   "made": "2010-05-13",
   "platform": null,
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 337,
+    "stars": 355,
+    "url": "https://github.com/dmcinnes/HTML5-Asteroids"
+   }
+  },
   "cover": "covers/dmcinnes-html5-asteroids.webp",
   "icon": "art/dmcinnes-html5-asteroids.webp",
   "clip": null
