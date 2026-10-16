@@ -56,7 +56,8 @@
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; renderInstall(); });
   window.addEventListener('appinstalled', () => { store.set('installed', true); closeSheet(); renderInstall(); });
 
-  const canPrompt = () => !EMBED && !standalone && !store.get('installed', false) && browser !== 'desktop';
+  // never inside the Facebook / Instagram / TikTok browser: Add to Home Screen doesn't exist there
+  const canPrompt = () => !EMBED && !standalone && !store.get('installed', false) && browser !== 'desktop' && !(window.RiffHabits && RiffHabits.inapp);
   const snoozed = () => Date.now() - store.get('installSnooze', 0) < 3 * 864e5;
 
   function guide() {

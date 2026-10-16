@@ -41,3 +41,11 @@
   background: #fff; color: #15171B; font: 700 15px/1 var(--display, sans-serif); padding: 0 14px; z-index: 61; cursor: pointer }
 .g-ad-full .g-ad-x[disabled] { opacity: .6; cursor: default }
 .g-card ~ .bubble, body:has(.g-card) .bubble, body:has(.g-ad-full) .bubble { display: none }  /* the pause bubble hides behind our cards */
+.g-sub .g-sub-why { margin: -4px 0 4px; opacity: .85; font-size: 15px; line-height: 1.35; text-wrap: pretty }
+.g-sub .g-hint { font-size: 13px; opacity: .7; margin: -4px 0 0 }
+body:has(.g-card) .slowbar { display: none }
+/* the home page doesn't load arcade.css's .overlay: give the card its own backdrop and type there */
+body > .g-sub { inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px; background: rgba(8,10,15,.94); color: #fff; text-align: center }
+body > .g-sub .box { display: grid; gap: 14px; justify-items: center }
+body > .g-sub h2 { font: 700 26px/1.15 var(--display, inherit); margin: 0; color: #fff }
+body > .g-sub .eyebrow { color: #e4ff5a; font-weight: 700; letter-spacing: .12em; font-size: 12px }

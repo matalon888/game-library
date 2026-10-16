@@ -59,7 +59,10 @@
   const challengeSlug = n => LIST.length && n >= 1 ? LIST[(n - 1) % LIST.length] : null;
 
   // ---------------------------------------------------------------- styles (loaded only when a feature is on)
-  const anyOn = C.AUTO_NEXT || C.DAILY_CHALLENGE || C.SUBSCRIBE_V2 || C.ADS_ENABLED;
+  // the free AGENTPARK app in your AI (the daily prompt card): for everyone with SUBSCRIBE_V2, and always for ad visitors (after
+  // their first round: the ads sell 'the free game app for AI', and coming back every day is the goal, not one game)
+  const AD = !!(window.ApAttrib && ApAttrib.fromAd()), SUB = C.SUBSCRIBE_V2 || AD || q.get('sub') === '1';
+  const anyOn = C.AUTO_NEXT || C.DAILY_CHALLENGE || SUB || C.ADS_ENABLED;
   if (anyOn) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'grow.css'; document.head.appendChild(l); }
 
   // ---------------------------------------------------------------- consent (consent.js: one banner, decline by default)
@@ -111,7 +114,7 @@
 
   // ---------------------------------------------------------------- home: today's challenge at the top
   function home(gs) {
-    if (!C.DAILY_CHALLENGE) { if (q.get('sub') === '1' && C.SUBSCRIBE_V2) subscribe(gs, true); return; }
+    if (!C.DAILY_CHALLENGE) { if (q.get('sub') === '1') subscribe(gs, true); return; }
     const n = dayNum(), g = gs.find(x => x.slug === challengeSlug(n));
     if (g) {
       const s = streak(), done = (ls.get('streak', null) || {}).last === today();
@@ -122,11 +125,11 @@
       const main = document.querySelector('main.home'), brand = main && main.querySelector('.brand');
       if (brand) brand.after(el);
     }
-    if (q.get('sub') === '1' && C.SUBSCRIBE_V2) subscribe(gs, true);
+    if (q.get('sub') === '1') subscribe(gs, true);
   }
 
   // ---------------------------------------------------------------- the player
-  let G = null, all = [], chN = 0, best = null, ended = false, shared = false;
+  let G = null, all = [], chN = 0, best = null, ended = false, shared = false, wonOnce = false;
   const played = () => ss.get('played', []);
   function pickNext() {
     const seen = new Set(played().concat(G ? [G.slug] : []));
@@ -187,6 +190,7 @@
       if (typeof sc === 'number' && isFinite(sc)) best = Math.max(best ?? 0, Math.round(sc));
       if (st === 'lost' && !ended) { ended = true; roundsLost++; (RC.gaNow || ga)('round_end', { game_id: G.slug, outcome: 'lost', score: typeof sc === 'number' && isFinite(sc) ? Math.round(sc) : undefined, round_n: roundsLost, player_tier: tierNow }); setTimeout(() => { try { if (frame.contentWindow.__game.state === 'lost') gameOver(); else ended = false; } catch (e) { ended = false; } }, 1200); }
       else if (st !== 'lost' && ended && !$('gNext') && !$('gShare')) ended = false; // they retried
+      if (AD && st === 'won' && !wonOnce && subDue() && !document.querySelector('.g-card')) { wonOnce = true; setTimeout(() => subscribe(all, false), 1400); }
     }, 400);
     addEventListener('pagehide', () => clearInterval(watch));
   }
@@ -196,7 +200,7 @@
   async function gameOver() {
     if (leaving || document.querySelector('.g-card, .g-ad-full')) return; // one card at a time
     if (chN && !shared) return shareCard(false);
-    if (ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
+    if (ss.get('games', 0) >= (AD ? 1 : 2) && subDue()) await subscribe(all, false);
     if (C.AUTO_NEXT || rewardedDue()) nextCard('ended');
   }
 
@@ -289,7 +293,7 @@
     leaving = true;
     document.querySelectorAll('.g-card').forEach(o => o.remove()); // a game-over card still open gives way to the leave flow
     if (started && chN && !shared) await shareCard(true);
-    if (started && ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
+    if (started && ss.get('games', 0) >= (AD ? 1 : 2) && subDue()) await subscribe(all, false);
     if (started && (await nextCard('back')) !== 'none') return true;
     if (C.ADS_ENABLED && started) { goHome(); return true; }
     return false;
@@ -303,7 +307,7 @@
   });
 
   // ---------------------------------------------------------------- "New games every morning" (SUBSCRIBE_V2)
-  const subDue = () => C.SUBSCRIBE_V2 && ls.get('subDay', null) !== today() && !(RH && RH.hasDaily && ['chatgpt', 'claude', 'grok'].some(RH.hasDaily));   // not for someone whose AI already runs it
+  const subDue = () => SUB && ls.get('subDay', null) !== today() && !(RH && RH.hasDaily && ['chatgpt', 'claude', 'grok'].some(RH.hasDaily));   // not for someone whose AI already runs it
   const ua = navigator.userAgent;
   const metaInApp = /FBAN|FBAV|Instagram/.test(ua);
   const iPhone = /iPhone|iPad|iPod/.test(ua);
@@ -311,37 +315,37 @@
     return new Promise(done => {
       ls.set('subDay', today());
       ev('sub_shown');
-      // tomorrow's additions aren't known ahead (the pipeline picks them each morning), so: today's newest
-      const fresh = gs.filter(g => g.chat_safe !== false && !g.external && !g.linkout && !(g.platform === 'desktop' && matchMedia('(pointer: coarse)').matches)).sort((a, b) => (b.added || '') > (a.added || '') ? 1 : -1).slice(0, 3);
       // per AI: one that already runs this browser's daily task gets the list-only prompt (no second task)
       const PF = ai => (RH && RH.prompt(ai)) || P;
       const P = (RH && RH.prompt()) || C.DAILY_PROMPT || 'Right now, open https://today.agentpark.co (add today\'s date to the link as d=YYYY-MM-DD, so you get today\'s page and not a saved copy) and start your reply with its link as "📸 See today\'s games with pictures". Then show the page\'s "Today in one picture" poster as an image. Then list the game of the day and 6 games from every category with their names and links, with a More link next to each category. Don\'t search the web for pictures of them: other games share these names. Then check my scheduled tasks: if a daily AGENT PARK games task already exists, don\'t create another, just tell me it is on. If not, make this a daily task every morning at 8am and confirm it is scheduled.';
-      const back = 'https://agentpark.co/arcade/?sub=1';
-      const escapeHtml = metaInApp && !fromEscape ? `<div class="g-escape"><b>1. Open in your browser</b>
-        ${iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari</a><p>Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b>, or copy the link.</p><button class="btn ghost" id="gCopyLink">Copy link</button>`
-          : `<a class="btn big" id="gOpen" href="intent://agentpark.co/arcade/?sub=1#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a>`}
-        <b>2. Then pick your AI</b></div>` : '';
-      const o = card('g-sub', `<div class="eyebrow">New games every morning</div><h2>Get new games in your AI, every morning</h2>
-        <div class="g-fresh">${fresh.map(g => `<figure><img src="${esc(art(g))}" alt=""><figcaption>${esc(g.name)}</figcaption></figure>`).join('')}</div>
-        ${escapeHtml}
-        <a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(PF('chatgpt'))}" target="_blank" rel="noopener">ChatGPT: tap Send, that's it</a>
-        <a class="btn" id="gClaude" href="https://claude.ai/new?q=${encodeURIComponent(PF('claude'))}" target="_blank" rel="noopener">Claude (Pro/Max)</a>
-        ${C.WHATSAPP_CHANNEL_URL ? `<a class="btn" id="gWa" href="${esc(C.WHATSAPP_CHANNEL_URL)}" target="_blank" rel="noopener">WhatsApp Channel</a>` : ''}
-        <button class="btn ghost" id="gSubClose">Not now</button>`);
+      const back = 'https://agentpark.co/arcade/?sub=1' + (RH && RH.agentCode ? '&apu=' + RH.agentCode() : '');
+      // short on purpose: they don't know us yet. In the Facebook / Instagram browser ChatGPT and Claude open signed out, so
+      // there the one step is Safari / Chrome (it comes back here with ?sub=1 and the same code, and shows the AI buttons).
+      const esc1 = metaInApp && !fromEscape;
+      // two versions of the line, one per browser (kept), counted as sub_line_a / sub_line_b next to sub_shown and the taps
+      let line = ls.get('subLine', null); if (line !== 'a' && line !== 'b') { line = Math.random() < 0.5 ? 'a' : 'b'; ls.set('subLine', line); }
+      ev('sub_line_' + line);
+      const o = card('g-sub', `<div class="eyebrow">Free</div><h2>Your free AI game center</h2>
+        <p class="g-sub-why">${line === 'b' ? 'No more app installs. New games every morning.' : 'Add it to your AI. New games every morning.'}</p>
+        ${esc1 ? (iPhone ? `<a class="btn big" id="gOpen" href="x-safari-${back}">Open in Safari to add it</a><p class="g-hint">Nothing happens? Tap <b>⋯</b> → <b>Open in browser</b></p>`
+            : `<a class="btn big" id="gOpen" href="intent://${back.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome to add it</a>`)
+          : `<a class="btn big" id="gGpt" href="https://chatgpt.com/?q=${encodeURIComponent(PF('chatgpt'))}" target="_blank" rel="noopener">Add to ChatGPT</a>
+        <a class="btn" id="gClaude" href="https://claude.ai/new?q=${encodeURIComponent(PF('claude'))}" target="_blank" rel="noopener">Add to Claude</a>
+        ${C.WHATSAPP_CHANNEL_URL ? `<a class="btn" id="gWa" href="${esc(C.WHATSAPP_CHANNEL_URL)}" target="_blank" rel="noopener">WhatsApp Channel</a>` : ''}`}
+        <button class="btn ghost" id="gSubClose">Keep playing</button>`);
       const close = () => { o.remove(); removeEventListener('keydown', key); done(); };
       const key = e => { if (e.key === 'Escape') close(); };
       addEventListener('keydown', key);
       const tap = ch => { if (RH && RH.agentTapped) RH.agentTapped(ch); ev('sub_tap_' + ch); pixel('DailyButtonTap', true); ga('prompt_tap', { ai: ch, prompt_variant: RH ? RH.variant() : 'a', placement: 'arcade_card', player_tier: tierNow }); fetch(API + '/api/click', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ button: 'ptap-' + (RH ? RH.variant() : 'a') }) }).catch(() => {}); };
       // the prompt goes on the clipboard too: if ChatGPT stops for a log-in, or its app opens without it, they paste
-      $('gGpt').onclick = () => { tap('chatgpt'); copyText(PF('chatgpt')).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
-      $('gClaude').onclick = () => {
+      if ($('gGpt')) $('gGpt').onclick = () => { tap('chatgpt'); copyText(PF('chatgpt')).then(ok => ok && toast('Prompt copied too, in case ChatGPT asks you to log in first.')); };
+      if ($('gClaude')) $('gClaude').onclick = () => {
         tap('claude');
         // the link opens Claude with the prompt filled in (claude.ai/new?q=, the app on phones); it goes on the clipboard too
         copyText(PF('claude')).then(ok => toast(ok ? 'Tap Send in Claude. Box empty? Paste, then Send.' : 'Paste this into Claude: ' + PF('claude')));
       };
       if ($('gWa')) $('gWa').onclick = () => tap('whatsapp');
       if ($('gOpen')) $('gOpen').onclick = () => ev('sub_inapp_open');
-      if ($('gCopyLink')) $('gCopyLink').onclick = () => copyText(back).then(ok => toast(ok ? 'Link copied. Paste it in Safari.' : back));
       $('gSubClose').onclick = close;
     });
   }
