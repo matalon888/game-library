@@ -36,6 +36,11 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
 .go { display: block; width: 100%; padding: 18px 20px; border-radius: 999px; background: var(--gold); color: #1E1B33; text-decoration: none; font: 800 19px var(--display);
   box-shadow: 0 0 0 8px rgba(255,201,60,.16); animation: pulse 1.8s ease-in-out infinite }
 @keyframes pulse { 50% { box-shadow: 0 0 0 14px rgba(255,201,60,.08) } }
+.pv { width: 100%; display: grid; gap: 6px; text-align: left; font-size: 13px; color: var(--muted) }
+.pv-box { display: flex; align-items: center; gap: 10px; background: #2f2f2f; color: #ececec; border-radius: 24px; padding: 10px 10px 10px 16px; font-size: 15px }
+.pv-box span { flex: 1 }
+.pv-box b { width: 32px; height: 32px; flex: none; border-radius: 50%; background: #fff; color: #000; display: grid; place-items: center; font-size: 18px; animation: pulse2 1.6s ease-in-out infinite }
+@keyframes pulse2 { 50% { transform: scale(1.12) } }
 .other { font-size: 13px; color: var(--muted) }
 .legal { margin: -8px 0 0; font-size: 12px; color: var(--muted); opacity: .8 } .legal a { color: inherit }
 @media (prefers-reduced-motion: reduce) { .go { animation: none } }
@@ -45,12 +50,9 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
 <main id="m">
   <div class="logo"><img id="logo" src="logos/openai.svg" alt=""></div>
   <h1 id="h">Your free game store is in ChatGPT</h1>
-  <p class="lead">No app to download. You're playing in about <b>5 seconds</b>.</p>
-  <ol>
-    <li><span>1</span><span>ChatGPT opens with a message ready. <b>Tap send.</b></span></li>
-    <li><span>2</span><span>Your first game is <b>ready right here</b> when you come back.</span></li>
-    <li><span>3</span><span><b>New free games every morning</b>, right in your chat.</span></li>
-  </ol>
+  <p class="lead">No app to download. Playing in about <b>5 seconds</b>, and <b>new free games every morning</b>.</p>
+  <div class="pv" aria-hidden="true"><small id="pvh">ChatGPT opens with this message:</small>
+    <div class="pv-box"><span id="pvt">Show me today's free games from AGENTPARK…</span><b>↑</b></div><small>Just tap <b>↑ send</b>. Your game opens right away.</small></div>
   <a class="go" id="go" href="#">Open ChatGPT ▶</a>
   <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p>
   <a class="other" id="other" href="#">Use Claude instead</a>
@@ -75,8 +77,8 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
   if (RC.setKids) RC.setKids(false);   // consent.js starts the pixel once a page says it isn't a Kids game
   if (AI === 'claude') { document.body.classList.add('claude'); $('logo').src = 'logos/claude.svg'; }
   $('h').textContent = `Your free game store is in ${NAME}`;
-  document.querySelector('ol li span:last-child').innerHTML = `${NAME} opens with a message ready. <b>Tap send.</b>`;
   $('go').textContent = `Open ${NAME} ▶`;
+  $('pvh').textContent = `${NAME} opens with this message:`;
   $('other').textContent = `Use ${AI === 'claude' ? 'ChatGPT' : 'Claude'} instead`;
   const keep = new URLSearchParams(q); keep.set('ai', OTHER); $('other').href = 'go.html?' + keep;
 
