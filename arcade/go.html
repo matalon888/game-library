@@ -3,59 +3,95 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Opening your AI · AGENTPARK</title>
+<title>Play in your AI · AGENTPARK</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#12163A">
 <link rel="icon" href="brand/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
-<!-- The ad's two buttons (ChatGPT / Claude) land here: one screen, one tap, straight into that AI with the AGENTPARK prompt filled in.
-     Not a landing page: no games, no menu. It says what is about to happen (a free game store in your AI, playing in seconds, new
-     games every morning), keeps the ad click with this visitor's prompt code (attrib.js) so their AI's first run is credited to the
-     ad, and counts the tap as a Meta Lead (pixel + our Conversions API, one event id). Inside the Facebook / Instagram browser the
-     button jumps to Safari (iPhone) or Chrome (Android) first, where the AI is signed in.
-     ?ai=chatgpt|claude · test only: ?hop=page (iPhone in-app: open this page in Safari first, then the AI from there) -->
+<!-- The agent ad lands here: one screen that says what AGENTPARK is (a free game store inside your AI), why it's the new way to
+     play, what happens after the tap, and why it's safe; then two buttons, ChatGPT and Claude, straight into that AI with the
+     AGENTPARK prompt filled in. The ad's ?ai= choice comes first. The tap also turns this tab into the first game (so nobody waits
+     on the AI), keeps the ad click tied to this visitor's prompt code (attrib.js), and counts a Meta Lead (pixel + our Conversions
+     API, one event id). Inside the Facebook / Instagram browser the button jumps to Safari (iPhone) or Chrome (Android) first,
+     where the AI is signed in. The AI logos are shown unaltered, each in its own tile, as a plain reference to the AI the button
+     opens (not part of our mark), with the trademark note at the bottom.
+     ?ai=chatgpt|claude · test only: ?hop=page (iPhone in-app: open this page in Safari first, then the AI from there), ?test=1 (no Lead) -->
 <style>
-:root { --ink: #FFFDF8; --muted: #CFCBE6; --night: #12163A; --gold: #FFC93C; --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
+:root { --ink: #FFFDF8; --muted: #CFCBE6; --night: #12163A; --gold: #FFC93C; --leaf: #35B866; --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
   --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent }
 html, body { margin: 0; min-height: 100% }
-body { background: radial-gradient(120% 70% at 50% 0%, #2a2f6b 0%, var(--night) 60%); color: var(--ink); font: 16px/1.45 var(--body); -webkit-font-smoothing: antialiased;
-  min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + 24px) 16px calc(env(safe-area-inset-bottom) + 24px) }
-main { width: min(380px, 100%); display: grid; gap: 18px; justify-items: center; text-align: center }
-.logo { width: 76px; height: 76px; border-radius: 22px; background: #fff; display: grid; place-items: center; box-shadow: 0 10px 40px rgba(0,0,0,.35) }
-.logo img { width: 46px; height: 46px }
-.claude .logo { background: #F4EFE6 }
-h1 { margin: 0; font: 800 30px/1.08 var(--display); letter-spacing: -.01em; text-wrap: balance }
-.lead { margin: 0; color: var(--muted); font-size: 16px; text-wrap: balance }
+body { background: radial-gradient(120% 60% at 50% 0%, #2a2f6b 0%, var(--night) 62%); color: var(--ink); font: 16px/1.45 var(--body); -webkit-font-smoothing: antialiased;
+  min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 20px) }
+main { width: min(400px, 100%); display: grid; gap: 13px; justify-items: center; text-align: center }
+
+/* hero: our mascot in the middle, the two AIs either side, game characters floating around */
+.hero { position: relative; width: 100%; height: 138px }
+.hero .ai, .hero .ap { position: absolute; top: 50%; display: grid; place-items: center; border-radius: 24px; box-shadow: 0 10px 34px rgba(0,0,0,.4) }
+.hero .ap { left: 50%; width: 96px; height: 96px; transform: translate(-50%, -50%); background: #FFF6E5; border-radius: 32px; z-index: 2 }
+.hero .ap img { width: 100%; height: 100%; border-radius: 32px }
+.hero .ai { width: 62px; height: 62px; background: #fff; z-index: 1; transform: translateY(-50%) }
+.hero .ai img { width: 36px; height: 36px }
+.hero .ai.claude { background: #F4EFE6 }
+.hero .l { left: calc(50% - 116px) } .hero .r { left: calc(50% + 54px) }
+.hero .link { position: absolute; top: 50%; height: 3px; width: 48px; background: repeating-linear-gradient(90deg, var(--gold) 0 6px, transparent 6px 11px); opacity: .8 }
+.hero .link.a { left: calc(50% - 64px) } .hero .link.b { left: calc(50% + 16px) }
+.hero .g { position: absolute; width: 44px; height: 44px; border-radius: 13px; object-fit: cover; box-shadow: 0 6px 18px rgba(0,0,0,.4); animation: bob 3.2s ease-in-out infinite }
+.hero .g1 { left: calc(50% - 150px); top: 2px; animation-delay: -.4s } .hero .g2 { left: calc(50% + 104px); top: 0; animation-delay: -1.2s }
+.hero .g3 { left: calc(50% - 106px); bottom: 0; animation-delay: -2s } .hero .g4 { left: calc(50% + 70px); bottom: 2px; animation-delay: -2.7s }
+.hero .g5 { left: calc(50% - 22px); top: -6px; width: 36px; height: 36px; animation-delay: -1.6s; z-index: 3 }
+@keyframes bob { 50% { transform: translateY(-7px) rotate(-3deg) } }
+
+.tag { margin: 0; font: 700 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--gold) }
+h1 { margin: -6px 0 0; font: 800 28px/1.06 var(--display); letter-spacing: -.01em; text-wrap: balance }
+.lead { margin: 0; color: var(--muted); font-size: 15px; text-wrap: balance }
+.lead b { color: var(--ink) }
 ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; text-align: left }
-ol li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 14px; padding: 10px 12px; font-size: 15px }
+ol li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px; padding: 8px 12px; font-size: 14px; line-height: 1.33 }
 ol li b { color: var(--ink) }
-ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; background: var(--gold); color: #1E1B33; display: grid; place-items: center; font: 800 14px var(--display) }
-.go { display: block; width: 100%; padding: 18px 20px; border-radius: 999px; background: var(--gold); color: #1E1B33; text-decoration: none; font: 800 19px var(--display);
-  box-shadow: 0 0 0 8px rgba(255,201,60,.16); animation: pulse 1.8s ease-in-out infinite }
-@keyframes pulse { 50% { box-shadow: 0 0 0 14px rgba(255,201,60,.08) } }
-.pv { width: 100%; display: grid; gap: 6px; text-align: left; font-size: 13px; color: var(--muted) }
-.pv-box { display: flex; align-items: center; gap: 10px; background: #2f2f2f; color: #ececec; border-radius: 24px; padding: 10px 10px 10px 16px; font-size: 15px }
-.pv-box span { flex: 1 }
-.pv-box b { width: 32px; height: 32px; flex: none; border-radius: 50%; background: #fff; color: #000; display: grid; place-items: center; font-size: 18px; animation: pulse2 1.6s ease-in-out infinite }
-@keyframes pulse2 { 50% { transform: scale(1.12) } }
-.other { font-size: 13px; color: var(--muted) }
-.legal { margin: -8px 0 0; font-size: 12px; color: var(--muted); opacity: .8 } .legal a { color: inherit }
-@media (prefers-reduced-motion: reduce) { .go { animation: none } }
+ol li > span:first-child { width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: #1E1B33; display: grid; place-items: center; font: 800 13px var(--display) }
+ol li q { color: var(--ink); font-style: italic }
+.btns { width: 100%; display: grid; gap: 10px }
+.go { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px 18px; border-radius: 999px; text-decoration: none; font: 800 18px var(--display);
+  background: #fff; color: #1E1B33 }
+.go img { width: 26px; height: 26px }
+.go.first { background: var(--gold); box-shadow: 0 0 0 7px rgba(255,201,60,.16); animation: pulse 1.8s ease-in-out infinite }
+.go.first img { background: #fff; border-radius: 8px; padding: 3px; width: 30px; height: 30px }
+@keyframes pulse { 50% { box-shadow: 0 0 0 13px rgba(255,201,60,.07) } }
+.trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 13px; color: var(--muted) }
+.trust li::before { content: "✓ "; color: var(--leaf); font-weight: 700 }
+.legal { margin: -4px 0 0; font-size: 11.5px; color: var(--muted); opacity: .75; text-wrap: balance } .legal a { color: inherit }
+@media (prefers-reduced-motion: reduce) { .go.first, .hero .g { animation: none } }
+@media (max-width: 350px) { .hero { transform: scale(.88) } h1 { font-size: 27px } }
 </style>
 </head>
 <body>
-<main id="m">
-  <div class="logo"><img id="logo" src="logos/openai.svg" alt=""></div>
-  <h1 id="h">Your free game store is in ChatGPT</h1>
-  <p class="lead">No app to download. Playing in about <b>5 seconds</b>, and <b>new free games every morning</b>.</p>
-  <div class="pv" aria-hidden="true"><small id="pvh">ChatGPT opens with this message:</small>
-    <div class="pv-box"><span id="pvt">Show me today's free games from AGENTPARK…</span><b>↑</b></div><small>Just tap <b>↑ send</b>. Your game opens right away.</small></div>
-  <a class="go" id="go" href="#">Open ChatGPT ▶</a>
-  <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p>
-  <a class="other" id="other" href="#">Use Claude instead</a>
+<main>
+  <div class="hero" aria-hidden="true">
+    <img class="g g1" src="covers/ricochet-rex.webp" alt=""><img class="g g2" src="covers/bolt-twist.webp" alt="">
+    <img class="g g3" src="covers/flip-agent.webp" alt=""><img class="g g4" src="covers/tiptoe-tower.webp" alt="">
+    <img class="g g5" src="covers/swirl-tee.webp" alt="">
+    <div class="ai l"><img id="lLogo" src="logos/openai.svg" alt=""></div>
+    <span class="link a"></span><span class="link b"></span>
+    <div class="ap"><img src="brand/agentpark-mark.png" alt=""></div>
+    <div class="ai r claude"><img id="rLogo" src="logos/claude.svg" alt=""></div>
+  </div>
+  <p class="tag">The new way to play</p>
+  <h1>A free game store, right inside your AI</h1>
+  <p class="lead">Nothing to download. Your AI hands you a game and <b>you're playing in 5 seconds</b>, with new ones every morning.</p>
+  <ol>
+    <li><span>1</span><span>Tap your AI. It opens with our short message, <q>Show me today's free games…</q> Just tap <b>↑ send</b>.</span></li>
+    <li><span>2</span><span>Your <b>first game opens right away</b>, and your AI lists today's best ones.</span></li>
+    <li><span>3</span><span>It sets a <b>free daily game drop at 8am</b>. Don't want it? Delete it in one tap, any time.</span></li>
+  </ol>
+  <div class="btns">
+    <a class="go first" id="b1" href="#"><img alt=""><span></span></a>
+    <a class="go" id="b2" href="#"><img alt=""><span></span></a>
+  </div>
+  <ul class="trust"><li>100% free</li><li>No sign-up with us</li><li>We never see your chats</li><li>Stop any time</li></ul>
+  <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>. ChatGPT is a trademark of OpenAI and Claude of Anthropic. AGENTPARK is independent and not affiliated with either.</p>
 </main>
 <script src="config.js"></script>
 <script>window.RC_NO_POPUP = true;</script>
@@ -67,54 +103,61 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
 (function () {
   const C = window.RIFFCADE || {}, RH = window.RiffHabits, RC = window.RiffConsent || { pixel() {} };
   const q = new URLSearchParams(location.search), $ = id => document.getElementById(id);
-  const AI = q.get('ai') === 'claude' ? 'claude' : 'chatgpt', NAME = AI === 'claude' ? 'Claude' : 'ChatGPT', OTHER = AI === 'claude' ? 'chatgpt' : 'claude';
+  const AD_AI = q.get('ai') === 'claude' ? 'claude' : 'chatgpt';
+  const NAMES = { chatgpt: 'ChatGPT', claude: 'Claude' }, LOGOS = { chatgpt: 'logos/openai.svg', claude: 'logos/claude.svg' };
   const UA = navigator.userAgent, IOS = /iPhone|iPad|iPod/.test(UA), AND = /Android/.test(UA), INAPP = /FBAN|FBAV|FB_IAB|Instagram|Messenger/.test(UA);
   // the visitor's prompt code: carried over (&apu=) when this page reopens in Safari, so it stays tied to the ad click
   const code = /^[a-z0-9]{10}$/.test(q.get('apu') || '') ? q.get('apu') : RH && RH.agentCode ? RH.agentCode() : null;
   const sid = (() => { try { return JSON.parse(sessionStorage.getItem('arcade.s.sid')); } catch (e) { return null; } })();
   const ev = name => fetch('https://mcp.riffcade.com/api/ev', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, sid }) }).catch(() => {});
-
   if (RC.setKids) RC.setKids(false);   // consent.js starts the pixel once a page says it isn't a Kids game
-  if (AI === 'claude') { document.body.classList.add('claude'); $('logo').src = 'logos/claude.svg'; }
-  $('h').textContent = `Your free game store is in ${NAME}`;
-  $('go').textContent = `Open ${NAME} ▶`;
-  $('pvh').textContent = `${NAME} opens with this message:`;
-  $('other').textContent = `Use ${AI === 'claude' ? 'ChatGPT' : 'Claude'} instead`;
-  const keep = new URLSearchParams(q); keep.set('ai', OTHER); $('other').href = 'go.html?' + keep;
 
   // the first game: the reply's first line links to it, and this tab turns into it the moment the AI opens (or if it doesn't),
   // so the visitor is never waiting on the AI to start playing
   const GAME = (C.FEED || [])[0] || 'ricochet-rex';
-  const gameUrl = `https://agentpark.co/arcade/play.html?g=${GAME}&ref=daily-${AI}&apu=${code || ''}&pos=go`;
-  const P = (C.GO_PROMPT || C.DAILY_PROMPT || '').replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || ''));
-  const aiUrl = AI === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
-  // out of the in-app browser first: Safari on iPhone (x-safari-), Chrome on Android (intent:)
-  let href = aiUrl;
-  if (INAPP && IOS) {
-    const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.delete('fbclid');
-    href = 'x-safari-' + (q.get('hop') === 'page' ? self.href : aiUrl);
-  } else if (INAPP && AND) href = `intent://${aiUrl.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(aiUrl)};end`;
-  $('go').href = href;
+  function target(ai) {
+    const gameUrl = `https://agentpark.co/arcade/play.html?g=${GAME}&ref=daily-${ai}&apu=${code || ''}&pos=go`;
+    const P = (C.GO_PROMPT || C.DAILY_PROMPT || '').replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || ''));
+    const aiUrl = ai === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
+    // out of the in-app browser first: Safari on iPhone (x-safari-), Chrome on Android (intent:)
+    let href = aiUrl;
+    if (INAPP && IOS) {
+      const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.delete('fbclid');
+      href = 'x-safari-' + (q.get('hop') === 'page' ? self.href : aiUrl);
+    } else if (INAPP && AND) href = `intent://${aiUrl.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(aiUrl)};end`;
+    return { P, href };
+  }
 
-  if (!sessionStorage.getItem('ap.goShown')) { try { sessionStorage.setItem('ap.goShown', '1'); } catch (e) {} ev('go_shown_' + AI); }
-  $('go').addEventListener('click', () => {
-    ev('go_tap_' + AI);
-    if (RH && RH.agentTapped) RH.agentTapped(AI);
+  // the ad's AI first (gold), the other right under it
+  const order = AD_AI === 'claude' ? ['claude', 'chatgpt'] : ['chatgpt', 'claude'];
+  if (AD_AI === 'claude') { $('lLogo').src = LOGOS.claude; $('lLogo').parentNode.classList.add('claude'); $('rLogo').src = LOGOS.chatgpt; $('rLogo').parentNode.classList.remove('claude'); }
+  order.forEach((ai, i) => {
+    const b = $('b' + (i + 1)), t = target(ai);
+    b.querySelector('img').src = LOGOS[ai];
+    b.querySelector('span').textContent = `Play in ${NAMES[ai]} ▶`;
+    b.href = t.href;
+    b.addEventListener('click', () => tapped(ai, t.P));
+  });
+
+  if (!sessionStorage.getItem('ap.goShown')) { try { sessionStorage.setItem('ap.goShown', '1'); } catch (e) {} ev('go_shown_' + AD_AI); }
+  let went = false;
+  function tapped(ai, P) {
+    ev('go_tap_' + ai);
+    if (RH && RH.agentTapped) RH.agentTapped(ai);
     // a Lead for Meta: the browser pixel and our server, one event id (Meta keeps one)
-    const eid = 'lead.' + (code || 'x') + '.' + AI;
+    const eid = 'lead.' + (code || 'x') + '.' + ai;
     if (q.get('test') !== '1') {   // our own test taps (?test=1) are not a Lead for Meta
-      RC.pixel && RC.pixel('Lead', false, { content_name: 'agent_' + AI }, eid);
-      if (window.ApAttrib) ApAttrib.conv('Lead', { name: 'agent_' + AI }, eid);
+      RC.pixel && RC.pixel('Lead', false, { content_name: 'agent_' + ai }, eid);
+      if (window.ApAttrib) ApAttrib.conv('Lead', { name: 'agent_' + ai }, eid);
     }
     if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(P).catch(() => {});   // if the AI opens empty, it can be pasted
-    // then this tab becomes the game: right away once the AI app has taken over (the tab goes hidden), else after 2.5 s
-    let went = false;
-    const toGame = () => { if (went) return; went = true; try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {} ev('go_game_' + AI); location.replace('play.html?g=' + GAME + '&ref=go-' + AI + '&apu=' + (code || '') + '&from=go'); };
+    // then this tab becomes the game: right away once the AI app has taken over (the tab goes hidden), else after 2.5 s.
     // did the AI app actually open? the tab goes hidden when it does (go_jump); still visible after 2.5 s = it didn't (go_nojump)
+    const toGame = () => { if (went) return; went = true; try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {} ev('go_game_' + ai); location.replace('play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + (code || '') + '&from=go'); };
     let jumped = false;
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + AI); } setTimeout(toGame, 300); } }, { once: true });
-    setTimeout(() => { if (!jumped) ev('go_nojump_' + AI); toGame(); }, 2500);
-  });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + ai); } setTimeout(toGame, 300); } }, { once: true });
+    setTimeout(() => { if (!jumped) ev('go_nojump_' + ai); toGame(); }, 2500);
+  }
 })();
 </script>
 </body>
