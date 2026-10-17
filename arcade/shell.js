@@ -414,7 +414,9 @@
       let r = $('rot');
       // a portrait game only warns when the phone itself is sideways: in-app viewers (ChatGPT's link sheet) are often wider than tall
       const sideways = screen.orientation && screen.orientation.type ? /landscape/.test(screen.orientation.type) : Math.abs(window.orientation || 0) === 90;
-      const wrong = started && ((want === 'landscape' && portrait) || (want === 'portrait' && !portrait && sideways && innerWidth > 0 && matchMedia('(pointer: coarse)').matches));
+      // phones only: on a tablet or a computer the game fits either way round, so never ask to turn it
+      const phone = Math.min(screen.width, screen.height) < 500 && matchMedia('(pointer: coarse)').matches;
+      const wrong = started && phone && ((want === 'landscape' && portrait) || (want === 'portrait' && !portrait && sideways && innerWidth > 0));
       if (wrong && !r) {
         r = document.createElement('div'); r.className = 'overlay'; r.id = 'rot';
         r.innerHTML = `<div class="box"><div class="rotate" aria-hidden="true">📱</div><h2>Turn your phone</h2><p>${esc(g.name)} plays best in ${want}.</p><button class="btn ghost" id="anyway">Play anyway</button></div>`;
