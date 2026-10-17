@@ -41,6 +41,9 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 .note { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted) }
 .note b { color: var(--ink) }
 .legal { margin: 0; font-size: 11px; color: var(--muted); opacity: .6; text-wrap: balance } .legal a { color: inherit }
+#again { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; padding: 16px; background: rgba(7,6,15,.88) }
+#again .card { width: min(320px, 100%); display: grid; gap: 16px; justify-items: center; text-align: center; font-size: 20px }
+#again p { margin: 0 } #again .go { width: 100% } #again .skip { color: var(--muted); font-size: 15px }
 @media (prefers-reduced-motion: reduce) { .go.first { animation: none } }
 @media (max-height: 640px) { main { gap: 12px } h1 { font-size: 27px } .go img { width: 50px; height: 50px } }
 </style>
@@ -85,7 +88,9 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
   const GAME = (C.FEED || [])[0] || 'ricochet-rex';
   function target(ai) {
     const gameUrl = `https://agentpark.co/arcade/play.html?g=${GAME}&ref=daily-${ai}&apu=${code || ''}&pos=go`;
-    const P = (C.GO_PROMPT || C.DAILY_PROMPT || '').replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || ''));
+    // {START}: the tiny check-in page the AI opens first, so we know within seconds the message was sent (server.js /start)
+    const startUrl = `https://today.agentpark.co/start?u=${code || ''}&g=${GAME}`;
+    const P = (C.GO_PROMPT || C.DAILY_PROMPT || '').replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
     const aiUrl = ai === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
     // out of the in-app browser first: Safari on iPhone (x-safari-), Chrome on Android (intent:)
     let href = aiUrl;
@@ -93,8 +98,14 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
       const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.delete('fbclid');
       href = 'x-safari-' + (q.get('hop') === 'page' ? self.href : aiUrl);
     } else if (INAPP && AND) href = `intent://${aiUrl.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(aiUrl)};end`;
-    return { P, href };
+    // retry for a tap that opened nothing: from the Facebook / Instagram browser, this page in Safari (one tap there opens the AI)
+    const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.delete('fbclid'); self.searchParams.delete('hop');
+    const retry = INAPP && IOS ? 'x-safari-' + self.href : href;
+    return { P, href, retry };
   }
+  // a plain https link opens the AI in a new tab: in the same tab, the switch to the game cancelled a slow chatgpt.com load
+  // (go_nojump, mostly iPhone Safari), so the visitor got the game and never the AI
+  const ownTab = h => /^https:/.test(h) ? { target: '_blank', rel: 'noopener' } : {};
 
   // ChatGPT left, Claude right; the ad's AI gets the gold ring
   ['chatgpt', 'claude'].forEach((ai, i) => {
@@ -105,12 +116,14 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
     if (ai === 'claude') b.classList.add('claude');
     if (ai === AD_AI) b.classList.add('first');
     b.href = t.href;
-    b.addEventListener('click', () => tapped(ai, t.P));
+    Object.entries(ownTab(t.href)).forEach(([k, v]) => b.setAttribute(k, v));
+    b.addEventListener('click', () => tapped(ai, t));
   });
 
   if (!sessionStorage.getItem('ap.goShown')) { try { sessionStorage.setItem('ap.goShown', '1'); } catch (e) {} ev('go_shown_' + AD_AI); }
   let went = false;
-  function tapped(ai, P) {
+  function tapped(ai, t) {
+    const P = t.P;
     ev('go_tap_' + ai);
     try { sessionStorage.setItem('ap.goTerms', '1'); } catch (e) {}   // agreed with this tap: the game page won't ask again (consent.js)
     if (RH && RH.agentTapped) RH.agentTapped(ai);
@@ -124,9 +137,20 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
     // then this tab becomes the game: right away once the AI app has taken over (the tab goes hidden), else after 2.5 s.
     // did the AI app actually open? the tab goes hidden when it does (go_jump); still visible after 2.5 s = it didn't (go_nojump)
     const toGame = () => { if (went) return; went = true; try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {} ev('go_game_' + ai); location.replace('play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + (code || '') + '&from=go'); };
+    // still here after 3 s = the AI didn't open: a second chance (Safari from the in-app browser) instead of dropping them into the game
     let jumped = false;
-    document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + ai); } setTimeout(toGame, 300); } }, { once: true });
-    setTimeout(() => { if (!jumped) ev('go_nojump_' + ai); toGame(); }, 2500);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + ai); } setTimeout(toGame, 300); } });
+    setTimeout(() => { if (!jumped && !went && !$('again')) { ev('go_nojump_' + ai); again(ai, t, toGame); } }, 3000);
+  }
+  function again(ai, t, toGame) {
+    const d = document.createElement('div');
+    d.id = 'again';
+    d.innerHTML = `<div class="card"><p><b>${NAMES[ai]} didn't open?</b></p><a class="go" href="${t.retry}"><img alt="" src="${LOGOS[ai]}"><small>${INAPP && IOS ? 'OPEN IN SAFARI ▶' : 'TRY AGAIN ▶'}</small></a><a class="skip" href="#">Just play a game</a></div>`;
+    const a = d.querySelector('.go');
+    Object.entries(ownTab(t.retry)).forEach(([k, v]) => a.setAttribute(k, v));
+    a.addEventListener('click', () => ev('go_retry_' + ai));
+    d.querySelector('.skip').addEventListener('click', e => { e.preventDefault(); toGame(); });
+    document.body.appendChild(d);
   }
 })();
 </script>
