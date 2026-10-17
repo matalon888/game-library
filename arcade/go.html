@@ -108,8 +108,10 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
     // then this tab becomes the game: right away once the AI app has taken over (the tab goes hidden), else after 2.5 s
     let went = false;
     const toGame = () => { if (went) return; went = true; try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {} ev('go_game_' + AI); location.replace('play.html?g=' + GAME + '&ref=go-' + AI + '&apu=' + (code || '') + '&from=go'); };
-    document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(toGame, 300); }, { once: true });
-    setTimeout(toGame, 2500);
+    // did the AI app actually open? the tab goes hidden when it does (go_jump); still visible after 2.5 s = it didn't (go_nojump)
+    let jumped = false;
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + AI); } setTimeout(toGame, 300); } }, { once: true });
+    setTimeout(() => { if (!jumped) ev('go_nojump_' + AI); toGame(); }, 2500);
   });
 })();
 </script>
