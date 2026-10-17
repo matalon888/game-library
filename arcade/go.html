@@ -36,8 +36,6 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
 .go { display: block; width: 100%; padding: 18px 20px; border-radius: 999px; background: var(--gold); color: #1E1B33; text-decoration: none; font: 800 19px var(--display);
   box-shadow: 0 0 0 8px rgba(255,201,60,.16); animation: pulse 1.8s ease-in-out infinite }
 @keyframes pulse { 50% { box-shadow: 0 0 0 14px rgba(255,201,60,.08) } }
-.hint { margin: 0; font-size: 13px; color: var(--muted) }
-.hint[hidden] { display: none }
 .other { font-size: 13px; color: var(--muted) }
 .legal { margin: -8px 0 0; font-size: 12px; color: var(--muted); opacity: .8 } .legal a { color: inherit }
 @media (prefers-reduced-motion: reduce) { .go { animation: none } }
@@ -50,11 +48,10 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
   <p class="lead">No app to download. You're playing in about <b>5 seconds</b>.</p>
   <ol>
     <li><span>1</span><span>ChatGPT opens with a message ready. <b>Tap send.</b></span></li>
-    <li><span>2</span><span>It shows today's games. <b>Tap one and play.</b></span></li>
+    <li><span>2</span><span>Your first game is <b>ready right here</b> when you come back.</span></li>
     <li><span>3</span><span><b>New free games every morning</b>, right in your chat.</span></li>
   </ol>
   <a class="go" id="go" href="#">Open ChatGPT ▶</a>
-  <p class="hint" id="hint" hidden>Nothing happened? Tap <b>⋯</b> → <b>Open in browser</b>, then tap the button again.</p>
   <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</p>
   <a class="other" id="other" href="#">Use Claude instead</a>
 </main>
@@ -83,7 +80,11 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
   $('other').textContent = `Use ${AI === 'claude' ? 'ChatGPT' : 'Claude'} instead`;
   const keep = new URLSearchParams(q); keep.set('ai', OTHER); $('other').href = 'go.html?' + keep;
 
-  const P = (C.GO_PROMPT || C.DAILY_PROMPT || '').replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || ''));
+  // the first game: the reply's first line links to it, and this tab turns into it the moment the AI opens (or if it doesn't),
+  // so the visitor is never waiting on the AI to start playing
+  const GAME = (C.FEED || [])[0] || 'ricochet-rex';
+  const gameUrl = `https://agentpark.co/arcade/play.html?g=${GAME}&ref=daily-${AI}&apu=${code || ''}&pos=go`;
+  const P = (C.GO_PROMPT || C.DAILY_PROMPT || '').replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || ''));
   const aiUrl = AI === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
   // out of the in-app browser first: Safari on iPhone (x-safari-), Chrome on Android (intent:)
   let href = aiUrl;
@@ -104,7 +105,11 @@ ol li span:first-child { width: 30px; height: 30px; border-radius: 50%; backgrou
       if (window.ApAttrib) ApAttrib.conv('Lead', { name: 'agent_' + AI }, eid);
     }
     if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(P).catch(() => {});   // if the AI opens empty, it can be pasted
-    if (INAPP) setTimeout(() => { $('hint').hidden = false; }, 1500);
+    // then this tab becomes the game: right away once the AI app has taken over (the tab goes hidden), else after 2.5 s
+    let went = false;
+    const toGame = () => { if (went) return; went = true; try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {} ev('go_game_' + AI); location.replace('play.html?g=' + GAME + '&ref=go-' + AI + '&apu=' + (code || '') + '&from=go'); };
+    document.addEventListener('visibilitychange', () => { if (document.hidden) setTimeout(toGame, 300); }, { once: true });
+    setTimeout(toGame, 2500);
   });
 })();
 </script>
