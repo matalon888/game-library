@@ -112,6 +112,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
   let went = false;
   function tapped(ai, P) {
     ev('go_tap_' + ai);
+    try { sessionStorage.setItem('ap.goTerms', '1'); } catch (e) {}   // agreed with this tap: the game page won't ask again (consent.js)
     if (RH && RH.agentTapped) RH.agentTapped(ai);
     // a Lead for Meta: the browser pixel and our server, one event id (Meta keeps one)
     const eid = 'lead.' + (code || 'x') + '.' + ai;

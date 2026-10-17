@@ -452,7 +452,8 @@
       started = Date.now();
       store.set('last', g.slug);
       store.set('plays', store.get('plays', 0) + 1);
-      api('/api/play', REF ? { slug: g.slug, ref: REF } : { slug: g.slug });
+      const APU = (u => /^[a-z0-9]{10}$/.test(u || '') ? u : null)(new URLSearchParams(location.search).get('apu'));
+      api('/api/play', REF ? Object.assign({ slug: g.slug, ref: REF }, APU ? { apu: APU } : {}) : { slug: g.slug });   // apu: a game from the visitor's own AI reply = their AI ran (server)
       try { frame.contentWindow.focus(); } catch (e) {}
       if (g.controls) controls(g.controls, frame);
       bubble(g, { leave, credits });

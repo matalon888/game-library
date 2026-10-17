@@ -129,7 +129,10 @@ html.rc-lock,html.rc-lock body{overflow:hidden}
   if (!needed) return;
   start();
   const ready = () => {
-    if (!stored() && !US && !window.RC_NO_POPUP) open();   // go.html sets RC_NO_POPUP: outside the US it just stays off (no tracking), no extra tap
+    // no popup on the agent funnel: go.html (RC_NO_POPUP), and the first game it or the AI's reply opens (agreed to the Terms with
+    // the GET IN tap). Outside the US tracking just stays off there, no extra tap
+    let fromGo = /[?&](ref=go-|pos=go\b)/.test(location.search); try { fromGo = fromGo || sessionStorage.getItem('ap.goTerms') === '1'; } catch (e) {}
+    if (!stored() && !US && !window.RC_NO_POPUP && !fromGo) open();
     // "Privacy choices" in the footer: change your mind as easily as you chose (arcade .foot, landing footer nav)
     const foot = document.querySelector('.foot, footer nav');
     if (foot && !document.getElementById('rcChoices')) {
