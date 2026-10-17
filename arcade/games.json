@@ -2228,7 +2228,7 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 1,
+    "forks": 2,
     "stars": 2,
     "url": "https://github.com/thecraftman/dropzone"
    }
@@ -7402,8 +7402,8 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 714,
-    "stars": 6445,
+    "forks": 715,
+    "stars": 6447,
     "url": "https://github.com/pshenok/server-survival"
    }
   },
