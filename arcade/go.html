@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The games console you already own · AGENTPARK</title>
+<title>You're on the list · AGENTPARK</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#12163A">
 <link rel="icon" href="brand/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
-<!-- The agent ad lands here: our patch, one line, a few games, and two big buttons side by side (ChatGPT, Claude), straight into
+<!-- The agent ad lands here: a pixel club queue (club.js: our residents waiting, the keeper checking the list), one line, and two big buttons side by side (ChatGPT, Claude), straight into
      that AI with the AGENTPARK prompt filled in. Kept nearly wordless on purpose (players, often young; Daniel 2026-10-17: no
      walls of text). The ad's ?ai= choice gets the gold ring. The tap also turns this tab into the first game (so nobody waits
      on the AI), keeps the ad click tied to this visitor's prompt code (attrib.js), and counts a Meta Lead (pixel + our Conversions
@@ -21,15 +21,13 @@
   --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent }
 html, body { margin: 0; min-height: 100% }
-body { background: radial-gradient(120% 60% at 50% 0%, #2a2f6b 0%, var(--night) 62%); color: var(--ink); font: 16px/1.4 var(--body); -webkit-font-smoothing: antialiased;
-  min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px) }
+body { background: #07060f; color: var(--ink); font: 16px/1.4 var(--body); -webkit-font-smoothing: antialiased;
+  min-height: 100vh; min-height: 100dvh; display: grid; place-items: start center; padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px) }
 main { width: min(420px, 100%); display: grid; gap: 18px; justify-items: center; text-align: center }
-.logo { width: 150px; height: 150px; filter: drop-shadow(0 12px 30px rgba(0,0,0,.45)); animation: bob 3s ease-in-out infinite }
-@keyframes bob { 50% { transform: translateY(-6px) rotate(-2deg) } }
+.club { position: relative; width: calc(100% + 32px); margin: calc(-16px - env(safe-area-inset-top)) -16px 0 }
+.club canvas { display: block; width: 100%; aspect-ratio: 160 / 100; image-rendering: pixelated; image-rendering: crisp-edges; background: #07060f }
+.club .badge { position: absolute; left: 12px; bottom: -22px; width: 56px; height: 56px; filter: drop-shadow(0 6px 14px rgba(0,0,0,.5)) }
 h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text-wrap: balance }
-.games { display: flex; justify-content: center; gap: 10px }
-.games img { width: 64px; height: 64px; border-radius: 18px; object-fit: cover; box-shadow: 0 6px 18px rgba(0,0,0,.4); animation: bob 3.2s ease-in-out infinite }
-.games img:nth-child(2) { animation-delay: -.8s } .games img:nth-child(3) { animation-delay: -1.6s } .games img:nth-child(4) { animation-delay: -2.4s }
 .btns { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
 .go { display: grid; justify-items: center; align-content: center; gap: 10px; padding: 20px 8px 18px; border-radius: 28px; text-decoration: none; color: #1E1B33;
   font: 800 20px/1 var(--display); background: #fff; box-shadow: 0 10px 0 rgba(0,0,0,.25); transition: transform .08s }
@@ -43,19 +41,19 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 .note { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted) }
 .note b { color: var(--ink) }
 .legal { margin: 0; font-size: 11px; color: var(--muted); opacity: .6; text-wrap: balance } .legal a { color: inherit }
-@media (prefers-reduced-motion: reduce) { .logo, .games img, .go.first { animation: none } }
-@media (max-height: 640px) { .logo { width: 116px; height: 116px } .games img { width: 52px; height: 52px } main { gap: 14px } }
+@media (prefers-reduced-motion: reduce) { .go.first { animation: none } }
+@media (max-height: 640px) { main { gap: 12px } h1 { font-size: 27px } .go img { width: 50px; height: 50px } }
 </style>
 </head>
 <body>
 <main>
-  <img class="logo" src="brand/patch.webp" alt="AGENTPARK">
-  <h1>The games console you already own.</h1>
-  <p class="sub">It's your AI. Tap it, hit <b>↑ send</b>, and you're playing in 5 seconds.</p>
-  <div class="games" aria-hidden="true"><img src="covers/ricochet-rex.webp" alt=""><img src="covers/bolt-twist.webp" alt=""><img src="covers/tiptoe-tower.webp" alt=""><img src="covers/swirl-tee.webp" alt=""></div>
+  <div class="club"><canvas id="club" width="160" height="100" aria-label="Game characters queuing outside the AGENTPARK club while the keeper checks the list"></canvas>
+    <img class="badge" src="brand/patch-mark.webp" alt="AGENTPARK"></div>
+  <h1>Everyone's queuing. You're on the list.</h1>
+  <p class="sub">Your AI is the ticket. Tap it, hit <b>↑ send</b>, you're in.</p>
   <div class="btns">
-    <a class="go" id="b1" href="#"><img alt=""><span></span><small>PLAY ▶</small></a>
-    <a class="go" id="b2" href="#"><img alt=""><span></span><small>PLAY ▶</small></a>
+    <a class="go" id="b1" href="#"><img alt=""><span></span><small>GET IN ▶</small></a>
+    <a class="go" id="b2" href="#"><img alt=""><span></span><small>GET IN ▶</small></a>
   </div>
   <p class="note">Free. No app. No account.<br><b>The only catch:</b> new games turn up every morning.</p>
   <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>. ChatGPT is a trademark of OpenAI, Claude of Anthropic; AGENTPARK is not affiliated with either.</p>
@@ -66,6 +64,9 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 <script src="habits.js"></script>
 <script src="attrib.js"></script>
 <script src="diag.js"></script>
+<script src="club-sprites.js"></script>
+<script src="club.js"></script>
+<script>ClubScene(document.getElementById('club'));</script>
 <script>
 (function () {
   const C = window.RIFFCADE || {}, RH = window.RiffHabits, RC = window.RiffConsent || { pixel() {} };
