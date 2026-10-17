@@ -9,89 +9,54 @@
 <link rel="icon" href="brand/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
-<!-- The agent ad lands here: one screen that says what AGENTPARK is (a free game store inside your AI), why it's the new way to
-     play, what happens after the tap, and why it's safe; then two buttons, ChatGPT and Claude, straight into that AI with the
-     AGENTPARK prompt filled in. The ad's ?ai= choice comes first. The tap also turns this tab into the first game (so nobody waits
+<!-- The agent ad lands here: our patch, one line, a few games, and two big buttons side by side (ChatGPT, Claude), straight into
+     that AI with the AGENTPARK prompt filled in. Kept nearly wordless on purpose (players, often young; Daniel 2026-10-17: no
+     walls of text). The ad's ?ai= choice gets the gold ring. The tap also turns this tab into the first game (so nobody waits
      on the AI), keeps the ad click tied to this visitor's prompt code (attrib.js), and counts a Meta Lead (pixel + our Conversions
      API, one event id). Inside the Facebook / Instagram browser the button jumps to Safari (iPhone) or Chrome (Android) first,
-     where the AI is signed in. The AI logos are shown unaltered, each in its own tile, as a plain reference to the AI the button
-     opens (not part of our mark), with the trademark note at the bottom.
+     where the AI is signed in. The AI logos are shown unaltered, each on its own button, as a plain reference to the AI it opens.
      ?ai=chatgpt|claude · test only: ?hop=page (iPhone in-app: open this page in Safari first, then the AI from there), ?test=1 (no Lead) -->
 <style>
-:root { --ink: #FFFDF8; --muted: #CFCBE6; --night: #12163A; --gold: #FFC93C; --leaf: #35B866; --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
+:root { --ink: #FFFDF8; --muted: #CFCBE6; --night: #12163A; --gold: #FFC93C; --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
   --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent }
 html, body { margin: 0; min-height: 100% }
-body { background: radial-gradient(120% 60% at 50% 0%, #2a2f6b 0%, var(--night) 62%); color: var(--ink); font: 16px/1.45 var(--body); -webkit-font-smoothing: antialiased;
-  min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 20px) }
-main { width: min(400px, 100%); display: grid; gap: 13px; justify-items: center; text-align: center }
-
-/* hero: our mascot in the middle, the two AIs either side, game characters floating around */
-.hero { position: relative; width: 100%; height: 138px }
-.hero .ai, .hero .ap { position: absolute; top: 50%; display: grid; place-items: center; border-radius: 24px; box-shadow: 0 10px 34px rgba(0,0,0,.4) }
-.hero .ap { left: 50%; width: 96px; height: 96px; transform: translate(-50%, -50%); background: #FFF6E5; border-radius: 32px; z-index: 2 }
-.hero .ap img { width: 100%; height: 100%; border-radius: 32px }
-.hero .ai { width: 62px; height: 62px; background: #fff; z-index: 1; transform: translateY(-50%) }
-.hero .ai img { width: 36px; height: 36px }
-.hero .ai.claude { background: #F4EFE6 }
-.hero .l { left: calc(50% - 116px) } .hero .r { left: calc(50% + 54px) }
-.hero .link { position: absolute; top: 50%; height: 3px; width: 48px; background: repeating-linear-gradient(90deg, var(--gold) 0 6px, transparent 6px 11px); opacity: .8 }
-.hero .link.a { left: calc(50% - 64px) } .hero .link.b { left: calc(50% + 16px) }
-.hero .g { position: absolute; width: 44px; height: 44px; border-radius: 13px; object-fit: cover; box-shadow: 0 6px 18px rgba(0,0,0,.4); animation: bob 3.2s ease-in-out infinite }
-.hero .g1 { left: calc(50% - 150px); top: 2px; animation-delay: -.4s } .hero .g2 { left: calc(50% + 104px); top: 0; animation-delay: -1.2s }
-.hero .g3 { left: calc(50% - 106px); bottom: 0; animation-delay: -2s } .hero .g4 { left: calc(50% + 70px); bottom: 2px; animation-delay: -2.7s }
-.hero .g5 { left: calc(50% - 22px); top: -6px; width: 36px; height: 36px; animation-delay: -1.6s; z-index: 3 }
-@keyframes bob { 50% { transform: translateY(-7px) rotate(-3deg) } }
-
-.tag { margin: 0; font: 700 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--gold) }
-h1 { margin: -6px 0 0; font: 800 28px/1.06 var(--display); letter-spacing: -.01em; text-wrap: balance }
-.lead { margin: 0; color: var(--muted); font-size: 15px; text-wrap: balance }
-.lead b { color: var(--ink) }
-ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; text-align: left }
-ol li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 14px; padding: 8px 12px; font-size: 14px; line-height: 1.33 }
-ol li b { color: var(--ink) }
-ol li > span:first-child { width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: #1E1B33; display: grid; place-items: center; font: 800 13px var(--display) }
-ol li q { color: var(--ink); font-style: italic }
-.btns { width: 100%; display: grid; gap: 10px }
-.go { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px 18px; border-radius: 999px; text-decoration: none; font: 800 18px var(--display);
-  background: #fff; color: #1E1B33 }
-.go img { width: 26px; height: 26px }
-.go.first { background: var(--gold); box-shadow: 0 0 0 7px rgba(255,201,60,.16); animation: pulse 1.8s ease-in-out infinite }
-.go.first img { background: #fff; border-radius: 8px; padding: 3px; width: 30px; height: 30px }
-@keyframes pulse { 50% { box-shadow: 0 0 0 13px rgba(255,201,60,.07) } }
-.trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 13px; color: var(--muted) }
-.trust li::before { content: "✓ "; color: var(--leaf); font-weight: 700 }
-.legal { margin: -4px 0 0; font-size: 11.5px; color: var(--muted); opacity: .75; text-wrap: balance } .legal a { color: inherit }
-@media (prefers-reduced-motion: reduce) { .go.first, .hero .g { animation: none } }
-@media (max-width: 350px) { .hero { transform: scale(.88) } h1 { font-size: 27px } }
+body { background: radial-gradient(120% 60% at 50% 0%, #2a2f6b 0%, var(--night) 62%); color: var(--ink); font: 16px/1.4 var(--body); -webkit-font-smoothing: antialiased;
+  min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px) }
+main { width: min(420px, 100%); display: grid; gap: 18px; justify-items: center; text-align: center }
+.logo { width: 150px; height: 150px; filter: drop-shadow(0 12px 30px rgba(0,0,0,.45)); animation: bob 3s ease-in-out infinite }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-2deg) } }
+h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text-wrap: balance }
+.games { display: flex; justify-content: center; gap: 10px }
+.games img { width: 64px; height: 64px; border-radius: 18px; object-fit: cover; box-shadow: 0 6px 18px rgba(0,0,0,.4); animation: bob 3.2s ease-in-out infinite }
+.games img:nth-child(2) { animation-delay: -.8s } .games img:nth-child(3) { animation-delay: -1.6s } .games img:nth-child(4) { animation-delay: -2.4s }
+.btns { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.go { display: grid; justify-items: center; align-content: center; gap: 10px; padding: 20px 8px 18px; border-radius: 28px; text-decoration: none; color: #1E1B33;
+  font: 800 20px/1 var(--display); background: #fff; box-shadow: 0 10px 0 rgba(0,0,0,.25); transition: transform .08s }
+.go:active { transform: translateY(4px); box-shadow: 0 6px 0 rgba(0,0,0,.25) }
+.go img { width: 64px; height: 64px }
+.go.claude { background: #F4EFE6 }
+.go small { font: 800 15px var(--display); background: var(--gold); color: #1E1B33; border-radius: 999px; padding: 7px 14px }
+.go.first { outline: 4px solid var(--gold); outline-offset: 4px; animation: pulse 1.8s ease-in-out infinite }
+@keyframes pulse { 50% { outline-offset: 8px } }
+.note { margin: 0; font-size: 14px; color: var(--muted) }
+.note b { color: var(--ink) }
+.legal { margin: 0; font-size: 11px; color: var(--muted); opacity: .6; text-wrap: balance } .legal a { color: inherit }
+@media (prefers-reduced-motion: reduce) { .logo, .games img, .go.first { animation: none } }
+@media (max-height: 640px) { .logo { width: 116px; height: 116px } .games img { width: 52px; height: 52px } main { gap: 14px } }
 </style>
 </head>
 <body>
 <main>
-  <div class="hero" aria-hidden="true">
-    <img class="g g1" src="covers/ricochet-rex.webp" alt=""><img class="g g2" src="covers/bolt-twist.webp" alt="">
-    <img class="g g3" src="covers/flip-agent.webp" alt=""><img class="g g4" src="covers/tiptoe-tower.webp" alt="">
-    <img class="g g5" src="covers/swirl-tee.webp" alt="">
-    <div class="ai l"><img id="lLogo" src="logos/openai.svg" alt=""></div>
-    <span class="link a"></span><span class="link b"></span>
-    <div class="ap"><img src="brand/agentpark-mark.png" alt=""></div>
-    <div class="ai r claude"><img id="rLogo" src="logos/claude.svg" alt=""></div>
-  </div>
-  <p class="tag">The new way to play</p>
-  <h1>A free game store, right inside your AI</h1>
-  <p class="lead">Nothing to download. Your AI hands you a game and <b>you're playing in 5 seconds</b>, with new ones every morning.</p>
-  <ol>
-    <li><span>1</span><span>Tap your AI. It opens with our short message, <q>Show me today's free games…</q> Just tap <b>↑ send</b>.</span></li>
-    <li><span>2</span><span>Your <b>first game opens right away</b>, and your AI lists today's best ones.</span></li>
-    <li><span>3</span><span>It sets a <b>free daily game drop at 8am</b>. Don't want it? Delete it in one tap, any time.</span></li>
-  </ol>
+  <img class="logo" src="brand/patch.webp" alt="AGENTPARK">
+  <h1>Free games, right in your AI 🎮</h1>
+  <div class="games" aria-hidden="true"><img src="covers/ricochet-rex.webp" alt=""><img src="covers/bolt-twist.webp" alt=""><img src="covers/tiptoe-tower.webp" alt=""><img src="covers/swirl-tee.webp" alt=""></div>
   <div class="btns">
-    <a class="go first" id="b1" href="#"><img alt=""><span></span></a>
-    <a class="go" id="b2" href="#"><img alt=""><span></span></a>
+    <a class="go" id="b1" href="#"><img alt=""><span></span><small>PLAY ▶</small></a>
+    <a class="go" id="b2" href="#"><img alt=""><span></span><small>PLAY ▶</small></a>
   </div>
-  <ul class="trust"><li>100% free</li><li>No sign-up with us</li><li>We never see your chats</li><li>Stop any time</li></ul>
-  <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>. ChatGPT is a trademark of OpenAI and Claude of Anthropic. AGENTPARK is independent and not affiliated with either.</p>
+  <p class="note">Then tap <b>↑ send</b> and your game opens. Free, nothing to download.</p>
+  <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>. ChatGPT is a trademark of OpenAI, Claude of Anthropic; AGENTPARK is not affiliated with either.</p>
 </main>
 <script src="config.js"></script>
 <script>window.RC_NO_POPUP = true;</script>
@@ -128,13 +93,14 @@ ol li q { color: var(--ink); font-style: italic }
     return { P, href };
   }
 
-  // the ad's AI first (gold), the other right under it
-  const order = AD_AI === 'claude' ? ['claude', 'chatgpt'] : ['chatgpt', 'claude'];
-  if (AD_AI === 'claude') { $('lLogo').src = LOGOS.claude; $('lLogo').parentNode.classList.add('claude'); $('rLogo').src = LOGOS.chatgpt; $('rLogo').parentNode.classList.remove('claude'); }
-  order.forEach((ai, i) => {
+  // ChatGPT left, Claude right; the ad's AI gets the gold ring
+  ['chatgpt', 'claude'].forEach((ai, i) => {
     const b = $('b' + (i + 1)), t = target(ai);
     b.querySelector('img').src = LOGOS[ai];
-    b.querySelector('span').textContent = `Play in ${NAMES[ai]} ▶`;
+    b.querySelector('span').textContent = NAMES[ai];
+    b.setAttribute('aria-label', `Play in ${NAMES[ai]}`);
+    if (ai === 'claude') b.classList.add('claude');
+    if (ai === AD_AI) b.classList.add('first');
     b.href = t.href;
     b.addEventListener('click', () => tapped(ai, t.P));
   });
