@@ -82,6 +82,12 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
   const sid = (() => { try { return JSON.parse(sessionStorage.getItem('arcade.s.sid')); } catch (e) { return null; } })();
   const ev = name => fetch('https://mcp.riffcade.com/api/ev', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, sid }) }).catch(() => {});
   if (RC.setKids) RC.setKids(false);   // consent.js starts the pixel once a page says it isn't a Kids game
+  // a CPAlead offerwall visitor (?cpa_click=): their click id is tied to this prompt code, so the server pays the offer
+  // the moment their AI runs the task (arcade-api cpalead.js). Kept through the Safari hop, which reuses this URL.
+  const cpaClick = q.get('cpa_click');
+  if (code && cpaClick && /^[\w.:-]{1,128}$/.test(cpaClick))
+    fetch('https://mcp.riffcade.com/api/cpa', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ u: code, click: cpaClick, pub: q.get('cpa_pub'), camp: q.get('cpa_camp'), pay: q.get('cpa_pay') }) }).catch(() => {});
 
   // the first game: the reply's first line links to it, and this tab turns into it the moment the AI opens (or if it doesn't),
   // so the visitor is never waiting on the AI to start playing
