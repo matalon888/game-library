@@ -25,6 +25,10 @@
 <li><b>rate_game:</b> the game slug, the stars (1 to 5) and an optional <code>client</code> field. The arcade card in the chat fills <code>client</code> with a random ID that it creates and keeps in the card's local storage. We store it as <code>mcp:</code> followed by that ID, together with the game, the stars and the time, so a repeat rating replaces the first one. If <code>client</code> is missing, we generate a new random ID for that one rating. The ID is not linked to your chat account, your name or your conversation.</li>
 </ul>
 <p>Tool requests come from OpenAI's or Anthropic's servers, not from your device.</p>
+<h2>The AGENTPARK iPhone app</h2>
+<p>The app shows the same games. It has no account and no sign-in, shows no ads today, and uses no advertising or tracking SDKs. It does not use your advertising identifier and does not track you across other apps or websites.</p>
+<p>When the app is first opened it creates a random install ID (12 letters and digits) on your phone. It is used for one thing: to unlock ad-free play after you set up your daily games in ChatGPT or Claude. The ID is part of the message the app opens in your AI, your AI visits our check-in link with it, and the app asks our server whether that ID has checked in. We store the ID, which AI checked in (ChatGPT or Claude) and the time. The ID is not linked to your name, email, Apple ID or device. Deleting the app deletes the ID from your phone; to delete it from our server, email us with the ID shown in the request your AI received.</p>
+<p>The games are loaded from agentpark.co. Your 6-minute timer, unlock status and recent games are kept on your phone only.</p>
 <h2>How long we keep it</h2>
 <p>Play counts, usage counts and ratings (with their random IDs) are kept for as long as RIFFCADE runs, because they make up the public play and star counts. They are deleted when the service shuts down. The IP addresses used for abuse protection are kept for one minute. Our hosting providers' request logs are kept under their own retention policies.</p>
 <h2>Deleting your ratings</h2>
