@@ -676,13 +676,7 @@
    "url": "https://github.com/rakeshid03/arrowpathpuzzle"
   }
  },
- "ljy969-deal-or-no-deal": {
-  "github": {
-   "forks": 3,
-   "stars": 8,
-   "url": "https://github.com/ljy969/DEAL-OR-NO-DEAL"
-  }
- },
+ "ljy969-deal-or-no-deal": {},
  "ucfx-minimax-game-ai": {
   "github": {
    "forks": 67,
@@ -700,14 +694,14 @@
  "nkzw-tech-athena-crisis": {
   "github": {
    "forks": 161,
-   "stars": 1987,
+   "stars": 1988,
    "url": "https://github.com/nkzw-tech/athena-crisis"
   }
  },
  "starknightt-operation-ironhold": {
   "github": {
-   "forks": 27,
-   "stars": 101,
+   "forks": 28,
+   "stars": 102,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
  },
@@ -720,8 +714,8 @@
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 199,
-   "stars": 1412,
+   "forks": 202,
+   "stars": 1413,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -825,7 +819,7 @@
  "mike007jd-voxel-musou": {
   "github": {
    "forks": 50,
-   "stars": 151,
+   "stars": 152,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
  },
@@ -1125,8 +1119,8 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 29,
-   "stars": 102,
+   "forks": 30,
+   "stars": 108,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -2105,7 +2099,7 @@
  },
  "wafley-tembaku": {
   "github": {
-   "forks": 1,
+   "forks": 0,
    "stars": 1,
    "url": "https://github.com/wafley/tembaku"
   }
@@ -3107,7 +3101,7 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 716,
+   "forks": 720,
    "stars": 6450,
    "url": "https://github.com/pshenok/server-survival"
   }

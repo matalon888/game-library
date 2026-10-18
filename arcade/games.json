@@ -7402,7 +7402,7 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 716,
+    "forks": 720,
     "stars": 6450,
     "url": "https://github.com/pshenok/server-survival"
    }
@@ -7622,8 +7622,8 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 27,
-    "stars": 101,
+    "forks": 28,
+    "stars": 102,
     "url": "https://github.com/StarKnightt/operation-ironhold"
    }
   },
@@ -7979,13 +7979,7 @@
   "tags": [],
   "made": "2026-08-19",
   "platform": "phone",
-  "public": {
-   "github": {
-    "forks": 3,
-    "stars": 8,
-    "url": "https://github.com/ljy969/DEAL-OR-NO-DEAL"
-   }
-  },
+  "public": null,
   "cover": "covers/ljy969-deal-or-no-deal.webp",
   "thumb": "covers/ljy969-deal-or-no-deal.webp",
   "icon": "art/ljy969-deal-or-no-deal.webp",
