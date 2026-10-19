@@ -253,7 +253,9 @@
   };
 
   async function play() {
-    const slug = new URLSearchParams(location.search).get('g');
+    // renamed games keep their old links working (old slug -> new slug)
+    const RENAMED = { 'stormchase-endless-turn-runner': 'stormchase-endless-rail-runner' };
+    const slug = RENAMED[new URLSearchParams(location.search).get('g')] || new URLSearchParams(location.search).get('g');
     const all = await games();
     const g = all.find(x => x.slug === slug);
     if (!g) { location.replace(EMBED ? './?embed=chat' : './'); return; }
