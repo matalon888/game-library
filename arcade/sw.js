@@ -1,6 +1,6 @@
 // Offline support. Shell: network first (updates show up), cached fallback.
 // Game files: cache first, filled the first time a game is played, so played games work offline.
-const V = 'arcade-v52';  // bump whenever a published game's files change (audit fixes), so cached copies are dropped
+const V = 'arcade-v53';  // bump whenever a published game's files change (audit fixes), so cached copies are dropped
 const SHELL = ['./', 'index.html', 'play.html', 'arcade.css', 'shell.js', 'park.js', 'park.css', 'config.js', 'consent.js', 'habits.js', 'attrib.js', 'diag.js', 'grow.js', 'games.json', 'manifest.webmanifest', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

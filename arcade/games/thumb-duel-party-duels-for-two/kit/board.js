@@ -591,6 +591,8 @@ function regular({ game, label = 'Score', limits = null, mode = 'best', corner =
   };
   // a link from the home page's world boards (play.html?g=…&board=1) opens this game's board straight away
   let wantBoard = Q.get('board') === '1'; try { wantBoard = wantBoard || new URLSearchParams(parent.location.search).get('board') === '1'; } catch (e) {}
-  if (wantBoard) setTimeout(() => api.open(), 900);
+  // (on play.html it waits until the PLAY splash is gone, so the board never sits under it)
+  if (wantBoard) { let n = 0; const t = setInterval(() => { let ov = null; try { ov = parent !== window && [...parent.document.querySelectorAll('.overlay')].find(o => o.getClientRects().length); } catch (e) {}
+    if (!ov || ++n > 400) { clearInterval(t); setTimeout(() => api.open(), 500); } }, 300); }
   return api;
 }
