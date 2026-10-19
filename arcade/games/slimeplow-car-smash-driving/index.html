@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Slimeplow: Car Smash Driving</title>
+<meta name="description" content="Drive a plow truck through a goofy slime horde, pop blobs, fly off ramps and upgrade your engine, armor, booster and fuel to reach the rescue blimp. Free in your browser.">
+<meta property="og:title" content="Slimeplow: Car Smash Driving">
+<meta property="og:description" content="Smash through a goofy slime horde, upgrade your truck between runs and reach the rescue blimp.">
+<meta name="theme-color" content="#9be7ff">
+<link rel="icon" href="data:,">
+<style>
+  body .hc-score{font-size:40px;top:calc(54px + env(safe-area-inset-top))}
+  body .hc-sub{top:calc(98px + env(safe-area-inset-top))}
+  .hc-lvl.next{font-size:18px}
+  .sp-ctl{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));z-index:7;display:flex;align-items:center;justify-content:center;flex-direction:column;
+    width:92px;height:112px;border-radius:26px;background:rgba(255,255,255,.28);border:3px solid rgba(255,255,255,.85);color:#fff;font-weight:800;font-size:15px;
+    box-shadow:0 6px 0 rgba(0,0,0,.16);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);text-shadow:0 2px 0 rgba(0,0,0,.2);touch-action:none;transition:transform .06s}
+  .sp-ctl b{font-size:34px;line-height:1}
+  .sp-ctl.on{transform:translateY(4px) scale(.96);background:rgba(255,255,255,.5);box-shadow:0 2px 0 rgba(0,0,0,.16)}
+  .sp-brake{left:14px}.sp-gas{right:14px}
+  .sp-boost{right:22px;bottom:calc(142px + env(safe-area-inset-bottom));width:76px;height:76px;border-radius:50%;background:conic-gradient(#ff7b39 var(--p,100%),rgba(255,255,255,.25) 0)}
+  .sp-boost b{font-size:30px}
+  .sp-gauges{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));z-index:6;display:flex;flex-direction:column;gap:6px;width:min(170px,40vw);pointer-events:none}
+  .sp-g{display:flex;align-items:center;gap:6px;font-size:16px;font-weight:800;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .sp-g span{flex:1;height:13px;border-radius:8px;background:rgba(30,30,60,.3);border:2px solid rgba(255,255,255,.9);overflow:hidden}
+  .sp-g i{display:block;height:100%;width:100%;border-radius:6px;transition:width .1s}
+  .sp-spd{text-align:center;font-size:30px;font-weight:800;line-height:1;text-shadow:0 3px 0 rgba(0,0,0,.2)}
+  .sp-spd small{font-size:13px;opacity:.85}
+  .sp-hud.off{display:none}
+  .sp-splat{position:fixed;z-index:3;pointer-events:none;border-radius:50%;animation:spsplat 1.6s ease-in forwards}
+  @keyframes spsplat{0%{transform:scale(.2);opacity:.95}12%{transform:scale(1.05)}60%{opacity:.85}100%{transform:scale(1) translateY(60px);opacity:0}}
+  .sp-mute{position:fixed;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(18,16,30,.45);color:#fff;font-size:19px;cursor:pointer}
+  .sp-gar{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 14px calc(16px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,rgba(255,255,255,.0),rgba(255,255,255,.0) 8px,rgba(255,255,255,.93) 8px);border-radius:28px 28px 0 0;color:#2d3047}
+  .sp-gar.off{display:none}
+  .sp-gtop{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:440px;margin-top:6px}
+  .sp-gtop h2{margin:0;font-size:26px;line-height:1}
+  .sp-parts{font-size:22px;font-weight:800;background:#2d3047;color:#ffd23f;border-radius:16px;padding:2px 12px}
+  .sp-stage{display:flex;align-items:center;gap:8px;width:100%;max-width:440px;justify-content:center;font-weight:800;font-size:17px}
+  .sp-stage button{width:38px;height:38px;border-radius:50%;border:0;background:#eef0f7;font:inherit;font-size:18px;color:#2d3047;cursor:pointer}
+  .sp-stage button:disabled{opacity:.3}
+  .sp-stage div{flex:1;text-align:center;line-height:1.1}
+  .sp-stage small{display:block;font-size:13px;font-weight:600;opacity:.7}
+  .sp-rows{display:grid;grid-template-columns:1fr;gap:6px;width:100%;max-width:440px}
+  .sp-row{display:flex;align-items:center;gap:10px;background:#f3f4fa;border-radius:16px;padding:6px 8px 6px 10px}
+  .sp-row .ic{font-size:26px;width:40px;height:40px;display:grid;place-items:center;background:#fff;border-radius:12px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+  .sp-row .nm{flex:1;font-weight:800;font-size:16px;line-height:1.1}
+  .sp-row .nm small{display:block;font-weight:600;font-size:12px;opacity:.65}
+  .sp-pips{display:flex;gap:3px;margin-top:3px}.sp-pips i{width:16px;height:6px;border-radius:3px;background:#d9dcea}.sp-pips i.on{background:#ff8c42}
+  .sp-row button{min-width:84px;border:0;border-radius:14px;padding:8px 10px;font:inherit;font-weight:800;font-size:16px;background:#ff8c42;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.15);cursor:pointer}
+  .sp-row button:disabled{background:#c9ccd9;box-shadow:none}
+  .sp-row button.max{background:#3ab795}
+  .sp-drive{width:100%;max-width:440px;border:0;border-radius:22px;padding:12px;font:inherit;font-weight:800;font-size:26px;color:#fff;background:linear-gradient(#ff8c42,#ff5d3a);box-shadow:0 6px 0 #c4401f;cursor:pointer;animation:hcpulse 1.4s ease-in-out infinite}
+  .sp-drive:active{transform:translateY(4px);box-shadow:0 2px 0 #c4401f}
+  .sp-bump{animation:spb .35s}
+  @keyframes spb{40%{transform:scale(1.18)}}
+  @media (min-width:900px) and (min-aspect-ratio:1/1){ .sp-gar{left:auto;right:28px;top:50%;bottom:auto;transform:translateY(-50%);width:430px;border-radius:28px;background:rgba(255,255,255,.93);justify-content:center;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.18)} }
+  @media (min-width:700px){ .sp-ctl{width:110px;height:120px} .sp-gauges{width:220px} }
+</style>
+</head>
+<body>
+<script type="module" src="game.js"></script>
+</body>
+</html>

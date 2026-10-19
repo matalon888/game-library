@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Skidsy: Kart Racing 3D</title>
+<meta name="description" content="Race seven cartoon rivals in 3D go-karts: drift for mini-turbos, hit the jumps, find the dirt shortcut and win the cup. Free kart racing game in your browser.">
+<meta property="og:title" content="Skidsy: Kart Racing 3D">
+<meta property="og:description" content="Drift, jump and bonk your way to a cup trophy against 7 fair CPU racers. Free in your browser.">
+<meta name="theme-color" content="#62c4ff">
+<link rel="icon" href="data:,">
+<style>
+#hud{position:fixed;inset:0;pointer-events:none;z-index:6;font-family:'Baloo 2',system-ui,sans-serif;color:#fff;transition:opacity .3s}
+#hud.off{opacity:0}#hud.off *{pointer-events:none!important}
+#mini{position:absolute;left:10px;top:calc(62px + env(safe-area-inset-top));width:104px;height:104px;border-radius:18px;background:rgba(20,24,48,.28);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#pos{position:absolute;right:14px;top:calc(4px + env(safe-area-inset-top));font-weight:800;line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.22);display:flex;align-items:flex-start}
+#pos b{font-size:76px;letter-spacing:-2px}#pos sup{font-size:30px;margin-top:8px;margin-left:2px}
+#pos[data-p="1"]{color:#ffd23f}#pos[data-p="2"]{color:#e8edf7}#pos[data-p="3"]{color:#ffb27a}
+#pos.pop{animation:pp .35s ease-out}@keyframes pp{40%{transform:scale(1.25)}}
+#lap{position:absolute;right:14px;top:calc(86px + env(safe-area-inset-top));font-weight:800;font-size:20px;background:rgba(20,24,48,.35);border-radius:14px;padding:0 12px;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+#lap b{font-size:24px}
+#clock{position:absolute;left:0;right:0;top:calc(14px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800}
+#time{font-size:20px;background:rgba(20,24,48,.35);border-radius:12px;padding:0 12px;font-variant-numeric:tabular-nums}
+#pts{font-size:16px;color:#ffe680;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+#item{pointer-events:auto;position:absolute;right:16px;bottom:calc(26px + env(safe-area-inset-bottom));width:96px;height:96px;border-radius:50%;border:5px solid rgba(255,255,255,.85);background:rgba(20,24,48,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:grid;place-items:center;font-size:48px;padding:0;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.18)}
+#item em{position:absolute;bottom:-24px;left:0;right:0;text-align:center;font:800 13px 'Baloo 2',system-ui;color:#fff;letter-spacing:1px;font-style:normal;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+#item i{position:absolute;right:-4px;top:-6px;font:800 18px 'Baloo 2';font-style:normal;color:#fff;background:#ff3d6e;border-radius:10px;padding:0 6px}#item i:empty{display:none}
+#item.ready{border-color:#ffd23f;background:rgba(255,210,63,.32);animation:rdy 1s ease-in-out infinite}@keyframes rdy{50%{transform:scale(1.07)}}
+#item.spin{border-color:#fff;animation:none}
+#tier{position:absolute;left:50%;bottom:calc(40px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .15s}
+#tier.on{opacity:1}#tier i{width:26px;height:10px;border-radius:6px;background:rgba(255,255,255,.35)}
+#tier.t1 i:nth-child(1){background:#6fd8ff}#tier.t2 i:nth-child(-n+2){background:#ffa53a}#tier.t3 i{background:#d16bff;box-shadow:0 0 12px #d16bff}
+#wrong{position:absolute;left:50%;top:40%;transform:translateX(-50%);font-weight:800;font-size:34px;color:#fff;background:#ff3d6e;border-radius:18px;padding:4px 20px;animation:hcpulse .6s infinite}
+#hint{position:absolute;left:0;right:0;bottom:calc(140px + env(safe-area-inset-bottom));text-align:center;font-weight:700;font-size:16px;text-shadow:0 2px 0 rgba(0,0,0,.3);transition:opacity .6s}
+#lines{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:0;transition:opacity .25s;background:repeating-conic-gradient(from 0deg at 50% 46%,rgba(255,255,255,.0) 0deg 5deg,rgba(255,255,255,.55) 5.4deg 5.8deg,rgba(255,255,255,0) 6.2deg 11deg);-webkit-mask:radial-gradient(circle at 50% 46%,transparent 34%,#000 70%);mask:radial-gradient(circle at 50% 46%,transparent 34%,#000 70%)}
+#mute{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:7;width:40px;height:40px;border-radius:50%;border:0;background:rgba(20,24,48,.35);font-size:18px;cursor:pointer}
+.hc-card .tag{font-weight:800;letter-spacing:6px;font-size:18px;margin-top:-4px}
+.menu{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:14px;width:min(100%,420px)}
+.menu button{pointer-events:auto;font:inherit;font-weight:800;color:#2b2d42;background:rgba(255,255,255,.88);border:0;border-radius:16px;padding:8px 14px;font-size:16px;box-shadow:0 4px 0 rgba(0,0,0,.15);cursor:pointer}
+.menu button.on{background:#ff3d6e;color:#fff}.menu button.lock{opacity:.6}
+.menu .cups,.menu .seg{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.menu .seg button{min-width:84px}
+.menu .drv{display:flex;align-items:center;gap:10px;background:rgba(20,24,48,.3);border-radius:20px;padding:6px}
+.menu .drv button{width:44px;height:44px;padding:0;font-size:18px;border-radius:50%}
+.menu .who{display:flex;flex-direction:column;align-items:center;min-width:170px}.menu .who b{font-size:24px;line-height:1.1}.menu .who small{font-size:12px;opacity:.9;max-width:200px}
+.menu .fine{font-size:13px!important;opacity:.95;font-weight:600}
+.res{width:min(100%,360px)}
+.tbl{background:rgba(20,24,48,.55);border-radius:16px;padding:6px 10px;margin-top:6px}
+.tbl .row{display:grid;grid-template-columns:40px 14px 1fr auto auto;gap:8px;align-items:center;font-weight:700;font-size:16px;padding:2px 0;text-align:left}
+.tbl .row.me{color:#ffd23f}.tbl .pl{opacity:.85}.tbl .dot{width:12px;height:12px;border-radius:50%}.tbl .gp{opacity:.8;font-size:14px}.tbl b{min-width:30px;text-align:right}
+.cupline{font-size:16px!important;margin-top:8px!important}
+.hc-btn.ghost{background:rgba(255,255,255,.25);font-size:17px;padding:8px 22px;margin-top:6px}
+.hc-card .hint{margin-bottom:10px!important}
+.hc-card>.hc-btn{margin-bottom:4vh}
+@media (min-width:700px){#mini{width:150px;height:150px}#item{width:110px;height:110px}}
+</style>
+</head>
+<body>
+<script type="module" src="game.js"></script>
+</body>
+</html>

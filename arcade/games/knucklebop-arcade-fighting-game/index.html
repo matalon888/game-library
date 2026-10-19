@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Knucklebop: Arcade Fighting Game</title>
+<meta name="description" content="Pick one of six cartoon brawlers and punch, kick and special-move your way up an arcade ladder of CPU rivals: a free 3D fighting game in your browser.">
+<meta property="og:title" content="Knucklebop: Arcade Fighting Game">
+<meta property="og:description" content="1v1 cartoon fighting vs the CPU: six original fighters, specials by swipe, supers, best of three rounds. Free in your browser.">
+<meta name="theme-color" content="#ff8f7a">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hud" class="off">
+  <div class="side p1"><div class="nm"><span id="n1">RIVET</span><span class="pips" id="pp1"><i></i><i></i></span></div><div class="hp"><b class="tr" id="tr1"></b><b class="v" id="hp1"></b></div><div class="sm" id="sm1"><i></i></div></div>
+  <div id="clock">60</div>
+  <div class="side p2"><div class="nm"><span id="n2">CPU</span><span class="pips" id="pp2"><i></i><i></i></span></div><div class="hp"><b class="tr" id="tr2"></b><b class="v" id="hp2"></b></div><div class="sm" id="sm2"><i></i></div></div>
+</div>
+<div id="stagebar" class="off"></div>
+<div id="ann"></div>
+<div id="combo" class="combo"></div>
+<div id="dim"></div>
+<div id="ctl" class="off">
+  <div id="pad"><div id="knob"></div></div>
+  <button class="btn" id="bP"><span>👊</span><small>PUNCH</small></button>
+  <button class="btn" id="bK"><span>🦶</span><small>KICK</small></button>
+  <button class="btn" id="bS"><span>✨</span><small>SPECIAL</small></button>
+  <button class="btn" id="bB"><span>🛡️</span><small>BLOCK</small></button>
+  <button class="btn sup" id="bU">⚡ SUPER</button>
+  <div id="swipehint">swipe ✨ → or ↑ for more specials</div>
+</div>
+<div id="keys" class="off">A/D move · W jump · S crouch · J punch · K kick · L special (→L, ↑L) · I super · U block (or hold back) · ↓→J ↓←J →↓→J</div>
+<div id="sel" hidden>
+  <div class="sel-top"><b>CHOOSE YOUR FIGHTER</b><small id="selSub"></small></div>
+  <div class="sel-panel">
+    <div class="sel-info"><div class="sel-h"><h2 id="sName"></h2><span id="sStyle"></span></div><p id="sBlurb"></p><div id="sStats"></div><ul id="sMoves"></ul></div>
+    <div id="grid"></div>
+    <div class="sel-row"><button id="sAlt" class="chip">🎨 Colours</button><button id="sMute" class="chip">🔊</button><button id="sGo" class="go">FIGHT!</button></div>
+  </div>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

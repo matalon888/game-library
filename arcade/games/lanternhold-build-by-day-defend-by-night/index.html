@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Lanternhold: Build by Day, Defend by Night</title>
+<meta name="description" content="Build walls, archer towers and farms by day, then ride your lantern knight into the night to hold your little hold against waves of slime raiders.">
+<meta property="og:title" content="Lanternhold: Build by Day, Defend by Night">
+<meta property="og:description" content="A cosy low-poly strategy game: spend gold on walls and towers by day, ride out at night and defend the Hall. How many nights can you hold?">
+<meta name="theme-color" content="#2a2b55">
+<link rel="icon" href="data:,">
+<style>
+#hallbar{position:fixed;top:calc(54px + env(safe-area-inset-top));left:0;right:0;margin:0 auto;width:min(210px,52vw);display:flex;align-items:center;gap:6px;z-index:5;pointer-events:none;font:800 13px 'Baloo 2',system-ui,sans-serif;text-shadow:0 2px 0 rgba(0,0,0,.18)}
+#hallbar .bar{flex:1;height:10px;border-radius:6px;background:rgba(0,0,0,.25);overflow:hidden;box-shadow:inset 0 1px 0 rgba(0,0,0,.2)}
+#hallbar .bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff7b5c,#ffcf5a);border-radius:6px;transition:width .15s}
+#bossbar{position:fixed;top:calc(132px + env(safe-area-inset-top));left:0;right:0;margin:0 auto;width:min(260px,70vw);z-index:5;pointer-events:none;text-align:center;font:800 14px 'Baloo 2',system-ui,sans-serif;color:#ffd6f0;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+#bossbar .bar{height:9px;border-radius:6px;background:rgba(0,0,0,.35);overflow:hidden;margin-top:2px}
+#bossbar .bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#b05cff,#ff5da2)}
+#nightBtn{position:fixed;left:0;right:0;margin:0 auto;bottom:calc(26px + env(safe-area-inset-bottom));width:min(250px,64vw);z-index:7;font:800 23px 'Baloo 2',system-ui,sans-serif;color:#fff;border:0;border-radius:40px;padding:12px 10px;background:linear-gradient(180deg,#5d58c9,#3c368f);box-shadow:0 6px 0 #26215f,0 10px 24px rgba(30,20,80,.35);cursor:pointer;letter-spacing:.3px}
+#nightBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #26215f}
+#nightBtn small{display:block;font-size:13px;font-weight:600;opacity:.85;margin-top:-4px}
+.rbtn{position:fixed;right:12px;z-index:7;width:46px;height:46px;border-radius:50%;border:0;background:rgba(20,18,40,.55);color:#fff;font:800 17px 'Baloo 2',system-ui,sans-serif;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.2);backdrop-filter:blur(4px)}
+#spd{bottom:calc(150px + env(safe-area-inset-bottom))}
+#mute{bottom:calc(98px + env(safe-area-inset-bottom))}
+#joy{position:fixed;width:116px;height:116px;margin:-58px 0 0 -58px;border-radius:50%;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.45);z-index:6;pointer-events:none}
+#joy i{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 3px 8px rgba(0,0,0,.25)}
+#herohp{position:fixed;width:46px;height:7px;margin-left:-23px;border-radius:4px;background:rgba(0,0,0,.35);overflow:hidden;z-index:4;pointer-events:none}
+#herohp i{display:block;height:100%;background:#7ee08a}
+#resp{position:fixed;left:0;right:0;bottom:calc(110px + env(safe-area-inset-bottom));text-align:center;font:800 20px 'Baloo 2',system-ui,sans-serif;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);z-index:5;pointer-events:none}
+#sheet{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,12,35,.28)}
+#sheet[hidden]{display:none}
+.sh{width:min(440px,100%);background:#fbf5ea;color:#3a2f4a;border-radius:24px 24px 0 0;padding:14px 14px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.25);font-family:'Baloo 2',system-ui,sans-serif;animation:shup .22s ease-out}
+@keyframes shup{from{transform:translateY(60px);opacity:0}}
+.sh-h{display:flex;align-items:center;justify-content:space-between;margin:0 4px 8px}
+.sh-h b{font-size:22px;font-weight:800}
+.sh-h span{font-size:15px;font-weight:700;color:#8a6d2d}
+.sh-x{border:0;background:#eadfcb;color:#5a4a3a;width:36px;height:36px;border-radius:50%;font-size:17px;cursor:pointer}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+.opt{border:0;border-radius:16px;background:#fff;box-shadow:0 3px 0 #e2d4bc;padding:9px 8px 8px;text-align:left;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:1px;min-height:92px}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 #e2d4bc}
+.opt em{font-style:normal;font-size:26px;line-height:1.1}
+.opt b{font-size:16px;line-height:1.1}
+.opt small{font-size:12.5px;line-height:1.2;color:#7a6c62}
+.opt .c{margin-top:auto;font-weight:800;font-size:15px;color:#b07d10}
+.opt[disabled]{opacity:.45;cursor:default}
+.opt.wide{grid-column:1/-1;flex-direction:row;align-items:center;gap:10px;min-height:0}
+.opt.wide em{font-size:30px}
+.opt.wide .c{margin:0 0 0 auto}
+.gold-bump{animation:gb .3s ease-out}
+@keyframes gb{40%{transform:scale(1.25)}}
+</style>
+</head>
+<body>
+<div id="hallbar"><span>🏰</span><div class="bar"><i></i></div></div>
+<div id="bossbar" hidden><span>GRUMBLORD</span><div class="bar"><i></i></div></div>
+<button id="nightBtn" hidden>🌙 Start Night<small></small></button>
+<button id="spd" class="rbtn" title="Speed">1×</button>
+<button id="mute" class="rbtn" title="Sound">🔊</button>
+<div id="joy" hidden><i></i></div>
+<div id="herohp" hidden><i></i></div>
+<div id="resp" hidden></div>
+<div id="sheet" hidden><div class="sh"><div class="sh-h"><b></b><span></span><button class="sh-x">✕</button></div><div class="opts"></div></div></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

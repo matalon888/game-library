@@ -9,11 +9,11 @@
   if (q.get('embed') === 'chat') return;
   let u = null; try { u = localStorage.getItem('ap.u'); } catch (e) {}
   const css = `
-  @keyframes rw-spin{to{transform:rotateY(360deg)}}@keyframes rw-bob{50%{transform:translateY(-5px)}}@keyframes rw-shine{to{background-position:200% 0}}
+  @keyframes rw-spin{0%,100%{transform:rotateY(-28deg) scale(1)}50%{transform:rotateY(28deg) scale(1.08)}}@keyframes rw-bob{50%{transform:translateY(-5px)}}@keyframes rw-shine{to{background-position:200% 0}}
   @keyframes rw-pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}@keyframes rw-up{from{transform:translateY(110%)}}
   @keyframes rw-fall{to{transform:translateY(110vh) rotate(720deg)}}@keyframes rw-pulse{50%{box-shadow:0 6px 0 #c47f12,0 0 0 8px rgba(255,201,60,0)}}
   .rw-coin{width:54px;height:54px;flex:none;border-radius:50%;display:grid;place-items:center;font:900 22px/1 "Bricolage Grotesque","DM Sans",sans-serif;color:#7a4a10;
-    background:radial-gradient(circle at 35% 30%,#fff3b0,#FFC93C 45%,#e09a1c);box-shadow:inset 0 -4px 0 #c47f12,0 6px 16px rgba(255,201,60,.35);animation:rw-spin 2.6s linear infinite}
+    background:radial-gradient(circle at 35% 30%,#fff3b0,#FFC93C 45%,#e09a1c);box-shadow:inset 0 -4px 0 #c47f12,0 6px 16px rgba(255,201,60,.35);animation:rw-spin 1.8s ease-in-out infinite}
   .rw-offer{position:relative;width:100%;box-sizing:border-box;border-radius:22px;padding:14px 14px 12px;color:#FFFDF8;text-align:left;
     background:linear-gradient(#1E1B33,#1E1B33) padding-box,linear-gradient(90deg,#FFC93C,#ff7be3,#7dffa8,#FFC93C) border-box;background-size:auto,200% 100%;
     border:3px solid transparent;animation:rw-shine 3s linear infinite,rw-pop .5s ease-out both;font:15px/1.35 "DM Sans",system-ui,sans-serif}
