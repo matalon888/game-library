@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Stormchase: Endless Rail Runner</title>
+<meta name="description" content="Dash along sunny city rail tracks with a grumpy storm cloud on your heels: swipe between tracks, jump barriers, roll under gates, run up ramps onto train roofs and grab coins and power-ups in a free endless runner.">
+<meta property="og:title" content="Stormchase: Endless Rail Runner">
+<meta property="og:description" content="Swipe between tracks, jump, roll and ride train roofs while a storm chases you. Free endless runner with a world leaderboard.">
+<meta name="theme-color" content="#3a93ff">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+body{background:#7fc8ff}
+.hc-card,.hc-score,.hc-pill,.hc-pop,.hc-sub{font-family:'Lilita One','Baloo 2',system-ui,sans-serif!important;font-weight:400!important}
+.hc-card h1{color:#ffd23f;-webkit-text-stroke:3px #1d1633;paint-order:stroke fill;text-shadow:0 6px 0 #1d1633!important;letter-spacing:1px}
+.hc-card p,.hc-sub{color:#fff;-webkit-text-stroke:1.5px #1d1633;paint-order:stroke fill;text-shadow:0 3px 0 rgba(29,22,51,.55)!important}
+.hc-card .hint{color:#fff;-webkit-text-stroke:2px #1d1633;paint-order:stroke fill;font-size:24px!important;text-shadow:0 3px 0 #1d1633!important;margin-bottom:150px!important}
+.hc-card.dim{background:linear-gradient(180deg,rgba(29,22,51,.25),rgba(29,22,51,.6))}
+.hc-score{color:#fff;-webkit-text-stroke:2.5px #1d1633;paint-order:stroke fill;text-shadow:0 4px 0 #1d1633!important;font-size:46px!important;top:calc(52px + env(safe-area-inset-top))!important}
+.hc-sub{top:calc(102px + env(safe-area-inset-top))!important}
+.hc-pill{top:calc(58px + env(safe-area-inset-top))!important;background:rgba(29,22,51,.55)!important;color:#ffd23f;font-size:22px!important;padding:3px 14px!important;border:2px solid rgba(255,255,255,.35)}
+.hc-pop{-webkit-text-stroke:2px #1d1633;paint-order:stroke fill;text-shadow:0 4px 0 #1d1633!important}
+.hc-lvl{font-family:'Lilita One',system-ui!important;font-weight:400!important;border:2px solid #1d1633}
+.hc-bar{border:2px solid #1d1633}
+#sc-start{padding-top:calc(96px + env(safe-area-inset-top))!important;background:linear-gradient(180deg,rgba(29,22,51,0) 50%,rgba(29,22,51,.5))}
+#sc-start h1{font-size:clamp(64px,19vw,112px)!important;transform:rotate(-4deg);line-height:.85!important}
+#sc-pick{position:fixed;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px;z-index:11}
+#sc-pick button{font:inherit;font-family:'Lilita One',system-ui;font-size:17px;color:#1d1633;background:#fff;border:3px solid #1d1633;border-radius:16px;padding:6px 12px 4px;min-width:92px;box-shadow:0 4px 0 #1d1633;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.05}
+#sc-pick button i{display:block;width:30px;height:30px;border-radius:50%;border:3px solid #1d1633}
+#sc-pick button small{font-size:11px;opacity:.7}
+#sc-pick button.on{background:#ffd23f;transform:translateY(-3px)}
+#sc-hud{position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;z-index:5;pointer-events:none;font-family:'Lilita One',system-ui;color:#fff}
+#sc-hud div{display:flex;align-items:center;gap:6px;background:rgba(29,22,51,.55);border:2px solid rgba(255,255,255,.35);border-radius:14px;padding:3px 10px 3px 6px;font-size:16px}
+#sc-hud b{display:block;width:70px;height:8px;border-radius:5px;background:rgba(255,255,255,.25);overflow:hidden}
+#sc-hud b u{display:block;height:100%;background:#ffd23f}
+#sc-storm{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:0;background:radial-gradient(ellipse at 50% 120%,rgba(60,30,110,.85),rgba(60,30,110,0) 60%);transition:opacity .25s}
+#sc-load{position:fixed;left:0;right:0;bottom:calc(120px + env(safe-area-inset-bottom));text-align:center;z-index:12;font-family:'Lilita One',system-ui;color:#fff;font-size:18px;-webkit-text-stroke:1.5px #1d1633;paint-order:stroke fill}
+</style>
+</head>
+<body>
+<div id="sc-storm"></div>
+<div id="sc-hud"></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

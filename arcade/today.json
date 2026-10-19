@@ -16,7 +16,7 @@
   "Makeover": "https://agentpark.co/arcade/?cat=Makeover",
   "Retro": "https://agentpark.co/arcade/?cat=Retro"
  },
- "total": 292,
+ "total": 300,
  "poster": "https://agentpark.co/arcade/today-poster.jpg?d=2026-10-19",
  "game_of_the_day": {
   "name": "JS13kGame2026",
@@ -250,46 +250,46 @@
   ],
   "Action": [
    {
-    "name": "Space Game",
+    "name": "Fletch: Arrow Dungeon Roguelite",
     "new": false,
-    "pitch": "Blast through endless waves of enemies, swap and upgrade four weapons, and survive multi-phase bullet-hell boss fights.",
-    "image": "https://agentpark.co/arcade/covers/ygpydh-space-game.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ygpydh-space-game&ref=daily&pos=list-Action"
+    "pitch": "Drag to dodge, stop to auto-fire arrows at the nearest monster, then clear each room and choose one of three skills.",
+    "image": "https://agentpark.co/arcade/covers/fletch-arrow-dungeon-roguelite.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=fletch-arrow-dungeon-roguelite&ref=daily&pos=list-Action"
    },
    {
-    "name": "Soladroid",
+    "name": "GRIDX",
     "new": false,
-    "pitch": "Possess hostile machines, win circuit duels, and fight down twenty decks to confront the ship's controlling AI.",
-    "image": "https://agentpark.co/arcade/covers/ohnotnow-soladroid.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ohnotnow-soladroid&ref=daily&pos=list-Action"
+    "pitch": "Auto-firing twin-stick action on a curved neon grid, with a boss countdown, sub-weapon ultimates and swappable weapons adding some tactical variety.",
+    "image": "https://agentpark.co/arcade/covers/jarvis-llm-codec-gridx.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=jarvis-llm-codec-gridx&ref=daily&pos=list-Action"
    },
    {
-    "name": "Wingfleet: Space Shooter Powered by Your AI Agents",
+    "name": "Prison Break",
     "new": false,
-    "pitch": "Your real coding sessions become wingman drones whose tool calls, passing tests and commits fuel missiles, shields and a super, so work becomes firepower.",
-    "image": "https://agentpark.co/arcade/covers/wingfleet-space-shooter-powered-by-your-ai-agents.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=wingfleet-space-shooter-powered-by-your-ai-agents&ref=daily&pos=list-Action"
+    "pitch": "Sneak through a prison while guards patrol, chase and search using visualized AI algorithms.",
+    "image": "https://agentpark.co/arcade/covers/vedant131-prison-break-game-using-dsf-a-bsf-algo-.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=vedant131-prison-break-game-using-dsf-a-bsf-algo-&ref=daily&pos=list-Action"
    },
    {
-    "name": "Flip Agent",
+    "name": "Stretch Dash",
     "new": false,
-    "pitch": "Somersault across rooftop gaps in slow motion, aiming a spinning laser sight to tap-shoot masked goons while avoiding hostages, ricochets and explosive barrels.",
-    "image": "https://agentpark.co/arcade/covers/flip-agent.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=flip-agent&ref=daily&pos=list-Action"
+    "pitch": "Steer a jelly runner through gates that stretch it taller, shorter, wider or thinner, then spend that size climbing the finish stairs.",
+    "image": "https://agentpark.co/arcade/covers/stretch-dash.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=stretch-dash&ref=daily&pos=list-Action"
    },
    {
-    "name": "Ricochet Rex",
+    "name": "Time Knives",
     "new": false,
-    "pitch": "Line up ricochet shots off walls to take out goons, set off TNT and spare the hostage, all within three bullets per room.",
-    "image": "https://agentpark.co/arcade/covers/ricochet-rex.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ricochet-rex&ref=daily&pos=list-Action"
+    "pitch": "Hold to freeze time, draw a path of knives across the neon grid, then release to send them through enemies in a combo burst.",
+    "image": "https://agentpark.co/arcade/covers/time-knives.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=time-knives&ref=daily&pos=list-Action"
    },
    {
-    "name": "HELLGRID",
+    "name": "Kickback",
     "new": false,
-    "pitch": "Fight through three reactor sectors in a first-person shooter, with textures and sound all generated in code, until the rift gate opens.",
-    "image": "https://agentpark.co/arcade/covers/markcastle-hellgrid.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=markcastle-hellgrid&ref=daily&pos=list-Action"
+    "pitch": "Tap to fire a floating pistol and use its recoil to launch upward, shooting red guns while dodging fire and staying above the floor.",
+    "image": "https://agentpark.co/arcade/covers/kickback.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=kickback&ref=daily&pos=list-Action"
    }
   ],
   "Strategy": [
@@ -338,46 +338,46 @@
   ],
   "Racing": [
    {
-    "name": "Zip Lanes: Traffic Racer",
+    "name": "Flip Volt",
     "new": false,
-    "pitch": "Swipe between lanes, weave through highway traffic at rising speed and chain close-call combos.",
-    "image": "https://agentpark.co/arcade/covers/zip-lanes-traffic-racer.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=zip-lanes-traffic-racer&ref=daily&pos=list-Racing"
+    "pitch": "Throttle a glowing neon bike along a curving light track, backflipping in midair and landing on both wheels to reach each level's finish gate.",
+    "image": "https://agentpark.co/arcade/covers/flip-volt.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=flip-volt&ref=daily&pos=list-Racing"
    },
    {
-    "name": "TorqueVerse 3D",
+    "name": "Bumpy Buggy",
     "new": false,
-    "pitch": "Explore open worlds, race AI opponents, drift, use nitro, perform stunts and collect stars.",
-    "image": "https://agentpark.co/arcade/covers/ebinezer-cloud-torqueverse-3d.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ebinezer-cloud-torqueverse-3d&ref=daily&pos=list-Racing"
+    "pitch": "Tilt a toy jeep over rolling seeded hills using only gas and brake, chasing distance, coins and fuel while avoiding flips.",
+    "image": "https://agentpark.co/arcade/covers/bumpy-buggy.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=list-Racing"
    },
    {
-    "name": "Thrill Loop: Roller Coaster Ride",
+    "name": "Porch Toss: Newspaper Bike Ride",
     "new": false,
-    "pitch": "Hold to build speed and release to brake, matching pace to track sections so every rider stays aboard through loops, jumps and hairpins.",
-    "image": "https://agentpark.co/arcade/covers/thrill-loop-roller-coaster-ride.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=thrill-loop-roller-coaster-ride&ref=daily&pos=list-Racing"
+    "pitch": "Pedal down a suburban street and release at the right moment to toss newspapers into mailboxes, braking for crossing cars and chasing perfect-throw combos.",
+    "image": "https://agentpark.co/arcade/covers/porch-toss-newspaper-bike-ride.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=porch-toss-newspaper-bike-ride&ref=daily&pos=list-Racing"
    },
    {
-    "name": "Stormchase: Endless Turn Runner",
+    "name": "Hill Rush",
     "new": false,
-    "pitch": "Swipe through corners, jump gaps and slide under arches along a floating pink causeway while a grumpy thundercloud rumbles close behind you.",
-    "image": "https://agentpark.co/arcade/covers/stormchase-endless-turn-runner.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=stormchase-endless-turn-runner&ref=daily&pos=list-Racing"
+    "pitch": "Drive a car at high speed with keyboard, gamepad or touch controls.",
+    "image": "https://agentpark.co/arcade/covers/md-abu-kayser-drive-mad.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=md-abu-kayser-drive-mad&ref=daily&pos=list-Racing"
    },
    {
-    "name": "Brick Climb",
+    "name": "Tube Rush",
     "new": false,
-    "pitch": "Race rivals across a brick-strewn floor, collecting only your colour to stack and lay as stairs, then climb first to the next level.",
-    "image": "https://agentpark.co/arcade/covers/brick-climb.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=brick-climb&ref=daily&pos=list-Racing"
+    "pitch": "Steer an inflatable tube down twisting water slides against rival animals, bumping opponents and flying off curves to cut corners and climb the placings.",
+    "image": "https://agentpark.co/arcade/covers/tube-rush.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=tube-rush&ref=daily&pos=list-Racing"
    },
    {
-    "name": "Marble Dash",
+    "name": "Splitstream",
     "new": false,
-    "pitch": "Hold to roll a glossy marble down a wooden sky track, steering around red blocks and over boost pads toward the next level.",
-    "image": "https://agentpark.co/arcade/covers/marble-dash.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=marble-dash&ref=daily&pos=list-Racing"
+    "pitch": "Drag to stretch or squeeze a roller-skater's legs so each skate stays on its rail, collecting gems along winding sunset tracks.",
+    "image": "https://agentpark.co/arcade/covers/splitstream.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=splitstream&ref=daily&pos=list-Racing"
    }
   ],
   "Word & Math": [

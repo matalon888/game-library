@@ -3130,8 +3130,8 @@
    }
   },
   {
-   "slug": "stormchase-endless-turn-runner",
-   "name": "Stormchase: Endless Turn Runner",
+   "slug": "stormchase-endless-rail-runner",
+   "name": "Stormchase: Endless Rail Runner",
    "blurb": "Swipe to turn, jump and slide. The storm is right behind you.",
    "category": "Racing",
    "author": "AGENTPARK",
@@ -3142,21 +3142,15 @@
    "orientation": "portrait",
    "fit": null,
    "controls": null,
-   "added": "2026-10-14",
+   "added": "2026-10-15",
    "stars": null,
    "tags": [
     "Hyper-casual",
     "Endless runners"
    ],
    "original": true,
-   "repo_dir": "stormchase-endless-turn-runner",
-   "review": {
-    "by": "Claude",
-    "depth": 4,
-    "polish": 7,
-    "ai_built": "yes",
-    "pitch": "Swipe through corners, jump gaps and slide under arches along a floating pink causeway while a grumpy thundercloud rumbles close behind you."
-   }
+   "repo_dir": "stormchase-endless-rail-runner",
+   "review": null
   },
   {
    "slug": "boltpack-jetpack-runner",
@@ -6605,6 +6599,190 @@
    ],
    "original": true,
    "repo_dir": "treadbounce-tanks-toy-tank-battle-arena",
+   "review": null
+  },
+  {
+   "slug": "ringbreaker-sci-fi-fps-shooter",
+   "name": "Ringbreaker: Sci-Fi FPS Shooter",
+   "blurb": "Retake an orbital station from rogue robots in a bright first-person shooter: 6 missions, 4 weapons, a boss mech and daily Holdout waves.",
+   "category": "Action",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "ringbreaker-sci-fi-fps-shooter",
+   "review": null
+  },
+  {
+   "slug": "tidewing-jet-fighter-combat",
+   "name": "Tidewing: Jet Fighter Combat",
+   "blurb": "Dogfight drone squadrons over a sunny tropical archipelago, break SAM walls, sink a drone carrier and bring down an airborne fortress.",
+   "category": "Action",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "tidewing-jet-fighter-combat",
+   "review": null
+  },
+  {
+   "slug": "ironsquall-mech-shooter",
+   "name": "Ironsquall: Mech Shooter",
+   "blurb": "Pilot a giant combat mech through a sunny megacity: autocannon, rockets and a laser lance against drone swarms, rival mechs and a spider-tank boss.",
+   "category": "Action",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "ironsquall-mech-shooter",
+   "review": null
+  },
+  {
+   "slug": "hollowtide-sci-fi-survival-thriller",
+   "name": "Hollowtide: Sci-Fi Survival Thriller",
+   "blurb": "Sneak through a sunken candy-bright research base, hide from a machine that hunts by sound, and escape in five chapters or survive the daily Lights Out run.",
+   "category": "Action",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "hollowtide-sci-fi-survival-thriller",
+   "review": null
+  },
+  {
+   "slug": "voidlance-space-fighter-combat",
+   "name": "Voidlance: Space Fighter Combat",
+   "blurb": "Fly a starfighter from the cockpit: dogfight drone swarms in a candy-coloured asteroid belt, lock missiles on bombers and take a dreadnought apart piece by piece.",
+   "category": "Action",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "voidlance-space-fighter-combat",
+   "review": null
+  },
+  {
+   "slug": "embersite-tactical-extraction-shooter",
+   "name": "Embersite: Tactical Extraction Shooter",
+   "blurb": "Drop into an open valley, scout robot patrols with binoculars, loot rarity crates, finish the contract and reach the extraction helicopter before the timer.",
+   "category": "Action",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "embersite-tactical-extraction-shooter",
+   "review": null
+  },
+  {
+   "slug": "hivefall-alien-horde-shooter",
+   "name": "Hivefall: Alien Horde Shooter",
+   "blurb": "Hold a candy-coloured alien outpost against hundreds of chunky bugs with a rifle, flamethrower, rockets, sentry turrets and orbital strikes.",
+   "category": "Action",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "hivefall-alien-horde-shooter",
+   "review": null
+  },
+  {
+   "slug": "zoomburst-street-racing",
+   "name": "Zoomburst: Street Racing",
+   "blurb": "Race five rivals through a sunny toy-bright city: drift, hit nitro, jump ramps, smash cones, then upgrade and paint your car in the garage.",
+   "category": "Racing",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual",
+    "Epic games"
+   ],
+   "original": true,
+   "repo_dir": "zoomburst-street-racing",
    "review": null
   }
  ],

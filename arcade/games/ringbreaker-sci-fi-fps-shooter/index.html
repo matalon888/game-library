@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Ringbreaker: Sci-Fi FPS Shooter</title>
+<meta name="description" content="Free first-person sci-fi shooter in your browser: retake an orbital station from rogue robots across 6 missions, then survive the daily Holdout waves.">
+<meta property="og:title" content="Ringbreaker: Sci-Fi FPS Shooter">
+<meta property="og:description" content="Retake an orbital station from rogue robots: 6 missions, 4 weapons, a boss mech and a daily Holdout wave mode. Free in your browser.">
+<meta name="theme-color" content="#1a2a6c">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hud" class="off">
+  <div id="obj"><div class="tag" id="objTag">MISSION 1 · HANGAR BAY</div><div class="txt" id="objTxt">Clear the docking deck</div><div class="bar" id="objBar"><i></i></div></div>
+  <div id="scoreBox"><span id="score">0</span><small id="combo"></small></div>
+  <div id="vitals"><div class="vb sh"><i id="shBar"></i><b id="shNum">100</b></div><div class="vb hp"><i id="hpBar"></i><b id="hpNum">100</b></div></div>
+  <div id="bossBar"><span id="bossName">WARDEN</span><div><i></i></div></div>
+  <div id="banner"></div>
+  <div id="cross"><i></i><i></i><i></i><i></i><b id="hitm"></b></div>
+  <div id="wp"><span>◆</span><small id="wpd">12m</small></div>
+  <div id="dmgDirs"></div>
+  <div id="nums"></div>
+  <div id="ammo"><div id="wname">PULSE RIFLE</div><div id="acount"><b id="amag">30</b><small>/<span id="amax">30</span></small></div><div id="nades"></div><div id="reloadTip">RELOAD</div></div>
+  <div id="touch">
+    <div id="stick"><i></i></div>
+    <button id="bFire" class="tb big">🔫<small>FIRE</small></button>
+    <button id="bJump" class="tb">⤒<small>JUMP</small></button>
+    <button id="bReload" class="tb">↻<small>RELOAD</small></button>
+    <button id="bNade" class="tb">⚡<small id="nadeN">3</small></button>
+    <button id="bSwap" class="tb">⇄<small>SWAP</small></button>
+  </div>
+  <button id="bMute" title="Sound">🔊</button>
+  <div id="lockTip">Click to aim · WASD move · Shift sprint · Space jump · R reload · Q swap · G grenade</div>
+</div>
+<div id="vig"></div><div id="hurt"></div>
+<div id="letter"><i></i><i></i><div id="intro"><small id="iTag">MISSION 1</small><h2 id="iName">HANGAR BAY</h2><p id="iSub"></p><em>tap to skip</em></div></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
