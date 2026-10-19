@@ -58,7 +58,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
     <a class="go" id="b1" href="#"><img alt=""><span></span><small>GET IN ▶</small></a>
     <a class="go" id="b2" href="#"><img alt=""><span></span><small>GET IN ▶</small></a>
   </div>
-  <p class="note rw-offer" id="rwOffer" hidden>🎁 <b>Come back 3 mornings from your AI, get $1 on PayPal.</b></p>
+  <div id="rwOffer" hidden></div>
   <p class="note">Free. No app. No account.<br><b>The only catch:</b> new games turn up every morning.</p>
   <p class="legal">By tapping you agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>. ChatGPT is a trademark of OpenAI, Claude of Anthropic; AGENTPARK is not affiliated with either.</p>
 </main>
@@ -73,7 +73,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 <script src="club.js"></script>
 <script>ClubScene(document.getElementById('club'));
 // the reward offer, only while rewards are on (arcade-api rewards.js)
-window.RiffReward && RiffReward.offer().then(st => { if (st.on) { const o = document.getElementById('rwOffer'); o.innerHTML = `🎁 <b>Come back ${st.need} mornings from your AI, get $${st.amount} on PayPal.</b>`; o.hidden = false; } });</script>
+window.RiffReward && RiffReward.status().then(st => { if (st.on) RiffReward.offerCard(document.getElementById('rwOffer'), st); });</script>
 <script>
 (function () {
   const C = window.RIFFCADE || {}, RH = window.RiffHabits, RC = window.RiffConsent || { pixel() {} };
