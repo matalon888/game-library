@@ -35,6 +35,8 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 .go img { width: 64px; height: 64px }
 .go.claude { background: #F4EFE6 }
 .go small { font: 800 15px var(--display); background: var(--gold); color: #1E1B33; border-radius: 999px; padding: 7px 14px }
+.go small .plus { display: inline-block; background: #1E1B33; color: #FFC93C; border-radius: 999px; padding: 2px 7px; margin: 0 1px; font-size: 13px; animation: plus 1.6s ease-in-out infinite }
+@keyframes plus { 50% { transform: scale(1.12) } }
 .go.first { outline: 4px solid var(--gold); outline-offset: 4px; animation: pulse 1.8s ease-in-out infinite }
 @keyframes pulse { 50% { outline-offset: 8px } }
 .sub { margin: -8px 0 0; font-size: 16px; color: var(--muted); text-wrap: balance } .sub b { color: var(--ink) }
@@ -44,7 +46,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 #again { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; padding: 16px; background: rgba(7,6,15,.88) }
 #again .card { width: min(320px, 100%); display: grid; gap: 16px; justify-items: center; text-align: center; font-size: 20px }
 #again p { margin: 0 } #again .go { width: 100% } #again .skip { color: var(--muted); font-size: 15px }
-@media (prefers-reduced-motion: reduce) { .go.first { animation: none } }
+@media (prefers-reduced-motion: reduce) { .go.first, .go small .plus { animation: none } }
 @media (max-height: 640px) { main { gap: 12px } h1 { font-size: 27px } .go img { width: 50px; height: 50px } }
 </style>
 </head>
@@ -73,7 +75,8 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 <script src="club.js"></script>
 <script>ClubScene(document.getElementById('club'));
 // the reward offer, only while rewards are on (arcade-api rewards.js)
-window.RiffReward && RiffReward.status().then(st => { if (st.on) RiffReward.offerCard(document.getElementById('rwOffer'), st); });</script>
+window.RiffReward && RiffReward.status().then(st => { if (!st.on) return; RiffReward.offerCard(document.getElementById('rwOffer'), st);
+  document.querySelectorAll('.go small').forEach(x => { x.innerHTML = `GET IN <span class="plus">+$${st.amount}</span> ▶`; }); });</script>
 <script>
 (function () {
   const C = window.RIFFCADE || {}, RH = window.RiffHabits, RC = window.RiffConsent || { pixel() {} };
