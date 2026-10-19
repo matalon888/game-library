@@ -80,10 +80,10 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 // the daily message's peek / streak lines). The $1 is off on these, so each ad set measures its own pull.
 const INC = (v => ['secret', 'peek', 'streak', 'vip'].includes(v) ? v : '')(new URLSearchParams(location.search).get('inc'));
 const INC_COPY = {
-  secret: ['Your AI picked a secret game for you 🎁', 'Hit <b>↑ send</b>. It opens in seconds.'],
-  peek: ["Tomorrow's game, today. 👀", 'Your AI gets every new game <b>a day early</b>. Hit <b>↑ send</b>.'],
-  streak: ['Keep a 7-day streak. Unlock a VIP game. 🔥', 'Your AI keeps count every morning. Hit <b>↑ send</b> for day 1.'],
-  vip: ['Some games only open from your AI. 🔒', 'Hit <b>↑ send</b>: they’re yours, plus new games every morning.'],
+  secret: ['We hid a game for you 🎁', 'Your AI has it. Tap, hit <b>↑ send</b>, and it opens.'],
+  peek: ["See tomorrow's game today 👀", 'Your AI gets every new game first. Tap, hit <b>↑ send</b>, play.'],
+  streak: ['Play 7 days, unlock a VIP game 👑', 'Your AI keeps count. Tap, hit <b>↑ send</b>, and day 1 starts now.'],
+  vip: ['Secret games, only in your AI 🔒', 'Not in any app store. Tap, hit <b>↑ send</b>, and they’re yours.'],
 }[INC];
 if (INC_COPY) { document.querySelector('h1').textContent = INC_COPY[0]; document.querySelector('.sub').innerHTML = INC_COPY[1]; }
 const rwFromMeta = !INC && (new URLSearchParams(location.search).get('rw') === '1' || (window.ApAttrib && ApAttrib.fromAd() && !/cpalead/i.test(location.search + (sessionStorage.getItem('arcade.s.src0') || ''))));
