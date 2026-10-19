@@ -4513,6 +4513,36 @@
   "clip": "clips/zoomburst-street-racing.mp4"
  },
  {
+  "slug": "hero-lab-build-your-agentpark-hero",
+  "name": "Hero Lab: Build Your AGENTPARK Hero",
+  "blurb": "Build your hero: 28 characters, hats, wings, gear and colours. Save it and take it into the games.",
+  "category": "Arcade",
+  "author": "AGENTPARK",
+  "credit": "An original AGENTPARK game",
+  "licence": "Original",
+  "source": null,
+  "entry": "index.html",
+  "orientation": "portrait",
+  "fit": null,
+  "controls": null,
+  "added": "2026-10-15",
+  "stars": null,
+  "tags": [
+   "Hyper-casual"
+  ],
+  "original": true,
+  "repo_dir": "hero-lab-build-your-agentpark-hero",
+  "review": null,
+  "external": null,
+  "made": null,
+  "platform": "phone",
+  "public": null,
+  "cover": "covers/hero-lab-build-your-agentpark-hero.webp",
+  "thumb": "covers/hero-lab-build-your-agentpark-hero.webp",
+  "icon": "art/hero-lab-build-your-agentpark-hero.webp",
+  "clip": null
+ },
+ {
   "slug": "victorqribeiro-isocity",
   "name": "IsoCity",
   "blurb": "Pick tiles, buildings and roads from a palette and place them on an isometric grid to build a city.",

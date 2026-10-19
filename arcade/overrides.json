@@ -6784,6 +6784,28 @@
    "original": true,
    "repo_dir": "zoomburst-street-racing",
    "review": null
+  },
+  {
+   "slug": "hero-lab-build-your-agentpark-hero",
+   "name": "Hero Lab: Build Your AGENTPARK Hero",
+   "blurb": "Build your hero: 28 characters, hats, wings, gear and colours. Save it and take it into the games.",
+   "category": "Arcade",
+   "author": "AGENTPARK",
+   "credit": "An original AGENTPARK game",
+   "licence": "Original",
+   "source": null,
+   "entry": "index.html",
+   "orientation": "portrait",
+   "fit": null,
+   "controls": null,
+   "added": "2026-10-15",
+   "stars": null,
+   "tags": [
+    "Hyper-casual"
+   ],
+   "original": true,
+   "repo_dir": "hero-lab-build-your-agentpark-hero",
+   "review": null
   }
  ],
  "overrides": {
