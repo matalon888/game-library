@@ -5,6 +5,8 @@ import { THREE, createStage, createUI, store, loop, input, buzz, burst, confetti
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 import * as A from './sound.js';
 
 const NAME = 'Nugget Rush: Mine Cart Runner';
@@ -125,6 +127,27 @@ for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.
 const stache = new THREE.Mesh(new THREE.CapsuleGeometry(0.03, 0.1, 4, 8).rotateZ(Math.PI / 2), mat('#5a3420')); stache.position.set(0, 1.43, -0.19); man.add(stache);
 const ringFx = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.05, 8, 40).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ff3d5a', transparent: true, opacity: 0 }));
 hero.add(ringFx);
+// My hero (Hero Lab, kit/heroes.js): replaces the prospector's look only (hitbox is code-only: py + 1.7 / 0.75 rolling).
+// It hangs under `pivot` like the stickman, so lean, squash and the magnet ring stay; clips replace the procedural poses.
+let mine = null, mineSig = null, mineTok = 0, mineClip = '', endCheer = false;
+const heroSig = h => (h ? JSON.stringify({ ...h, thumb: 0 }) : '');
+async function useHero() {
+  const h = selectedHero(), t = ++mineTok; mineSig = heroSig(h);
+  if (!h) { if (mine) { mine.dispose(); mine = null; } man.visible = true; return; }
+  let k; try { k = await loadHero(THREE, GLTFLoader, { hero: h, quality: 'game', height: 1.75, face: Math.PI, shadows: true }); } catch (e) { console.warn('hero', e); return; }
+  if (t !== mineTok) { k.dispose(); return; }
+  if (mine) mine.dispose();
+  mine = k; mineClip = ''; k.object.position.y = -0.9; pivot.add(k.object); man.visible = false;
+}
+function animMine(sec) {
+  const want = state === 'lost' ? (endCheer ? 'cheer' : 'fall') : state !== 'play' ? 'idle' : rollT > 0 ? 'slide' : !onGround ? 'jump' : speed > 22 ? 'sprint' : 'run';
+  if (want !== mineClip) {
+    const a = mine.play(want, { fade: want === 'jump' || want === 'slide' ? 0.08 : 0.2 });
+    if (a) a.timeScale = want === 'jump' ? clamp(a.getClip().duration / Math.max(0.4, 2.2 * Math.max(vy, 4) / GRAV), 0.6, 3) : want === 'slide' ? a.getClip().duration / (ROLL_T * 1.05) : 1;
+    mineClip = want;
+  }
+  mine.mixer.update(sec * (want === 'run' ? clamp(speed / 15, 0.9, 1.6) : want === 'sprint' ? clamp(speed / 24, 0.9, 1.3) : 1));
+}
 const blob = new THREE.Mesh(new THREE.CircleGeometry(0.5, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.18, depthWrite: false }));
 scene.add(blob);
 
@@ -238,7 +261,7 @@ function addScore(n) {
 }
 function gameOver(how) {
   if (state !== 'play') return;
-  state = 'lost'; deadT = 0; A.stopMusic(0.3); lastDeath = how;
+  state = 'lost'; deadT = 0; A.stopMusic(0.3); lastDeath = how; endCheer = score > best && score >= 50;
   if (!recorded) { recorded = true; F.endless(score); B.submit(score); }
   const prev = best; best = Math.max(best, score); S.set('best', best);
   shake = 1; ui.flash(0.75); buzz([40, 30, 80]);
@@ -370,8 +393,10 @@ function draw(t, sec) {
   hero.rotation.z = lean * 0.6; hero.rotation.y = lean * 0.5;
   landSq = Math.max(0, landSq - sec * 5);
   if (state === 'lost') {
-    deadT += sec; pivot.rotation.x = lerp(pivot.rotation.x, 1.35, Math.min(1, sec * 8)); man.run(0, 0);
+    deadT += sec; if (!mine) { pivot.rotation.x = lerp(pivot.rotation.x, 1.35, Math.min(1, sec * 8)); man.run(0, 0); }
     if (py > 0) { vy -= GRAV * sec; py = Math.max(groundAt(laneOf(px), z), py + vy * sec); }
+  } else if (mine) {
+    pivot.rotation.x = 0; pivot.position.y = 0.9; pivot.scale.set(1 + landSq * 0.15, 1 - landSq * 0.2, 1 + landSq * 0.15);
   } else if (rollT > 0) {
     const f = 1 - rollT / ROLL_T; pivot.rotation.x = -f * Math.PI * 2; pivot.position.y = 0.55; pivot.scale.setScalar(0.78);
     man.armL.rotation.x = man.armR.rotation.x = -2.2; man.legL.rotation.x = man.legR.rotation.x = -1.6;
@@ -380,6 +405,7 @@ function draw(t, sec) {
     if (onGround || state !== 'play') man.run(state === 'play' ? t * speed / 13 : t * 0.25, state === 'play' ? 1 : 0.15);
     else { man.armL.rotation.x = man.armR.rotation.x = -2.6 + Math.sin(t * 10) * 0.2; man.legL.rotation.x = -1.0; man.legR.rotation.x = 0.4; pivot.rotation.x = vy > 0 ? -0.15 : 0.1; }
   }
+  if (mine) animMine(sec);
   scarfPiv.rotation.x = -0.2 + Math.sin(t * 22) * 0.18 - (state === 'play' ? speed * 0.012 : 0); scarfPiv.rotation.y = Math.sin(t * 13) * 0.25;
   ringFx.material.opacity = magnetT > 0 ? 0.45 + Math.sin(t * 12) * 0.25 : 0; ringFx.position.y = 0.2 + (t * 1.5 % 1) * 1.6; ringFx.scale.setScalar(1 + Math.sin(t * 6) * 0.08);
   const gnd = groundAt(laneOf(px), z); blob.position.set(px, gnd + 0.02, z); blob.scale.setScalar(clamp(1 - (py - gnd) * 0.15, 0.4, 1));
@@ -484,6 +510,11 @@ loop((dt, t) => {
 });
 
 reset(); state = 'ready'; ui.els.sc.classList.add('hc-hidden'); ui.pill(''); ui.start();
+// hero bar on the start card: "Classic" = the prospector, a saved hero replaces him, ＋ opens Hero Lab
+heroBar({ parent: ui.els.start, onPick: () => useHero() }).bar.classList.add('nr-heroes');
+{ const st = document.createElement('style'); st.textContent = '.hc-card .nr-heroes{width:min(520px,100%);margin-top:-6vh;pointer-events:auto}'; document.head.appendChild(st); }
+onHeroesChange(() => { if (heroSig(selectedHero()) !== mineSig) useHero(); });
+useHero();
 if (D.isDaily) ui.sub('DAILY RUN');
 
 // ---------------------------------------------------------------- test hook + bot

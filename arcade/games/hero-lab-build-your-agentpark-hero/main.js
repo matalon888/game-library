@@ -7,6 +7,7 @@ import { sfx, tone, buzz, confetti, burst, updateParticles } from './kit/hc.js';
 import { CHARS, ITEMS, TAGS, TAG_COLOR, SLOTS, NAMES_A, NAMES_B, charById, itemById } from './catalog.js';
 import { createParts } from './parts.js';
 import { readHero, writeHero, DEFAULT_HERO } from './store.js';
+import { selectedHero, selectedIndex, saveHero as storeHero, deleteHero, select as selectSlot, myHeroes, onHeroesChange, backGame, returnToGame, MAX_HEROES, heroThumb } from './kit/heroes.js';
 
 const $ = s => document.querySelector(s);
 const P = createParts(THREE, GLTFLoader, new URL('./', import.meta.url).href);
@@ -87,7 +88,11 @@ const fill = new THREE.DirectionalLight('#e8e4ff', 0.6); fill.position.set(-2, 1
 const pivot = new THREE.Group(); pivot.position.y = PED_H; scene.add(pivot);
 
 // ------------------------------------------------------------ hero state
-let hero = readHero();
+// "My heroes" (kit/heroes.js): up to 12 saved heroes; editIdx = the slot being edited (null = a new hero)
+const BACK = backGame();
+const strip = h => { const { thumb, ...rest } = h; return JSON.parse(JSON.stringify(rest)); };
+let editIdx = selectedIndex() >= 0 ? selectedIndex() : null;
+let hero = editIdx !== null ? { ...readHero(), ...strip(selectedHero()) } : readHero();
 if (!READY.has(hero.char)) hero.char = (readyChars()[0] || CHARS[0]).id;
 for (const s in hero.items) { const it = itemById(hero.items[s]); if (it?.alt && READY_ITEMS.has(it.alt)) hero.items[s] = it.alt; }
 let cur = null;               // { id, root, clips, M, U, mixer, actions, slots:{} }
@@ -228,6 +233,7 @@ const plate = $('#plate');
 function updatePlate() {
   const def = cur ? charById(cur.id) : null;
   $('#pname').textContent = hero.name || def?.name || 'Hero';
+  updatePlay();
   $('#prole').textContent = def ? def.role : '';
 }
 const tmpV = new THREE.Vector3();
@@ -265,7 +271,7 @@ function renderBody() {
   const body = $('#body');
   if (tab === 'hero') {
     const list = CHARS.filter(c => heroFilter === 'all' || c.tags.includes(heroFilter)).sort((a, b) => (READY.has(b.id) - READY.has(a.id)));
-    body.innerHTML = `<div class="grid">${list.map(c => { const r = READY.has(c.id); return `<button class="tile ${r ? '' : 'soon'} ${hero.char === c.id ? 'on' : ''}" data-c="${c.id}" style="--c:${TAG_COLOR[c.tags[0]]}">
+    body.innerHTML = myStrip() + `<div class="sec">Characters</div><div class="grid">${list.map(c => { const r = READY.has(c.id); return `<button class="tile ${r ? '' : 'soon'} ${hero.char === c.id ? 'on' : ''}" data-c="${c.id}" style="--c:${TAG_COLOR[c.tags[0]]}">
       <img loading="lazy" src="${thumb(c.id)}" alt="" onerror="this.style.visibility='hidden'">${r ? '' : '<span class="badge">SOON</span>'}<span class="nm">${c.name}</span></button>`; }).join('')}</div>`;
   } else if (['head', 'face', 'back', 'hand'].includes(tab)) {
     const slotKeys = tab === 'hand' ? ['hand', 'offhand'] : [tab];
@@ -299,13 +305,43 @@ function renderBody() {
       <div class="sec">Hero name</div>
       <div class="namebox"><input id="nm" maxlength="14" placeholder="${charById(hero.char)?.name || 'Hero'}" value="${(hero.name || '').replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false"><button id="nmr" aria-label="Random name">🎲</button></div>
       <div class="sugg">${sugg.map(s => `<button data-n="${s}">${s}</button>`).join('')}</div>
-      <p class="note">Your hero, name and gear are saved on this device and will <b>walk into AGENTPARK games</b> as they roll out. Tap <b>Save</b> to lock it in and get a share card.</p>`;
+      <p class="note">Tap <b>Save</b> to put this hero in <b>My heroes</b> (up to 12). They follow you into AGENTPARK games: pick one from the hero bar on a game's start screen.</p>`;
   }
 }
 
+// "My heroes" strip at the top of the Hero tab: switch / edit / delete saved heroes, start a new one
+const escH = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let delArm = -1;
+function myStrip() {
+  const hs = myHeroes();
+  const tiles = hs.map((h, i) => `<div class="mh ${editIdx === i ? 'on' : ''}"><button class="mhb" data-mh="${i}"><i><img alt="" src="${escH(heroThumb(h).startsWith('data:') ? heroThumb(h) : thumb(h.char))}"></i><span>${escH(h.name || charById(h.char)?.name || 'Hero')}</span></button>${editIdx === i ? `<button class="mhx ${delArm === i ? 'arm' : ''}" data-mhdel="${i}" aria-label="Delete hero">${delArm === i ? 'Delete?' : '✕'}</button>` : ''}</div>`).join('');
+  return `<div class="myh"><div class="sec">My heroes <span class="cnt">${hs.length}/${MAX_HEROES}</span></div><div class="mhrow">${tiles}
+    ${hs.length < MAX_HEROES ? `<div class="mh ${editIdx === null ? 'on' : ''}"><button class="mhb new" data-mhnew><i>＋</i><span>${editIdx === null ? 'Unsaved' : 'New hero'}</span></button></div>` : ''}</div></div>`;
+}
+async function openSaved(i) {
+  const h = myHeroes()[i]; if (!h) return;
+  editIdx = i; delArm = -1; selectSlot(i);
+  hero = { ...DEFAULT_HERO, ...strip(h), items: { ...DEFAULT_HERO.items, ...h.items }, tints: h.tints || {} };
+  updatePlate(); updatePlay();
+  if (hero.char !== cur?.id) await selectChar(hero.char, { silent: true });
+  else { for (const s of ['head', 'face', 'back', 'hand', 'offhand']) await equip(s, hero.items[s], { silent: true }); applyColors(); }
+  sfx.pick(2); popIn = 1; renderBody();
+}
+onHeroesChange(() => { if (tab === 'hero') renderBody(); });
+// "▶ Play as <name>": shown when the lab was opened from a game (?back=<slug>)
+function updatePlay() { const b = $('#playas'); if (!b) return; b.hidden = !BACK; document.body.classList.toggle('back', !!BACK); b.querySelector('b').textContent = hero.name || charById(hero.char)?.name || 'Hero'; }
+if (BACK) $('#playas').onclick = () => {
+  writeHero(hero); const i = storeHero({ ...hero, thumb: portrait() }, editIdx);   // saves + selects it (synced by the game on load)
+  if (i < 0) { toast(`${MAX_HEROES} heroes max: delete one first`); sfx.fail?.(); setTab('hero'); return; }
+  editIdx = i; sfx.win(); returnToGame(BACK);
+};
+
 $('#body').addEventListener('click', e => {
-  const t = e.target.closest('[data-c],[data-i],[data-none],[data-hue],[data-thue],[data-ts],[data-n],[data-act],#lock,#nmr'); if (!t) return;
+  const t = e.target.closest('[data-c],[data-i],[data-none],[data-hue],[data-thue],[data-ts],[data-n],[data-act],[data-mh],[data-mhdel],[data-mhnew],#lock,#nmr'); if (!t) return;
   const d = t.dataset;
+  if (d.mh !== undefined) { openSaved(+d.mh); return; }
+  if (d.mhdel !== undefined) { const i = +d.mhdel; if (delArm !== i) { delArm = i; sfx.tap(); renderBody(); return; } deleteHero(i); editIdx = null; delArm = -1; buzz(20); toast('Hero deleted'); renderBody(); return; }
+  if (d.mhnew !== undefined) { editIdx = null; delArm = -1; hero.name = ''; updatePlate(); updatePlay(); sfx.pick(4); toast('New hero: build it, then Save'); renderBody(); return; }
   if (d.c) { selectChar(d.c).then(() => renderBody()); if (READY.has(d.c)) { document.querySelectorAll('.tile.on').forEach(x => x.classList.remove('on')); t.classList.add('on'); } }
   else if (d.i) {
     const it = itemById(d.i), slot = it.slot;
@@ -360,8 +396,32 @@ $('#rand').onclick = () => { $('#rand').animate([{ transform: 'rotate(0)' }, { t
 
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800); }
 
+// small transparent portrait for the hero bar in games (kept on this device only, never sent)
+function portrait(S = 112) {
+  if (!cur) return null;
+  const pr = renderer.getPixelRatio(), size = renderer.getSize(new THREE.Vector2()), R = 224;
+  const prevAspect = camera.aspect, saveYaw = pivot.rotation.y, h = cur.M.height;
+  renderer.setPixelRatio(1); renderer.setSize(R, R, false); C.resize(R, R); camera.aspect = 1; camera.clearViewOffset();
+  const dist = (h * 1.12 / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2), yy = PED_H + h * 0.52;
+  camera.position.set(0, yy + 0.1, dist); camera.lookAt(0, yy, 0); camera.updateProjectionMatrix();
+  pivot.rotation.y = 0.35; scene.background = null; renderer.setClearColor(0x000000, 0); C.grade.uniforms.uVignette.value = 0;
+  const hide = [floor, pedestal, topDisc, rim, rim2, halo, bars, arc, arc2, sparkles]; hide.forEach(o => o.visible = false);
+  renderer.render(scene, camera);
+  const cv = document.createElement('canvas'); cv.width = cv.height = S; cv.getContext('2d').drawImage(renderer.domElement, 0, 0, S, S);
+  hide.forEach(o => o.visible = true);
+  scene.background = bgTex; C.grade.uniforms.uVignette.value = 0.16; pivot.rotation.y = saveYaw;
+  renderer.setPixelRatio(pr); renderer.setSize(size.x, size.y, false); C.resize(size.x, size.y); camera.aspect = prevAspect; camera.updateProjectionMatrix();
+  let url = cv.toDataURL('image/webp', 0.82); if (!url.startsWith('data:image/webp')) url = cv.toDataURL('image/png');
+  return url.length < 40000 ? url : null;
+}
+
 async function save({ quiet = false } = {}) {
   writeHero(hero); saves++;
+  const idx = storeHero({ ...hero, thumb: quiet ? undefined : portrait() }, editIdx);
+  if (idx < 0) { if (!quiet) { toast(`${MAX_HEROES} heroes max: delete one first`); sfx.fail?.(); setTab('hero'); } return; }
+  editIdx = idx;
+  if (tab === 'hero') renderBody();
+  updatePlay();
   if (quiet) return;
   sfx.win(); buzz([20, 40, 20]);
   const top = new THREE.Vector3(0, PED_H + (cur?.M.height || 1.7) * 0.9, 0);
@@ -370,11 +430,12 @@ async function save({ quiet = false } = {}) {
   const url = await shareCard();
   $('#mimg').src = url; $('#mdl').href = url;
   $('#mtitle').textContent = `${hero.name || charById(hero.char)?.name} is ready!`;
-  $('#mtext').textContent = 'Saved on this device. Your hero will show up in AGENTPARK games as they get Hero Lab support.';
+  $('#mtext').textContent = BACK ? 'Saved to My heroes. Jump back in and play as this hero.' : `Saved to My heroes (${myHeroes().length}/${MAX_HEROES}). Pick it from the hero bar in any AGENTPARK game that supports heroes.`;
+  $('#mdone').textContent = BACK ? `▶ Play as ${hero.name || charById(hero.char)?.name || 'Hero'}` : 'Done';
   setTimeout(() => $('#modal').classList.add('on'), 650);
 }
 $('#save').onclick = () => save();
-$('#mdone').onclick = () => { $('#modal').classList.remove('on'); sfx.tap(); };
+$('#mdone').onclick = () => { $('#modal').classList.remove('on'); sfx.tap(); if (BACK) returnToGame(BACK); };
 $('#mshare').onclick = async () => {
   try {
     const blob = await (await fetch($('#mimg').src)).blob(), file = new File([blob], 'my-agentpark-hero.png', { type: 'image/png' });
@@ -469,7 +530,7 @@ requestAnimationFrame(t => { last = t; tick(t); });
 let botN = 0;
 window.__game = {
   get state() { return 'play'; }, get level() { return 1; }, get score() { return saves; },
-  hero: () => JSON.parse(JSON.stringify(hero)), cur: () => cur && { id: cur.id, M: { height: cur.M.height, head: cur.M.head, chest: cur.M.chest } },
+  hero: () => JSON.parse(JSON.stringify(hero)), editIdx: () => editIdx, myHeroes, openSaved, portrait, cur: () => cur && { id: cur.id, M: { height: cur.M.height, head: cur.M.head, chest: cur.M.chest } },
   selectChar, equip, play, randomize, setTab, save, shareCard,
   bot() {
     botN++; if (loading || botN % 7) return;

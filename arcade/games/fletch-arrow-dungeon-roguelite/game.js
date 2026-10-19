@@ -4,6 +4,8 @@ import { THREE, createStage, createUI, store, loop, buzz, tone, note, burst, con
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
 const RW = 9, RD = 14, HX = RW / 2, HZ = RD / 2, PR = 0.42;
 const S = store('fletch');
@@ -68,6 +70,42 @@ const tail = new THREE.Mesh(rounded(0.14, 0.32, 0.05, 0.03), mat('#ff8c42')); ta
 const quiver = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.42, 10), mat('#9b5d3a')); quiver.position.set(-0.16, 0.62, -0.36); quiver.rotation.set(-0.35, 0, 0.5); quiver.castShadow = true; hero.add(quiver);
 for (let i = 0; i < 3; i++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.14, 4), mat(['#3d6bff', '#ffd23f', '#ff5d8f'][i])); f.position.set(-0.24 + i * 0.06, 0.88 + i * 0.02, -0.44 + i * 0.03); f.rotation.set(-0.35, 0, 0.5); hero.add(f); }
 const heroShadowR = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.58, 32), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.6 })); heroShadowR.rotation.x = -Math.PI / 2; heroShadowR.position.y = 0.02; hero.add(heroShadowR);
+
+// ---------------------------------------------------------------- my hero (Hero Lab): replaces Sprig's look only
+// `hero` (position, facing, ring, bow) keeps doing everything; Sprig's meshes hide and the player's hero stands in the
+// scene at the same spot (its own object, so the "fall" can still play after `hero` hides on a loss). 1.3 tall: the
+// rooms are tuned for a small archer. The bow follows the free hand (left first, like an archer).
+const SPRIG = hero.children.filter(o => o !== bow && o !== heroShadowR);
+let me = null, meTok = 0, meSig, meClip = 'idle', meHand = null, meMats = [], meCheer = 0, meWasClear = false;
+async function buildMe() {
+  const t = ++meTok, h = selectedHero(); meSig = JSON.stringify(h);
+  if (me) { me.dispose(); me = null; }
+  dressSprig();
+  if (!h) return;
+  try {
+    const next = await loadHero(THREE, GLTFLoader, { hero: h, quality: 'game', height: 1.3, clip: 'idle' });
+    if (t !== meTok) { next.dispose(); return; }
+    me = next; meClip = 'idle'; scene.add(me.object);
+    meHand = !h.items.offhand ? me.object.getObjectByName('LeftHand') : !h.items.hand ? me.object.getObjectByName('RightHand') : null;
+    meMats = []; me.object.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(m => m.emissive && meMats.push([m, m.emissive.clone()])); });
+    dressSprig();
+  } catch (e) { console.warn('hero', e); }
+}
+function dressSprig() { SPRIG.forEach(o => { o.visible = !me; }); bow.visible = !me || !!meHand; }
+const syncMe = () => { if (JSON.stringify(selectedHero()) !== meSig) buildMe(); };
+const _hand = new THREE.Vector3();
+function animMe(dt, t) {
+  if (!me) return;
+  const o = me.object; o.position.set(hero.position.x, 0, hero.position.z); o.rotation.y = hero.rotation.y;
+  o.visible = state === 'lost' || hero.visible;
+  if (cleared && !meWasClear && state === 'play') meCheer = 1.6; meWasClear = cleared; meCheer = Math.max(0, meCheer - dt / 60);
+  const want = state === 'won' ? 'cheer' : state === 'lost' ? 'fall' : state === 'play' && moving && !picks ? 'run' : meCheer > 0 && !picks ? 'cheer' : 'idle';
+  if (want !== meClip) { meClip = want; me.play(want, { fade: 0.15, once: want === 'fall' }); }
+  if (want === 'run' && P) me.actions.run.timeScale = clamp(P.speed / 0.075, 0.8, 1.5);
+  me.mixer.update(dt / 60);
+  const red = state === 'play' && hurtT > 0 && Math.floor(t * 20) % 2; for (const [m, e0] of meMats) red ? m.emissive.setRGB(0.9, 0, 0.15) : m.emissive.copy(e0);
+  if (meHand) { o.updateMatrixWorld(true); meHand.getWorldPosition(_hand); hero.updateMatrixWorld(); hero.worldToLocal(bow.position.copy(_hand)); bow.position.z -= recoil * 0.12; }
+}
 
 // ---------------------------------------------------------------- projectiles (instanced)
 const MAXA = 90, MAXO = 80;
@@ -358,6 +396,7 @@ loop((dt, t) => {
   const sq = moving ? Math.sin(hop * 2) * 0.06 : Math.sin(t * 3) * 0.03 - recoil * 0.08;
   heroBody.scale.set(1 + sq, 1.08 - sq, 1 + sq); bow.position.z = 0.1 - recoil * 0.12; bow.rotation.y = -0.6 + (moving ? 0 : 0.6);
   sprout.rotation.z = Math.sin(t * 4) * 0.15; heroBody.material.emissive.set(hurtT > 0 && Math.floor(t * 20) % 2 ? '#ff2040' : '#000000');
+  animMe(dt, t);
   // gate
   bars.position.y = -gateOpen * 1.55; chevMat.opacity = cleared ? 0.5 + Math.sin(t * 6) * 0.3 : 0;
   chevrons.forEach((c, i) => c.position.y = 0.02 + (cleared ? Math.max(0, Math.sin(t * 6 - i)) * 0.05 : 0));
@@ -376,6 +415,10 @@ loop((dt, t) => {
 function lerpAngle(a, b, k) { let d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; return a + d * Math.min(1, k); }
 
 look = LOOKS[(level - 1) % LOOKS.length]; buildRun(); ui.start();
+{ // hero bar at the foot of the start card, so the picked hero stays in view (taps on it never start the run)
+  const slot = document.createElement('div'); slot.style.cssText = 'width:min(360px,100%)'; ui.els.start.appendChild(slot);
+  heroBar({ parent: slot, onPick: syncMe }); onHeroesChange(syncMe); syncMe();
+}
 
 // ---------------------------------------------------------------- bot: dodge orbs, keep distance from melee, otherwise stand and shoot; walk out when clear
 window.__game = {

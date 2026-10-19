@@ -2,6 +2,8 @@
 // scoop up the cash stacks and pour them into upgrade pads (new rooms, a receptionist, a housekeeper).
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded, stickman, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
 import { board } from './kit/board.js';
 const WB = board({ game: 'bellhop-boss', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
@@ -167,7 +169,7 @@ function buildLevel() {
   for (let i = 0; i < 6; i++) addBill('pile');
   // manager
   if (mgr.g) scene.remove(mgr.g);
-  mgr.g = person('#e63946', '#ffd7ba', true); scene.add(mgr.g); Object.assign(mgr, { x: 0, z: 1.0, vx: 0, vz: 0, act: null, actT: 0, speed: 5.2, carry: [] });
+  mgr.g = person('#e63946', '#ffd7ba', true); scene.add(mgr.g); dressMgr(); Object.assign(mgr, { x: 0, z: 1.0, vx: 0, vz: 0, act: null, actT: 0, speed: 5.2, carry: [] });
   ui.levels(level); updCash(); updGoal(); camZ = 2;
 }
 function person(color, skin, hat) {
@@ -175,6 +177,34 @@ function person(color, skin, hat) {
   for (const l of [g.armL, g.armR, g.legL, g.legR]) l.traverse(o => { o.castShadow = false; });
   if (hat) { const h = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.19, 0.2, 16), new THREE.MeshStandardMaterial({ color: '#c1121f' })); h.position.y = 1.7; h.castShadow = true; g.add(h); h.scale.setScalar(1); const b = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.025, 6, 16), new THREE.MeshStandardMaterial({ color: '#ffd23f' })); b.rotation.x = Math.PI / 2; b.position.y = 1.62; g.add(b); }
   return g;
+}
+// ------------------------------------------------------------------ my hero (Hero Lab): only the bellhop's look changes
+// The stickman group stays (position, facing, the bill stack and every rule read it); its meshes are hidden and the
+// hero hangs inside it. The group is scaled 1.3, so the hero is built at 2.0 / 1.3 (the bellhop's head top is 2.2; heroes are bulkier).
+let hero = null, heroTok = 0, heroSig, heroClip = 'idle';
+function dressMgr() {
+  if (!mgr.g) return;
+  for (const o of mgr.g.children) if (!hero || o !== hero.object) o.visible = !hero;
+  if (hero && hero.object.parent !== mgr.g) mgr.g.add(hero.object);
+}
+async function buildHero() {
+  const t = ++heroTok, h = selectedHero(); heroSig = JSON.stringify(h);
+  if (hero) { hero.dispose(); hero = null; dressMgr(); }
+  if (!h) return;
+  try {
+    const next = await loadHero(THREE, GLTFLoader, { hero: h, quality: 'game', height: 2.0 / 1.3, clip: 'idle' });
+    if (t !== heroTok) { next.dispose(); return; }
+    hero = next; heroClip = 'idle'; dressMgr();
+  } catch (e) { console.warn('hero', e); }
+}
+const syncHero = () => { if (JSON.stringify(selectedHero()) !== heroSig) buildHero(); };
+function animHero(mv, sec) {
+  if (!hero) return;
+  const moving = heroClip === 'run' || heroClip === 'sprint' ? mv > 0.35 : mv > 0.6;
+  const want = state === 'won' ? 'cheer' : state === 'lost' ? 'fall' : !moving ? 'idle' : mv > 6 ? 'sprint' : 'run';
+  if (want !== heroClip) { heroClip = want; hero.play(want, { fade: 0.15, once: want === 'fall' }); }
+  if (want === 'run' || want === 'sprint') hero.actions[want].timeScale = clamp(mv / (want === 'run' ? 4.2 : 6.5), 0.55, 1.35);
+  hero.mixer.update(sec);
 }
 function setRoomLook(rm) {
   rm.mess.visible = rm.state === 'dirty'; rm.icon.visible = rm.state === 'dirty';
@@ -254,7 +284,7 @@ loop((dt, t) => {
   mgr.x += mgr.vx * sec; mgr.z += mgr.vz * sec; collide(mgr);
   const mv = Math.hypot(mgr.vx, mgr.vz);
   if (mv > 0.3) mgr.face = Math.atan2(mgr.vx, mgr.vz);
-  mgr.g.position.set(mgr.x, 0, mgr.z); mgr.g.rotation.y = lerp(mgr.g.rotation.y, mgr.face ?? 0, 0.25); mgr.g.run(t, Math.min(1, mv / 3));
+  mgr.g.position.set(mgr.x, 0, mgr.z); mgr.g.rotation.y = lerp(mgr.g.rotation.y, mgr.face ?? 0, 0.25); mgr.g.run(t, Math.min(1, mv / 3)); animHero(mv, sec);
   // ---- guests spawn + flow
   if (state === 'play') {
     spawnT -= sec;
@@ -354,10 +384,11 @@ loop((dt, t) => {
   let n = 0; const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), one = V(1, 1, 1);
   let pi = 0, ci = 0;
   const back = V(-Math.sin(mgr.g.rotation.y), 0, -Math.cos(mgr.g.rotation.y));
+  const billBack = hero?.hero.items.back ? 0.85 : 0.55;   // clear a hero's backpack/wings
   for (const b of billsL) {
     let tx, ty, tz, rot = 0;
     if (b.where === 'pile') { const p = pileTop(pi++); tx = p.x; ty = p.y; tz = p.z; rot = p.r; }
-    else if (b.where === 'carry') { const lag = ci * 0.012; tx = mgr.x + back.x * 0.55 - mgr.vx * lag; ty = 1.25 + ci * 0.085; tz = mgr.z + back.z * 0.55 - mgr.vz * lag; rot = mgr.g.rotation.y; ci++; }
+    else if (b.where === 'carry') { const lag = ci * 0.012; tx = mgr.x + back.x * billBack - mgr.vx * lag; ty = 1.25 + ci * 0.085; tz = mgr.z + back.z * billBack - mgr.vz * lag; rot = mgr.g.rotation.y; ci++; }
     else { tx = b.pad.x; ty = 0.3; tz = b.pad.z; }
     if (b.fly !== undefined && b.fly < 1) { b.fly = Math.min(1, b.fly + sec * 4.5); const k = b.fly; b.x = lerp(b.fx, tx, k); b.z = lerp(b.fz, tz, k); b.y = lerp(b.fy, ty, k) + Math.sin(k * Math.PI) * 1.4; if (b.fly >= 1 && b.where === 'pad') b.dead = true; }
     else { b.x = tx; b.y = ty; b.z = tz; }
@@ -396,6 +427,10 @@ function unlock(p) {
 
 buildLevel();
 ui.start();
+{ // hero bar at the foot of the start card, so the picked hero stays in view (taps on it never start the game)
+  const slot = document.createElement('div'); slot.style.cssText = 'width:min(360px,100%)'; ui.els.start.appendChild(slot);
+  heroBar({ parent: slot, onPick: syncHero }); onHeroesChange(syncHero); syncHero();
+}
 
 // ------------------------------------------------------------------ test hooks + bot (greedy: desk → cash → clean → buy)
 function routeTo(o, target) {

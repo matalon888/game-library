@@ -3,6 +3,8 @@ import { THREE, createStage, createUI, loop, rounded, tone, note, sfx, buzz, sto
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 import { part, merge, vmat, canvasTex, G, hudCSS, H, btn, banner, feed, vignette, controls, Pool, healthBars, floaters, shaker, music, robot } from './lib.js';
 
 const NAME = 'Slimewall Hold: Slime Horde Defense Shooter';
@@ -157,6 +159,60 @@ const hero = robot({ body: '#2ec4b6', trim: '#ff9f1c', visor: '#e8fffb', kind: '
 const heroRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 32), new THREE.MeshBasicMaterial({ color: '#ff9f1c', transparent: true, opacity: 0.85 })); heroRing.rotation.x = -Math.PI / 2; heroRing.position.y = 0.05; hero.add(heroRing);
 const H0 = { hp: 100, rate: 6, dmg: 10, pierce: 0, multi: 1, speed: 6.4, nadeCd: 8, range: 13 };
 let h = null;
+
+// ---------------------------------------------------------------- my hero (Hero Lab): replaces the robot's look; `hero` (position, yaw, muzzle, ring) still drives the game
+const RING_C = new THREE.Color('#ff9f1c'), HURT_C = new THREE.Color('#ff3355');
+let my = null, myTok = 0, myClip = '', myShown = '', myB = null, myPhase = 'build', myCheer = 0, mySlide = 0, myHp = 100, myHurt = 0;
+const myGun = new THREE.Mesh(merge([part(G.box, '#2ec4b6', { y: 0.02, z: 0.16, sx: 0.13, sy: 0.17, sz: 0.46 }), part(G.cyl, '#2b2d42', { z: 0.47, rx: Math.PI / 2, sx: 0.085, sz: 0.085, sy: 0.24 }), part(G.cyl, '#ff9f1c', { z: 0.6, rx: Math.PI / 2, sx: 0.1, sz: 0.1, sy: 0.05 }), part(G.box, '#ff9f1c', { y: 0.12, z: 0.12, sx: 0.05, sy: 0.07, sz: 0.2 }), part(G.box, '#2b2d42', { y: -0.13, z: 0.02, sx: 0.08, sy: 0.16, sz: 0.09 })]), vmat());
+myGun.castShadow = true; myGun.visible = false; scene.add(myGun);
+const robotParts = () => [hero.torso, ...hero.legs];     // hidden, not removed: hero.muzzle (under the torso) still places the shots
+async function useHero() {
+  const hc = selectedHero(), tok = ++myTok; myShown = JSON.stringify(hc);
+  if (my) { my.dispose(); my = null; myB = null; }
+  robotParts().forEach(o => o.visible = true); myGun.visible = false;
+  if (!hc) return;
+  try {
+    // the foam blaster takes the right hand, so the hand item stays in the lab
+    const n = await loadHero(THREE, GLTFLoader, { hero: { ...hc, items: { ...hc.items, hand: null } }, height: 2.3 / 1.05, quality: 'game', clip: 'idle' });
+    if (tok !== myTok) { n.dispose(); return; }
+    const b = k => n.object.getObjectByName(k);
+    my = n; myClip = 'idle'; myB = { ua: b('RightArm'), fa: b('RightForeArm'), hand: b('RightHand'), la: b('LeftArm'), lf: b('LeftForeArm'), lh: b('LeftHand') };
+    hero.add(n.object); robotParts().forEach(o => o.visible = false);
+  } catch (e) { console.warn('hero', e); }
+}
+const _ha = new THREE.Vector3(), _hb = new THREE.Vector3(), _hq = new THREE.Quaternion(), _hq2 = new THREE.Quaternion(), _hq3 = new THREE.Quaternion(), _hd = new THREE.Vector3(), _hf = new THREE.Vector3(), _hr = new THREE.Vector3();
+function aimBone(bone, tip, dir) {   // turn `bone` so bone→tip points along world `dir`
+  if (!bone || !tip) return;
+  bone.getWorldPosition(_ha); tip.getWorldPosition(_hb);
+  _hq.setFromUnitVectors(_hb.sub(_ha).normalize(), dir);
+  bone.getWorldQuaternion(_hq2); _hq.multiply(_hq2);
+  bone.parent.getWorldQuaternion(_hq3); bone.quaternion.copy(_hq3.invert().multiply(_hq));
+}
+function heroTick(s) {
+  if (!my) return;
+  if (h && phase === 'build' && myPhase === 'wave' && wave > 0 && state === 'play') myCheer = 1.8;      // wave held
+  myPhase = phase;
+  if (h && h.hp < myHp - 0.5) myHurt = 0.3; myHp = h ? h.hp : 100;
+  myCheer = Math.max(0, myCheer - s); myHurt = Math.max(0, myHurt - s);
+  if (h && h.dashT > 0) mySlide = 0.38; else mySlide = Math.max(0, mySlide - s);
+  const v = h ? Math.hypot(h.vel.x, h.vel.z) : 0;
+  const want = state === 'lost' ? 'fall' : state !== 'play' ? 'idle' : mySlide > 0 ? 'slide' : v > 7.4 ? 'sprint' : v > 0.6 ? 'run' : myCheer > 0 ? 'cheer' : 'idle';
+  if (want !== myClip) { my.play(want, { fade: want === 'slide' ? 0.08 : 0.2 }); myClip = want; }
+  if (my.actions.run) my.actions.run.timeScale = clamp(v / 5, 0.6, 1.4);
+  my.mixer.update(s);
+  heroRing.material.color.copy(myHurt > 0 && Math.floor(myHurt * 20) % 2 ? HURT_C : RING_C);
+  // both hands on the foam blaster, pointing where the hero aims (not while cheering / down / sliding)
+  const armed = state !== 'lost' && hero.visible && want !== 'cheer' && want !== 'slide';
+  myGun.visible = armed;
+  if (!armed) return;
+  const fw = _hf.set(Math.sin(hero.rotation.y), 0, Math.cos(hero.rotation.y)), rt = _hr.set(-fw.z, 0, fw.x);   // rt = the hero's own right side
+  aimBone(myB.ua, myB.fa, _hd.copy(fw).multiplyScalar(0.55).setY(-0.8).normalize());
+  aimBone(myB.fa, myB.hand, _hd.copy(fw).setY(0.05).normalize());
+  aimBone(myB.la, myB.lf, _hd.copy(fw).multiplyScalar(0.5).addScaledVector(rt, 0.1).setY(-0.8).normalize());
+  aimBone(myB.lf, myB.lh, _hd.copy(fw).addScaledVector(rt, 0.75).setY(0.1).normalize());
+  myB.hand.getWorldPosition(myGun.position); myGun.position.addScaledVector(fw, 0.06);
+  myGun.rotation.set(0, hero.rotation.y, 0);
+}
 
 // ---------------------------------------------------------------- HUD
 const css = document.createElement('style'); css.textContent = `
@@ -577,11 +633,16 @@ loop((dt) => {
   for (const p of PADS) if (p.b && p.b.type === 'wall' && p.b.hp < p.b.max) bars.add(tmp.set(p.x, 2.4, p.z), p.b.hp / p.b.max, '#ffd23f', 1.6);
   bars.end();
   fl.update(dt);
+  heroTick(s);
   hurtV = Math.max(0, hurtV - s * 1.4); vign(state === 'play' ? Math.max(hurtV, coreHp < coreMax * 0.25 ? 0.25 + Math.sin(tt * 6) * 0.1 : 0) : 0);
 });
 
 ui.onTap(w => { if (w === 'lose') { newRun(); coreGem.visible = true; } begin(); });
 newRun(); showHud(false); ui.start();
+// hero bar on the start card, under the loadout chips and above "tap to hold the line"
+{ const hb = heroBar({ parent: ui.els.start, onPick: () => useHero() }); hb.el.style.width = 'min(360px,100%)'; ui.els.start.querySelector('.hint').before(hb.el); }
+onHeroesChange(() => { if (JSON.stringify(selectedHero()) !== myShown) useHero(); });
+useHero();
 
 // ---------------------------------------------------------------- test hooks + bot
 window.__game = {

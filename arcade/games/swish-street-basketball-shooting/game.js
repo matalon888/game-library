@@ -4,6 +4,8 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import * as worldBoard from './kit/board.js';             // `board` is the backboard mesh here
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
 const NAME = 'Swish Street: Basketball Shooting';
 const S = store('swish');
@@ -156,6 +158,57 @@ function makeHero() {
   return g;
 }
 const hero = makeHero(); scene.add(hero);
+// My hero (Hero Lab, kit/heroes.js): hangs inside `hero` (same walk, facing, jump and squash), the toy baller's parts are hidden.
+// Clips: run while walking, jump on the shot, cheer on a make / win, fall when out of balls; arms reach for the held ball
+// with a small two-bone IK on top of the clip (there is no shoot clip); hand-held gear is left off (the hands hold the ball).
+// The ball, shot and scoring are untouched.
+let mine = null, mineSig = null, mineTok = 0, mineClip = '', arms = [], armW = 1, cheerT = 0;
+const heroSig = h => (h ? JSON.stringify({ ...h, thumb: 0 }) : '');
+async function useHero() {
+  const h = selectedHero(), t = ++mineTok; mineSig = heroSig(h);
+  if (!h) { if (mine) { mine.dispose(); mine = null; } hero.children.forEach(c => { c.visible = true; }); return; }
+  let k; try { k = await loadHero(THREE, GLTFLoader, { hero: { ...h, items: { ...h.items, hand: null, offhand: null } }, quality: 'game', height: 2.15, face: Math.PI }); } catch (e) { console.warn('hero', e); return; }
+  if (t !== mineTok) { k.dispose(); return; }
+  if (mine) mine.dispose();
+  hero.children.forEach(c => { c.visible = false; });
+  mine = k; mineClip = ''; hero.add(k.object);
+  const b = n => k.object.getObjectByName(n);
+  arms = [['LeftArm', 'LeftForeArm', 'LeftHand'], ['RightArm', 'RightForeArm', 'RightHand']].map(([a, f, w]) => ({ a: b(a), f: b(f), h: b(w) })).filter(x => x.a && x.f && x.h);
+}
+const _ia = new THREE.Vector3(), _ib = new THREE.Vector3(), _ic = new THREE.Vector3(), _id = new THREE.Vector3(), _ie = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qc = new THREE.Quaternion();
+function aimBone(bone, child, target, w) {   // turn `bone` (slerp weight w) so its child points at `target` (world)
+  bone.getWorldPosition(_ia); child.getWorldPosition(_ib);
+  _ib.sub(_ia).normalize(); _ic.copy(target).sub(_ia).normalize();
+  _qa.setFromUnitVectors(_ib, _ic); bone.getWorldQuaternion(_qb).premultiply(_qa);
+  bone.parent.getWorldQuaternion(_qc).invert(); _qb.premultiply(_qc);
+  bone.quaternion.slerp(_qb, w); bone.updateMatrixWorld(true);
+}
+function reachBall(w) {   // both hands onto the sides of the held ball (two-bone IK, elbows out)
+  if (w < 0.01) return;
+  const ballP = heldBallPos(_id);
+  for (const arm of arms) {
+    const S = arm.a.getWorldPosition(new THREE.Vector3()), E = arm.f.getWorldPosition(new THREE.Vector3()), H = arm.h.getWorldPosition(new THREE.Vector3());
+    const L1 = S.distanceTo(E), L2 = E.distanceTo(H);
+    const side = _ie.set(S.x - ballP.x, 0, S.z - ballP.z); if (side.lengthSq() < 1e-6) side.set(1, 0, 0); side.normalize();
+    const T = ballP.clone().addScaledVector(side, BALL_R + 0.03);
+    const dir = T.clone().sub(S), D = Math.min(dir.length(), (L1 + L2) * 0.999); dir.normalize();
+    const a = Math.acos(clamp((L1 * L1 + D * D - L2 * L2) / (2 * L1 * D), -1, 1));
+    const pole = side.clone().addScaledVector(fwd, 0.35); pole.addScaledVector(dir, -pole.dot(dir)).normalize();
+    const elbow = S.clone().addScaledVector(dir, Math.cos(a) * L1).addScaledVector(pole, Math.sin(a) * L1);
+    aimBone(arm.a, arm.f, elbow, w); aimBone(arm.f, arm.h, T, w);
+  }
+}
+function animMine(sec, walking) {
+  cheerT = Math.max(0, cheerT - sec);
+  const want = state === 'won' ? 'cheer' : state === 'lost' ? 'fall' : walking ? 'run' : phase === 'fly' && flyT < 0.7 ? 'jump' : cheerT > 0 && phase !== 'aim' ? 'cheer' : 'idle';
+  if (want !== mineClip) { mine.play(want, { fade: want === 'jump' ? 0.08 : 0.2 }); mineClip = want; }
+  const holding = state !== 'won' && state !== 'lost' && (phase === 'aim' || state === 'ready' || (phase === 'fly' && flyT < 0.6));
+  // the idle clip looks around (head turns up to ±140°): while holding the ball, breathe in its first, square-on 0.4 s
+  if (want === 'idle' && holding && mine.actions.idle) mine.actions.idle.time = 0.2 + 0.18 * Math.sin(performance.now() / 600);
+  mine.mixer.update(sec);
+  armW = lerp(armW, holding ? 1 : 0, Math.min(1, sec * 10));
+  mine.object.updateMatrixWorld(true); reachBall(armW);
+}
 // shadow blob for nicer grounding
 const blobTex = canvasTex(64, 64, (g, w) => { const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(0,0,0,0.35)'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, w, w); });
 const blob = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false })); blob.rotation.x = -Math.PI / 2; blob.position.y = 0.01; scene.add(blob);
@@ -246,7 +299,7 @@ function addScore(n) {
   if (score > best) { best = score; S.set('best', best); }
 }
 function onScore() {
-  scored = true; made++; streak++;
+  scored = true; made++; streak++; cheerT = 1.6;
   const swish = !touched; let pts = swish ? 3 : 2;
   if (fire) pts *= 2;
   addScore(pts);
@@ -359,6 +412,7 @@ loop((dt, t) => {
   const leg = walking ? Math.sin(t * 14) * 0.6 : crouch * 0.35;
   hero.legL.rotation.x = walking ? leg : -leg; hero.legR.rotation.x = walking ? -leg : -leg;
   blob.position.set(hero.position.x, 0.01, hero.position.z); blob.scale.setScalar(1 - jump * 0.6);
+  if (mine) animMine(dt / 60, walking);
 
   // ball
   if (state !== 'ready' && phase === 'aim') { heldBallPos(ball.position); ball.rotation.y += 0.02 * dt; }
@@ -403,6 +457,11 @@ loop((dt, t) => {
 applyTheme(THEMES[(level - 1) % THEMES.length]);
 heroTargetP.set(0, 0, 4.6); hero.position.copy(heroTargetP); shooterP.copy(heroTargetP);
 camPos.set(0, 3.1, 8); ui.levels(level); ui.start(); ui.els.sc.classList.add('hc-hidden');
+// hero bar on the start card: "Classic" = the toy baller, a saved hero replaces him, ＋ opens Hero Lab
+heroBar({ parent: ui.els.start, onPick: () => useHero() }).bar.classList.add('ss-heroes');
+{ const st = document.createElement('style'); st.textContent = '.hc-card .ss-heroes{width:min(520px,100%);margin-top:-6vh;pointer-events:auto}'; document.head.appendChild(st); }
+onHeroesChange(() => { if (heroSig(selectedHero()) !== mineSig) useHero(); });
+useHero();
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },

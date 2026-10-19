@@ -1,6 +1,8 @@
 // Brick Climb — original game. Grab bricks of your colour, lay them as stair steps, climb to the top before your rivals.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, palette, applyPalette, mat, glossy, rounded, stickman, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
 import { board } from './kit/board.js';
 const WB = board({ game: 'brick-climb', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
@@ -23,6 +25,41 @@ const POST_G = new THREE.CylinderGeometry(0.2, 0.24, 1.1, 14); POST_G.translate(
 const KNOB_G = new THREE.SphereGeometry(0.27, 16, 12);
 const blockMats = COLORS.map(c => mat(c, { roughness: 0.35 }));
 const white = mat('#ffffff', { roughness: 0.6 });
+
+// ---------------------------------------------------------------- my hero (Hero Lab): replaces YOUR stickman's look; runner, stack, bumps, AI unchanged
+// body colour is the team colour here, so the hero stands on a ring in YOUR colour (and its bricks stay that colour)
+const MY_SCALE = 1.12;                     // the runner group is scaled like the stickman
+let my = null, myTok = 0, myClip = '', myShown = '';
+const myRing = (() => { const g = new THREE.RingGeometry(0.42, 0.62, 40); g.rotateX(-Math.PI / 2);
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: COLORS[0], transparent: true, opacity: 0.9, depthWrite: false })); m.position.y = 0.04; m.renderOrder = 1; return m; })();
+async function useHero() {
+  const hc = selectedHero(), tok = ++myTok; myShown = JSON.stringify(hc);
+  if (my) { my.dispose(); my = null; }
+  attachHero();
+  if (!hc) return;
+  try {
+    // the brick stack rides on the back, so the back item stays in the lab
+    const n = await loadHero(THREE, GLTFLoader, { hero: { ...hc, items: { ...hc.items, back: null } }, height: 1.65, quality: 'game', clip: 'idle' });
+    if (tok !== myTok) { n.dispose(); return; }
+    my = n; myClip = ''; attachHero();
+  } catch (e) { console.warn('hero', e); }
+}
+function attachHero() {          // (re)parent onto this level's runner 0; the level rebuild makes new runner groups
+  if (!player) return;
+  const g = player.g;
+  for (const o of g.children) if (o !== player.stackMesh && o !== myRing && (!my || o !== my.object)) o.visible = !my;
+  if (my) { g.add(my.object, myRing); } else { myRing.parent?.remove(myRing); }
+}
+function heroTick(s) {
+  if (!my || !player) return;
+  const ch = player, sp = Math.hypot(ch.vx, ch.vz) / SPEED;
+  const want = state === 'won' ? 'cheer' : state === 'lost' ? 'fall' : ch.stun > 0 ? 'fall' : state === 'play' && sp > 0.08 ? 'run' : 'idle';
+  if (want !== myClip) { my.play(want, { fade: want === 'fall' ? 0.1 : 0.22, once: want === 'cheer' ? false : undefined }); myClip = want; }
+  if (my.actions.run) my.actions.run.timeScale = clamp(sp * 1.15, 0.6, 1.25);
+  my.mixer.update(s);
+  // lost with bricks still on the back: the stack topples with the hero (the stickman used to tip over whole)
+  const sm = ch.stackMesh; sm.rotation.x = state === 'lost' ? lerp(sm.rotation.x, -1.35, Math.min(1, 6 * s)) : 0;
+}
 
 // ---------------------------------------------------------------- dom bits
 const joyEl = document.createElement('div'); joyEl.className = 'joy'; joyEl.innerHTML = '<i></i>'; document.body.appendChild(joyEl);
@@ -131,7 +168,7 @@ function buildLevel() {
     g.position.set(ch.x, 0, ch.z); g.rotation.y = Math.PI; world.add(g);
     chars.push(ch);
   }
-  player = chars[0];
+  player = chars[0]; attachHero();
   for (const ch of chars) { activateFloor(0, ch.ci); pickWant(ch); }
   if (state !== 'play' || !player) score = score; ui.sub(''); pillEl.querySelector('span').textContent = 0;
   camT.set(player.x, player.y, player.z); placeCamera(1);
@@ -319,8 +356,9 @@ function updateMeshes(t, dt) {
     if (sp > 0.08 && ch.stun <= 0) { const f = Math.atan2(ch.vx, ch.vz); let d = f - ch.face; d = Math.atan2(Math.sin(d), Math.cos(d)); ch.lean = lerp(ch.lean, -d * 0.6, 0.15); ch.face += d * 0.25 * dt; }
     else ch.lean = lerp(ch.lean, 0, 0.1);
     g.rotation.y = ch.face;
-    g.rotation.x = ch.stun > 0 ? lerp(g.rotation.x, -1.35, 0.3) : lerp(g.rotation.x, ch.stack > 0 ? 0.06 : 0, 0.2);
-    if (ch.done && state !== 'play') { g.run(t * 0.5, 0); g.armL.rotation.z = -2.6 - Math.sin(t * 10) * 0.3; g.armR.rotation.z = 2.6 + Math.sin(t * 10) * 0.3; g.position.y += Math.abs(Math.sin(t * 8)) * 0.4; }
+    const mine = my && ch === player;            // the hero falls with its own clip, so no whole-body tip-over
+    g.rotation.x = ch.stun > 0 && !mine ? lerp(g.rotation.x, -1.35, 0.3) : lerp(g.rotation.x, ch.stack > 0 ? 0.06 : 0, 0.2);
+    if (ch.done && state !== 'play') { g.run(t * 0.5, 0); g.armL.rotation.z = -2.6 - Math.sin(t * 10) * 0.3; g.armR.rotation.z = 2.6 + Math.sin(t * 10) * 0.3; if (!mine) g.position.y += Math.abs(Math.sin(t * 8)) * 0.4; }
     else {
       g.armL.rotation.z = g.armR.rotation.z = 0;
       g.run(t, Math.min(1, sp));
@@ -404,11 +442,16 @@ loop((dt, t) => {
     }
   }
   updateMeshes(t, dt);
+  heroTick(dt / 60);
   placeCamera(state === 'won' ? 0.05 : 0.12 * dt);
 });
 
 buildLevel();
 ui.start();
+// hero bar on the start card, between the title and "tap where to run"
+{ const hb = heroBar({ parent: ui.els.start, onPick: () => useHero() }); hb.el.style.width = 'min(360px,100%)'; ui.els.start.querySelector('.hint').before(hb.el); }
+onHeroesChange(() => { if (JSON.stringify(selectedHero()) !== myShown) useHero(); });
+useHero();
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },

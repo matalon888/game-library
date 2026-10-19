@@ -5,6 +5,8 @@ import { THREE, createStage, createUI, store, loop, buzz, tone, note, confetti, 
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
 const S = store('glowkeep');
 let level = S.get('level', 1), best = S.get('best', 0);
@@ -54,6 +56,41 @@ const lanternGlass = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 10), new 
 const lanternCap = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.13, 0.08, 8), mat('#5b4a7a')); lanternCap.position.y = 0.16; lanternG.add(lanternCap);
 const heroLight = new THREE.PointLight('#ffd27a', 3.5, 6, 1.5); heroLight.position.set(0.4, 1.0, 0.2); hero.add(heroLight);
 const aura = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.62, 36), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.55 })); aura.rotation.x = -Math.PI / 2; aura.position.y = 0.03; hero.add(aura);
+
+// ---------------------------------------------------------------- my hero (Hero Lab): replaces Lumo's look only
+// `hero` (position, facing, light, aura, lantern) keeps doing everything; Lumo's body meshes hide and the player's hero
+// stands in the scene at the same spot (its own object, so the "fall" can still play after `hero` hides on a loss).
+// The game's lantern hangs from whichever hand is free.
+const LUMO = hero.children.filter(o => o !== lanternG && o !== heroLight && o !== aura);   // coat, hood, face, eyes, hood tip, boots
+let me = null, meTok = 0, meSig, meClip = 'idle', meHand = null, meMats = [];
+async function buildMe() {
+  const t = ++meTok, h = selectedHero(); meSig = JSON.stringify(h);
+  if (me) { me.dispose(); me = null; }
+  dressLumo();
+  if (!h) return;
+  try {
+    const next = await loadHero(THREE, GLTFLoader, { hero: h, quality: 'game', height: 1.6, clip: 'idle' });
+    if (t !== meTok) { next.dispose(); return; }
+    me = next; meClip = 'idle'; scene.add(me.object);
+    meHand = !h.items.hand ? me.object.getObjectByName('RightHand') : !h.items.offhand ? me.object.getObjectByName('LeftHand') : null;
+    meMats = []; me.object.traverse(o => { if (o.isMesh) [].concat(o.material).forEach(m => m.emissive && meMats.push([m, m.emissive.clone()])); });
+    dressLumo();
+  } catch (e) { console.warn('hero', e); }
+}
+function dressLumo() { LUMO.forEach(o => { o.visible = !me; }); lanternG.visible = !me || !!meHand; if (!me) lanternG.position.set(0.42, 0.55, 0.15); }
+const syncMe = () => { if (JSON.stringify(selectedHero()) !== meSig) buildMe(); };
+const _hand = new THREE.Vector3();
+function animMe(dt, t) {
+  if (!me) return;
+  const o = me.object; o.position.set(hero.position.x, 0, hero.position.z); o.rotation.y = hero.rotation.y;
+  o.visible = state === 'lost' || hero.visible;
+  const want = state === 'won' ? 'cheer' : state === 'lost' ? 'fall' : state === 'play' && moving && !picks ? 'run' : 'idle';
+  if (want !== meClip) { meClip = want; me.play(want, { fade: 0.15, once: want === 'fall' }); }
+  if (want === 'run' && P) me.actions.run.timeScale = clamp(P.speed / 0.085, 0.8, 1.4);
+  me.mixer.update(dt / 60);
+  const red = state === 'play' && hurtT > 0 && Math.floor(t * 20) % 2; for (const [m, e0] of meMats) red ? m.emissive.setRGB(0.9, 0, 0.15) : m.emissive.copy(e0);
+  if (meHand) { o.updateMatrixWorld(true); meHand.getWorldPosition(_hand); _hand.y -= 0.22; hero.updateMatrixWorld(); hero.worldToLocal(lanternG.position.copy(_hand)); }
+}
 
 // ---------------------------------------------------------------- horde (instanced): blob body + glowing eyes
 const MAXE = 320;
@@ -320,6 +357,7 @@ loop((dt, t) => {
   boots[0].position.z = 0.03 + (moving ? Math.sin(walk * 2) * 0.12 : 0); boots[1].position.z = 0.03 - (moving ? Math.sin(walk * 2) * 0.12 : 0);
   lanternG.rotation.z = Math.sin(t * 3) * 0.2 + (moving ? Math.sin(walk * 2) * 0.2 : 0); lanternGlass.material.color.setHSL(0.14, 1, 0.78 + Math.sin(t * 9) * 0.06);
   coat.material.emissive.set(hurtT > 0 && Math.floor(t * 20) % 2 ? '#ff2040' : '#000000');
+  animMe(dt, t);
   // decor wraps around the camera so the meadow is endless
   decoData.forEach((d, i) => decoBush.setMatrixAt(i, _m.compose(_p.set(wrap(d.x, camX), 0.15 * d.s, wrap(d.z, camZ)), _q.identity(), _s.set(d.s, d.s * 0.5, d.s))));
   rockData.forEach((d, i) => { _q.setFromEuler(_e.set(0, d.a, 0)); decoRock.setMatrixAt(i, _m.compose(_p.set(wrap(d.x + 7, camX), 0.12 * d.s, wrap(d.z + 3, camZ)), _q, _s.set(d.s, d.s * 0.6, d.s))); });
@@ -337,6 +375,10 @@ loop((dt, t) => {
 const WHITE = new THREE.Color('#ffffff'), ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
 look = LOOKS[(level - 1) % LOOKS.length]; buildRun(); ui.start(); ui.pill('');
+{ // hero bar at the foot of the start card, so the picked hero stays in view (taps on it never start the run)
+  const slot = document.createElement('div'); slot.style.cssText = 'width:min(360px,100%)'; ui.els.start.appendChild(slot);
+  heroBar({ parent: slot, onPick: syncMe }); onHeroesChange(syncMe); syncMe();
+}
 
 // ---------------------------------------------------------------- bot: flee the crowd, swing round it, scoop up gems
 window.__game = {

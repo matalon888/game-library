@@ -11,7 +11,7 @@ const NAME = 'Dialock: Spin Lock Puzzle';
 const S = createStage({ fov: 34, shadowSize: 7 });
 const { scene, camera, sun, hemi } = S;
 sun.position.set(-3, 14, 5); sun.intensity = 1.4; hemi.intensity = 1.3;
-const ui = createUI({ title: 'DIALOCK', hint: 'Drag the dials to line up the gaps', hand: '👆', score: false });
+const ui = createUI({ title: 'DIALOCK', hint: 'Tap a dial to turn it · or drag', hand: '👆', score: false });
 const D = daily('dialock', ui, { name: NAME });
 const save = store('dialock');
 const F = flow('dialock');
@@ -162,7 +162,8 @@ addEventListener('pointermove', (e) => {
   let a = angOf(p), d = a - drag.last; if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; drag.last = a; drag.delta += d;
   const s = Math.round(drag.delta / STEP); if (s !== drag.tick) { if (drag.tick !== undefined) tone(900 + (s % 2) * 120, 0.025, 'square', 0.03, 1); drag.tick = s; }
 });
-addEventListener('pointerup', () => { if (!drag) return; const { i, delta } = drag; drag = null; commit(i, Math.round(delta / STEP)); });
+// a tap (no real turn) turns the dial one notch clockwise; a drag turns it as far as it was dragged
+addEventListener('pointerup', () => { if (!drag) return; const { i, delta } = drag; drag = null; commit(i, Math.abs(delta) < STEP * 0.35 ? -1 : Math.round(delta / STEP)); });
 
 function commit(i, s) {
   for (let k = 0; k < rings.length; k++) rings[k].ang = pos[k] * STEP;

@@ -107,7 +107,28 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .card img{width:100%;border-radius:14px;display:block;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 .card .row{display:flex;gap:8px;margin-top:14px}
 .card .row a,.card .row button{flex:1;height:50px;border-radius:15px;display:grid;place-items:center;font-weight:900;font-size:15px;text-decoration:none;color:#fff;background:var(--ink3);box-shadow:0 4px 0 #0d0b2a}
-.card .row .go{background:linear-gradient(180deg,#d8ff63,#9be22d);color:#1b3300;box-shadow:0 4px 0 #5f9a12}
+.card .row .go{background:linear-gradient(180deg,#d8ff63,#9be22d);color:#1b3300;box-shadow:0 4px 0 #5f9a12;flex:1.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px;display:block;line-height:50px;text-align:center}
+body.back .brand{display:none}
+.playas{pointer-events:auto;flex:0 1 auto;min-width:0;margin-right:8px;height:46px;padding:0 14px;border-radius:16px;background:linear-gradient(180deg,#8d6bff,#6a45ff);color:#fff;font-weight:900;font-size:14px;box-shadow:0 4px 0 #3c22b3,0 8px 18px rgba(106,69,255,.35);max-width:calc(100% - 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+.playas b{font-weight:900;color:var(--lime)}
+.playas:active{transform:translateY(3px);box-shadow:0 1px 0 #3c22b3}
+.playas[hidden]{display:none}
+.myh{margin:0 0 6px}
+.myh .cnt{font-size:11px;letter-spacing:1px;color:var(--mut);background:var(--ink2);padding:3px 8px;border-radius:8px}
+.mhrow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 8px;margin:0 -2px}
+.mhrow::-webkit-scrollbar{display:none}
+.mh{position:relative;flex:0 0 auto}
+.mhb{width:72px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.mhb i{position:relative;display:block;width:68px;height:68px;border-radius:18px;overflow:hidden;background:radial-gradient(80% 70% at 50% 35%,#efeaff,#b9b0f2 70%,#8f84e0);box-shadow:0 4px 0 rgba(0,0,0,.35);transition:transform .14s}
+.mhb i img{position:absolute;inset:2px;width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))}
+.mhb span{max-width:72px;font-size:11px;font-weight:800;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mhb:active i{transform:scale(.93)}
+.mhb.new i{background:transparent;border:2px dashed rgba(255,255,255,.3);box-shadow:none;display:grid;place-items:center;font-style:normal;font-size:28px;color:#fff;box-sizing:border-box}
+.mh.on .mhb i{box-shadow:0 0 0 3px var(--lime),0 4px 0 rgba(0,0,0,.35)}
+.mh.on .mhb.new i{border-color:var(--lime);box-shadow:none}
+.mh.on .mhb span{color:#fff}
+.mhx{position:absolute;top:-5px;right:-3px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#2d2873;color:#fff;font-size:11px;font-weight:900;box-shadow:0 2px 0 #0d0b2a;border:2px solid var(--ink)}
+.mhx.arm{background:#ff4d6d}
 @media (min-width:900px){
   #app{flex-direction:row}
   #stage{flex:1 1 auto}
@@ -135,6 +156,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
     <canvas id="c"></canvas>
     <div class="topbar">
       <div class="brand"><b>HERO LAB</b><small>AGENTPARK</small></div>
+      <button class="playas" id="playas" hidden>▶ Play as <b>Hero</b></button>
       <div class="actions"><button class="ibtn" id="rand" title="Randomize" aria-label="Randomize">🎲</button><button class="savebtn" id="save">💾 Save</button></div>
     </div>
     <div class="plate" id="plate"><span class="pname" id="pname">Hero</span><span class="prole" id="prole"></span></div>

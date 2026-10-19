@@ -311,6 +311,11 @@
     stage.appendChild(frame);
     // guard.js in the game reports it can't keep up (under 22 fps for 6 s): offer lighter graphics (devicePixelRatio 1 for this
     // game, kept on the device), and if it's already light, suggest another game. Counted in GA as game_slow.
+    // kit/heroes.js asks to open Hero Lab (or return to the game) as a real page: only same-origin arcade links
+    addEventListener('message', e => {
+      if (e.origin !== location.origin || !e.data || e.data.agentpark !== 'nav' || typeof e.data.href !== 'string') return;
+      try { const u = new URL(e.data.href, location.href); if (u.origin === location.origin && u.pathname.startsWith('/arcade/')) location.href = u.href; } catch (x) {}
+    });
     addEventListener('message', e => {
       if (e.origin !== location.origin || !e.data || e.data.agentpark !== 'slow' || e.data.slug !== g.slug || document.querySelector('.slowbar')) return;
       try { window.RiffConsent && RiffConsent.ga('game_slow', { game: g.slug, fps: e.data.fps, lite: e.data.lite ? 1 : 0 }); } catch (x) {}

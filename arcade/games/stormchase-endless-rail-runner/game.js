@@ -8,6 +8,7 @@ import { mergeGeometries } from './kit/addons/utils/BufferGeometryUtils.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { heroBar, selectedHero, loadHero as loadMyHero, onHeroesChange } from './kit/heroes.js';
 import * as A from './sound.js';
 
 const NAME = 'Stormchase: Endless Rail Runner';
@@ -216,6 +217,7 @@ async function loadHero(i) {
     return { root, mixer, acts, cur: null };
   });
   const h = await heroCache[i];
+  if (mine) return;                      // a Hero Lab hero was picked while this runner loaded
   if (hero) heroG.remove(hero.root);
   hero = h; heroG.add(h.root); play('idle', 0);
 }
@@ -226,6 +228,24 @@ function play(name, fade = 0.15, ts = 1) {
   if (hero.cur && hero.cur !== a) hero.cur.crossFadeTo(a, fade, false); hero.cur = a;
 }
 const clipLen = n => (hero && hero.acts[n] ? hero.acts[n].getClip().duration : 1);
+// My hero (Hero Lab, kit/heroes.js): replaces the runner's look only. Same clips (idle/run/jump/slide/fall/cheer + sprint),
+// same heroG transforms; game weight, no shadow casting (this scene is already heavy; the blob shadow stays).
+const MY_H = 2.25;   // Jax/Pip/Volt stand 2.2–2.4 at HERO_SCALE
+let mine = null, mineSig = null, mineTok = 0;
+const heroSig = h => (h ? JSON.stringify({ ...h, thumb: 0 }) : '');
+async function useHero() {
+  const h = selectedHero(), t = ++mineTok; mineSig = heroSig(h); showPick();
+  if (!h) { const old = mine; mine = null; if (old) { if (hero === old) { heroG.remove(old.root); hero = null; } old.kit.dispose(); } await loadHero(charIdx); if (state === 'play') play('run', 0); return; }
+  let k;
+  try { k = await loadMyHero(THREE, GLTFLoader, { hero: h, quality: 'game', height: MY_H, face: Math.PI, shadows: false }); }
+  catch (e) { console.warn('hero', e); if (t === mineTok) { mineSig = null; await loadHero(charIdx); } return; }
+  if (t !== mineTok) { k.dispose(); return; }
+  for (const n of ['jump', 'slide', 'fall']) if (k.actions[n]) { k.actions[n].setLoop(THREE.LoopOnce, 1); k.actions[n].clampWhenFinished = true; }
+  const old = mine; mine = { root: k.object, mixer: k.mixer, acts: k.actions, cur: null, kit: k };
+  if (hero) heroG.remove(hero.root);
+  hero = mine; heroG.add(mine.root); if (old) old.kit.dispose();
+  play(state === 'play' ? 'run' : 'idle', 0);
+}
 
 // ---------------------------------------------------------------- run state
 let Rr = rng(1), state = 'loading', s = 0, x = 0, lane = 1, y = 0, vy = 0, onGround = true, slideT = 0, groundH = 0, prevS = 0;
@@ -341,6 +361,7 @@ function gameOver(how, kind) {
   A.hiss(0.5, 1500, 200, 0.3, 'lowpass'); A.osc(120, 0.4, 'square', 0.14, 0.4); thunder();
   for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28; emit(x, y + 1.2, Z(s) - 0.6, Math.cos(a) * 5, 3 + Math.random() * 5, Math.sin(a) * 3 + 2, col(['#ffd23f', '#ffffff', '#ff4f5e', '#8fd4ff'][i % 4]), 1.6, 0.9, 14); }
   debris(x, y + 0.8, Z(s) - 0.8, 18, ['#ff4f5e', '#ffffff', '#ffd23f', '#6b5f8f']); play('fall', 0.08); if (hero) hero.acts.fall && (hero.acts.fall.timeScale = 1.3);
+  if (score > prev && score >= 50 && hero && hero.kit) setTimeout(() => state === 'lost' && hero && hero.kit && play('cheer', 0.4), 1100);
   if (score > prev && score >= 50) { D.won(score, 'ran'); winH.textContent = String(score); ui.win(tier, `${how} · 🪙 ${coins}`); }
   else ui.lose(String(score), `${how} · BEST ${best} · 🪙 ${coins}`);
   setTimeout(() => (state === 'lost') && ui.els.sc.classList.add('hc-hidden'), 650);
@@ -360,7 +381,7 @@ function stumble() {
 function startRun() {
   if (state === 'play') return;
   B.start(); reset(); state = 'play'; t0run = performance.now(); A.ac(); startSong(); ui.els.sc.classList.remove('hc-hidden');
-  play('run', 0.25); pick.style.display = 'none';
+  play('run', 0.25); started = true; showPick();
 }
 
 // ---------------------------------------------------------------- input: swipe left/right = switch track, up = jump, down = roll; taps for the same
@@ -398,6 +419,13 @@ CHARS.forEach((c, i) => { const b = document.createElement('button'); b.innerHTM
   b.addEventListener('click', async e => { e.stopPropagation(); charIdx = i; S.set('char', i); [...pick.children].forEach((q, j) => q.className = j === i ? 'on' : ''); await loadHero(i); if (state !== 'play') play('cheer', 0.2); A.osc(660, 0.1, 'triangle', 0.1, 1.5); });
   pick.appendChild(b); });
 document.body.appendChild(pick);
+// hero bar above the runner buttons: "Classic" keeps Jax/Pip/Volt, a saved hero replaces the runner, ＋ opens Hero Lab
+let started = false;
+const heroWrap = document.createElement('div'); heroWrap.id = 'sc-heroes'; document.body.appendChild(heroWrap);
+heroWrap.addEventListener('pointerdown', e => e.stopPropagation());
+heroBar({ parent: heroWrap, noneLabel: 'Runners', noneIcon: '🏃', onPick: () => useHero() });
+function showPick() { const h = !!selectedHero(); pick.style.display = started || h ? 'none' : ''; heroWrap.style.display = started ? 'none' : ''; document.body.classList.toggle('sc-hb', !started); document.body.classList.toggle('sc-mine', h); }
+onHeroesChange(() => { if (heroSig(selectedHero()) !== mineSig) useHero(); });
 
 // original loop: bright city run in D major (kick, snare, hats, bass, plucky lead)
 const BASS = [38, 38, 50, 38, 43, 43, 55, 43, 45, 45, 57, 45, 40, 40, 52, 45];
@@ -501,7 +529,8 @@ function draw(t, dt) {
   heroG.rotation.z = lerp(heroG.rotation.z, leanV * 0.3 + (x - LX[lane]) * 0.14, Math.min(1, dt * 12));
   heroG.rotation.y = lerp(heroG.rotation.y, state === 'ready' ? 0.45 : -leanV * 0.25, Math.min(1, dt * 8));
   landSq = Math.max(0, landSq - dt * 5); heroG.scale.set(1 + landSq * 0.12, 1 - landSq * 0.14, 1 + landSq * 0.12);
-  if (hero) { hero.root.position.y = pw.board > 0 ? 0.32 : 0; hero.mixer.update(dt * (state === 'play' && hero.cur === hero.acts.run ? clamp(speed / 15, 0.9, 1.5) : 1)); }
+  if (hero && hero.kit && state === 'play' && (hero.cur === hero.acts.run || hero.cur === hero.acts.sprint)) { const w = speed > 21 ? 'sprint' : 'run'; if (hero.cur !== hero.acts[w]) play(w, 0.3); }
+  if (hero) { hero.root.position.y = pw.board > 0 ? 0.32 : 0; hero.mixer.update(dt * (state === 'play' && hero.cur === hero.acts.run ? clamp(speed / 15, 0.9, 1.5) : state === 'play' && hero.cur === hero.acts.sprint ? clamp(speed / 24, 0.9, 1.25) : 1)); }
   blob.position.set(x, groundH + 0.03, hz); blob.scale.setScalar(clamp(1 - (y - groundH) * 0.15, 0.35, 1)); blob.visible = pw.jet <= 0 || true;
   if (!K) return;
   const sMin = s - 14, sMax = s + 175;
@@ -608,7 +637,7 @@ addEventListener('resize', () => { R.setSize(innerWidth, innerHeight); cam.aspec
 ui.els.sc.classList.add('hc-hidden'); ui.pill(''); ui.start();
 if (D.isDaily) ui.sub('DAILY RUN');
 (async () => {
-  await Promise.all([loadWorld(), loadHero(charIdx)]);
+  await Promise.all([loadWorld(), selectedHero() ? useHero() : (mineSig = '', showPick(), loadHero(charIdx))]);
   reset(); generate(); state = 'ready'; loadEl.remove();
   if (pendingStart) startRun();
 })();

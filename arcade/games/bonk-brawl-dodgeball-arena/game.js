@@ -4,6 +4,8 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
+import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
 const NAME = 'Bonk Brawl: Dodgeball Arena';
 const S = store('bonkbrawl');
@@ -118,6 +120,49 @@ const blobGeo = new THREE.PlaneGeometry(1, 1); blobGeo.rotateX(-Math.PI / 2);
 
 // ---------------------------------------------------------------- state
 const player = bean('#2ec4b6', '#ffd23f', 0); scene.add(player);
+
+// ---------------------------------------------------------------- my hero (Hero Lab): swaps the bean's look only; position, hitbox, throws stay the player's
+const beanParts = [...player.children];
+let my = null, myTok = 0, myClip = '', myShown = '', myArm = null, throwT = 0;
+async function useHero() {
+  const hc = selectedHero(), tok = ++myTok; myShown = JSON.stringify(hc);
+  if (my) { my.dispose(); my = null; myArm = null; }
+  beanParts.forEach(o => o.visible = true);
+  if (!hc) return;
+  try {
+    // the ball goes in the right hand, so the hand item stays in the lab
+    const n = await loadHero(THREE, GLTFLoader, { hero: { ...hc, items: { ...hc.items, hand: null } }, height: 1.75, quality: 'game', clip: 'idle' });
+    if (tok !== myTok) { n.dispose(); return; }
+    const b = k => n.object.getObjectByName(k);
+    my = n; myClip = 'idle'; myArm = { ua: b('RightArm'), fa: b('RightForeArm'), hand: b('RightHand') };
+    player.add(n.object); beanParts.forEach(o => o.visible = false);
+  } catch (e) { console.warn('hero', e); }
+}
+const _ha = new THREE.Vector3(), _hb = new THREE.Vector3(), _hq = new THREE.Quaternion(), _hq2 = new THREE.Quaternion(), _hq3 = new THREE.Quaternion(), _hI = new THREE.Quaternion(), _hd = new THREE.Vector3(), _hf = new THREE.Vector3();
+function aimBone(bone, tip, dir, w = 1) {   // turn `bone` so bone→tip points along world `dir` (w blends from the clip pose)
+  if (!bone || !tip || w <= 0) return;
+  bone.getWorldPosition(_ha); tip.getWorldPosition(_hb);
+  _hq.setFromUnitVectors(_hb.sub(_ha).normalize(), dir);
+  if (w < 1) { _hq2.copy(_hq); _hq.copy(_hI).slerp(_hq2, w); }
+  bone.getWorldQuaternion(_hq2); _hq.multiply(_hq2);
+  bone.parent.getWorldQuaternion(_hq3); bone.quaternion.copy(_hq3.invert().multiply(_hq));
+}
+function heroTick(s) {
+  if (!my) return;
+  const sp = pv.length();
+  const want = state === 'lost' ? 'fall' : state === 'won' ? 'cheer' : state !== 'play' ? 'idle' : sp > 4.8 ? 'sprint' : sp > 0.4 ? 'run' : 'idle';
+  if (want !== myClip) { myClip = want; my.play(want, { fade: want === 'fall' ? 0.12 : 0.2 }); }
+  if (my.actions.run) my.actions.run.timeScale = clamp(sp / 3.6, 0.7, 1.35);
+  my.mixer.update(s);
+  if (state !== 'play' && state !== 'won') return;
+  // arm: ball held out in front, whipped overhead on a throw
+  const fw = _hf.set(Math.sin(player.rotation.y), 0, Math.cos(player.rotation.y));
+  throwT = Math.max(0, throwT - s);
+  if (throwT > 0) { aimBone(myArm.ua, myArm.fa, _hd.copy(fw).multiplyScalar(0.7).setY(1).normalize(), Math.min(1, throwT / 0.12)); aimBone(myArm.fa, myArm.hand, _hd, Math.min(1, throwT / 0.12)); }
+  else if (held) { aimBone(myArm.ua, myArm.fa, _hd.copy(fw).setY(-0.45).normalize()); aimBone(myArm.fa, myArm.hand, _hd.copy(fw).setY(0.15).normalize()); }
+}
+// held ball sits in the hero's right hand (look only; throws still start from the player's position)
+function heroHand(out) { myArm.hand.getWorldPosition(out); return out.addScaledVector(_hf, 0.2).setY(out.y - 0.04); }
 let enemies = [], balls = [], held = null, hearts = 3, inv = 0, state = 'ready', score = 0, R = rng(1), beatShown = false, recorded = false;
 let goal = null; const fRay = new THREE.Raycaster(), fPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), fHit = new THREE.Vector3();
 function floorAt(x, y) { fRay.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1), camera); return fRay.ray.intersectPlane(fPlane, fHit) ? Object.assign(new THREE.Vector2(clamp(fHit.x, -AW + BODY_R, AW - BODY_R), clamp(fHit.z, 0.7, AL - BODY_R)), { mine: fHit.z > 0.4 }) : null; }
@@ -172,7 +217,7 @@ function throwBall() {
   const sp = 15, tgt = e.g.position.clone().add(new THREE.Vector3(0, 0.8, 0));
   const tt = tgt.distanceTo(from) / sp; tgt.addScaledVector(e.vel || new THREE.Vector3(), tt * 0.6);
   b.vel.copy(tgt).sub(from).normalize().multiplyScalar(sp); b.vel.y += 2.2;
-  player.armR.rotation.x = -2.4; player.body.rotation.x = -0.2;
+  player.armR.rotation.x = -2.4; player.body.rotation.x = -0.2; throwT = 0.3;
   tone(520, 0.12, 'sawtooth', 0.08, 0.4); buzz(12);
   e.incoming = b;
 }
@@ -283,6 +328,7 @@ loop((rawDt, t) => {
     player.armL.rotation.x = lerp(player.armL.rotation.x, moving ? -Math.sin(ph) * 0.8 : 0, 0.18);
     inv = Math.max(0, inv - ds); player.visible = inv <= 0 || Math.floor(t * 14) % 2 === 0;
     pickCool = Math.max(0, pickCool - ds);
+    heroTick(ds);
 
     // ---- enemies
     for (const e of enemies) {
@@ -328,7 +374,8 @@ loop((rawDt, t) => {
     // ---- balls
     for (const b of [...balls]) {
       b.age += ds;
-      if (b === held) { b.pos.copy(player.position).add(_v.set(Math.sin(player.rotation.y + 0.9) * 0.55, 1.05 + player.body.position.y, Math.cos(player.rotation.y + 0.9) * 0.55)); }
+      if (b === held && my && myArm.hand) heroHand(b.pos);
+      else if (b === held) { b.pos.copy(player.position).add(_v.set(Math.sin(player.rotation.y + 0.9) * 0.55, 1.05 + player.body.position.y, Math.cos(player.rotation.y + 0.9) * 0.55)); }
       else {
         b.vel.y -= (b.st === 'fly' ? 4 : 18) * ds;
         b.pos.addScaledVector(b.vel, ds);
@@ -368,6 +415,7 @@ loop((rawDt, t) => {
     if (winT > 0) { winT -= rawDt / 60; if (winT <= 0) win(); }
   }
 
+  if (state !== 'play' && state !== 'won') heroTick(rawDt / 60);
   // camera: high, behind your half, gently follows you
   shake = Math.max(0, shake - rawDt * 0.012);
   const px = state === 'ready' ? 0 : player.position.x * 0.25;
@@ -378,6 +426,10 @@ loop((rawDt, t) => {
 
 applyTheme(THEMES[(level - 1) % THEMES.length]);
 buildLevel(); ui.start(); ui.els.sc.classList.add('hc-hidden');
+// hero bar on the start card, between the title and "tap to play"
+{ const hb = heroBar({ parent: ui.els.start, onPick: () => useHero() }); hb.el.style.width = 'min(360px,100%)'; ui.els.start.querySelector('.hint').before(hb.el); }
+onHeroesChange(() => { if (JSON.stringify(selectedHero()) !== myShown) useHero(); });
+useHero();
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
