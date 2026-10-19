@@ -589,5 +589,8 @@ function regular({ game, label = 'Score', limits = null, mode = 'best', corner =
     open() { wrap.hidden = false; open = true; render(); },
     close, profile, today, shareCard: card,
   };
+  // a link from the home page's world boards (play.html?g=…&board=1) opens this game's board straight away
+  let wantBoard = Q.get('board') === '1'; try { wantBoard = wantBoard || new URLSearchParams(parent.location.search).get('board') === '1'; } catch (e) {}
+  if (wantBoard) setTimeout(() => api.open(), 900);
   return api;
 }

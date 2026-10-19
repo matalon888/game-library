@@ -225,3 +225,23 @@ body.park a { color: inherit }
 .park .shelf h2::before, .park .chart h2::before { content: none }
 .zres { bottom: 58px; right: 6px }
 .zc b, .zc small { position: relative; z-index: 1; text-shadow: 0 2px 8px rgba(0, 0, 0, .45) }
+
+/* ---------- 🏆 world boards (home) ---------- */
+.park .worldb > header { display: grid; justify-content: start; gap: 4px }
+.wbstats { display: flex; gap: 18px; flex-wrap: wrap; margin: -4px 0 12px; color: var(--muted); font-size: 14px }
+.wbstats b { color: var(--ink); font: 800 18px/1 var(--display) }
+.wbrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px }
+.wbbox { background: var(--surface); border-radius: 20px; padding: 14px 16px; box-shadow: var(--shadow) }
+.wbbox h3 { margin: 0; font: 800 17px/1.1 var(--display) }
+.wbbox > small { color: var(--muted); font-size: 12.5px }
+.wbbox ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px }
+.wbbox li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; font-size: 14.5px }
+.wbbox li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700 }
+.wbbox li em { color: var(--muted); font-style: normal; font-size: 12.5px; min-width: 70px; text-align: right }
+.wbc { flex: 0 0 auto; width: 210px; display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; background: var(--surface); border-radius: 18px; padding: 10px; box-shadow: var(--shadow); color: var(--ink); text-decoration: none; scroll-snap-align: start }
+.wbc img { width: 56px; height: 56px; border-radius: 14px; object-fit: cover }
+.wbt { display: grid; gap: 2px; min-width: 0 }
+.wbt b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.wbt small { color: var(--muted); font-size: 12px }
+.wbl { font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.wbempty { margin: -4px 0 10px; color: var(--muted); font-size: 14.5px }

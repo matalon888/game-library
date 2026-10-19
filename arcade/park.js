@@ -293,6 +293,30 @@
           <div class="perch ${who === 'sloth-hang' ? 'hang' : ''}" data-who="${who}" data-opt='${who === 'sloth-hang' ? '{"kind":"hang","h":110,"y":0,"shadow":false}' : '{"kind":"idle","h":84,"maxw":96}'}'></div></header>
         <div class="rail">${list.slice(0, 16).map(g => card(g, stats[g.slug])).join('')}</div></section>` : '';
 
+    // 🏆 World boards: today's leaders across every game with a board (real, checked scores only: arcade-api /api/world)
+    const slugOf = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const byFolder = {}; all.forEach(g => { if (g.original) byFolder[slugOf(g.name.split(':')[0])] = g; });
+    const flag = c => /^[A-Z]{2}$/.test(c || '') ? String.fromCodePoint(...[...c].map(x => 0x1F1A5 + x.charCodeAt(0))) : '🏳️';
+    const boardHref = g => K.href(g) + '&board=1';
+    let WB = null, wbAsked = false;
+    function worldBoards() {
+      const el = $('worldb'); if (!el) return;
+      if (!WB) { if (!wbAsked) { wbAsked = true; fetch('https://mcp.riffcade.com/api/world').then(r => r.json()).then(v => { WB = v; worldBoards(); }).catch(() => {}); } return; }
+      const boards = WB.boards.filter(b => byFolder[b.game]).slice(0, 16);
+      const tryG = ['kingmoat', 'quadrop', 'silkline', 'slinko', 'sapperly', 'hoopwing', 'petalword', 'doubloom'].map(f => byFolder[f]).filter(Boolean);
+      const bcard = b => { const g = byFolder[b.game]; return `<a class="wbc" href="${esc(boardHref(g))}"${K.tgt(g)}><img src="${esc(K.art(g))}" alt="" loading="lazy">
+        <span class="wbt"><b>${esc(g.name.split(':')[0])}</b><small>${b.players} ${b.players === 1 ? 'player' : 'players'} today</small>
+        <span class="wbl">🥇 ${flag(b.top.country)} ${esc(b.top.name)} · ${b.top.score.toLocaleString()}</span></span></a>`; };
+      el.innerHTML = `<header><h2>🏆 World boards</h2><span>Every game has one: today, this week, all time, by country. Unrigged: the same rules for everyone.</span></header>
+        ${WB.players ? `<div class="wbstats"><span><b>${WB.players.toLocaleString()}</b> players today</span><span><b>${WB.games}</b> boards in play</span></div>
+          <div class="wbrow">${WB.countries.length ? `<div class="wbbox"><h3>Countries</h3><small>by #1 spots today</small><ol>${WB.countries.slice(0, 5).map(c => `<li><span>${flag(c.country)} ${esc(c.country)}</span><b>${c.firsts} 🥇</b><em>${c.players} playing</em></li>`).join('')}</ol></div>` : ''}
+            ${WB.champs.length ? `<div class="wbbox"><h3>Champions</h3><small>most #1 spots today</small><ol>${WB.champs.slice(0, 5).map(c => `<li><span>${flag(c.country)} ${esc(c.name)}</span><b>${c.firsts} 🥇</b><em>${c.games} ${c.games === 1 ? 'game' : 'games'}</em></li>`).join('')}</ol></div>` : ''}</div>
+          <div class="rail">${boards.map(bcard).join('')}</div>`
+        : `<p class="wbempty">Nobody is on today's boards yet. Play any game and you're #1 in the world until someone beats you.</p>
+          <div class="rail">${tryG.map(g => `<a class="wbc" href="${esc(boardHref(g))}"${K.tgt(g)}><img src="${esc(K.art(g))}" alt="" loading="lazy"><span class="wbt"><b>${esc(g.name.split(':')[0])}</b><small>Empty board: be first</small></span></a>`).join('')}</div>`}`;
+      el.hidden = false;
+    }
+
     function draw() {
       document.querySelectorAll('.say').forEach(s => s.remove());
       const pool = inMode(mode);
@@ -308,7 +332,7 @@
         const who = mode === 'ai' ? 'kid-agent-laptop,agent-token' : z.who + ',' + (key === 'Sports' ? 'fox-kick' : key === 'Racing' ? 'hamster-run' : 'robot-map');
         html = `<section class="cat-head" style="--scene:url('${A}${z.scene}.webp')">
             <div class="ch-txt"><span class="eyebrow">${esc(z.park)}</span><h2>${mode === 'ai' ? 'AI token games' : esc(cat)}</h2>
-            <p>${mode === 'ai' ? '<b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch, and the tokens they use fill your fuel, mana or coins. It only reads your agents\' activity, it never spends tokens. World leaderboards with country flags.' : `${list.length} ${MODES[mode].label.toLowerCase()} games, best scored first.`}</p></div>
+            <p>${mode === 'ai' ? '<b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch. Results count, tokens don\'t: it counts the work they finish and never spends tokens. World leaderboards with country flags, unrigged.' : `${list.length} ${MODES[mode].label.toLowerCase()} games, best scored first.`}</p></div>
             <div class="stagebox" data-who="${who}" data-opt='{"kind":"walk","h":92,"speed":34}'></div></section>
           <div class="sorts" role="group" aria-label="Sort">${[['score', 'Top scored'], ['new', 'Newest'], ['played', 'Most played']].map(([k, l]) => `<button data-sort="${k}" aria-pressed="${k === sort}">${l}</button>`).join('')}</div>
           <div class="grid">${list.map(g => card(g, stats[g.slug], false)).join('')}</div>`;
@@ -318,6 +342,7 @@
         const W = ['robot-dunk,penguin-skates', 'hamster-run,duck-net', 'bunny-scooter,snail-race', 'frog-skate,robot-map', 'blob-frisbee,cat-binoculars'];
         html = `<section class="picks"><header><h2>Park picks</h2><span>Highest scored ${MODES[mode].label.toLowerCase()} games right now</span></header>
             <div class="rail big">${picks.map(g => card(g, stats[g.slug], true)).join('')}</div></section>
+          <section class="worldb" id="worldb" hidden></section>
           <section class="zones"><header><h2>Explore the park</h2><span>Every category has its own corner</span></header>
             <div class="rail">${cs.map(([c, n]) => `<a class="zc" href="#" data-zone="${esc(c)}"><img src="${A}${zone(c).scene}-s.webp" alt="" loading="lazy">
               <span class="zres">${CAST[zone(c).who] ? img(zone(c).who) : ''}</span><b>${esc(c)}</b><small>${esc(zone(c).park)} · ${n}</small></a>`).join('')}</div></section>
@@ -328,6 +353,7 @@
           ${cs.slice(9).map(([c], i) => shelf(c, zone(c).park, ordered(pool.filter(g => catOf(g, c))), c, zone(c).who, i)).join('')}`;
       }
       $('shelves').innerHTML = html;
+      worldBoards();
       residents($('shelves'));
       wireClips($('shelves'));
     }
