@@ -11,9 +11,9 @@
     background:#1E1B33;color:#FFFDF8;border:2px solid #FFC93C;border-radius:999px;padding:9px 10px 9px 16px;font:600 14px/1.2 "DM Sans",system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:calc(100% - 24px)}
   .rw-pill b{color:#FFC93C}.rw-pill button{all:unset;cursor:pointer;opacity:.7;padding:2px 6px;font-size:16px}
   .rw-sheet{position:fixed;inset:0;z-index:9999;background:rgba(7,6,15,.72);display:grid;place-items:end center;padding:16px}
-  .rw-card{width:min(420px,100%);background:#FFFDF8;color:#1E1B33;border-radius:24px;padding:22px 20px calc(env(safe-area-inset-bottom) + 18px);font:16px/1.4 "DM Sans",system-ui,sans-serif;display:grid;gap:12px}
+  .rw-card{color-scheme:light;width:min(420px,100%);background:#FFFDF8;color:#1E1B33;border-radius:24px;padding:22px 20px calc(env(safe-area-inset-bottom) + 18px);font:16px/1.4 "DM Sans",system-ui,sans-serif;display:grid;gap:12px}
   .rw-card h2{margin:0;font:800 26px/1.1 "Bricolage Grotesque","DM Sans",sans-serif}.rw-card p{margin:0;color:#4a4560}
-  .rw-card input[type=email]{font:16px "DM Sans",sans-serif;padding:14px;border-radius:14px;border:2px solid #d8d3e8;width:100%;box-sizing:border-box}
+  .rw-card input[type=email]{background:#fff;color:#1E1B33;font:16px "DM Sans",sans-serif;padding:14px;border-radius:14px;border:2px solid #d8d3e8;width:100%;box-sizing:border-box}
   .rw-card label{display:flex;gap:10px;align-items:center;font-size:15px}.rw-card label input{width:20px;height:20px}
   .rw-card .go{all:unset;cursor:pointer;text-align:center;background:#FFC93C;color:#1E1B33;font:800 18px "Bricolage Grotesque","DM Sans",sans-serif;border-radius:999px;padding:15px}
   .rw-card .go[disabled]{opacity:.5}.rw-card small{font-size:12px;color:#6b6680}.rw-card small a{color:inherit}.rw-card .err{color:#c0163a;font-size:14px;min-height:1em}
