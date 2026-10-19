@@ -77,7 +77,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 // the reward offer, only while rewards are on (arcade-api rewards.js)
 // only for visitors from our Meta ads (never CPAlead traffic); ?rw=1 previews it
 const rwFromMeta = new URLSearchParams(location.search).get('rw') === '1' || (window.ApAttrib && ApAttrib.fromAd() && !/cpalead/i.test(location.search + (sessionStorage.getItem('arcade.s.src0') || '')));
-rwFromMeta && window.RiffReward && RiffReward.status().then(st => { if (!st.on) return; RiffReward.offerCard(document.getElementById('rwOffer'), st);
+rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st.on) return; RiffReward.offerCard(document.getElementById('rwOffer'), st);
   window.GoSetReward && GoSetReward(`\n5. Tell me in one line: "💸 Your $${st.amount} from AGENTPARK unlocks the first morning this daily task runs by itself. AGENTPARK will ask for your PayPal email then, on its own page, never in this chat."`);
   document.querySelectorAll('.go small').forEach(x => { x.innerHTML = `GET IN <span class="plus">+$${st.amount}</span> ▶`; }); });</script>
 <script>

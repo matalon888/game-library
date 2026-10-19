@@ -106,7 +106,9 @@
     document.body.appendChild(el); rain(28);
   }
   const status = () => fetch(API + '/api/reward?u=' + encodeURIComponent(u || ''), { cache: 'no-store' }).then(r => r.json()).catch(() => ({ on: false }));
-  window.RiffReward = { status, offerCard };
+  // the offer itself (go.html) only needs to know rewards are on; who may claim is checked per player later (Meta-only, server)
+  const offerStatus = () => fetch(API + '/api/reward', { cache: 'no-store' }).then(r => r.json()).catch(() => ({ on: false }));
+  window.RiffReward = { status, offerStatus, offerCard };
   if (!u || /go\.html/.test(location.pathname)) return;
   const kidsGame = () => !q.get('g') ? Promise.resolve(false) : fetch('games.json').then(r => r.json()).then(L => { const g = (L || []).find(x => x.slug === q.get('g')); return !!g && (g.category === 'Kids' || (g.tags || []).includes('Kids')); }).catch(() => false);
   const onGame = /play\.html/.test(location.pathname), cameFromGo = /^go-/.test(q.get('ref') || '') || sget('ap.goTerms') === '1';
