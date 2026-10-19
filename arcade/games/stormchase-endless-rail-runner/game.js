@@ -12,7 +12,7 @@ import * as A from './sound.js';
 
 const NAME = 'Stormchase: Endless Rail Runner';
 const LW = 2.6, LX = [-LW, 0, LW], TIER = 400, GRAV = 36, JUMPV = 12, SHOE_JUMPV = 16.5, SLIDE_T = 0.72, ROOF = 3.1, VT = 11;
-const HERO_SCALE = 1.32, CAM_BACK = 7.4, CAM_UP = 4.3;
+const HERO_SCALE = 1.45, CAM_BACK = 6.7, CAM_UP = 4.0;
 const Q = new URLSearchParams(location.search);
 const S = store('stormchase');
 let best = S.get('best', 0);
@@ -148,7 +148,7 @@ function drawPool(pl, dt) {
 }
 function drawParticles(dt) { drawPool(GLOW, dt); drawPool(SOLID, dt); drawPool(LINES, dt); }
 // coin streak glow + train headlights: additive sprites
-const lights = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, color: 0xfff2c0 }), 40);
+const lights = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, color: 0xfff2c0 }), 60);
 lights.frustumCulled = false; scene.add(lights);
 
 // lightning bolt (one mesh, rebuilt per strike)
@@ -161,6 +161,17 @@ function strike(x, y0, z) {
 }
 let boltT = 0, flashT = 0;
 
+// ---------------------------------------------------------------- tunnels: generated portal (clipped to its front slab) + a brick tube behind it
+const TUN_W = 19, TUN_L = 46, TUN_R = 4.9, TUN_Y = 2.2, FACADE = 6.8;   // the portal's facade sits ~6.8 m behind its bbox front (rails stick out)
+R.localClippingEnabled = true;
+const tunClip = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), tunClip2 = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+const brick = (() => { const t = canvasTex(256, 256, (x, w, h) => { x.fillStyle = '#6b3b2e'; x.fillRect(0, 0, w, h); for (let j = 0; j < 16; j++) for (let i = 0; i < 8; i++) { x.fillStyle = ['#8a4b38', '#7d4433', '#94553f', '#734030'][(i * 7 + j * 3) % 4]; x.fillRect(i * 32 + (j % 2) * 16 + 2, j * 16 + 2, 28, 12); } }); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(10, 12); return t; })();
+const tubeGeo = (() => { const arch = new THREE.CylinderGeometry(TUN_R, TUN_R, TUN_L, 28, 1, true, Math.PI / 2, Math.PI); arch.rotateX(Math.PI / 2); arch.translate(0, TUN_Y, -TUN_L / 2);
+  const parts = [arch]; for (const sd of [-1, 1]) { const w = new THREE.PlaneGeometry(TUN_L, TUN_Y + 0.1); w.rotateY(-sd * Math.PI / 2); w.translate(sd * TUN_R, TUN_Y / 2, -TUN_L / 2); parts.push(w); }
+  return mergeGeometries(parts.map(g => g.toNonIndexed())); })();
+const tube = new THREE.Mesh(tubeGeo, new THREE.MeshStandardMaterial({ map: brick, roughness: 0.9, side: THREE.DoubleSide }));
+tube.castShadow = true; tube.receiveShadow = true; tube.visible = false; scene.add(tube);
+let darkK = 0;
 // ---------------------------------------------------------------- world kinds (filled after load)
 let K = null, TRACK = null;
 const TRAINS = ['train-red', 'train-yellow', 'train-blue', 'train-green', 'train-orange', 'train-purple', 'train-silver'];
@@ -169,11 +180,11 @@ const CHARS = [{ id: 'runner', name: 'Jax', tag: 'the original', col: '#ff9a1f' 
 let charIdx = clamp(S.get('char', 0), 0, CHARS.length - 1);
 
 async function loadWorld() {
-  const names = [...TRAINS, ...BLDS.map(b => b[0]), 'barrier-low', 'barrier-high', 'ramp', 'signal', 'bench', 'trashcan', 'fence', 'coin', 'gem', 'magnet', 'jetpack', 'sneakers', 'hoverboard', 'storm', 'track'];
+  const names = [...TRAINS, ...BLDS.map(b => b[0]), 'barrier-low', 'barrier-high', 'ramp', 'signal', 'bench', 'trashcan', 'fence', 'coin', 'gem', 'magnet', 'jetpack', 'sneakers', 'hoverboard', 'storm', 'track', 'tunnel'];
   const g = Object.fromEntries(await Promise.all(names.map(async n => [n, await load(n)])));
   K = {};
   K.trains = TRAINS.map(n => kind(g[n], { rot: -Math.PI / 2, dims: [2.45, ROOF, 10.5], cap: 14 }));
-  K.blds = BLDS.map(([n, r]) => kind(g[n], { rot: r, fit: 'y', size: 13, cap: 10 }));
+  K.blds = BLDS.map(([n, r]) => kind(g[n], { rot: r, fit: 'y', size: 13, cap: 10, cast: !C.lite }));
   K.low = kind(g['barrier-low'], { rot: Math.PI / 2, dims: [2.3, 1.2, 0.9], cap: 16 });
   K.high = kind(g['barrier-high'], { rot: Math.PI / 2, dims: [2.5, 3.0, 0.7], cap: 16 });
   K.ramp = kind(g.ramp, { rot: -Math.PI / 2, dims: [2.4, ROOF, 7], cap: 10 });
@@ -186,6 +197,7 @@ async function loadWorld() {
   K.pw = { magnet: kind(g.magnet, { fit: 'y', size: 1.1, cap: 4 }), jet: kind(g.jetpack, { fit: 'y', size: 1.2, cap: 4 }), shoe: kind(g.sneakers, { fit: 'x', size: 1.2, cap: 4 }), board: kind(g.hoverboard, { rot: Math.PI / 2, fit: 'x', size: 1.6, cap: 4 }) };
   K.storm = kind(g.storm, { rot: Math.PI / 2, fit: 'x', size: 6.5, cap: 1, cast: false });
   K.heroBoard = kind(g.hoverboard, { fit: 'z', size: 1.9, cap: 1 });
+  K.tunnel = kind(g.tunnel, { rot: -Math.PI / 2, fit: 'x', size: TUN_W, cap: 1, mat: m => { m = m.clone(); m.clippingPlanes = [tunClip, tunClip2]; m.side = THREE.DoubleSide; return m; } });
   const tb = new THREE.Box3().setFromObject(g.track.scene).getSize(new THREE.Vector3());
   const tScale = 2.5 / tb.x; TRACK = kind(g.track, { fit: 'x', size: 2.5, cap: 3 * 110, cast: false }); TRACK.len = tb.z * tScale;
 }
@@ -221,7 +233,7 @@ let speed = 13, dist = 0, score = 0, coins = 0, tier = 1, runT = 0, deadT = 0, d
 let stumbleT = 0, chaseGap = 16, invT = 0, shake = 0, fovKick = 0, comboT = 0, combo = 0, lastM = 0, hornT = 0, landSq = 0, leanV = 0, bumpT = 0, bumpDir = 0;
 const pw = { magnet: 0, jet: 0, shoe: 0, board: 0 };
 const PW_T = { magnet: 10, jet: 7, shoe: 10, board: 14 }, PW_NAME = { magnet: 'MAGNET!', jet: 'JETPACK!', shoe: 'SUPER SNEAKERS!', board: 'HOVERBOARD!' }, PW_ICON = { magnet: '🧲', jet: '🚀', shoe: '👟', board: '🛹' };
-let ents = [], genS = 0, safeLane = 1, busy = [0, 0, 0], reserved = [0, 0, 0], nextPw = 260, nextGem = 500, blds = [[], []], deco = [], tick = 0;
+let nextTun = 500, ents = [], genS = 0, safeLane = 1, busy = [0, 0, 0], reserved = [0, 0, 0], nextPw = 260, nextGem = 500, blds = [[], []], deco = [], tick = 0;
 
 function reset() {
   Rr = rng((D.seed || (Date.now() % 1e6)) + 41);
@@ -229,7 +241,7 @@ function reset() {
   speed = 13 * F.k(0); dist = 0; score = 0; coins = 0; tier = 1; runT = 0; deadT = 0; deadHow = ''; recorded = false; beatenShown = false;
   stumbleT = 0; chaseGap = 2.6; invT = 0; shake = 0; fovKick = 0; combo = 0; lastM = 0; hornT = 0; bumpT = 0;
   for (const k in pw) pw[k] = 0;
-  ents = []; genS = 34; safeLane = 1; busy = [0, 0, 0]; reserved = [0, 0, 0]; nextPw = 220 + Rr() * 80; nextGem = 450; blds = [[], []]; deco = [];
+  ents = []; genS = 34; safeLane = 1; busy = [0, 0, 0]; reserved = [0, 0, 0]; nextPw = 220 + Rr() * 80; nextGem = 450; blds = [[], []]; deco = []; nextTun = 420 + Rr() * 200;
   ui.score(0); ui.levels(1); ui.progress(0); ui.sub(best ? 'BEST ' + best : ''); ui.pill('🪙 0');
   if (hero) { play('idle', 0); }
 }
@@ -288,6 +300,7 @@ function genRow(at) {
     if (left.length) { safeLane = left[Math.floor(Rr() * left.length)]; if (Rr() < 0.5 && reserved[safeLane] < at - 2) coinLine(safeLane, at - 6, 6); }
     else if (cand.length) safeLane = cand[0];
   }
+  if (at > nextTun) { ents.push({ t: 'tunnel', s0: at - 6, s1: at - 6 + TUN_L }); nextTun = at + 650 + Rr() * 400; }
   // power-ups and gems on the safe lane, between rows
   if (at > nextPw) { const types = ['magnet', 'jet', 'shoe', 'board']; ents.push({ t: 'pw', p: types[Math.floor(Rr() * 4)], l: safeLane, s0: at + 8, y: 1.3 }); nextPw = at + 300 + Rr() * 250; }
   else if (at > nextGem) { ents.push({ t: 'gem', l: safeLane, s0: at + 8, y: 1.2 }); nextGem = at + 350 + Rr() * 300; }
@@ -401,7 +414,7 @@ function startSong() {
 function update(dt) {
   runT += dt; prevS = s;
   const fk = F.k(score);
-  speed = Math.min(30, (13 + Math.min(dist / 120, 15)) * fk);
+  speed = Math.min(30, (14 + Math.min(dist / 120, 15)) * fk);
   for (const k in pw) if (pw[k] > 0) { pw[k] -= dt; if (pw[k] <= 0) { pw[k] = 0; if (k === 'jet') { invT = Math.max(invT, 1.2); vy = 0; onGround = false; } A.osc(440, 0.2, 'triangle', 0.08, 0.5); } }
   if (stumbleT > 0) stumbleT -= dt; if (invT > 0) invT -= dt; if (bumpT > 0) bumpT -= dt;
   const step = speed * dt; s += step; dist += step;
@@ -426,6 +439,10 @@ function update(dt) {
   }
   if (jumpBuf > 0) { jumpBuf -= dt; if (onGround) { jumpBuf = 0; act('up'); } }
   if (slideT > 0) { slideT -= dt; if (slideT <= 0 && state === 'play') play(onGround ? 'run' : 'jump', 0.15); }
+  // power-up auras
+  if (pw.magnet > 0 && Math.random() < 0.5) { const a = Math.random() * 6.28; emit(x + Math.cos(a) * 0.9, y + 1.2 + Math.sin(a) * 0.9, Z(s), 0, 0, 2, col(Math.random() < 0.5 ? '#ff5d5d' : '#9fd8ff'), 0.6, 0.3, 0); }
+  if (pw.shoe > 0 && onGround && Math.random() < 0.6) emit(x + (Math.random() - 0.5) * 0.4, y + 0.1, Z(s) + 0.3, 0, 0.5, 4, col('#7ff0ff'), 0.8, 0.35, 0);
+  if (pw.board > 0 && Math.random() < 0.7) emit(x + (Math.random() - 0.5) * 0.6, y + 0.15, Z(s) + 0.9, 0, 0, 5, col('#ffb23f'), 0.7, 0.3, 0);
   // collisions
   if (pw.jet <= 0) for (const e of ents) {
     if (e.s0 > s + 2 || (e.s1 || e.s0) < s - 2 || e.hit) continue;
@@ -454,7 +471,7 @@ function update(dt) {
       e.got = true;
       if (e.t === 'coin') { coins++; combo = comboT > 0 ? combo + 1 : 0; comboT = 0.45; addScore(5); ui.pill('🪙 ' + coins); const k = Math.pow(2, Math.min(combo, 12) / 12); A.osc(1318 * k, 0.06, 'square', 0.035); A.osc(1975 * k, 0.12, 'sine', 0.05, 1, A.ac().currentTime + 0.035); sparkle(ex, ey, Z(es), '#ffe066', 5, 3); }
       else if (e.t === 'gem') { addScore(50); ui.pop('+50 GEM!', '#7ff0ff', 34, 30); [0, 4, 7, 12].forEach((k, i) => setTimeout(() => A.osc(880 * Math.pow(2, k / 12), 0.15, 'triangle', 0.09), i * 60)); sparkle(ex, ey, Z(es), '#7ff0ff', 16, 5); }
-      else { pw[e.p] = PW_T[e.p]; if (e.p === 'board') invT = 0; ui.pop(PW_NAME[e.p], '#ffd23f', 36, 30); fovKick = 1; [0, 4, 7, 12, 16].forEach((k, i) => setTimeout(() => A.osc(523 * Math.pow(2, k / 12), 0.16, 'triangle', 0.1), i * 55)); sparkle(ex, ey, Z(es), '#fff6a0', 22, 6); buzz(15); }
+      else { pw[e.p] = PW_T[e.p]; if (e.p === 'board') invT = 0; if (e.p === 'jet') skyCoins(); ui.pop(PW_NAME[e.p], '#ffd23f', 36, 30); fovKick = 1; [0, 4, 7, 12, 16].forEach((k, i) => setTimeout(() => A.osc(523 * Math.pow(2, k / 12), 0.16, 'triangle', 0.1), i * 55)); sparkle(ex, ey, Z(es), '#fff6a0', 22, 6); buzz(15); }
     }
   }
   comboT -= dt;
@@ -468,6 +485,10 @@ function update(dt) {
   if ((tick++ & 15) === 0) ents = ents.filter(e => (e.s1 || e.s0) > s - 25);
   generate();
 }
+function skyCoins() {   // a weaving coin trail up where the jetpack flies
+  let l = lane; const n = Math.floor(PW_T.jet * speed * 1.15 / 2.3);
+  for (let i = 0; i < n; i++) { if (i > 6 && i % 9 === 0) l = clamp(l + (Rr() < 0.5 ? -1 : 1), 0, 2); ents.push({ t: 'coin', l, s0: s + 14 + i * 2.3, y: 8.3, sky: true }); }
+}
 function horn() { const t = A.ac().currentTime; A.osc(311, 0.55, 'sawtooth', 0.05, 0.98, t); A.osc(370, 0.55, 'sawtooth', 0.045, 0.98, t); A.osc(311, 0.4, 'sawtooth', 0.04, 0.98, t + 0.65); A.osc(370, 0.4, 'sawtooth', 0.035, 0.98, t + 0.65); }
 
 // ---------------------------------------------------------------- render
@@ -477,7 +498,7 @@ function draw(t, dt) {
   const hz = Z(s);
   // hero
   heroG.position.set(x, y, hz);
-  heroG.rotation.z = lerp(heroG.rotation.z, leanV * 0.22 + (x - LX[lane]) * 0.12, Math.min(1, dt * 12));
+  heroG.rotation.z = lerp(heroG.rotation.z, leanV * 0.3 + (x - LX[lane]) * 0.14, Math.min(1, dt * 12));
   heroG.rotation.y = lerp(heroG.rotation.y, state === 'ready' ? 0.45 : -leanV * 0.25, Math.min(1, dt * 8));
   landSq = Math.max(0, landSq - dt * 5); heroG.scale.set(1 + landSq * 0.12, 1 - landSq * 0.14, 1 + landSq * 0.12);
   if (hero) { hero.root.position.y = pw.board > 0 ? 0.32 : 0; hero.mixer.update(dt * (state === 'play' && hero.cur === hero.acts.run ? clamp(speed / 15, 0.9, 1.5) : 1)); }
@@ -497,7 +518,8 @@ function draw(t, dt) {
   for (const k of K.blds) k.end();
   // side props on a fixed rhythm (deterministic by slot)
   for (const k of [K.signal, K.bench, K.trash, K.fence]) k.begin();
-  for (let i = Math.floor(sMin / 9); i * 9 < sMax; i++) for (const sd of [-1, 1]) { const h = hash(i * 3.1 + sd * 17), z = Z(i * 9 + 4);
+  const tuns = ents.filter(e => e.t === 'tunnel');
+  for (let i = Math.floor(sMin / 9); i * 9 < sMax; i++) for (const sd of [-1, 1]) { const h = hash(i * 3.1 + sd * 17), z = Z(i * 9 + 4); if (tuns.some(e => i * 9 + 4 > e.s0 - 3 && i * 9 + 4 < e.s1 + 1)) continue;
     if (h < 0.16) K.signal.put(sd * 4.55, 0, z, sd > 0 ? Math.PI : 0);
     else if (h < 0.3) K.trash.put(sd * (WALL_X + 1.0), 0, z, h * 9);
     else if (h < 0.45) K.bench.put(sd * (WALL_X + 1.0), 0, z, sd > 0 ? Math.PI : 0);
@@ -518,10 +540,14 @@ function draw(t, dt) {
     else if (e.t === 'gem' && !e.got) K.gem.put(lx, e.y - 0.4 + Math.sin(t * 3) * 0.12, Z(e.s0), t * 2);
     else if (e.t === 'pw' && !e.got) { K.pw[e.p].put(lx, e.y - 0.5 + Math.sin(t * 3) * 0.15, Z(e.s0), t * 2.2); if (ln < 40) { _m.compose(_p.set(lx, e.y, Z(e.s0) + 0.6), _q.identity(), _s.setScalar(2.6 + Math.sin(t * 6) * 0.3)); lights.setMatrixAt(ln++, _m); } }
   }
+  K.tunnel.begin(); tube.visible = false;
+  for (const e of ents) if (e.t === 'tunnel' && e.s1 > sMin && e.s0 < sMax + 30) { const fz = Z(e.s0); K.tunnel.put(0, -0.4, fz - K.tunnel.size.z / 2 + FACADE, 0); tunClip.constant = -(fz - 1.3); tunClip2.constant = fz + 0.7; tube.visible = true; tube.position.set(0, 0, fz - 0.7); }
+  K.tunnel.end();
   // magnet/jet sky coins on the ground for jetpack runs are spawned in update; hero board
   K.heroBoard.begin(); if (pw.board > 0 && state !== 'lost') K.heroBoard.put(x, y + 0.12 + Math.sin(t * 8) * 0.04, hz, 0); K.heroBoard.end();
-  if (pw.jet > 0) K.pw.jet.put(x, y + 1.2, hz + 0.45, Math.PI);
+  if (pw.jet > 0) K.pw.jet.put(x, y + 1.25, hz + 0.42, Math.PI, 0.72);
   for (const k of K.trains) k.end(); for (const k of [K.low, K.high, K.ramp, K.coin, K.gem, ...Object.values(K.pw)]) k.end();
+  for (const e of ents) if (e.t === 'tunnel' && tube.visible) for (let q = 4; q < TUN_L; q += 7) for (const sd of [-1, 1]) if (ln < 60) { _m.compose(_p.set(sd * (TUN_R - 0.45), 3.4, Z(e.s0 + q)), cam.quaternion, _s.setScalar(1.1)); lights.setMatrixAt(ln++, _m); }
   lights.count = ln; lights.instanceMatrix.needsUpdate = true;
   // the storm (Grumble) behind you
   const sGap = state === 'lost' ? lerp(chaseGap, 1.2, Math.min(1, deadT * 1.5)) : state === 'ready' ? 7 : chaseGap;
@@ -541,7 +567,9 @@ function draw(t, dt) {
   drawParticles(dt);
   // lightning flash
   if (boltT > 0) { boltT -= dt; if (boltT <= 0) bolt.visible = false; }
-  if (flashT > 0) flashT -= dt; hemi.intensity = 1.35 + (flashT > 0 ? 1.6 : 0);
+  let inT = 0; for (const e of ents) if (e.t === 'tunnel') { const a = cam.position.z, z0 = Z(e.s0) - 1, z1 = Z(e.s1) + 4; if (a < z0 && a > z1) inT = 1; }
+  darkK = lerp(darkK, inT, Math.min(1, dt * 5));
+  if (flashT > 0) flashT -= dt; hemi.intensity = 1.35 * (1 - 0.72 * darkK) + (flashT > 0 ? 1.6 : 0); sun.intensity = 2.7 * (1 - 0.85 * darkK);
   // camera: behind and above, easing with lane and height; intro shot looks back at the hero with the storm behind
   const lostCam = state === 'lost';
   let tx = x * 0.55, ty = CAM_UP + Math.max(0, y) * 0.62, tz = hz + CAM_BACK, lx = x * 0.3, ly = 1.3 + y * 0.55, lz = hz - 10;
@@ -585,13 +613,14 @@ if (D.isDaily) ui.sub('DAILY RUN');
   if (pendingStart) startRun();
 })();
 
-window.__dbg = { act, stumble, give: p => { pw[p] = PW_T[p]; }, crash: () => crash('Debug'), set speedMul(v) { speed *= v; } };
+if (navigator.webdriver || Q.has('debug')) window.__dbg = { get K() { return K; }, get clip() { return tunClip; }, tunnel: () => { ents.push({ t: 'tunnel', s0: s + 45, s1: s + 45 + TUN_L }); }, act, stumble, give: p => { pw[p] = PW_T[p]; if (p === "jet") skyCoins(); }, crash: () => crash('Debug'), set speedMul(v) { speed *= v; } };
 // ---------------------------------------------------------------- test hook + bot
 window.__game = {
   get state() { return state === 'loading' ? 'ready' : state; }, get level() { return tier; }, get score() { return score; }, get why() { return deadHow; },
   get info() { return { calls: R.info.render.calls, tris: R.info.render.triangles, fps: Math.round(fpsAvg), ents: ents.length, s: Math.round(s), lane, y: +y.toFixed(2) }; },
   bot() {
     if (state !== 'play') return;
+    if (pw.jet > 0) { const c = ents.find(e => e.sky && !e.got && e.s0 > s + 2); if (c && c.l !== lane) act(c.l < lane ? 'left' : 'right'); return; }
     const look = speed * 1.7 + 8;
     // how far each lane is clear of something that would stop you (trains you can't ride, oncoming trains)
     const clear = [0, 1, 2].map(l => {
