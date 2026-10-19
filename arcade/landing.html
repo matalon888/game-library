@@ -140,7 +140,9 @@ footer a { color: var(--muted) }
 if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) {
   const P = ['ricochet-rex', 'bolt-twist', 'flip-agent', 'cube-trek'], pick = P[Math.floor(Math.random() * P.length)];
   try { sessionStorage.setItem('ap.jumped', '1'); sessionStorage.setItem('ap.auto', pick); sessionStorage.setItem('ap.aiAd', '1'); } catch (e) {}
-  location.replace('/arcade/play.html?g=' + pick);
+  // the store test (2026-10-19): half the tabs get a choice of 6 games (pick.html), half the one game as before
+  const ab = (() => { let v; try { v = sessionStorage.getItem('ap.ab'); if (!v) { v = Math.random() < 0.5 ? 'pick' : 'game'; sessionStorage.setItem('ap.ab', v); } } catch (e) { v = 'game'; } return v; })();
+  location.replace(ab === 'pick' ? '/arcade/pick.html' : '/arcade/play.html?g=' + pick);
 }
 </script>
 <script>

@@ -35,7 +35,10 @@
   function flush(beacon) {
     if (!queue.length && sentDevice) return;
     const ok = RC.state() === 'accepted';
-    const body = JSON.stringify({ sid, src: SRC, consent: ok, page: location.pathname.split('/').pop() || 'index', device: ok && !sentDevice ? device() : null, events: queue.splice(0, 60) });
+    // pid: this browser's own prompt code (habits.js, kept on the device), only with Accept: lets the store report count one
+    // player's visits across days. ab: which first screen this tab got from an ad / AI (pick = 6 games, game = one game)
+    let pid = null, ab = null; try { pid = ok ? localStorage.getItem('ap.u') : null; ab = sessionStorage.getItem('ap.ab'); } catch (e) {}
+    const body = JSON.stringify({ sid, src: SRC, consent: ok, pid, ab, page: location.pathname.split('/').pop() || 'index', device: ok && !sentDevice ? device() : null, events: queue.splice(0, 60) });
     if (ok) sentDevice = true;
     if (beacon && navigator.sendBeacon) navigator.sendBeacon(API + '/api/diag', new Blob([body], { type: 'text/plain' }));
     else fetch(API + '/api/diag', { method: 'POST', keepalive: true, headers: { 'content-type': 'text/plain' }, body }).catch(() => {});

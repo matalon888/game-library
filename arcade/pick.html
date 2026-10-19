@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pick a game · AGENTPARK</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#07060f">
+<link rel="icon" href="brand/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:opsz,wght@9..40,500;9..40,700&display=swap">
+<!-- The store's front door (2026-10-19): ad and AI visitors get a choice of 6 games instead of being dropped into one.
+     Choosers held a game 3-4x longer than people dropped into one (diagnostics, Oct 16-19). Order: the games people
+     actually play longest (/api/held, last 7 days), then 2 they haven't seen yet, so new games get a chance. Picks come
+     from config FEED (our own upright one-thumb games, hand-checked); never Casino or Kids. Half the ad / AI tabs get this page
+     and half the old single game (sessionStorage ap.ab = pick / game), to compare games and minutes per visitor:
+     /api/store-report. ?cat=Puzzle puts that shelf's games first. -->
+<style>
+:root { --ink: #FFFDF8; --muted: #CFCBE6; --gold: #FFC93C; --bg: #07060f; --card: #161124; color-scheme: dark }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent }
+html, body { margin: 0 }
+body { background: var(--bg); color: var(--ink); font: 16px/1.35 "DM Sans", system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+  min-height: 100vh; min-height: 100dvh; padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 18px) }
+main { width: min(460px, 100%); margin: 0 auto; display: grid; gap: 16px }
+header { display: flex; align-items: center; gap: 12px }
+header img { width: 44px; height: 44px }
+h1 { margin: 0; font: 800 26px/1.05 "Bricolage Grotesque", "DM Sans", sans-serif; letter-spacing: -.01em }
+h1 small { display: block; font: 500 14px "DM Sans", sans-serif; color: var(--muted); margin-top: 4px; letter-spacing: 0 }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
+.g { position: relative; display: block; border-radius: 16px; overflow: hidden; background: var(--card); aspect-ratio: 3 / 5; text-decoration: none; color: var(--ink);
+  box-shadow: 0 6px 0 rgba(0,0,0,.35); transition: transform .08s; animation: in .35s ease-out both }
+.g:active { transform: scale(.96) }
+.g img { width: 100%; height: 100%; object-fit: cover; display: block }
+.g b { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 8px 9px; font: 700 13px/1.15 "DM Sans", sans-serif; text-align: center;
+  background: linear-gradient(transparent, rgba(7,6,15,.92) 55%) }
+.g .tag { position: absolute; top: 7px; left: 7px; font: 800 10px "DM Sans", sans-serif; letter-spacing: .04em; background: var(--gold); color: #1E1B33; border-radius: 999px; padding: 3px 7px }
+.more { justify-self: center; color: var(--muted); font-size: 15px; text-decoration: none; padding: 8px 14px }
+.more b { color: var(--ink) }
+@keyframes in { from { opacity: 0; transform: translateY(8px) } }
+@media (prefers-reduced-motion: reduce) { .g { animation: none } }
+</style>
+</head>
+<body>
+<main>
+  <header><img src="brand/patch-mark.webp" alt="AGENTPARK"><h1>Pick a game<small>Free. Tap one, it starts.</small></h1></header>
+  <div class="grid" id="grid" aria-live="polite"></div>
+  <a class="more" href="./" id="more">More games: <b>the whole park →</b></a>
+</main>
+<script src="config.js"></script>
+<script src="consent.js"></script>
+<script src="habits.js"></script>
+<script src="attrib.js"></script>
+<script src="diag.js"></script>
+<script>
+(function () {
+  const C = window.RIFFCADE || {}, q = new URLSearchParams(location.search), cat = q.get('cat') || '';
+  const FALLBACK = ['swirl-tee', 'stretch-dash', 'marble-dash', 'tiptoe-tower', 'untwine', 'ricochet-rex'];
+  const ev = name => { let sid = null; try { sid = JSON.parse(sessionStorage.getItem('arcade.s.sid')); } catch (e) {}
+    fetch('https://mcp.riffcade.com/api/ev', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, sid }) }).catch(() => {}); };
+  const ok = g => g && !g.linkout && !g.external && g.orientation !== 'landscape' && g.category !== 'Kids' && g.category !== 'Casino' && !(g.tags || []).some(t => t === 'Kids' || t === 'Casino');
+  const timeout = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
+  Promise.all([
+    fetch('games.json').then(r => r.json()),
+    timeout(fetch('https://mcp.riffcade.com/api/held').then(r => r.json()).catch(() => null), 1500),
+  ]).then(([games, held]) => {
+    const by = Object.fromEntries((Array.isArray(games) ? games : []).map(g => [g.slug, g]));
+    const feed = (C.FEED || FALLBACK).filter(s => ok(by[s]));
+    const inCat = s => !cat || by[s].category === cat || (by[s].tags || []).includes(cat);
+    // longest-held first (only games in the feed), then the hand order
+    const ranked = (held || []).map(h => h.slug).filter(s => feed.includes(s));
+    const order = [...new Set([...ranked, ...FALLBACK.filter(s => feed.includes(s)), ...feed])];
+    const first = [...order.filter(inCat), ...order.filter(s => !inCat(s))];
+    const top = first.slice(0, 4);
+    // 2 they haven't been shown yet, at random, so new games get a chance (and the report learns about them)
+    const rest = feed.filter(s => !top.includes(s) && !first.slice(0, 4).includes(s));
+    for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+    const picks = [...top, ...rest.slice(0, 2)].filter(Boolean);
+    const grid = document.getElementById('grid');
+    grid.innerHTML = picks.map((s, i) => { const g = by[s];
+      return `<a class="g" data-slug="${s}" href="play.html?g=${encodeURIComponent(s)}&from=pick" style="animation-delay:${i * 50}ms">
+        <img src="${g.cover || g.thumb}" alt="" loading="eager" decoding="async">${i === 0 ? '<span class="tag">TOP PICK</span>' : ''}<b>${g.name}</b></a>`; }).join('');
+    grid.addEventListener('click', e => {
+      const a = e.target.closest('.g'); if (!a) return;
+      try { sessionStorage.setItem('ap.auto', a.dataset.slug); } catch (er) {}   // play.html starts it on its own (shell.js)
+      ev('pick_tap_' + [...grid.children].indexOf(a));
+    });
+    if (!sessionStorage.getItem('ap.pickShown')) { try { sessionStorage.setItem('ap.pickShown', '1'); } catch (e) {} ev('pick_shown'); }
+  });
+  document.getElementById('more').addEventListener('click', () => ev('pick_more'));
+})();
+</script>
+</body>
+</html>

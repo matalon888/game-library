@@ -142,7 +142,10 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
     if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(P).catch(() => {});   // if the AI opens empty, it can be pasted
     // then this tab becomes the game: right away once the AI app has taken over (the tab goes hidden), else after 2.5 s.
     // did the AI app actually open? the tab goes hidden when it does (go_jump); still visible after 2.5 s = it didn't (go_nojump)
-    const toGame = () => { if (went) return; went = true; try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {} ev('go_game_' + ai); location.replace('play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + (code || '') + '&from=go'); };
+    const toGame = () => { if (went) return; went = true; ev('go_game_' + ai); const ab = (() => { let v; try { v = sessionStorage.getItem('ap.ab'); if (!v) { v = Math.random() < 0.5 ? 'pick' : 'game'; sessionStorage.setItem('ap.ab', v); } } catch (e) { v = 'game'; } return v; })();
+      // the store test (2026-10-19): half get a choice of 6 games while the AI works, half the one game as before
+      if (ab !== 'pick') try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {}
+      location.replace(ab === 'pick' ? 'pick.html?ref=go-' + ai + '&apu=' + (code || '') + '&from=go' : 'play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + (code || '') + '&from=go'); };
     // still here after 3 s = the AI didn't open: a second chance (Safari from the in-app browser) instead of dropping them into the game
     let jumped = false;
     document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + ai); } setTimeout(toGame, 300); } });

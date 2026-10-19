@@ -256,7 +256,9 @@
       const pick = listed.length ? listed[Math.floor(Math.random() * listed.length)] : byScore(pool.length ? pool : mob.filter(ok))[0];
       if (pick) {
         try { sessionStorage.setItem('ap.jumped', '1'); sessionStorage.setItem('ap.auto', pick.slug); if (!qc) sessionStorage.setItem('ap.aiAd', '1'); } catch (e) {}
-        location.replace(K.href(pick)); return;
+        // the store test (2026-10-19): half the ad tabs get a choice of 6 games (pick.html, this shelf first), half the one game
+        const ab = (() => { let v; try { v = sessionStorage.getItem('ap.ab'); if (!v) { v = Math.random() < 0.5 ? 'pick' : 'game'; sessionStorage.setItem('ap.ab', v); } } catch (e) { v = 'game'; } return v; })();
+        location.replace(ab === 'pick' ? 'pick.html' + (qc ? '?cat=' + encodeURIComponent(qc) : '') : K.href(pick)); return;
       }
     }
     const latest = LATEST = all.reduce((m, g) => (g.added > m ? g.added : m), '');
