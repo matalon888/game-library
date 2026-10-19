@@ -694,7 +694,7 @@
  "nkzw-tech-athena-crisis": {
   "github": {
    "forks": 161,
-   "stars": 1988,
+   "stars": 1987,
    "url": "https://github.com/nkzw-tech/athena-crisis"
   }
  },
@@ -714,7 +714,7 @@
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 204,
+   "forks": 206,
    "stars": 1414,
    "url": "https://github.com/rohitg00/k8sgames"
   }
@@ -854,7 +854,7 @@
  "nicechunk-game": {
   "github": {
    "forks": 2,
-   "stars": 313,
+   "stars": 314,
    "url": "https://github.com/nicechunk/game"
   }
  },
@@ -1112,15 +1112,15 @@
  },
  "mrzh7-scam-with-your-friends-web": {
   "github": {
-   "forks": 19,
-   "stars": 234,
+   "forks": 21,
+   "stars": 235,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 31,
-   "stars": 113,
+   "forks": 33,
+   "stars": 115,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1176,7 +1176,7 @@
  "lakhwan-startup-game": {
   "github": {
    "forks": 6,
-   "stars": 33,
+   "stars": 34,
    "url": "https://github.com/LaKhWaN/startup-game"
   }
  },
@@ -2142,7 +2142,7 @@
  "lingikaushikreddy-settlement-village": {
   "github": {
    "forks": 0,
-   "stars": 1,
+   "stars": 36,
    "url": "https://github.com/Lingikaushikreddy/Settlement-Village"
   }
  },
@@ -3101,7 +3101,7 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 720,
+   "forks": 721,
    "stars": 6453,
    "url": "https://github.com/pshenok/server-survival"
   }
@@ -3147,7 +3147,7 @@
  },
  "bkcore-hexgl": {
   "github": {
-   "forks": 893,
+   "forks": 894,
    "stars": 1745,
    "url": "https://github.com/BKcore/HexGL"
   },
@@ -3436,5 +3436,45 @@
  "seekaloo-word-search-puzzle": {},
  "kindred-cards-word-category-solitaire": {},
  "bunchwise-word-groups-puzzle": {},
- "cipherleaf-quote-code-puzzle": {}
+ "cipherleaf-quote-code-puzzle": {},
+ "pebblepit-mancala-vs-computer": {},
+ "boxbound-dots-and-boxes": {},
+ "salvo-bay-sea-battle-vs-computer": {},
+ "pipsnake-dominoes-vs-computer": {},
+ "pointrun-backgammon-vs-computer": {},
+ "doubloom-slide-number-merge-puzzle": {},
+ "sapperly-classic-mines-puzzle": {},
+ "slidewell-sliding-tile-puzzle": {},
+ "lotjam-unblock-the-car-puzzle": {},
+ "cagewise-math-cage-puzzle": {},
+ "burrowbop-whack-a-critter-game": {},
+ "tonetrail-color-sequence-memory-game": {},
+ "knobble-jigsaw-puzzles": {},
+ "rungrush-ladders-and-slides-board-game": {},
+ "noughtly-tic-tac-toe-ultimate": {},
+ "kingmoat-chess-vs-computer": {},
+ "crownhop-checkers-vs-computer": {},
+ "duskflip-reversi-vs-computer": {},
+ "dropline-four-in-a-row": {},
+ "stonerow-gomoku-five-in-a-row": {},
+ "quadrop-falling-blocks-puzzle": {},
+ "bricklash-brick-breaker": {},
+ "slinko-classic-snake-game": {},
+ "nibbit-maze-chase-arcade": {},
+ "zapline-alien-wave-shooter": {},
+ "silkline-spider-solitaire": {},
+ "fourbay-four-cell-solitaire": {},
+ "sandstep-pyramid-solitaire": {},
+ "heartwick-hearts-card-game": {},
+ "trumpline-spades-card-game": {},
+ "skyfloat-hangman-word-guess": {},
+ "anagrove-anagram-word-rounds": {},
+ "shakeword-4x4-word-hunt": {},
+ "petalword-seven-letter-word-puzzle": {},
+ "crossnook-mini-crossword": {},
+ "rubble-rift-space-rock-shooter": {},
+ "puckslap-air-hockey-vs-cpu": {},
+ "bumperlark-pinball-table": {},
+ "dune-scoot-desert-runner": {},
+ "hopsprout-sky-jumper": {}
 }
