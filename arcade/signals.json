@@ -715,7 +715,7 @@
  "rohitg00-k8sgames": {
   "github": {
    "forks": 206,
-   "stars": 1414,
+   "stars": 1417,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -729,7 +729,7 @@
  "blockly-games-blockly-games": {
   "github": {
    "forks": 635,
-   "stars": 1371,
+   "stars": 1372,
    "url": "https://github.com/blockly-games/blockly-games"
   }
  },
@@ -818,8 +818,8 @@
  },
  "mike007jd-voxel-musou": {
   "github": {
-   "forks": 51,
-   "stars": 152,
+   "forks": 52,
+   "stars": 153,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
  },
@@ -1099,7 +1099,7 @@
  "oil-oil-wolfcha": {
   "github": {
    "forks": 66,
-   "stars": 735,
+   "stars": 736,
    "url": "https://github.com/oil-oil/wolfcha"
   }
  },
@@ -1120,7 +1120,7 @@
  "lattymoy-daggerfall-js-source": {
   "github": {
    "forks": 33,
-   "stars": 115,
+   "stars": 120,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1173,13 +1173,7 @@
    "url": "https://github.com/mmgrt/lawbox"
   }
  },
- "lakhwan-startup-game": {
-  "github": {
-   "forks": 6,
-   "stars": 34,
-   "url": "https://github.com/LaKhWaN/startup-game"
-  }
- },
+ "lakhwan-startup-game": {},
  "karinnielsen-strike-first": {
   "github": {
    "forks": 0,
@@ -2058,7 +2052,7 @@
  "hmarzban-fusegrid": {
   "github": {
    "forks": 0,
-   "stars": 1,
+   "stars": 3,
    "url": "https://github.com/HMarzban/fusegrid"
   }
  },
@@ -3101,8 +3095,8 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 721,
-   "stars": 6453,
+   "forks": 723,
+   "stars": 6459,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
@@ -3259,7 +3253,7 @@
  "songhaifan-frankie-poker": {
   "github": {
    "forks": 3,
-   "stars": 11,
+   "stars": 12,
    "url": "https://github.com/SonghaiFan/frankie-poker"
   }
  },
@@ -3376,7 +3370,7 @@
  "snip-studio-hair-salon-makeover": {},
  "goo-lab-slime-simulator-asmr": {},
  "nugget-rush-mine-cart-runner": {},
- "stormchase-endless-turn-runner": {},
+ "stormchase-endless-rail-runner": {},
  "boltpack-jetpack-runner": {},
  "capy-hop-endless-road-hopper": {},
  "pulse-prism-rhythm-runner": {},
@@ -3476,5 +3470,50 @@
  "puckslap-air-hockey-vs-cpu": {},
  "bumperlark-pinball-table": {},
  "dune-scoot-desert-runner": {},
- "hopsprout-sky-jumper": {}
+ "hopsprout-sky-jumper": {},
+ "flitaway-tap-away-logic": {},
+ "orrery-color-circle-puzzle": {},
+ "chirpbelt-conveyor-color-shooter": {},
+ "clumpop-cube-crush-puzzle": {},
+ "nookfind-seek-and-find-scenes": {},
+ "slidegate-sliding-shapes-puzzle": {},
+ "pilepick-triple-sort-3d": {},
+ "snugcase-packing-puzzle": {},
+ "calmquill-calm-crossword-game": {},
+ "grumble-drop-tower-topple-game": {},
+ "wildhand-poker-card-roguelike": {},
+ "pango-trail-idle-adventure-rpg": {},
+ "railknot-subway-map-puzzle": {},
+ "beatbuds-beat-maker-music-mix": {},
+ "sipling-dig-the-water-puzzle": {},
+ "tidebloom-merge-seaside-town": {},
+ "blubbo-virtual-pet-care": {},
+ "spatula-sprint-burger-restaurant-game": {},
+ "clover-acre-farm-town": {},
+ "piston-pop-merge-cars-racing": {},
+ "cardcairn-deckbuilder-roguelike": {},
+ "slimeplow-car-smash-driving": {},
+ "wobblewar-battle-simulator": {},
+ "gullhop-island-flight-sim": {},
+ "pondguard-tower-defense": {},
+ "lanternhold-build-by-day-defend-by-night": {},
+ "grindhaven-skateboard-tricks-3d": {},
+ "cubeburrow-block-building-sandbox": {},
+ "bramblebash-card-battle-arena": {},
+ "drillhaven-mine-and-defend": {},
+ "skidsy-kart-racing-3d": {},
+ "knucklebop-arcade-fighting-game": {},
+ "boltline-squad-4v4-robot-arena-shooter": {},
+ "stormdrop-isle-battle-royale-island-shooter": {},
+ "slimewall-hold-slime-horde-defense-shooter": {},
+ "treadbounce-tanks-toy-tank-battle-arena": {},
+ "ringbreaker-sci-fi-fps-shooter": {},
+ "tidewing-jet-fighter-combat": {},
+ "ironsquall-mech-shooter": {},
+ "hollowtide-sci-fi-survival-thriller": {},
+ "voidlance-space-fighter-combat": {},
+ "embersite-tactical-extraction-shooter": {},
+ "hivefall-alien-horde-shooter": {},
+ "zoomburst-street-racing": {},
+ "hero-lab-build-your-agentpark-hero": {}
 }
