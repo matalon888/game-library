@@ -27,17 +27,6 @@
  },
  "games": [
   {
-   "name": "Alibi Grid: Daily Logic Puzzle",
-   "category": "Puzzle",
-   "blurb": "Twenty suspects, one true clue each: work out who is innocent and who is a criminal using pure logic, with a new case every day.",
-   "pitch": "Twenty suspects, one true clue each: work out who is innocent and who is a criminal using pure logic, with a new case every day.",
-   "score": 8.0,
-   "added": "2026-10-15",
-   "desktop_only": false,
-   "image": "https://agentpark.co/arcade/covers/alibi-grid-daily-logic-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=1"
-  },
-  {
    "name": "Napspot: Cat Logic Puzzle",
    "category": "Puzzle",
    "blurb": "Put one napping cat in every row, column and colour patch — and never let two cats touch.",
@@ -46,7 +35,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/napspot-cat-logic-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=napspot-cat-logic-puzzle&ref=daily&pos=2"
+   "play_url": "https://agentpark.co/arcade/play.html?g=napspot-cat-logic-puzzle&ref=daily&pos=1"
   },
   {
    "name": "Patience Pine: Klondike Solitaire",
@@ -57,18 +46,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/patience-pine-klondike-solitaire.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=patience-pine-klondike-solitaire&ref=daily&pos=3"
-  },
-  {
-   "name": "Bunchwise: Word Groups Puzzle",
-   "category": "Word & Math",
-   "blurb": "Sort sixteen words into four hidden groups of four, with a hint when you are close.",
-   "pitch": "Sort sixteen words into four hidden groups of four, with a hint when you are close.",
-   "score": 7.5,
-   "added": "2026-10-15",
-   "desktop_only": false,
-   "image": "https://agentpark.co/arcade/covers/bunchwise-word-groups-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=4"
+   "play_url": "https://agentpark.co/arcade/play.html?g=patience-pine-klondike-solitaire&ref=daily&pos=2"
   },
   {
    "name": "Jellyfit: Block Puzzle",
@@ -79,7 +57,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/jellyfit-block-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=jellyfit-block-puzzle&ref=daily&pos=5"
+   "play_url": "https://agentpark.co/arcade/play.html?g=jellyfit-block-puzzle&ref=daily&pos=3"
   },
   {
    "name": "Huebound: Crazy Eights Card Game",
@@ -90,18 +68,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/huebound-crazy-eights-card-game.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=huebound-crazy-eights-card-game&ref=daily&pos=6"
-  },
-  {
-   "name": "Hunch: Five Letter Word Guess",
-   "category": "Word & Math",
-   "blurb": "Guess the hidden five-letter word in six tries as coloured tiles show which letters are right.",
-   "pitch": "Guess the hidden five-letter word in six tries as coloured tiles show which letters are right.",
-   "score": 7.0,
-   "added": "2026-10-15",
-   "desktop_only": false,
-   "image": "https://agentpark.co/arcade/covers/hunch-five-letter-word-guess.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=hunch-five-letter-word-guess&ref=daily&pos=7"
+   "play_url": "https://agentpark.co/arcade/play.html?g=huebound-crazy-eights-card-game&ref=daily&pos=4"
   },
   {
    "name": "Tenpair: Digit Pairs Puzzle",
@@ -112,7 +79,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/tenpair-digit-pairs-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=8"
+   "play_url": "https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=5"
   },
   {
    "name": "Doublink: Chain Merge Puzzle",
@@ -123,7 +90,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/doublink-chain-merge-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=doublink-chain-merge-puzzle&ref=daily&pos=9"
+   "play_url": "https://agentpark.co/arcade/play.html?g=doublink-chain-merge-puzzle&ref=daily&pos=6"
   },
   {
    "name": "Spotwise: Domino Logic Puzzle",
@@ -134,7 +101,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/spotwise-domino-logic-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=spotwise-domino-logic-puzzle&ref=daily&pos=10"
+   "play_url": "https://agentpark.co/arcade/play.html?g=spotwise-domino-logic-puzzle&ref=daily&pos=7"
   },
   {
    "name": "Inkpath: Number Line Puzzle",
@@ -145,7 +112,7 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/inkpath-number-line-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=inkpath-number-line-puzzle&ref=daily&pos=11"
+   "play_url": "https://agentpark.co/arcade/play.html?g=inkpath-number-line-puzzle&ref=daily&pos=8"
   },
   {
    "name": "Solune: Sun & Moon Logic Puzzle",
@@ -156,52 +123,85 @@
    "added": "2026-10-15",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/solune-sun-moon-logic-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=solune-sun-moon-logic-puzzle&ref=daily&pos=12"
+   "play_url": "https://agentpark.co/arcade/play.html?g=solune-sun-moon-logic-puzzle&ref=daily&pos=9"
+  },
+  {
+   "name": "Gridlet: Nonogram Picture Puzzle",
+   "category": "Puzzle",
+   "blurb": "Use the number clues to fill the grid and reveal a little pixel picture.",
+   "pitch": "Use the number clues to fill the grid and reveal a little pixel picture.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/gridlet-nonogram-picture-puzzle.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=gridlet-nonogram-picture-puzzle&ref=daily&pos=10"
+  },
+  {
+   "name": "Rollhome: Ludo Board Game",
+   "category": "Strategy",
+   "blurb": "Roll the 3D die, bring tokens out on a six, capture rivals and race your colour home against three CPU players.",
+   "pitch": "Roll the 3D die, bring tokens out on a six, capture rivals and race your colour home against three CPU players.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/rollhome-ludo-board-game.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=rollhome-ludo-board-game&ref=daily&pos=11"
+  },
+  {
+   "name": "Thumb Duel: Party Duels for Two",
+   "category": "Arcade",
+   "blurb": "Two players, one phone: rocket race, tug of war, sumo ring, quick draw and air hockey, first to 5 wins, or play solo against the CPU.",
+   "pitch": "Two players, one phone: rocket race, tug of war, sumo ring, quick draw and air hockey, first to 5 wins, or play solo against the CPU.",
+   "score": 6.5,
+   "added": "2026-10-15",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/thumb-duel-party-duels-for-two.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=thumb-duel-party-duels-for-two&ref=daily&pos=12"
   }
  ],
  "categories": {
   "Puzzle": [
    {
-    "name": "Flipwise: Tile Flip Puzzle",
+    "name": "Sticky Nook",
     "new": false,
-    "pitch": "Every tap flips a tile and its neighbours in a pattern — turn the whole board sunny side up in par.",
-    "image": "https://agentpark.co/arcade/covers/flipwise-tile-flip-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=flipwise-tile-flip-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Drag cute stickers from a tray onto faint silhouettes in isometric rooms, gradually restoring a bedroom, kitchen, bathroom and living room.",
+    "image": "https://agentpark.co/arcade/covers/sticky-nook.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=sticky-nook&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Plumb Pairs: Connect the Dots Pipe Puzzle",
+    "name": "Latte Jam",
     "new": false,
-    "pitch": "Link matching dots with pipes that never cross and fill every cell.",
-    "image": "https://agentpark.co/arcade/covers/plumb-pairs-connect-the-dots-pipe-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=plumb-pairs-connect-the-dots-pipe-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Tap Lego-like trays into four slots so matching cups from a winding belt hop in, clearing orders before the slots jam.",
+    "image": "https://agentpark.co/arcade/covers/latte-jam.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=latte-jam&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Comb Stack: Hex Tile Stacking",
+    "name": "Honk Out!",
     "new": false,
-    "pitch": "Drag hexagon stacks onto the honeycomb and watch matching colours flip together until ten clear.",
-    "image": "https://agentpark.co/arcade/covers/comb-stack-hex-tile-stacking.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=comb-stack-hex-tile-stacking&ref=daily&pos=list-Puzzle"
+    "pitch": "Tap boxed-in cars in the right order to clear the jam and park them, so queued passengers board matching colours before spots fill.",
+    "image": "https://agentpark.co/arcade/covers/honk-out.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=honk-out&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Dialock: Spin Lock Puzzle",
+    "name": "Knit Flow",
     "new": false,
-    "pitch": "Spin nested dials until every gap lines up with the exit and the glowing core slides free.",
-    "image": "https://agentpark.co/arcade/covers/dialock-spin-lock-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=dialock-spin-lock-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Pick spools of colored yarn to send around a conveyor that unravels matching stitches from a knitted picture, while managing five limited holding slots.",
+    "image": "https://agentpark.co/arcade/covers/knit-flow.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=knit-flow&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Swirl Tee",
+    "name": "Paint Glide",
     "new": false,
-    "pitch": "Fold the shirt, squirt dye into each section, then unfold to see how closely the swirl, spotted or striped pattern matches the target.",
-    "image": "https://agentpark.co/arcade/covers/swirl-tee.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=swirl-tee&ref=daily&pos=list-Puzzle"
+    "pitch": "Swipe a paint ball sliding across a walled maze until it stops, planning routes so every tile ends up painted.",
+    "image": "https://agentpark.co/arcade/covers/paint-glide.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=paint-glide&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Untwine",
+    "name": "Slip Links",
     "new": false,
-    "pitch": "Drag rope plugs to empty pegs until no strands cross, with a move counter, tangle count and levels adding more ropes.",
-    "image": "https://agentpark.co/arcade/covers/untwine.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=untwine&ref=daily&pos=list-Puzzle"
+    "pitch": "Tap the topmost chain to slip it off its pegs, untangling overlapping colored links in the right order, with satisfying combo feedback.",
+    "image": "https://agentpark.co/arcade/covers/slip-links.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=slip-links&ref=daily&pos=list-Puzzle"
    }
   ],
   "Arcade": [
@@ -382,6 +382,13 @@
   ],
   "Word & Math": [
    {
+    "name": "Tenpair: Digit Pairs Puzzle",
+    "new": false,
+    "pitch": "Cross out equal digits or pairs that add up to 10, add rows when stuck, and clear the whole board.",
+    "image": "https://agentpark.co/arcade/covers/tenpair-digit-pairs-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=list-Word%20%26%20Math"
+   },
+   {
     "name": "Doublink: Chain Merge Puzzle",
     "new": false,
     "pitch": "Swipe a chain through matching and doubling tiles to merge them into ever bigger powers of two.",
@@ -415,13 +422,6 @@
     "pitch": "A clean, classic sudoku with four difficulty tiers, pencil notes, hints and undo, plus a daily puzzle everyone shares and a mistake limit.",
     "image": "https://agentpark.co/arcade/covers/ninefold-daily-sudoku-puzzle.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=ninefold-daily-sudoku-puzzle&ref=daily&pos=list-Word%20%26%20Math"
-   },
-   {
-    "name": "Think Twice!",
-    "new": false,
-    "pitch": "Short trick puzzles on a notebook page, like popping balloons or flipping a frown, reward lateral thinking, with free hints and three tries per level.",
-    "image": "https://agentpark.co/arcade/covers/think-twice.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=think-twice&ref=daily&pos=list-Word%20%26%20Math"
    }
   ],
   "3D": [
@@ -698,5 +698,23 @@
    }
   ]
  },
- "daily_message": "🌅 Your daily games are fresh, Monday, 19 October! Tap one and it opens:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-19)\n\n🏆 Game of the day: [Core Crusher ▶](https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=gotd)\n\n🧩 **Puzzle** · [More Puzzle →](https://agentpark.co/arcade/?cat=Puzzle)\n• [Flipwise](https://agentpark.co/arcade/play.html?g=flipwise-tile-flip-puzzle&ref=daily&pos=list-Puzzle)\n• [Plumb Pairs](https://agentpark.co/arcade/play.html?g=plumb-pairs-connect-the-dots-pipe-puzzle&ref=daily&pos=list-Puzzle)\n• [Comb Stack](https://agentpark.co/arcade/play.html?g=comb-stack-hex-tile-stacking&ref=daily&pos=list-Puzzle)\n\n👾 **Arcade** · [More Arcade →](https://agentpark.co/arcade/?cat=Arcade)\n• [Raincoil](https://agentpark.co/arcade/play.html?g=pbl64k-raincoil-game&ref=daily&pos=list-Arcade)\n• [Thumb Duel](https://agentpark.co/arcade/play.html?g=thumb-duel-party-duels-for-two&ref=daily&pos=list-Arcade)\n• [Zip Vault](https://agentpark.co/arcade/play.html?g=zip-vault-neon-maze-dash&ref=daily&pos=list-Arcade)\n\n💥 **Action** · [More Action →](https://agentpark.co/arcade/?cat=Action)\n• [Slimewall Hold](https://agentpark.co/arcade/play.html?g=slimewall-hold-slime-horde-defense-shooter&ref=daily&pos=list-Action)\n• [Treadbounce Tanks](https://agentpark.co/arcade/play.html?g=treadbounce-tanks-toy-tank-battle-arena&ref=daily&pos=list-Action)\n• [Ringbreaker](https://agentpark.co/arcade/play.html?g=ringbreaker-sci-fi-fps-shooter&ref=daily&pos=list-Action)\n\n♟️ **Strategy** · [More Strategy →](https://agentpark.co/arcade/?cat=Strategy)\n• [Bramblebash](https://agentpark.co/arcade/play.html?g=bramblebash-card-battle-arena&ref=daily&pos=list-Strategy)\n• [Drillhaven](https://agentpark.co/arcade/play.html?g=drillhaven-mine-and-defend&ref=daily&pos=list-Strategy)\n• [Token Cart Tycoon](https://agentpark.co/arcade/play.html?g=bonitadreama-token-cart-tycoon&ref=daily&pos=list-Strategy)\n\n🏎️ **Racing** · [More Racing →](https://agentpark.co/arcade/?cat=Racing)\n• [Tiptoe Tower](https://agentpark.co/arcade/play.html?g=tiptoe-tower&ref=daily&pos=list-Racing)\n• [Flip Volt](https://agentpark.co/arcade/play.html?g=flip-volt&ref=daily&pos=list-Racing)\n• [Bumpy Buggy](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=list-Racing)\n\n🔤 **Word & Math** · [More Word & Math →](https://agentpark.co/arcade/?cat=Word%20%26%20Math)\n• [Doublink](https://agentpark.co/arcade/play.html?g=doublink-chain-merge-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n• [Seekaloo](https://agentpark.co/arcade/play.html?g=seekaloo-word-search-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n• [Cipherleaf](https://agentpark.co/arcade/play.html?g=cipherleaf-quote-code-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n\n🧊 **3D** · [More 3D →](https://agentpark.co/arcade/?cat=3D)\n• [Buddy Rollback](https://agentpark.co/arcade/play.html?g=octobooth-4-buddy-rollback&ref=daily&pos=list-3D)\n• [Nova Lancer](https://agentpark.co/arcade/play.html?g=tanuu5-nova-lancer&ref=daily&pos=list-3D)\n• [Forager](https://agentpark.co/arcade/play.html?g=markldn-forager&ref=daily&pos=list-3D)\n\n⚽ **Sports** · [More Sports →](https://agentpark.co/arcade/?cat=Sports)\n• [Chain Net Crew](https://agentpark.co/arcade/play.html?g=chain-net-crew-basketball-shootout-for-your-ai-agents&ref=daily&pos=list-Sports)\n• [Quiver Duel](https://agentpark.co/arcade/play.html?g=quiver-duel-archery&ref=daily&pos=list-Sports)\n• [Kickoff Crew](https://agentpark.co/arcade/play.html?g=kickoff-crew-football-match-for-your-ai-agents&ref=daily&pos=list-Sports)\n\n⏳ **Idle** · [More Idle →](https://agentpark.co/arcade/?cat=Idle)\n• [Bonk Box](https://agentpark.co/arcade/play.html?g=eddiesanjuan-bonk-box&ref=daily&pos=list-Idle)\n• [Viral Den](https://agentpark.co/arcade/play.html?g=viral-den&ref=daily&pos=list-Idle)\n• [Liftoff Lab](https://agentpark.co/arcade/play.html?g=liftoff-lab-space-program-for-your-ai-agents&ref=daily&pos=list-Idle)\n\n🎮 [All 300 games →](https://agentpark.co)"
+ "peek": {
+  "name": "Girder Go",
+  "play_url": "https://agentpark.co/arcade/play.html?g=girder-go&ref=daily&pos=peek"
+ },
+ "ai_only": [
+  {
+   "name": "Alibi Grid: Daily Logic Puzzle",
+   "play_url": "https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly"
+  },
+  {
+   "name": "Hunch: Five Letter Word Guess",
+   "play_url": "https://agentpark.co/arcade/play.html?g=hunch-five-letter-word-guess&ref=daily&pos=aionly"
+  },
+  {
+   "name": "Bunchwise: Word Groups Puzzle",
+   "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly"
+  }
+ ],
+ "daily_message": "🌅 Your daily games are fresh, Monday, 19 October! Tap one and it opens:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-19)\n\n🏆 Game of the day: [Core Crusher ▶](https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=gotd)\n👀 Tomorrow's game, today: [Girder Go](https://agentpark.co/arcade/play.html?g=girder-go&ref=daily&pos=peek)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly) · [Hunch](https://agentpark.co/arcade/play.html?g=hunch-five-letter-word-guess&ref=daily&pos=aionly) · [Bunchwise](https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly)\n\n🧩 **Puzzle** · [More Puzzle →](https://agentpark.co/arcade/?cat=Puzzle)\n• [Sticky Nook](https://agentpark.co/arcade/play.html?g=sticky-nook&ref=daily&pos=list-Puzzle)\n• [Latte Jam](https://agentpark.co/arcade/play.html?g=latte-jam&ref=daily&pos=list-Puzzle)\n• [Honk Out!](https://agentpark.co/arcade/play.html?g=honk-out&ref=daily&pos=list-Puzzle)\n\n👾 **Arcade** · [More Arcade →](https://agentpark.co/arcade/?cat=Arcade)\n• [Raincoil](https://agentpark.co/arcade/play.html?g=pbl64k-raincoil-game&ref=daily&pos=list-Arcade)\n• [Thumb Duel](https://agentpark.co/arcade/play.html?g=thumb-duel-party-duels-for-two&ref=daily&pos=list-Arcade)\n• [Zip Vault](https://agentpark.co/arcade/play.html?g=zip-vault-neon-maze-dash&ref=daily&pos=list-Arcade)\n\n💥 **Action** · [More Action →](https://agentpark.co/arcade/?cat=Action)\n• [Slimewall Hold](https://agentpark.co/arcade/play.html?g=slimewall-hold-slime-horde-defense-shooter&ref=daily&pos=list-Action)\n• [Treadbounce Tanks](https://agentpark.co/arcade/play.html?g=treadbounce-tanks-toy-tank-battle-arena&ref=daily&pos=list-Action)\n• [Ringbreaker](https://agentpark.co/arcade/play.html?g=ringbreaker-sci-fi-fps-shooter&ref=daily&pos=list-Action)\n\n♟️ **Strategy** · [More Strategy →](https://agentpark.co/arcade/?cat=Strategy)\n• [Bramblebash](https://agentpark.co/arcade/play.html?g=bramblebash-card-battle-arena&ref=daily&pos=list-Strategy)\n• [Drillhaven](https://agentpark.co/arcade/play.html?g=drillhaven-mine-and-defend&ref=daily&pos=list-Strategy)\n• [Token Cart Tycoon](https://agentpark.co/arcade/play.html?g=bonitadreama-token-cart-tycoon&ref=daily&pos=list-Strategy)\n\n🏎️ **Racing** · [More Racing →](https://agentpark.co/arcade/?cat=Racing)\n• [Tiptoe Tower](https://agentpark.co/arcade/play.html?g=tiptoe-tower&ref=daily&pos=list-Racing)\n• [Flip Volt](https://agentpark.co/arcade/play.html?g=flip-volt&ref=daily&pos=list-Racing)\n• [Bumpy Buggy](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=list-Racing)\n\n🔤 **Word & Math** · [More Word & Math →](https://agentpark.co/arcade/?cat=Word%20%26%20Math)\n• [Tenpair](https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n• [Doublink](https://agentpark.co/arcade/play.html?g=doublink-chain-merge-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n• [Seekaloo](https://agentpark.co/arcade/play.html?g=seekaloo-word-search-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n\n🧊 **3D** · [More 3D →](https://agentpark.co/arcade/?cat=3D)\n• [Buddy Rollback](https://agentpark.co/arcade/play.html?g=octobooth-4-buddy-rollback&ref=daily&pos=list-3D)\n• [Nova Lancer](https://agentpark.co/arcade/play.html?g=tanuu5-nova-lancer&ref=daily&pos=list-3D)\n• [Forager](https://agentpark.co/arcade/play.html?g=markldn-forager&ref=daily&pos=list-3D)\n\n⚽ **Sports** · [More Sports →](https://agentpark.co/arcade/?cat=Sports)\n• [Chain Net Crew](https://agentpark.co/arcade/play.html?g=chain-net-crew-basketball-shootout-for-your-ai-agents&ref=daily&pos=list-Sports)\n• [Quiver Duel](https://agentpark.co/arcade/play.html?g=quiver-duel-archery&ref=daily&pos=list-Sports)\n• [Kickoff Crew](https://agentpark.co/arcade/play.html?g=kickoff-crew-football-match-for-your-ai-agents&ref=daily&pos=list-Sports)\n\n⏳ **Idle** · [More Idle →](https://agentpark.co/arcade/?cat=Idle)\n• [Bonk Box](https://agentpark.co/arcade/play.html?g=eddiesanjuan-bonk-box&ref=daily&pos=list-Idle)\n• [Viral Den](https://agentpark.co/arcade/play.html?g=viral-den&ref=daily&pos=list-Idle)\n• [Liftoff Lab](https://agentpark.co/arcade/play.html?g=liftoff-lab-space-program-for-your-ai-agents&ref=daily&pos=list-Idle)\n\n🎮 [All 300 games →](https://agentpark.co)"
 }

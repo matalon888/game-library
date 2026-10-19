@@ -20,8 +20,11 @@
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   // inside ChatGPT/Claude (embed=chat) simulated-gambling games (chat_safe=false) are never listed or playable
-  const games = () => fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('games.json').then(r => r.json()))
+  const gamesAll = () => fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('games.json').then(r => r.json()))
     .then(gs => EMBED ? gs.filter(g => g.chat_safe !== false) : gs);
+  // AI-only games (config.js AI_ONLY) are never listed: they open only from an AI's link (play() checks)
+  const AI_ONLY = new Set((window.RIFFCADE || {}).AI_ONLY || []);
+  const games = () => gamesAll().then(gs => gs.filter(g => !AI_ONLY.has(g.slug)));
   const cid = (() => { let c = store.get('cid'); if (!c) { c = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now(); store.set('cid', c); } return c; })();
   const api = (p, body) => fetch(API + p, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), keepalive: true } : {})
     .then(r => r.ok ? r.json() : null).catch(() => null);
@@ -256,9 +259,22 @@
     // renamed games keep their old links working (old slug -> new slug)
     const RENAMED = { 'stormchase-endless-turn-runner': 'stormchase-endless-rail-runner' };
     const slug = RENAMED[new URLSearchParams(location.search).get('g')] || new URLSearchParams(location.search).get('g');
-    const all = await games();
-    const g = all.find(x => x.slug === slug);
+    const every = await gamesAll(), all = every.filter(x => !AI_ONLY.has(x.slug));
+    const g = every.find(x => x.slug === slug);
     if (!g) { location.replace(EMBED ? './?embed=chat' : './'); return; }
+    // an AI-only game: opens from an AI's link (the daily message: ref=daily-*, the setup reply: ref=daily-*/go-*) or inside
+    // the AI (embed=chat); this tab remembers it. Anyone else gets a lock card that sends them to set up their AI.
+    if (AI_ONLY.has(g.slug)) {
+      const ref = new URLSearchParams(location.search).get('ref') || '';
+      let ok = EMBED || /^(daily|go)/.test(ref);
+      try { const k = 'ap.vip.' + g.slug; if (ok) sessionStorage.setItem(k, '1'); else ok = !!sessionStorage.getItem(k); } catch (e) {}
+      if (!ok) {
+        document.body.insertAdjacentHTML('beforeend', `<div class="ailock"><div><span class="cv" style="background-image:url('${esc(g.cover || g.thumb)}')"></span>
+          <b>🔒 ${esc(g.name.split(':')[0])} only opens from your AI</b><p>Send one message to ChatGPT or Claude and it brings you this game, plus fresh games every morning.</p>
+          <a class="go" href="go.html?inc=vip">GET IN ▶</a><a class="skip" href="./">Play something else</a></div></div>`);
+        return;
+      }
+    }
     if (g.linkout) { location.replace(g.external); return; }
     // came from the daily AI task (today page links carry ?ref=daily-<ai>): counted like a button click, no ids
     const REF = (r => /^daily(-(chatgpt|claude|gemini|perplexity|other))?$/.test(r || '') ? r : null)(new URLSearchParams(location.search).get('ref'));

@@ -47,8 +47,17 @@ upright = lambda g: phone(g) and g.get("orientation") != "landscape"
 # have file-name titles and keyboards); falls back to the best-scored phone games
 _feed = json.loads((re.search(r'"FEED":\s*(\[[^\]]*\])', open(os.path.join(ROOT, "arcade", "config.js")).read()) or [None, "[]"])[1])
 _by = {g["slug"]: g for g in shown}
+# AI-only games (config AI_ONLY): never on the shelves or in the lists; the daily message links them (they open from an AI)
+_cfg0 = open(os.path.join(ROOT, "arcade", "config.js")).read()
+AI_ONLY = json.loads((re.search(r'"AI_ONLY":\s*(\[[^\]]*\])', _cfg0) or [None, "[]"])[1])
+AI_VIP = (re.search(r'"AI_VIP":\s*"([^"]+)"', _cfg0) or [None, ""])[1]
+ai_only = [_by[s] for s in AI_ONLY if s in _by and s != AI_VIP]
+shown = [g for g in shown if g["slug"] not in AI_ONLY]
+new_shown = [g for g in new_shown if g["slug"] not in AI_ONLY]
+newest = [g for g in newest if g["slug"] not in AI_ONLY]
 top_new = [_by[s] for s in _feed if s in _by and upright(_by[s])] or [g for g in best(shown) if (score(g) or 0) >= 7.5 and phone(g)] or new_shown[:1]
 gotd = top_new[today.toordinal() % len(top_new)]
+peek = top_new[(today.toordinal() + 1) % len(top_new)]   # tomorrow's game of the day: the daily message shows it a day early
 cats = sorted({g["category"] for g in ok}, key=lambda c: (-sum(g["category"] == c for g in ok), c))
 cats = [c for c in cats if sum(g["category"] == c for g in ok) >= 3]
 
@@ -181,17 +190,23 @@ text = "\n".join(f'<h3>{EMOJI.get(c, "🎮")} {e(c)} <a class="more" href="{e(mo
     for c, xs in data["categories"].items() if xs)
 # ---- the daily message, ready to send: the daily task's whole reply, written here so every AI's task (old prompts too)
 # gets the same shape (markdown links: the names are the links): a fresh-games line, the poster, the game of the day, then each category with its games and a More
-# link. In a <pre> so it reaches the AI as plain text. arcade-api swaps <!--RW--> for the $1 reward line when there is one.
+# link. In a <pre> so it reaches the AI as plain text. arcade-api swaps <!--RW--> for the $1 reward line when there is one
+# and <!--ST--> for the visitor's streak (days in a row their AI fetched this page; day 7+ links the AI_VIP game).
 MSG_CATS = [c for c in data["categories"] if c not in ("Kids",) and data["categories"][c]][:9]
 msg = [f"🌅 Your daily games are fresh, {date}! Tap one and it opens:", "<!--RW-->"]
 if POSTER: msg.append(f"![Today's games]({POSTER})")
 msg += ["", f"🏆 Game of the day: [{gotd['name'].split(':')[0]} ▶]({play(gotd, 'gotd')})"]
+if peek is not gotd: msg += [f"👀 Tomorrow's game, today: [{peek['name'].split(':')[0]}]({play(peek, 'peek')})"]
+if ai_only: msg += [f"🔒 Only in your AI: " + " · ".join(f"[{g['name'].split(':')[0]}]({play(g, 'aionly')})" for g in ai_only)]
+msg += ["<!--ST-->"]
 for c in MSG_CATS:
     msg += ["", f"{EMOJI.get(c, '🎮')} **{c}** · [More {c} →]({more(c)})"]
     msg += [f"• [{x['name'].split(':')[0]}]({x['play_url']})" for x in data["categories"][c][:3]]
 msg += ["", f"🎮 [All {len(ok)} games →]({SITE})"]
 MSG = "\n".join(msg)
-data["daily_message"] = MSG.replace("<!--RW-->\n", "")
+data["peek"] = {"name": peek["name"], "play_url": play(peek, "peek")}
+data["ai_only"] = [{"name": g["name"], "play_url": play(g, "aionly")} for g in ai_only]
+data["daily_message"] = MSG.replace("<!--RW-->\n", "").replace("<!--ST-->\n", "")
 for path in ((os.path.join(ROOT, "arcade/today.json"),) if SITE_LAYOUT else (os.path.join(ROOT, "arcade/today.json"), os.path.join(OUT, "arcade/today.json"))):
     with open(path, "w") as f:
         json.dump(data, f, indent=1, ensure_ascii=False); f.write("\n")

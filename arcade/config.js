@@ -12,6 +12,8 @@
 //   SHOW_PROMPT      the prompt for a browser whose AI already runs the daily task (habits.js hasDaily): today's list, no second task
 //   PROMPT_TEST      A/B test of the daily prompt: each browser gets one of PROMPTS (a = DAILY_PROMPT, the control), carried as
 //                    today.riffcade.com/?v=<x> so taps, the AI's daily fetch and the visits from its links are credited to it
+//   AI_ONLY          games that only open from an AI's link (the daily message, ?ref=daily-*/go-*): hidden from the park,
+//                    shelves and feeds; play.html shows a lock card otherwise (shell.js). AI_VIP = the 7-day streak game.
 //   GO_PROMPT_CPA    the CPAlead version of GO_PROMPT: it keeps the {START} check-in fetch (we pay CPAlead per verified AI run)
 //   GO_PROMPT        the prompt behind the ad's ChatGPT / Claude buttons (go.html): short on purpose (a long message reads like a script): one tiny check-in fetch ({START}, so we see the message was sent without waiting for 8am; the full page made the reply slow), the first game link, then the daily task, which reads today's page every morning
 //   FEED             the swipe-up / round-over feed (grow.js): upright one-thumb games on our kit, the first 9 hand-checked (shown first)
@@ -36,6 +38,8 @@ window.RIFFCADE = {
   },
   "GO_PROMPT": "Don't open any website now. Make me a daily 8am task \"🐼 Daily games\": open https://today.agentpark.co and show me today's games in the layout of its daily message: picture, game of the day, then each category's games and More link, names as links.\nThen reply with only these lines, every link written as the full https:// address:\n🎮 Play now: {GAME}\n✅ Daily games set for 8am.\n📌 Pin this chat so your games stay on top.",
   "GO_PROMPT_CPA": "🎮 Set up my free daily arcade:\n1. Give me my first game: {GAME}\n2. Check in: {START}\n3. Make a daily 8am task called \"🐼 Daily games\": 6 new free games from https://today.agentpark.co, one line each with its link.\n4. Tell me to pin this chat so my games stay on top.",
+  "AI_ONLY": ["alibi-grid-daily-logic-puzzle", "hunch-five-letter-word-guess", "bunchwise-word-groups-puzzle", "lurkfield-monster-minesweeper-rpg"],
+  "AI_VIP": "lurkfield-monster-minesweeper-rpg",
   "FEED": ["ricochet-rex", "bolt-twist", "flip-agent", "cube-trek", "tiptoe-tower", "stretch-dash", "untwine", "swirl-tee", "marble-dash", "tube-rush", "sky-evolve", "turf-rush", "horde-blast", "gulp-city", "brick-climb", "shade-shop", "pose-rush", "dust-descent", "steady-wheels", "bellhop-boss", "sticky-nook", "chilly-chute", "viral-den", "dress-diva", "cover-clash", "latte-jam", "time-knives", "kickback", "smash-dummy", "glow-keys", "munch-buddies", "color-groove", "cloud-leap", "honk-out", "knit-flow", "swarm-streets", "paint-glide", "doodle-legs", "ring-peel", "squad-surge", "splitstream", "slip-links", "shelf-snap", "slab-up", "switchback", "flip-volt", "drip-doodle", "smooch-roll", "core-crusher", "girder-go", "snip-snack", "fort-fling", "bumpy-buggy", "skyline-scope", "rack-attack", "putt-isles", "fling-feud", "paw-lagoon", "whisker-stack"],
   "TIERS": { "strong_days_7": 4, "strong_daily_days_7": 3, "okay_days_7": 2, "okay_games_today": 3, "okay_minutes_7": 10 },
   "CHALLENGE_EPOCH": "2026-10-15",

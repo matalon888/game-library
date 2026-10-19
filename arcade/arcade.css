@@ -305,3 +305,12 @@ body .doc .band span:nth-child(1) { background: var(--bg); color: var(--paper) }
 @keyframes aiDot { 50% { opacity: .3 } }
 @keyframes aiGone { to { opacity: 0; visibility: hidden } }
 @media (prefers-reduced-motion: reduce) { .aiintro *, .aiintro { animation-duration: .01s !important; transition: none } }
+
+/* AI-only game lock (shell.js play(), config.js AI_ONLY) */
+.ailock { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(120% 80% at 50% 0%, #2a1f4a, #07060f 70%); color: #FFFDF8; text-align: center; font-family: "DM Sans", system-ui, sans-serif }
+.ailock > div { width: min(360px, 100%); display: grid; gap: 14px; justify-items: center }
+.ailock .cv { width: 150px; aspect-ratio: 3 / 5; border-radius: 18px; background: #161124 center / cover; filter: blur(3px) saturate(1.2); box-shadow: 0 0 0 2px #FFC93C, 0 18px 40px -10px rgba(255,201,60,.45) }
+.ailock b { font: 800 24px/1.1 "Bricolage Grotesque", "DM Sans", sans-serif }
+.ailock p { margin: 0; color: #CFCBE6; font-size: 15px }
+.ailock .go { display: block; width: 100%; padding: 16px; border-radius: 16px; background: #FFC93C; color: #1E1B33; font: 800 18px "DM Sans", sans-serif; text-decoration: none; box-shadow: 0 5px 0 #b8861a }
+.ailock .skip { color: #CFCBE6; font-size: 14px }
