@@ -75,7 +75,10 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 <script src="club.js"></script>
 <script>ClubScene(document.getElementById('club'));
 // the reward offer, only while rewards are on (arcade-api rewards.js)
-window.RiffReward && RiffReward.status().then(st => { if (!st.on) return; RiffReward.offerCard(document.getElementById('rwOffer'), st);
+// only for visitors from our Meta ads (never CPAlead traffic); ?rw=1 previews it
+const rwFromMeta = new URLSearchParams(location.search).get('rw') === '1' || (window.ApAttrib && ApAttrib.fromAd() && !/cpalead/i.test(location.search + (sessionStorage.getItem('arcade.s.src0') || '')));
+rwFromMeta && window.RiffReward && RiffReward.status().then(st => { if (!st.on) return; RiffReward.offerCard(document.getElementById('rwOffer'), st);
+  window.GoSetReward && GoSetReward(`\n5. Tell me in one line: "💸 Your $${st.amount} from AGENTPARK unlocks the first morning this daily task runs by itself. AGENTPARK will ask for your PayPal email then, on its own page, never in this chat."`);
   document.querySelectorAll('.go small').forEach(x => { x.innerHTML = `GET IN <span class="plus">+$${st.amount}</span> ▶`; }); });</script>
 <script>
 (function () {
@@ -99,11 +102,13 @@ window.RiffReward && RiffReward.status().then(st => { if (!st.on) return; RiffRe
   // the first game: the reply's first line links to it, and this tab turns into it the moment the AI opens (or if it doesn't),
   // so the visitor is never waiting on the AI to start playing
   const GAME = (C.FEED || [])[0] || 'ricochet-rex';
+  // the $1 reward line (Meta ad visitors only, while rewards are on): the AI tells them when it unlocks and where PayPal is asked
+  let RW = '';
   function target(ai) {
     const gameUrl = `https://agentpark.co/arcade/play.html?g=${GAME}&ref=daily-${ai}&apu=${code || ''}&pos=go`;
     // {START}: the tiny check-in page the AI opens first, so we know within seconds the message was sent (server.js /start)
     const startUrl = `https://today.agentpark.co/start?u=${code || ''}&g=${GAME}`;
-    const P = (C.GO_PROMPT || C.DAILY_PROMPT || '').replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
+    const P = ((C.GO_PROMPT || C.DAILY_PROMPT || '') + RW).replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
     const aiUrl = ai === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
     // out of the in-app browser first: Safari on iPhone (x-safari-), Chrome on Android (intent:)
     let href = aiUrl;
@@ -130,9 +135,10 @@ window.RiffReward && RiffReward.status().then(st => { if (!st.on) return; RiffRe
     if (ai === AD_AI) b.classList.add('first');
     b.href = t.href;
     Object.entries(ownTab(t.href)).forEach(([k, v]) => b.setAttribute(k, v));
-    b.addEventListener('click', () => tapped(ai, t));
+    b.addEventListener('click', () => tapped(ai, target(ai)));   // rebuilt at tap time: the reward line may have arrived since
   });
 
+  window.GoSetReward = line => { RW = line; ['chatgpt', 'claude'].forEach((ai, i) => { const b = $('b' + (i + 1)), t = target(ai); b.href = t.href; Object.entries(ownTab(t.href)).forEach(([k, v]) => b.setAttribute(k, v)); }); };
   if (!sessionStorage.getItem('ap.goShown')) { try { sessionStorage.setItem('ap.goShown', '1'); } catch (e) {} ev('go_shown_' + AD_AI); }
   let went = false;
   function tapped(ai, t) {

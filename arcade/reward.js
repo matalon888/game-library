@@ -7,7 +7,10 @@
   const API = 'https://mcp.riffcade.com';
   const q = new URLSearchParams(location.search);
   if (q.get('embed') === 'chat') return;
+  // the AI's claim link carries the code (?apu=…&claim=1): it may open in a different browser (the AI app's own) than the first tap
   let u = null; try { u = localStorage.getItem('ap.u'); } catch (e) {}
+  if (/^[a-z0-9]{10}$/.test(q.get('apu') || '') && (q.get('claim') === '1' || !u)) { u = q.get('apu'); try { localStorage.setItem('ap.u', u); } catch (e) {} }
+  if (q.get('claim') === '1') { try { sessionStorage.removeItem('rw.sheetClosed'); } catch (e) {} }
   const css = `
   @keyframes rw-spin{0%,100%{transform:rotateY(-28deg) scale(1)}50%{transform:rotateY(28deg) scale(1.08)}}@keyframes rw-bob{50%{transform:translateY(-5px)}}@keyframes rw-shine{to{background-position:200% 0}}
   @keyframes rw-pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}@keyframes rw-up{from{transform:translateY(110%)}}
