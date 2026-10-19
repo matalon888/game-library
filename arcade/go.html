@@ -78,7 +78,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 // only for visitors from our Meta ads (never CPAlead traffic); ?rw=1 previews it
 const rwFromMeta = new URLSearchParams(location.search).get('rw') === '1' || (window.ApAttrib && ApAttrib.fromAd() && !/cpalead/i.test(location.search + (sessionStorage.getItem('arcade.s.src0') || '')));
 rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st.on) return; RiffReward.offerCard(document.getElementById('rwOffer'), st);
-  window.GoSetReward && GoSetReward(`\n5. Tell me in one line: "💸 Your $${st.amount} from AGENTPARK unlocks the first morning this daily task runs by itself. AGENTPARK will ask for your PayPal email then, on its own page, never in this chat."`);
+  window.GoSetReward && GoSetReward(`\n💸 Your $${st.amount} unlocks the first morning this task runs. PayPal email asked then, on AGENTPARK's page.`);
   document.querySelectorAll('.go small').forEach(x => { x.innerHTML = `GET IN <span class="plus">+$${st.amount}</span> ▶`; }); });</script>
 <script>
 (function () {
@@ -108,7 +108,8 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     const gameUrl = `https://agentpark.co/arcade/play.html?g=${GAME}&ref=daily-${ai}&apu=${code || ''}&pos=go`;
     // {START}: the tiny check-in page the AI opens first, so we know within seconds the message was sent (server.js /start)
     const startUrl = `https://today.agentpark.co/start?u=${code || ''}&g=${GAME}`;
-    const P = ((C.GO_PROMPT || C.DAILY_PROMPT || '') + RW).replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
+    // Meta / everyone: the fast prompt (no website opened in the first reply, the game link comes first); CPAlead: with the check-in
+    const P = (((cpaClick && C.GO_PROMPT_CPA) || C.GO_PROMPT || C.DAILY_PROMPT || '') + RW).replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
     const aiUrl = ai === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
     // out of the in-app browser first: Safari on iPhone (x-safari-), Chrome on Android (intent:)
     let href = aiUrl;
