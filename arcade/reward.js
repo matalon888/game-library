@@ -60,7 +60,7 @@
   // go.html: the offer, right under the two AI buttons
   function offerCard(el, st) {
     style(); el.className = 'rw-offer'; el.hidden = false;
-    el.innerHTML = `<div class="top">${coin(st.amount)}<div><h3>Plug in your AI, get <em>$${st.amount}</em> 💸</h3><div class="sm">Real money to your PayPal, paid once we've confirmed it.</div></div></div>
+    el.innerHTML = `<div class="top">${coin(st.amount)}<div><h3>Plug in your AI, get <em>$${st.amount}</em>. Guaranteed 💸</h3><div class="sm">${st.prize ? `And one player a day gets <b>$${st.prize}</b>. ` : ''}Real money to your PayPal, paid once we've confirmed it.</div></div></div>
       <div class="rw-steps"><div><b>👆</b><strong>1. Tap & send</strong>your AI connects</div><div><b>⏰</b><strong>2. Tomorrow</strong>your AI checks in by itself</div><div><b>💸</b><strong>3. $${st.amount} is yours</strong>straight to PayPal</div></div>`;
   }
   function pill(html, pct, ms) {
@@ -79,12 +79,12 @@
     if (sget('rw.sheetClosed')) return; style();
     const el = document.createElement('div'); el.className = 'rw-sheet';
     el.innerHTML = `<form class="rw-card" novalidate>${coin(st.amount)}<h2>Confirmed! ✅<br>Your <em>$${st.amount}</em> is ready</h2>
-      <p>Your AI checked in by itself. It's plugged in. Where do we send your money?</p>
+      <p>Your AI checked in by itself. It's plugged in. Where do we send your money?${st.prize ? ` You're also in today's <b>$${st.prize} draw</b>.` : ''}</p>
       <input type="email" name="email" placeholder="your PayPal email" autocomplete="email" required>
       <label><input type="checkbox" name="adult"> I'm 18 or older</label>
       <div class="err" role="alert"></div>
       <button class="go" type="submit">Send me my $${st.amount} 💸</button>
-      <small>One per person. US PayPal accounts. <a href="terms.html#rewards" target="_blank">Reward rules</a> · <a href="privacy.html" target="_blank">Privacy</a></small>
+      <small>One per person. US PayPal accounts. <a href="terms.html#rewards" target="_blank">Reward and draw rules</a> · <a href="privacy.html" target="_blank">Privacy</a></small>
       <button class="x" type="button">Later</button></form>`;
     const f = el.querySelector('form'), err = el.querySelector('.err'), go = el.querySelector('.go');
     el.querySelector('.x').onclick = () => { sset('rw.sheetClosed', '1'); el.remove(); };
@@ -98,7 +98,7 @@
         if (!r.ok) throw new Error(j.error || 'Something went wrong. Try again.');
         f.innerHTML = j.held
           ? `${coin(st.amount)}<h2>Almost there 🔎</h2><p>We're double-checking this one by hand. Your $${st.amount} lands in your PayPal within 24 hours.</p><button class="go" type="button">Keep playing ▶</button>`
-          : `${coin(st.amount)}<h2>💸 Sent!</h2><p>Your $${st.amount} is on its way. PayPal emails you in a few minutes.</p><button class="go" type="button">Keep playing ▶</button>`;
+          : `${coin(st.amount)}<h2>💸 Sent!</h2><p>Your $${st.amount} is on its way. PayPal emails you in a few minutes.${st.prize ? ` You're in today's $${st.prize} draw too: if you win, PayPal emails you again tomorrow.` : ''}</p><button class="go" type="button">Keep playing ▶</button>`;
         if (!j.held) rain(36);
         f.querySelector('.go').onclick = () => el.remove();
       } catch (er) { err.textContent = er.message; go.disabled = false; go.textContent = `Send me my $${st.amount} 💸`; }
