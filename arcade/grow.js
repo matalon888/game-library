@@ -282,7 +282,8 @@
     for (let i = 0; i < 3; i++) { const g = feedNext(picks.map(x => x.slug)); if (g && !picks.includes(g)) picks.push(g); }
     const o = card('g-round', `<div class="eyebrow">Round over</div><h2>One more go?</h2>
       <button class="btn big" id="gAgain">↻ Play again</button>
-      ${picks.length ? `<p>Or try another game</p><div class="g-picks">${picks.map(g => `<button type="button" data-s="${esc(g.slug)}"><img src="${esc(art(g))}" alt=""><span>${esc(g.name)}</span></button>`).join('')}</div>` : ''}`);
+      ${picks.length ? `<p>Or try another game</p><div class="g-picks">${picks.map(g => `<button type="button" data-s="${esc(g.slug)}"><img src="${esc(art(g))}" alt=""><span>${esc(g.name)}</span></button>`).join('')}</div>` : ''}
+      ${kids || C.SPONSOR_OFF ? '' : '<a class="g-earn" href="earn.html">💵 Earn real money with sponsored apps ▶</a>'}`);
     o.id = 'gRound';
     ev('round_shown');
     $('gAgain').onclick = () => {

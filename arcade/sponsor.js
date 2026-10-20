@@ -3,6 +3,9 @@
 (function () {
   const q = new URLSearchParams(location.search), el = document.getElementById('sponsor');
   if (!el || q.get('embed') === 'chat' || /kids/i.test(q.get('mode') || '') || (window.RIFFCADE || {}).SPONSOR_OFF) return;
+  // the park header's Earn button (offer wall, earn.html)
+  const top = document.querySelector('header.top');
+  if (top && !document.querySelector('.earnchip')) top.insertAdjacentHTML('beforeend', '<a class="earnchip" href="earn.html" aria-label="Earn money">💵 Earn</a>');
   const u = window.RiffHabits && RiffHabits.agentCode ? RiffHabits.agentCode() : '', os = /Android/i.test(navigator.userAgent) ? 'android' : 'ios';
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   // VIP players never see sponsored offers
