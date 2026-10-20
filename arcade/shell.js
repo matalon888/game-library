@@ -513,11 +513,13 @@
       const kick = () => intro.then(() => {
         if (!$('go')) return;
         $('go').click();
-        let n = 0, hits = 0;
+        let n = 0, hits = 0, tapped = false;
+        try { frame.contentWindow.addEventListener('pointerdown', ev => { if (ev.isTrusted) tapped = true; }, { capture: true }); } catch (e) {}
         const t = setInterval(() => {   // the start card can appear a moment after load (fonts, 3D scene)
           try {
             const w = frame.contentWindow, d = w.document, c = d.querySelector('.hc-card:not(.hc-hidden)');
-            if ((w.__game && w.__game.state === 'play') || ++n > 100 || hits > 2) return clearInterval(t);
+            // heavy 3D games (autostart hook) may load for a while on a slow phone: keep waiting up to 90 s unless the player tapped
+            if ((w.__game && w.__game.state === 'play') || tapped || ++n > (w.__game && w.__game.autostart ? 360 : 100) || hits > 2) return clearInterval(t);
             if (c) { c.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true })); hits++; return; }
             if (w.__game && typeof w.__game.autostart === 'function') { if (n > 2 && w.__game.autostart() !== false) hits = 9; return; }   // games with a menu of their own jump into the next level (false = not loaded yet)
             const b = n > 3 && titleButton(d);
