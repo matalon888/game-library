@@ -266,7 +266,10 @@
     // the AI (embed=chat); this tab remembers it. Anyone else gets a lock card that sends them to set up their AI.
     if (AI_ONLY.has(g.slug)) {
       const ref = new URLSearchParams(location.search).get('ref') || '';
-      let ok = EMBED || /^(daily|go)/.test(ref);
+      const gift = (v => /^[a-z0-9]{10}$/.test(v || '') ? v : null)(new URLSearchParams(location.search).get('gift'));
+      let ok = EMBED || /^(daily|go)/.test(ref) || !!gift;
+      // a friend's gift link (the daily message's "unlock a game for a friend"): open it, and invite them to get their own
+      if (gift) setTimeout(() => document.body.insertAdjacentHTML('beforeend', `<a class="aigift" href="go.html?inc=vip&utm_source=gift&utm_medium=friend&utm_content=${gift}">🎁 A friend unlocked this for you. <b>Get your own AI games ▶</b></a>`), 1500);
       try { const k = 'ap.vip.' + g.slug; if (ok) sessionStorage.setItem(k, '1'); else ok = !!sessionStorage.getItem(k); } catch (e) {}
       if (!ok) {
         document.body.insertAdjacentHTML('beforeend', `<div class="ailock"><div><span class="cv" style="background-image:url('${esc(g.cover || g.thumb)}')"></span>
