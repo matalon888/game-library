@@ -492,26 +492,48 @@
       setTimeout(() => { fit(); checkRotate(); autoFit(); }, 250);
     };
 
-    // From an ad (park.js picked this game): start it without the PLAY tap, then tap past the game's own start card (our kit
-    // games), so the first thing a visitor sees is the game moving. Visitors from the AI-chat ads also see what the ad promised:
-    // the "play something" chat moment
-    // first (aiIntro, ~2.5 s while the game loads behind it), then the game starts.
-    let auto = null; try { auto = sessionStorage.getItem('ap.auto'); } catch (e) {}
-    if (auto === g.slug && !EMBED) {
+    // Every game starts by itself (Daniel 2026-10-20: "stop asking the user to click start, just start"): no PLAY splash,
+    // and we tap past the game's own start card / title button, so the first thing anyone sees is the game moving.
+    // Visitors from the AI-chat ads first see the "play something" chat moment (aiIntro, ~2.5 s while the game loads).
+    // Fullscreen + orientation lock need a user gesture: they happen on the player's first tap inside the game.
+    if (!EMBED) {
       let aiAd = false; try { sessionStorage.removeItem('ap.auto'); aiAd = sessionStorage.getItem('ap.aiAd') === '1'; sessionStorage.removeItem('ap.aiAd'); } catch (e) {}
       ov.classList.add('autostart');
       const intro = aiAd ? aiIntro(g) : Promise.resolve();
+      const START = /^\s*(▶\s*)?(tap|click|touch)( anywhere)? to (start|play|begin)|^\s*(▶\s*)?(play|start|start game|play now|let'?s go|fight!?)(\s+(level|day|round|run)\s*\d+)?\s*(▶)?\s*$/i;
+      const titleButton = d => {   // a visible, big "Play / Tap to start" control on the game's own title screen
+        for (const e of d.querySelectorAll('button, [role=button], .btn, a, div, h2, p')) {
+          const t = (e.innerText || '').trim(); if (!t || t.length > 24 || !START.test(t)) continue;
+          const r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 24 || r.bottom < 0 || r.top > d.defaultView.innerHeight) continue;
+          const cs = d.defaultView.getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
+          return e;
+        }
+        return null;
+      };
       const kick = () => intro.then(() => {
         if (!$('go')) return;
         $('go').click();
-        let n = 0;
+        let n = 0, hits = 0;
         const t = setInterval(() => {   // the start card can appear a moment after load (fonts, 3D scene)
           try {
-            const w = frame.contentWindow, c = w.document.querySelector('.hc-card:not(.hc-hidden)');
-            if ((w.__game && w.__game.state === 'play') || ++n > 25) return clearInterval(t);
-            if (c) c.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true }));
+            const w = frame.contentWindow, d = w.document, c = d.querySelector('.hc-card:not(.hc-hidden)');
+            if ((w.__game && w.__game.state === 'play') || ++n > 100 || hits > 2) return clearInterval(t);
+            if (c) { c.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true })); hits++; return; }
+            if (w.__game && typeof w.__game.autostart === 'function') { if (n > 2 && w.__game.autostart() !== false) hits = 9; return; }   // games with a menu of their own jump into the next level (false = not loaded yet)
+            const b = n > 3 && titleButton(d);
+            if (b) { const r = b.getBoundingClientRect(), o = { bubbles: true, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2, pointerId: 1, isPrimary: true };
+              b.dispatchEvent(new w.PointerEvent('pointerdown', o)); b.dispatchEvent(new w.PointerEvent('pointerup', o)); b.click(); hits++; }
           } catch (e) { clearInterval(t); }
-        }, 200);
+        }, 250);
+        // fullscreen + orientation on the first real tap in the game (user activation reaches the parent page)
+        try {
+          frame.contentWindow.addEventListener('pointerdown', ev => {
+            if (!ev.isTrusted) return;
+            const de = document.documentElement;
+            if (!standalone && de.requestFullscreen && !document.fullscreenElement && matchMedia('(pointer: coarse)').matches) de.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+            if (g.orientation !== 'any' && screen.orientation && screen.orientation.lock) screen.orientation.lock(g.orientation).catch(() => {});
+          }, { once: true, capture: true });
+        } catch (e) {}
       });
       if (frame.contentDocument && frame.contentDocument.readyState === 'complete' && frame.contentWindow.location.href !== 'about:blank') kick();
       else frame.addEventListener('load', () => setTimeout(kick, 150), { once: true });

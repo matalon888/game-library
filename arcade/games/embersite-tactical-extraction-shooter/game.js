@@ -610,5 +610,7 @@ requestAnimationFrame(frame);
 
 window.__game = {
   get state() { return G.state; }, get level() { return run ? run.idx + 1 : S.get('unlocked', 0) + 1; }, get score() { return run ? run.score : 0; },
+  // arcade auto-start: drop straight into the next unlocked contract
+  autostart() { if (G.state !== 'ready') return; startContract(D.isDaily ? 5 : Math.min(S.get('unlocked', 0), 4)); },
   bot, G, get info() { return { fps: G.fps, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, enemies: enemies.list.filter(e => e.alive).length, phase: G.phase, hp: P.hp, time: run && run.time, bot: G.botDbg, kills: run && run.kills, p: P.p.toArray().map(Math.round) }; },
 };

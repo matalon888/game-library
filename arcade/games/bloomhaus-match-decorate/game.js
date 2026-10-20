@@ -494,6 +494,8 @@ R.info.autoReset = false;
 // ---------------------------------------------------------------- test hooks
 let botBusy = false;
 window.__game = {
+  // arcade auto-start: skip the title and the room, straight into the next level (false while still loading)
+  autostart() { if (mode !== 'title' || !P) return false; ui.els.start.dispatchEvent(new Event('pointerdown')); setTimeout(startLevel, 350); },
   get state() { return state; }, get level() { return st.level; }, get score() { return st.earned; },
   get stars() { return st.stars; }, get dbg() { return M3 && M3.dbg; }, get perf() { return perf; }, get room() { return st.room; }, get tasksDone() { return Object.values(st.done).reduce((a, l) => a + l.length, 0); },
   bot() {
