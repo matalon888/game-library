@@ -88,7 +88,7 @@ const INC_COPY = {
 if (INC_COPY) { document.querySelector('h1').textContent = INC_COPY[0]; document.querySelector('.sub').innerHTML = INC_COPY[1]; }
 const rwFromMeta = !INC && (new URLSearchParams(location.search).get('rw') === '1' || (window.ApAttrib && ApAttrib.fromAd() && !/cpalead/i.test(location.search + (sessionStorage.getItem('arcade.s.src0') || ''))));
 rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st.on) return; RiffReward.offerCard(document.getElementById('rwOffer'), st);
-  window.GoSetReward && GoSetReward(`\n💸 Your guaranteed $${st.amount}${st.prize ? ` (+ a shot at the daily $${st.prize} draw)` : ''} unlocks the first morning this task runs. PayPal email asked then, on AGENTPARK's page.`);
+  window.GoSetReward && GoSetReward(`\n💸 Your guaranteed $${st.amount}${st.prize ? ` (+ a shot at the daily $${st.prize} draw)` : ''} unlocks ${st.need > 2 ? `on the ${st.need}th morning this task runs` : 'the first morning this task runs'}. PayPal email asked then, on AGENTPARK's page.`);
   document.querySelectorAll('.go small').forEach(x => { x.innerHTML = `GET IN <span class="plus">+$${st.amount}</span> ▶`; }); });</script>
 <script>
 (function () {

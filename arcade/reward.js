@@ -61,7 +61,7 @@
   function offerCard(el, st) {
     style(); el.className = 'rw-offer'; el.hidden = false;
     el.innerHTML = `<div class="top">${coin(st.amount)}<div><h3>Plug in your AI, get <em>$${st.amount}</em>. Guaranteed 💸</h3><div class="sm">${st.prize ? `And one player a day gets <b>$${st.prize}</b>. ` : ''}Real money to your PayPal, paid once we've confirmed it.</div></div></div>
-      <div class="rw-steps"><div><b>👆</b><strong>1. Tap & send</strong>your AI connects</div><div><b>⏰</b><strong>2. Tomorrow</strong>your AI checks in by itself</div><div><b>💸</b><strong>3. $${st.amount} is yours</strong>straight to PayPal</div></div>`;
+      <div class="rw-steps"><div><b>👆</b><strong>1. Tap & send</strong>your AI connects</div><div><b>⏰</b><strong>2. ${st.need > 2 ? st.need + ' mornings' : 'Tomorrow'}</strong>your AI runs your games${st.need > 2 ? ', day by day' : ' by itself'}</div><div><b>💸</b><strong>3. $${st.amount} is yours</strong>straight to PayPal</div></div>`;
   }
   function pill(html, pct, ms) {
     if (sget('rw.pill')) return; sset('rw.pill', '1'); style();
@@ -115,7 +115,7 @@
   const run = () => kidsGame().then(k => k ? { on: false } : status()).then(st => {
     if (!st.on || st.claimed) return;
     if (st.confirmed) return sheet(st);
-    if (st.connected) return pill(`<b>Step 1 done!</b> Your AI is connected ✅<br>Your $${st.amount} unlocks when it checks in by itself tomorrow ⏰`, 50, onGame ? 8000 : 15000);
+    if (st.connected) return pill(`<b>Step 1 done!</b> Your AI is connected ✅<br>Your $${st.amount} unlocks ${st.need > 2 ? `on morning ${st.need} (day ${Math.max(1, st.days || 1)} of ${st.need})` : 'when it checks in by itself tomorrow'} ⏰`, 50, onGame ? 8000 : 15000);
     if (cameFromGo) pill(`Your <b>$${st.amount}</b> is waiting 🎁<br>Hit <b>↑ send</b> in your AI to start step 1`, 8, onGame ? 8000 : 15000);
   });
   if (document.readyState === 'complete') setTimeout(run, onGame ? 2500 : 600);
