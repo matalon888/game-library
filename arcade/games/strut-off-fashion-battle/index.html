@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Strut Off: Fashion Battle</title>
+<meta name="description" content="Dress your model for each themed challenge, strut the 3D runway, nail the pose and win the audience vote against three rival stylists in a free dress-up fashion game.">
+<meta property="og:title" content="Strut Off: Fashion Battle">
+<meta property="og:description" content="Style a look for the theme, strut the runway, strike the perfect pose and beat three rivals in the vote. Free dress-up fashion game in your browser.">
+<meta name="theme-color" content="#ff5d9e">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#5b2346;--pink:#ff4f97;--pink2:#ff8fbe;--lilac:#b48bff;--gold:#ffc23d;--cream:#fff8f3}
+body{background:#ffd1e1!important;font-family:'Baloo 2',system-ui,sans-serif}
+.hc-score,.hc-sub,.hc-top,.hc-pill{display:none!important}
+.hc-card,.hc-pop{font-family:'Lilita One','Baloo 2',system-ui,sans-serif!important;font-weight:400!important}
+.hc-pop{color:#fff;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 rgba(91,35,70,.5)!important;z-index:30!important}
+.hc-card{padding:calc(12px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom))!important;justify-content:flex-start!important}
+.hc-card>h1,.hc-card>.hint,.hc-card>p{display:none!important}
+.gem{display:inline-block;width:.95em;height:.95em;vertical-align:-.12em;background:linear-gradient(135deg,#bff6ff 0 25%,#62d6ff 26% 50%,#3a8dff 51% 75%,#9d7bff 76%);clip-path:polygon(50% 0,100% 38%,50% 100%,0 38%);filter:drop-shadow(0 1px 0 rgba(0,0,0,.2))}
+.btn{border:0;cursor:pointer;font-family:'Lilita One',system-ui;color:#fff;border-radius:20px;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.btn:active{transform:translateY(3px) scale(.97)}
+/* loading */
+#load{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(120% 80% at 50% 30%,#ffe3ee,#ffb3d0 60%,#d7a6ff);transition:opacity .5s}
+#load.gone{opacity:0;pointer-events:none}
+#load .bar{width:min(240px,60vw);height:14px;border-radius:9px;background:rgba(255,255,255,.6);overflow:hidden;box-shadow:inset 0 2px 0 rgba(0,0,0,.08)}
+#load .bar i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,#ff7ab3,#ff4f97);transition:width .2s}
+#load small{font:700 14px 'Baloo 2';color:var(--ink);opacity:.7}
+/* logo */
+.logo{display:flex;flex-direction:column;align-items:center;line-height:.86;filter:drop-shadow(0 6px 0 rgba(120,30,80,.28))}
+.logo b{font:400 clamp(54px,16vw,86px)/.86 'Lilita One';color:#fff;-webkit-text-stroke:3px #c22a73;paint-order:stroke fill;letter-spacing:1px;transform:rotate(-4deg)}
+.logo b em{font-style:normal;color:#ffe066;-webkit-text-stroke:3px #c22a73}
+.logo span{margin-top:4px;font:400 17px 'Lilita One';letter-spacing:5px;color:#fff;background:linear-gradient(90deg,#ff4f97,#b06bff);padding:4px 14px 2px;border-radius:12px;transform:rotate(-4deg);box-shadow:0 3px 0 #8f2a7c}
+/* lobby */
+.lob{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:520px;height:100%;pointer-events:auto}
+.lob .top{display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-top:44px}
+.pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);color:var(--ink);font:400 16px 'Lilita One';padding:5px 12px 3px;border-radius:16px;box-shadow:0 3px 0 rgba(150,40,90,.25)}
+.journey{display:flex;gap:7px;overflow-x:auto;width:100%;padding:4px 4px 8px;scrollbar-width:none;scroll-snap-type:x proximity}
+.journey::-webkit-scrollbar{display:none}
+.jd{flex:0 0 auto;width:48px;height:56px;border-radius:16px;background:rgba(255,255,255,.88);color:var(--ink);font:400 18px/1 'Lilita One';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 3px 0 rgba(150,40,90,.22);scroll-snap-align:center;position:relative}
+.jd i{font-style:normal;font-size:10px;letter-spacing:-1px;color:#ffb300}
+.jd.cur{background:linear-gradient(180deg,#ff8fbe,#ff4f97);color:#fff;transform:scale(1.1);box-shadow:0 4px 0 #c22a73}
+.jd.lock{opacity:.55}
+.jd.ven{margin-left:10px}
+.jd.ven::before{content:attr(data-v);position:absolute;top:-2px;left:-11px;font-size:11px}
+.chal{width:100%;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,240,247,.96));border-radius:24px;padding:10px 14px 12px;color:var(--ink);box-shadow:0 6px 0 rgba(150,40,90,.25),0 14px 30px rgba(120,30,80,.18);text-align:left;display:flex;gap:12px;align-items:center}
+.chal .em{font-size:44px;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.12))}
+.chal h3{margin:0;font:400 22px/1.05 'Lilita One'}
+.chal p{margin:2px 0 6px;font:700 13px/1.25 'Baloo 2';color:#9a5a80}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{display:inline-flex;align-items:center;gap:3px;font:800 12px/1 'Baloo 2';padding:4px 8px 3px;border-radius:10px;background:#ffe2ef;color:#b02a6c;white-space:nowrap}
+.tag.want{background:linear-gradient(180deg,#d9ffe9,#b6f5d3);color:#16794a}
+.tag.ban{background:#ffe0e0;color:#c03030;text-decoration:line-through;text-decoration-thickness:2px}
+.tag.rule{background:#fff2c4;color:#8a5a00}
+.lspace{flex:1;min-height:6px}
+.herowrap{width:100%}
+.prow{display:flex;gap:10px;width:100%;align-items:stretch}
+.sbtn{flex:0 0 74px;background:linear-gradient(180deg,#fff,#ffe6f1);color:var(--ink);font-size:24px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 5px 0 rgba(150,40,90,.3);position:relative;padding:8px 0}
+.sbtn small{font:400 13px 'Lilita One'}
+.sbtn b{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:#ff4f4f;color:#fff;font:400 13px/22px 'Lilita One';box-shadow:0 2px 0 #b02020}
+.playbtn{flex:1;font-size:28px;line-height:1;padding:12px 8px 10px;background:linear-gradient(180deg,#ff8fbe,#ff4f97 60%,#ef3486);box-shadow:0 6px 0 #b8226a,0 12px 24px rgba(200,40,110,.35);text-shadow:0 3px 0 rgba(150,20,80,.4);animation:pulse 1.6s ease-in-out infinite}
+.playbtn small{display:block;font:700 13px 'Baloo 2';opacity:.95;text-shadow:none;margin-top:3px}
+@keyframes pulse{50%{transform:scale(1.035)}}
+/* sheets */
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(60,10,40,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.shop{width:min(560px,100%);max-height:78vh;overflow:auto;background:linear-gradient(180deg,#fff9fc,#ffeef6);border-radius:26px 26px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom));color:var(--ink);animation:up .3s cubic-bezier(.2,1,.3,1);text-align:left}
+@media (min-width:700px){.sheet{align-items:center}.shop{border-radius:26px}}
+@keyframes up{from{transform:translateY(30%)}}
+.shop h2{margin:0;font:400 26px 'Lilita One';display:flex;align-items:center;gap:8px}
+.shop h2 .x{margin-left:auto;background:#ffd6e7;color:var(--ink);width:38px;height:38px;border-radius:13px;font-size:18px}
+.shop .sub{font:700 13px 'Baloo 2';color:#9a5a80;margin:2px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:9px}
+/* item card (wardrobe + shop) */
+.card{position:relative;border:0;background:#fff;border-radius:18px;padding:6px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink);font:400 12.5px/1.05 'Lilita One';box-shadow:0 4px 0 rgba(150,40,90,.2);cursor:pointer;min-height:118px;-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s}
+.card .th{width:70px;height:70px;border-radius:14px;background:radial-gradient(80% 70% at 50% 35%,#fff,#ffe1ee 75%,#ffd0e4);display:grid;place-items:center;overflow:hidden}
+.card .th img{width:68px;height:68px;object-fit:contain}
+.card .sw{width:52px;height:52px;border-radius:50%;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),inset 0 4px 0 rgba(255,255,255,.5),0 0 0 3px #fff,0 2px 6px rgba(0,0,0,.2)}
+.card .nm{max-width:94px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .tg{font-size:13px;letter-spacing:1px;height:15px}
+.card.on{box-shadow:0 0 0 3px var(--pink),0 4px 0 rgba(150,40,90,.25);transform:translateY(-2px)}
+.card.on::after{content:'✓';position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--pink);color:#fff;font:400 12px/20px 'Lilita One';text-align:center}
+.card.lock{opacity:.6}
+.card.lock .th,.card.lock .sw{filter:grayscale(.85) brightness(1.05)}
+.card .lk{position:absolute;inset:auto 0 6px 0;text-align:center;font:400 12px 'Lilita One';color:#7a4a6a}
+.card.lock .tg,.card.lock .nm{visibility:hidden}
+.card.tip{box-shadow:0 0 0 3px #ffc23d,0 0 18px 4px rgba(255,194,61,.8),0 4px 0 rgba(150,40,90,.25)}
+.card.tip::before{content:'💡';position:absolute;top:-6px;left:-4px;font-size:18px}
+.card.new::before{content:'NEW';position:absolute;top:-6px;left:-4px;background:#ff4f4f;color:#fff;font:400 10px/1 'Lilita One';padding:3px 5px 2px;border-radius:8px}
+.card .price{font:400 13px 'Lilita One';color:#3a6fd8}
+.card.owned .price{color:#16794a}
+.card.pop{animation:cpop .3s cubic-bezier(.2,1.6,.4,1)}
+@keyframes cpop{40%{transform:scale(1.12)}}
+/* dressing room HUD */
+#dress{position:fixed;inset:0;z-index:12;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+#dress.off{display:none}
+.dtop{pointer-events:auto;margin:calc(10px + env(safe-area-inset-top)) 64px 0 64px;display:flex;flex-direction:column;align-items:center;gap:5px;animation:drop .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drop{from{transform:translateY(-120%)}}
+.theme{display:flex;align-items:center;gap:7px;background:linear-gradient(180deg,#fff,#ffeef6);border:3px solid #fff;border-radius:20px;padding:4px 12px 2px 8px;color:var(--ink);font:400 19px 'Lilita One';box-shadow:0 4px 0 rgba(150,40,90,.3)}
+.theme .em{font-size:24px}
+.rivals{display:flex;gap:4px;align-items:center;font:400 12px 'Lilita One';color:#fff;-webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill}
+.rivals img{width:30px;height:30px;border-radius:10px;background:#fff;border:2px solid #fff;box-shadow:0 2px 0 rgba(150,40,90,.3);object-fit:cover}
+.panel{pointer-events:auto;background:linear-gradient(180deg,rgba(255,250,252,.97),rgba(255,236,245,.98));border-radius:26px 26px 0 0;padding:8px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(120,30,80,.18);animation:up .4s cubic-bezier(.2,1,.3,1)}
+.tabs{display:flex;gap:5px;justify-content:space-between;margin-bottom:7px}
+.tabs button{flex:1;border:0;background:#ffe2ef;border-radius:14px;height:44px;font-size:20px;line-height:1;cursor:pointer;position:relative;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Lilita One'}
+.tabs button small{font-size:10px;opacity:.85}
+.tabs button.on{background:linear-gradient(180deg,#ff8fbe,#ff4f97);color:#fff;box-shadow:0 3px 0 #c22a73}
+.tabs button i{position:absolute;top:-4px;right:-2px;width:16px;height:16px;border-radius:50%;background:#45c47e;color:#fff;font:400 10px/16px 'Lilita One';font-style:normal;box-shadow:0 1px 0 #237a4a}
+.row{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none;scroll-snap-type:x proximity}
+.row::-webkit-scrollbar{display:none}
+.row .card{flex:0 0 96px;scroll-snap-align:start}
+.dbot{display:flex;gap:8px;align-items:center;margin-top:2px}
+.boost{flex:0 0 auto;height:52px;min-width:66px;padding:0 10px;background:linear-gradient(180deg,#fff7d6,#ffd96b);color:#7a4a00;font-size:22px;box-shadow:0 4px 0 #c99a1a;position:relative;display:flex;align-items:center;gap:4px}
+.boost b{font:400 15px 'Lilita One'}
+.boost.used{background:linear-gradient(180deg,#e6ffef,#9ff0c3);box-shadow:0 4px 0 #3fa56b}
+.boost.dim{opacity:.45}
+.strut{flex:1;height:56px;font-size:26px;background:linear-gradient(180deg,#b98cff,#8a4cff);box-shadow:0 5px 0 #5b2bc2,0 10px 22px rgba(110,50,220,.35);text-shadow:0 3px 0 rgba(60,20,140,.4)}
+.meter{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;font:400 11px 'Lilita One';color:var(--ink)}
+.meter b{font-size:20px;line-height:1}
+/* brief card */
+#brief{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;background:rgba(80,20,60,.28);padding:20px}
+#brief[hidden]{display:none}
+.bcard{width:min(380px,100%);background:linear-gradient(180deg,#fff,#fff0f7);border-radius:28px;padding:18px 18px 16px;color:var(--ink);text-align:center;box-shadow:0 8px 0 rgba(150,40,90,.3),0 20px 50px rgba(80,20,60,.35);animation:bpop .45s cubic-bezier(.2,1.5,.4,1)}
+@keyframes bpop{from{transform:scale(.6);opacity:0}}
+.bcard .k{font:400 14px 'Lilita One';letter-spacing:2px;color:#c05a90}
+.bcard .em{font-size:64px;line-height:1.05;margin:4px 0}
+.bcard h2{margin:0;font:400 32px/1 'Lilita One'}
+.bcard p{margin:6px 0 10px;font:700 14px 'Baloo 2';color:#9a5a80}
+.bcard .tags{justify-content:center;margin-bottom:10px}
+.bcard .tag{font-size:14px;padding:6px 10px 4px}
+.vs{display:flex;justify-content:center;gap:10px;margin:6px 0 12px}
+.vs div{display:flex;flex-direction:column;align-items:center;font:400 12px 'Lilita One';gap:2px}
+.vs img{width:54px;height:54px;border-radius:16px;background:radial-gradient(80% 70% at 50% 35%,#fff,#f3d9ff);border:3px solid #fff;box-shadow:0 3px 0 rgba(150,40,90,.25);object-fit:cover}
+.vs .me img{border-color:var(--pink)}
+.go{width:100%;height:58px;font-size:26px;background:linear-gradient(180deg,#ff8fbe,#ff4f97);box-shadow:0 5px 0 #b8226a}
+/* runway HUD */
+#walk{position:fixed;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom));z-index:14;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+#walk.off{display:none}
+.posebtn{pointer-events:auto;position:relative;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#ffb8d6,#ff4f97 70%);box-shadow:0 7px 0 #b8226a,0 0 0 6px rgba(255,255,255,.85),0 16px 30px rgba(200,40,110,.45);font:400 30px 'Lilita One';color:#fff;text-shadow:0 3px 0 rgba(150,20,80,.4);display:grid;place-items:center;border:0;cursor:pointer}
+.posebtn .ring{position:absolute;inset:-8px;border-radius:50%;border:6px solid #fff;box-shadow:0 0 14px rgba(255,255,255,.9);opacity:0;pointer-events:none}
+.posebtn .tgt{position:absolute;inset:-8px;border-radius:50%;border:4px dashed rgba(255,240,140,.95);pointer-events:none}
+.posebtn.done{filter:saturate(.6) brightness(1.1)}
+.walkhint{margin-bottom:62px;font:400 18px 'Lilita One';color:#fff;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill}
+.skip{position:fixed;right:calc(12px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));z-index:15;height:42px;padding:0 14px;background:rgba(255,255,255,.92);color:var(--ink);font-size:16px;box-shadow:0 3px 0 rgba(150,40,90,.3)}
+.skip[hidden]{display:none}
+.lower{position:fixed;left:14px;bottom:calc(150px + env(safe-area-inset-bottom));z-index:14;background:linear-gradient(90deg,#ff4f97,#b06bff);color:#fff;font:400 22px 'Lilita One';padding:6px 16px 4px;border-radius:16px;box-shadow:0 4px 0 #8f2a7c;transform:translateX(-130%);transition:transform .35s cubic-bezier(.2,1.3,.4,1)}
+.lower small{display:block;font:700 12px 'Baloo 2';opacity:.95}
+.lower.on{transform:none}
+/* vote labels */
+#ov{position:fixed;inset:0;pointer-events:none;z-index:13;overflow:hidden}
+.vl{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:3px;transform-origin:50% 100%;will-change:transform}
+.vl .nm{font:400 13px 'Lilita One';color:#fff;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;white-space:nowrap}
+.vl .hv{display:flex;align-items:center;gap:3px;background:#fff;border-radius:12px;padding:3px 8px 1px;font:400 16px 'Lilita One';color:#e0306f;box-shadow:0 3px 0 rgba(150,40,90,.3)}
+.vl .bar{width:58px;height:8px;border-radius:5px;background:rgba(255,255,255,.75);overflow:hidden}
+.vl .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff8fbe,#ff4f97);border-radius:5px}
+.vl.me .nm{color:#ffe066}
+.vl .rk{font:400 26px/1 'Lilita One';color:#fff;-webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;transform:scale(0);transition:transform .35s cubic-bezier(.2,1.8,.4,1);margin-bottom:2px}
+.vl .rk.on{transform:scale(1)}
+.vl.first .rk{color:#ffd23f;font-size:34px}
+/* HUD buttons */
+#mute{position:fixed;right:calc(10px + env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));z-index:30;width:44px;height:44px;border-radius:15px;border:3px solid #fff;background:linear-gradient(180deg,#fff,#ffe6f1);font-size:19px;box-shadow:0 4px 0 rgba(150,40,90,.3);cursor:pointer;padding:0}
+#gems{position:fixed;right:calc(62px + env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));z-index:30;pointer-events:none}
+.fly{position:fixed;left:0;top:0;z-index:60;pointer-events:none;font-size:22px;transition:transform .7s cubic-bezier(.5,0,.6,1),opacity .7s}
+/* result box */
+.res{background:rgba(80,20,60,.35)!important;justify-content:center!important}
+.resbox{width:min(370px,100%);background:linear-gradient(180deg,#fff,#fff0f7);border-radius:28px;padding:14px 16px 12px;color:var(--ink);box-shadow:0 8px 0 rgba(150,40,90,.3),0 20px 50px rgba(80,20,60,.35);animation:bpop .45s cubic-bezier(.2,1.5,.4,1);text-align:center;max-height:calc(100vh - 30px);overflow:auto}
+.resbox .rt{font:400 14px 'Lilita One';letter-spacing:2px;color:#c05a90}
+.resbox h2{margin:2px 0 0;font:400 34px/1 'Lilita One';color:var(--pink);-webkit-text-stroke:0}
+.stars{display:flex;justify-content:center;gap:6px;margin:6px 0 4px}
+.stars span{font-size:44px;line-height:1;color:#ead6e0;-webkit-text-stroke:2px #fff;paint-order:stroke fill;transition:transform .3s cubic-bezier(.2,1.8,.4,1),color .2s;transform:scale(.8)}
+.stars span:nth-child(2){font-size:54px;margin-top:-8px}
+.stars span.on{color:#ffc23d;-webkit-text-stroke:2px #b76b00;transform:scale(1.1)}
+.rl{display:flex;justify-content:space-between;align-items:center;font:700 14px 'Baloo 2';padding:3px 2px;border-top:1px dashed #f2c8da;gap:8px}
+.rl span{text-align:left}
+.rl b{font:400 15px 'Lilita One';white-space:nowrap}
+.rl.good b{color:#16794a}.rl.bad b{color:#c03030}
+.rl.tot{font-size:16px}.rl.tot b{font-size:20px;color:var(--pink)}
+.unl{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 2px}
+.unl div{width:58px;display:flex;flex-direction:column;align-items:center;font:400 10px 'Lilita One'}
+.unl img,.unl .sw{width:48px;height:48px;border-radius:12px;background:radial-gradient(80% 70% at 50% 35%,#fff,#ffe1ee);object-fit:contain}
+.unl .sw{border-radius:50%;width:38px;height:38px;margin:5px}
+.gift{margin:6px 0 2px;font:400 15px 'Lilita One';color:#8a5a00;background:#fff2c4;border-radius:12px;padding:5px 8px 3px}
+.tapc{margin-top:8px;font:400 16px 'Lilita One';color:#c05a90;animation:pulse 1.2s infinite}
+.slot .hc-btn{font-family:'Lilita One'!important;font-weight:400!important;font-size:18px!important;padding:8px 26px!important;background:linear-gradient(180deg,#ff8fbe,#ff4f97)!important}
+@media (min-width:900px){
+  .lob{align-self:flex-start;margin-left:max(0px,calc(4vw - 14px));max-width:430px}
+  .lob .top{margin-top:8px}
+  .panel{position:fixed;right:24px;top:90px;bottom:24px;width:420px;border-radius:26px;display:flex;flex-direction:column}
+  .panel .row{flex-wrap:wrap;overflow-y:auto;overflow-x:hidden;align-content:flex-start;flex:1}
+  .dtop{margin-left:24px;margin-right:470px}
+  #walk{bottom:40px}
+  .lower{bottom:200px;left:40px}
+}
+</style>
+</head>
+<body>
+<div id="load"><div class="logo"><b>Strut <em>Off</em></b><span>FASHION BATTLE</span></div><div class="bar"><i></i></div><small>Steaming the outfits…</small></div>
+<div id="ov"></div>
+<div id="dress" class="off">
+  <div class="dtop"><div class="theme" id="dtheme"></div><div class="tags" id="dtags"></div><div class="rivals" id="drivals"></div></div>
+  <div class="panel">
+    <div class="tabs" id="tabs"></div>
+    <div class="row" id="items"></div>
+    <div class="dbot"><button class="btn boost" id="btip">💡<b>0</b></button><button class="btn boost" id="bspot">✨<b>0</b></button><button class="btn strut" id="strut">Strut! ▶</button></div>
+  </div>
+</div>
+<div id="brief" hidden></div>
+<div id="walk" class="off"><div class="walkhint" id="walkhint">Tap when the rings meet!</div><button class="posebtn" id="posebtn"><span>POSE!</span><i class="tgt"></i><i class="ring" id="ring"></i></button></div>
+<button class="btn skip" id="skip" hidden>Skip ⏩</button>
+<div class="lower" id="lower"></div>
+<button id="mute">🔊</button>
+<div id="gems" class="pill"><span class="gem"></span><span id="gemn">0</span></div>
+<script type="module" src="./game.js"></script>
+</body>
+</html>
