@@ -295,6 +295,7 @@
     const frame = document.createElement('iframe');
     frame.title = g.name;
     frame.allow = 'autoplay; fullscreen; gamepad';
+    frame.setAttribute('data-ez-game', '');   // Ezoic's game ad bridge only talks to frames marked like this (ads/singular-config.js)
     const gameUrl = new URL(`games/${g.slug}/${g.entry}`, location.href).href;
     // players never leave riffcade.com: no pop-ups or top-level navigation, off-site links hidden, and a frame
     // that wanders off-site is sent back to the game

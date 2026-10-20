@@ -1,1 +1,14 @@
 google.com, pub-9924926064570335, DIRECT, f08c47fec0942fa0
+
+#Ads.txt agentpark.co
+#Ads.txt managed by AdsTxtManager.com - the free ads.txt management tool for publishers
+ownerdomain=agentpark.co
+contact=directsales@ezoic.com
+managerdomain=ezoic.ai
+
+ezoic.ai, 5de69681c42e48b60eb1f4c79b9408d4, DIRECT
+# 35
+google.com, pub-6644558441501035, DIRECT, f08c47fec0942fa0
+google.com, pub-1175987143200523, RESELLER, f08c47fec0942fa0
+google.com, pub-4152552776930088, DIRECT, f08c47fec0942fa0
+media.net, 8CAAT6RE8, DIRECT

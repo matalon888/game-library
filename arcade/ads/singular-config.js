@@ -71,9 +71,28 @@ window.SINGULAR_ADS = {
     }));
   },
 
-  // opt-in rewarded video: Ad Manager first, then H5 Games Ads; { completed: true } only when Google grants the reward
+  // third source: Ezoic Web Games (rewardedBreak). Their SDK runs inside the game frame (same origin, marked data-ez-game by
+  // shell.js), so we load it into that frame and ask it for the ad; 3 s with nothing ready = no reward, no wait.
+  ezReward() {
+    const fr = document.querySelector('iframe[data-ez-game]'), w = fr && fr.contentWindow;
+    if (!w || !window.ezstandalone) return Promise.resolve({ completed: false });
+    return new Promise(res => {
+      let out = false; const done = v => { if (!out) { out = true; res({ completed: v }); } };
+      setTimeout(() => done(false), 3000);
+      const go = () => { try { w.EzGameSDK.cmd.push(() => w.EzGameSDK.init().then(() => w.EzGameSDK.rewardedBreak({ rewardName: 'bonus_level' }))
+        .then(r => done(!!(r && r.rewarded)), () => done(false))); } catch (e) { done(false); } };
+      try {
+        if (w.EzGameSDK) return go();
+        w.EzGameSDK = { cmd: [] };
+        const s = w.document.createElement('script'); s.src = 'https://www.ezojs.com/ezoic/gamesdk.js'; s.onload = go; s.onerror = () => done(false);
+        w.document.head.appendChild(s);
+      } catch (e) { done(false); }
+    });
+  },
+
+  // opt-in rewarded video: Ad Manager, then H5 Games Ads, then Ezoic; { completed: true } only when the network grants the reward
   rewarded(slotId) {
-    return this.gptReward(slotId).then(r => r.completed || r.shown ? r : this.h5Reward());
+    return this.gptReward(slotId).then(r => r.completed || r.shown ? r : this.h5Reward()).then(r => r.completed ? r : this.ezReward());
   },
   gptReward(slotId) {
     const g = window.googletag; if (!g || !slotId) return Promise.resolve({ completed: false });

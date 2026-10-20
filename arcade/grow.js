@@ -297,7 +297,7 @@
   }
 
   // ---------------------------------------------------------------- auto-next (+ the once-per-session rewarded offer)
-  const rewardedDue = () => C.ADS_ENABLED && !ss.get('rewardedOffered', false);
+  const rewardedDue = () => C.ADS_ENABLED && !kids && !ss.get('rewardedOffered', false);   // never on Kids games
   async function go(slug, extra = '') {
     await endGame(/from=(next|swipe|tap|round)/.test(extra) ? 'next' : 'bonus');
     const to = `play.html?g=${encodeURIComponent(slug)}${extra}`;
