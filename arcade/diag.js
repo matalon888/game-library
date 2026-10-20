@@ -110,7 +110,7 @@
     const taps = [];
     w.addEventListener('pointerdown', e => {
       const now = performance.now(); r.taps++; taps.push([now, e.clientX, e.clientY]);
-      if (r.visMs >= 20000 && r.taps >= 5) cpaPlay(r);
+      if (r.visMs >= 20000 && r.taps >= 5 && !r.cpaTried) { r.cpaTried = true; cpaPlay(r); }
       while (taps.length && now - taps[0][0] > 20000) taps.shift();
       const near = taps.filter(([t, x, y]) => now - t < 1200 && Math.hypot(x - e.clientX, y - e.clientY) < 40);
       if (near.length >= 4 && now - r.lastRage > 3000) { r.rage++; r.lastRage = now; r.rageAt.push([Math.round(e.clientX / w.innerWidth * 100), Math.round(e.clientY / w.innerHeight * 100)]); }
@@ -119,12 +119,14 @@
       if (taps.length >= 25 && now - r.progressAt > 20000 && now - r.lastStuck > 20000) { r.stuck++; r.lastStuck = now; }
     }, true);
   }
-  // a CPAlead offerwall conversion needs a real play (20 s on screen, 5 taps), not just the AI step: told once per device, with
-  // the visitor's own prompt code only (the server ignores codes that didn't come from CPAlead)
+  // a CPAlead offerwall conversion is 2 steps: their AI agent set up, then a real play (20 s on screen, 5 taps). Sent once per game
+  // run with the visitor's own prompt code only; once the server says it counted (AI step already done), never again on this device
   function cpaPlay(r) {
-    let u = null; try { if (localStorage.getItem('ap.cpaplay')) return; u = localStorage.getItem('ap.u'); if (!/^[a-z0-9]{8,16}$/.test(u || '')) return; localStorage.setItem('ap.cpaplay', '1'); } catch (e) { return; }
+    let u = null; try { if (localStorage.getItem('ap.cpaplay')) return; u = localStorage.getItem('ap.u'); } catch (e) { return; }
+    if (!/^[a-z0-9]{8,16}$/.test(u || '')) return;
     fetch(API + '/api/cpa-play', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ u, slug: r.slug, vis_s: Math.round(r.visMs / 1000), taps: r.taps }) }).catch(() => {});
+      body: JSON.stringify({ u, slug: r.slug, vis_s: Math.round(r.visMs / 1000), taps: r.taps }) })
+      .then(x => x.json()).then(j => { if (j && j.counted) try { localStorage.setItem('ap.cpaplay', '1'); } catch (e) {} }).catch(() => {});
   }
   const state = w => { try { const g = w.__game; return g ? [g.state, g.score, g.level].join('|') : ''; } catch (e) { return ''; } };
   function endRun(reason) {
