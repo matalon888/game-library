@@ -41,16 +41,49 @@ window.SINGULAR_ADS = {
     }));
   },
 
-  // opt-in rewarded video: { completed: true } only when Google grants the reward (watched to the end)
+  // second source: Google H5 Games Ads (AdSense pub-9924926064570335, Ad Placement API, by-application beta applied 2026-10-20).
+  // Loaded once; adBreak({type:'reward'}) only plays after the player's own tap, and only once Google has approved the account.
+  h5Client: 'ca-pub-9924926064570335',
+  h5Load() {
+    if (this._h5) return this._h5;
+    window.adsbygoogle = window.adsbygoogle || [];
+    window.adBreak = window.adConfig = function (o) { window.adsbygoogle.push(o); };
+    this._h5 = new Promise(res => {
+      const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous';
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + this.h5Client;
+      s.setAttribute('data-ad-frequency-hint', '30s');
+      s.onload = () => { try { window.adConfig({ preloadAdBreaks: 'on', sound: 'on' }); } catch (e) {} res(true); };
+      s.onerror = () => res(false);
+      document.head.appendChild(s);
+    });
+    return this._h5;
+  },
+  h5Reward() {
+    return this.h5Load().then(ok => !ok ? { completed: false } : new Promise(res => {
+      let shown = false, out = false; const done = v => { if (!out) { out = true; res({ completed: v }); } };
+      setTimeout(() => { if (!shown) done(false); }, 3000);   // nothing ready in 3 s: no wait, no reward
+      try {
+        window.adBreak({ type: 'reward', name: 'bonus-level',
+          beforeReward: showAdFn => { shown = true; showAdFn(); },   // the player already chose to watch (our button)
+          adViewed: () => done(true), adDismissed: () => done(false),
+          adBreakDone: info => { if (!info || info.breakStatus !== 'viewed') done(false); } });
+      } catch (e) { done(false); }
+    }));
+  },
+
+  // opt-in rewarded video: Ad Manager first, then H5 Games Ads; { completed: true } only when Google grants the reward
   rewarded(slotId) {
+    return this.gptReward(slotId).then(r => r.completed || r.shown ? r : this.h5Reward());
+  },
+  gptReward(slotId) {
     const g = window.googletag; if (!g || !slotId) return Promise.resolve({ completed: false });
     return new Promise(res => g.cmd.push(() => {
       const s = g.defineOutOfPageSlot(slotId, g.enums.OutOfPageFormat.REWARDED);
       if (!s) return res({ completed: false });   // the format isn't available on this page / device
       s.addService(g.pubads());
       let granted = false, ready = false, over = false;
-      const done = () => { if (over) return; over = true; g.destroySlots([s]); res({ completed: granted }); };
-      setTimeout(() => { if (!ready) done(); }, 4000);   // no ad ready in 4 s (common in some in-app browsers): no wait, no reward
+      const done = () => { if (over) return; over = true; g.destroySlots([s]); res({ completed: granted, shown: ready }); };
+      setTimeout(() => { if (!ready) done(); }, 3000);   // no ad ready in 3 s (common in some in-app browsers): no wait, no reward
       const pa = g.pubads();
       pa.addEventListener('rewardedSlotReady', e => { if (e.slot === s && !over) { ready = true; e.makeRewardedVisible(); } });
       pa.addEventListener('rewardedSlotGranted', e => { if (e.slot === s) granted = true; });

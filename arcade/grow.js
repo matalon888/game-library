@@ -344,12 +344,13 @@
       o.addEventListener('pointerdown', e => { if (e.target.id !== 'gGo') stop(); }, true);
       if (offer) $('gReward').onclick = async () => {
         stop();
+        const btn = $('gReward'); btn.disabled = true; btn.textContent = 'Loading…';
         const a = await ads();
-        if (!a) return;
+        if (!a) { btn.remove(); return; }
         ev('ad_rewarded_start');
         const r = await a.showRewarded();
         if (r && r.completed && bonus) { ev('ad_rewarded_done'); finish('went'); location.href = `play.html?g=${encodeURIComponent(bonus)}&bonus=1`; }
-        else $('gReward').remove(); // skipped: no reward, nothing else changes
+        else { ev('ad_rewarded_none'); $('gReward') && $('gReward').remove(); } // skipped or no ad: no reward, nothing else changes
       };
     });
   }
