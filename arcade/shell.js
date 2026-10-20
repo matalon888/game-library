@@ -181,7 +181,7 @@
     const gs = every.filter(g => !isDesk(g));                    // desktop games live only in their own Desktop category
     const latest = gs.reduce((m, g) => (g.added > m ? g.added : m), '');
     const fresh = gs.filter(g => g.added === latest).length;
-    const COLLS = ['Connect your AI', "What's Hot", 'Epic games', 'Classics', 'Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
+    const COLLS = ['Connect your AI', 'Cozy games', "What's Hot", 'Epic games', 'Classics', 'Hyper-casual', 'Endless runners', 'Daily puzzles', 'Makeover', 'Kids', 'Casino', 'Shooters'];
     const inColl = (g, c) => (g.tags || []).includes(c);
     const collList = c => (c === 'Connect your AI' ? every : gs).filter(g => inColl(g, c));  // AI games show whatever the device (desktop ones offer 'send to my computer' on phones)
     const cats = [...new Set(COLLS.filter(c => collList(c).length).concat([...new Set(gs.map(g => g.category || 'Arcade'))].sort()))].concat(desk.length ? ['Desktop'] : []);
