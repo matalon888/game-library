@@ -267,7 +267,7 @@
  },
  "srefsland-nyt-connections-clone": {
   "github": {
-   "forks": 23,
+   "forks": 22,
    "stars": 13,
    "url": "https://github.com/srefsland/nyt-connections-clone"
   }
@@ -694,13 +694,13 @@
  "nkzw-tech-athena-crisis": {
   "github": {
    "forks": 161,
-   "stars": 1987,
+   "stars": 1988,
    "url": "https://github.com/nkzw-tech/athena-crisis"
   }
  },
  "starknightt-operation-ironhold": {
   "github": {
-   "forks": 28,
+   "forks": 29,
    "stars": 102,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
@@ -714,7 +714,7 @@
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 206,
+   "forks": 204,
    "stars": 1417,
    "url": "https://github.com/rohitg00/k8sgames"
   }
@@ -1112,15 +1112,15 @@
  },
  "mrzh7-scam-with-your-friends-web": {
   "github": {
-   "forks": 21,
+   "forks": 20,
    "stars": 237,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 33,
-   "stars": 121,
+   "forks": 34,
+   "stars": 125,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -2476,13 +2476,7 @@
    "url": "https://github.com/userJesus/ronin-game"
   }
  },
- "davutkmbr-seventeenskies": {
-  "github": {
-   "forks": 0,
-   "stars": 0,
-   "url": "https://github.com/davutkmbr/seventeenskies"
-  }
- },
+ "davutkmbr-seventeenskies": {},
  "franco-gh-space-shooter-game": {
   "github": {
    "forks": 0,
@@ -3095,7 +3089,7 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 726,
+   "forks": 722,
    "stars": 6459,
    "url": "https://github.com/pshenok/server-survival"
   }
@@ -3141,7 +3135,7 @@
  },
  "bkcore-hexgl": {
   "github": {
-   "forks": 894,
+   "forks": 893,
    "stars": 1745,
    "url": "https://github.com/BKcore/HexGL"
   },
@@ -3515,5 +3509,10 @@
  "embersite-tactical-extraction-shooter": {},
  "hivefall-alien-horde-shooter": {},
  "zoomburst-street-racing": {},
+ "trinket-trio-match-3d-puzzle": {},
+ "keepsake-lane-hidden-objects": {},
+ "mergewood-manor-merge-restore": {},
+ "bloomhaus-match-decorate": {},
+ "sugarloaf-cafe-cooking-rush": {},
  "hero-lab-build-your-agentpark-hero": {}
 }
