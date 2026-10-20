@@ -10,7 +10,7 @@ import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { heroBar, selectedHero, onHeroesChange, heroName } from './kit/heroes.js';
 import { TAGS, COLOURS, FINISHES, ITEMS, SLOTS, ACC, THEMES, RULES, VENUES, RIVALS, JUDGES, MODEL_DEFAULT, LOCAL_CHARS, rankOf, score, bestFor, itemById, colourById, finishById } from './data.js';
-import { initDress, loadProps, createModel, proto, itemThumb, tickDress } from './dress.js';
+import { initDress, loadProps, createModel, proto, itemThumb, tickDress, withTimeout } from './dress.js';
 import { buildStage, RUN_Y, RUN_Z0, POSE_Z, ATL } from './stage.js';
 import { S as SND, music, setMuted, unlock } from './audio.js';
 
@@ -154,10 +154,11 @@ function updateSprites(dt) {
 // ---------------------------------------------------------------- the player's model (their Hero Lab hero, or Rouge)
 let meTok = 0;
 async function buildMe() {
-  const tok = ++meTok, h = selectedHero();
+  const tok = ++meTok; let h = selectedHero();
   let m = null;
-  try { m = await createModel(h ? h.char : MODEL_DEFAULT.id, { height: 1.75, sig: h ? { hue: h.hue, sat: h.sat, bri: h.bri } : null }); }
-  catch (e) { console.warn('model', e); m = await createModel(MODEL_DEFAULT.id, { height: 1.75 }); }
+  try { m = await withTimeout(createModel(h ? h.char : MODEL_DEFAULT.id, { height: 1.75, sig: h ? { hue: h.hue, sat: h.sat, bri: h.bri } : null }), 20000, 'hero'); }
+  catch (e) { console.warn('model', e && e.message); if (h) { try { m = await withTimeout(createModel(MODEL_DEFAULT.id, { height: 1.75 }), 20000, 'model'); h = null; } catch (e2) {} } }
+  if (!m) return;
   if (tok !== meTok) return;
   m.name = h ? heroName(h) : MODEL_DEFAULT.name; m.thumb = h ? (h.thumb || `./assets/thumbs/${LOCAL_CHARS.includes(h.char) ? h.char : MODEL_DEFAULT.id}.webp`) : `./assets/thumbs/${MODEL_DEFAULT.id}.webp`;
   const old = me; me = m; scene.add(m.object);
@@ -271,6 +272,7 @@ function startChallenge() {
   b.querySelector('#go').addEventListener('click', e => { e.stopPropagation(); unlock(); toDress(); });
   b.addEventListener('pointerdown', e => e.stopPropagation());
   SND.whoosh(); music('dress');
+  const bt = ch; setTimeout(() => { if (phase === 'brief' && ch === bt) toDress(); }, 3200);   // the brief reads itself, then the atelier opens
   // the model waits in the atelier behind the card
   stage.atelier.visible = true; me.object.position.set(ATL.x, ATL.plinthY, ATL.z); me.object.rotation.y = 0; me.play('idle');
   for (const m of Object.values(rivalModels)) m.object.visible = false;
@@ -603,7 +605,6 @@ window.__game = {
   get phase() { return phase; },
   get level() { return curL(); }, get score() { return totalStars(); }, get gems() { return P.gems; },
   get outfit() { return me && me.outfit; },
-  _dbg: () => ({ stage, C, scene, sun, hemi, fill, cam }),
   start: () => startChallenge(),
   autostart() {
     if (phase === 'loading' || !me) return false;
@@ -666,22 +667,28 @@ loop(dt60 => {
 });
 
 (async function boot() {
-  startEl.style.pointerEvents = 'none';
-  const pChars = LOCAL_CHARS.filter(id => id !== MODEL_DEFAULT.id);
-  await loadProps(PROP_IDS, prog);
-  stage = buildStage(THREE, scene, place);
-  trophy = place('s03', { size: 0.55, pos: [0, -10, 0] }); trophy.visible = false;
-  await Promise.all([
-    buildMe().then(prog),
-    ...RIVALS.map(rv => createModel(rv.id, { height: 1.75 }).then(m => { m.object.visible = false; scene.add(m.object); rivalModels[rv.id] = m; prog(); })),
-    ...JUDGES.map((jd, i) => createModel(jd.id, { height: jd.id === 'p05' ? 1.62 : 1.78 }).then(m => { m.object.position.copy(stage.judgeSpots[i]); m.object.rotation.y = -Math.PI / 2; scene.add(m.object); m.play('idle'); judges[i] = m; prog(); })),
-  ]);
-  // small props don't cast shadows (saves shadow-pass draws)
-  scene.updateMatrixWorld(true);
-  const _s = V3();
-  scene.traverse(o => { if (!o.isMesh || o.isSkinnedMesh || !o.castShadow) return; if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); o.getWorldScale(_s); if (o.geometry.boundingSphere.radius * Math.max(_s.x, _s.y, _s.z) < 0.35) o.castShadow = false; });
+  ui.hideStart();   // the lobby card appears only once everything is ready (an arcade shell tapping it early must not eat its taps)
+  const T0 = performance.now();
+  try {
+    await loadProps(PROP_IDS, prog);
+    stage = buildStage(THREE, scene, place);
+    trophy = place('s03', { size: 0.55, pos: [0, -10, 0] }); trophy.visible = false;
+    const MS = 20000, soft = (pr, what) => withTimeout(pr, MS, what).catch(e => { console.warn('load', what, e && e.message); }).finally(prog);
+    await Promise.all([
+      soft(buildMe(), 'model'),
+      ...RIVALS.map(rv => soft(createModel(rv.id, { height: 1.75 }).then(m => { m.object.visible = false; scene.add(m.object); rivalModels[rv.id] = m; }), rv.id)),
+      ...JUDGES.map((jd, i) => soft(createModel(jd.id, { height: jd.id === 'p05' ? 1.62 : 1.78 }).then(m => { m.object.position.copy(stage.judgeSpots[i]); m.object.rotation.y = -Math.PI / 2; scene.add(m.object); m.play('idle'); judges[i] = m; }), jd.id)),
+    ]);
+    if (!me) await withTimeout(buildMe(), MS, 'model retry').catch(() => {});
+    // small props don't cast shadows (saves shadow-pass draws)
+    scene.updateMatrixWorld(true);
+    const _s = V3();
+    scene.traverse(o => { if (!o.isMesh || o.isSkinnedMesh || !o.castShadow) return; if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); o.getWorldScale(_s); if (o.geometry.boundingSphere.radius * Math.max(_s.x, _s.y, _s.z) < 0.35) o.castShadow = false; });
+  } catch (e) { console.warn('boot', e); }
+  // a rival that failed to load is simply left out of the line-up pool
+  for (let i = RIVALS.length - 1; i >= 0; i--) if (!rivalModels[RIVALS[i].id]) RIVALS.splice(i, 1);
   document.fonts?.load("40px 'Lilita One'").then(() => stage && ch ? stage.drawSign(ch.venue) : renderLobby()).catch(() => {});
+  if (!stage || !me || RIVALS.length < 3) { const l = document.querySelector('#load small'); if (l) l.textContent = 'Could not load the runway. Check your connection and reload.'; return; }
   phase = 'title'; toTitle();
-  startEl.style.pointerEvents = '';
   $('load').classList.add('gone'); setTimeout(() => $('load').remove(), 600);
 })();

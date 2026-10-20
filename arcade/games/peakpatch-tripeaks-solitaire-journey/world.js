@@ -124,7 +124,7 @@ export function createWorld(scene) {
       m.scale.setScalar(0.01); I.pop = 0;
       I.g.add(m);
       return I;
-    });
+    }).catch(e => { I.loading = null; throw e; });   // a failed island can be retried later
     return I.loading;
   };
   W.setVisited = (i, visited, instant) => { const I = W.islands[i]; I.satT = visited ? 1 : 0.18; I.fogT = visited ? 0 : 1; if (instant) { I.sat = I.satT; I.fog = I.fogT; } };

@@ -26,8 +26,13 @@ export function initDress(T, GL) {
   });
   return P;
 }
+// never hang the boot on one file: each load gets a deadline, a failed/stalled prop becomes an empty placeholder
+export const withTimeout = (pr, ms, what) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout ' + what)), ms))]);
 export async function loadProps(ids, onEach) {
-  await Promise.all(ids.map(id => loader.loadAsync(`./assets/${id}.glb`).then(g => { PROTO[id] = norm(g.scene); onEach && onEach(id); })));
+  await Promise.all(ids.map(id => withTimeout(loader.loadAsync(`./assets/${id}.glb`), 15000, id)
+    .then(g => { PROTO[id] = norm(g.scene); })
+    .catch(e => { console.warn('prop', id, e && e.message); const o = new THREE.Group(); o.userData.size = new THREE.Vector3(1, 1, 1); PROTO[id] = o; })
+    .finally(() => onEach && onEach(id))));
 }
 // the cozy GLBs are stored Z-up: stand them up (+90° about X), centre on x/z, rest on y = 0, largest side = 1
 export function norm(scene) {

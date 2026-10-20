@@ -22,6 +22,8 @@ const $ = h => { const d = document.createElement('div'); d.innerHTML = h.trim()
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const easeIO = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 const easeOut = t => 1 - Math.pow(1 - t, 3);
+// never hang on one asset: resolve after ms whatever happens (the game works without any single island)
+const soft = (pr, ms = 8000) => Promise.race([Promise.resolve(pr).catch(e => { console.warn('asset skipped: ' + (e?.message || e)); }), wait(ms)]);
 const islandOf = n => Math.floor((n - 1) / TP.LEVELS_PER_ISLAND) % TP.ISLANDS;
 
 // ---------------------------------------------------------------- renderer + post
@@ -244,7 +246,7 @@ async function startLevel() {
   closePop(); hideBanner();
   curP = levelParams();
   const isl = curP.island; lastIsland = isl;
-  await W.load(isl);
+  await soft(W.load(isl), 6000);
   busy++;
   mode = 'play'; state = 'play'; recorded = false; hist.length = 0; idleT = 0;
   G = TP.newGame(curP, F.k());
@@ -514,7 +516,7 @@ async function toMap(fromWin = false) {
     mapZT = W.nodePos(Math.min(st.level, TP.JOURNEY)).z;
     const ni = islandOf(st.level);
     if (!dailyMode && ni > st.seen && st.level <= TP.JOURNEY) {
-      st.seen = ni; save(); await W.load(ni);
+      st.seen = ni; save(); await soft(W.load(ni), 6000);
       await wait(900);
       W.setVisited(ni, true); snd.wild();
       const c = W.center(ni); for (let k = 0; k < 3; k++) setTimeout(() => WFX.burst(c.clone().add(new V3(0, 3, 0)), ['#ffffff', '#e8f4ff', '#fff6c2'], 40, { speed: 4, up: 4, size: 2, life: 1.6, grav: 2, spread: 5 }), k * 220);
@@ -597,8 +599,8 @@ async function boot() {
   const cur = dailyMode ? D.seed % 12 : islandOf(Math.min(st.level, TP.JOURNEY));
   st.seen = Math.max(st.seen, cur);
   for (let i = 0; i < 12; i++) W.setVisited(i, i <= st.seen, true);
-  await W.load(cur); tick();
-  if (cur + 1 < 12) await W.load(cur + 1); tick();
+  await soft(W.load(cur), 9000); tick();
+  if (cur + 1 < 12) soft(W.load(cur + 1)); tick();   // the next island streams in; never block the title on it
   buildMap(); refreshMapHUD();
   mapZ = mapZT = W.nodePos(Math.min(st.level, TP.JOURNEY)).z; focusIsland = cur;
   const p0 = mapPose(mapZ); camCur.pos.copy(p0.pos); camCur.tgt.copy(p0.tgt);
@@ -606,7 +608,7 @@ async function boot() {
   ready = true; mode = 'title'; state = 'ready';
   nodesEl.classList.add('pp-hidden');
   // the rest of the islands stream in behind the title
-  (async () => { for (let i = 0; i < 12; i++) { await W.load(i).catch(() => {}); await wait(120); } })();
+  (async () => { for (let i = 0; i < 12; i++) { await soft(W.load(i), 10000); await wait(120); } })();
 }
 
 // ---------------------------------------------------------------- frame
@@ -654,7 +656,6 @@ loop(d => {
 });
 
 // ---------------------------------------------------------------- test hooks
-window.__pp = { scene, cam, W, get cardMat() { return cardMat; }, get G() { return G; }, R, C };
 window.__game = {
   // the arcade starts every game with no tap: skip the title + map and deal the next level (false while loading)
   autostart() {
