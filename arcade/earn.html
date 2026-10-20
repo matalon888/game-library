@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Earn · AGENTPARK</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#07060f">
+<link rel="icon" href="brand/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:opsz,wght@9..40,500;9..40,700&display=swap">
+<!-- Earn (Daniel, 2026-10-20): sponsored app offers on OUR page only (never inside ChatGPT / Claude: their directory rules ban ads
+     there). Offers come from arcade-api offers.js (CPAlead publisher feed, junk filtered); the player sees their share. Completed
+     offers land in a wallet via the advertiser's postback; cash-out from $5, checked by hand before PayPal sends it. -->
+<style>
+:root { --ink: #FFFDF8; --muted: #CFCBE6; --gold: #FFC93C; --bg: #07060f; --card: #161124; --line: #2a2342; --good: #3ddc84; color-scheme: dark }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent }
+html, body { margin: 0 }
+body { background: var(--bg); color: var(--ink); font: 16px/1.35 "DM Sans", system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+  min-height: 100vh; min-height: 100dvh; padding: calc(env(safe-area-inset-top) + 18px) max(16px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 24px) max(16px, env(safe-area-inset-left)) }
+main { width: min(480px, 100%); margin: 0 auto; display: grid; gap: 16px }
+a { color: inherit }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px }
+.top a.back { color: var(--muted); text-decoration: none; font-weight: 700 }
+.wallet { background: linear-gradient(135deg, #2b1f00, #161124); border: 1px solid #4a3a10; border-radius: 22px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px }
+.wallet b { display: block; font: 800 34px/1 "Bricolage Grotesque", system-ui, sans-serif; color: var(--gold); font-variant-numeric: tabular-nums }
+.wallet small { color: var(--muted) }
+.wallet button { background: var(--gold); color: #1E1B33; border: 0; border-radius: 999px; padding: 12px 16px; font: 800 15px "DM Sans", sans-serif; cursor: pointer }
+.wallet button:disabled { opacity: .45; cursor: default }
+h1 { font: 800 28px/1.1 "Bricolage Grotesque", system-ui, sans-serif; margin: 0 }
+h2 { font: 800 18px/1.2 "Bricolage Grotesque", system-ui, sans-serif; margin: 6px 0 0; color: var(--muted) }
+.list { display: grid; gap: 10px }
+.of { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px; text-decoration: none }
+.of img, .of .ph { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; background: #241c3d }
+.of div { min-width: 0 }
+.of strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.of span { display: block; color: var(--muted); font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.of em { font-style: normal; background: var(--good); color: #052b14; font-weight: 800; padding: 8px 10px; border-radius: 999px; white-space: nowrap }
+.pick { border-color: #4a3a10; box-shadow: 0 0 0 1px #4a3a10 inset }
+.tag { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.note { color: var(--muted); font-size: 12.5px; line-height: 1.45 }
+.sheet { position: fixed; inset: 0; background: rgba(7,6,15,.8); display: grid; place-items: end center; padding: 16px; z-index: 10 }
+.sheet[hidden] { display: none }
+.sheet form { width: min(480px, 100%); background: var(--card); border-radius: 24px; padding: 20px; display: grid; gap: 12px; margin-bottom: env(safe-area-inset-bottom) }
+.sheet input[type=email] { font: 16px "DM Sans", sans-serif; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: #0d0a18; color: var(--ink) }
+.sheet button { background: var(--gold); color: #1E1B33; border: 0; border-radius: 999px; padding: 14px; font: 800 16px "DM Sans", sans-serif; cursor: pointer }
+.err { color: #ff8a7a; font-size: 14px; min-height: 1em }
+.empty { color: var(--muted); text-align: center; padding: 24px 0 }
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="back" href="./">← Games</a><span class="tag">Sponsored offers</span></div>
+  <h1>Earn while you play 💵</h1>
+  <div class="wallet"><div><small>Your balance</small><b id="bal">$0.00</b><small id="wmsg">Cash out from $5 to PayPal</small></div><button id="cash" type="button" disabled>Cash out</button></div>
+  <h2 id="pickh" hidden>Today's pick</h2>
+  <div class="list" id="pick"></div>
+  <h2>More offers</h2>
+  <div class="list" id="list"><div class="empty">Loading offers…</div></div>
+  <p class="note">Offers are from advertisers and are sponsored. You earn the amount shown once the advertiser confirms you finished the step on the same phone; some take a day to confirm, and the advertiser decides. Amounts are what we pass on to you, not a promise of earnings. Adults 18+ in the US. One account per person. <a href="terms.html#earn">Earn rules</a>.</p>
+</main>
+<div class="sheet" id="sheet" hidden><form id="f" novalidate>
+  <b id="sh">Cash out $0.00</b>
+  <input type="email" id="email" placeholder="your PayPal email" autocomplete="email" required>
+  <label><input type="checkbox" id="adult"> I'm 18 or older</label>
+  <div class="err" id="err"></div>
+  <button type="submit" id="send">Send to PayPal</button>
+</form></div>
+<script src="config.js"></script>
+<script src="habits.js"></script>
+<script>
+(function () {
+  const API = 'https://mcp.riffcade.com', $ = id => document.getElementById(id), esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const u = window.RiffHabits && RiffHabits.agentCode ? RiffHabits.agentCode() : '';
+  const os = /Android/i.test(navigator.userAgent) ? 'android' : 'ios';
+  const money = n => '$' + (+n || 0).toFixed(2);
+  const row = (o, pick) => `<a class="of${pick ? ' pick' : ''}" href="${esc(o.link)}" target="_blank" rel="noopener sponsored">
+    ${o.image ? `<img src="${esc(o.image)}" alt="" loading="lazy">` : '<span class="ph"></span>'}
+    <div><strong>${esc(o.title)}</strong><span>${esc(o.what)}</span></div><em>+${money(o.you_get)}</em></a>`;
+  fetch(`${API}/api/offers?u=${u}&os=${os}`, { cache: 'no-store' }).then(r => r.json()).then(j => {
+    const rest = (j.offers || []).filter(o => !j.pick || o.id !== j.pick.id);
+    if (j.pick) { $('pickh').hidden = false; $('pick').innerHTML = row(j.pick, true); }
+    $('list').innerHTML = rest.length ? rest.map(o => row(o)).join('') : '<div class="empty">No offers right now. Check back later.</div>';
+  }).catch(() => { $('list').innerHTML = '<div class="empty">Offers didn\'t load. Try again in a minute.</div>'; });
+  let bal = 0, min = 5;
+  const wallet = () => fetch(`${API}/api/wallet?u=${u}`, { cache: 'no-store' }).then(r => r.json()).then(w => {
+    bal = w.balance || 0; min = w.min || 5; $('bal').textContent = money(bal);
+    if (w.pending_cashout) { $('wmsg').textContent = `${money(w.pending_cashout)} on its way to PayPal`; $('cash').disabled = true; }
+    else { $('wmsg').textContent = bal >= min ? 'Ready to cash out' : `Cash out from ${money(min)} to PayPal`; $('cash').disabled = bal < min; }
+  }).catch(() => {});
+  wallet();
+  $('cash').onclick = () => { $('sh').textContent = `Cash out ${money(bal)}`; $('sheet').hidden = false; };
+  $('sheet').onclick = e => { if (e.target === $('sheet')) $('sheet').hidden = true; };
+  $('f').onsubmit = async e => {
+    e.preventDefault(); $('err').textContent = ''; $('send').disabled = true;
+    try {
+      const r = await fetch(`${API}/api/wallet/cashout`, { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ u, email: $('email').value, adult: $('adult').checked }) });
+      const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Something went wrong.');
+      $('f').innerHTML = `<b>💵 On its way</b><p class="note">We check every cash-out by hand, then PayPal sends ${money(j.amount)}. Usually within a day.</p>`;
+      wallet();
+    } catch (er) { $('err').textContent = er.message; $('send').disabled = false; }
+  };
+})();
+</script>
+</body>
+</html>
