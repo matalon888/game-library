@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Mergewood Manor: Merge &amp; Restore</title>
+<meta name="description" content="A cozy 3D merge game: drag two alike flowers, teas or cakes together to make something better, fill the orders of the manor's guests and restore a forgotten garden piece by piece.">
+<meta property="og:title" content="Mergewood Manor: Merge &amp; Restore">
+<meta property="og:description" content="Merge flowers, teas and cakes, fill your guests' orders and restore the manor garden. Cozy 3D merge puzzle, free, no energy waits.">
+<meta name="theme-color" content="#bfe6ff">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lilita+One&display=swap">
+<style>
+:root{--ink:#5b3a2e;--ink2:#7a5444;--cream:#fff8ec;--cream2:#ffeccc;--rose:#ff6f9c;--rose2:#e24f7f;--leaf:#6cc551;--leaf2:#3f9b34;--gold:#ffc83d;--gold2:#e79a12;--sky:#bfe6ff;--tea:#5aa9e6}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;font-family:Fredoka,system-ui,sans-serif;color:var(--ink);background:#cfeaff}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+.hide{display:none!important}
+/* ---------- HUD */
+#hud{position:fixed;top:calc(8px + env(safe-area-inset-top));left:0;right:0;display:flex;align-items:center;gap:6px;padding:0 10px 0 58px;z-index:5;pointer-events:none}
+.chip{pointer-events:auto;height:36px;display:flex;align-items:center;gap:5px;padding:0 11px 0 5px;border-radius:19px;background:linear-gradient(180deg,#fffdf7,#ffeed2);box-shadow:0 3px 0 #e2c193,0 6px 14px rgba(120,70,30,.18);font-weight:700;font-size:17px;white-space:nowrap}
+.chip svg{width:26px;height:26px;flex:0 0 auto;filter:drop-shadow(0 1px 0 rgba(0,0,0,.15))}
+.chip b{min-width:16px;text-align:center}
+.chip.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.22)}}
+#lvlchip{padding:0 12px;background:linear-gradient(180deg,#ff8db3,#ff5f92);color:#fff;box-shadow:0 3px 0 #c93d6e,0 6px 14px rgba(200,60,110,.25);font-family:'Lilita One',sans-serif;font-weight:400;letter-spacing:.4px}
+#spacer{flex:1}
+#mute{pointer-events:auto;width:36px;height:36px;border-radius:50%;background:linear-gradient(180deg,#fffdf7,#ffeed2);box-shadow:0 3px 0 #e2c193;display:grid;place-items:center;font-size:17px}
+/* level meter (orders + star meter) */
+#meter{position:fixed;top:calc(52px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:8px;padding:5px 12px 5px 8px;border-radius:18px;background:rgba(255,250,240,.9);box-shadow:0 3px 0 rgba(170,120,70,.35),0 8px 18px rgba(80,50,20,.15);pointer-events:none;font-weight:700;font-size:14px;white-space:nowrap}
+#meter .ord{display:flex;align-items:center;gap:4px}
+#meter .ord i{font-style:normal;font-size:16px}
+#meter .stars{display:flex;gap:1px}
+#meter .stars svg{width:20px;height:20px;transition:opacity .3s,transform .3s}
+#meter .stars svg.off{opacity:.25;transform:scale(.8);filter:grayscale(1)}
+#meter .seeds{color:var(--ink2);font-size:13px}
+/* bubbles over customers */
+#bubbles{position:fixed;inset:0;pointer-events:none;z-index:4}
+.bub{position:absolute;left:0;top:0;transform:translate(-50%,-100%);pointer-events:auto;display:flex;flex-direction:column;align-items:center;transition:opacity .25s}
+.bub .box{position:relative;display:flex;gap:2px;padding:5px 6px;border-radius:16px;background:#fffdf8;box-shadow:0 3px 0 #e6cda6,0 8px 16px rgba(70,40,10,.22);border:2px solid #fff}
+.bub .box:after{content:'';position:absolute;left:50%;bottom:-9px;margin-left:-8px;border:8px solid transparent;border-top-color:#fffdf8;border-bottom:0}
+.bub .it{position:relative;width:46px;height:46px;border-radius:12px;background:radial-gradient(circle at 50% 45%,#fff,#ffeedd);display:grid;place-items:center}
+.bub .it img{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
+.bub .it .ok{position:absolute;right:-4px;bottom:-4px;width:18px;height:18px;border-radius:50%;background:var(--leaf);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;box-shadow:0 2px 0 var(--leaf2);transform:scale(0);transition:transform .25s cubic-bezier(.3,1.8,.5,1)}
+.bub .it.have .ok{transform:scale(1)}
+.bub .give{margin-top:12px;height:30px;padding:0 14px;border-radius:15px;background:linear-gradient(180deg,#8fe56c,#4fbf3e);color:#fff;font-weight:700;font-size:15px;box-shadow:0 3px 0 #2f8d26,0 6px 12px rgba(40,120,20,.3);text-shadow:0 1px 0 rgba(0,0,0,.2);transform:scale(0);transition:transform .25s cubic-bezier(.3,1.8,.5,1)}
+.bub.ready .give{transform:scale(1);animation:pulse 1s ease-in-out infinite}
+.bub.ready .box{border-color:#9be27c}
+.bub .who{margin-top:3px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45);white-space:nowrap}
+.bub.gone{opacity:0;pointer-events:none}
+@keyframes pulse{50%{transform:scale(1.1)}}
+/* bottom bar */
+#bar{position:fixed;left:0;right:0;bottom:0;padding:0 10px calc(10px + env(safe-area-inset-bottom));z-index:5;display:flex;gap:8px;align-items:stretch;pointer-events:none}
+#info{pointer-events:auto;flex:1;min-width:0;height:62px;border-radius:18px;background:linear-gradient(180deg,#fffdf7,#ffefd6);box-shadow:0 4px 0 #e0bd8d,0 8px 18px rgba(90,50,20,.18);display:flex;align-items:center;gap:8px;padding:0 8px}
+#info img{width:46px;height:46px;object-fit:contain;flex:0 0 auto}
+#info .txt{flex:1;min-width:0;line-height:1.1}
+#info .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#info .sub{font-size:12px;color:var(--ink2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#info .chain{display:flex;gap:2px;margin-top:3px}
+#info .chain img{width:17px;height:17px;opacity:.35;filter:grayscale(.6)}
+#info .chain img.on{opacity:1;filter:none}
+#info .chain img.cur{outline:2px solid var(--gold);border-radius:4px;opacity:1;filter:none}
+#sell{height:40px;padding:0 10px;border-radius:14px;background:linear-gradient(180deg,#ffd76a,#ffb627);color:#6b3d00;font-weight:700;font-size:14px;box-shadow:0 3px 0 #d08a00;white-space:nowrap;flex:0 0 auto}
+#sell:active,.boost:active,.btn:active{transform:translateY(2px)}
+.boost{pointer-events:auto;position:relative;width:62px;height:62px;border-radius:18px;background:linear-gradient(180deg,#c8a6ff,#9a6cf5);box-shadow:0 4px 0 #6d43c4,0 8px 18px rgba(90,50,180,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;line-height:1}
+.boost.b2{background:linear-gradient(180deg,#7fd6ff,#3fa6e8);box-shadow:0 4px 0 #2a78b8,0 8px 18px rgba(30,100,180,.25)}
+.boost i{font-style:normal;font-size:26px;margin-bottom:2px}
+.boost .n{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;padding:0 5px;background:var(--rose);border:2px solid #fff;font-size:12px;display:grid;place-items:center}
+.boost.armed{outline:3px solid #fff;animation:pulse .8s ease-in-out infinite}
+/* cards */
+.card{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0 12px calc(14px + env(safe-area-inset-bottom))}
+.panel{width:100%;max-width:440px;border-radius:28px;background:linear-gradient(180deg,#fffaf1,#ffeacb);box-shadow:0 6px 0 #dcb27a,0 20px 40px rgba(70,40,10,.3);padding:16px 16px 18px;text-align:center;position:relative}
+.panel h1{margin:0;font-family:'Lilita One',sans-serif;font-weight:400;font-size:34px;line-height:1;color:var(--rose2);text-shadow:0 3px 0 #fff}
+.panel h1 small{display:block;font-family:Fredoka;font-size:14px;color:var(--ink2);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;text-shadow:none}
+.panel p{margin:6px 0 0;font-weight:600;font-size:15px;color:var(--ink2)}
+.gprog{margin:10px auto 0;height:16px;border-radius:9px;background:#f1d9b4;overflow:hidden;box-shadow:inset 0 2px 0 rgba(0,0,0,.08);position:relative}
+.gprog i{display:block;height:100%;width:0;background:linear-gradient(180deg,#9ee57e,#56bf43);border-radius:9px;transition:width .6s}
+.gprog span{position:absolute;inset:0;font-size:11px;font-weight:700;line-height:16px;color:#3d5a2a}
+.task{margin-top:10px;display:flex;align-items:center;gap:10px;padding:8px;border-radius:18px;background:#fff;box-shadow:0 3px 0 #ecd2ab}
+.task img{width:52px;height:52px;object-fit:contain;flex:0 0 auto;border-radius:12px;background:radial-gradient(circle,#fff,#eef7e6)}
+.task .tt{flex:1;text-align:left;line-height:1.15}
+.task .tt b{display:block;font-size:16px}
+.task .tt span{font-size:12px;color:var(--ink2)}
+.btn{height:46px;padding:0 16px;border-radius:23px;font-weight:700;font-size:17px;color:#fff;background:linear-gradient(180deg,#ffd76a,#ffb020);box-shadow:0 4px 0 #cf8500;text-shadow:0 1px 0 rgba(0,0,0,.18);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn svg{width:22px;height:22px}
+.btn.off{filter:grayscale(.7);opacity:.7}
+.btn.play{width:100%;height:60px;margin-top:12px;font-family:'Lilita One',sans-serif;font-weight:400;font-size:26px;letter-spacing:.5px;background:linear-gradient(180deg,#96ea71,#47b83a);box-shadow:0 5px 0 #2c8a24,0 10px 20px rgba(40,130,30,.3)}
+.card .hint{margin-top:6px;font-size:12px;color:var(--ink2);font-weight:500}
+#win{justify-content:center;background:radial-gradient(circle at 50% 45%,rgba(255,240,200,.55),rgba(60,30,10,.35))}
+#win .panel{padding-top:22px}
+#win .bigstars{display:flex;justify-content:center;gap:4px;margin:8px 0 4px}
+#win .bigstars svg{width:66px;height:66px;transform:scale(0);filter:drop-shadow(0 4px 0 rgba(160,90,0,.35))}
+#win .bigstars svg:nth-child(2){width:84px;height:84px;margin-top:-14px}
+#win .bigstars svg.in{animation:starin .45s cubic-bezier(.3,1.7,.5,1) forwards}
+#win .bigstars svg.dim{opacity:.28;filter:grayscale(1)}
+@keyframes starin{0%{transform:scale(0) rotate(-40deg)}100%{transform:scale(1) rotate(0)}}
+#win .reward{display:flex;justify-content:center;gap:14px;margin-top:6px;font-weight:700;font-size:20px}
+#win .reward span{display:flex;align-items:center;gap:4px}
+#win .reward svg{width:26px;height:26px}
+#win .tapc{margin-top:12px;font-weight:700;font-size:16px;color:var(--leaf2);animation:pulse 1.2s ease-in-out infinite}
+#win .hc-btn{margin-top:10px;height:40px;padding:0 22px;border-radius:20px;background:linear-gradient(180deg,#8fc8ff,#4d95e8);color:#fff;font:700 16px Fredoka,sans-serif;box-shadow:0 3px 0 #2f6cb8}
+#toast{position:fixed;left:50%;top:24%;transform:translate(-50%,-50%);z-index:12;pointer-events:none;font-family:'Lilita One',sans-serif;font-size:30px;color:#fff;text-shadow:0 3px 0 rgba(150,60,90,.55),0 0 18px rgba(255,120,170,.5);white-space:nowrap;opacity:0}
+#toast.on{animation:toast 1.1s ease-out forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}75%{opacity:1;transform:translate(-50%,-62%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+.fly{position:fixed;left:0;top:0;z-index:11;width:26px;height:26px;pointer-events:none;transition:transform .7s cubic-bezier(.5,-.3,.6,1),opacity .2s}
+.fly svg{width:100%;height:100%}
+.float{position:fixed;z-index:11;pointer-events:none;font-weight:700;font-size:18px;color:#fff;text-shadow:0 2px 0 rgba(120,60,20,.5);transform:translate(-50%,-50%);animation:floatup 1s ease-out forwards;white-space:nowrap}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,-20%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-160%) scale(1)}}
+#loading{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:linear-gradient(180deg,#bfe6ff,#fff1d6);font-family:'Lilita One',sans-serif;font-size:30px;color:var(--rose2);transition:opacity .5s}
+#loading div{text-align:center}
+#loading small{display:block;font-family:Fredoka;font-size:14px;color:var(--ink2)}
+@media (min-aspect-ratio:1/1){
+  #bar{left:50%;right:auto;transform:translateX(-50%);width:min(560px,100vw)}
+  .card{padding-bottom:20px}
+}
+</style>
+</head>
+<body>
+<div id="loading"><div>Mergewood Manor<small>opening the garden gate…</small></div></div>
+<div id="hud">
+  <div class="chip" id="lvlchip">Level <span id="lvl">1</span></div>
+  <div id="spacer"></div>
+  <div class="chip" id="starchip"><svg viewBox="0 0 24 24"><use href="#star"/></svg><b id="stars">0</b></div>
+  <div class="chip" id="coinchip"><svg viewBox="0 0 24 24"><use href="#coin"/></svg><b id="coins">0</b></div>
+  <button id="mute" aria-label="Sound">🔊</button>
+</div>
+<div id="meter" class="hide">
+  <div class="ord"><i>📦</i><span id="ordn">0/3</span></div>
+  <div class="stars" id="mstars"><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg></div>
+  <div class="seeds" id="seeds">🌱 0/10</div>
+</div>
+<div id="bubbles"></div>
+<div id="bar" class="hide">
+  <div id="info"><img id="infoimg" alt=""><div class="txt"><div class="nm" id="infonm">Drag two alike to merge</div><div class="sub" id="infosub">Tap the basket to grow something</div><div class="chain" id="infochain"></div></div><button id="sell" class="hide">Sell +1</button></div>
+  <button class="boost" id="bwand"><i>✨</i>Upgrade<span class="n" id="nwand">1</span></button>
+  <button class="boost b2" id="brefill"><i>🍀</i>Lucky<span class="n" id="nrefill">1</span></button>
+</div>
+<div id="start" class="card hide">
+  <div class="panel">
+    <h1><small id="stitle">Mergewood Manor</small><span id="slevel">Level 1</span></h1>
+    <div class="gprog"><i id="gbar"></i><span id="gtext">Garden 0/18</span></div>
+    <div class="task" id="task"><img id="timg" alt=""><div class="tt"><b id="tname">Mow the lawn</b><span id="tsub">Restore the garden with stars</span></div><button class="btn" id="tbtn"><svg viewBox="0 0 24 24"><use href="#star"/></svg><span id="tcost">1</span></button></div>
+    <button class="btn play" id="play">Play</button>
+    <div class="hint">Merge 2 alike items · fill the guests' orders · earn stars</div>
+  </div>
+</div>
+<div id="win" class="card hide">
+  <div class="panel">
+    <h1><small id="wlevel">Level 1</small>Lovely!</h1>
+    <div class="bigstars" id="bigstars"><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg></div>
+    <p data-x id="wline">All orders filled</p>
+    <div class="reward"><span><svg viewBox="0 0 24 24"><use href="#star"/></svg>+<b id="wstars">3</b></span><span><svg viewBox="0 0 24 24"><use href="#coin"/></svg>+<b id="wcoins">0</b></span></div>
+    <div class="tapc">Tap to continue</div>
+  </div>
+</div>
+<div id="toast"></div>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff27a"/><stop offset=".55" stop-color="#ffc21a"/><stop offset="1" stop-color="#f39200"/></linearGradient>
+    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0a0"/><stop offset=".6" stop-color="#ffc83d"/><stop offset="1" stop-color="#e08a00"/></linearGradient>
+    <symbol id="star" viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.4 7 .9-5.1 4.9 1.3 7-6.3-3.4-6.3 3.4 1.3-7L1.9 9.1l7-.9z" fill="url(#sg)" stroke="#c96f00" stroke-width="1.3" stroke-linejoin="round"/><path d="M8.6 8.9l2.2-.4 1-2.3" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".8"/></symbol>
+    <symbol id="coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.2" fill="url(#cg)" stroke="#bf7400" stroke-width="1.3"/><circle cx="12" cy="12" r="6.8" fill="none" stroke="#d98a00" stroke-width="1.2"/><path d="M12 8.2l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z" fill="#fff6c8"/></symbol>
+  </defs>
+</svg>
+<script type="module" src="./game.js"></script>
+</body>
+</html>
