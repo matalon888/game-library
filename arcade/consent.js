@@ -132,6 +132,9 @@ html.rc-lock,html.rc-lock body{overflow:hidden}
     // no popup on the agent funnel: go.html (RC_NO_POPUP), and the first game it or the AI's reply opens (agreed to the Terms with
     // the GET IN tap). Outside the US tracking just stays off there, no extra tap
     let fromGo = /[?&](ref=go-|pos=go\b)/.test(location.search); try { fromGo = fromGo || sessionStorage.getItem('ap.goTerms') === '1'; } catch (e) {}
+    // nor for anyone who came from our ads (Daniel, 2026-10-20: the ad tap goes straight in). The ads target the US only, where
+    // tracking is on by default; a non-US phone keeps tracking off without asking (no extra tap, and no consent assumed)
+    try { fromGo = fromGo || /[?&](fbclid=|utm_source=(meta|facebook|instagram|fb|ig)\b)/i.test(location.search) || sessionStorage.getItem('ap.fromAd') === '1'; } catch (e) {}
     if (!stored() && !US && !window.RC_NO_POPUP && !fromGo) open();
     // "Privacy choices" in the footer: change your mind as easily as you chose (arcade .foot, landing footer nav)
     const foot = document.querySelector('.foot, footer nav');
