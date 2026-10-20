@@ -48,9 +48,11 @@ window.SINGULAR_ADS = {
       const s = g.defineOutOfPageSlot(slotId, g.enums.OutOfPageFormat.REWARDED);
       if (!s) return res({ completed: false });   // the format isn't available on this page / device
       s.addService(g.pubads());
-      let granted = false; const done = () => { g.destroySlots([s]); res({ completed: granted }); };
+      let granted = false, ready = false, over = false;
+      const done = () => { if (over) return; over = true; g.destroySlots([s]); res({ completed: granted }); };
+      setTimeout(() => { if (!ready) done(); }, 4000);   // no ad ready in 4 s (common in some in-app browsers): no wait, no reward
       const pa = g.pubads();
-      pa.addEventListener('rewardedSlotReady', e => { if (e.slot === s) e.makeRewardedVisible(); });
+      pa.addEventListener('rewardedSlotReady', e => { if (e.slot === s && !over) { ready = true; e.makeRewardedVisible(); } });
       pa.addEventListener('rewardedSlotGranted', e => { if (e.slot === s) granted = true; });
       pa.addEventListener('rewardedSlotClosed', e => { if (e.slot === s) done(); });
       pa.addEventListener('slotRenderEnded', e => { if (e.slot === s && e.isEmpty) done(); });   // no ad to show: no reward, no wait
