@@ -15,7 +15,7 @@
      on the AI), keeps the ad click tied to this visitor's prompt code (attrib.js), and counts a Meta Lead (pixel + our Conversions
      API, one event id). Inside the Facebook / Instagram browser the button jumps to Safari (iPhone) or Chrome (Android) first,
      where the AI is signed in. The AI logos are shown unaltered, each on its own button, as a plain reference to the AI it opens.
-     ?ai=chatgpt|claude · test only: ?hop=page (iPhone in-app: open this page in Safari first, then the AI from there), ?test=1 (no Lead) -->
+     ?ai=chatgpt|claude · ?hop=safari (set by the iPhone in-app jump: this page in Safari, one button) · test only: ?test=1 (no Lead) -->
 <style>
 :root { --ink: #FFFDF8; --muted: #CFCBE6; --night: #12163A; --gold: #FFC93C; --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
   --body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark }
@@ -132,11 +132,13 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     if (INC === 'secret') base = base.replace('🎮 Play now: {GAME}', '🎁 Your secret game: {GAME}');
     const P = (base + INCL.replace('{AI}', ai) + RW).replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
     const aiUrl = ai === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
-    // out of the in-app browser first: Safari on iPhone (x-safari-), Chrome on Android (intent:)
+    // out of the in-app browser first: on iPhone this page reopens in Safari (x-safari-), where the visitor's tap on the AI link
+    // is a universal link (chatgpt.com/?q=, claude.ai/new) and opens the signed-in app. Jumping straight to the AI URL opened
+    // the website in Safari instead, mostly signed out: 2026-10-18..20, 107 iPhone Facebook taps, few connected. Android: Chrome (intent:)
     let href = aiUrl;
     if (INAPP && IOS) {
-      const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.delete('fbclid');
-      href = 'x-safari-' + (q.get('hop') === 'page' ? self.href : aiUrl);
+      const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.set('hop', 'safari'); self.searchParams.delete('fbclid');
+      href = 'x-safari-' + self.href;
     } else if (INAPP && AND) href = `intent://${aiUrl.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(aiUrl)};end`;
     // retry for a tap that opened nothing: from the Facebook / Instagram browser, this page in Safari (one tap there opens the AI)
     const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.delete('fbclid'); self.searchParams.delete('hop');
@@ -160,6 +162,14 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     b.addEventListener('click', () => tapped(ai, target(ai)));   // rebuilt at tap time: the reward line may have arrived since
   });
 
+  // reopened in Safari from the Facebook / Instagram browser: just the AI they picked, one tap to its app
+  if (q.get('hop') === 'safari' && !INAPP) {
+    document.querySelector('h1').textContent = `One more tap 👇`;
+    document.querySelector('.sub').innerHTML = `Opens your ${NAMES[AD_AI]} app with the arcade ready. Then hit <b>↑ send</b>.`;
+    const keep = AD_AI === 'chatgpt' ? 1 : 2;
+    $('b' + (3 - keep)).hidden = true; $('b' + (3 - keep)).style.display = 'none';
+    document.querySelector('.btns').style.gridTemplateColumns = '1fr';
+  }
   window.GoSetReward = line => { RW = line; ['chatgpt', 'claude'].forEach((ai, i) => { const b = $('b' + (i + 1)), t = target(ai); b.href = t.href; Object.entries(ownTab(t.href)).forEach(([k, v]) => b.setAttribute(k, v)); }); };
   if (!sessionStorage.getItem('ap.goShown')) { try { sessionStorage.setItem('ap.goShown', '1'); } catch (e) {} ev('go_shown_' + AD_AI); }
   let went = false;
