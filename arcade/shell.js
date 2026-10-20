@@ -268,6 +268,8 @@
       const ref = new URLSearchParams(location.search).get('ref') || '';
       const gift = (v => /^[a-z0-9]{10}$/.test(v || '') ? v : null)(new URLSearchParams(location.search).get('gift'));
       let ok = EMBED || /^(daily|go)/.test(ref) || !!gift;
+      // VIP (vip.html, Stripe via arcade-api vip.js): every AI-only game, any time
+      if (!ok) try { const u = localStorage.getItem('ap.u'); if (/^[a-z0-9]{10}$/.test(u || '')) ok = (await (await fetch('https://mcp.riffcade.com/api/vip?u=' + u, { cache: 'no-store' })).json()).vip === true; } catch (e) {}
       // a friend's gift link (the daily message's "unlock a game for a friend"): open it, and invite them to get their own
       if (gift) setTimeout(() => document.body.insertAdjacentHTML('beforeend', `<a class="aigift" href="go.html?inc=vip&utm_source=gift&utm_medium=friend&utm_content=${gift}">🎁 A friend unlocked this for you. <b>Get your own AI games ▶</b></a>`), 1500);
       try { const k = 'ap.vip.' + g.slug; if (ok) sessionStorage.setItem(k, '1'); else ok = !!sessionStorage.getItem(k); } catch (e) {}

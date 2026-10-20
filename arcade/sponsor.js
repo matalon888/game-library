@@ -5,7 +5,9 @@
   if (!el || q.get('embed') === 'chat' || /kids/i.test(q.get('mode') || '') || (window.RIFFCADE || {}).SPONSOR_OFF) return;
   const u = window.RiffHabits && RiffHabits.agentCode ? RiffHabits.agentCode() : '', os = /Android/i.test(navigator.userAgent) ? 'android' : 'ios';
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-  fetch(`https://mcp.riffcade.com/api/offers?u=${u}&os=${os}`, { cache: 'no-store' }).then(r => r.json()).then(j => {
+  // VIP players never see sponsored offers
+  fetch(`https://mcp.riffcade.com/api/vip?u=${u}`, { cache: 'no-store' }).then(r => r.json()).catch(() => ({})).then(v => v.vip ? null : fetch(`https://mcp.riffcade.com/api/offers?u=${u}&os=${os}`, { cache: 'no-store' }).then(r => r.json())).then(j => {
+    if (!j) return;
     const o = j.pick; if (!o) return;
     el.innerHTML = `<a class="spick" href="earn.html">${o.image ? `<img src="${esc(o.image)}" alt="">` : ''}<span><small>SPONSORED · EARN</small><b>${esc(o.title)}</b></span><em>+$${o.you_get.toFixed(2)}</em></a><a class="svip" href="vip.html">👑 VIP: every AI-only game, no ads</a>`;
   }).catch(() => {});
