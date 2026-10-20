@@ -25,6 +25,7 @@ window.RIFFCADE = {
   "DAILY_CHALLENGE": false,
   "SUBSCRIBE_V2": false,
   "ADS_ENABLED": false,
+  "ADS_FORCED": false,
   "WHATSAPP_CHANNEL_URL": "",
   "META_PIXEL_ID": "1143064938054197",
   "GA4_ID": "G-N62V18VZ3S",

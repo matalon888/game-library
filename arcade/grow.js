@@ -77,6 +77,9 @@
   RC.onChange(v => { ev(v === 'accepted' ? 'consent_accept' : 'consent_decline'); if (window.RiffAds) window.RiffAds.consent(v === 'accepted' && !kids); });
 
   // ---------------------------------------------------------------- ads (adapter loads only when ADS_ENABLED)
+  // only opt-in rewarded videos (Daniel, 2026-10-20: "no forced ads" is the promise); the banner and between-games interstitial
+  // run only if config ADS_FORCED is also true
+  const FORCED = !!(C.ADS_ENABLED && C.ADS_FORCED);
   let adsReady = null;
   const ads = () => adsReady || (adsReady = !C.ADS_ENABLED ? Promise.resolve(null) : new Promise(res => {
     const load = src => new Promise(r => { const s = document.createElement('script'); s.src = src; s.onload = r; s.onerror = r; document.head.appendChild(s); });
@@ -164,7 +167,7 @@
     if (q.get('ref') === 'c') once('c_arrival.' + g.slug, 'c_arrival');
     const n = +q.get('ch');
     if (C.DAILY_CHALLENGE && n >= 1 && challengeSlug(n) === g.slug) chN = n;
-    if (C.ADS_ENABLED) { // the banner row is reserved before the game starts, so nothing jumps when the banner fills it
+    if (FORCED) { // the banner row is reserved before the game starts, so nothing jumps when the banner fills it
       const p = document.querySelector('.player');
       if (p && !$('gAdbar')) { p.classList.add('has-ad'); const bar = document.createElement('div'); bar.id = 'gAdbar'; bar.className = 'g-adbar'; p.appendChild(bar); }
     }
@@ -200,7 +203,7 @@
     if (count === 1) pixel('GamePlayed1', true);
     if (count === 2) pixel('GamePlayed2', true);
     if (chN) ev('challenge_play');
-    if (C.ADS_ENABLED) ads().then(a => { if (a && $('gAdbar')) a.showBanner($('gAdbar')); });
+    if (FORCED) ads().then(a => { if (a && $('gAdbar')) a.showBanner($('gAdbar')); });
     // games built on our kit expose window.__game {state, score}: that's how we know a round ended, and its score
     const watch = setInterval(() => {
       let s; try { s = frame.contentWindow.__game; } catch (e) { return; }
@@ -299,11 +302,11 @@
     await endGame(/from=(next|swipe|tap|round)/.test(extra) ? 'next' : 'bonus');
     const to = `play.html?g=${encodeURIComponent(slug)}${extra}`;
     // between games: the session's one interstitial, never mid-game
-    if (C.ADS_ENABLED) ads().then(a => (a ? a.showInterstitial() : null)).then(() => { location.href = to; }, () => { location.href = to; });
+    if (FORCED) ads().then(a => (a ? a.showInterstitial() : null)).then(() => { location.href = to; }, () => { location.href = to; });
     else location.href = to;
   }
   function goHome() {
-    if (C.ADS_ENABLED) ads().then(a => (a ? a.showInterstitial() : null)).then(() => { location.href = './'; }, () => { location.href = './'; });
+    if (FORCED) ads().then(a => (a ? a.showInterstitial() : null)).then(() => { location.href = './'; }, () => { location.href = './'; });
     else location.href = './';
   }
 
@@ -359,7 +362,7 @@
     if (started && chN && !shared) await shareCard(true);
     if (started && ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
     if (started && (await nextCard('back')) !== 'none') return true;
-    if (C.ADS_ENABLED && started) { goHome(); return true; }
+    if (FORCED && started) { goHome(); return true; }
     return false;
   }
 
