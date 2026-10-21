@@ -7,6 +7,9 @@
 // agentCode(), agentTapped(ai), agentWatch(cb), ob(step, ai) (the onboarding log).
 (function () {
   if (new URLSearchParams(location.search).get('embed') === 'chat') return;
+  // the Google Play app (Android TWA, start_url ?src=android, referrer android-app://co.agentpark.app): remembered on the device,
+  // so pages can leave out what Play doesn't allow in an app (vip.html: no outside checkout for digital extras)
+  try { if (/[?&]src=android\b/.test(location.search) || /^android-app:\/\/co\.agentpark\.app/.test(document.referrer)) localStorage.setItem('ap.app', 'android'); } catch (e) {}
   const C = window.RIFFCADE || {};
   const q = new URLSearchParams(location.search);
   const KEY = 'arcade.hist';

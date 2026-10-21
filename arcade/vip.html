@@ -49,7 +49,8 @@ li b { font-size: 22px }
 (function () {
   const C = window.RIFFCADE || {}, u = window.RiffHabits && RiffHabits.agentCode ? RiffHabits.agentCode() : '';
   const go = document.getElementById('go');
-  if (/^https:\/\/(buy|checkout)\.stripe\.com\//.test(C.VIP_LINK || '')) {
+  const inApp = (() => { try { return localStorage.getItem('ap.app') === 'android'; } catch (e) { return false; } })();
+  if (!inApp && /^https:\/\/(buy|checkout)\.stripe\.com\//.test(C.VIP_LINK || '')) {
     go.onclick = () => { location.href = C.VIP_LINK + (C.VIP_LINK.includes('?') ? '&' : '?') + 'client_reference_id=' + u; };
   } else {
     go.textContent = 'Join the VIP list';
