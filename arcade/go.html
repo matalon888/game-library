@@ -47,6 +47,8 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 .legal { margin: 0; font-size: 11px; color: var(--muted); opacity: .6; text-wrap: balance } .legal a { color: inherit }
 #again { position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; padding: 16px; background: rgba(7,6,15,.88) }
 #again .card { width: min(320px, 100%); display: grid; gap: 16px; justify-items: center; text-align: center; font-size: 20px }
+.alt { color: var(--muted); font-size: 15px; margin-top: -4px }
+#again .copy { font: inherit; font-size: 15px; color: var(--ink); background: none; border: 1px solid rgba(255,255,255,.3); border-radius: 14px; padding: 10px 14px; width: 100% }
 #again p { margin: 0 } #again .go { width: 100% } #again .skip { color: var(--muted); font-size: 15px }
 @media (prefers-reduced-motion: reduce) { .go.first, .go small .plus { animation: none } }
 @media (max-height: 640px) { main { gap: 12px } h1 { font-size: 27px } .go img { width: 50px; height: 50px } }
@@ -107,6 +109,14 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
   // a CPAlead offerwall visitor (?cpa_click=): their click id is tied to this prompt code, so the server pays the offer
   // the moment their AI runs the task (arcade-api cpalead.js). Kept through the Safari hop, which reuses this URL.
   const cpaClick = q.get('cpa_click');
+  // leak tests (2026-10-21), two coins per visitor, kept through the Safari hop (&ab=): W = wait for ↑ send before the game
+  // (the CPAlead two-step flow, which connects 67% of taps vs 40% for Meta's jump-to-game), O = one big button for the ad's AI
+  // with the other as a small link. Logged as the onboarding "place" go-<w|j><o|t> (arcade-api ob-report by_place).
+  const AB = (() => { let v = q.get('ab'); try { v = /^[wj][ot]$/.test(v || '') ? v : sessionStorage.getItem('ap.goab'); } catch (e) {}
+    if (!/^[wj][ot]$/.test(v || '')) v = (Math.random() < .5 ? 'w' : 'j') + (Math.random() < .5 ? 'o' : 't');
+    try { sessionStorage.setItem('ap.goab', v); } catch (e) {} return v; })();
+  const WAIT = !!code && (!!cpaClick || AB[0] === 'w'), ONE = AB[1] === 'o';
+  window.AP_PLACE = cpaClick ? 'go-cpa' : 'go-' + AB;
   if (code && cpaClick && /^[\w.:-]{1,128}$/.test(cpaClick))
     fetch('https://mcp.riffcade.com/api/cpa', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ u: code, click: cpaClick, pub: q.get('cpa_pub'), camp: q.get('cpa_camp'), pay: q.get('cpa_pay') }) }).catch(() => {});
@@ -139,11 +149,11 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     // the website in Safari instead, mostly signed out: 2026-10-18..20, 107 iPhone Facebook taps, few connected. Android: Chrome (intent:)
     let href = aiUrl;
     if (INAPP && IOS) {
-      const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.set('hop', 'safari'); self.searchParams.delete('fbclid');
+      const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.set('hop', 'safari'); self.searchParams.set('ab', AB); self.searchParams.delete('fbclid');
       href = 'x-safari-' + self.href;
     } else if (INAPP && AND) href = `intent://${aiUrl.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(aiUrl)};end`;
     // retry for a tap that opened nothing: from the Facebook / Instagram browser, this page in Safari (one tap there opens the AI)
-    const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.delete('fbclid'); self.searchParams.delete('hop');
+    const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.set('ab', AB); self.searchParams.delete('fbclid'); self.searchParams.delete('hop');
     const retry = INAPP && IOS ? 'x-safari-' + self.href : href;
     return { P, href, retry };
   }
@@ -184,6 +194,15 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     $('b' + (3 - keep)).hidden = true; $('b' + (3 - keep)).style.display = 'none';
     document.querySelector('.btns').style.gridTemplateColumns = '1fr';
   }
+  if (ONE && q.get('hop') !== 'safari') {
+    const other = AD_AI === 'chatgpt' ? 'claude' : 'chatgpt', ob = $(AD_AI === 'chatgpt' ? 'b2' : 'b1');
+    ob.hidden = true; ob.style.display = 'none';
+    document.querySelector('.btns').style.gridTemplateColumns = '1fr';
+    const l = document.createElement('a'); l.className = 'alt'; l.href = '#'; l.textContent = `Use ${NAMES[other]} instead`;
+    l.addEventListener('click', e => { e.preventDefault(); ob.hidden = false; ob.style.display = ''; document.querySelector('.btns').style.gridTemplateColumns = ''; l.remove(); });
+    document.querySelector('.btns').after(l);
+    if (!INC_COPY && !cpaClick) document.querySelector('.sub').innerHTML = `Tap, hit <b>↑ send</b>. The first game opens right away.`;
+  }
   window.GoSetReward = line => { RW = line; ['chatgpt', 'claude'].forEach((ai, i) => { const b = $('b' + (i + 1)), t = target(ai); b.href = t.href; Object.entries(ownTab(t.href)).forEach(([k, v]) => b.setAttribute(k, v)); }); };
   if (!sessionStorage.getItem('ap.goShown')) { try { sessionStorage.setItem('ap.goShown', '1'); } catch (e) {} ev('go_shown_' + AD_AI); }
   let went = false;
@@ -206,7 +225,7 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
       if (ab !== 'pick') try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {}
       location.replace(ab === 'pick' ? 'pick.html?ref=go-' + ai + '&apu=' + (code || '') + '&from=go' : 'play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + (code || '') + '&from=go'); };
     // still here after 3 s = the AI didn't open: a second chance (Safari from the in-app browser) instead of dropping them into the game
-    if (cpaClick && code) return cpaWait(ai, t);
+    if (WAIT) return cpaWait(ai, t);
     let jumped = false;
     document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + ai); } setTimeout(toGame, 300); } });
     setTimeout(() => { if (!jumped && !went && !$('again')) { ev('go_nojump_' + ai); again(ai, t, toGame); } }, 3000);
@@ -230,14 +249,30 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
       $('wait').innerHTML = `<p><b>✅ ${NAMES[ai]} is set up</b></p><p>Step 2 of 2: play your first game.</p><a class="go" href="${game}"><small>PLAY ▶</small></a>`;
     }).catch(() => {});
     setInterval(check, 3000);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+    let away = false;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { away = true; return; }
+      check();
+      // back without the check-in: they opened the AI but didn't send
+      setTimeout(() => { if (!done && away && $('wst')) { $('wst').innerHTML = `Not sent yet. Open ${NAMES[ai]} and hit <b>↑ send</b>.`; ev('go_unsent_' + ai); } }, 2500);
+    });
+    if (!cpaClick) {   // Meta visitors in the wait test can still skip to a game
+      const sk = document.createElement('a'); sk.className = 'skip'; sk.href = game; sk.textContent = 'Just play a game';
+      sk.addEventListener('click', () => ev('go_skip_' + ai)); $('wait').appendChild(sk);
+    }
   }
   function again(ai, t, toGame) {
     const d = document.createElement('div');
     d.id = 'again';
-    d.innerHTML = `<div class="card"><p><b>${NAMES[ai]} didn't open?</b></p><a class="go" href="${t.retry}"><img alt="" src="${LOGOS[ai]}"><small>${INAPP && IOS ? 'OPEN IN SAFARI ▶' : 'TRY AGAIN ▶'}</small></a><a class="skip" href="#">Just play a game</a></div>`;
+    d.innerHTML = `<div class="card"><p><b>${NAMES[ai]} didn't open?</b></p><a class="go" href="${t.retry}"><img alt="" src="${LOGOS[ai]}"><small>${INAPP && IOS ? 'OPEN IN SAFARI ▶' : 'TRY AGAIN ▶'}</small></a><button class="copy" type="button">Copy the message instead</button><a class="skip" href="#">Just play a game</a></div>`;
     const a = d.querySelector('.go');
     Object.entries(ownTab(t.retry)).forEach(([k, v]) => a.setAttribute(k, v));
+    // the AI app won't open at all (no app, a locked-down browser): copy the message, paste it into the AI yourself
+    d.querySelector('.copy').addEventListener('click', e => {
+      const b = e.currentTarget, ok = () => { b.textContent = `Copied ✓ Paste it into ${NAMES[ai]} and hit ↑ send`; ev('go_copy_' + ai); };
+      if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(t.P).then(ok, () => { b.textContent = 'Copy failed: long-press to select'; });
+      else ok();
+    });
     a.addEventListener('click', () => ev('go_retry_' + ai));
     d.querySelector('.skip').addEventListener('click', e => { e.preventDefault(); toGame(); });
     document.body.appendChild(d);

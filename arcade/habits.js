@@ -120,7 +120,7 @@
   function ob(step, ai) {
     try {
       fetch(AGENT_API.replace('/api/agent?u=', '/api/ob'), { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ u: agentCode(), step, ai: ai || null, plat: PLAT, inapp: INAPP, src: SRC, place: PLACE }) }).catch(() => {});
+        body: JSON.stringify({ u: agentCode(), step, ai: ai || null, plat: PLAT, inapp: INAPP, src: SRC, place: window.AP_PLACE || PLACE }) }).catch(() => {});
     } catch (e) {}
   }
   // cb(state, ai): 'connected' once, at the first fetch after the latest tap; 'missing' when 3 minutes pass with none;
