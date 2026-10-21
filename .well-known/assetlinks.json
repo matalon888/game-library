@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "co.agentpark.app",
-        "sha256_cert_fingerprints": ["F9:F0:05:E7:42:5A:A8:3C:DA:07:20:9E:39:45:5F:7F:AE:2D:83:9B:25:87:EB:88:03:F8:71:3B:B3:CA:42:C0"]
+        "package_name": "co.agentpark.games",
+        "sha256_cert_fingerprints": ["D7:E1:C7:76:8B:36:D5:65:8E:A5:3D:91:B1:25:16:9C:D7:48:2A:87:2F:09:8F:8F:65:17:34:5A:C9:74:6D:FE"]
       }
     }]
