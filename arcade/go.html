@@ -129,8 +129,8 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
   let INCL = INC === 'streak' ? '\n🔥 Day 1 streak started: day 7 unlocks a VIP game.' : '';
   if (INC === 'peek' || INC === 'vip') fetch('today.json').then(r => r.json()).then(t => {
     const tag = u => u.replace('ref=daily', 'ref=daily-{AI}&apu=' + (code || ''));
-    if (INC === 'peek' && t.peek) INCL = `\n👀 Tomorrow's game, today: ${tag(t.peek.play_url)}`;
-    if (INC === 'vip' && t.ai_only && t.ai_only[0]) INCL = `\n🔒 Only in your AI: ${tag(t.ai_only[0].play_url)}`;
+    if (INC === 'peek' && t.peek) INCL = `\n👀 [Tomorrow's game, today: ${t.peek.name} ▶](${tag(t.peek.play_url)})`;
+    if (INC === 'vip' && t.ai_only && t.ai_only[0]) INCL = `\n🔒 [Only in your AI: ${t.ai_only[0].name} ▶](${tag(t.ai_only[0].play_url)})`;
     window.GoSetReward && GoSetReward(RW);
   }).catch(() => {});
   // the $1 reward line (Meta ad visitors only, while rewards are on): the AI tells them when it unlocks and where PayPal is asked
@@ -141,7 +141,7 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     const startUrl = `https://today.agentpark.co/start?u=${code || ''}&g=${GAME}`;
     // Meta / everyone: the fast prompt (no website opened in the first reply, the game link comes first); CPAlead: with the check-in
     let base = (cpaClick && C.GO_PROMPT_CPA) || C.GO_PROMPT || C.DAILY_PROMPT || '';
-    if (INC === 'secret') base = base.replace('🎮 Play now: {GAME}', '🎁 Your secret game: {GAME}');
+    if (INC === 'secret') base = base.replace('🎮 [Play your first game ▶]({GAME})', '🎁 [Open your secret game ▶]({GAME})');
     const P = (base + INCL.replace('{AI}', ai) + RW).replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
     const aiUrl = ai === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
     // out of the in-app browser first: on iPhone this page reopens in Safari (x-safari-), where the visitor's tap on the AI link
