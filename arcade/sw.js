@@ -1,6 +1,6 @@
 // Offline support. Shell: network first (updates show up), cached fallback.
 // Game files: cache first, filled the first time a game is played, so played games work offline.
-const V = 'arcade-v65';  // bump whenever a published game's files change (audit fixes), so cached copies are dropped
+const V = 'arcade-v66';  // bump whenever a published game's files change (audit fixes), so cached copies are dropped
 const SHELL = ['./', 'index.html', 'play.html', 'arcade.css', 'shell.js', 'park.js', 'park.css', 'config.js', 'consent.js', 'habits.js', 'attrib.js', 'diag.js', 'grow.js', 'games.json', 'manifest.webmanifest', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -20,4 +20,17 @@ self.addEventListener('fetch', e => {
       return r;
     }).catch(() => caches.match(e.request, { ignoreSearch: u.pathname.endsWith('play.html') })));
   }
+});
+
+// the 8am game-of-the-day notification (arcade-api push.js); a tap opens the game and is counted
+self.addEventListener('push', e => {
+  let d = {}; try { d = e.data.json(); } catch (x) {}
+  e.waitUntil(self.registration.showNotification(d.title || 'AGENTPARK', { body: d.body || "Today's new game is in.", icon: d.icon, image: d.image, data: d, tag: 'daily-game' }));
+});
+self.addEventListener('notificationclick', e => {
+  const d = e.notification.data || {}; e.notification.close();
+  e.waitUntil(Promise.all([
+    fetch('https://mcp.riffcade.com/api/push/open?u=' + encodeURIComponent(d.u || '') + '&d=' + encodeURIComponent(d.d || '')).catch(() => {}),
+    self.clients.openWindow(d.url || '/arcade/'),
+  ]));
 });

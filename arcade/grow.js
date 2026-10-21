@@ -222,8 +222,42 @@
   async function gameOver() {
     if (leaving || document.querySelector('.g-card, .g-ad-full')) return; // one card at a time
     if (chN && !shared) return shareCard(false);
-    if (ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
+    if (pushDue()) await pushCard();
+    else if (ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
     if (C.AUTO_NEXT || rewardedDue()) nextCard('ended'); else roundCard();
+  }
+
+  // ---------------------------------------------------------------- morning game notification (arcade-api push.js)
+  // the day-2 leak (2026-10-21: ~1 in 5 came back): after a game, one ask for an 8am "today's game" push. Only where push works
+  // (Android Chrome, desktop, iPhone from the home screen), never in an in-app browser, at most once every 3 days, never nags.
+  const pushOk = () => 'serviceWorker' in navigator && 'PushManager' in window && window.Notification && Notification.permission === 'default'
+    && !/FBAN|FBAV|FB_IAB|Instagram|Messenger|; wv\)/.test(navigator.userAgent) && !kids
+    && (!/iPhone|iPad|iPod/.test(navigator.userAgent) || navigator.standalone || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches);
+  const pushDue = () => pushOk() && !ls.get('pushNo', null) && (Date.now() - (ls.get('pushAsked', 0) || 0)) > 3 * 864e5;
+  const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, c => c.charCodeAt(0)); };
+  async function pushCard() {
+    let key = null; try { key = (await (await fetch(API + '/api/push/key', { cache: 'no-store' })).json()).key; } catch (e) {}
+    if (!key) return;   // server not ready: don't spend the ask
+    return new Promise(done => {
+      ls.set('pushAsked', Date.now()); ev('push_shown');
+      const o = card('g-push', `<div class="eyebrow">New game every morning</div><h2>Want tomorrow's game? 🔔</h2>
+        <p>One notification at 8am with the day's new game. Nothing else.</p>
+        <button class="btn big" id="gPushYes">Yes, send it</button><button class="btn ghost" id="gPushNo">No thanks</button>`);
+      const close = () => { o.remove(); done(); };
+      $('gPushNo').onclick = () => { ev('push_no'); ls.set('pushNo', 1); close(); };
+      $('gPushYes').onclick = async () => {
+        ev('push_yes');
+        try {
+          if (await Notification.requestPermission() !== 'granted') { ev('push_denied'); return close(); }
+          const reg = await navigator.serviceWorker.ready;
+          const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(key) });
+          await fetch(API + '/api/push/sub', { method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ u: RH && RH.agentCode ? RH.agentCode() : null, sub: sub.toJSON(), tz: new Date().getTimezoneOffset() }) });
+          ev('push_on'); toast("✅ See you at 8am with tomorrow's game.");
+        } catch (e) { ev('push_fail'); }
+        close();
+      };
+    });
   }
 
   // ---------------------------------------------------------------- challenge share card
@@ -361,7 +395,8 @@
     leaving = true;
     document.querySelectorAll('.g-card').forEach(o => o.remove()); // a game-over card still open gives way to the leave flow
     if (started && chN && !shared) await shareCard(true);
-    if (started && ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
+    if (started && pushDue()) await pushCard();
+    else if (started && ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
     if (started && (await nextCard('back')) !== 'none') return true;
     if (FORCED && started) { goHome(); return true; }
     return false;
