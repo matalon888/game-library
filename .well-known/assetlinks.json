@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "co.agentpark.app",
-        "sha256_cert_fingerprints": ["A2:C9:25:76:58:30:1B:12:38:B1:54:2F:B3:17:25:06:D4:35:04:D6:FD:3C:BB:7E:D1:26:1C:E0:38:8A:FD:42"]
+        "sha256_cert_fingerprints": ["F9:F0:05:E7:42:5A:A8:3C:DA:07:20:9E:39:45:5F:7F:AE:2D:83:9B:25:87:EB:88:03:F8:71:3B:B3:CA:42:C0"]
       }
     }]
