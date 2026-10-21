@@ -714,8 +714,8 @@
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 204,
-   "stars": 1417,
+   "forks": 200,
+   "stars": 1418,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -756,7 +756,7 @@
  "harmonyhoney-tiny-crate": {
   "github": {
    "forks": 32,
-   "stars": 239,
+   "stars": 240,
    "url": "https://github.com/HarmonyHoney/tiny_crate"
   }
  },
@@ -854,7 +854,7 @@
  "nicechunk-game": {
   "github": {
    "forks": 2,
-   "stars": 314,
+   "stars": 315,
    "url": "https://github.com/nicechunk/game"
   }
  },
@@ -1119,8 +1119,8 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 34,
-   "stars": 125,
+   "forks": 35,
+   "stars": 128,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1134,7 +1134,7 @@
  "tanuu5-nova-lancer": {
   "github": {
    "forks": 2,
-   "stars": 10,
+   "stars": 11,
    "url": "https://github.com/tanuu5/nova-lancer"
   }
  },
@@ -2666,13 +2666,7 @@
    "url": "https://github.com/william89971/Road-to-El-Salvador"
   }
  },
- "jharek09-dev-dead-signal": {
-  "github": {
-   "forks": 0,
-   "stars": 0,
-   "url": "https://github.com/jharek09-dev/dead_signal"
-  }
- },
+ "jharek09-dev-dead-signal": {},
  "tanviaanand-spelling-bee-party": {
   "github": {
    "forks": 0,
@@ -2711,7 +2705,7 @@
  "killian01-claude-of-legends": {
   "github": {
    "forks": 2,
-   "stars": 2,
+   "stars": 3,
    "url": "https://github.com/killian01/claude-of-legends"
   }
  },
@@ -3089,8 +3083,8 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 722,
-   "stars": 6459,
+   "forks": 713,
+   "stars": 6461,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
@@ -3135,7 +3129,7 @@
  },
  "bkcore-hexgl": {
   "github": {
-   "forks": 893,
+   "forks": 892,
    "stars": 1745,
    "url": "https://github.com/BKcore/HexGL"
   },
@@ -3197,8 +3191,8 @@
  },
  "jarvis-llm-codec-gridx": {
   "github": {
-   "forks": 2,
-   "stars": 2,
+   "forks": 3,
+   "stars": 3,
    "url": "https://github.com/jarvis-llm-codec/gridx"
   }
  },
@@ -3514,5 +3508,10 @@
  "mergewood-manor-merge-restore": {},
  "bloomhaus-match-decorate": {},
  "sugarloaf-cafe-cooking-rush": {},
+ "wordvista-word-journey": {},
+ "honeyfield-farm-harvest-bake": {},
+ "koi-court-3d-mahjong": {},
+ "strut-off-fashion-battle": {},
+ "peakpatch-tripeaks-solitaire-journey": {},
  "hero-lab-build-your-agentpark-hero": {}
 }

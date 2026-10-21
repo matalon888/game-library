@@ -342,8 +342,8 @@
   "platform": "phone",
   "public": {
    "github": {
-    "forks": 2,
-    "stars": 2,
+    "forks": 3,
+    "stars": 3,
     "url": "https://github.com/jarvis-llm-codec/gridx"
    }
   },
@@ -10349,8 +10349,8 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 722,
-    "stars": 6459,
+    "forks": 713,
+    "stars": 6461,
     "url": "https://github.com/pshenok/server-survival"
    }
   },
@@ -10890,7 +10890,7 @@
   "public": {
    "github": {
     "forks": 2,
-    "stars": 10,
+    "stars": 11,
     "url": "https://github.com/tanuu5/nova-lancer"
    }
   },
