@@ -162,6 +162,7 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     b.addEventListener('click', () => tapped(ai, target(ai)));   // rebuilt at tap time: the reward line may have arrived since
   });
 
+  if (cpaClick && !INC_COPY) document.querySelector('.sub').innerHTML = `Step 1: pick yours, hit <b>↑ send</b>. Step 2: play.`;
   // reopened in Safari from the Facebook / Instagram browser: just the AI they picked, one tap to its app
   if (q.get('hop') === 'safari' && !INAPP) {
     document.querySelector('h1').textContent = `One more tap 👇`;
@@ -192,9 +193,31 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
       if (ab !== 'pick') try { sessionStorage.setItem('ap.auto', GAME); } catch (e) {}
       location.replace(ab === 'pick' ? 'pick.html?ref=go-' + ai + '&apu=' + (code || '') + '&from=go' : 'play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + (code || '') + '&from=go'); };
     // still here after 3 s = the AI didn't open: a second chance (Safari from the in-app browser) instead of dropping them into the game
+    if (cpaClick && code) return cpaWait(ai, t);
     let jumped = false;
     document.addEventListener('visibilitychange', () => { if (document.hidden) { if (!jumped) { jumped = true; ev('go_jump_' + ai); } setTimeout(toGame, 300); } });
     setTimeout(() => { if (!jumped && !went && !$('again')) { ev('go_nojump_' + ai); again(ai, t, toGame); } }, 3000);
+  }
+  // CPAlead visitors: two steps in order (the offer pays for the AI setup, then a game), so this tab waits on the AI instead of
+  // turning into the game: 2026-10-20, 23 of 28 tapped and their AI opened, but the game took over the tab and only 2 hit send
+  function cpaWait(ai, t) {
+    if ($('wait')) return;
+    const d = document.createElement('div');
+    d.id = 'again'; d.innerHTML = `<div class="card" id="wait"><p><b>Step 1 of 2</b></p><p>In ${NAMES[ai]}, hit <b>↑ send</b>.</p>
+      <p class="note" id="wst">Waiting for ${NAMES[ai]}…</p><a class="go" href="${t.href}"><img alt="" src="${LOGOS[ai]}"><small>OPEN ${NAMES[ai].toUpperCase()} ▶</small></a></div>`;
+    const a = d.querySelector('.go');
+    Object.entries(ownTab(t.href)).forEach(([k, v]) => a.setAttribute(k, v));
+    a.addEventListener('click', () => { ev('go_retry_' + ai); if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(t.P).catch(() => {}); });
+    document.body.appendChild(d);
+    const game = 'play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + code + '&from=go';
+    let done = false;
+    const check = () => done || fetch('https://mcp.riffcade.com/api/agent?u=' + code, { cache: 'no-store' }).then(r => r.json()).then(r => {
+      if (!r.last_ai || done) return;
+      done = true; ev('go_game_' + ai);
+      $('wait').innerHTML = `<p><b>✅ ${NAMES[ai]} is set up</b></p><p>Step 2 of 2: play your first game.</p><a class="go" href="${game}"><small>PLAY ▶</small></a>`;
+    }).catch(() => {});
+    setInterval(check, 3000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
   }
   function again(ai, t, toGame) {
     const d = document.createElement('div');
