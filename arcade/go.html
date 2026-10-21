@@ -39,6 +39,8 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 @keyframes plus { 50% { transform: scale(1.12) } }
 .go.first { outline: 4px solid var(--gold); outline-offset: 4px; animation: pulse 1.8s ease-in-out infinite }
 @keyframes pulse { 50% { outline-offset: 8px } }
+.go.nudge { animation: nudge .6s ease-in-out 2 } .go.nudge small { background: #fff }
+@keyframes nudge { 0%, 100% { transform: none } 20% { transform: scale(1.06) rotate(-2deg) } 40% { transform: scale(1.06) rotate(2deg) } 60% { transform: scale(1.04) rotate(-1deg) } }
 .sub { margin: -8px 0 0; font-size: 16px; color: var(--muted); text-wrap: balance } .sub b { color: var(--ink) }
 .note { margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted) }
 .note b { color: var(--ink) }
@@ -161,6 +163,17 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     Object.entries(ownTab(t.href)).forEach(([k, v]) => b.setAttribute(k, v));
     b.addEventListener('click', () => tapped(ai, target(ai)));   // rebuilt at tap time: the reward line may have arrived since
   });
+
+  // 1 in 5 visitors' first tap landed on nothing (picture, headline, $1 card): that tap now points at their AI's button.
+  // A nudge, not a forwarded click: ChatGPT / Claude only open their app on a real tap on the link itself.
+  document.querySelector('main').addEventListener('click', e => {
+    if (e.target.closest('a, button, input, label, [role=button]') || document.getElementById('again')) return;
+    const b = $(AD_AI === 'chatgpt' ? 'b1' : 'b2'); if (!b || b.hidden) return;
+    b.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge');
+    if (!ss_nudged) { ss_nudged = true; ev('go_blank_nudge'); }
+  });
+  let ss_nudged = false;
 
   if (cpaClick && !INC_COPY) document.querySelector('.sub').innerHTML = `Step 1: pick yours, hit <b>↑ send</b>. Step 2: play.`;
   // reopened in Safari from the Facebook / Instagram browser: just the AI they picked, one tap to its app

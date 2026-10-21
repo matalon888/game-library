@@ -140,10 +140,16 @@
   window.ArcadeDiag = {
     load(g) {
       kids = g.category === 'Kids' || (g.tags || []).includes('Kids'); if (kids) queue = [];
-      const f = document.querySelector('.player iframe, iframe');
-      const t = performance.now(); let loaded = false;
-      if (f) f.addEventListener('load', () => { loaded = true; push('loaded', { slug: g.slug, ms: Math.round(performance.now() - t) }); }, { once: true });
-      setTimeout(() => { if (!loaded && !document.hidden) push('load_fail', { slug: g.slug, ms: 20000 }); }, 20000);
+      // the shell calls this before it builds the game frame: wait for the frame, then give it 20 s (it used to grab no frame or
+      // an ad / pixel frame, so nearly every visit counted as "never loaded")
+      const t = performance.now(); let loaded = false, tries = 0;
+      const arm = () => {
+        const f = document.querySelector('.player iframe');
+        if (!f) { if (++tries < 50) setTimeout(arm, 100); return; }
+        f.addEventListener('load', () => { loaded = true; push('loaded', { slug: g.slug, ms: Math.round(performance.now() - t) }); }, { once: true });
+        setTimeout(() => { if (!loaded && !game && !document.hidden) push('load_fail', { slug: g.slug, ms: 20000 }); }, 20000);
+      };
+      arm();
     },
     start(g, frame) {
       if (game) endRun('next');
