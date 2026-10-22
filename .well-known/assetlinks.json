@@ -1,8 +1,15 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "co.agentpark.games",
-        "sha256_cert_fingerprints": ["D7:E1:C7:76:8B:36:D5:65:8E:A5:3D:91:B1:25:16:9C:D7:48:2A:87:2F:09:8F:8F:65:17:34:5A:C9:74:6D:FE"]
-      }
-    }]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "co.agentpark.games",
+      "sha256_cert_fingerprints": [
+        "D7:E1:C7:76:8B:36:D5:65:8E:A5:3D:91:B1:25:16:9C:D7:48:2A:87:2F:09:8F:8F:65:17:34:5A:C9:74:6D:FE",
+        "BE:4F:FE:D5:F9:F3:52:C1:26:A6:99:15:B7:B2:E6:75:8E:F7:68:FC:EB:08:1A:03:9C:5C:3B:BB:B3:34:66:DF"
+      ]
+    }
+  }
+]
