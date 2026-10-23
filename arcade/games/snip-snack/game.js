@@ -6,6 +6,7 @@ import { generate, buildSim, act } from './level.js';
 import { makeHedgehog } from './creature.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { adapter } from './kit/adapt.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 12 });
 const { scene, camera, sun } = stage;
@@ -26,6 +27,14 @@ const starHud = document.createElement('div'); starHud.className = 'ss-stars'; s
 const save = store('snipsnack');
 const F = flow('snipsnack');
 const B = board({ game: 'snip-snack', label: 'Stars', limits: { maxRun: 6, maxPerSec: 1.5 }, mode: 'sum' });
+// ------------------------------------------------------------------ in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Signals: feeds (good ×2), stars (×0.5), misses (bad ×2, ×1.5 by a hair), time since the last success. Knobs: Pip's
+// catch radius (in-round, ±20 %, never smaller on level 1) and the generator's fk on a retry (stacked with flow.js,
+// within ±25 % in total). Rescue: at most one per round and 60 s apart, only for an active player who has caught a star
+// and been playing sensibly: a candy that grazes Pip (within ~0.8 of the mouth) gets snapped by a lunge. Stars are never
+// touched. QA reads window.__game.adapt.
+const AD = adapter(); let actAt = 0, minD = 99;
+const mouthR = () => 0.9 / (level === 1 ? Math.min(1, AD.k()) : AD.k());
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), totalStars = save.get('stars', 0), state = 'ready';
 
 // ------------------------------------------------------------------ cardboard box backdrop
@@ -98,7 +107,7 @@ let L, sim, lvl = new THREE.Group(), starObjs = [], bubbleObj = null, cushObjs =
 scene.add(lvl);
 function buildLevel() {
   scene.remove(lvl); lvl = new THREE.Group(); scene.add(lvl);
-  L = generate(level, F.k()); sim = buildSim(L);
+  L = generate(level, AD.k(F.k())); sim = buildSim(L); AD.round(); minD = 99;
   starObjs = L.stars.map(s => { const m = new THREE.Mesh(STAR_G, STAR_M); m.position.set(s.x, s.y, 0); m.castShadow = true; const gl = new THREE.Sprite(GLOW_M); gl.scale.setScalar(1.5); gl.position.set(s.x, s.y, -0.2); lvl.add(m, gl); return { m, gl, x: s.x, y: s.y, got: false }; });
   pinObjs = L.pins.map(p => { const g = new THREE.Group(); const b = new THREE.Mesh(PIN_G, PIN_M); b.rotation.x = Math.PI / 2; b.castShadow = true; const r = new THREE.Mesh(RING_G, RING_M); r.position.z = 0.08; const dot = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), glossy('#2f3f74')); dot.position.z = 0.14; g.add(b, r, dot); g.position.set(p.x, p.y, 0); lvl.add(g); return g; });
   bubbleObj = null;
@@ -123,7 +132,7 @@ let last = null;
 function addTrail(a, b) { const d = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(d / 0.12)); for (let i = 1; i <= n; i++) trailPts.push({ x: lerp(a.x, b.x, i / n), y: lerp(a.y, b.y, i / n), life: 1 }); if (trailPts.length > TRAIL_N) trailPts.splice(0, trailPts.length - TRAIL_N); }
 let pressed = false;
 input({
-  onDown(e) { pressed = true; if (state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; pressed = !!press(sim, w.x, w.y); last = w; trailPts.push({ x: w.x, y: w.y, life: 1 }); },
+  onDown(e) { pressed = true; actAt = performance.now(); if (state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; pressed = !!press(sim, w.x, w.y); last = w; trailPts.push({ x: w.x, y: w.y, life: 1 }); },
   onMove(dx, dy, e) { if (!last || state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; swipe(sim, last.x, last.y, w.x, w.y); addTrail(last, w); last = w; },
   onUp() { last = null; },
   onTap(e) {   // a tap snips the rope under (or right next to) the finger
@@ -153,14 +162,14 @@ function handleEvents() {
   sim.events.length = 0;
 }
 function onStar(s, i) {
-  s.got = true; got++; totalStars++; s.m.visible = s.gl.visible = false;
+  s.got = true; got++; AD.good(0.5); totalStars++; s.m.visible = s.gl.visible = false;
   const b = starHud.children[got - 1]; b.classList.add('on');
   sfx.pick(got * 2); tone(1300 + got * 200, 0.1, 'triangle', 0.08, 1.3); buzz(15);
   burst(scene, V(s.x, s.y), ['#ffd23f', '#fff3a8', '#ffffff'], 20, { speed: 0.1, up: 0.05, size: 0.45, life: 0.8 });
   ui.pop(['NICE!', 'SWEET!', 'PERFECT!'][got - 1], '#ffd23f', 34 + got * 4, 30);
 }
 function win() {
-  caught = true; state = 'won'; F.level(true); B.submit(got); candy.visible = false; pip.chomp();
+  caught = true; state = 'won'; AD.good(2); F.level(true); B.submit(got); candy.visible = false; pip.chomp();
   const mp = V(L.mouth.x, L.mouth.y + 0.2, 1);
   sfx.win(); tone(160, 0.12, 'square', 0.1, 0.6); buzz([20, 40, 30]); ui.flash(0.45); shake = 0.3;
   burst(scene, mp, ['#ff3d6e', '#ff9bb7', '#ffffff'], 22, { speed: 0.12, up: 0.08, size: 0.5, shape: 'sphere' });
@@ -171,7 +180,7 @@ function win() {
   setTimeout(() => { const x = ui.els.win.querySelector('[data-x]'); x.classList.add('ss-win'); }, 0);
 }
 function lose() {
-  state = 'lost'; F.level(false, bestP); pip.setSad(true); sfx.fail(); buzz([40, 30, 60]);
+  state = 'lost'; AD.bad(minD < 2.2 ? 1.5 : 2); F.level(false, bestP); pip.setSad(true); sfx.fail(); buzz([40, 30, 60]);
   ui.lose('MISSED!', 'Pip is still hungry…');
 }
 ui.onTap(w => {
@@ -224,9 +233,14 @@ loop((dt60) => {
       handleEvents();
       const c = sim.candy;
       starObjs.forEach((s, i) => { if (!s.got && Math.hypot(c.x - s.x, c.y - s.y) < 0.62) onStar(s, i); });
-      if (Math.hypot(c.x - L.mouth.x, c.y - L.mouth.y) < 0.9) { win(); break; }
+      const dM = Math.hypot(c.x - L.mouth.x, c.y - L.mouth.y); minD = Math.min(minD, dM);
+      if (dM < mouthR()) { win(); break; }
+      // lucky lunge (once a round, deserved only): the candy is falling past Pip by a hair, nothing left to snip
+      if (dM < 1.7 && c.y < L.mouth.y + 0.2 && c.y < c.oy && got && !sim.inBubble && !sim.ropes.some(r => !r.cut) && performance.now() - actAt < 8000 && AD.sensible(2) && AD.rescue()) {
+        ui.pop('LUCKY LUNGE!', '#7dffb2', 34, 50); sim.candy.x = L.mouth.x; sim.candy.y = L.mouth.y; win(); break; }
       if (c.y < -11.5 || c.y > 11.5 || Math.abs(c.x) > 6.5) { lose(); break; }
     }
+    AD.tick(performance.now() - actAt < 8000);
     const dm = Math.hypot(sim.candy.x - L.mouth.x, sim.candy.y - L.mouth.y);
     bestP = Math.max(bestP, clamp(1 - dm / startD, 0, 1) * 0.85 + got * 0.05); ui.progress(bestP);
   }
@@ -245,4 +259,6 @@ buildLevel();
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return totalStars; },
   bot() { if (state === 'play') botOn = true; },
+  get plan() { return L.plan.map(a => ({ ...a })); }, get steps() { return sim.steps; }, get minD() { return typeof minD === 'number' ? minD : null; }, act: (a) => state === 'play' && botAct(a),   // sim hooks: replay the plan with human timing
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
 };

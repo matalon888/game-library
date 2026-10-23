@@ -2,6 +2,7 @@
 // Drag a rope plug to an empty peg in the same row; when no rope crosses another, the knot is solved.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 import { board as worldBoard } from './kit/board.js';
 
 const COLORS = ['#ff4b5c', '#ffc93c', '#3ccf6e', '#3b8bff', '#a66bff', '#ff8a2b'];
@@ -17,6 +18,13 @@ sun.shadow.mapSize.set(1024, 1024); sun.shadow.radius = 4;
 const save = store('untwine');
 const F = flow('untwine'); let fk = 1;
 const WB = worldBoard({ game: 'untwine', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 2 }, mode: 'sum' });
+// ---------------------------------------------------------------- in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Reads ONLY how this player is playing right now: moves that free tangles (good) vs moves that add/keep them (bad) in the
+// last 20 s, and time since the last good move. level −1 … +1, ≤ 0.25 per 3 s, back to 0 when neutral. Knobs: tangles
+// to make (× k) and the move budget (÷ k), ±20 % and within ±25 % with flow.js; a struggling player who stops for 5 s gets the
+// gold hint ring. Rescue: at most one a round, 60 s apart, only for sensible play: the last move runs out one move from
+// solved → one extra move ("LUCKY KNOT!"). Score is levels cleared, never touched. QA reads window.__game.adapt.
+const AD = adapter(); let moveAt = 0;
 let level = save.get('level', 1), total = save.get('freed', 0), state = 'ready';
 const ui = createUI({ title: 'UN<br>TWINE', hint: 'Tap the glowing plug, then peg', hand: '👆', score: false });
 
@@ -89,7 +97,8 @@ const guideMat = new THREE.MeshBasicMaterial({ color: '#ffe066', transparent: tr
 const guideRing = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.06, 8, 32), guideMat); guideRing.renderOrder = 5; scene.add(guideRing);
 let guideMv = null, idleT = 0;
 function guideTarget() {
-  if (level > 2 || state !== 'play' || botAnim || (level === 2 && idleT < 3)) return null;
+  const help = level > 2 && AD.level <= -0.5 && idleT >= 5;   // struggling + stuck: same hint as the warm-up levels
+  if ((level > 2 && !help) || state !== 'play' || botAnim || (level === 2 && idleT < 3)) return null;
   if (!guideMv) { const sol = solve(pos); guideMv = sol && sol.length ? sol[0] : null; }
   if (!guideMv) return null;
   const [e, s] = guideMv;
@@ -157,7 +166,8 @@ function makeRope(i) {
 function startLevel() {
   for (const r of ropes) { scene.remove(r.mesh); r.mesh.geometry.dispose(); r.mat.dispose(); r.tex.dispose(); for (const e of r.ends) scene.remove(e.g); }
   fk = F.k(); const P = levelParams(level), rnd = rng(level * 7919 + 13);
-  P.target = Math.max(1, Math.min(P.R * (P.R - 1) / 2, Math.round(P.target * fk)));
+  const ka = AD.k(fk); AD.round(); moveAt = performance.now();
+  P.target = Math.max(1, Math.min(P.R * (P.R - 1) / 2, Math.round(P.target * ka)));
   R = P.R; S = P.S; SP = Math.min(0.66, 3.7 / (S - 1));
   { const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), halfW = ((S - 1) * SP) / 2 + 1.05;
     CAM_D = Math.max(halfW / (tanV * camera.aspect), 4.4 / tanV); const h = CAM_D * tanV;
@@ -175,7 +185,8 @@ function startLevel() {
   // colour order follows top sockets so palette reads left→right nicely
   ropes = []; for (let i = 0; i < R; i++) ropes.push(makeRope(i));
   const sol = solve(pos); par = sol ? sol.length : R;
-  movesLeft = par + Math.max(1, Math.round((level <= 2 ? 3 : level <= 8 ? 2 : 1) / fk)); movesUsed = 0;
+  movesLeft = par + Math.max(1, Math.round((level <= 2 ? 3 : level <= 8 ? 2 : 1) / fk));
+  movesLeft = Math.max(par + 1, Math.round(movesLeft * fk / ka)); movesUsed = 0;   // in-round: move budget ÷ k (same as flow.js alone when off)
   startCross = Math.max(1, crossings(pos));
   for (const r of ropes) for (let k = 0; k < 2; k++) { const e = 2 * r.i + k; r.ends[k].cur.copy(sockPos(e, pos[e])); }
   for (const r of ropes) r.free = ropeCrosses(pos, r.i) === 0;
@@ -240,15 +251,19 @@ function endDrag(toSock) {
   const e = drag.e, from = drag.from; drag = null; hiRings.forEach(h => h.visible = false);
   const end = ropes[e >> 1].ends[e & 1]; end.sq = 1;
   if (toSock === null || toSock === from) { pos[e] = from; tone(300, 0.08, 'sine', 0.08, 0.8); return; }
-  const before = ropes.map(r => r.free);
-  pos[e] = toSock; movesUsed++; movesLeft--;
+  const before = ropes.map(r => r.free), c0 = crossings(pos);
+  pos[e] = toSock; moveAt = performance.now(); movesUsed++; movesLeft--;
   sfx.tap(); tone(640, 0.07, 'triangle', 0.12, 1.25); buzz(12);
   burst(scene, sockPos(e, toSock).setZ(0.4), ['#ffffff', ropes[e >> 1].color], 8, { speed: 0.05, up: 0.04, size: 0.45, gravity: 0.003 });
   ropes.forEach((r, i) => { r.free = ropeCrosses(pos, i) === 0; r.wob = 1; if (r.free && !before[i]) freed(r); });
   updateHud(true); botPlan = null; guideMv = null; idleT = 0;
   const c = crossings(pos);
+  if (c < c0) AD.good(); else AD.bad(c > c0 ? 1.5 : 1);   // a move that adds or keeps tangles counts against
+  if (c > 0 && movesLeft <= 0 && AD.sensible() && (solve(pos, 4000) || [0, 0]).length === 1 && AD.rescue()) {   // one move from solved
+    movesLeft = 1; updateHud(true); ui.pop('LUCKY KNOT! +1', '#7dffb2', 34, 30); sfx.coin(); buzz([10, 30, 10]); return;
+  }
   if (c === 0) win();
-  else if (movesLeft <= 0) { state = 'lost'; F.level(false, Math.max(0, 1 - c / startCross)); sfx.fail(); buzz([60, 40, 60]); ui.lose('OUT OF MOVES', `${c} tangle${c > 1 ? 's' : ''} left`); }
+  else if (movesLeft <= 0) { AD.bad(3); state = 'lost'; F.level(false, Math.max(0, 1 - c / startCross)); sfx.fail(); buzz([60, 40, 60]); ui.lose('OUT OF MOVES', `${c} tangle${c > 1 ? 's' : ''} left`); }
 }
 let freedCount = 0;
 function freed(r) {
@@ -258,7 +273,7 @@ function freed(r) {
   if (crossings(pos) > 0) ui.pop(['FREE!', 'NICE!', 'UNTIED!'][freedCount % 3], '#c9ffe0', 34, 24);
 }
 function win() {
-  state = 'won'; F.level(true); WB.submit(1); winT = 1; total += R; save.set('freed', total);
+  AD.good(2); state = 'won'; F.level(true); WB.submit(1); winT = 1; total += R; save.set('freed', total);
   sfx.win(); buzz([30, 30, 60]); ui.flash(0.45);
   confetti(scene, new THREE.Vector3(0, 1.5, 1), 70);
   ui.pop(movesLeft > 0 && movesUsed <= par ? 'PERFECT!' : 'UNTANGLED!', '#fff', 42, 22);
@@ -346,6 +361,7 @@ loop((dt, t) => {
     if (sig !== r.sig) { r.sig = sig; rebuildRope(r, t); }
   }
   if (state === 'play' && !drag) idleT += dt / 60;
+  if (state === 'play') AD.tick(performance.now() - moveAt < 8000);
   { const g = guideTarget(); guideMat.opacity = g ? 0.65 + 0.35 * Math.sin(t * 8) : 0; if (g) { guideRing.position.set(g.x, g.y, 0.9); guideRing.scale.setScalar(1 + 0.15 * Math.sin(t * 8)); } }
   hiMat.opacity = drag ? 0.55 + 0.35 * Math.sin(t * 9) : 0; hiRings.forEach(h => h.scale.setScalar(1 + 0.08 * Math.sin(t * 9)));
   // gentle camera breathing + win push-in
@@ -355,4 +371,4 @@ loop((dt, t) => {
 });
 
 startLevel(); ui.start(); state = 'ready';
-window.__game = { guideXY: () => guideMat.opacity > 0 ? toScreen(guideRing.position.clone().setZ(Z_PEG)) : null, get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, dbg: () => ({ pos, cross: crossings(pos), movesLeft, par }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };
+window.__game = { get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; }, play(e, s) { if (state !== 'play' || drag || botAnim) return false; beginDrag(e); endDrag(s); return true; }, moves: () => { const m = []; for (let e = 0; e < 2 * R; e++) for (const s of freeSockets(pos, rowOf(e))) { const np = pos.slice(); np[e] = s; m.push([e, s, crossings(np)]); } return m; }, solve: () => solve(pos), guideXY: () => guideMat.opacity > 0 ? toScreen(guideRing.position.clone().setZ(Z_PEG)) : null, get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, dbg: () => ({ pos, cross: crossings(pos), movesLeft, par }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };

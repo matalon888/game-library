@@ -5,6 +5,7 @@ import { createSim, stepSim, MATS } from './sim.js';
 import { makeLevel, solution, budgetFor, designCost } from './levels.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { adapter } from './kit/adapt.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 16 });
 const { scene, camera, sun, renderer } = stage;
@@ -13,6 +14,15 @@ const save = store('girdergo');
 const F = flow('girdergo');
 const B = board({ game: 'girder-go', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
 let runProg = 0;
+// ------------------------------------------------------------------ in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Signals: beams placed, OVER BUDGET bumps, snapped beams, failed and passed tests in the last 20 s. Knobs (set at each build /
+// retry and each GO, never mid-drive): budget slack (AD.k with flow.js, ±25 % in total, never below the reference design's
+// cost) and the vehicle's weight (±12 %; the reference design holds 40 % more). Level 1, and any level after a failed test,
+// never gets harder; a retry's budget never shrinks. Scores use the unadapted budget. Rescue: once a round and 60 s apart,
+// for an active player whose deck spans the gap and is braced: when the deck first snaps under the car, it creaks and holds. QA reads window.__game.adapt.
+const AD = adapter(); let inAt = 0, budget0 = 0, fails = 0;   // fails = failed tests on this level: after one it never gets harder
+addEventListener('pointerdown', () => { inAt = performance.now(); }, true);
+const adk = (fk, r) => { const k = AD.k(fk, r); return level < 2 || fails ? Math.min(k, fk) : k; };
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = save.get('score', 0);
 const bot = { i: 0, cleared: false, wait: 0 };
 let state = 'ready', mode = 'build', lv, design, sim = null, budget = 0, material = 'road', undoStack = [];
@@ -194,8 +204,11 @@ function buildLevel(keepDesign = false) {
   gridPts = [];
   for (let x = lv.L - 1; x <= lv.R + 1; x++) for (let y = -lv.cliffDepth + 1; y <= 4; y++) if (!inRock(x, y)) gridPts.push([x, y]);
   dotIM.count = gridPts.length; gridPts.forEach(([x, y], i) => { _o.position.set(x, y, 0.95); _o.rotation.set(0, 0, 0); _o.scale.setScalar(1); _o.updateMatrix(); dotIM.setMatrixAt(i, _o.matrix); }); dotIM.instanceMatrix.needsUpdate = true;
-  budget = Math.max(Math.ceil(designCost(solution(lv)) / 100) * 100, Math.ceil(budgetFor(lv) / F.k() / 100) * 100); runProg = 0;
+  const floor = Math.ceil(designCost(solution(lv)) / 100) * 100, fk = F.k();
+  budget0 = Math.max(floor, Math.ceil(budgetFor(lv) / fk / 100) * 100); const was = budget; budget = Math.max(floor, Math.ceil(budgetFor(lv) / adk(fk) / 100) * 100); runProg = 0;
+  if (!keepDesign) { AD.round(); fails = 0; } else budget = Math.max(budget, was);
   if (!keepDesign || !design) { design = { nodes: lv.anchors.map(a => ({ x: a.x, y: a.y, fixed: true })), beams: [] }; undoStack = []; }
+  else budget = Math.max(budget, Math.ceil(cost() / 100) * 100);   // a retry never puts the kept bridge over budget
   buildVehicle(lv.vehicle);
   flag.position.set(lv.R + 1.7, 0, -1.0);
   sim = null; mode = 'build'; simT = 0; carPos(lv.L - 3.2, lv.L - 3.2 + lv.vehicle.axle, lv.vehicle.r, lv.vehicle.r);
@@ -225,7 +238,7 @@ function addBeam(x1, y1, x2, y2, type, quiet = false) {
   const exists = a >= 0 && b >= 0 && design.beams.some(bm => (bm.a === a && bm.b === b) || (bm.a === b && bm.b === a));
   if (exists) return false;
   const addCost = Math.hypot(x2 - x1, y2 - y1) * MATS[type].cost;
-  if (cost() + addCost > budget + 0.5) { if (!quiet) { ui.pop('OVER BUDGET', '#e63946', 30, 30); buzz(30); tone(180, 0.15, 'square', 0.08, 0.7); } return false; }
+  if (cost() + addCost > budget + 0.5) { if (!quiet) { AD.bad(0.5); ui.pop('OVER BUDGET', '#e63946', 30, 30); buzz(30); tone(180, 0.15, 'square', 0.08, 0.7); } return false; }
   const before = design.nodes.length;
   if (a < 0) { design.nodes.push({ x: x1, y: y1 }); a = design.nodes.length - 1; }
   if (b < 0) { design.nodes.push({ x: x2, y: y2 }); b = design.nodes.length - 1; }
@@ -233,7 +246,7 @@ function addBeam(x1, y1, x2, y2, type, quiet = false) {
   undoStack.push({ kind: 'add', nodes: design.nodes.length - before });
   tone(type === 'steel' ? 300 : type === 'road' ? 220 : 420, 0.08, 'triangle', 0.13, 1.4); buzz(8);
   burst(scene, new THREE.Vector3((x1 + x2) / 2, (y1 + y2) / 2, 0.6), [BASE[type].getStyle(), '#ffffff'], 6, { speed: 0.05, up: 0.04, size: 0.4, life: 0.5 });
-  updateBudget(); return true;
+  AD.good(0.1); updateBudget(); return true;
 }
 function removeBeam(i) {
   const b = design.beams[i]; design.beams.splice(i, 1);
@@ -308,11 +321,21 @@ function go() {
   if (!design.beams.some(b => b.type === 'road')) { ui.pop('BUILD A ROAD FIRST', '#2f4858', 26, 30); buzz(20); return; }
   const v = lv.vehicle;
   sel = null; ring.visible = false;
-  sim = createSim(design, [[lv.L - 14, 0, lv.L, 0], [lv.R, 0, lv.R + 14, 0], ...(lv.pillar ? [] : [])], { x: lv.L - 3.2, y: v.r, axle: v.axle, r: v.r, wheelMass: v.wheelMass, speed: v.speed });
-  mode = 'sim'; simT = 0; stuckT = 0; lastX = sim.wheels[1].x; broken = 0;
+  sim = createSim(design, [[lv.L - 14, 0, lv.L, 0], [lv.R, 0, lv.R + 14, 0], ...(lv.pillar ? [] : [])], { x: lv.L - 3.2, y: v.r, axle: v.axle, r: v.r, wheelMass: v.wheelMass * adk(1, 0.12), speed: v.speed });
+  mode = 'sim'; simT = 0; stuckT = 0; lastX = sim.wheels[1].x; broken = 0; rescued = false;
   setBar(false); dotIM.visible = false;
   tone(330, 0.12, 'square', 0.07, 1); setTimeout(() => tone(330, 0.12, 'square', 0.07, 1), 160);
   ui.pop('GO!', '#3ccf6e', 52, 30); buzz(15);
+}
+// rescue (once a round, deserved only): the deck's first snap while the car is on it (a splash coming) creaks and holds
+let rescued = false;
+function braced() { const n = design.beams.filter(b => b.type !== 'road').length, r = solution(lv).beams.filter(b => b.type !== 'road').length; return n >= 0.6 * r; }
+function deckSpans() { const xs = new Set(); for (const b of design.beams) if (b.type === 'road') { const A = design.nodes[b.a], B = design.nodes[b.b]; for (let x = Math.min(A.x, B.x); x < Math.max(A.x, B.x); x++) xs.add(x); } for (let x = lv.L; x < lv.R; x++) if (!xs.has(x)) return false; return true; }
+function hold(list) {
+  const cx = (sim.wheels[0].x + sim.wheels[1].x) / 2;
+  if (broken || rescued || state !== 'play' || cx < lv.L - 0.5 || cx > lv.R + 0.5 || !list.some(b => b.type === 'road') || !deckSpans() || !braced() || !AD.sensible(0.8) || !AD.rescue()) return list;
+  rescued = true; for (const b of list) { b.broken = false; b.stress = 0.5; b.M = { ...b.M, strength: b.M.strength * 1.25 }; }
+  ui.pop('CREAK… IT HELD! 🍀', '#3ccf6e', 34, 30); buzz([10, 30, 10]); tone(140, 0.25, 'sawtooth', 0.08, 0.6); return [];
 }
 function snap(b) {
   const A = sim.nodes[b.a], B = sim.nodes[b.b], mid = new THREE.Vector3((A.x + B.x) / 2, (A.y + B.y) / 2, 0);
@@ -335,10 +358,10 @@ function carPos(x0, x1, y0, y1, roll = 0) {
 }
 let roll = 0;
 function win() {
-  if (state !== 'won' && state !== 'lost') { F.level(true); B.submit(1); }
+  if (state !== 'won' && state !== 'lost') { F.level(true); B.submit(1); AD.good(3); }
   state = 'won'; mode = 'done'; sfx.win(); buzz([20, 40, 20]);
   confetti(scene, new THREE.Vector3(lv.R + 1.7, 2.5, 0), 90);
-  const c = cost(), saved = Math.max(0, budget - c), pts = 100 + Math.round(saved / 10) - broken * 10;
+  const c = cost(), saved = Math.max(0, budget0 - c), pts = 100 + Math.round(saved / 10) - broken * 10;
   score += Math.max(10, pts); save.set('score', score);
   if (score > best) { best = score; save.set('best', best); }
   ui.pop(broken ? 'MADE IT!' : 'PERFECT BRIDGE!', '#ffd23f', 44, 28);
@@ -346,7 +369,7 @@ function win() {
   ui.win(level, `$${c.toLocaleString()} spent · ${broken ? broken + ' beams snapped' : 'nothing snapped'}`);
 }
 function lose(why) {
-  if (state !== 'won' && state !== 'lost') F.level(false, runProg);
+  if (state !== 'won' && state !== 'lost') { F.level(false, runProg); AD.bad(2); fails++; }
   state = 'lost'; mode = 'done'; sfx.fail(); buzz([40, 30, 60]);
   ui.lose(why === 'stuck' ? 'STUCK!' : 'SPLASH!', why === 'stuck' ? 'The car can\'t get across' : 'Add triangles to stiffen it');
 }
@@ -378,11 +401,12 @@ loop((dt60, ts) => {
   for (const c of bgGroup.children) if (c.userData.sp) { c.position.x += c.userData.sp * dt; if (c.position.x > 40) c.position.x = -40; }
   flag.cloth.rotation.y = Math.sin(t * 4) * 0.25;
 
+  if (state === 'play') AD.tick(mode === 'sim' || performance.now() - inAt < 8000);
   let nodes = design.nodes, beams = design.beams, stress = null;
   if (mode === 'sim' && sim) {
     simT += dt;
     stepSim(sim, 1 / 60, 30);
-    for (const b of sim.broke.splice(0)) snap(b);
+    for (const b of hold(sim.broke.splice(0))) { snap(b); if (state === 'play' && broken <= 4) AD.bad(0.25); }
     nodes = sim.nodes; beams = sim.beams; stress = true;
     const [w0, w1] = sim.wheels; roll += (w1.vx * dt) / lv.vehicle.r;
     carPos(w0.x, w1.x, w0.y, w1.y, roll);
@@ -448,7 +472,8 @@ ui.start();
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   screen(x, y) { const v = new THREE.Vector3(x, y, 0).project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; },
-  get info() { return { mode, cost: cost(), budget, beams: design.beams.length }; },
+  get info() { return { mode, cost: cost(), budget, budget0, beams: design.beams.length }; },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
   bot() {
     if (state !== 'play' || mode !== 'build') return;
     const sol = solution(lv);

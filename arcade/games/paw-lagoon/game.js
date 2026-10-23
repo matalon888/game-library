@@ -5,6 +5,7 @@ import { part, merge, canvasTex, puff, starShape } from './geo.js';
 import { makeCat } from './cat.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { adapter } from './kit/adapt.js';
 
 const N = 8, HALF = (N - 1) / 2;
 const cx = c => c - HALF, cz = r => r - HALF;
@@ -18,6 +19,14 @@ const save = store('pawlagoon');
 const F = flow('pawlagoon');
 const B = board({ game: 'paw-lagoon', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum', corner: 'bl' });
 let level = save.get('level', 1);
+// ---------------------------------------------------------------- in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Signals: sound moves that brought the goals closer (good) vs invalid swaps, weak picks (well below the hint's move)
+// and losses (bad). Knobs, both from rk() = AD.k(fk) / fk (−20 % / +12 % in-round; with flow.js's between-run moves/goal
+// nudge the total stays within ±25 %; never harder on level 1): refill luck (up to 20 % of new tiles lean toward a match
+// / goal fruit when struggling, up to 12 % avoid free cascades when cruising) and the hint delay. Rescue: at most one a round and 60 s apart, only for a player who has been
+// playing sensibly and ran out of moves with ≥ 85 % of the goals done: a kitten finds 2 more moves. Score/stars untouched.
+const AD = adapter(); let fk = 1, moveAt = -1e9, preGoal = 0, pick = 1;
+const rk = () => { const r = AD.k(fk, AD.level > 0 ? 0.12 : 0.2) / fk; return level === 1 ? Math.min(1, r) : r; };
 
 // ---------------------------------------------------------------- tile kinds
 const KINDS = [
@@ -289,6 +298,20 @@ function newTile(kind, r, c, sp = null) {
 const at = (r, c) => (r >= 0 && c >= 0 && r < N && c < N) ? grid[r][c] : null;
 const matchable = t => t && !t.sp && t.dieAt < 0;
 function randKind() { return Math.floor(levelR() * colors); }
+const SPV = { rh: 22, rv: 22, b: 30, w: 34 }, moveVal = (a, b) => b ? evalSwap(a, b) : SPV[a.sp] || 0;
+// how good the chosen move was next to the best one on the board (0..1), read before the move happens
+const rate = (a, b) => { const m = findMove(true), best = m ? moveVal(m.a, m.b) : 0; return best > 0 ? Math.min(1, moveVal(a, b) / best) : 1; };
+const goalSum = () => goals.reduce((a, g) => a + Math.min(g.n, g.have), 0);
+// refill luck: struggling → up to 20 % of new fruit complete a pair below / to the left (a free cascade) or are a goal
+// fruit; cruising → up to 12 % avoid their neighbours (fewer free cascades). Plain random otherwise.
+const pair = (a, b) => matchable(a) && matchable(b) && a.kind === b.kind ? a.kind : -1;
+function refillKind(r, c) {
+  let k = randKind(); const q = 1 - rk(); if (!q || Math.random() >= Math.abs(q)) return k;
+  const nb = [at(r + 1, c), at(r, c - 1), at(r, c + 1)].filter(matchable).map(t => t.kind);
+  if (q > 0) { const p = [pair(at(r + 1, c), at(r + 2, c)), pair(at(r, c - 1), at(r, c - 2))].filter(x => x >= 0), gk = goals.filter(g => g.t === 'col' && g.have < g.n).map(g => g.k);
+    const pool = p.length ? p : gk.length ? gk : nb; return pool.length ? pool[Math.floor(Math.random() * pool.length)] : k; }
+  for (let g = 0; g < 6 && nb.includes(k); g++) k = randKind(); return k;
+}
 
 function levelDef(L) {
   const r = rng(L * 9173 + 5);
@@ -305,7 +328,7 @@ function levelDef(L) {
   else if (type === 'ice') { icePat(L === 3 ? 14 : 18 + Math.floor(hard * 10)); d.goals.push({ t: 'ice', n: d.ice.length }); d.moves = L === 3 ? 18 : 20; }
   else if (type === 'col2') { d.goals.push({ t: 'col', k: k1, n: 14 + Math.floor(hard * 12) }, { t: 'col', k: k2, n: 14 + Math.floor(hard * 12) }); d.moves = 20; }
   else { crateRows(1, false); d.goals.push({ t: 'col', k: k1, n: 12 + Math.floor(hard * 10) }, { t: 'crate', n: d.crates.length }); d.moves = 20; }
-  const fk = F.k(); d.moves = Math.max(8, Math.round(d.moves / fk)); for (const g of d.goals) if (g.t === 'col') g.n = Math.round(g.n * fk);
+  fk = F.k(); d.moves = Math.max(8, Math.round(d.moves / fk)); for (const g of d.goals) if (g.t === 'col') g.n = Math.round(g.n * fk);
   return d;
 }
 function hasMatchAt(r, c) {
@@ -330,7 +353,7 @@ function genLevel() {
   }
   // drop-in intro: tiles fall from above, column-staggered
   for (const t of tiles) { t.z = cz(t.r) - N - 1 - t.c * 0.35 - (N - t.r) * 0.08; t.falling = true; t.vz = 0; }
-  goals = d.goals.map(g => ({ ...g, have: 0 })); moves = movesStart = d.moves; score = 0; combo = 0; busy = false; sel = null; hintT = 0;
+  goals = d.goals.map(g => ({ ...g, have: 0 })); moves = movesStart = d.moves; score = 0; combo = 0; busy = false; sel = null; hintT = 0; AD.round();
   renderGoals(); renderMoves(); scoreEl.textContent = '★ 0'; ui.levels(level); ui.progress(0);
   hero.reset(); pal1.reset(); pal2.reset();
 }
@@ -542,7 +565,7 @@ async function gravity() {
   for (let c = 0; c < N; c++) {
     let w = N - 1;
     for (let r = N - 1; r >= 0; r--) { const t = grid[r][c]; if (t) { if (r !== w) { grid[w][c] = t; grid[r][c] = null; t.r = w; t.falling = true; } w--; } }
-    for (let r = w, k = 0; r >= 0; r--, k++) { const t = newTile(randKind(), r, c); grid[r][c] = t; t.z = cz(-1) - k - 0.6; t.falling = true; t.vz = 0.05; }
+    for (let r = w, k = 0; r >= 0; r--, k++) { const t = newTile(refillKind(r, c), r, c); grid[r][c] = t; t.z = cz(-1) - k - 0.6; t.falling = true; t.vz = 0.05; }
   }
   const t0 = performance.now();
   while (tiles.some(t => t.falling) && performance.now() - t0 < 2000) await sleep(20);
@@ -579,7 +602,7 @@ async function activate(a, b) { // a special at a.r,a.c swapped with b (maybe nu
 async function trySwap(a, b) {
   if (busy || state !== 'play' || !a || !b || a.dieAt >= 0 || b.dieAt >= 0) return;
   if (a.sp === 'crate' || b.sp === 'crate') { a.wob = 1; tone(180, 0.07, 'square', 0.05); return; }
-  busy = true; sel = null; hintT = 0; hintMove = null;
+  busy = true; sel = null; hintT = 0; hintMove = null; moveAt = performance.now(); preGoal = goalSum(); pick = rate(a, b);
   swapGrid(a, b); tone(620, 0.05, 'sine', 0.1, 1.3);
   await sleep(130);
   if (a.sp || b.sp) {
@@ -589,7 +612,7 @@ async function trySwap(a, b) {
     await cascade();
   } else {
     if (!findGroups().length) {
-      swapGrid(a, b); tone(240, 0.12, 'square', 0.06, 0.7); buzz(15); await sleep(160); a.wob = b.wob = 1; busy = false; return;
+      swapGrid(a, b); tone(240, 0.12, 'square', 0.06, 0.7); buzz(15); AD.bad(0.5); await sleep(160); a.wob = b.wob = 1; busy = false; return;
     }
     moves--; renderMoves();
     await cascade([a, b]);
@@ -598,13 +621,13 @@ async function trySwap(a, b) {
 }
 async function tapSpecial(t) {
   if (busy || state !== 'play' || !t.sp || t.sp === 'crate') return;
-  busy = true; sel = null; hintT = 0; moves--; renderMoves();
+  busy = true; sel = null; hintT = 0; moves--; renderMoves(); moveAt = performance.now(); preGoal = goalSum(); pick = rate(t, null);
   await activate(t, null); await cascade(); await afterTurn();
 }
 async function afterTurn() {
-  renderGoals();
+  renderGoals(); if (pick < 0.4 || (pick < 0.6 && goalSum() <= preGoal)) AD.bad(); else if (goalSum() > preGoal) AD.good();
   if (goals.every(g => g.have >= g.n)) { await winSeq(); return; }
-  if (moves <= 0) { lose(); return; }
+  if (moves <= 0) { if (luckyPaw()) { busy = false; return; } lose(); return; }
   if (!findMove()) await shuffle();
   busy = false;
 }
@@ -636,8 +659,14 @@ async function winSeq() {
   for (let i = 0; i < 3; i++) setTimeout(() => confetti(scene, new THREE.Vector3((i - 1) * 2.5, 3, 0), 60), i * 160);
   ui.win(level, `Score ${score}`);
 }
+// rescue (once a round, sensible play only, ≥ 85 % of the goals done): a kitten finds 2 more moves
+function luckyPaw() {
+  const p = goals.reduce((a, g) => a + Math.min(1, g.have / g.n), 0) / goals.length;
+  if (p < 0.85 || !AD.sensible() || !AD.rescue()) return false;
+  moves = 2; renderMoves(); ui.pop('LUCKY PAW! +2 MOVES', '#7dffb2', 34, 44); hero.cheer(1); sfx.coin(); buzz([10, 30, 10]); return true;
+}
 function lose() {
-  state = 'lost'; F.level(false, goals.reduce((a, g) => a + Math.min(1, g.have / g.n), 0) / goals.length); sfx.fail(); buzz([40, 30, 60]); hero.sad(); pal1.sad(); pal2.sad(); shake = 0.5;
+  AD.bad(2); state = 'lost'; F.level(false, goals.reduce((a, g) => a + Math.min(1, g.have / g.n), 0) / goals.length); sfx.fail(); buzz([40, 30, 60]); hero.sad(); pal1.sad(); pal2.sad(); shake = 0.5;
   const left = goals.filter(g => g.have < g.n).map(g => `${g.n - g.have} ${g.t === 'col' ? KINDS[g.k].n + (g.n - g.have > 1 ? 's' : '') : g.t === 'crate' ? 'crates' : 'ice'}`).join(' + ');
   ui.lose('OUT OF MOVES', `Just ${left} to go!`);
 }
@@ -748,7 +777,8 @@ loop((dt, T) => {
   // shock rings
   for (const r of rings) if (r.m.visible) { r.t += sec * 3; r.m.scale.setScalar(r.s * (0.3 + r.t * 0.9)); r.m.material.opacity = Math.max(0, 0.8 * (1 - r.t)); if (r.t >= 1) r.m.visible = false; }
   // hint after idle
-  if (state === 'play' && !busy) { hintT += sec; if (hintT > 5 && !hintMove) hintMove = findMove(true); } else hintMove = null;
+  if (state === 'play' && !busy) { hintT += sec; if (hintT > 5 * rk() && !hintMove) hintMove = findMove(true); } else hintMove = null;
+  if (state === 'play') AD.tick(performance.now() - moveAt < 8000);
   // camera shake
   shake = Math.max(0, shake - sec * 2.2);
   CP.set(0, camD * Math.cos(TILT), camD * Math.sin(TILT));
@@ -767,6 +797,11 @@ loop((dt, T) => {
 genLevel(); renderMap(); ui.start();
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; }, get progress() { return [goalSum(), goals.reduce((a, g) => a + g.n, 0), moves]; },
+  load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); genLevel(); state = 'play'; },
+  // QA: a careless move = any valid swap (or special tap), not the best one
+  careless() { if (state !== 'play' || busy) return; const ms = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { const a = grid[r][c]; if (!a) continue; if (a.sp && a.sp !== 'crate') ms.push({ a, b: null }); for (const [dr, dc] of [[0, 1], [1, 0]]) { const b = at(r + dr, c + dc); if (evalSwap(a, b) > 0) ms.push({ a, b }); } }
+    const m = ms[Math.floor(Math.random() * ms.length)]; if (!m) return; if (!m.b) tapSpecial(m.a); else trySwap(m.a, m.b); },
   bot() {
     if (state === 'ready') return;
     if (state !== 'play' || busy) return;

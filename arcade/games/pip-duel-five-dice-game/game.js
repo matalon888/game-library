@@ -1,8 +1,12 @@
 // Pip Duel — original five-dice duel (public-domain Yacht / Yatzy rules). Roll up to 3 times, hold dice, fill 13 boxes, beat the rival.
 // Honest casino: every die face comes from crypto.getRandomValues; the rival uses the same dice and never sees yours early.
 // Flow only changes how often the rival plays its best hold / box (its skill), never the dice.
+// In-round (ADAPT_BRIEF.md): the same skill knob moves ≤ ±20% from how you've played this match (good / wasted boxes,
+// falling far behind), ±25% in total with flow. No rescue: the dice can't be touched, and a rival that throws the last
+// turn would decide the match for you, so the only help is a slightly sloppier rival while you're struggling.
 import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapt } from './kit/adapt.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 
@@ -15,6 +19,7 @@ const NAME = 'Pip Duel: Five Dice Game';
 const D = daily('pipduel', ui, { name: NAME });
 const save = store('pipduel');
 const F = flow('pipduel', { hard: 0.3, ease: 0.4 });
+const AD = adapt({ span: 60, idle: 25, every: 3, minOk: 3 });   // a dice turn takes ~15 s: longer window, slower idle
 const B = board({ game: 'pip-duel', label: 'Matches won', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
 
 // ---------------------------------------------------------------- fair dice (crypto, rejection-sampled)
@@ -167,7 +172,7 @@ let modal = null;
 function openOdds() {
   if (modal) return;
   modal = H(`<div class="pd-modal"><div class="in"><h2>Odds &amp; rules</h2>
-<p><b>Fair dice.</b> Every face 1–6 has exactly a 1 in 6 chance, drawn with <code>crypto.getRandomValues</code> (rejection-sampled, no bias). The rival uses the same dice, never sees your dice early and never gets better rolls. Only its skill adapts: it plays its best move more often when you've been winning.</p>
+<p><b>Fair dice.</b> Every face 1–6 has exactly a 1 in 6 chance, drawn with <code>crypto.getRandomValues</code> (rejection-sampled, no bias). The rival uses the same dice, never sees your dice early and never gets better rolls. Only its skill adapts: it plays its best move more often when you've been winning, and up to a fifth less often while you're struggling this match.</p>
 <p><b>Turn:</b> up to 3 rolls, tap dice to hold. Then fill one empty box (a 0 if it doesn't fit). 13 rounds each, highest total wins.</p>
 <table>
 <tr><td>Ones … Sixes</td><td>sum of that face</td></tr>
@@ -278,6 +283,7 @@ function newMatch() {
   rival = RIVALS[pick % RIVALS.length];
   document.body.style.setProperty('--bg1', TH.bg[0]); document.body.style.setProperty('--bg2', TH.bg[1]); document.body.style.setProperty('--ui', TH.ui); document.body.style.setProperty('--riv', rival[2]);
   felt.material.color.set(TH.felt); rimMat.color.set(TH.rim); trimMat.color.set(TH.trim);
+  AD.round(level === 1 ? 0 : 1);   // level 1: never harder in-round
   P = new Array(13).fill(null); A = new Array(13).fill(null); round = 1; recorded = false; beatenShown = false;
   boxR.querySelector('.n').textContent = rival[1] + ' ' + rival[0].toUpperCase();
   cols.forEach(c => c.querySelector('[data-ra]').textContent = rival[1]);
@@ -387,14 +393,14 @@ function settled() {
 // ---------------------------------------------------------------- player actions
 async function playerRoll() {
   if (state !== 'play' || phase !== 'you' || rollsLeft <= 0 || anim()) return false;
-  rollsLeft--; const first = !rolled; rolled = true; sfx.tap();
+  AD.input(); rollsLeft--; const first = !rolled; rolled = true; sfx.tap();
   await rollDice('you');
   if (first && round === 1 && !fast) setTimeout(() => { if (phase === 'you' && rollsLeft > 0) ui.pop('Tap dice to hold', '#fff', 26, 52); }, 250);
   return true;
 }
 function toggleHold(i) {
   if (state !== 'play' || phase !== 'you' || !rolled || rollsLeft === 0 || anim()) return;
-  const d = dice[i]; setHeld(d, !d.held); d.sq = 0.5;
+  AD.input(); const d = dice[i]; setHeld(d, !d.held); d.sq = 0.5;
   d.held ? sfx.pick(3) : tone(420, 0.06, 'sine', 0.1, 0.7); buzz(8);
 }
 function scoreBox(sh, i, who) {
@@ -417,6 +423,9 @@ function scoreBox(sh, i, who) {
 }
 function pickBox(i) {
   if (state !== 'play' || phase !== 'you' || !rolled || anim() || P[i] !== null) return;
+  // signal: this box vs the best box for these dice (utility above par, same brain the rival uses)
+  const c = counts(dice.map(d => d.v)), u = util(P, i, scoresFor(c)[i]), bu = bestBox(P, c).u; AD.input();
+  if (bu - u > 5) AD.miss(); else if (bu - u <= 2) AD.ok(u >= 8 ? 1.5 : 1);   // near-best box = ok, a wasted one = miss
   scoreBox(P, i, 'you');
   dice.forEach(d => setHeld(d, false));
   phase = 'ai'; refresh();
@@ -424,7 +433,10 @@ function pickBox(i) {
 }
 
 // ---------------------------------------------------------------- rival turn (visible, quick)
-function aiQuality() { const fk = F.k(); return clamp((0.55 + 0.05 * (level - 1)) * fk, 0.3, 0.97); }
+// in-round ratio on top of flow's own fk: AD.k keeps fk × in-round within ±25% (flow's wider range is left as it was)
+// push (≤ +10%) only for players who also win across matches (flow skill > 0): a lucky streak by a struggling player
+// is how they win a dice duel, so it isn't taken away. Easing (≤ −20%) for anyone struggling this match.
+function aiQuality() { const fk = F.k(), k = AD.k(fk) / clamp(fk, 0.75, 1.25), r = k > 1 ? (F.skill > 0 ? 1 + (k - 1) * 0.5 : 1) : k; return clamp((0.55 + 0.05 * (level - 1)) * fk * r, 0.3, 0.97); }
 async function aiTurn(id) {
   await wait(650); if (id !== matchId) return;
   let left = 3;
@@ -442,7 +454,7 @@ async function aiTurn(id) {
   }
   const c = counts(dice.map(d => d.v));
   const box = crand() < aiQuality() ? bestBox(A, c).cat : sloppyBox(A, c);
-  scoreBox(A, box, 'ai');
+  scoreBox(A, box, 'ai'); const gap = total(A) - total(P); if (gap >= 8 && gap <= 40) AD.near();   // behind but still in it
   dice.forEach(d => setHeld(d, false));
   refresh();
   await wait(650); if (id !== matchId) return;
@@ -499,7 +511,7 @@ ui.onTap(() => {
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {
-  stepDice(dt / 60);
+  stepDice(dt / 60); if (state === 'play') AD.tick(dt / 60);
   shake = Math.max(0, shake - dt * 0.04);
   camera.position.set(CAM.x + Math.sin(t * 0.5) * 0.06 + (Math.random() - 0.5) * 0.06 * shake, CAM.y, CAM.z + (Math.random() - 0.5) * 0.04 * shake);
   camera.lookAt(0, 0, 0.35);
@@ -525,6 +537,7 @@ async function botTurn() {
 }
 window.__game = {
   get state() { return state === 'end' ? 'play' : state; }, get level() { return level; }, get score() { return total(P); },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: 0, q: +aiQuality().toFixed(3), ...AD.state }; },
   bot() {
     fast = true;
     if (state !== 'play' || phase !== 'you' || anim() || botBusy) return;

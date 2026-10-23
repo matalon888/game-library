@@ -1,6 +1,7 @@
 // Viral Den — original idle-vlogger clicker. Tap to film content, grow followers before the trend fades, buy gear that rebuilds your room.
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, PALETTES } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 import { part, merge, canvasTex } from './geo.js';
 
 import { board as worldBoard } from './kit/board.js';
@@ -12,6 +13,17 @@ const ui = createUI({ title: 'VIRAL<br>DEN', hint: 'Tap to film content', hand: 
 const save = store('vden');
 const F = flow('vden');
 let fk = 1;
+// ---------------------------------------------------------------- in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Reads only this round's play: hype steps reached / lost and pace vs the clock, while the player is actually tapping.
+// Knobs: hype decay (harder when bigger) ×AD.k, hype per tap ÷AD.k: ±20 %, within ±25 % with flow.js; never harder on
+// level 1. The clock, follower counts and the goal are never touched. Rescue (≤ 1 a round, 60 s apart, sensible play
+// only, never idle): seconds from a near-miss, a fan reposts the clip and Kai goes viral; the taps still have to earn it.
+const AD = adapter(); let paceT = 0, lastM = 1, saved = false;
+const AK = () => level === 1 ? Math.min(fk, AD.k(fk)) : AD.k(fk);
+const tapping = () => performance.now() - lastTapT < 2500, taps = [];
+// sensible here = steady filming (≥ 2.5 taps/s over the last 10 s) with the hype still up: falling behind the clock is
+// the trouble being rescued, so it doesn't count against the player the way AD.sensible()'s bad() tally would
+const steady = () => { const t = performance.now(); while (taps.length && taps[0] < t - 10000) taps.shift(); return taps.length >= 25 && hypeMult() >= 2; };
 
 // ---------------------------------------------------------------- economy
 const CATS = [
@@ -310,14 +322,14 @@ function film() {
   if (state !== 'play') return;
   const m = hypeMult(), f = perTap() * m;
   gained += f; total += f; cash += f * CASH;
-  hype = Math.min(1, hype + 0.07);
-  if (hype >= 1 && viralT <= 0) goViral();
+  hype = Math.min(1, hype + 0.07 * fk / AK());
+  if (hype >= 1 && viralT <= 0) { goViral(); AD.good(2); }
   pose = Math.floor(Math.random() * 4); poseT = 0; squash = 1; camFlash = 1;
   ui.pop('+' + fmt(f), m >= 4 ? '#ffd166' : '#ffffff', 28 + m * 3, 30 + Math.random() * 6);
   tone(500 + Math.min(m, 5) * 80 + Math.random() * 40, 0.05, 'triangle', 0.1, 1.3); if (m >= 3) note(72 + m * 2, 0.15, 0.06);
   buzz(6);
   emote(['❤️', '👍', '🔥', '😂', '⭐', '💯'][Math.floor(Math.random() * (m >= 3 ? 6 : 4))], new THREE.Vector3(kai.position.x, 2.0, kai.position.z), m >= 4 ? 2 : 1);
-  lastTapT = performance.now();
+  lastTapT = performance.now(); taps.push(lastTapT);
   refreshHUD();
 }
 function goViral() {
@@ -344,7 +356,7 @@ input({ onDown: () => film() });
 
 // ---------------------------------------------------------------- level flow
 function startLevel() {
-  fk = F.k(); gained = 0; timeLeft = timeOf(level) / fk; hype = 0; viralT = 0;
+  fk = F.k(); AD.round(); paceT = 0; lastM = 1; saved = false; gained = 0; timeLeft = timeOf(level) / fk; hype = 0; viralT = 0;
   const P = PALETTES[(level - 1) % PALETTES.length];
   document.body.style.setProperty('--bg1', P.bg[0]); document.body.style.setProperty('--bg2', P.bg[1]); document.body.style.setProperty('--ui', P.ui);
   ui.levels(level); ui.progress(0); ui.sub(`followers · goal ${fmt(goalOf(level))}`); ui.score(fmt(total));
@@ -361,6 +373,7 @@ function win() {
 }
 function lose() {
   if (state !== 'play') return;
+  if (tapping()) AD.bad(2);
   state = 'lost'; F.level(false, gained / goalOf(level)); sfx.fail(); buzz([40, 30, 60]);
   save.set('cash', Math.floor(cash)); save.set('total', Math.floor(total));
   ui.lose('TREND OVER', `${Math.round(gained / goalOf(level) * 100)}% of the goal · upgrade your gear!`);
@@ -391,7 +404,15 @@ loop((dt, t) => {
     timeLeft -= sec;
     const p = passive() * sec * (viralT > 0 ? 2 : 1);
     if (p > 0) { gained += p; total += p; cash += p * CASH; passAcc += sec; if (passAcc > 0.5) { passAcc = 0; refreshHUD(); } }
-    hype = Math.max(0, hype - sec * (viralT > 0 ? 0 : (0.28 - Math.min(tiers[3], MAXT) * 0.03) * fk));
+    hype = Math.max(0, hype - sec * (viralT > 0 ? 0 : (0.28 - Math.min(tiers[3], MAXT) * 0.03) * AK()));
+    const hm = hypeMult(); if (tapping()) { if (hm > lastM && hm < 5) AD.good(); else if (hm === 1 && lastM > 1) AD.bad(); } lastM = hm;
+    paceT += sec; if (paceT > 3 && tapping()) { paceT = 0; const t0 = timeOf(level) / fk, pace = gained / goalOf(level) - (t0 - timeLeft) / t0; pace > 0.05 ? AD.good() : pace < -0.08 ? AD.bad() : 0; }
+    AD.tick(tapping());
+    // rescue: a near-miss with the clock almost out, for a player who has kept the hype going
+    if (!saved && viralT <= 0 && timeLeft < 5 && timeLeft > 1.5 && performance.now() - lastTapT < 600 && steady()) {
+      const g = goalOf(level), rate = gained / Math.max(1, timeOf(level) / fk - timeLeft), lift = rate * timeLeft * 5 / hm;   // only when going viral can still tip it
+      if (gained + rate * timeLeft < g && gained + lift >= g && AD.rescue()) { saved = true; goViral(); ui.pop('A FAN REPOSTED YOU! 🍀', '#7dffb0', 34, 52); }
+    }
     if (viralT > 0) { viralT -= sec; hype = viralT / 4; if (viralT <= 0) { hype = 0.3; hypeEl.classList.remove('viral'); } }
     ui.progress(gained / goalOf(level)); ui.score(fmt(total));
     const low = timeLeft < 8; timeEl.classList.toggle('low', low); if (low && !wasLow) tone(880, 0.08, 'square', 0.06); wasLow = low;
@@ -430,6 +451,7 @@ frame(); applyTiers(); refreshHUD(); startLevel(); state = 'ready'; ui.start();
 // ---------------------------------------------------------------- test hooks
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return Math.floor(total); },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
   bot() {
     if (state !== 'play') return;
     let best = -1, bc = Infinity;
