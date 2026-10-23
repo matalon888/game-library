@@ -81,3 +81,8 @@ body > .g-sub .eyebrow { color: #e4ff5a; font-weight: 700; letter-spacing: .12em
 .player.playing .g-tap { display: block }
 @keyframes g-tap { 0%, 100% { transform: translate(-50%, -50%) scale(1) } 50% { transform: translate(-50%, -38%) scale(.86) } }
 @media (prefers-reduced-motion: reduce) { .g-tap { animation: none } }
+/* score comparison chip after a round (grow.js compare) */
+.g-pct { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); z-index: 6; transform: translate(-50%, 12px); white-space: nowrap; opacity: 0;
+  max-width: calc(100% - 32px); padding: 9px 16px; border-radius: 999px; background: rgba(12,14,20,.88); color: #fff; font: 700 15px/1.25 system-ui, sans-serif;
+  text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,.35); pointer-events: none; transition: opacity .3s, transform .3s }
+.g-pct.in { opacity: 1; transform: translate(-50%, 0) }

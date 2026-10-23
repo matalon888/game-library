@@ -189,6 +189,26 @@
   }
   addEventListener('pagehide', () => endGame('close'));
 
+  // "Better than 72% of scores this week": after each round, this score against real players' scores of the same game
+  // (arcade-api scores.js). Nothing is shown until a game has enough real scores; numbers are never made up.
+  let lastSt = null;
+  function compare(score, st) {
+    fetch(API + '/api/score', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ g: G.slug, s: score }) })
+      .then(r => r.json()).then(j => {
+        if (j.pct == null) return;
+        const gap = j.p50 != null && j.p50 > score ? Math.ceil(j.p50 - score) : 0;
+        const text = j.pct >= 50 ? `🏅 You beat ${j.pct}% of scores this week`
+          : st === 'lost' && gap ? `🎯 ${gap} more beats half of all scores` : null;
+        if (!text) return;
+        const p = document.querySelector('.player'); if (!p) return;
+        const old = $('gPct'); if (old) old.remove();
+        const c = document.createElement('div'); c.id = 'gPct'; c.className = 'g-pct'; c.setAttribute('role', 'status'); c.textContent = text;
+        p.appendChild(c); requestAnimationFrame(() => c.classList.add('in'));
+        setTimeout(() => { c.classList.remove('in'); setTimeout(() => c.remove(), 400); }, 4000);
+        ga('score_compare', { game_id: G.slug, pct: j.pct, outcome: st });
+      }).catch(() => {});
+  }
+
   let FR = null;
   function onStart(frame) {
     FR = frame;
@@ -214,6 +234,8 @@
       if (!s) return;
       let st, sc; try { st = s.state; sc = s.score; } catch (e) { return; }
       if (typeof sc === 'number' && isFinite(sc)) best = Math.max(best ?? 0, Math.round(sc));
+      if ((st === 'lost' || st === 'won') && st !== lastSt && typeof sc === 'number' && isFinite(sc) && sc > 0) compare(Math.round(sc), st);
+      lastSt = st;
       if (st === 'lost' && !ended) { ended = true; roundsLost++; (RC.gaNow || ga)('round_end', { game_id: G.slug, outcome: 'lost', score: typeof sc === 'number' && isFinite(sc) ? Math.round(sc) : undefined, round_n: roundsLost, player_tier: tierNow }); setTimeout(() => { try { if (frame.contentWindow.__game.state === 'lost') gameOver(); else ended = false; } catch (e) { ended = false; } }, 1200); }
       else if (st !== 'lost' && ended && !$('gNext') && !$('gShare') && !$('gRound')) ended = false; // they retried
       if (AD && st === 'won' && !wonOnce && ss.get('games', 0) >= 2 && subDue() && !document.querySelector('.g-card')) { wonOnce = true; setTimeout(() => subscribe(all, false), 1400); }
