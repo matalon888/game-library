@@ -1,11 +1,14 @@
 // Marble Dash — original game. Hold to roll, slide your finger to steer a glossy ball along a floating obstacle course.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapt } from './kit/adapt.js';
 
 import { board } from './kit/board.js';
 const WB = board({ game: 'marble-dash', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum', corner: 'bl' });
 const ST = store('marbledash');
 const F = flow('marbledash');
+const A = adapt();   // in-round: obstacle speed ±20% + top roll speed ±15%, one lucky second wind per round (ADAPT_BRIEF.md)
+let ot = 0;          // obstacle clock: advances at A.k() so slowing/speeding obstacles never makes them jump
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
 const ui = createUI({ title: 'MARBLE<br>DASH', hint: 'Hold to roll · slide to steer', hand: '👆', score: false });
@@ -146,12 +149,12 @@ function spawnAt(z) { roll = 0;
 function buildLevel() {
   const pal = PALS[(level - 1) % PALS.length];
   document.body.style.setProperty('--bg1', pal.bg[0]); document.body.style.setProperty('--bg2', pal.bg[1]); document.body.style.setProperty('--ui', pal.ui);
-  buildTrack(); lives = 3; setLives(); cpZ = 2; cpIdx = -1; finishT = 0;
+  buildTrack(); A.round(level === 1 ? 0 : 1); lives = 3; setLives(); cpZ = 2; cpIdx = -1; finishT = 0;
   spawnAt(2); camY = B.p.y; ui.levels(level); ui.progress(0); ui.sub(''); t0 = performance.now();
 }
 
 input({
-  onDown() { if (state === 'play') { holding = true; botOn = false; } },
+  onDown() { if (state === 'play') { holding = true; botOn = false; A.input(); } },
   onMove(dx) { if (state === 'play' && holding) steerPx += dx; },
   onUp(e, st) { holding = false; if (state === 'play' && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) { roll = 0.8; const k = e.clientX / innerWidth; if (k < 0.33 || k > 0.67) B.vx = k < 0.5 ? -3 : 3; } },   // tap = a short roll forward (side thirds nudge left/right)
 });
@@ -162,6 +165,8 @@ ui.onTap(w => { WB.start();
 });
 
 function fell() {
+  A.miss();
+  if (lives === 1 && A.rescue()) { ui.pop('SECOND WIND! 🍀', '#7dffb0', 38, 30); sfx.coin(); buzz([10, 30, 10]); spawnAt(cpZ); camY = B.p.y; return; }   // lucky: the last heart holds once
   lives--; setLives(); buzz([40, 30, 40]); sfx.fail();
   if (lives <= 0) { state = 'lost'; F.level(false, Math.min(1, (6 - B.p.z) / totalLen)); ui.lose('FELL OFF!', Math.round(Math.min(1, (6 - B.p.z) / totalLen) * 100) + '% of the track'); return; }
   ui.pop('CHECKPOINT', '#fff', 34, 30); spawnAt(cpZ); camY = B.p.y;
@@ -200,16 +205,18 @@ function collide(o, t) {
   }
 }
 let lastBump = 0;
-function bump() { const n = performance.now(); if (n - lastBump < 200) return; lastBump = n; sfx.bounce(); buzz(15); B.squash = 0.8; burst(world, B.p, ['#ffffff', '#ffd21f'], 8, { speed: 0.08, up: 0.06, size: 0.5 }); }
+function bump() { const n = performance.now(); if (n - lastBump < 200) return; if (n - lastBump > 1500) A.near(0.5); lastBump = n; sfx.bounce(); buzz(15); B.squash = 0.8; burst(world, B.p, ['#ffffff', '#ffd21f'], 8, { speed: 0.08, up: 0.06, size: 0.5 }); }
 
 // ---------------------------------------------------------------- loop
 const tmp = new THREE.Vector3(), axis = new THREE.Vector3(), dq = new THREE.Quaternion();
 loop((dt, t) => {
   if (!segs) return;
   const s = Math.min(dt, 2) / 60;
+  if (state === 'play') A.tick(s);
+  ot += s * (state === 'play' ? A.k() : 1);
   if (state === 'play' || state === 'won') {
     const hold = state === 'won' ? false : (holding || botOn || roll > 0); roll = Math.max(0, roll - s);
-    const maxV = MAXV + B.boost;
+    const maxV = MAXV * (state === 'play' ? 1 + (A.k() - 1) * 0.75 : 1) + B.boost;   // top roll speed ±15% with the in-round level
     if (hold) B.vz = Math.max(B.vz - ACC * s, -maxV); else B.vz *= Math.exp(-0.35 * s);
     if (B.vz < -maxV) B.vz = lerp(B.vz, -maxV, 0.05);
     B.boost = Math.max(0, B.boost - 4 * s);
@@ -228,14 +235,14 @@ loop((dt, t) => {
       B.vy -= G * s; B.p.y += B.vy * s; airT += s;
       if (sf && B.vy <= 0 && B.p.y - BR <= sf.y && B.p.y - BR > sf.y - 0.6) {
         B.p.y = sf.y + BR; B.ground = true;
-        if (airT > 0.2) { B.squash = Math.min(1, -B.vy / 8); sfx.bounce(); buzz(10); burst(world, tmp.copy(B.p).setY(sf.y + 0.05), ['#ffffff', '#e2b47a'], 10, { speed: 0.07, up: 0.04, size: 0.5 }); if (airT > 0.45 && state === 'play') ui.pop(['NICE JUMP!', 'WHOOSH!', 'AIR TIME!'][Math.floor(Math.random() * 3)], '#fff', 32, 30); }
+        if (airT > 0.2) { B.squash = Math.min(1, -B.vy / 8); sfx.bounce(); buzz(10); burst(world, tmp.copy(B.p).setY(sf.y + 0.05), ['#ffffff', '#e2b47a'], 10, { speed: 0.07, up: 0.04, size: 0.5 }); if (airT > 0.45 && state === 'play') A.ok(), ui.pop(['NICE JUMP!', 'WHOOSH!', 'AIR TIME!'][Math.floor(Math.random() * 3)], '#fff', 32, 30); }
         B.vy = 0;
       }
     }
-    for (const o of obs) if (Math.abs(o.zc - B.p.z) < 14) collide(o, t); else if (o.type !== 'slide') o.m.rotation.y = -(t * o.sp + o.ph);
+    for (const o of obs) { if (Math.abs(o.zc - B.p.z) < 14) collide(o, ot); else if (o.type !== 'slide') o.m.rotation.y = -(ot * o.sp + o.ph); if (!o.past && B.p.z < o.zc - 1.5 && B.ground && state === 'play') { o.past = true; A.ok(); } }
     for (const p of pads) if (B.ground && Math.abs(B.p.z - p.z) < 1.3 && Math.abs(B.p.x - cx(p.seg, p.z)) < 0.8 && B.boost < 4) { B.boost = 7; B.vz = -(MAXV + 6); tone(300, 0.35, 'sawtooth', 0.08, 2.4); buzz(12); ui.pop('BOOST!', '#7ff0ff', 36, 30); }
     if (state === 'play') {
-      for (let i = 0; i < cps.length; i++) if (i > cpIdx && B.p.z < cps[i].z0 - 1.5 && B.ground) { cpIdx = i; cpZ = cps[i].z0 - 1.5; sfx.coin(); ui.pop('CHECKPOINT!', '#5ce1ff', 32, 30); burst(world, B.p, ['#5ce1ff', '#ffffff'], 14, { speed: 0.1, up: 0.08, size: 0.6 }); }
+      for (let i = 0; i < cps.length; i++) if (i > cpIdx && B.p.z < cps[i].z0 - 1.5 && B.ground) { cpIdx = i; A.ok(); cpZ = cps[i].z0 - 1.5; sfx.coin(); ui.pop('CHECKPOINT!', '#5ce1ff', 32, 30); burst(world, B.p, ['#5ce1ff', '#ffffff'], 14, { speed: 0.1, up: 0.08, size: 0.6 }); }
       if (B.p.z < finishZ && B.ground) win();
       if (B.p.y < (sf ? sf.y : camY) - 9) fell();
       ui.progress(Math.min(1, (6 - B.p.z) / totalLen));
@@ -263,9 +270,9 @@ buildLevel();
 addEventListener('resize', () => { camera.fov = 62; camera.updateProjectionMatrix(); });
 
 window.__game = {
-  get state() { return state; }, get level() { return level; }, get score() { return Math.max(0, level - 1) * 100 + Math.round(Math.min(1, (6 - B.p.z) / totalLen) * 100); },
+  get state() { return state; }, get level() { return level; }, get score() { return Math.max(0, level - 1) * 100 + Math.round(Math.min(1, (6 - B.p.z) / totalLen) * 100); }, get adapt() { return A.state; },
   bot() {
-    if (state !== 'play' || holding) return;
+    if (state !== 'play' || holding) return; A.input();
     botOn = true;
     const look = B.p.z - 2.5, s = segAt(look) || segAt(B.p.z);
     if (!s) return;

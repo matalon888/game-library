@@ -5,20 +5,59 @@ import * as THREE from './three.module.min.js';
 export { THREE };
 
 // ---------------------------------------------------------------- GPU memory guard (qa/perf_fixes.py)
+// Games rebuild levels by removing old meshes, and three.js keeps their GPU buffers until dispose(). An object removed
+// from its parent and still detached ~2 s later frees the geometries and textures under it that NOTHING still needs:
+// never one a rendered scene still uses (shared geometries, cached materials' maps, background / environment), never
+// one marked keep() / userData.shared, and never again one it freed once and then saw back on screen (a game-level
+// cache reused across levels). Materials are never disposed here: they hold no GPU memory of their own, and disposing
+// the last material of a kind deletes its shader program, so the next level / burst recompiled it (a freeze on phones).
 if (!THREE.Object3D.prototype.__apFree) {
-  const P = THREE.Object3D.prototype, rem = P.remove, pending = new Set();
-  const free = o => o.traverse(x => {
-    if (x.geometry && x.geometry.dispose) x.geometry.dispose();
-    for (const m of [].concat(x.material || [])) { if (!m) continue; for (const k in m) { const v = m[k]; if (v && v.isTexture && !v.isRenderTargetTexture) v.dispose(); } m.dispose(); }
-  });
+  const P = THREE.Object3D.prototype, rem = P.remove, S = THREE.Scene.prototype, obr = S.onBeforeRender;
+  const pending = new Map(), KEEP = P.__apKeep = new WeakSet(), freed = new WeakSet(), scenes = new Set(), seen = new WeakSet();
+  const ref = typeof WeakRef === 'function' ? s => new WeakRef(s) : s => ({ deref: () => s });
+  const track = s => { if (s && s.isScene && !seen.has(s)) { seen.add(s); scenes.add(ref(s)); } };
+  // every scene three renders (WebGLRenderer.render is a per-instance function, so hook the scene's render callback)
+  S.onBeforeRender = function () { track(this); return obr.apply(this, arguments); };
   let timer = 0;
-  const sweep = () => { timer = 0; for (const o of pending) { pending.delete(o); if (!o.parent) free(o); } };
+  const texOf = (m, f, uniforms) => {
+    for (const k in m) { const v = m[k]; if (v && v.isTexture) f(v); }
+    if (uniforms && m.uniforms) for (const k in m.uniforms) for (const v of [].concat(m.uniforms[k] && m.uniforms[k].value)) if (v && v.isTexture) f(v);
+  };
+  const inUse = () => {   // everything a live scene (rendered, or one an object was removed from) still references
+    const s = new Set(), mat = m => { if (m && !s.has(m)) { s.add(m); texOf(m, t => s.add(t), 1); } };
+    for (const w of scenes) {
+      const sc = w.deref(); if (!sc) { scenes.delete(w); continue; }
+      for (const t of [sc.background, sc.environment]) if (t && t.isTexture) s.add(t);
+      mat(sc.overrideMaterial);
+      sc.traverse(x => { if (x.geometry) s.add(x.geometry); [].concat(x.material || []).forEach(mat); mat(x.customDepthMaterial); mat(x.customDistanceMaterial); });
+    }
+    for (const r of s) if (freed.has(r)) KEEP.add(r);   // freed once and back on screen: a shared cache, keep it from now on
+    return s;
+  };
+  const free = (o, used) => o.traverse(x => {
+    if (x.userData && x.userData.shared) return;
+    const g = x.geometry;
+    if (g && g.dispose && !used.has(g) && !KEEP.has(g)) { g.dispose(); freed.add(g); }
+    if (x.isInstancedMesh && !KEEP.has(x)) x.dispose();   // its instance buffers (three re-uploads them if it comes back)
+    for (const m of [].concat(x.material || [])) if (m && !used.has(m) && !KEEP.has(m))
+      texOf(m, t => { if (!t.isRenderTargetTexture && !used.has(t) && !KEEP.has(t)) { t.dispose(); freed.add(t); } });
+  });
+  const sweep = () => {
+    timer = 0; const now = performance.now(), due = [];
+    for (const [o, t] of pending) if (now - t >= 1900) { pending.delete(o); if (!o.parent) due.push(o); }
+    if (due.length && scenes.size) { const used = inUse(); for (const o of due) free(o, used); }
+    if (pending.size) timer = setTimeout(sweep, 1000);
+  };
   P.remove = function (...objs) {
-    for (const o of objs) if (o && o.parent === this) { pending.add(o); if (!timer) timer = setTimeout(sweep, 2000); }
+    let r = this; while (r.parent) r = r.parent; track(r);
+    for (const o of objs) if (o && o.parent === this && !KEEP.has(o)) { pending.set(o, performance.now()); if (!timer) timer = setTimeout(sweep, 2000); }
     return rem.apply(this, objs);
   };
   P.__apFree = 1;
 }
+// end GPU memory guard
+/** keep(...things): the GPU memory guard never frees these (geometries, materials, textures, or whole objects). */
+export function keep(...xs) { const K = THREE.Object3D.prototype.__apKeep; if (K) for (const x of xs) if (x) K.add(x); return xs[0]; }
 
 // ---------------------------------------------------------------- palettes (pastel bg + one bold accent family)
 export const PALETTES = [
@@ -132,12 +171,16 @@ export function note(midi, dur = 0.35, vol = 0.18) {
 export const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
 
 // ---------------------------------------------------------------- particles (pooled-ish, cheap)
-const PART = new THREE.BoxGeometry(0.18, 0.18, 0.18);
-const SPH = new THREE.SphereGeometry(0.1, 8, 6);
+const PART = keep(new THREE.BoxGeometry(0.18, 0.18, 0.18));
+const SPH = keep(new THREE.SphereGeometry(0.1, 8, 6));
 const live = [];
+// particle materials are pooled, not disposed: disposing the last one deleted the shader program and the next burst
+// compiled it again mid-play
+const MATS = [];
+const partMat = c => { const m = MATS.pop() || new THREE.MeshStandardMaterial({ transparent: true, roughness: 0.4 }); m.color.set(c); m.opacity = 1; return m; };
 export function burst(scene, pos, color = '#ffd23f', n = 18, { speed = 0.12, up = 0.1, size = 1, shape = 'box', gravity = 0.006, life = 1 } = {}) {
   for (let i = 0; i < n; i++) {
-    const m = new THREE.Mesh(shape === 'sphere' ? SPH : PART, new THREE.MeshStandardMaterial({ color: Array.isArray(color) ? color[i % color.length] : color, transparent: true, roughness: 0.4 }));
+    const m = keep(new THREE.Mesh(shape === 'sphere' ? SPH : PART, partMat(Array.isArray(color) ? color[i % color.length] : color)));
     m.position.copy(pos); m.scale.setScalar(size * (0.6 + Math.random() * 0.8));
     const a = Math.random() * Math.PI * 2, b = Math.random() * Math.PI;
     live.push({ m, v: new THREE.Vector3(Math.cos(a) * Math.sin(b) * speed, up + Math.random() * up, Math.sin(a) * Math.sin(b) * speed), spin: (Math.random() - 0.5) * 0.4, life, g: gravity, scene });
@@ -150,7 +193,7 @@ export function updateParticles(dt = 1) {
     p.v.y -= p.g * dt; p.m.position.addScaledVector(p.v, dt); p.m.rotation.x += p.spin * dt; p.m.rotation.y += p.spin * dt;
     p.life -= 0.02 * dt; p.m.material.opacity = Math.max(0, p.life);
   }
-  for (let i = live.length - 1; i >= 0; i--) if (live[i].life <= 0) { live[i].scene.remove(live[i].m); live[i].m.material.dispose(); live.splice(i, 1); }
+  for (let i = live.length - 1; i >= 0; i--) if (live[i].life <= 0) { live[i].scene.remove(live[i].m); const mt = live[i].m.material; if (MATS.length < 600) MATS.push(mt); else mt.dispose(); live.splice(i, 1); }
 }
 
 // ---------------------------------------------------------------- UI

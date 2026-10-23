@@ -2,6 +2,7 @@
 // pass through goons, blow up TNT, cut ropes and shove crates. Clear the room with 3 bullets; never hit a hostage.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 import { board as worldBoard } from './kit/board.js';
 
 // ------------------------------------------------------------------ stage: orthographic side view
@@ -49,6 +50,16 @@ const save = store('ricochetrex');
 const F = flow('ricochetrex');
 const WB = worldBoard({ game: 'ricochet-rex', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });
 let fkL = 1;
+// ------------------------------------------------------------------ in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Reads ONLY how this player is playing right now: good/bad moves in the last 20 s and time since the last success.
+// level −1 (struggling) … +1 (cruising) moves ≤ 0.25 per 3 s and drifts back to 0 when neutral. k(fk) = multiplier for a
+// harder-when-bigger knob: ±20 %, and together with flow.js's between-run nudge it stays within ±25 %. Rescues: at most one
+// per round and 60 s apart, only for a player who has been playing sensibly (never for an idle one). QA reads window.__game.adapt.
+const AD = adapter(); let shotAt = 0, lastCheck = false, fullSight = false, sightAngles = null;
+// knob: how far the laser sight reaches (up to 20 % longer for a struggling player, 20 % shorter when cruising). Rescue (once a
+// round): a player whose earlier shots all hit is down to the last bullet with goons left → the sight shows the whole
+// ricochet path and gently sticks (±0.05 rad) to angles that really hit. The shot itself is the player's own.
+const sightLen = (base) => base * (2 - AD.k());
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ themes
@@ -306,7 +317,7 @@ function firstLevel() {
 }
 function genLevel(lv) { return lv <= 1 ? firstLevel() : genRoom(lv - 1); }   // level 2 = the old level 1, and so on
 function genRoom(lv) {
-  const n = Math.max(2, Math.min(7, Math.round((2 + Math.floor(lv / 3)) * fkL)));
+  const base = 2 + Math.floor(lv / 3), n = Math.max(2, Math.min(7, clamp(Math.round(base * fkL), Math.ceil(base * 0.75), Math.floor(base * 1.25))));   // never more than ±25 % goons
   let fallback = null;
   for (let att = 0; att < 70; att++) {
     const r = rng(lv * 9973 + att * 131 + 7), L = layout(lv, n, r); if (!L) continue;
@@ -402,7 +413,7 @@ function buildLevel() {
   theme = THEMES[(level - 1) % THEMES.length];
   const bs = document.body.style; bs.setProperty('--bg1', theme.bg[0]); bs.setProperty('--bg2', theme.bg[1]); bs.setProperty('--ui', theme.ui); bs.background = theme.bg[1];
   scenery(theme, levelGroup);
-  fkL = F.k(); lvl = genLevel(level);
+  fkL = AD.k(F.k()); lvl = genLevel(level); AD.round(); lastCheck = false; fullSight = false; sightAngles = null;
   W = simWorld(lvl);
   for (const s of W.statics) {
     const x0 = Math.max(s.x0, -14), x1 = Math.min(s.x1, 14), y0 = Math.max(s.y0, -20), w = x1 - x0, h = s.y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + s.y1) / 2;
@@ -448,7 +459,7 @@ function fire() {
   const s = shoulder(W, aimA), T = trace(W, s.x, s.y, aimA);
   const cum = [0]; for (let i = 1; i < T.pts.length; i++) cum.push(cum[i - 1] + Math.hypot(T.pts[i][0] - T.pts[i - 1][0], T.pts[i][1] - T.pts[i - 1][1]));
   bullet = { ...T, cum, s: 0.55, ei: 0, vi: 1, speed: 26 };
-  bullets--; ammo(bullets); shotKills = 0;
+  bullets--; ammo(bullets); shotKills = 0; shotAt = performance.now();
   agent.gun.flash.material.opacity = 1; agent.recoil = 1;
   tone(880, 0.05, 'square', 0.09, 0.3); tone(160, 0.14, 'sawtooth', 0.09, 0.4); buzz(18); shake = Math.max(shake, 0.12);
   bulletMesh.visible = true; tFade = 0; trailMesh.material.opacity = 0.9;
@@ -507,7 +518,7 @@ function explode(o) {
 }
 function lose(t, line) {
   if (state !== 'play') return;
-  state = 'lost'; F.level(false, killed / Math.max(1, total)); slowT = 0; timeScale = 1;
+  state = 'lost'; F.level(false, killed / Math.max(1, total)); slowT = 0; timeScale = 1; AD.bad(2);
   sfx.fail(); buzz([60, 40, 80]); shake = Math.max(shake, 0.4);
   ui.lose(t, line);
 }
@@ -597,6 +608,18 @@ function aimAt(cx, cy) {
   const p = toWorld(cx, cy), f = p.x >= W.agent.x ? 1 : -1, sx = W.agent.x + 0.35 * f, sy = W.agent.y + 1.34;
   if (Math.hypot(p.x - sx, p.y - sy) < 0.05) return;
   aimA = Math.atan2(p.y - sy, p.x - sx);
+  if (!fullSight && level > 1 && AD.level < -0.2) {   // struggling: a small aim magnet (≤ 0.05 rad; level 1's is 0.45) onto a goon in clear, hostage-free line
+    let bd = 0.05 * -AD.level, ba = null;
+    for (const e of W.enemies) if (e.alive) {
+      const ga = Math.atan2(e.y + 1 - sy, e.x - sx), d = Math.abs(Math.atan2(Math.sin(aimA - ga), Math.cos(aimA - ga))); if (d >= bd) continue;
+      const s0 = shoulder(W, ga), r = evalShot(W, s0.x, s0.y, ga); if (r.kills.has(e) && !r.hostage) { bd = d; ba = ga; }
+    }
+    if (ba !== null) aimA = ba;
+  }
+  if (fullSight && sightAngles) {
+    let bd = 0.05, ba = null; for (const a of sightAngles) { const d = Math.abs(Math.atan2(Math.sin(aimA - a), Math.cos(aimA - a))); if (d < bd) { bd = d; ba = a; } }
+    if (ba !== null) aimA = ba;
+  }
   if (level === 1 && W.enemies[0] && W.enemies[0].alive) {
     const e = W.enemies[0], ga = Math.atan2(e.y + 1 - sy, e.x - sx), d = Math.atan2(Math.sin(aimA - ga), Math.cos(aimA - ga));
     if (Math.abs(d) < 0.45) aimA = ga;
@@ -655,7 +678,7 @@ loop((dt60, tt) => {
       const last = B.ev[B.ev.length - 1];
       if (!last || (last.type !== 'boom' && last.type !== 'hostage')) { burst(scene, V(p.x, p.y, 0.6), '#fff3b0', 8, { speed: 0.07, size: 0.5 }); tone(1200, 0.05, 'triangle', 0.05, 0.4); }
       bullet = null; bulletMesh.visible = false; tFade = 1;
-      if (shotKills === 0 && state === 'play') ui.pop('MISSED', '#ffffff', 28, 30);
+      if (shotKills === 0 && state === 'play') { ui.pop('MISSED', '#ffffff', 28, 30); AD.bad(); } else if (shotKills) AD.good(shotKills);
     }
   } else if (tFade > 0) { tFade = Math.max(0, tFade - rdt * 1.4); trailMesh.material.opacity = 0.9 * tFade; if (!tFade) trailMesh.count = 0; }
 
@@ -692,9 +715,17 @@ loop((dt60, tt) => {
     A.gun.flash.material.opacity = Math.max(0, A.gun.flash.material.opacity - rdt * 10);
   }
 
+  // ---- in-round adaptation + the last-bullet rescue check (once, when the room has settled)
+  if (state === 'play') {
+    AD.tick(performance.now() - shotAt < 12000);
+    if (!lastCheck && !bullet && bullets === 1 && killed < total && slowT <= 0 && settled()) {
+      lastCheck = true;
+      if (AD.sensible(2) && AD.rescue()) { fullSight = true; sightAngles = sweep(W, 720).filter(s => !s.hostage && s.kills.size).map(s => s.a); ui.pop('FULL SIGHT!', '#7cf3ff', 32, 30); tone(1300, 0.1, 'sine', 0.07, 1.2); }
+    }
+  }
   // ---- laser sight (first two ricochets) while aiming
   if (W && state === 'play' && !bullet && bullets > 0 && slowT <= 0) {
-    const s = shoulder(W, aimA), T = trace(W, s.x, s.y, aimA, 2, aiming ? 17 : 9);
+    const s = shoulder(W, aimA), T = fullSight ? trace(W, s.x, s.y, aimA, 6, 40) : trace(W, s.x, s.y, aimA, 2, sightLen(aiming ? 17 : 9));
     let n = 0, off = (t * 1.6) % 0.42; const segs = T.pts;
     for (let i = 1; i < segs.length; i++) {
       const a = segs[i - 1], b = segs[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L, ang = Math.atan2(uy, ux);
@@ -775,6 +806,9 @@ function bestAngle() {
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
+  sim: { goons: () => W.enemies.filter(e => e.alive).map(e => [e.x, e.y + 1]), shoulder: (a) => shoulder(W, a), screen: (x, y) => toScreen(x, y), get ready() { return !bullet && slowT <= 0 && bullets > 0 && settled(); },
+    sightHits(a) { const s = shoulder(W, a), T = fullSight ? trace(W, s.x, s.y, a, 6, 40) : trace(W, s.x, s.y, a, 2, sightLen(17)); return T.ev.some(e => e.type === 'kill' && e.d <= T.len); } },
   get gfx() { const i = renderer.info; return { programs: (i.programs || []).length, geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls }; },
   bot() {
     if (state !== 'play') return;

@@ -4,9 +4,11 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
 import { bake, vcMat } from './bake.js';
+import { adapt } from './kit/adapt.js';
 
 const ST = store('tiptoetower');
 const F = flow('tiptoetower');
+const A = adapt({ minOk: 1 });   // in-round: strut speed ±20%, one lucky save per round (ADAPT_BRIEF.md)
 const WB = worldBoard({ game: 'tiptoe-tower', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 14 });
@@ -74,7 +76,7 @@ let pickMesh, gemMesh;
 function buildLevel() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
-  R = rng(level * 4231 + 9); const fk = F.k();
+  R = rng(level * 4231 + 9); const fk = F.k(); A.round(level === 1 ? 0 : 1);
   const sky = SKIES[(level - 1) % SKIES.length];
   document.body.style.setProperty('--bg1', sky[0]); document.body.style.setProperty('--bg2', sky[1]); document.body.style.setProperty('--ui', sky[2]);
   items = []; walls = []; rails = []; steps = []; debris = []; gems = 0; mult = 1; endT = 0;
@@ -134,7 +136,7 @@ function buildLevel() {
     const n = Math.max(1, Math.round((w.x1 - w.x0) / 0.58)), cw = (w.x1 - w.x0) / n;
     const im = new THREE.InstancedMesh(rounded(cw * 0.94, BH * 0.94, 0.6, 0.05), glossy('#ffffff'), n * w.k); const M4 = new THREE.Matrix4(); let k = 0;
     for (let yy = 0; yy < w.k; yy++) for (let xx = 0; xx < n; xx++) { im.setMatrixAt(k, M4.makeTranslation(w.x0 + cw * (xx + 0.5), BH * (yy + 0.5), w.z)); im.setColorAt(k++, new THREE.Color((xx + yy) % 2 ? '#ff4d4d' : '#ff6b5e')); }
-    im.castShadow = true; im.receiveShadow = true; world.add(im); w.m = im;
+    im.castShadow = true; im.receiveShadow = true; world.add(im); w.m = im; w.n = n;
   }
   // pickups
   const shoes = items.filter(i => i.kind === 'shoe'), gs = items.filter(i => i.kind === 'gem');
@@ -160,7 +162,7 @@ function hud() { $('heels').textContent = '👠 ' + G.n; $('gems').textContent =
 // ---------------------------------------------------------------- input
 let dragging = false, botX = null;
 input({
-  onDown() { if (state === 'play') { dragging = true; botX = null; } },
+  onDown() { if (state === 'play') { dragging = true; botX = null; A.input(); } },
   onMove(dx) { if (state === 'play' && dragging) G.tx = clamp(G.tx + dx * 0.02, -TW / 2 + 0.45, TW / 2 - 0.45); },
   onUp() { dragging = false; },
   onTap(e) { if (state === 'play') { botX = null; G.tx = clamp(G.tx + (e.clientX < innerWidth / 2 ? -1.7 : 1.7), -TW / 2 + 0.45, TW / 2 - 0.45); } },   // tap a side = step one lane that way
@@ -190,13 +192,17 @@ let pitchI = 0;
 loop((dt, t) => {
   if (!G) return;
   const s = dt / 60, play = state === 'play';
+  if (play) A.tick(s);
   if (play && G.climb < 0 && !G.fall) {
-    G.z -= SPEED * s;
+    G.z -= SPEED * A.k() * s;
     const rail = rails.find(r => G.z < r.z0 && G.z > r.z1);
     if (rail && !G.rail) {
       G.rail = rail; G.tx = 0;
       const reach = 0.98 + G.n * BH;
-      if (reach * 2 < rail.gap - 0.2) { G.fall = 1; G.vy = 0; tone(600, 0.5, 'sine', 0.12, 0.3); buzz([60, 40, 60]); ui.pop('TOO SHORT!', '#ff3b4e', 38, 30); setTimeout(() => lose('FELL OFF!'), 700); }
+      const short = reach * 2 < rail.gap - 0.2, lucky = short && A.rescue();
+      if (lucky) { ui.pop('STRETCH! 🍀', '#7dffb0', 40, 30); sfx.coin(); buzz([10, 30, 10]); }
+      else if (!short) { if (reach * 2 < rail.gap + BH) A.near(); else A.ok(); }
+      if (short && !lucky) { A.miss(2); G.fall = 1; G.vy = 0; tone(600, 0.5, 'sine', 0.12, 0.3); buzz([60, 40, 60]); ui.pop('TOO SHORT!', '#ff3b4e', 38, 30); setTimeout(() => lose('FELL OFF!'), 700); }
       else { ui.pop('SPLITS!', '#fff', 40, 30); sfx.coin(); buzz(15); }
     }
     if (!rail && G.rail) { G.rail = null; ui.pop('NAILED IT!', '#fff', 32, 30); }
@@ -207,13 +213,18 @@ loop((dt, t) => {
       if (w.done || G.z > w.z + 0.35) continue;
       w.done = true;
       if (G.x + 0.28 < w.x0 || G.x - 0.28 > w.x1) continue;
-      if (G.n >= w.k) { G.n -= w.k; shed(w.k, w.z); G.hop = 1; sfx.smash(); buzz([20, 10, 20]); ui.pop('-' + w.k + ' 👠', '#ff3b4e', 34, 30); burst(world, new THREE.Vector3(G.x, w.k * BH, w.z), ['#ff4d4d', '#ffffff'], 12, { speed: 0.1, up: 0.08 }); hud(); }
-      else { G.z = w.z + 0.45; shed(G.n, w.z); G.n = 0; hud(); sfx.smash(); ui.flash(0.4); return lose('BONK!'); }
+      if (G.n < w.k && A.rescue()) {   // lucky: the top bricks were loose — the wall crumbles down to her heel height
+        const keep = G.n; w.k = keep; w.m.count = w.n * keep; burst(world, new THREE.Vector3(G.x, (keep + 1) * BH, w.z), ['#ff4d4d', '#ffffff', '#7dffb0'], 18, { speed: 0.12, up: 0.1 }); ui.pop('LUCKY! 🍀', '#7dffb0', 40, 40);
+      }
+      if (w.k === 0) { G.hop = 1; continue; }
+      if (G.n >= w.k) { if (G.n - w.k <= 1) A.near(); else A.ok(); G.n -= w.k; shed(w.k, w.z); G.hop = 1; sfx.smash(); buzz([20, 10, 20]); ui.pop('-' + w.k + ' 👠', '#ff3b4e', 34, 30); burst(world, new THREE.Vector3(G.x, w.k * BH, w.z), ['#ff4d4d', '#ffffff'], 12, { speed: 0.1, up: 0.08 }); hud(); }
+      else { A.miss(2); G.z = w.z + 0.45; shed(G.n, w.z); G.n = 0; hud(); sfx.smash(); ui.flash(0.4); return lose('BONK!'); }
     }
     // pickups
     for (const it of items) {
+      if (it.kind === 'shoe' && !it.got && !it.missed && it.z > G.z + 0.6 && Math.abs(it.x - G.x) < 1.8) { it.missed = true; A.near(0.15); }   // a shoe slipped past nearby
       if (it.got || Math.abs(it.z - G.z) > 0.6) continue;
-      if (it.kind === 'shoe' && Math.abs(it.x - G.x) < 0.75) { it.got = true; G.n = Math.min(60, G.n + 1); note(64 + (pitchI++ % 12) * 1, 0.16, 0.12); buzz(6); burst(world, new THREE.Vector3(it.x, 0.6, it.z), ['#ff4fa3', '#ffffff'], 8, { speed: 0.08, up: 0.07, size: 0.6 }); ui.pop('+1 👠', '#ff2d8a', 30, 34); hud(); }
+      if (it.kind === 'shoe' && Math.abs(it.x - G.x) < 0.75) { it.got = true; A.ok(0.25); G.n = Math.min(60, G.n + 1); note(64 + (pitchI++ % 12) * 1, 0.16, 0.12); buzz(6); burst(world, new THREE.Vector3(it.x, 0.6, it.z), ['#ff4fa3', '#ffffff'], 8, { speed: 0.08, up: 0.07, size: 0.6 }); ui.pop('+1 👠', '#ff2d8a', 30, 34); hud(); }
       else if (it.kind === 'gem' && (it.rail ? true : Math.abs(it.x - G.x) < 0.75)) { it.got = true; gems++; sfx.coin(); buzz(4); burst(world, new THREE.Vector3(it.x, 0.6, it.z), '#29b6ff', 6, { speed: 0.06, up: 0.06, size: 0.5 }); hud(); }
     }
     ui.progress(Math.min(0.92, G.z / podiumZ * 0.92));
@@ -286,9 +297,9 @@ loop((dt, t) => {
 buildLevel();
 
 window.__game = {
-  get state() { return state; }, get level() { return level; }, get score() { return total + gems; },
+  get state() { return state; }, get level() { return level; }, get score() { return total + gems; }, get adapt() { return A.state; },
   bot() {
-    if (state !== 'play' || G.rail || G.climb >= 0) return;
+    if (state !== 'play' || G.rail || G.climb >= 0) return; A.input();
     let bx = G.x, bs = -1e9;
     for (let x = -TW / 2 + 0.5; x <= TW / 2 - 0.5; x += 0.25) {
       let sc = -Math.abs(x - G.x) * 0.25;

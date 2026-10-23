@@ -2,6 +2,7 @@
 // Tap = one bullet along the laser. Clear every masked goon before he lands, never hit a hostage. Steel ricochets, barrels explode.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 import { board as worldBoard } from './kit/board.js';
 import { particles } from './fx.js';
 
@@ -12,6 +13,12 @@ const save = store('flipagent');
 const FL = flow('flipagent');
 const WB = worldBoard({ game: 'flip-agent', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });
 let fk = 1;
+// ------------------------------------------------------------------ in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Reads ONLY how this player is playing right now: good/bad moves in the last 20 s and time since the last success.
+// level −1 (struggling) … +1 (cruising) moves ≤ 0.25 per 3 s and drifts back to 0 when neutral. k(fk) = multiplier for a
+// harder-when-bigger knob: ±20 %, and together with flow.js's between-run nudge it stays within ±25 %. Rescues: at most one
+// per round and 60 s apart, only for a player who has been playing sensibly (never for an idle one). QA reads window.__game.adapt.
+const AD = adapter(); let tapAt = 0, flipTaps = 0, rescueFlip = false;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ themes (sky gradient, rooftop colours, sea)
@@ -158,6 +165,7 @@ function person(kind, x, y, st, z = 0) {
 function buildLevel() {
   for (const m of world) scene.remove(m);
   for (const b of bullets) scene.remove(b.m); for (const t of tracers) scene.remove(t.m); for (const f of flashes) scene.remove(f.m);
+  AD.round();
   world = []; solids = []; actors = []; barrels = []; bullets = []; tracers = []; flashes = []; plat = []; stages = [];
   totalEnemies = 0; kills = 0; stageIdx = 0; flipKills = 0;
   applyTheme(level);
@@ -271,8 +279,8 @@ function muzzle(x = agent.x, y = agent.y, spin = agent.spin) {
 const JUMP_T = 0.95;
 // aim assist: a tap fires at the goon nearest the laser if he is within this angle (and in clear sight). Wide on level 1, tight later.
 const ASSIST = [0.9, 0.6, 0.45, 0.38, 0.32, 0.28];
-const assistAng = () => ASSIST[level - 1] ?? 0.24;
-const slowMo = () => level === 1 ? 0.17 : level === 2 ? 0.2 : clamp(0.24 * fk, 0.2, 0.3);
+const assistAng = () => (ASSIST[level - 1] ?? 0.24) * (level <= 2 ? 1 : 2 - AD.k());   // in-round: up to 20 % wider for a struggling player, 20 % tighter when cruising
+const slowMo = () => level === 1 ? 0.17 : level === 2 ? 0.2 : clamp(0.24 * AD.k(fk), 0.19, 0.3);   // lower = slower flip
 /** real ms that goon e stays locked during stage st's flip (others treated as already shot) */
 function lockMs(st, e) {
   const J = { x0: st.J - 0.35, y0: st.H, x1: st.L + 0.9, y1: st.T, apex: Math.max(st.H, st.T) + 2.7 }, others = new Set(actors.filter(a => a !== e)), step = 0.005; let t = 0, ms = 0;
@@ -333,6 +341,7 @@ function fire() {
   if (ammo <= 0) { tone(180, 0.06, 'square', 0.06, 0.8); ui.pop('NO AMMO', '#ffffff', 26, 30); return; }
   ammo--; drawAmmo(); queued = 0;
   const { mx, my, dx, dy, tr } = aimShot();
+  if (tr.hit.type !== 'enemy' && tr.hit.type !== 'barrel') AD.bad(0.75);   // a wasted bullet
   const m = new THREE.Mesh(G.bullet, bulletMat); m.position.set(mx, my, 0.05); scene.add(m);
   const tm = new THREE.Mesh(laserGeo, trailMat); tm.scale.set(0.01, 1.6, 1.6); scene.add(tm);
   let len = 0; const segs = []; for (let i = 0; i < tr.pts.length - 1; i++) { const l = Math.hypot(tr.pts[i + 1][0] - tr.pts[i][0], tr.pts[i + 1][1] - tr.pts[i][1]); segs.push(l); len += l; }
@@ -354,7 +363,7 @@ function killActor(a, dx, dy, part, how = 'shot') {
   sparks.emit(p, { color: a.kind === 'hostage' ? '#ff7eb3' : '#ffd23f', n: 22, speed: 7, size: 0.18, life: 0.7, g: 6 });
   fx.emit(p, { color: a.kind === 'hostage' ? '#ff7eb3' : TH.stripe, n: 8, speed: 5, size: 0.18, life: 1.2, g: 9, drag: 0.5 });
   if (a.kind === 'hostage') { lose('hostage'); return; }
-  kills++; flipKills++;
+  kills++; flipKills++; AD.good();
   let pts = 10, txt = ['NICE!', 'GREAT!', 'COOL!'][Math.floor(Math.random() * 3)], col = '#ffffff';
   if (part === 'head') { pts += 10; txt = 'BULLSEYE!'; col = '#ffd23f'; }
   if (how === 'ricochet') { pts += 15; txt = 'RICOCHET!'; col = '#7cf3ff'; }
@@ -390,7 +399,7 @@ function win() {
 }
 function lose(why) {
   if (state !== 'play') return;
-  state = 'lost'; FL.level(false, totalEnemies ? kills / totalEnemies : 0); timeScale = tsTarget = 0.35;
+  state = 'lost'; FL.level(false, totalEnemies ? kills / totalEnemies : 0); AD.bad(2); timeScale = tsTarget = 0.35;
   best = Math.max(best, score); save.set('best', best);
   sfx.fail(); buzz([60, 40, 80]); shake = 0.6;
   if (why === 'hostage') { ui.flash(0.5); ui.lose('HOSTAGE HIT!', 'Never shoot the pink ones'); }
@@ -420,7 +429,7 @@ function lockSoon(ms) {
   return false;
 }
 function tapShoot() {
-  if (state !== 'play') return; const now = performance.now();
+  if (state !== 'play') return; const now = performance.now(); tapAt = now; if (agent.phase === 'flip') flipTaps++;
   if (queued > now) return;
   const st = stages[stageIdx], pend = pendingSet();
   if (st && !st.enemies.some(e => e.alive && !pend.has(e))) return;   // every goon here is down or has a bullet coming: don't waste one
@@ -448,6 +457,7 @@ loop((dt60) => {
   const rdt = Math.min(0.05, dt60 / 60);
   timeScale = lerp(timeScale, tsTarget, 1 - Math.pow(0.0005, rdt));
   const dt = rdt * timeScale, tNow = performance.now() / 1000;
+  if (state === 'play') AD.tick(performance.now() - tapAt < 8000);
   const A = agent, F = A.fig;
 
   // ---- agent
@@ -462,7 +472,7 @@ loop((dt60) => {
     if (stageIdx >= stages.length) { if (A.x > last.a + 6.6) { A.phase = 'done'; win(); } }
     else if (A.x >= stages[stageIdx].J - 0.35) {
       const st = stages[stageIdx];
-      A.phase = 'flip'; A.t = 0; flipKills = 0;
+      A.phase = 'flip'; A.t = 0; flipKills = 0; flipTaps = 0; rescueFlip = false;
       A.jump = { x0: A.x, y0: A.y, x1: st.L + 0.9, y1: st.T, apex: Math.max(st.H, st.T) + 2.7 };
       tsTarget = slowMo(); tone(300, 0.25, 'sine', 0.1, 2.2); buzz(15);
       fx.emit(v3(A.x, A.y + 0.1, 0), { color: '#ffffff', n: 8, speed: 2, size: 0.4, size1: 0.9, life: 0.6, alpha: 0.7 });
@@ -475,14 +485,25 @@ loop((dt60) => {
     F.g.rotation.z = A.spin;
     F.lL.rotation.z = lerp(F.lL.rotation.z, 1.5, 0.2); F.lR.rotation.z = lerp(F.lR.rotation.z, 1.2, 0.2); aim(F.aL, 0.6);
     aim(F.aR, -(A.recoil || 0) * 0.5); A.recoil = Math.max(0, (A.recoil || 0) - rdt * 6);
-    if (u >= 0.86) tsTarget = 1;
+    // rescue (once a round): about to land with a goon still up, after sensible shooting and a tap in this very flip, and he
+    // can still be locked on before touchdown → time slows down further for the rest of this flip. Nothing else changes.
+    // (slow-mo stays on to 97 % of the flip instead of 86 %, and 20 % deeper)
+    if (rescueFlip === false && u >= 0.7 && u < 0.86 && state === 'play' && flipTaps && ammo > 0 && AD.sensible(2)) {
+      const pend = pendingSet(), st = stages[stageIdx];
+      if (st && st.enemies.some(e => e.alive && !pend.has(e))) {
+        let can = false; for (let tt = A.t; tt < JUMP_T * 0.97 && !can; tt += 0.005) { const P2 = flipPose(J, tt); can = aimShot(P2.x, P2.y, P2.spin, pend).locked; }
+        rescueFlip = null;   // checked once per flip
+        if (can && AD.rescue()) { rescueFlip = true; tsTarget = slowMo() * 0.8; ui.pop('FOCUS!', '#7dffb0', 34, 30); tone(500, 0.3, 'sine', 0.08, 0.5); }
+      }
+    }
+    if (u >= (rescueFlip ? 0.97 : 0.86)) tsTarget = 1;
     if (u >= 1) {
       A.phase = 'run'; A.y = J.y1; A.spin = 0; F.g.rotation.z = 0; A.squash = 1; tsTarget = 1;
       fx.emit(v3(A.x, A.y + 0.1, 0), { color: '#ffffff', n: 12, speed: 3, size: 0.4, size1: 1.0, life: 0.7, alpha: 0.7 });
       sfx.bounce(); buzz(10);
       const st = stages[stageIdx];
       if (st.enemies.some(e => e.alive)) lose(ammo <= 0 ? 'ammo' : 'spotted');
-      else { st.cleared = true; stageIdx++; updateProgress(); }
+      else { st.cleared = true; stageIdx++; updateProgress(); AD.good(); }
     }
   }
   if (A.phase === 'dead') { A.vy -= 20 * dt; A.x += A.vx * dt; A.y += A.vy * dt; F.g.rotation.z += 5 * dt; F.lL.rotation.z = 1; aim(F.aR, 1.5); aim(F.aL, 1.8); }
@@ -562,6 +583,7 @@ ui.start();
 // ------------------------------------------------------------------ test hooks
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; }, get phase() { return agent.phase; },
   bot() {
     // look ahead over the next ~130 ms of the spin and schedule the shot for the first moment the laser lands on a goon
     if (state !== 'play' || agent.phase !== 'flip' || ammo <= 0 || botTimer) return;

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng,
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 import { World, makeBox, makeCircle } from './physics.js';
+import { adapt } from './kit/adapt.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 14 });
 const { scene, camera, sun } = stage;
@@ -24,6 +25,9 @@ const save = store('fortfling');
 const F = flow('fortfling');
 const B = board({ game: 'fort-fling', label: 'Points', limits: { maxRun: 150000, maxPerSec: 30000 }, mode: 'sum' });
 let fk = 1;
+// in-round (ADAPT_BRIEF.md): block/raccoon toughness ±20% and the tap aim window, re-set before each shot; one bonus fruit
+// per round when the last fruit is gone, at least one raccoon is already out and the player is still playing
+const A = adapt({ minOk: 1, idle: 15, fresh: 15 }); let shotRac = 0, shotDmg = 0, dmgSum = 0, judged = true;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0);
 let state = 'ready', score = 0, shots = 3, totalRac = 1;
 
@@ -151,7 +155,7 @@ let world, ents = [], fruit = null, fruitMeshes = [], queue = [], phase = 'aim',
 let pull = new THREE.Vector2(), aiming = false, fortMin = 8, fortMax = 12, slowT = 0, shake = 0, shotIdx = 0, flyT = 0, slowFruitT = 0;
 const R0 = new THREE.Vector2();
 
-function addEnt(body, mesh, kind) { scene.add(mesh); const e = { body, mesh, kind, hp: (kind === 'rac' ? 1.0 : MATS[kind].hp) * fk, thr: kind === 'rac' ? 0.55 : MATS[kind].thr, alive: true }; body.user = e; world.add(body); ents.push(e); return e; }
+function addEnt(body, mesh, kind) { scene.add(mesh); const e = { body, mesh, kind, k: fk, hp: (kind === 'rac' ? 1.0 : MATS[kind].hp) * fk, thr: kind === 'rac' ? 0.55 : MATS[kind].thr, alive: true }; body.user = e; world.add(body); ents.push(e); return e; }
 function addBlock(kind, x, y, w, h) {
   const m = MATS[kind], b = makeBox(x, y, w, h, { density: m.density, fric: m.fric, rest: m.rest });
   const mesh = new THREE.Mesh(blockGeo(w, h), blockMat(kind)); mesh.castShadow = mesh.receiveShadow = true;
@@ -166,7 +170,7 @@ function buildLevel() {
   world = new World({ gravity: GRAV, iterations: 12 });
   world.add(makeBox(30, -5, 200, 10, { isStatic: true, fric: 0.8 }));
   world.onHit = onHit;
-  const r = rng(level * 7919 + 13); fk = F.k();
+  const r = rng(level * 7919 + 13); fk = F.k(); A.round(level === 1 ? 0 : 1); judged = true;
   const nT = level === 1 ? 1 : level <= 3 ? 1 + (level === 3 ? 1 : 0) : Math.min(3, 2 + Math.floor(r() * Math.min(2, (level - 2) / 3)));
   const maxF = level === 1 ? 1 : level === 2 ? 2 : Math.min(3, 1 + Math.floor(r() * Math.min(3, 1 + level / 3)));
   const pickMat = () => { if (level <= 2) return r() < 0.75 ? 'wood' : 'glass'; const x = r(); return x < 0.45 ? 'wood' : x < 0.75 ? 'glass' : 'stone'; };
@@ -214,7 +218,7 @@ function onHit(A, B, imp, px, py) {
   for (const b of [A, B]) {
     const e = b.user; if (!e || !e.alive) continue;
     const d = (imp - e.thr) * fr; if (d <= 0) continue;
-    e.hp -= d; e.hit = 1;
+    e.hp -= d; e.hit = 1; dmgSum += d;
     if (e.hp <= 0) { e.alive = false; toKill.push(e); }
   }
   const now = performance.now();
@@ -259,7 +263,7 @@ function setPull(dxPix, dyPix) {
   if (pull.x > 0.4) pull.x = 0.4;   // you pull the band back, not forward
 }
 input({
-  onDown(e) { if (state !== 'play' || phase !== 'aim' || !fruit) return; downAt = [e.clientX, e.clientY]; aiming = true; tone(300, 0.05, 'sine', 0.08, 1.3); },
+  onDown(e) { if (state !== 'play' || phase !== 'aim' || !fruit) return; A.input(); downAt = [e.clientX, e.clientY]; aiming = true; tone(300, 0.05, 'sine', 0.08, 1.3); },
   onMove(dx, dy, e) { if (!aiming) return; const old = pull.length(); setPull(e.clientX - downAt[0], e.clientY - downAt[1]); const n = pull.length(); if (Math.floor(n * 5) !== Math.floor(old * 5)) tone(200 + n * 160, 0.03, 'sine', 0.05, 1.1); },
   onUp(e) {
     if (!aiming) return; aiming = false;
@@ -274,7 +278,7 @@ function tapShot(cx, cy) {
   if (!_ray.ray.intersectPlane(_pl, _hit)) return;
   let tx = _hit.x, ty = _hit.y;
   const near = ents.filter(e => e.kind === 'rac' && e.alive).sort((a, b) => Math.hypot(a.body.x - tx, a.body.y - ty) - Math.hypot(b.body.x - tx, b.body.y - ty))[0];
-  if (near && Math.hypot(near.body.x - tx, near.body.y - ty) < (level <= 2 ? 1.1 : 0.5)) { tx = near.body.x; ty = near.body.y + 0.05; }
+  if (near && Math.hypot(near.body.x - tx, near.body.y - ty) < (level <= 2 ? 1.1 : 0.5) / A.k()) { tx = near.body.x; ty = near.body.y + 0.05; }
   if (tx < REST.x + 1) return;
   let best = null, flat = null;
   for (let ang = -5; ang <= 78; ang += 0.5) {
@@ -287,6 +291,8 @@ function tapShot(cx, cy) {
   const a = best.ang * Math.PI / 180; pull.set(-Math.cos(a) * MAXPULL, -Math.sin(a) * MAXPULL); launch();
 }
 function launch() {
+  const k = A.k(fk); for (const e of ents) if (e.alive) { e.hp *= k / e.k; e.k = k; }   // toughness follows the in-round level
+  shotRac = racLeft(); shotDmg = dmgSum; judged = false;
   const p = R0.copy(REST).add(pull), pw = pull.length() / MAXPULL, dir = pull.clone().normalize().multiplyScalar(-1);
   const b = makeCircle(p.x, p.y, FR, { density: 5.5, fric: 0.55, rest: 0.25 }); b.isFruit = true; b.noSleep = true;
   b.vx = dir.x * VMAX * pw; b.vy = dir.y * VMAX * pw; b.w = -4;
@@ -315,7 +321,7 @@ function syncMeshes(t = 0) {
       e.mesh.rotation.z = b.a * 0.25;   // keep faces mostly upright while rolling
       if (e.hit) e.hit = Math.max(0, e.hit - 0.05);
     } else if (e.hit !== undefined) {
-      const m = MATS[e.kind], dmg = 1 - Math.max(0, e.hp) / (m.hp * fk); e.mesh.material.color.copy(e.base).multiplyScalar(1 - dmg * 0.35);
+      const m = MATS[e.kind], dmg = 1 - Math.max(0, e.hp) / (m.hp * e.k); e.mesh.material.color.copy(e.base).multiplyScalar(1 - dmg * 0.35);
     }
   }
 }
@@ -343,14 +349,23 @@ function win() {
   if (score > best) { best = score; save.set('best', best); }
   ui.win(level, `${score.toLocaleString()} pts${bonus ? ' · +' + bonus.toLocaleString() + ' spare fruit' : ''}`);
 }
-function lose() { state = 'lost'; F.level(false, 1 - racLeft() / totalRac); sfx.fail(); buzz([40, 30, 60]); const n = racLeft(); ui.lose('OUT OF FRUIT!', `${n} raccoon${n > 1 ? 's' : ''} still snacking`); }
+function judge() {   // how did the last shot go? (adapt.js signals)
+  if (judged) return; judged = true;
+  const kills = shotRac - racLeft();
+  if (kills > 0) A.ok(kills); else if (dmgSum - shotDmg > 0.5) A.near(); else A.miss();
+}
+function bonusFruit() {   // lucky: one more fruit rolls out of the bush (once per round, see adapt.js; never counts as spare-fruit bonus)
+  const m = fruitMesh(shotIdx); scene.add(m); queue.push(m); shots = 1;
+  ui.pop('BONUS FRUIT! 🍀', '#7dffb0', 40, 24); tone(880, 0.12, 'triangle', 0.1, 1.4); buzz([10, 30, 10]); loadFruit();
+}
+function lose() { A.miss(2); state = 'lost'; F.level(false, 1 - racLeft() / totalRac); sfx.fail(); buzz([40, 30, 60]); const n = racLeft(); ui.lose('OUT OF FRUIT!', `${n} raccoon${n > 1 ? 's' : ''} still snacking`); }
 
 // ------------------------------------------------------------------ main loop
 let acc = 0, T = 0;
 loop((dt60) => {
   const rdt = Math.min(dt60 / 60, 1 / 25);
   let ts = 1; if (slowT > 0) { slowT -= rdt; ts = 0.3; if (slowT <= 0 && state === 'play') win(); }
-  T += rdt; phaseT += rdt;
+  T += rdt; phaseT += rdt; if (state === 'play') A.tick(rdt);
   if (world && (state === 'play' || state === 'won' || state === 'lost')) {
     acc += rdt * ts; const H = 1 / 180; let n = 0;
     while (acc >= H && n < 10) { world.step(H); acc -= H; n++; }
@@ -370,7 +385,7 @@ loop((dt60) => {
         world.remove(b); scene.remove(fruit.mesh); fruit = null; phase = 'wait'; phaseT = 0;
       }
     } else if (phase === 'wait') {
-      if (racLeft() > 0 && slowT <= 0 && (world.sleeping && phaseT > 0.4 || phaseT > 3.5)) { if (shots > 0) loadFruit(); else lose(); }
+      if (racLeft() > 0 && slowT <= 0 && (world.sleeping && phaseT > 0.4 || phaseT > 3.5)) { judge(); if (shots > 0) loadFruit(); else if (A.rescue()) bonusFruit(); else lose(); }
     }
   }
   // fruit + sling visuals
@@ -429,8 +444,9 @@ window.__game = {
     const r = ents.filter(e => e.kind === 'rac' && e.alive).sort((a, b) => a.body.x - b.body.x)[0]; if (!r) return null;
     _p.set(r.body.x, r.body.y, 0).project(camera); return [(_p.x + 1) / 2 * innerWidth, (1 - _p.y) / 2 * innerHeight];
   },
+  get adapt() { return A.state; },
   bot() {
-    if (state !== 'play' || phase !== 'aim' || !fruit || fruit.body || slowT > 0) return;
+    if (state !== 'play' || phase !== 'aim' || !fruit || fruit.body || slowT > 0) return; A.input();
     const fire = (type, x, y) => dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y }));
     const sx = innerWidth * 0.3, sy = innerHeight * 0.6;
     if (botStep === 0) { botPull = solve(); if (!botPull) return; fire('pointerdown', sx, sy); botStep = 1; return; }

@@ -2,6 +2,7 @@
 // (3 per box) or into a 5-slot tray. Plates with no bolts left fall off. Clear every bolt to win; a full tray loses.
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, glossy, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 import { board } from './kit/board.js';
 const B = board({ game: 'bolt-twist', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // rounded() grows by its bevel; this keeps exact outer size
@@ -18,6 +19,12 @@ sun.position.set(4, 12, 9);
 const save = store('bolttwist');
 const FL = flow('bolttwist');   // (F is the face table inside design)
 let level = save.get('level', 1), total = save.get('bolts', 0), state = 'ready';
+// ---------------------------------------------------------------- in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Reads ONLY how this player is playing right now: good/bad moves in the last 20 s and time since the last success.
+// level −1 (struggling) … +1 (cruising) moves ≤ 0.25 per 3 s and drifts back to 0 when neutral. k(fk) = multiplier for a
+// harder-when-bigger knob: ±20 %, and together with flow.js's between-run nudge it stays within ±25 %. Rescues: at most one
+// per round and 60 s apart, only for a player who has been playing sensibly (never for an idle one). QA reads window.__game.adapt.
+const AD = adapter(); let tapAt = 0;
 const ui = createUI({ title: 'BOLT<br>TWIST', hint: 'Tap the bolts!', hand: '👆', score: false });
 
 // ---------------------------------------------------------------- goal + danger readouts (bolts left, tray fill)
@@ -350,8 +357,32 @@ function setupBoxes(L) {
   for (let i = 0; i < K; i++) { boxes.push({ i, color: null, reserved: 0, filled: 0, active: false, group: null, items: [] }); nextBox(boxes[i], i * 90); }
   layoutHud();
 }
+// colour of the box that drops next. Struggling player: it may come from two places further down the queue (a player who keeps
+// struggling: from anywhere in it), the one that takes the most bolts already waiting in the tray. Same boxes, same colours:
+// only their order changes.
+// Rescue (once a round, sensible play only): the tray is one bolt from full, so the box that matches the tray comes now.
+const trayCount = (c) => buffer.filter((t) => t && t.color === c).length;
+function bestAhead(from, to) { let j = -1, n = 0; for (let i = from; i < Math.min(queue.length, to); i++) { const m = trayCount(queue[i]); if (m > n && !boxes.some((x) => x.active && x.color === queue[i])) { n = m; j = i; } } return j; }
+function adaptQueue() {
+  if (qi >= queue.length || trayCount(queue[qi])) return;
+  const used = buffer.filter(Boolean).length;
+  let j = AD.level <= -0.3 ? bestAhead(qi + 1, AD.level <= -0.65 ? queue.length : qi + 3) : -1;
+  if (j < 0 && used >= TRAY - 1 && AD.sensible()) { j = bestAhead(qi + 1, queue.length); if (j >= 0 && AD.rescue()) setTimeout(() => ui.pop('LUCKY BOX!', '#35c96a', 32, 30), 250); else j = -1; }
+  if (j > 0) [queue[qi], queue[j]] = [queue[j], queue[qi]];
+}
+// rescue while no box is due: an empty box (nothing in it, nothing flying to it) leaves and the tray's colour drops in
+function rescueSwap() {
+  const used = buffer.filter(Boolean).length;
+  if (state !== 'play' || used < TRAY - 1 || boxes.some((x) => x.active && trayCount(x.color)) || !AD.sensible()) return;
+  const b = boxes.find((x) => x.active && x.group && !x.reserved && !x.filled), j = b ? bestAhead(qi, queue.length) : -1;
+  if (j < 0 || !AD.rescue()) return;
+  const c = queue[j]; queue[j] = b.color; queue.splice(qi, 0, c);
+  b.active = false; const g = b.group, my = gen, y0 = g.position.y; ui.pop('LUCKY SWAP!', '#35c96a', 32, 30); tone(900, 0.08, 'triangle', 0.08, 1.4);
+  anim(220, (k) => { g.position.y = y0 + k * k * 1.6; g.rotation.z = -k * 0.3; }).then(() => { if (gen !== my) return; hud.remove(g); b.group = null; nextBox(b); });
+}
 function nextBox(b, delay = 0) {
   if (qi >= queue.length) { b.color = null; b.active = false; return; }
+  adaptQueue();
   b.color = queue[qi++]; b.reserved = 0; b.filled = 0; b.items = []; b.active = false;
   const g = makeBox(b.color); g.scale.setScalar(SLOT * 0.86); const p = boxPos(b.i); g.position.copy(p).add(new THREE.Vector3(0, 1.4, 0)); hud.add(g); b.group = g;
   anim(240, (k) => g.position.y = lerp(p.y + 1.4, p.y, k), easeBack, delay).then(() => { b.active = true; tone(700, 0.05, 'triangle', 0.06, 1.2); pullFromTray(b); });
@@ -402,7 +433,7 @@ async function flyToTray(fl, j) {
   tone(500, 0.06, 'triangle', 0.08, 0.9); buffer[j].arrived = true;
   const b = boxes.find((b) => b.active && b.color === buffer[j].color && b.reserved < 3); if (b) pullFromTray(b);
   const used = buffer.filter(Boolean).length;
-  hudText(); if (used >= TRAY - 1) { ui.pop(used >= TRAY ? 'TRAY FULL!' : 'LAST SLOT!', '#ff4d5e', 30, 30); buzz(40); }
+  hudText(); if (used >= TRAY - 1) { ui.pop(used >= TRAY ? 'TRAY FULL!' : 'LAST SLOT!', '#ff4d5e', 30, 30); buzz(40); rescueSwap(); }
 }
 const allFlyers = [];
 function makeFlyer(color) {
@@ -416,9 +447,11 @@ function blocked(s) { const p = plates[s.plate]; return p.above.map((i) => plate
 function tapScrew(s) {
   if (state !== 'play' || s.gone) return;
   const blk = blocked(s);
-  if (blk) { s.wob = 1; tone(160, 0.1, 'square', 0.07, 0.8); buzz(30); blk.wob = 1; return; }
+  tapAt = performance.now();
+  if (blk) { s.wob = 1; tone(160, 0.1, 'square', 0.07, 0.8); buzz(30); blk.wob = 1; AD.bad(0.5); return; }
   let b = boxes.filter((b) => b.active && b.color === s.color && b.reserved < 3).sort((a, c) => c.reserved - a.reserved)[0], j = -1;
-  if (!b) { j = freeTray(); if (j < 0) { ui.pop('TRAY FULL!', '#ff4d5e', 30, 30); buzz(60); return; } buffer[j] = { color: s.color, arrived: false }; }
+  if (b) AD.good(); else if (screenBolts().some((v) => v[2] === 0)) AD.bad();   // parked a bolt while a matching one was in plain view
+  if (!b) { j = freeTray(); if (j < 0) { ui.pop('TRAY FULL!', '#ff4d5e', 30, 30); buzz(60); AD.bad(0.5); return; } buffer[j] = { color: s.color, arrived: false }; }
   const slot = b ? b.reserved++ : -1;
   s.gone = true; setInst(s, 0); cleared++; total++; ui.progress(cleared / screws.length);
   hudText(); leftEl.classList.add('bump'); setTimeout(() => leftEl.classList.remove('bump'), 120);
@@ -464,7 +497,7 @@ function startLevel() {
   for (const f of fallers) scene.remove(f.m); fallers = [];
   for (const f of allFlyers) f.parent && f.parent.remove(f); allFlyers.length = 0;
   const bg = BGS[(level - 1) % BGS.length]; document.body.style.setProperty('--bg1', bg[0]); document.body.style.setProperty('--bg2', bg[1]); document.body.style.setProperty('--ui', '#3a7bff');
-  L = design(level, FL.k()); buildToy(L); setupBoxes(L);
+  L = design(level, AD.k(FL.k())); buildToy(L); setupBoxes(L); AD.round();
   ground.position.y = -L.H / 2 - 0.01; toy.position.y = 0;
   cleared = 0; rotY = level === 1 ? -0.25 : -0.55; rotV = 0; tilt = 0.12; botFace = null;
   ui.levels(level); ui.progress(0); hudText();
@@ -475,7 +508,7 @@ function win() {
   sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 1.5, 0), 90);
   ui.win(level - 1, `${screws.length} bolts out!`); ui.els.win.querySelector('.hint').textContent = `Level ${level} ▶`; hudText();
 }
-function lose() { if (state === 'play') FL.level(false, screws.length ? screws.filter((s) => s.gone).length / screws.length : 0); state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TRAY FULL!', 'Match the box colours.'); hudText(); }
+function lose() { if (state === 'play') AD.bad(2); if (state === 'play') FL.level(false, screws.length ? screws.filter((s) => s.gone).length / screws.length : 0); state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TRAY FULL!', 'Match the box colours.'); hudText(); }
 ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; hudText(); return; } startLevel(); state = 'play'; hudText(); });
 
 // ---------------------------------------------------------------- input: drag to spin, tap a bolt
@@ -519,7 +552,7 @@ function placeCamera() {
 addEventListener('resize', placeCamera); placeCamera();
 const FACE_YAW = { front: -0.45, right: -Math.PI / 2 + 0.45, back: -Math.PI + 0.45, left: Math.PI / 2 - 0.45, top: null };
 loop((dt, t) => {
-  runTweens();
+  runTweens(); if (state === 'play') AD.tick(performance.now() - tapAt < 6000);
   if (state === 'play' && botFace && FACE_YAW[botFace] !== null) {
     let target = FACE_YAW[botFace]; while (target - rotY > Math.PI) target -= Math.PI * 2; while (target - rotY < -Math.PI) target += Math.PI * 2;
     rotY += (target - rotY) * 0.1 * dt;
@@ -579,4 +612,4 @@ function simulate(n, policy = 'casual', trials = 200, seed = 1, T = TRAY, pm = 0
   }
   return { n, policy, winPct: Math.round(100 * won / trials), bolts: design(n, 1).S.length, K: design(n, 1).K };
 }
-window.__game = { simulate, get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, design, solve, screenBolts,dbg: () => ({ left: screws.filter((s) => !s.gone).map((s) => [s.id, s.color, s.face, !!blocked(s)]), boxes: boxes.map((b) => [b.color, b.active, b.reserved, b.filled]), buffer: buffer.map((b) => b && [b.color, b.arrived]), qi, queue, flights: flights.length, plates: plates.map((p) => [p.id, p.alive, p.left, p.above]) }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };
+window.__game = { get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; }, simulate, get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, design, solve, screenBolts,dbg: () => ({ left: screws.filter((s) => !s.gone).map((s) => [s.id, s.color, s.face, !!blocked(s)]), boxes: boxes.map((b) => [b.color, b.active, b.reserved, b.filled]), buffer: buffer.map((b) => b && [b.color, b.arrived]), qi, queue, flights: flights.length, plates: plates.map((p) => [p.id, p.alive, p.left, p.above]) }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };

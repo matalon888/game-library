@@ -2,11 +2,13 @@
 // beams and narrow gaps slice off whatever doesn't fit; spend your size climbing the multiplier stairs at the end.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapt } from './kit/adapt.js';
 
 import { board } from './kit/board.js';
 const WB = board({ game: 'stretch-dash', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum', corner: 'bl' });
 const ST = store('stretchdash');
 const F = flow('stretchdash'); let fk = 1;
+const A = adapt();   // in-round: speed + crash cost ±20%, one lucky save per round (ADAPT_BRIEF.md)
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 52, shadowSize: 12 });
 const ui = createUI({ title: 'STRETCH<br>DASH', hint: 'Tap left or right to steer', hand: '👆', score: false });
@@ -52,7 +54,7 @@ let camUp = 0, world, rows, gemsArr, gemMesh, stairs, stairZ, finZ, runner, stat
 function buildLevel() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
-  R = rng(level * 613 + 5); fk = F.k();
+  R = rng(level * 613 + 5); fk = F.k(); A.round(level === 1 ? 0 : 1);
   rows = []; gems = 0; chunks = []; climbStep = -1; endT = 0; mult = 1;
   const nRows = Math.min(14, 5 + level);
   let z = -16;
@@ -121,7 +123,7 @@ function setHud() { $('gems').textContent = '💎 ' + gems; $('size').innerHTML 
 // ---------------------------------------------------------------- input
 let dragging = false, botX = null;
 input({
-  onDown() { if (state === 'play') { dragging = true; botX = null; } },
+  onDown() { if (state === 'play') { dragging = true; botX = null; A.input(); } },
   onMove(dx) { if (state === 'play' && dragging) P.tx = clamp(P.tx + dx * 0.022, -TW / 2 + 0.4, TW / 2 - 0.4); },
   onUp() { dragging = false; },
   onTap(e) { if (state === 'play') { botX = null; P.tx = clamp(P.tx + (e.clientX < innerWidth / 2 ? -1 : 1) * TW / 4, -TW / 2 + 0.4, TW / 2 - 0.4); } },   // tap a side = hop one gate that way
@@ -143,7 +145,7 @@ function chop(kind, amount) {
   burst(world, piece.position, ['#ff8a1a', '#ffb347', '#ff5a00'], 16, { speed: 0.12, up: 0.1, size: 0.9, shape: 'sphere' });
   sfx.smash(); buzz([25, 20, 25]); ui.flash(0.25);
 }
-function lose(t) { state = 'lost'; F.level(false, rows.filter(r => r.done).length / rows.length); sfx.fail(); buzz([40, 30, 60]); ui.lose(t, `${gems} 💎 collected`); }
+function lose(t) { A.miss(); state = 'lost'; F.level(false, rows.filter(r => r.done).length / rows.length); sfx.fail(); buzz([40, 30, 60]); ui.lose(t, `${gems} 💎 collected`); }
 function win() {
   state = 'won'; F.level(true); WB.submit(1); const pts = Math.round(gems * mult); total += pts; ST.set('gems', total); best = Math.max(best, pts); ST.set('best', best);
   sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
@@ -151,6 +153,8 @@ function win() {
   ui.win(level, `x${mult.toFixed(1)}  ·  ${pts} 💎`);
 }
 const stepCost = () => 0.2;
+// one lucky save per round (adapt.js decides if it's deserved): the jelly wobbles back to a just-alive size
+function saved(axis) { if (!A.rescue()) return false; if (axis === 'h') P.H = Math.max(P.H, MIN_H + 0.1); else P.W = Math.max(P.W, MIN_W + 0.1); ui.pop('PHEW! 🍀', '#7dffb0', 40, 40); sfx.coin(); buzz([10, 30, 10]); burst(world, new THREE.Vector3(P.x, BASE_H * P.H, P.z), ['#7dffb0', '#ffffff'], 16, { speed: 0.1, up: 0.1 }); return true; }
 function bodyMass() { return P.H * P.W; }
 
 // ---------------------------------------------------------------- loop
@@ -159,8 +163,9 @@ loop((dt, t) => {
   if (!runner) return;
   const s = dt / 60;
   if (state === 'play') {
+    A.tick(s);
     if (climbStep < 0) {
-      P.z -= SPEED * fk * s;
+      P.z -= SPEED * A.k(fk) * s;
       if (botX !== null && !dragging) P.tx = botX;
       P.x = lerp(P.x, P.tx, 0.2 * dt);
       const halfW = 0.36 * P.W;
@@ -171,22 +176,23 @@ loop((dt, t) => {
           const g = row.gates.reduce((a, b) => Math.abs(b.x - P.x) < Math.abs(a.x - P.x) ? b : a);
           if (g.axis === 'h') P.H = Math.max(0.05, P.H + g.d); else P.W = Math.max(0.05, P.W + g.d);
           g.m.material.opacity = 0.25; g.m.scale.set(1.08, 1.08, 1);
-          const good = g.d > 0;
+          const good = g.d > 0, other = row.gates.find(o => o !== g);
+          if (good) A.ok(); else if (other && other.d < 0) A.near(); else A.miss();
           ui.pop((good ? '+' : '') + Math.round(g.d * 100) + ' ' + g.label.toUpperCase(), good ? '#ffffff' : '#ff3b4e', 34, 30);
           if (good) { note(72, 0.2, 0.14); setTimeout(() => note(79, 0.25, 0.14), 80); buzz(10); burst(world, new THREE.Vector3(P.x, BASE_H * P.H, P.z), ['#1e90ff', '#ffffff'], 12, { speed: 0.1, up: 0.08 }); }
           else { tone(300, 0.2, 'square', 0.08, 0.6); buzz([15, 10, 15]); }
-          if (P.H < MIN_H || P.W < MIN_W) { P.H = Math.max(P.H, 0.05); return lose('TOO SMALL!'); }
+          if ((P.H < MIN_H && !saved('h')) || (P.W < MIN_W && !saved('w'))) { P.H = Math.max(P.H, 0.05); return lose('TOO SMALL!'); }
         } else if (row.kind === 'bar') {
           const top = P.H * BASE_H;
-          if (top > row.h) { const nh = (row.h - 0.06) / BASE_H, cut = P.H - nh; P.H = nh; chop('h', cut); ui.pop('SLICED!', '#ffd21f', 36, 30); if (P.H < MIN_H) return lose('SLICED TOO SHORT!'); }
-          else { ui.pop('DUCKED!', '#fff', 30, 30); sfx.coin(); }
+          if (top > row.h) { const nh = (row.h - 0.06) / BASE_H, cut = P.H - nh; P.H = nh; chop('h', cut); ui.pop('SLICED!', '#ffd21f', 36, 30); if (P.H < MIN_H + 0.12) A.miss(); else A.near(); if (P.H < MIN_H && !saved('h')) return lose('SLICED TOO SHORT!'); }
+          else { ui.pop('DUCKED!', '#fff', 30, 30); sfx.coin(); A.ok(); }
         } else {
           const l = row.gx - row.gw / 2, r = row.gx + row.gw / 2;
           if (P.x < l || P.x > r) {      // smashed into the wall
-            P.H -= 0.35; chop('h', 0.35); for (const b of row.blocks) if (P.x >= b.x0 - 0.2 && P.x <= b.x1 + 0.2) { burst(world, b.m.position, ['#ffd21f', '#23232e'], 18, { speed: 0.15, up: 0.1, size: 1.2 }); b.m.visible = false; }
-            ui.pop('CRASH! -35', '#ff3b4e', 36, 30); if (P.H < MIN_H) return lose('CRUSHED!');
-          } else if (halfW * 2 > row.gw) { const nw = (row.gw * 0.92) / 0.72, cut = P.W - nw; P.W = nw; chop('w', cut * 0.5); ui.pop('SQUEEZED!', '#ffd21f', 34, 30); if (P.W < MIN_W) return lose('SQUEEZED FLAT!'); }
-          else { ui.pop('PERFECT FIT!', '#fff', 30, 30); sfx.coin(); }
+            const cost = 0.35 * A.k(); P.H -= cost; chop('h', cost); A.miss(); for (const b of row.blocks) if (P.x >= b.x0 - 0.2 && P.x <= b.x1 + 0.2) { burst(world, b.m.position, ['#ffd21f', '#23232e'], 18, { speed: 0.15, up: 0.1, size: 1.2 }); b.m.visible = false; }
+            ui.pop('CRASH! -' + Math.round(cost * 100), '#ff3b4e', 36, 30); if (P.H < MIN_H && !saved('h')) return lose('CRUSHED!');
+          } else if (halfW * 2 > row.gw) { const nw = (row.gw * 0.92) / 0.72, cut = P.W - nw; P.W = nw; chop('w', cut * 0.5); ui.pop('SQUEEZED!', '#ffd21f', 34, 30); A.near(); if (P.W < MIN_W && !saved('w')) return lose('SQUEEZED FLAT!'); }
+          else { ui.pop('PERFECT FIT!', '#fff', 30, 30); sfx.coin(); A.ok(); }
         }
         setHud();
       }
@@ -240,9 +246,9 @@ function stepFx(i) { note(60 + [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19][i % 12
 buildLevel();
 
 window.__game = {
-  get state() { return state; }, get level() { return level; }, get score() { return total; },
+  get state() { return state; }, get level() { return level; }, get score() { return total; }, get adapt() { return A.state; },
   bot() {
-    if (state !== 'play') return;
+    if (state !== 'play') return; A.input();
     const next = rows.find(r => !r.done);
     if (!next) { botX = 0; return; }
     if (next.kind === 'gates') {

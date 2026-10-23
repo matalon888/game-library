@@ -2,6 +2,7 @@
 import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapt } from './kit/adapt.js';
 
 import { board } from './kit/board.js';
 const WB = board({ game: 'tube-rush', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
@@ -11,6 +12,10 @@ const WALL = 1.78;        // geometry wall extent
 const G = 9.8;
 const save = store('tuberush');
 const FL = flow('tuberush'); let recd = false;
+// in-round (ADAPT_BRIEF.md): rivals' pace ±16% and the curve push on the player ±15% (both from adapt's ±20% level),
+// plus one lucky save per round when a good run is about to splash out
+const A = adapt(); let lastRank = 7, nearT = 0, bumpT = 0, rankT = 0;
+const rivalK = () => 1 + (A.k() - 1) * 0.8, pushK = () => 1 + (A.k() - 1) * 0.75;
 const rec = (won, c) => { if (!recd) { recd = true; FL.level(won, c); } };
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
@@ -267,13 +272,13 @@ function placeOnSlide(rd) {
 function buildLevel() {
   const r = rng(level * 7919 + 13);
   buildPath(r); buildSlide(); buildScenery(r); spawnRiders(r);
-  finished = 0; raceT = 0; recd = false; ui.levels(level); ui.progress(0); ui.score(''); ui.sub(best ? 'BEST ' + best : '');
+  finished = 0; raceT = 0; recd = false; A.round(level === 1 ? 0 : 1); lastRank = 7; nearT = bumpT = rankT = 0; ui.levels(level); ui.progress(0); ui.score(''); ui.sub(best ? 'BEST ' + best : '');
   camPos.copy(player.P).add(new THREE.Vector3(0, 6, 9)); camLook.copy(player.P);
 }
 
 // ---------------------------------------------------------------- input
 let steer = 0, botOn = false, tapSteer = 0;   // tapSteer: a tap = a short push toward that side (fed in over a few frames)
-input({ onDown: () => { botOn = false; }, onMove: (dx) => { if (state === 'play') steer += dx; }, onTap: (e) => { if (state === 'play') tapSteer = (e.clientX < innerWidth / 2 ? -1 : 1) * 55; } });
+input({ onDown: () => { botOn = false; A.input(); }, onMove: (dx) => { if (state === 'play') steer += dx; }, onTap: (e) => { if (state === 'play') tapSteer = (e.clientX < innerWidth / 2 ? -1 : 1) * 55; } });
 const sky = new THREE.Mesh(new THREE.SphereGeometry(450, 32, 16), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
 { const p = sky.geometry.attributes.position, c = [], a = new THREE.Color('#d4f2ff'), b = new THREE.Color('#3fb6f5'), k = new THREE.Color();
   for (let i = 0; i < p.count; i++) { const y = Math.max(0, p.getY(i) / 450); k.copy(a).lerp(b, Math.pow(y, 0.6)); c.push(k.r, k.g, k.b); }
@@ -327,24 +332,24 @@ function stepRider(rd, dt) {
           const d = tmpV.subVectors(rd.P, c); rd.th = clamp(Math.atan2(d.dot(N[j]), -d.dot(U[j])), -1.2, 1.2); rd.om = 0;
           const gained = j - rd.landS; rd.s = j; rd.air = false; rd.v = Math.max(rd.v, Math.hypot(rd.V.x, rd.V.z) * 0.95);
           burst(scene, rd.P, ['#ffffff', '#9be7ff'], 14, { speed: 0.16, up: 0.12, shape: 'sphere', size: 1.4 });
-          if (rd.isP) { sfx.bounce(); buzz(25); window.__cuts = (window.__cuts || 0) + 1; if (gained > 18) { ui.pop(gained > 50 ? 'MEGA SHORTCUT!' : 'SHORTCUT!', '#ff3d7f', 42, 24); score += Math.round(gained); ui.flash(0.35); tone(880, 0.18, 'triangle', 0.14, 1.5); } }
+          if (rd.isP) { sfx.bounce(); buzz(25); window.__cuts = (window.__cuts || 0) + 1; if (gained > 18) { A.ok(); ui.pop(gained > 50 ? 'MEGA SHORTCUT!' : 'SHORTCUT!', '#ff3d7f', 42, 24); score += Math.round(gained); ui.flash(0.35); tone(880, 0.18, 'triangle', 0.14, 1.5); } }
           return;
         }
       }
       // splash into the finish pool = finished
       if (Math.hypot(rd.P.x - poolC.x, rd.P.z - poolC.z) < POOL_R - 0.5 && rd.P.y < 2.4) { finish(rd); return; }
-      if (rd.P.y < 0.6) { wipeout(rd); return; }
+      if (rd.P.y < 0.6) { if (rd.isP && A.rescue()) return rescued(rd); wipeout(rd); return; }
     }
     return;
   }
   // on the slide
   frameAt(rd.s, F);
   const slope = -F.t.y;
-  const vt = rd.vmax * (0.82 + slope * 1.6) + (rd.isP ? 0 : 0) - rd.bump;
+  const vt = rd.vmax * (0.82 + slope * 1.6) * (rd.isP ? 1 : rivalK()) - rd.bump;
   rd.bump = Math.max(0, rd.bump - sec * 6);
   rd.v = lerp(rd.v, vt, 1 - Math.pow(0.985, dt));
   if (raceT < 0.6) rd.v = Math.max(rd.v, 6);
-  const acf = -rd.v * rd.v * F.k;                   // centrifugal (push toward +N when > 0)
+  const acf = -rd.v * rd.v * F.k * (rd.isP ? pushK() : 1);   // centrifugal (push toward +N when > 0)
   const acc = (acf * Math.cos(rd.th) - G * Math.sin(rd.th)) / R;
   rd.om += acc * sec - rd.om * 2.6 * sec;
   if (rd.isP) {
@@ -360,6 +365,7 @@ function stepRider(rd, dt) {
   }
   rd.th += rd.om * sec;
   if (rd.jumpNow) { rd.th = rd.jumpNow * (RIM + 0.02); rd.jumpNow = 0; }
+  if (rd.isP && Math.abs(rd.th) > RIM * 0.88 && raceT - nearT > 2) { nearT = raceT; A.near(0.5); }   // hanging on the rim
   if (Math.abs(rd.th) > RIM) return launch(rd);
   rd.s += rd.v * sec;
   if (rd.s >= L - 0.5) { rd.air = true; rd.airT = 0; rd.V.copy(T[L]).multiplyScalar(rd.v).add(new THREE.Vector3(0, 3, 0)); rd.landS = L; return; }
@@ -395,10 +401,16 @@ function launch(rd) {
   burst(scene, rd.P, ['#ffffff', '#9be7ff'], 12, { speed: 0.14, up: 0.1, shape: 'sphere', size: 1.2 });
   if (rd.isP) { sfx.pick(3); buzz(20); ui.pop('AIR!', '#ff8c42', 44, 24); }
 }
+function rescued(rd) {   // lucky: a wave washes the player back onto the slide where they flew off (once per round, see adapt.js)
+  burst(scene, new THREE.Vector3(rd.P.x, 0.5, rd.P.z), ['#ffffff', '#9be7ff', '#7dffb0'], 20, { speed: 0.18, up: 0.2, shape: 'sphere', size: 1.4 });
+  rd.air = false; rd.s = Math.min(L - 2, rd.landS + 2); rd.th = 0; rd.om = 0; rd.v *= 0.7; rd.tgt = -1; placeOnSlide(rd);
+  burst(scene, rd.P, ['#ffffff', '#7dffb0'], 16, { speed: 0.14, up: 0.12, shape: 'sphere', size: 1.2 });
+  ui.pop('SAVED BY A WAVE! 🍀', '#7dffb0', 38, 24); sfx.bounce(); buzz([10, 30, 10]);
+}
 function wipeout(rd) {
   rd.out = true; rd.air = false; rd.V.set(rd.V.x * 0.2, 0, rd.V.z * 0.2);
   burst(scene, new THREE.Vector3(rd.P.x, 0.5, rd.P.z), ['#ffffff', '#9be7ff', '#5fd6ff'], 26, { speed: 0.2, up: 0.25, shape: 'sphere', size: 1.6 });
-  if (rd.isP) { state = 'lost'; rec(false, player.s / L); sfx.fail(); buzz([40, 30, 60]); ui.flash(0.5); ui.lose('SPLASH!', 'You flew off the slide'); }
+  if (rd.isP) { A.miss(2); state = 'lost'; rec(false, player.s / L); sfx.fail(); buzz([40, 30, 60]); ui.flash(0.5); ui.lose('SPLASH!', 'You flew off the slide'); }
   else if (Math.hypot(rd.P.x - player.P.x, rd.P.z - player.P.z) < 40) { tone(300, 0.1, 'sine', 0.06, 0.5); }
 }
 function finish(rd) {
@@ -412,7 +424,7 @@ function finish(rd) {
       setTimeout(() => confetti(scene, rd.P.clone().add(new THREE.Vector3(0, 4, 0)), 60), 300);
       ui.pop(p === 1 ? '1ST PLACE!' : ord(p).toUpperCase() + ' PLACE!', '#ffd23f', 52, 30);
       ui.win(level, `You finished ${ord(p)}!`);
-    } else { state = 'lost'; rec(false, (7 - p) / 4); sfx.fail(); ui.lose(ord(p).toUpperCase() + '...', 'Top 3 to clear the level'); }
+    } else { A.miss(2); state = 'lost'; rec(false, (7 - p) / 4); sfx.fail(); ui.lose(ord(p).toUpperCase() + '...', 'Top 3 to clear the level'); }
   }
 }
 function botTarget(rd) {        // the QA bot: hug the inside of curves a bit, dodge riders just ahead
@@ -430,7 +442,7 @@ function bumps() {
       a.om += push; b.om -= push;
       const back = ds > 0 ? b : a, front = ds > 0 ? a : b; front.v += 0.6; back.bump = 2;
       if (a.isP || b.isP) {
-        const other = a.isP ? b : a; sfx.bounce(); buzz(18); ui.pop('BUMP!', '#ff5d8f', 40, 24);
+        const other = a.isP ? b : a; if (raceT - bumpT > 1) { bumpT = raceT; A.near(0.3); } sfx.bounce(); buzz(18); ui.pop('BUMP!', '#ff5d8f', 40, 24);
         burst(scene, player.P.clone().lerp(other.P, 0.5), ['#ffffff', '#9be7ff'], 10, { speed: 0.12, up: 0.1, shape: 'sphere' });
         other.om += Math.sign(other.th - player.th || 1) * 1.5;   // the player hits harder
       }
@@ -454,7 +466,8 @@ loop((dt, t) => {
     bumps();
     if (state === 'play') {
       ui.progress(player.s / L);
-      ui.score(ord(rank()));
+      const rk = rank(); ui.score(ord(rk));
+      A.tick(sec); if (raceT - rankT > 3) { rankT = raceT; if (rk < lastRank) A.ok(); else if (rk > lastRank) A.miss(); if (rk > 3) A.miss(0.5); else A.ok(0.5); lastRank = rk; }   // every 3 s: places gained/lost + on/off the podium
     }
   }
   waterSlideTex.offset.y -= 0.02 * dt; oceanTex.offset.x += 0.0004 * dt;
@@ -475,5 +488,6 @@ buildLevel();
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; }, get fps() { return Math.round(fps); }, gains() { const out = []; const fake = { s: 0, v: 22, om: 0, th: 0, P: new THREE.Vector3() }; for (let x = 5; x < L - 10; x += 3) { fake.s = x; frameAt(x, F); fake.P.copy(F.c).addScaledVector(F.u, -R + 0.5); const [g] = shortcutGain(fake); if (g > 0) out.push([x, Math.round(g), +F.k.toFixed(3)]); } return out; }, jump() { player.th = RIM + 0.01; }, get dbg() { return { cuts: window.__cuts,  s: player.s, th: player.th, air: player.air, out: player.out, done: player.done, L, y: player.P.y }; },
-  bot() { if (state !== 'play') return; botOn = true; if (!player.air && !player.done) { const [gain, sg] = shortcutGain(player); if (gain > 22) player.jumpNow = sg; } },
+  get adapt() { return A.state; },
+  bot() { if (state !== 'play') return; botOn = true; A.input(); if (!player.air && !player.done) { const [gain, sg] = shortcutGain(player); if (gain > 22) player.jumpNow = sg; } },
 };

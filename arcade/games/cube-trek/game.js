@@ -2,12 +2,19 @@
 // columns burst. Quest levels: free every gem on the board (or hit a score target). Game over when nothing fits.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng, rounded } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 
 import { board as worldBoard } from './kit/board.js';
 const WB = worldBoard({ game: 'cube-trek', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 2 }, mode: 'sum' });
 const S = store('cubetrek');
 const F = flow('cubetrek'); let fk = 1;
 let level = S.get('level', 1), best = S.get('best', 0);
+// ------------------------------------------------------------------ in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Reads ONLY how this player is playing right now: good/bad moves in the last 20 s and time since the last success.
+// level −1 (struggling) … +1 (cruising) moves ≤ 0.25 per 3 s and drifts back to 0 when neutral. k(fk) = multiplier for a
+// harder-when-bigger knob: ±20 %, and together with flow.js's between-run nudge it stays within ±25 %. Rescues: at most one
+// per round and 60 s apart, only for a player who has been playing sensibly (never for an idle one). QA reads window.__game.adapt.
+const AD = adapter(); let moveAt = 0;
 const stage = createStage({ fov: 34, shadowSize: 12 });
 const { scene, camera, renderer, sun, hemi } = stage;
 const ui = createUI({ title: 'CUBE<br>TREK', hint: 'Tap the glowing gap', hand: '👆' });
@@ -115,14 +122,42 @@ function hintMove() {
   for (const g of guide) { const p = tray[g.slot]; if (p && !p.used && fits(board, p.cells, g.r0, g.c0)) return { p, ...g }; }
   return null;
 }
+// board after placing cells at (r0,c0) with full lines cleared, and how many lines that cleared
+function after(b, cells, r0, c0) {
+  const b2 = b.map(r => r.slice()); for (const [x, y] of cells) b2[r0 + y][c0 + x] = { color: 1 };
+  const { rows, cols } = fullLines(b2); for (const r of rows) for (let c = 0; c < N; c++) b2[r][c] = null; for (const c of cols) for (let r = 0; r < N; r++) b2[r][c] = null;
+  return { b: b2, lines: rows.length + cols.length };
+}
+// rescue deal (once a round, sensible play only, board nearly jammed): the first piece clears a line, the other two still fit after it
+function rescueTray() {
+  const order = SHAPES.map(s => s[0]).sort(() => rand() - 0.5);
+  for (const s of order) {
+    let bestM = null;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fits(board, s, r, c)) { const a = after(board, s, r, c); if (a.lines && (!bestM || a.lines > bestM.lines)) bestM = a; }
+    if (!bestM) continue;
+    const rest = []; for (let tries = 0; tries < 60 && rest.length < 2; tries++) { const q = pickShape(false); if (anyFit(bestM.b, q)) rest.push(q); }
+    while (rest.length < 2) rest.push([[0, 0]]);
+    return [s, ...rest];
+  }
+  return null;
+}
 function dealTray() {
-  const hard = Math.min(1, (lvE() - 1) / 10 * fk);
+  const hard = Math.min(1, (lvE() - 1) / 10 * AD.k(fk));
   tray = [0, 1, 2].map(i => ({ cells: pickShape(i === 0 || rand() > hard * 0.7), color: COLORS[Math.floor(rand() * COLORS.length)], slot: i, used: false, pop: 0 }));
+  // struggling: up to 20 % of the pieces are dealt the Block Blast way, the best fit of three draws for this board
+  if (AD.level < -0.2) for (const p of tray) if (rand() < -0.2 * AD.level) {
+    const fitV = (cells) => { let v = -1e9; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fits(board, cells, r, c)) v = Math.max(v, evalMove(board, cells, r, c)); return v; };
+    p.cells = [p.cells, pickShape(true), pickShape(true)].sort((a, b) => fitV(b) - fitV(a))[0];
+  }
+  if (level > 2 && state === 'play' && AD.sensible()) {
+    const fitN = SHAPES.filter(s => anyFit(board, s[0])).length;
+    if (fitN < SHAPES.length * 0.5) { const R = rescueTray(); if (R && AD.rescue()) { R.forEach((c, i) => tray[i].cells = c); setTimeout(() => ui.pop('LUCKY PIECE!', '#7dffb2', 32, 50), 200); } }
+  }
   tray.forEach((p, i) => p.pop = -i * 0.08);
   sfx.pick(2);
 }
 function buildLevel() {
-  rand = rng(lvE() * 4513 + 7); fk = F.k(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; sel = null; botMove = null; guide = null; idleT = 0;
+  rand = rng(lvE() * 4513 + 7); fk = F.k(); AD.round(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; sel = null; botMove = null; guide = null; idleT = 0;
   if (level <= 2) {
     warmup(); const filled = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c]) { filled.push(1); board[r][c].pop = -((N - r) * 0.04 + c * 0.015); }
     let ng = 0; for (const row of board) for (const b of row) if (b && b.gem) ng++;
@@ -186,6 +221,13 @@ function tryDrop(d) {
 // ------------------------------------------------------------------ placing + clearing
 const COMBO_WORDS = ['', 'GOOD!', 'GREAT!', 'EXCELLENT!', 'AMAZING!', 'UNBELIEVABLE!'];
 function place(p, r0, c0) {
+  // signals: a line cleared = good; a spot worse than most others this piece fits (the bot's own scoring) = bad
+  if (level > 2) {
+    const vs = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fits(board, p.cells, r, c)) vs.push(evalMove(board, p.cells, r, c));
+    const v = evalMove(board, p.cells, r0, c0), rank = vs.filter(x => x > v + 1e-6).length / Math.max(1, vs.length), lines = after(board, p.cells, r0, c0).lines;
+    if (lines) AD.good(lines); else if (rank > 0.5) AD.bad();
+  }
+  moveAt = performance.now();
   p.used = true; idleT = 0;
   for (const [x, y] of p.cells) board[r0 + y][c0 + x] = { color: p.color, gem: false, pop: 1 };
   score += p.cells.length; sfx.pick(p.cells.length); buzz(10);
@@ -218,7 +260,7 @@ function checkEnd() {
   }
   const live = tray.filter(t => !t.used);
   if (!live.some(t => anyFit(board, t.cells))) {
-    state = 'lost'; F.level(false, goal.type === 'gems' ? goal.got / goal.need : Math.min(1, score / goal.need)); setTimeout(() => { sfx.fail(); buzz([60, 40, 60]); }, 300);
+    state = 'lost'; F.level(false, goal.type === 'gems' ? goal.got / goal.need : Math.min(1, score / goal.need)); AD.bad(2); setTimeout(() => { sfx.fail(); buzz([60, 40, 60]); }, 300);
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c]) board[r][c].dead = (N - r) * 0.05;
     ui.lose('NO SPACE!', goal.type === 'gems' ? `${goal.need - goal.got} gems left` : `${goal.need - score} points to go`);
   }
@@ -242,6 +284,7 @@ function addGem(x, y, z, s, t) { if (ng >= 80) return; e3.set(0.25, t * 2 + x, 0
 const easeBack = t => { const c = 1.9; t = clamp(t, 0, 1); return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
 
 loop((dt, t) => {
+  if (state === 'play') AD.tick(performance.now() - moveAt < 8000);
   const sec = dt / 60; ni = 0; ng = 0; settle = Math.max(0, settle - sec); if (state === 'play' && !drag) idleT += sec; else idleT = 0;
   // preview: which cells / lines would the dragged piece make?
   let prev = null;
@@ -332,6 +375,11 @@ function evalMove(b, cells, r0, c0) {
   return sc2 - holes * 2.2 + r0 * 0.05;
 }
 window.__game = {
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
+  // test hooks for simulated players: every legal move (with the bot's score), and play one like a drag would
+  moves() { const out = []; for (const p of tray) { if (p.used) continue; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fits(board, p.cells, r, c)) out.push([p.slot, r, c, evalMove(board, p.cells, r, c)]); } return out; },
+  load(n) { level = n; ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); ui.hideStart && ui.hideStart(); buildLevel(); state = 'play'; },
+  play(slot, r, c) { const p = tray[slot]; if (state !== 'play' || botMove || drag || settle > 0 || !p || p.used || !fits(board, p.cells, r, c)) return false; botMove = { p, r0: r, c0: c, k: 0, x: SLOT_X[slot], y: TRAY_Y, s: TRAY_S }; return true; },
   cellXY(r, c) { const [x, y] = cellPos(r, c), v = new THREE.Vector3(x, y, 0.3).project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; },
   trayXY(i) { const v = new THREE.Vector3(SLOT_X[i], TRAY_Y, 0.3).project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; },
   get state() { return state; }, get level() { return level; }, get score() { return score; },

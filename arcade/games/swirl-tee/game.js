@@ -1,6 +1,7 @@
 // Swirl Tee — original tie-dye game. Pick the fold, bind the shirt, squirt dye into each section, unfold for the reveal.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 import { board as worldBoard } from './kit/board.js';
 
 const $ = (id) => document.getElementById(id);
@@ -8,6 +9,16 @@ const ST = store('swirltee');
 const F = flow('swirltee');
 const WB = worldBoard({ game: 'swirl-tee', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
+// ------------------------------------------------------------------ in-round adaptation (ADAPT_BRIEF.md): honest + bounded
+// Reads ONLY how this player is playing right now: good/bad moves in the last 20 s and time since the last success.
+// level −1 (struggling) … +1 (cruising) moves ≤ 0.25 per 3 s and drifts back to 0 when neutral. k(fk) = multiplier for a
+// harder-when-bigger knob: ±20 %, and together with flow.js's between-run nudge it stays within ±25 %. Rescues: at most one
+// per round and 60 s apart, only for a player who has been playing sensibly (never for an idle one). QA reads window.__game.adapt.
+const AD = adapter(); let dabAt = 0, dabSig = 0;
+// knobs (level 3+): the brush, up to 20 % fatter for a struggling player and 20 % finer when cruising, and the match target the
+// unfold needs, up to 20 % lower / 10 % higher (the same number flow.js already scales between runs; the result card shows it)
+const brushNow = () => L.brush * (level <= 2 ? 1 : 2 - AD.k());
+const thrNow = () => Math.min(0.9, L.thr * (level <= 2 ? 1 : AD.k(1, AD.level > 0 ? 0.1 : 0.2)));   // target: −20 % / +10 %
 const ui = createUI({ title: 'SWIRL<br>TEE', hint: 'Tap the fold, rub the shirt', hand: '👆', score: false });
 const stage = createStage({ fov: 38, shadowSize: 6 });
 const { scene, camera } = stage;
@@ -272,7 +283,9 @@ function dab(nx, nz) {
   if (sel < 0) return false;
   const s = secOf(nx, nz); if (s < 0) return false;
   if (L.guide && sel !== L.cols[s] && L.btns.includes(L.cols[s])) selectDye(L.cols[s]);   // levels 1-2: the bottle picks the dot's colour for you
-  const R = L.brush * CS / 2, px = (nx + 1) / 2 * CS, py = (nz + 1) / 2 * CS, [r, g, b] = DRGB[sel];
+  const now = performance.now(); dabAt = now;
+  if (now - dabSig > 250) { dabSig = now; if (sel !== L.cols[s]) AD.bad(0.25); else if (secFrac(s) < 0.88) AD.good(0.1); }   // wrong colour in a section vs. filling the right one
+  const R = brushNow() * CS / 2, px = (nx + 1) / 2 * CS, py = (nz + 1) / 2 * CS, [r, g, b] = DRGB[sel];
   bctx.save(); sectionPath(bctx, s); bctx.clip();
   for (let i = 0; i < 4; i++) {
     const ox = (Math.random() - 0.5) * R * 0.7, oy = (Math.random() - 0.5) * R * 0.7, rr = R * (0.55 + Math.random() * 0.55);
@@ -281,7 +294,7 @@ function dab(nx, nz) {
     bctx.fillStyle = gr; bctx.beginPath(); bctx.arc(px + ox, py + oy, rr, 0, 7); bctx.fill();
   }
   bctx.restore(); bTex.needsUpdate = true;
-  const rad = L.brush * 0.92;
+  const rad = brushNow() * 0.92;
   for (let j = 0; j < G; j++) for (let i = 0; i < G; i++) {
     const k = j * G + i; if (cellSec[k] !== s) continue;
     const cx = -1 + (i + 0.5) * 2 / G, cz = -1 + (j + 0.5) * 2 / G; if ((cx - nx) ** 2 + (cz - nz) ** 2 < rad * rad) cellCol[k] = sel;
@@ -294,7 +307,7 @@ function dab(nx, nz) {
   squeeze = 1;
   const f = secFrac(s);
   if (!secDone[s] && f >= 0.88) {
-    secDone[s] = true; doneN++; markers[s].userData.gone = true;
+    secDone[s] = true; doneN++; markers[s].userData.gone = true; AD.good();
     ui.pop(doneN === L.N ? 'ALL DYED!' : ['PERFECT!', 'NICE!', 'JUICY!', 'SO COOL!'][doneN % 4], '#fff', 38, 21);
     note(64 + [0, 2, 4, 7, 9, 12, 14, 16][Math.min(7, doneN - 1)], 0.3, 0.16); buzz(15);
     burst(scene, markers[s].position, [DYES[L.cols[s]], '#ffffff'], 12, { shape: 'sphere', speed: 0.07, up: 0.08, size: 0.7 });
@@ -305,6 +318,7 @@ function dab(nx, nz) {
   return true;
 }
 function washBundle() {
+  AD.bad();
   bctx.drawImage(fabricCanvas(CS), 0, 0); bTex.needsUpdate = true; cellCol.fill(-1); secDone.fill(false); doneN = 0;
   markers.forEach(m => m.userData.gone = false); ui.progress(0.12); $('done').classList.remove('go');
   tone(300, 0.25, 'sine', 0.1, 1.8); buzz(10);
@@ -319,7 +333,7 @@ const ICONS = {
 $('folds').innerHTML = FOLDS.map(f => `<button class="fold" data-f="${f}"><svg viewBox="0 0 54 54">${ICONS[f]}</svg>${f.toUpperCase()}</button>`).join('');
 $('folds').querySelectorAll('.fold').forEach(b => b.addEventListener('pointerdown', (e) => { e.stopPropagation(); chooseFold(b.dataset.f, b); }));
 $('reset').addEventListener('pointerdown', (e) => { e.stopPropagation(); if (phase === 'dye') washBundle(); });
-$('done').addEventListener('pointerdown', (e) => { e.stopPropagation(); if (phase === 'dye') reveal(); });
+$('done').addEventListener('pointerdown', (e) => { e.stopPropagation(); if (phase === 'dye') reveal(true); });
 function buildDyeRow() {
   $('dyes').innerHTML = L.btns.map(c => `<button class="dye" data-c="${c}" style="background:${DYES[c]}"></button>`).join('');
   $('dyes').querySelectorAll('.dye').forEach(b => b.addEventListener('pointerdown', (e) => { e.stopPropagation(); selectDye(+b.dataset.c); }));
@@ -335,7 +349,7 @@ const show = (id, on) => $(id).classList.toggle('off', !on);
 // ------------------------------------------------------------------ flow
 let state = 'ready', phase = 'fold', phT = 0, wrongFolds = 0, match = 0, revealed = false;
 function buildLevel() {
-  L = genLevel(level); revealed = false; wrongFolds = 0; doneN = 0; sel = -1; phase = 'fold'; phT = 0;
+  L = genLevel(level); AD.round(); revealed = false; wrongFolds = 0; doneN = 0; sel = -1; phase = 'fold'; phT = 0;
   ui.levels(level); ui.progress(0); drawTarget(); buildBundle(); buildDyeRow();
   shirt.material = shirtMat; shirt.visible = true; shirt.position.set(0, 0.02, 0.15); shirt.rotation.set(0, 0, 0); shirt.scale.setScalar(1);
   slotBottles.forEach(b => scene.remove(b)); slotBottles = [];
@@ -355,15 +369,25 @@ function buildLevel() {
 function chooseFold(f, btn) {
   if (state !== 'play' || phase !== 'fold') return;
   if (f !== L.fold) {
-    wrongFolds++; btn = btn || $('folds').querySelector(`[data-f="${f}"]`); btn.classList.remove('bad'); void btn.offsetWidth; btn.classList.add('bad');
+    wrongFolds++; AD.bad(); btn = btn || $('folds').querySelector(`[data-f="${f}"]`); btn.classList.remove('bad'); void btn.offsetWidth; btn.classList.add('bad');
     sfx.fail(); buzz([30, 30, 30]); ui.pop('WRONG FOLD!', '#ff3b30', 30, 24);
     $('tgt').classList.add('big'); setTimeout(() => $('tgt').classList.remove('big'), 350); return;
   }
   phase = 'folding'; phT = 0; show('folds', false); show('ask', false); sfx.tap(); buzz(12); tone(320, 0.5, 'sine', 0.08, 2.4);
   ui.progress(0.06);
 }
-function reveal() {
+function reveal(byButton = false) {
   if (phase !== 'dye') return;
+  // rescue (once a round): a careful dyer taps ✓ just short of the target, so instead of failing the unfold, the sections that
+  // still need dye jump and they get one touch-up. The score itself is never changed.
+  if (byButton) {
+    let m0 = 0; for (let s = 0; s < L.N; s++) m0 += clamp(secFrac(s) / 0.85, 0, 1);
+    const m1 = clamp(m0 / L.N - wrongFolds * 0.08, 0, 1);
+    if (m1 < thrNow() && m1 >= thrNow() - 0.2 && AD.sensible() && AD.rescue()) {
+      for (let s = 0; s < L.N; s++) if (secFrac(s) < 0.85) { markers[s].userData.gone = false; markers[s].scale.setScalar(1.9); }
+      ui.pop('ALMOST! TOUCH UP', '#fff', 32, 24); tone(880, 0.12, 'triangle', 0.1, 1.2); buzz([15, 30, 15]); return;
+    }
+  }
   phase = 'reveal'; phT = 0; show('dyes', false); show('reset', false); show('done', false); hand.visible = false;
   slotBottles.forEach(b => b.visible = true);
   // score: per-section correct coverage
@@ -376,21 +400,21 @@ function reveal() {
   tone(200, 0.6, 'sine', 0.1, 3); buzz(20);
 }
 function finish() {
-  const pct = Math.round(match * 100), ok = match >= L.thr;
+  const thr = thrNow(), pct = Math.round(match * 100), ok = match >= thr;
   const stars = match >= 0.95 ? 3 : match >= 0.82 ? 2 : ok ? 1 : 0;
   $('stars').innerHTML = '★'.repeat(stars) + '<i>' + '★'.repeat(3 - stars) + '</i>';
-  $('pct').textContent = ok ? `${pct}% MATCH` : `${pct}% · NEED ${Math.round(L.thr * 100)}%`;
+  $('pct').textContent = ok ? `${pct}% MATCH` : `${pct}% · NEED ${Math.round(thr * 100)}%`;
   $('banner').classList.toggle('bad', !ok); $('banner').classList.add('on');
   ui.progress(1); ui.flash(0.55);
   if (ok) {
-    state = 'won'; F.level(true); WB.submit(1); score += pct; best = Math.max(best, score); ST.set('best', best);
+    state = 'won'; F.level(true); WB.submit(1); AD.good(2); score += pct; best = Math.max(best, score); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, 2.5, 0), 80); setTimeout(() => confetti(scene, new THREE.Vector3(0, 2.5, -1), 60), 250);
     ui.win(level, stars === 3 ? 'Flawless swirl!' : `${pct}% match`); ui.els.win.querySelector('.hint').textContent = `Level ${level + 1} ▶`;
     stage.renderer.domElement.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05) rotate(1deg)' }, { transform: 'scale(.98) rotate(-1deg)' }, { transform: 'scale(1)' }], { duration: 420 });
     setTimeout(() => confetti(scene, new THREE.Vector3(1.5, 2.5, 0.5), 60), 500);
   } else {
-    state = 'lost'; F.level(false, Math.min(1, match / L.thr)); sfx.fail(); buzz([40, 30, 60]);
-    ui.lose('SO CLOSE!', `${pct}% match · need ${Math.round(L.thr * 100)}%`);
+    state = 'lost'; F.level(false, Math.min(1, match / thr)); AD.bad(2); sfx.fail(); buzz([40, 30, 60]);
+    ui.lose('SO CLOSE!', `${pct}% match · need ${Math.round(thr * 100)}%`);
   }
 }
 ui.onTap((which) => { WB.start();
@@ -420,7 +444,7 @@ input({
 const camPos = new THREE.Vector3(0, 14.2, 8.6), camLook = new THREE.Vector3(0, 0, 0.75), camGoal = camPos.clone();
 let frame = 0, lastDab = -9;
 loop((dt, t) => {
-  frame += dt; phT += dt / 60;
+  frame += dt; phT += dt / 60; if (state === 'play' && (phase === 'fold' || phase === 'dye')) AD.tick(performance.now() - dabAt < 8000);
   // folding animation: shirt spins into a bound bundle
   if (phase === 'folding') {
     const k = clamp(phT / 1.1, 0, 1);
@@ -480,6 +504,9 @@ loop((dt, t) => {
 let botAim = null, botAimT = 0;
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
+  // test hooks for simulated players (they go through the same calls as the buttons / a finger)
+  sim: { get phase() { return phase; }, get L() { return L; }, get sel() { return sel; }, secOf, secFrac, fold: (f) => chooseFold(f), pick: (c) => selectDye(c), dab: (nx, nz) => dab(nx, nz), done: () => reveal(true) },
   bot() {
     if (state !== 'play') return;
     if (phase === 'fold') { chooseFold(L.fold); return; }
