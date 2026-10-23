@@ -50,8 +50,8 @@
  },
  "bangtutorial-aether-clash": {
   "github": {
-   "forks": 7,
-   "stars": 15,
+   "forks": 8,
+   "stars": 16,
    "url": "https://github.com/bangtutorial/aether-clash"
   }
  },
@@ -114,7 +114,7 @@
  "imshota1009-dog-squad": {
   "github": {
    "forks": 0,
-   "stars": 4,
+   "stars": 5,
    "url": "https://github.com/imshota1009/dog-squad"
   }
  },
@@ -700,8 +700,8 @@
  },
  "starknightt-operation-ironhold": {
   "github": {
-   "forks": 30,
-   "stars": 103,
+   "forks": 31,
+   "stars": 104,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
  },
@@ -714,8 +714,8 @@
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 194,
-   "stars": 1421,
+   "forks": 195,
+   "stars": 1422,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -728,7 +728,7 @@
  },
  "blockly-games-blockly-games": {
   "github": {
-   "forks": 635,
+   "forks": 634,
    "stars": 1372,
    "url": "https://github.com/blockly-games/blockly-games"
   }
@@ -819,7 +819,7 @@
  "mike007jd-voxel-musou": {
   "github": {
    "forks": 52,
-   "stars": 154,
+   "stars": 155,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
  },
@@ -854,7 +854,7 @@
  "nicechunk-game": {
   "github": {
    "forks": 2,
-   "stars": 312,
+   "stars": 313,
    "url": "https://github.com/nicechunk/game"
   }
  },
@@ -1099,7 +1099,7 @@
  "oil-oil-wolfcha": {
   "github": {
    "forks": 66,
-   "stars": 737,
+   "stars": 738,
    "url": "https://github.com/oil-oil/wolfcha"
   }
  },
@@ -1112,15 +1112,15 @@
  },
  "mrzh7-scam-with-your-friends-web": {
   "github": {
-   "forks": 21,
-   "stars": 239,
+   "forks": 22,
+   "stars": 241,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 37,
-   "stars": 130,
+   "forks": 6,
+   "stars": 6,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1162,7 +1162,7 @@
  "rushilbh27-hover-slam": {
   "github": {
    "forks": 0,
-   "stars": 1,
+   "stars": 2,
    "url": "https://github.com/rushilbh27/hover-slam"
   }
  },
@@ -1197,7 +1197,7 @@
  },
  "yami-inc-ai-death-game": {
   "github": {
-   "forks": 14,
+   "forks": 13,
    "stars": 31,
    "url": "https://github.com/yami-inc/ai-death-game"
   }
@@ -1324,7 +1324,7 @@
  "imshota1009-nyan-cororin": {
   "github": {
    "forks": 0,
-   "stars": 2,
+   "stars": 3,
    "url": "https://github.com/imshota1009/Nyan-Cororin"
   }
  },
@@ -1541,7 +1541,7 @@
  "mofferato-tempora": {
   "github": {
    "forks": 0,
-   "stars": 0,
+   "stars": 1,
    "url": "https://github.com/Mofferato/tempora"
   }
  },
@@ -2704,8 +2704,8 @@
  },
  "killian01-claude-of-legends": {
   "github": {
-   "forks": 2,
-   "stars": 3,
+   "forks": 3,
+   "stars": 4,
    "url": "https://github.com/killian01/claude-of-legends"
   }
  },
@@ -2821,13 +2821,7 @@
    "url": "https://github.com/fakejerell/Underlore"
   }
  },
- "chethober-games": {
-  "github": {
-   "forks": 0,
-   "stars": 0,
-   "url": "https://github.com/chethober/games"
-  }
- },
+ "chethober-games": {},
  "ohnotnow-soladroid": {
   "github": {
    "forks": 0,
@@ -3083,8 +3077,8 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 713,
-   "stars": 6463,
+   "forks": 715,
+   "stars": 6468,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
@@ -3120,16 +3114,11 @@
    "forks": 45,
    "stars": 314,
    "url": "https://github.com/felixmariotto/Edelweiss"
-  },
-  "itch": {
-   "rating": 4.2,
-   "count": 6,
-   "url": "https://felixmrtt.itch.io/edelweiss"
   }
  },
  "bkcore-hexgl": {
   "github": {
-   "forks": 891,
+   "forks": 892,
    "stars": 1744,
    "url": "https://github.com/BKcore/HexGL"
   },
@@ -3240,7 +3229,7 @@
  },
  "songhaifan-frankie-poker": {
   "github": {
-   "forks": 4,
+   "forks": 5,
    "stars": 13,
    "url": "https://github.com/SonghaiFan/frankie-poker"
   }

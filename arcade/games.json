@@ -630,7 +630,7 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 4,
+    "forks": 5,
     "stars": 13,
     "url": "https://github.com/SonghaiFan/frankie-poker"
    }
@@ -10349,8 +10349,8 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 713,
-    "stars": 6463,
+    "forks": 715,
+    "stars": 6468,
     "url": "https://github.com/pshenok/server-survival"
    }
   },
@@ -10445,11 +10445,6 @@
     "forks": 45,
     "stars": 314,
     "url": "https://github.com/felixmariotto/Edelweiss"
-   },
-   "itch": {
-    "rating": 4.2,
-    "count": 6,
-    "url": "https://felixmrtt.itch.io/edelweiss"
    }
   },
   "cover": "covers/felixmariotto-edelweiss.webp",
@@ -10569,8 +10564,8 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 30,
-    "stars": 103,
+    "forks": 31,
+    "stars": 104,
     "url": "https://github.com/StarKnightt/operation-ironhold"
    }
   },

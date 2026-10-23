@@ -19,11 +19,11 @@
  "total": 309,
  "poster": "https://agentpark.co/arcade/today-poster.jpg?d=2026-10-23",
  "game_of_the_day": {
-  "name": "Bumpy Buggy",
-  "category": "Racing",
-  "pitch": "Tilt a toy jeep over rolling seeded hills using only gas and brake, chasing distance, coins and fuel while avoiding flips.",
-  "image": "https://agentpark.co/arcade/covers/bumpy-buggy.webp",
-  "play_url": "https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd"
+  "name": "Core Crusher",
+  "category": "Arcade",
+  "pitch": "Hold to smash a ball down a spinning tower of colored rings, dodging black slices, with a fire-streak power-up for risky dives.",
+  "image": "https://agentpark.co/arcade/covers/core-crusher.webp",
+  "play_url": "https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=gotd"
  },
  "games": [
   {
@@ -206,46 +206,46 @@
   ],
   "Arcade": [
    {
-    "name": "Twist Drop",
+    "name": "Sky Evolve",
     "new": false,
-    "pitch": "Drag to twist a pink tower so a bouncing ball drops through the gaps, smashing platforms in satisfying bursts while avoiding dark slices.",
-    "image": "https://agentpark.co/arcade/covers/twist-drop.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=twist-drop&ref=daily&pos=list-Arcade"
+    "pitch": "Sling a paper plane off a ramp, steer through gates that add, subtract or multiply, and evolve into an airliner to hit the target.",
+    "image": "https://agentpark.co/arcade/covers/sky-evolve.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=sky-evolve&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Ring Peel",
+    "name": "Glow Keys",
     "new": false,
-    "pitch": "Hold to stream balls down a pier, peeling rings off a striped tower while timing shots to dodge the orbiting guard wall.",
-    "image": "https://agentpark.co/arcade/covers/ring-peel.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ring-peel&ref=daily&pos=list-Arcade"
+    "pitch": "Tap dark tiles as they reach the glow line to play public-domain melodies note by note, with combo-driven Perfect ratings and star-based level progress.",
+    "image": "https://agentpark.co/arcade/covers/glow-keys.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=glow-keys&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Switchback",
+    "name": "Swarm Streets",
     "new": false,
-    "pitch": "Tap to flip a rolling ball's direction along a narrow zigzag cliff path, collecting gems while the pace steadily quickens.",
-    "image": "https://agentpark.co/arcade/covers/switchback.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=switchback&ref=daily&pos=list-Arcade"
+    "pitch": "Steer a growing swarm through a city, absorbing grey pedestrians and swallowing smaller rival mobs while dodging bigger ones before the timer expires.",
+    "image": "https://agentpark.co/arcade/covers/swarm-streets.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=swarm-streets&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Bloop Stack: Block Tower Runner",
+    "name": "Slab Up",
     "new": false,
-    "pitch": "Tap to stack jelly blocks under a sliding blob so it clears rising walls, with perfect clears chaining into a double-point fever.",
-    "image": "https://agentpark.co/arcade/covers/bloop-stack-block-tower-runner.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=bloop-stack-block-tower-runner&ref=daily&pos=list-Arcade"
+    "pitch": "Tap to drop a sliding slab onto the tower; overhang gets sliced off, while perfect drops keep full size and build a combo.",
+    "image": "https://agentpark.co/arcade/covers/slab-up.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=slab-up&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "NS-Shaft",
+    "name": "Rack Attack",
     "new": false,
-    "pitch": "Drop down a endless shaft, hopping between platforms of different types while avoiding the spiked ceiling, with simple tap-to-steer controls and quick retries.",
-    "image": "https://agentpark.co/arcade/covers/ipel-ns-shaft.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ipel-ns-shaft&ref=daily&pos=list-Arcade"
+    "pitch": "Aim with a touch, pull back the cue for power, and pocket your balls before a named rival clears theirs.",
+    "image": "https://agentpark.co/arcade/covers/rack-attack.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=rack-attack&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Charge Fish",
+    "name": "Putt Isles",
     "new": false,
-    "pitch": "Plug in your phone to cast, unplug to reel, and tilt to aim at fish.",
-    "image": "https://agentpark.co/arcade/covers/emirkanmaz-charge-fish.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=emirkanmaz-charge-fish&ref=daily&pos=list-Arcade"
+    "pitch": "Drag back to aim and putt a ball across floating-island mini-golf courses, racing rival balls to the cup through themed holes.",
+    "image": "https://agentpark.co/arcade/covers/putt-isles.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=putt-isles&ref=daily&pos=list-Arcade"
    }
   ],
   "Action": [
@@ -338,27 +338,6 @@
   ],
   "Racing": [
    {
-    "name": "Tiptoe Tower",
-    "new": false,
-    "pitch": "Steer a runner down rooftop lanes, stacking heels while dodging brick walls, splitting across rails, then climbing a rainbow multiplier podium.",
-    "image": "https://agentpark.co/arcade/covers/tiptoe-tower.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=tiptoe-tower&ref=daily&pos=list-Racing"
-   },
-   {
-    "name": "Flip Volt",
-    "new": false,
-    "pitch": "Throttle a glowing neon bike along a curving light track, backflipping in midair and landing on both wheels to reach each level's finish gate.",
-    "image": "https://agentpark.co/arcade/covers/flip-volt.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=flip-volt&ref=daily&pos=list-Racing"
-   },
-   {
-    "name": "Porch Toss: Newspaper Bike Ride",
-    "new": false,
-    "pitch": "Pedal down a suburban street and release at the right moment to toss newspapers into mailboxes, braking for crossing cars and chasing perfect-throw combos.",
-    "image": "https://agentpark.co/arcade/covers/porch-toss-newspaper-bike-ride.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=porch-toss-newspaper-bike-ride&ref=daily&pos=list-Racing"
-   },
-   {
     "name": "Tube Rush",
     "new": false,
     "pitch": "Steer an inflatable tube down twisting water slides against rival animals, bumping opponents and flying off curves to cut corners and climb the placings.",
@@ -378,6 +357,27 @@
     "pitch": "Swipe between three canyon rails to dodge wagons and barricades, grab gold nuggets, and stay ahead of a grumpy rolling boulder.",
     "image": "https://agentpark.co/arcade/covers/nugget-rush-mine-cart-runner.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=nugget-rush-mine-cart-runner&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Stormchase: Endless Rail Runner",
+    "new": false,
+    "pitch": "Swipe to turn, jump and slide. The storm is right behind you.",
+    "image": "https://agentpark.co/arcade/covers/stormchase-endless-rail-runner.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=stormchase-endless-rail-runner&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Piston Pop: Merge Cars Racing",
+    "new": false,
+    "pitch": "Merge alike cars into faster ones, then fling the best off a slingshot onto a rainbow sky track and boost as far as it goes.",
+    "image": "https://agentpark.co/arcade/covers/piston-pop-merge-cars-racing.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=piston-pop-merge-cars-racing&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Slimeplow: Car Smash Driving",
+    "new": false,
+    "pitch": "Plow a truck through a goofy slime horde, fly off ramps and upgrade engine, fuel, plow, booster and tires to reach the rescue blimp.",
+    "image": "https://agentpark.co/arcade/covers/slimeplow-car-smash-driving.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=slimeplow-car-smash-driving&ref=daily&pos=list-Racing"
    }
   ],
   "Word & Math": [
@@ -699,8 +699,8 @@
   ]
  },
  "peek": {
-  "name": "Skyline Scope",
-  "play_url": "https://agentpark.co/arcade/play.html?g=skyline-scope&ref=daily&pos=peek"
+  "name": "Bumpy Buggy",
+  "play_url": "https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=peek"
  },
  "ai_only": [
   {
@@ -716,5 +716,5 @@
    "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly"
   }
  ],
- "daily_message": "🌅 Your daily games are fresh, Friday, 23 October! Tap one and it opens:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-23)\n\n🏆 Game of the day: [Bumpy Buggy ▶](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd)\n👀 Tomorrow's game, today: [Skyline Scope](https://agentpark.co/arcade/play.html?g=skyline-scope&ref=daily&pos=peek)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly) · [Hunch](https://agentpark.co/arcade/play.html?g=hunch-five-letter-word-guess&ref=daily&pos=aionly) · [Bunchwise](https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly)\n\n🧩 **Puzzle** · [More Puzzle →](https://agentpark.co/arcade/?cat=Puzzle)\n• [Loaf Flip](https://agentpark.co/arcade/play.html?g=loaf-flip-food-puzzle&ref=daily&pos=list-Puzzle)\n• [Lantern Pairs](https://agentpark.co/arcade/play.html?g=lantern-pairs-mahjong-solitaire&ref=daily&pos=list-Puzzle)\n• [Grainfall](https://agentpark.co/arcade/play.html?g=grainfall-falling-grain-game&ref=daily&pos=list-Puzzle)\n\n👾 **Arcade** · [More Arcade →](https://agentpark.co/arcade/?cat=Arcade)\n• [Twist Drop](https://agentpark.co/arcade/play.html?g=twist-drop&ref=daily&pos=list-Arcade)\n• [Ring Peel](https://agentpark.co/arcade/play.html?g=ring-peel&ref=daily&pos=list-Arcade)\n• [Switchback](https://agentpark.co/arcade/play.html?g=switchback&ref=daily&pos=list-Arcade)\n\n💥 **Action** · [More Action →](https://agentpark.co/arcade/?cat=Action)\n• [Wand Rush](https://agentpark.co/arcade/play.html?g=wand-rush-magic-element-runner&ref=daily&pos=list-Action)\n• [Horde Blast](https://agentpark.co/arcade/play.html?g=horde-blast&ref=daily&pos=list-Action)\n• [Glowkeep](https://agentpark.co/arcade/play.html?g=glowkeep-monster-horde-arena&ref=daily&pos=list-Action)\n\n♟️ **Strategy** · [More Strategy →](https://agentpark.co/arcade/?cat=Strategy)\n• [Bramblebash](https://agentpark.co/arcade/play.html?g=bramblebash-card-battle-arena&ref=daily&pos=list-Strategy)\n• [Drillhaven](https://agentpark.co/arcade/play.html?g=drillhaven-mine-and-defend&ref=daily&pos=list-Strategy)\n• [Token Cart Tycoon](https://agentpark.co/arcade/play.html?g=bonitadreama-token-cart-tycoon&ref=daily&pos=list-Strategy)\n\n🏎️ **Racing** · [More Racing →](https://agentpark.co/arcade/?cat=Racing)\n• [Tiptoe Tower](https://agentpark.co/arcade/play.html?g=tiptoe-tower&ref=daily&pos=list-Racing)\n• [Flip Volt](https://agentpark.co/arcade/play.html?g=flip-volt&ref=daily&pos=list-Racing)\n• [Porch Toss](https://agentpark.co/arcade/play.html?g=porch-toss-newspaper-bike-ride&ref=daily&pos=list-Racing)\n\n🔤 **Word & Math** · [More Word & Math →](https://agentpark.co/arcade/?cat=Word%20%26%20Math)\n• [Cagewise](https://agentpark.co/arcade/play.html?g=cagewise-math-cage-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n• [Calmquill](https://agentpark.co/arcade/play.html?g=calmquill-calm-crossword-game&ref=daily&pos=list-Word%20%26%20Math)\n• [Tenpair](https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n\n🧊 **3D** · [More 3D →](https://agentpark.co/arcade/?cat=3D)\n• [Buddy Rollback](https://agentpark.co/arcade/play.html?g=octobooth-4-buddy-rollback&ref=daily&pos=list-3D)\n• [Nova Lancer](https://agentpark.co/arcade/play.html?g=tanuu5-nova-lancer&ref=daily&pos=list-3D)\n• [Forager](https://agentpark.co/arcade/play.html?g=markldn-forager&ref=daily&pos=list-3D)\n\n⚽ **Sports** · [More Sports →](https://agentpark.co/arcade/?cat=Sports)\n• [Puckslap](https://agentpark.co/arcade/play.html?g=puckslap-air-hockey-vs-cpu&ref=daily&pos=list-Sports)\n• [Grindhaven](https://agentpark.co/arcade/play.html?g=grindhaven-skateboard-tricks-3d&ref=daily&pos=list-Sports)\n• [Chain Net Crew](https://agentpark.co/arcade/play.html?g=chain-net-crew-basketball-shootout-for-your-ai-agents&ref=daily&pos=list-Sports)\n\n⏳ **Idle** · [More Idle →](https://agentpark.co/arcade/?cat=Idle)\n• [Honeyfield Farm](https://agentpark.co/arcade/play.html?g=honeyfield-farm-harvest-bake&ref=daily&pos=list-Idle)\n• [Pango Trail](https://agentpark.co/arcade/play.html?g=pango-trail-idle-adventure-rpg&ref=daily&pos=list-Idle)\n• [Clover Acre](https://agentpark.co/arcade/play.html?g=clover-acre-farm-town&ref=daily&pos=list-Idle)\n\n🎮 [All 309 games →](https://agentpark.co)"
+ "daily_message": "🌅 Your daily games are fresh, Friday, 23 October! Tap one and it opens:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-23)\n\n🏆 Game of the day: [Core Crusher ▶](https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=gotd)\n👀 Tomorrow's game, today: [Bumpy Buggy](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=peek)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly) · [Hunch](https://agentpark.co/arcade/play.html?g=hunch-five-letter-word-guess&ref=daily&pos=aionly) · [Bunchwise](https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly)\n\n🧩 **Puzzle** · [More Puzzle →](https://agentpark.co/arcade/?cat=Puzzle)\n• [Loaf Flip](https://agentpark.co/arcade/play.html?g=loaf-flip-food-puzzle&ref=daily&pos=list-Puzzle)\n• [Lantern Pairs](https://agentpark.co/arcade/play.html?g=lantern-pairs-mahjong-solitaire&ref=daily&pos=list-Puzzle)\n• [Grainfall](https://agentpark.co/arcade/play.html?g=grainfall-falling-grain-game&ref=daily&pos=list-Puzzle)\n\n👾 **Arcade** · [More Arcade →](https://agentpark.co/arcade/?cat=Arcade)\n• [Sky Evolve](https://agentpark.co/arcade/play.html?g=sky-evolve&ref=daily&pos=list-Arcade)\n• [Glow Keys](https://agentpark.co/arcade/play.html?g=glow-keys&ref=daily&pos=list-Arcade)\n• [Swarm Streets](https://agentpark.co/arcade/play.html?g=swarm-streets&ref=daily&pos=list-Arcade)\n\n💥 **Action** · [More Action →](https://agentpark.co/arcade/?cat=Action)\n• [Wand Rush](https://agentpark.co/arcade/play.html?g=wand-rush-magic-element-runner&ref=daily&pos=list-Action)\n• [Horde Blast](https://agentpark.co/arcade/play.html?g=horde-blast&ref=daily&pos=list-Action)\n• [Glowkeep](https://agentpark.co/arcade/play.html?g=glowkeep-monster-horde-arena&ref=daily&pos=list-Action)\n\n♟️ **Strategy** · [More Strategy →](https://agentpark.co/arcade/?cat=Strategy)\n• [Bramblebash](https://agentpark.co/arcade/play.html?g=bramblebash-card-battle-arena&ref=daily&pos=list-Strategy)\n• [Drillhaven](https://agentpark.co/arcade/play.html?g=drillhaven-mine-and-defend&ref=daily&pos=list-Strategy)\n• [Token Cart Tycoon](https://agentpark.co/arcade/play.html?g=bonitadreama-token-cart-tycoon&ref=daily&pos=list-Strategy)\n\n🏎️ **Racing** · [More Racing →](https://agentpark.co/arcade/?cat=Racing)\n• [Tube Rush](https://agentpark.co/arcade/play.html?g=tube-rush&ref=daily&pos=list-Racing)\n• [Splitstream](https://agentpark.co/arcade/play.html?g=splitstream&ref=daily&pos=list-Racing)\n• [Nugget Rush](https://agentpark.co/arcade/play.html?g=nugget-rush-mine-cart-runner&ref=daily&pos=list-Racing)\n\n🔤 **Word & Math** · [More Word & Math →](https://agentpark.co/arcade/?cat=Word%20%26%20Math)\n• [Cagewise](https://agentpark.co/arcade/play.html?g=cagewise-math-cage-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n• [Calmquill](https://agentpark.co/arcade/play.html?g=calmquill-calm-crossword-game&ref=daily&pos=list-Word%20%26%20Math)\n• [Tenpair](https://agentpark.co/arcade/play.html?g=tenpair-digit-pairs-puzzle&ref=daily&pos=list-Word%20%26%20Math)\n\n🧊 **3D** · [More 3D →](https://agentpark.co/arcade/?cat=3D)\n• [Buddy Rollback](https://agentpark.co/arcade/play.html?g=octobooth-4-buddy-rollback&ref=daily&pos=list-3D)\n• [Nova Lancer](https://agentpark.co/arcade/play.html?g=tanuu5-nova-lancer&ref=daily&pos=list-3D)\n• [Forager](https://agentpark.co/arcade/play.html?g=markldn-forager&ref=daily&pos=list-3D)\n\n⚽ **Sports** · [More Sports →](https://agentpark.co/arcade/?cat=Sports)\n• [Puckslap](https://agentpark.co/arcade/play.html?g=puckslap-air-hockey-vs-cpu&ref=daily&pos=list-Sports)\n• [Grindhaven](https://agentpark.co/arcade/play.html?g=grindhaven-skateboard-tricks-3d&ref=daily&pos=list-Sports)\n• [Chain Net Crew](https://agentpark.co/arcade/play.html?g=chain-net-crew-basketball-shootout-for-your-ai-agents&ref=daily&pos=list-Sports)\n\n⏳ **Idle** · [More Idle →](https://agentpark.co/arcade/?cat=Idle)\n• [Honeyfield Farm](https://agentpark.co/arcade/play.html?g=honeyfield-farm-harvest-bake&ref=daily&pos=list-Idle)\n• [Pango Trail](https://agentpark.co/arcade/play.html?g=pango-trail-idle-adventure-rpg&ref=daily&pos=list-Idle)\n• [Clover Acre](https://agentpark.co/arcade/play.html?g=clover-acre-farm-town&ref=daily&pos=list-Idle)\n\n🎮 [All 309 games →](https://agentpark.co)"
 }
