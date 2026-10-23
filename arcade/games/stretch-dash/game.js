@@ -9,7 +9,8 @@ const ST = store('stretchdash');
 const F = flow('stretchdash'); let fk = 1;
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 52, shadowSize: 12 });
-const ui = createUI({ title: 'STRETCH<br>DASH', hint: 'Tap left or right to steer · or drag', hand: '👆', score: false });
+const ui = createUI({ title: 'STRETCH<br>DASH', hint: 'Tap left or right to steer', hand: '👆', score: false });
+const nextCard = w => (l, x) => { ui.els.win.querySelector('.hint').textContent = 'Level ' + (l + 1) + ' ▶'; w(l, x); }; ui.win = nextCard(ui.win);   // one tap → next level
 document.body.style.setProperty('--bg1', '#22b4ff'); document.body.style.setProperty('--bg2', '#bfeaff'); document.body.style.setProperty('--ui', '#ff7a1a');
 document.title = 'Stretch Dash';
 const $ = id => document.getElementById(id);

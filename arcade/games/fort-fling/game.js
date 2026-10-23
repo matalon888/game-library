@@ -7,7 +7,8 @@ import { World, makeBox, makeCircle } from './physics.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 14 });
 const { scene, camera, sun } = stage;
-const ui = createUI({ title: 'FORT<br>FLING', hint: 'Pull back & let go', hand: '👈' });
+const ui = createUI({ title: 'FORT<br>FLING', hint: 'Tap a raccoon to fling', hand: '👆' });
+const nextCard = w => (l, x) => { ui.els.win.querySelector('.hint').textContent = 'Level ' + (l + 1) + ' ▶'; w(l, x); }; ui.win = nextCard(ui.win);   // one tap → next level
 const css = document.createElement('style');
 css.textContent = `body{--bg1:#5fb8f0;--bg2:#ffe6c2;--ui:#ff7a2f}
 .hc-score{color:#fff;text-shadow:0 4px 0 rgba(20,70,120,.25)} .hc-sub{color:#fff;font-weight:800;text-shadow:0 2px 0 rgba(20,70,120,.25)}
@@ -260,12 +261,31 @@ function setPull(dxPix, dyPix) {
 input({
   onDown(e) { if (state !== 'play' || phase !== 'aim' || !fruit) return; downAt = [e.clientX, e.clientY]; aiming = true; tone(300, 0.05, 'sine', 0.08, 1.3); },
   onMove(dx, dy, e) { if (!aiming) return; const old = pull.length(); setPull(e.clientX - downAt[0], e.clientY - downAt[1]); const n = pull.length(); if (Math.floor(n * 5) !== Math.floor(old * 5)) tone(200 + n * 160, 0.03, 'sine', 0.05, 1.1); },
-  onUp() {
+  onUp(e) {
     if (!aiming) return; aiming = false;
-    if (pull.length() < 0.25) { pull.set(0, 0); return; }
+    if (pull.length() < 0.25) { pull.set(0, 0); if (Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 14) tapShot(e.clientX, e.clientY); return; }
     launch();
   },
 });
+// a plain tap = fling at the tapped spot (full power, flattest arc that reaches it; a tap near a raccoon aims at that raccoon)
+const _ray = new THREE.Raycaster(), _pl = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), _hit = new THREE.Vector3();
+function tapShot(cx, cy) {
+  _ray.setFromCamera(new THREE.Vector2(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1), camera);
+  if (!_ray.ray.intersectPlane(_pl, _hit)) return;
+  let tx = _hit.x, ty = _hit.y;
+  const near = ents.filter(e => e.kind === 'rac' && e.alive).sort((a, b) => Math.hypot(a.body.x - tx, a.body.y - ty) - Math.hypot(b.body.x - tx, b.body.y - ty))[0];
+  if (near && Math.hypot(near.body.x - tx, near.body.y - ty) < (level <= 2 ? 1.1 : 0.5)) { tx = near.body.x; ty = near.body.y + 0.05; }
+  if (tx < REST.x + 1) return;
+  let best = null, flat = null;
+  for (let ang = -5; ang <= 78; ang += 0.5) {
+    const a = ang * Math.PI / 180, px = REST.x - Math.cos(a) * MAXPULL, py = REST.y - Math.sin(a) * MAXPULL, vx = Math.cos(a) * VMAX, vy = Math.sin(a) * VMAX;
+    const [, y] = predict(px, py, vx, vy, (tx - px) / vx), err = Math.abs(y - ty);
+    if (!flat && err < 0.3) flat = { ang, err };
+    if (!best || err < best.err) best = { ang, err };
+  }
+  best = flat || best;
+  const a = best.ang * Math.PI / 180; pull.set(-Math.cos(a) * MAXPULL, -Math.sin(a) * MAXPULL); launch();
+}
 function launch() {
   const p = R0.copy(REST).add(pull), pw = pull.length() / MAXPULL, dir = pull.clone().normalize().multiplyScalar(-1);
   const b = makeCircle(p.x, p.y, FR, { density: 5.5, fric: 0.55, rest: 0.25 }); b.isFruit = true; b.noSleep = true;
@@ -404,6 +424,11 @@ function solve() {
 }
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
+  tapHint() {   // QA: where a player would tap (the nearest raccoon on screen), when a fruit is ready
+    if (state !== 'play' || phase !== 'aim' || !fruit || fruit.body) return null;
+    const r = ents.filter(e => e.kind === 'rac' && e.alive).sort((a, b) => a.body.x - b.body.x)[0]; if (!r) return null;
+    _p.set(r.body.x, r.body.y, 0).project(camera); return [(_p.x + 1) / 2 * innerWidth, (1 - _p.y) / 2 * innerHeight];
+  },
   bot() {
     if (state !== 'play' || phase !== 'aim' || !fruit || fruit.body || slowT > 0) return;
     const fire = (type, x, y) => dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y }));

@@ -6,9 +6,9 @@ import { board as worldBoard } from './kit/board.js';
 const $ = (id) => document.getElementById(id);
 const ST = store('swirltee');
 const F = flow('swirltee');
-const WB = worldBoard({ game: 'swirl-tee', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });
+const WB = worldBoard({ game: 'swirl-tee', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), score = 0;
-const ui = createUI({ title: 'SWIRL<br>TEE', hint: 'Fold · dye · reveal!', hand: '👆', score: false });
+const ui = createUI({ title: 'SWIRL<br>TEE', hint: 'Tap the fold, rub the shirt', hand: '👆', score: false });
 const stage = createStage({ fov: 38, shadowSize: 6 });
 const { scene, camera } = stage;
 stage.followLight(new THREE.Vector3(0, 0, 0));
@@ -130,6 +130,10 @@ const patTex = new THREE.CanvasTexture(patC); patTex.colorSpace = THREE.SRGBColo
 // ------------------------------------------------------------------ level
 const FOLDS = ['spiral', 'rings', 'stripes'];
 function genLevel(lv) {
+  // hook ramp: level 1 = 2 big stripes (one fold button, fat brush), level 2 = 2 rings; level 3+ = the old curve from its level 1
+  if (lv === 1) return { fold: 'stripes', N: 2, cols: [2, 6], btns: [2, 6], thr: 0.6, twist: 5, seed: 11, brush: 0.62, folds: 1, guide: true };
+  if (lv === 2) return { fold: 'rings', N: 2, cols: [1, 4], btns: [1, 4, 3], thr: 0.65, twist: 5, seed: 23, brush: 0.46, folds: 2, guide: true };
+  lv = lv - 2;
   const r = rng(lv * 7919 + 13), fk = F.k();
   const fold = lv <= 3 ? FOLDS[lv - 1] : ['spiral', 'rings', 'stripes', 'spiral'][Math.floor(r() * 4)];
   const N = fold === 'spiral' ? Math.min(8, 3 + Math.floor((lv + 1) / 2)) : fold === 'rings' ? Math.min(5, 2 + Math.floor(lv / 3)) : Math.min(6, 3 + Math.floor(lv / 3));
@@ -142,7 +146,7 @@ function genLevel(lv) {
   }
   const btns = order.slice(0, Math.min(6, nCol + (lv >= 2 ? 1 : 0) + (lv >= 5 ? 1 : 0)));
   for (let i = btns.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [btns[i], btns[j]] = [btns[j], btns[i]]; }
-  return { fold, N, cols, btns, thr: Math.min(0.9, (0.7 + (lv - 1) * 0.012) * fk), twist: 4.6 + r() * 2.2, seed: r() * 100, brush: Math.max(0.21, (0.34 - lv * 0.008) / fk) };
+  return { fold, N, cols, btns, thr: Math.min(0.9, (0.7 + (lv - 1) * 0.012) * fk), twist: 4.6 + r() * 2.2, seed: r() * 100, brush: Math.max(0.21, (0.34 - lv * 0.008) / fk), folds: 3, guide: false };
 }
 
 // bundle space: nx, nz in [-1, 1]; the bound shirt is an ellipse nx² + (nz/Q)² <= 1, world = n * EXT
@@ -263,10 +267,11 @@ function sectionPath(ctx, s) {
 function secFrac(s, col = L.cols[s]) { let n = 0; for (let i = 0; i < G * G; i++) if (cellSec[i] === s && cellCol[i] === col) n++; return n / Math.max(1, secCells[s]); }
 
 // ------------------------------------------------------------------ painting
-let sel = -1, dripT = 0, doneN = 0;
+let sel = -1, dripT = 0, doneN = 0, autoRev = 0;
 function dab(nx, nz) {
   if (sel < 0) return false;
   const s = secOf(nx, nz); if (s < 0) return false;
+  if (L.guide && sel !== L.cols[s] && L.btns.includes(L.cols[s])) selectDye(L.cols[s]);   // levels 1-2: the bottle picks the dot's colour for you
   const R = L.brush * CS / 2, px = (nx + 1) / 2 * CS, py = (nz + 1) / 2 * CS, [r, g, b] = DRGB[sel];
   bctx.save(); sectionPath(bctx, s); bctx.clip();
   for (let i = 0; i < 4; i++) {
@@ -296,6 +301,7 @@ function dab(nx, nz) {
   } else if (secDone[s] && f < 0.6) { secDone[s] = false; doneN--; markers[s].userData.gone = false; }
   ui.progress(0.12 + 0.75 * doneN / L.N);
   $('done').classList.toggle('go', doneN === L.N);
+  if (L.guide && doneN === L.N && !autoRev) autoRev = setTimeout(() => { autoRev = 0; if (phase === 'dye' && doneN === L.N) reveal(); }, 550);
   return true;
 }
 function washBundle() {
@@ -342,7 +348,9 @@ function buildLevel() {
   const r = rng(level * 31 + 5); for (let i = 0; i < 16; i++) tableSplat((r() - 0.5) * 4.4, TZ + (r() - 0.5) * 7.2, DYES[L.btns[Math.floor(r() * L.btns.length)]], 0.12, 0.2 + r() * 0.35);
   $('banner').classList.remove('on', 'bad');
   show('dyes', false); show('reset', false); show('done', false); show('ask', state === 'play'); show('folds', state === 'play');
-  $('folds').querySelectorAll('.fold').forEach(b => b.classList.remove('bad'));
+  const shown = L.folds >= 3 ? FOLDS : L.folds === 1 ? [L.fold] : FOLDS.filter(f => f === L.fold || f === (L.fold === 'rings' ? 'spiral' : 'rings')).slice(0, 2);
+  $('folds').querySelectorAll('.fold').forEach(b => { b.classList.remove('bad'); b.style.display = shown.includes(b.dataset.f) ? '' : 'none'; b.classList.toggle('go', L.folds === 1); });
+  $('ask').textContent = L.folds === 1 ? 'Tap the fold!' : 'Pick the fold!';
 }
 function chooseFold(f, btn) {
   if (state !== 'play' || phase !== 'fold') return;
@@ -377,7 +385,9 @@ function finish() {
   if (ok) {
     state = 'won'; F.level(true); WB.submit(1); score += pct; best = Math.max(best, score); ST.set('best', best);
     sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, 2.5, 0), 80); setTimeout(() => confetti(scene, new THREE.Vector3(0, 2.5, -1), 60), 250);
-    ui.win(level, stars === 3 ? 'Flawless swirl!' : `${pct}% match`);
+    ui.win(level, stars === 3 ? 'Flawless swirl!' : `${pct}% match`); ui.els.win.querySelector('.hint').textContent = `Level ${level + 1} ▶`;
+    stage.renderer.domElement.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05) rotate(1deg)' }, { transform: 'scale(.98) rotate(-1deg)' }, { transform: 'scale(1)' }], { duration: 420 });
+    setTimeout(() => confetti(scene, new THREE.Vector3(1.5, 2.5, 0.5), 60), 500);
   } else {
     state = 'lost'; F.level(false, Math.min(1, match / L.thr)); sfx.fail(); buzz([40, 30, 60]);
     ui.lose('SO CLOSE!', `${pct}% match · need ${Math.round(L.thr * 100)}%`);
@@ -401,7 +411,7 @@ function aimAt(e) {
   else { ray.ray.intersectPlane(plane, tmpV); aim = { nx: 9, nz: 9, p: tmpV.clone() }; }
 }
 input({
-  onDown: (e) => { if (e.target.closest && e.target.closest('button')) return; if (state !== 'play' || phase !== 'dye') return; if (sel < 0) selectDye(L.btns[0]); pointerDown = true; aimAt(e); },
+  onDown: (e) => { if (e.target.closest && e.target.closest('button')) return; if (state !== 'play' || phase !== 'dye') return; if (sel < 0) selectDye(L.btns[0]); pointerDown = true; aimAt(e); if (aim && aim.nx < 5) { lastDab = frame; dab(aim.nx, aim.nz); } },   // a plain tap dyes too
   onMove: (dx, dy, e) => { if (pointerDown) aimAt(e); },
   onUp: () => { pointerDown = false; aim = null; },
 });

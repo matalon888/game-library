@@ -8,7 +8,8 @@ const ST = store('marbledash');
 const F = flow('marbledash');
 let level = ST.get('level', 1), best = ST.get('best', 0);
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
-const ui = createUI({ title: 'MARBLE<br>DASH', hint: 'Tap to roll · hold and slide to steer', hand: '👆', score: false });
+const ui = createUI({ title: 'MARBLE<br>DASH', hint: 'Hold to roll · slide to steer', hand: '👆', score: false });
+const nextCard = w => (l, x) => { ui.els.win.querySelector('.hint').textContent = 'Level ' + (l + 1) + ' ▶'; w(l, x); }; ui.win = nextCard(ui.win);   // one tap → next level
 const $ = id => document.getElementById(id);
 const PALS = [
   { bg: ['#7fd0ff', '#e6f7ff'], ui: '#2f80ff' }, { bg: ['#ffb3d1', '#fff0d6'], ui: '#ff4f9a' }, { bg: ['#a7f0c9', '#effff6'], ui: '#16a34a' },
@@ -61,12 +62,11 @@ function buildTrack() {
   if (level >= 2) pool.push('sweeper', 'slider');
   if (level >= 3) pool.push('spinner', 'narrow', 'jump');
   if (level >= 5) pool.push('sweeper', 'spinner', 'bridge');
-  const n = Math.min(20, 6 + level * 2);
+  const n = level === 1 ? 4 : Math.min(20, 6 + level * 2);
   let last = '';
   for (let i = 0; i < n; i++) {
     let k = pool[Math.floor(R() * pool.length)]; if (k === last) k = 'straight'; last = k;
-    if (level === 1 && i === 1) k = 'jump';
-    if (level === 1 && i === 3) k = 'slider';
+    if (level === 1) k = ['down', 'boost', 'down', 'jump'][i];   // first run: railed slopes + a boost, one jump, ~8 s
     if (i > 0 && i % 4 === 0) { const s = seg(3, 3, 0, 0, { cp: true }); cps.push(s); }
     const w = clamp((2.7 - level * 0.05) / fk, 1.85, 3.0);
     switch (k) {

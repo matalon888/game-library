@@ -1,6 +1,6 @@
 // Flip Agent — original game. The agent runs and somersaults over gaps in slow motion; his laser sight sweeps with the spin.
 // Tap = one bullet along the laser. Clear every masked goon before he lands, never hit a hostage. Steel ricochets, barrels explode.
-import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded } from './kit/hc.js';
+import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
 import { particles } from './fx.js';
@@ -162,17 +162,18 @@ function buildLevel() {
   totalEnemies = 0; kills = 0; stageIdx = 0; flipKills = 0;
   applyTheme(level);
   fk = FL.k(); const r = rng(level * 977 + 31), pick = (a) => a[Math.floor(r() * a.length)];
-  const nst = level <= 2 ? 2 : level <= 5 ? 3 : 4;
+  const nst = level === 1 ? 1 : level <= 3 ? 2 : level <= 6 ? 3 : 4;   // level 1: one flip, one goon — a near-sure first win
   let x = -14, top = 0, len = 14;
   plat.push({ a: x, b: x + len, top }); block(x, x + len, -16, top);
   for (let s = 0; s < nst; s++) {
     const prev = plat[plat.length - 1], gap = 4.2 + r() * 0.9;
-    const ntop = clamp(prev.top + pick([-1.4, -0.8, 0, 0.8, 1.4]), -2.5, 2.5), nlen = s === nst - 1 ? 14 : 7 + r() * 2.5;
+    const ntop = level === 1 ? prev.top : clamp(prev.top + pick([-1.4, -0.8, 0, 0.8, 1.4]), -2.5, 2.5), nlen = s === nst - 1 ? 14 : 7 + r() * 2.5;
     const a = prev.b + gap, b = a + nlen; plat.push({ a, b, top: ntop }); block(a, b, -16, ntop);
     const H = prev.top, T = ntop, J = prev.b, mid = J + gap / 2, hi = Math.max(H, T);
-    const n = clamp(Math.round((2 + Math.floor((level - 1) / 2) + (r() < 0.35 && level > 2 ? 1 : 0)) * fk), 2, 6);
+    const n = level <= 2 ? 1 : clamp(Math.round((2 + Math.floor((level - 3) / 2) + (r() < 0.35 && level > 4 ? 1 : 0)) * fk), 2, 6);
     const slots = ['far', 'far2', 'girder', 'below', 'crate', 'high'];
-    if (level === 1) slots.splice(3);       // gentle start: ground + one girder
+    if (level === 1) slots.splice(1);       // first flip: one goon standing on the far roof, right where the laser starts
+    else if (level <= 3) slots.splice(3);   // gentle ramp: ground + one girder
     const used = new Set(), spots = [];
     while (spots.length < n && used.size < slots.length) { const sl = pick(slots); if (used.has(sl)) continue; used.add(sl); spots.push(sl); }
     const placed = [];
@@ -190,12 +191,12 @@ function buildLevel() {
     // de-overlap ground enemies vs crates
     for (const p of placed) for (const q of placed) if (p !== q && Math.abs(p.e.x - q.e.x) < 0.9 && Math.abs(p.e.y - q.e.y) < 0.5) { q.e.x += 1.0; q.e.fig.g.position.x = q.e.x; }
     // hostage next to one enemy (level 2+)
-    if (level >= 2 && r() < 0.55 + Math.min(0.3, level * 0.03)) {
+    if (level >= 3 && r() < 0.55 + Math.min(0.3, level * 0.03)) {
       const host = pick(placed), side = r() < 0.5 ? -1 : 1;
       person('hostage', host.e.x + side * 0.85, host.e.y, s); st.hostages++;
     }
-    if (level >= 3 && r() < 0.5) barrel(a + 1.0, T, s);
-    if (level >= 2 && r() < 0.45) plate(b - 0.5, T, 3.6);
+    if (level >= 4 && r() < 0.5) barrel(a + 1.0, T, s);
+    if (level >= 3 && r() < 0.45) plate(b - 0.5, T, 3.6);
     stages.push(st);
   }
   for (const p of plat) { const dr = rng(Math.floor(p.a * 13) + level);
@@ -210,11 +211,17 @@ function buildLevel() {
     for (const e of st.enemies.slice()) if (!seen.has(e)) { scene.remove(e.fig.g); actors.splice(actors.indexOf(e), 1); st.enemies.splice(st.enemies.indexOf(e), 1); totalEnemies--; }
     if (!st.enemies.length) { const e = person('enemy', st.L + 2.2, st.T, si); st.enemies.push(e); }
   }
+  // fairness pass: a goon must stay in the sights long enough for a human tap (players were losing to 20-40 ms windows)
+  const minMs = level <= 2 ? 300 : level <= 5 ? 220 : 170;
+  for (let si = 0; si < stages.length; si++) {
+    const st = stages[si];
+    for (const e of st.enemies.slice()) if (st.enemies.length > 1 && lockMs(st, e) < minMs) { scene.remove(e.fig.g); actors.splice(actors.indexOf(e), 1); st.enemies.splice(st.enemies.indexOf(e), 1); totalEnemies--; }
+  }
   // finish line on the last roof
   const last = plat[plat.length - 1];
   const flag = addMesh(new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.6, 0.12), M.steelDark)); flag.position.set(last.a + 7, last.top + 1.3, -0.6);
   const cloth = addMesh(new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 0.04), M.hazard)); cloth.position.set(last.a + 7.55, last.top + 2.2, -0.6);
-  ammoMax = totalEnemies + 2 + nst; ammo = ammoMax; drawAmmo();
+  ammoMax = totalEnemies + 2 + nst; ammo = ammoMax; drawAmmo(); queued = 0;
   agent.x = -6; agent.y = 0; agent.phase = 'idle'; agent.spin = 0; agent.jump = null; agent.dead = false; agent.fig.g.rotation.set(0, 0, 0);
   agent.fig.g.position.set(agent.x, agent.y + 0.95, 0); agent.fig.body.rotation.set(0, -0.45, 0);
   aim(agent.fig.aR, -1.2); aim(agent.fig.aL, -1.4);
@@ -262,6 +269,34 @@ function muzzle(x = agent.x, y = agent.y, spin = agent.spin) {
   return [cx + c * lx - s * ly, cy + s * lx + c * ly, c, s];
 }
 const JUMP_T = 0.95;
+// aim assist: a tap fires at the goon nearest the laser if he is within this angle (and in clear sight). Wide on level 1, tight later.
+const ASSIST = [0.9, 0.6, 0.45, 0.38, 0.32, 0.28];
+const assistAng = () => ASSIST[level - 1] ?? 0.24;
+const slowMo = () => level === 1 ? 0.17 : level === 2 ? 0.2 : clamp(0.24 * fk, 0.2, 0.3);
+/** real ms that goon e stays locked during stage st's flip (others treated as already shot) */
+function lockMs(st, e) {
+  const J = { x0: st.J - 0.35, y0: st.H, x1: st.L + 0.9, y1: st.T, apex: Math.max(st.H, st.T) + 2.7 }, others = new Set(actors.filter(a => a !== e)), step = 0.005; let t = 0, ms = 0;
+  for (; t < JUMP_T * 0.86; t += step) { const P = flipPose(J, t), A = aimShot(P.x, P.y, P.spin, others); if (A.locked && A.tr.hit.actor === e) ms += step / slowMo() * 1000; }
+  return ms;
+}
+const pendingSet = () => new Set(bullets.map(b => b.hit.actor || b.hit.barrel));
+/** the shot a tap would fire right now (or at pose x,y,spin): snapped onto a goon when locked */
+function aimShot(x = agent.x, y = agent.y, spin = agent.spin, pend = pendingSet()) {
+  const [mx, my, dx, dy] = muzzle(x, y, spin), raw = trace(mx, my, dx, dy, 2, 34);
+  if (raw.hit.type === 'enemy' && !pend.has(raw.hit.actor)) return { mx, my, dx, dy, tr: raw, locked: true };
+  let best = null, bd = assistAng();
+  for (const a of actors) {
+    if (!a.alive || a.kind !== 'enemy' || pend.has(a)) continue;
+    for (const py of [0.98, 1.55]) {
+      const ex = a.x - mx, ey = a.y + py - my, l = Math.hypot(ex, ey); if (l > 30) continue;
+      const ux = ex / l, uy = ey / l, d = Math.acos(clamp(ux * dx + uy * dy, -1, 1));
+      if (d >= bd) continue;
+      const tr = trace(mx, my, ux, uy, 0, 34); if (tr.hit.actor !== a) continue;
+      bd = d; best = { mx, my, dx: ux, dy: uy, tr, locked: true };
+    }
+  }
+  return best || { mx, my, dx, dy, tr: raw, locked: false };
+}
 function flipPose(J, t) {          // position + spin along the jump at game time t
   const u = Math.min(1, t / JUMP_T), e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2, k = lerp(u, e, 0.35);
   return { u, x: lerp(J.x0, J.x1, u), y: lerp(J.y0, J.y1, u) + 4 * (J.apex - (J.y0 + J.y1) / 2) * u * (1 - u), spin: -0.4 + k * (Math.PI * 2 + 0.4) };
@@ -273,16 +308,20 @@ const laserMat2 = new THREE.MeshBasicMaterial({ color: '#ffe14d', transparent: t
 const laserGeo = new THREE.BoxGeometry(1, 0.055, 0.055); laserGeo.translate(0.5, 0, 0);
 const lasers = [0, 1, 2].map(i => { const m = new THREE.Mesh(laserGeo, i ? laserMat2 : laserMat); m.visible = false; m.renderOrder = 5; scene.add(m); return m; });
 const dotM = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), new THREE.MeshBasicMaterial({ color: '#ff2a3a', fog: false })); scene.add(dotM); dotM.visible = false;
+let wasLocked = false;
 function drawLaser(on) {
   for (const l of lasers) l.visible = false; dotM.visible = false;
   if (!on) return;
-  const [mx, my, dx, dy] = muzzle(), tr = trace(mx, my, dx, dy, 2, 30);
+  const A = aimShot(), tr = A.tr, th = A.locked ? 2.6 : 1;
   for (let i = 0; i < tr.pts.length - 1 && i < 3; i++) {
     const [ax, ay] = tr.pts[i], [bx, by] = tr.pts[i + 1], l = lasers[i];
-    l.visible = true; l.position.set(ax, ay, 0.05); l.scale.set(Math.hypot(bx - ax, by - ay), 1, 1); l.rotation.z = Math.atan2(by - ay, bx - ax);
+    l.visible = true; l.position.set(ax, ay, 0.05); l.scale.set(Math.hypot(bx - ax, by - ay), th, th); l.rotation.z = Math.atan2(by - ay, bx - ax);
   }
   const e = tr.pts[tr.pts.length - 1]; dotM.visible = tr.hit.type !== 'none'; dotM.position.set(e[0], e[1], 0.1);
-  laserMat.color.set(tr.hit.type === 'hostage' ? '#ff8fe0' : '#ff2a3a');
+  dotM.scale.setScalar(A.locked ? 3.2 + Math.sin(performance.now() / 60) * 0.6 : 1);
+  laserMat.color.set(A.locked ? '#3dff7a' : tr.hit.type === 'hostage' ? '#ff8fe0' : '#ff2a3a'); dotM.material.color.set(A.locked ? '#3dff7a' : '#ff2a3a');
+  if (A.locked && !wasLocked) tone(1400, 0.04, 'sine', 0.05, 1.2);
+  wasLocked = A.locked;
   return tr;
 }
 
@@ -292,8 +331,8 @@ const trailMat = new THREE.MeshBasicMaterial({ color: '#fff2a8', transparent: tr
 function fire() {
   if (state !== 'play' || agent.phase !== 'flip') return;
   if (ammo <= 0) { tone(180, 0.06, 'square', 0.06, 0.8); ui.pop('NO AMMO', '#ffffff', 26, 30); return; }
-  ammo--; drawAmmo();
-  const [mx, my, dx, dy] = muzzle(), tr = trace(mx, my, dx, dy, 2, 34);
+  ammo--; drawAmmo(); queued = 0;
+  const { mx, my, dx, dy, tr } = aimShot();
   const m = new THREE.Mesh(G.bullet, bulletMat); m.position.set(mx, my, 0.05); scene.add(m);
   const tm = new THREE.Mesh(laserGeo, trailMat); tm.scale.set(0.01, 1.6, 1.6); scene.add(tm);
   let len = 0; const segs = []; for (let i = 0; i < tr.pts.length - 1; i++) { const l = Math.hypot(tr.pts[i + 1][0] - tr.pts[i][0], tr.pts[i + 1][1] - tr.pts[i][1]); segs.push(l); len += l; }
@@ -346,7 +385,8 @@ function win() {
   sfx.win(); buzz([30, 40, 30]);
   const p = v3(agent.x, agent.y + 2, 0);
   for (let i = 0; i < 3; i++) setTimeout(() => fx.emit(p.clone().add(v3((Math.random() - 0.5) * 4, Math.random() * 2, 0)), { color: ['#ff5d8f', '#ffd23f', '#3ab795', '#3a86ff', '#7b5cff'][i], n: 30, speed: 7, size: 0.22, life: 1.6, g: 6, drag: 0.6 }), i * 150);
-  ui.win(level - 1, ammo ? `+${ammo * 5} spare bullets · ${score} pts` : `${score} pts`);
+  confetti(scene, v3(agent.x, agent.y + 3, 0), 80); shake = Math.max(shake, 0.4); ui.flash(0.4);
+  ui.win(level - 1, ammo ? `+${ammo * 5} spare bullets · ${score} pts` : `${score} pts`); ui.els.win.querySelector('.hint').textContent = `Level ${level} ▶`;
 }
 function lose(why) {
   if (state !== 'play') return;
@@ -371,7 +411,32 @@ function tracer(ax, ay, bx, by, color) {
 }
 
 // ------------------------------------------------------------------ input
-input({ onDown: () => { if (state === 'play') fire(); } });
+// A tap never gets lost: in a flip it fires at once when locked on; if the laser is about to lock (or the flip is about to start)
+// the tap is held for a moment and fires on the lock. Extra taps while one is held don't burn bullets.
+let queued = 0, waitPop = 0;
+function lockSoon(ms) {
+  if (agent.phase !== 'flip') return false; const pend = pendingSet();
+  for (let k = 1; k * 10 <= ms; k++) { const P = flipPose(agent.jump, agent.t + k * 0.01 * Math.max(timeScale, 0.1)); if (P.u >= 1) break; if (aimShot(P.x, P.y, P.spin, pend).locked) return true; }
+  return false;
+}
+function tapShoot() {
+  if (state !== 'play') return; const now = performance.now();
+  if (queued > now) return;
+  const st = stages[stageIdx], pend = pendingSet();
+  if (st && !st.enemies.some(e => e.alive && !pend.has(e))) return;   // every goon here is down or has a bullet coming: don't waste one
+  if (agent.phase === 'flip') {
+    if (aimShot().locked) return fire();
+    const hold = level <= 2 ? 6000 : 300;   // levels 1-2: a tap anywhere in the flip waits for the lock (rest of this flip)
+    if (lockSoon(hold)) { queued = now + hold; return; }
+    return fire();
+  }
+  if (agent.phase === 'run' && stageIdx < stages.length) {
+    const toEdge = (stages[stageIdx].J - 0.35 - agent.x) / 7;   // seconds until the flip starts
+    if (toEdge < 0.6) { queued = now + toEdge * 1000 + (level <= 2 ? 900 : 400); return; }
+    if (now > waitPop) { ui.pop('WAIT FOR THE FLIP', '#ffffff', 26, 30); waitPop = now + 1400; }
+  }
+}
+input({ onDown: tapShoot });
 ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; agent.phase = 'run'; sfx.tap(); }
   else { score = which === 'win' ? score : 0; buildLevel(); state = 'play'; agent.phase = 'run'; }
@@ -399,9 +464,9 @@ loop((dt60) => {
       const st = stages[stageIdx];
       A.phase = 'flip'; A.t = 0; flipKills = 0;
       A.jump = { x0: A.x, y0: A.y, x1: st.L + 0.9, y1: st.T, apex: Math.max(st.H, st.T) + 2.7 };
-      tsTarget = clamp(0.24 * fk, 0.2, 0.3); tone(300, 0.25, 'sine', 0.1, 2.2); buzz(15);
+      tsTarget = slowMo(); tone(300, 0.25, 'sine', 0.1, 2.2); buzz(15);
       fx.emit(v3(A.x, A.y + 0.1, 0), { color: '#ffffff', n: 8, speed: 2, size: 0.4, size1: 0.9, life: 0.6, alpha: 0.7 });
-      ui.pop(stageIdx === 0 && level === 1 ? 'TAP TO SHOOT!' : 'SLOW-MO', '#ffffff', 28, 30);
+      ui.pop(stageIdx === 0 && level <= 2 ? 'TAP NOW!' : 'SLOW-MO', '#ffffff', 30, 30);
     }
   }
   if (A.phase === 'flip') {
@@ -424,6 +489,7 @@ loop((dt60) => {
   A.squash = Math.max(0, A.squash - rdt * 5);
   F.g.position.set(A.x, A.y + 0.95, 0); F.g.scale.set(1 + A.squash * 0.2, 1 - A.squash * 0.22, 1);
   drawLaser(A.phase === 'flip' && state === 'play');
+  if (queued && state === 'play') { if (performance.now() > queued || A.phase === 'run' && A.squash > 0.9) queued = 0; else if (A.phase === 'flip' && wasLocked) fire(); }
   vig.style.opacity = A.phase === 'flip' && state === 'play' ? clamp((1 - timeScale) * 1.3, 0, 1) : 0;
 
   // ---- actors: idle bob, aim at the agent, ragdoll when dead
@@ -519,4 +585,11 @@ window.__game = {
   },
 };
 let botTimer = 0;
-window.__dbg = () => `${state} ${agent.phase} st${stageIdx} k${kills}/${totalEnemies} ammo${ammo} ts${timeScale.toFixed(2)}`;
+// test hook: for each stage, how many ms (real, at the stage's slow-mo) each goon is locked on during its flip
+window.__game.lockMap = () => stages.map((st, si) => {
+  const J = { x0: st.J - 0.35, y0: st.H, x1: st.L + 0.9, y1: st.T, apex: Math.max(st.H, st.T) + 2.7 }, ts = slowMo();
+  const ms = new Map(st.enemies.map(e => [e, 0])), none = new Set(), step = 0.005;
+  for (let t = 0; t < JUMP_T * 0.86; t += step) { const P = flipPose(J, t), A = aimShot(P.x, P.y, P.spin, none); if (A.locked && ms.has(A.tr.hit.actor)) ms.set(A.tr.hit.actor, ms.get(A.tr.hit.actor) + step / ts * 1000); }
+  return { stage: si, goons: [...ms.values()].map(Math.round), hostages: st.hostages };
+});
+window.__dbg = () => `${state} ${agent.phase} st${stageIdx} k${kills}/${totalEnemies} ammo${ammo} ts${timeScale.toFixed(2)} lock${wasLocked ? 1 : 0}`;

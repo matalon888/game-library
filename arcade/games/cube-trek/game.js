@@ -4,13 +4,13 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 
 import { board as worldBoard } from './kit/board.js';
-const WB = worldBoard({ game: 'cube-trek', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
+const WB = worldBoard({ game: 'cube-trek', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 2 }, mode: 'sum' });
 const S = store('cubetrek');
 const F = flow('cubetrek'); let fk = 1;
 let level = S.get('level', 1), best = S.get('best', 0);
 const stage = createStage({ fov: 34, shadowSize: 12 });
 const { scene, camera, renderer, sun, hemi } = stage;
-const ui = createUI({ title: 'CUBE<br>TREK', hint: 'Tap a block, then tap the board · or drag', hand: '👆' });
+const ui = createUI({ title: 'CUBE<br>TREK', hint: 'Tap the glowing gap', hand: '👆' });
 hemi.intensity = 1.2; hemi.color.set('#ffffff'); hemi.groundColor.set('#8ea0ff');
 sun.intensity = 1.9; sun.position.set(-7, 9, 16); sun.target.position.set(0, 0, 0);
 Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 14, bottom: -14 }); sun.shadow.camera.updateProjectionMatrix();
@@ -91,17 +91,46 @@ function pickShape(guarantee) {
   }
   return [[0, 0]];
 }
+const lvE = () => Math.max(1, level - 2);   // levels 1-2 are hand-made warm-ups; level 3 plays like the old level 1
+let guide = null;                           // warm-up levels: [{ slot, r0, c0 }] the moves that clear them (shown as a glowing ghost)
+const H2 = [[0, 0], [1, 0]], H3 = [[0, 0], [1, 0], [2, 0]];
+function warmup() {
+  const C = (r, c, gem = false, color) => { board[r][c] = { color: color || COLORS[(r * 3 + c) % COLORS.length], gem, pop: 0 }; };
+  if (level === 1) {        // bottom row with a 2-wide gap; one domino frees both gems
+    for (const c of [0, 1, 2, 5, 6, 7]) C(7, c, c === 1 || c === 6);
+    for (const c of [0, 1, 6, 7]) C(6, c);
+    tray = [H2, H2, H2].map((cells, i) => ({ cells, color: COLORS[[5, 1, 3][i]], slot: i, used: false, pop: -i * 0.08 }));
+    guide = [{ slot: 0, r0: 7, c0: 3 }];
+  } else {                  // two gaps, two moves
+    for (const c of [2, 3, 4, 5, 6, 7]) C(7, c, c === 4 || c === 7);
+    for (const c of [0, 1, 2, 3, 7]) C(6, c, c === 1 || c === 2);
+    for (const c of [0, 7]) C(5, c);
+    tray = [H3, H2, [[0, 0]]].map((cells, i) => ({ cells, color: COLORS[[4, 0, 6][i]], slot: i, used: false, pop: -i * 0.08 }));
+    guide = [{ slot: 0, r0: 6, c0: 4 }, { slot: 1, r0: 7, c0: 0 }];
+  }
+  sfx.pick(2);
+}
+function hintMove() {
+  if (!guide || state !== 'play' || (level === 2 && idleT < 2.5)) return null;
+  for (const g of guide) { const p = tray[g.slot]; if (p && !p.used && fits(board, p.cells, g.r0, g.c0)) return { p, ...g }; }
+  return null;
+}
 function dealTray() {
-  const hard = Math.min(1, (level - 1) / 10 * fk);
+  const hard = Math.min(1, (lvE() - 1) / 10 * fk);
   tray = [0, 1, 2].map(i => ({ cells: pickShape(i === 0 || rand() > hard * 0.7), color: COLORS[Math.floor(rand() * COLORS.length)], slot: i, used: false, pop: 0 }));
   tray.forEach((p, i) => p.pop = -i * 0.08);
   sfx.pick(2);
 }
 function buildLevel() {
-  rand = rng(level * 4513 + 7); fk = F.k(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; sel = null; botMove = null;
-  const isScore = level % 3 === 0;
+  rand = rng(lvE() * 4513 + 7); fk = F.k(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; sel = null; botMove = null; guide = null; idleT = 0;
+  if (level <= 2) {
+    warmup(); const filled = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c]) { filled.push(1); board[r][c].pop = -((N - r) * 0.04 + c * 0.015); }
+    let ng = 0; for (const row of board) for (const b of row) if (b && b.gem) ng++;
+    goal = { type: 'gems', need: ng, got: 0 }; ui.levels(level); ui.score(0); updateGoal(); ui.progress(0); return;
+  }
+  const lv = lvE(), isScore = lv % 3 === 0;
   // a seeded "mess": columns of rubble rising from the bottom, never a full line
-  const fill = Math.min(0.75, (0.4 + Math.min(0.25, level * 0.025)) * fk), heights = [];
+  const fill = Math.min(0.75, (0.4 + Math.min(0.25, lv * 0.025)) * fk), heights = [];
   for (let c = 0; c < N; c++) heights.push(Math.floor(rand() * (2 + fill * 8)));
   for (let c = 0; c < N; c++) for (let r = N - 1; r >= N - heights[c]; r--) if (rand() < 0.86) board[r][c] = { color: COLORS[Math.floor(rand() * COLORS.length)], gem: false, pop: 0 };
   for (let r = 0; r < N; r++) if (board[r].every(Boolean)) board[r][Math.floor(rand() * N)] = null;
@@ -109,11 +138,11 @@ function buildLevel() {
   const filled = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c]) filled.push([r, c]);
   let ng = 0;
   if (!isScore) {
-    const want = Math.min(filled.length, 3 + Math.floor(level * 0.8), 12);
+    const want = Math.min(filled.length, 3 + Math.floor(lv * 0.8), 12);
     filled.sort((a, b) => (board[b[0]].filter(Boolean).length - board[a[0]].filter(Boolean).length) + (rand() - 0.5) * 3);
     for (let i = 0; i < want; i++) { const [r, c] = filled[i]; board[r][c].gem = true; ng++; }
     goal = { type: 'gems', need: ng, got: 0 };
-  } else goal = { type: 'score', need: 250 + level * 35, got: 0 };
+  } else goal = { type: 'score', need: 250 + lv * 35, got: 0 };
   for (const [r, c] of filled) board[r][c].pop = -((N - r) * 0.04 + c * 0.015);
   dealTray(); ui.levels(level); ui.score(0); updateGoal(); ui.progress(0);
 }
@@ -138,7 +167,9 @@ input({
   onDown: (e) => {
     if (state !== 'play' || botMove || settle > 0) return;
     const w = toWorld(e.clientX, e.clientY);
-    if (w.y > TRAY_Y + 2.6) { if (sel && !sel.used) { const p = sel; sel = null; tryDrop({ p, x: w.x, y: w.y }); } return; }   // tap the board with a piece selected: drop it there
+    if (w.y > TRAY_Y + 2.6) {
+      if (guide && (!sel || sel.used)) { const h = hintMove() || (guide.map(g => ({ p: tray[g.slot], ...g })).find(g => g.p && !g.p.used && fits(board, g.p.cells, g.r0, g.c0))); if (h) { const [gw] = dims(h.p.cells), [hx, hy] = cellPos(h.r0, h.c0 + (gw - 1) / 2); if (Math.hypot(w.x - hx, w.y - hy) < 2.6) { sel = null; place(h.p, h.r0, h.c0); return; } } }
+      if (sel && !sel.used) { const p = sel; sel = null; tryDrop({ p, x: w.x, y: w.y }); } return; }   // tap the board with a piece selected: drop it there
     let bestI = -1, bd = 2.2; tray.forEach((p, i) => { if (p.used) return; const d = Math.abs(w.x - SLOT_X[i]); if (d < bd) { bd = d; bestI = i; } });
     if (bestI < 0) return;
     drag = { p: tray[bestI], x: SLOT_X[bestI], y: TRAY_Y, tx: SLOT_X[bestI], ty: TRAY_Y, s: TRAY_S, x0: e.clientX, y0: e.clientY, moved: false }; sfx.tap(); buzz(6);
@@ -155,7 +186,7 @@ function tryDrop(d) {
 // ------------------------------------------------------------------ placing + clearing
 const COMBO_WORDS = ['', 'GOOD!', 'GREAT!', 'EXCELLENT!', 'AMAZING!', 'UNBELIEVABLE!'];
 function place(p, r0, c0) {
-  p.used = true;
+  p.used = true; idleT = 0;
   for (const [x, y] of p.cells) board[r0 + y][c0 + x] = { color: p.color, gem: false, pop: 1 };
   score += p.cells.length; sfx.pick(p.cells.length); buzz(10);
   const { rows, cols } = fullLines(board), lines = rows.length + cols.length;
@@ -181,7 +212,8 @@ function place(p, r0, c0) {
 function checkEnd() {
   if (goal.type === 'gems' ? goal.got >= goal.need : score >= goal.need) {
     state = 'won'; F.level(true); WB.submit(1); setTimeout(() => { sfx.win(); buzz([20, 40, 20]); confetti(scene, new THREE.Vector3(0, BOARD_Y + 2, 2), 60); confetti(scene, new THREE.Vector3(-3, BOARD_Y, 2), 30); confetti(scene, new THREE.Vector3(3, BOARD_Y, 2), 30); }, 450);
-    best = Math.max(best, score); S.set('best', best); ui.win(level, `Score ${score}`); level++; S.set('level', level);
+    best = Math.max(best, score); S.set('best', best); ui.win(level, `Score ${score}`); level++; S.set('level', level); ui.els.win.querySelector('.hint').textContent = `Level ${level} ▶`;
+    setTimeout(() => { ui.flash(0.5); renderer.domElement.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05) rotate(-1deg)' }, { transform: 'scale(.98) rotate(1deg)' }, { transform: 'scale(1)' }], { duration: 420 }); }, 450);
     return;
   }
   const live = tray.filter(t => !t.used);
@@ -210,7 +242,7 @@ function addGem(x, y, z, s, t) { if (ng >= 80) return; e3.set(0.25, t * 2 + x, 0
 const easeBack = t => { const c = 1.9; t = clamp(t, 0, 1); return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
 
 loop((dt, t) => {
-  const sec = dt / 60; ni = 0; ng = 0; settle = Math.max(0, settle - sec);
+  const sec = dt / 60; ni = 0; ng = 0; settle = Math.max(0, settle - sec); if (state === 'play' && !drag) idleT += sec; else idleT = 0;
   // preview: which cells / lines would the dragged piece make?
   let prev = null;
   if (drag) {
@@ -271,6 +303,9 @@ loop((dt, t) => {
   }
   // ghost preview on the board
   ghost.count = 0;
+  const hm = !prev && !drag && !botMove ? hintMove() : null;
+  if (hm) { for (const [x, y] of hm.p.cells) { const [gx, gy] = cellPos(hm.r0 + y, hm.c0 + x); m4.compose(v3.set(gx, gy, -0.05), q.identity(), sc.set(0.96, 0.96, 0.5)); ghost.setMatrixAt(ghost.count++, m4); } ghost.instanceMatrix.needsUpdate = true; ghost.material.color.set(hm.p.color).lerp(tmpC.set('#fff'), 0.35); ghost.material.opacity = 0.35 + 0.3 * Math.sin(t * 7); }
+  else ghost.material.opacity = 0.5;
   if (prev) { const [w, h] = dims(drag.p.cells); for (const [x, y] of drag.p.cells) { const [gx, gy] = cellPos(prev.r0 + y, prev.c0 + x); m4.compose(v3.set(gx, gy, -0.05), q.identity(), sc.set(0.96, 0.96, 0.5)); ghost.setMatrixAt(ghost.count++, m4); } ghost.instanceMatrix.needsUpdate = true; ghost.material.color.set(drag.p.color).lerp(tmpC.set('#fff'), 0.3); }
   blocks.count = faces.count = ni; gems.count = ng;
   blocks.instanceMatrix.needsUpdate = faces.instanceMatrix.needsUpdate = gems.instanceMatrix.needsUpdate = true;
@@ -297,6 +332,8 @@ function evalMove(b, cells, r0, c0) {
   return sc2 - holes * 2.2 + r0 * 0.05;
 }
 window.__game = {
+  cellXY(r, c) { const [x, y] = cellPos(r, c), v = new THREE.Vector3(x, y, 0.3).project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; },
+  trayXY(i) { const v = new THREE.Vector3(SLOT_X[i], TRAY_Y, 0.3).project(camera); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; },
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() {
     if (state !== 'play' || botMove || drag || settle > 0) return;

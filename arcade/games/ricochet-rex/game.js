@@ -8,6 +8,11 @@ import { board as worldBoard } from './kit/board.js';
 const stage = createStage({ shadows: true, shadowSize: 15 });
 const { scene, renderer, sun } = stage;
 stage.autoRender = false;
+// load/stall budget (HOOK pass): ≤1.5 device px per CSS px, 1024 hard-edged PCF shadow map instead of 2048 soft,
+// and no synchronous shader-error readback (that readback is what blocks the main thread on phone GPUs)
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); stage.resize();
+renderer.shadowMap.type = THREE.PCFShadowMap; sun.shadow.mapSize.set(1024, 1024);
+renderer.debug.checkShaderErrors = false;
 sun.position.set(2.6, 15.5, 10); sun.target.position.set(0, 11, 0); sun.intensity = 1.5; sun.shadow.camera.updateProjectionMatrix();
 stage.hemi.intensity = 1.35;
 const cam = new THREE.OrthographicCamera(-5, 5, 10, -10, 0.1, 100);
@@ -22,7 +27,7 @@ function fit() {
 addEventListener('resize', fit); fit();
 cam.position.set(0, camBaseY, 20);
 
-const ui = createUI({ title: 'RICOCHET<br>REX', hint: 'Tap to shoot that way · or drag to aim', hand: '☝️' });
+const ui = createUI({ title: 'RICOCHET<br>REX', hint: 'Tap a goon to shoot', hand: '☝️' });
 const css = document.createElement('style');
 css.textContent = `.hc-score{font-size:40px;top:calc(52px + env(safe-area-inset-top))}
 .hc-card{padding-top:calc(200px + env(safe-area-inset-top))}
@@ -33,6 +38,8 @@ css.textContent = `.hc-score{font-size:40px;top:calc(52px + env(safe-area-inset-
 .rr-ammo i{display:block;width:13px;height:34px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#ffe58a 0,#f2b21f 42%,#2b2d36 43%,#2b2d36 50%,#c98a12 51%,#a86e0b 100%);box-shadow:0 3px 0 rgba(0,0,0,.25);transition:opacity .2s,transform .2s}
 .rr-ammo i.spent{opacity:.22;transform:scale(.85)}
 .rr-ammo i.pulse{animation:rrp .35s ease-out}
+.hc-card .hint{margin-bottom:30vh}
+.rr-next{display:inline-block;margin-top:6px;font-size:26px;padding:14px 40px;animation:none}
 @keyframes rrp{0%{transform:scale(1.5)}100%{transform:scale(.85)}}`;
 document.head.appendChild(css);
 const ammoEl = Object.assign(document.createElement('div'), { className: 'rr-ammo' });
@@ -40,7 +47,7 @@ document.body.appendChild(ammoEl);
 
 const save = store('ricochetrex');
 const F = flow('ricochetrex');
-const WB = worldBoard({ game: 'ricochet-rex', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });
+const WB = worldBoard({ game: 'ricochet-rex', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });
 let fkL = 1;
 let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 
@@ -67,6 +74,7 @@ const PG = {
   rope: new THREE.TorusGeometry(0.29, 0.04, 6, 18), bun: new THREE.SphereGeometry(0.13, 10, 8), mouth: new THREE.SphereGeometry(0.05, 8, 6),
 };
 const SKIN = '#ffcfa8';
+const CAST = new Set([PG.torso, PG.head, PG.arm, PG.leg, PG.brim, PG.crown, PG.cap, PG.gun]);
 const STYLES = {
   agent: { body: '#2f55b5', legs: '#22397a', hair: '#1d1d24' },
   lumber: { body: '#d8423a', legs: '#3c5da6', cap: '#2f6fd1', brows: true },
@@ -75,11 +83,12 @@ const STYLES = {
   robber: { body: '#2b2b33', legs: '#3a3a46', stripes: '#f2f2f2', beanie: '#2b2b33', bandit: true, brows: false },
   hostage: { body: '#f4f4f4', legs: '#8a8f9c', hair: '#6b3a1f', tied: true },
 };
+const FLASHG = new THREE.SphereGeometry(0.24, 10, 8);
 function person(style, parent) {
   const S = STYLES[style];
   const g = new THREE.Group(), piv = new THREE.Group(), root = new THREE.Group();
   piv.position.y = 0.95; root.position.y = -0.95; piv.add(root); g.add(piv);
-  const add = (geo, c, x, y, z = 0, par = root) => { const m = new THREE.Mesh(geo, M(c)); m.position.set(x, y, z); m.castShadow = true; par.add(m); return m; };
+  const add = (geo, c, x, y, z = 0, par = root) => { const m = new THREE.Mesh(geo, M(c)); m.position.set(x, y, z); m.castShadow = CAST.has(geo); par.add(m); return m; };
   const pivot = (x, y) => { const p = new THREE.Group(); p.position.set(x, y, 0); root.add(p); return p; };
   const legL = pivot(-0.13, 0.74), legR = pivot(0.13, 0.74), armL = pivot(-0.35, 1.34), armR = pivot(0.35, 1.34);
   add(PG.leg, S.legs, 0, -0.37, 0, legL); add(PG.leg, S.legs, 0, -0.37, 0, legR);
@@ -104,7 +113,7 @@ function person(style, parent) {
     add(PG.shirt, '#ffffff', 0, 1.3, 0.25); add(PG.tie, '#e23b3b', 0, 1.25, 0.28);
     gun = new THREE.Group(); gun.position.y = -0.6; armR.add(gun);
     add(PG.gun, '#2a2d36', 0, -0.06, 0, gun); add(PG.grip, '#2a2d36', 0, 0.06, -0.12, gun);
-    const fl = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), new THREE.MeshBasicMaterial({ color: '#ffe066', transparent: true, opacity: 0 }));
+    const fl = new THREE.Mesh(FLASHG, new THREE.MeshBasicMaterial({ color: '#ffe066', transparent: true, opacity: 0 }));
     fl.position.y = -0.38; gun.add(fl); gun.flash = fl;
   }
   parent.add(g);
@@ -125,6 +134,7 @@ const tntTex = (() => {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 })();
 const tntLabel = new THREE.MeshBasicMaterial({ map: tntTex, transparent: true });
+const TNTPLANE = new THREE.PlaneGeometry(0.78, 0.39);
 
 // ------------------------------------------------------------------ world + 2D simulation
 const IN = { x0: -4.6, x1: 4.6, y0: 3.0, y1: 18.6 };
@@ -289,7 +299,13 @@ function simWorld(L) {
   return { statics: L.statics, agent: L.agent, enemies: L.enemies.map(e => ({ ...e, alive: true })), hostages: L.hostages.map(e => ({ ...e, alive: true })),
     bodies: L.bodies.map(b => ({ ...b })), barrels: L.barrels.map(b => ({ ...b, alive: true })) };
 }
-function genLevel(lv) {
+/** level 1 = the hook: one goon on the floor in a clear line, nothing else, laser pre-aimed at him */
+function firstLevel() {
+  const S = [{ x0: -40, y0: -30, x1: 40, y1: IN.y0, floor: true }, { x0: -5.4, y0: IN.y1, x1: 5.4, y1: 19.5 }, { x0: -5.4, y0: IN.y0, x1: IN.x0, y1: IN.y1 }, { x0: IN.x1, y0: IN.y0, x1: 5.4, y1: IN.y1 }];
+  return { statics: S, agent: { x: -3.5, y: IN.y0 }, enemies: [{ x: 2.2, y: IN.y0 }], hostages: [], bodies: [], barrels: [], tpl: 0, surf: [] };
+}
+function genLevel(lv) { return lv <= 1 ? firstLevel() : genRoom(lv - 1); }   // level 2 = the old level 1, and so on
+function genRoom(lv) {
   const n = Math.max(2, Math.min(7, Math.round((2 + Math.floor(lv / 3)) * fkL)));
   let fallback = null;
   for (let att = 0; att < 70; att++) {
@@ -356,14 +372,32 @@ const laser = new THREE.InstancedMesh(laserGeo, new THREE.MeshBasicMaterial({ co
 laser.frustumCulled = false; laser.count = 0; laser.position.z = 0.8; scene.add(laser);
 const reticle = new THREE.Mesh(new THREE.RingGeometry(0.16, 0.24, 24), new THREE.MeshBasicMaterial({ color: '#ff3b3b', transparent: true, depthWrite: false }));
 reticle.visible = false; scene.add(reticle);
+const tapRing = new THREE.Mesh(new THREE.RingGeometry(0.62, 0.8, 32), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, depthWrite: false }));
+tapRing.visible = false; scene.add(tapRing);
 const trailGeo = new THREE.BoxGeometry(1, 0.09, 0.04); trailGeo.translate(0.5, 0, 0);
 const trailMesh = new THREE.InstancedMesh(trailGeo, new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.9, depthWrite: false }), 12);
 trailMesh.frustumCulled = false; trailMesh.count = 0; trailMesh.position.z = 0.7; scene.add(trailMesh);
 const bulletMesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.22, 4, 8), new THREE.MeshBasicMaterial({ color: '#ffd23f' }));
 bulletMesh.visible = false; scene.add(bulletMesh);
 
+// kit/hc.js frees EVERYTHING under an object 2 s after .remove() (its GPU-memory guard), shared geometries and the
+// cached materials included: that threw away the shader programs mid-level and recompiled them (a freeze 2 s into
+// every level). Unlink by hand instead and dispose only what this level owned.
+function detach(o) {
+  const p = o.parent; if (!p) return;
+  const i = p.children.indexOf(o); if (i >= 0) p.children.splice(i, 1);
+  o.parent = null; o.dispatchEvent({ type: 'removed' });
+}
+const SHARED = new Set([...Object.values(PG), ...Object.values(PROPG), FLASHG, TNTPLANE, tntLabel]);
+function disposeGroup(g) {
+  const MCS = new Set(Object.values(MC));
+  g.traverse(o => {
+    if (o.geometry && !SHARED.has(o.geometry)) o.geometry.dispose();
+    if (o.material && !SHARED.has(o.material) && !MCS.has(o.material)) o.material.dispose();
+  });
+}
 function buildLevel() {
-  if (levelGroup) scene.remove(levelGroup);
+  if (levelGroup) { detach(levelGroup); disposeGroup(levelGroup); }
   levelGroup = new THREE.Group(); scene.add(levelGroup);
   theme = THEMES[(level - 1) % THEMES.length];
   const bs = document.body.style; bs.setProperty('--bg1', theme.bg[0]); bs.setProperty('--bg2', theme.bg[1]); bs.setProperty('--ui', theme.ui); bs.background = theme.bg[1];
@@ -394,11 +428,11 @@ function buildLevel() {
   }
   for (const o of W.barrels) {
     const g = new THREE.Group(), c = new THREE.Mesh(PROPG.tnt, M('#e3392f')); c.castShadow = true; g.add(c);
-    const lab = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 0.39), tntLabel); lab.position.z = 0.42; g.add(lab);
+    const lab = new THREE.Mesh(TNTPLANE, tntLabel); lab.position.z = 0.42; g.add(lab);
     g.position.set(o.x, o.y, 0); levelGroup.add(g); o.m = g;
   }
   total = W.enemies.length; killed = 0; bullets = 3; bullet = null; slowT = 0; timeScale = 1; focus = null; loseT = 0; pending = []; tFade = 0;
-  for (const p of puffs) scene.remove(p.m); puffs = [];
+  for (const p of puffs) { detach(p.m); p.m.material.dispose(); } puffs = [];
   trailMesh.count = 0; bulletMesh.visible = false;
   const near = W.enemies.slice().sort((a, b) => Math.hypot(a.x - W.agent.x, a.y - W.agent.y) - Math.hypot(b.x - W.agent.x, b.y - W.agent.y))[0];
   aimA = near ? Math.atan2(near.y + 1 - W.agent.y - 1.34, near.x - W.agent.x) : 0.3;
@@ -450,7 +484,7 @@ function hostageHit(h, dx) {
 function cutRope(o) {
   if (!o.hanging) return;
   o.hanging = false; o.vy = -0.5; o.ground = false;
-  if (o.rope) { levelGroup.remove(o.rope); o.rope = null; }
+  if (o.rope) { detach(o.rope); o.rope = null; }
   burst(scene, V(o.x, o.y + 0.9, 0.5), '#c99a5a', 8, { speed: 0.06, size: 0.5 });
   tone(1400, 0.07, 'triangle', 0.08, 0.5); ui.pop('SNAP!', '#ffe9a8', 30, 33);
 }
@@ -481,25 +515,36 @@ function win() {
   if (state !== 'play') return;
   state = 'won'; F.level(true); WB.submit(1); timeScale = 1;
   const bonus = 150 * bullets; addScore(bonus);
-  sfx.win(); buzz([20, 40, 20]);
-  confetti(scene, V(0, 15, 1), 80);
-  if (bullets >= 2) ui.pop('ONE SHOT!', '#ffd23f', 46, 30);
+  sfx.win(); buzz([20, 40, 20, 40, 60]); shake = Math.max(shake, 0.5); ui.flash(0.5);
+  [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'triangle', 0.12, 1), i * 90));
+  confetti(scene, V(-3, 14, 1), 50); confetti(scene, V(3, 14, 1), 50);
+  burst(scene, V(W.agent.x, W.agent.y + 2.2, 0.8), ['#ffd23f', '#ffffff'], 16, { speed: 0.12, up: 0.12, size: 0.8, shape: 'sphere' });
+  ui.pop(bullets >= 2 ? 'ONE SHOT!' : 'CLEARED!', '#ffd23f', 50, 30);
   level++; save.set('level', level);
   ui.win(level - 1, bullets ? `+${bonus} for ${bullets} spare bullet${bullets > 1 ? 's' : ''}` : `${score} pts`);
+  ui.els.win.querySelector('.hint').innerHTML = `<span class="hc-btn rr-next">LEVEL ${level} ▶</span>`;
 }
 
 // ------------------------------------------------------------------ physics: crates / weights / ragdolls
 const overlap = (a, b) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
-const boxOf = (o) => ({ x0: o.x - o.w / 2, y0: o.y - o.h / 2, x1: o.x + o.w / 2, y1: o.y + o.h / 2 });
+const boxOf = (o, b = {}) => { b.x0 = o.x - o.w / 2; b.y0 = o.y - o.h / 2; b.x1 = o.x + o.w / 2; b.y1 = o.y + o.h / 2; return b; };
+const SOL = [], BPOOL = [], BB = {};
+function solidsFor(skip) {        // statics + other bodies + live barrels, reusing the same arrays/boxes every frame
+  SOL.length = 0; let k = 0;
+  for (const s of W.statics) SOL.push(s);
+  for (const b of W.bodies) if (b !== skip) SOL.push(boxOf(b, BPOOL[k] || (BPOOL[k] = {}))), k++;
+  for (const b of W.barrels) if (b.alive) SOL.push(boxOf(b, BPOOL[k] || (BPOOL[k] = {}))), k++;
+  return SOL;
+}
 function stepBody(o, dt) {
   if (o.hanging) return;
-  const solids = W.statics.concat(W.bodies.filter(b => b !== o).map(boxOf), W.barrels.filter(b => b.alive).map(boxOf));
+  const solids = solidsFor(o);
   o.vy = Math.max(-28, o.vy - 26 * dt);
   o.x += o.vx * dt;
-  for (const s of solids) { const bb = boxOf(o); bb.y0 += 0.02; bb.y1 -= 0.02; if (overlap(bb, s)) { if (o.vx > 0) o.x = s.x0 - o.w / 2; else if (o.vx < 0) o.x = s.x1 + o.w / 2; o.vx *= -0.25; } }
+  for (const s of solids) { const bb = boxOf(o, BB); bb.y0 += 0.02; bb.y1 -= 0.02; if (overlap(bb, s)) { if (o.vx > 0) o.x = s.x0 - o.w / 2; else if (o.vx < 0) o.x = s.x1 + o.w / 2; o.vx *= -0.25; } }
   const vyPrev = o.vy, prevB = o.y - o.h / 2, prevT = o.y + o.h / 2; o.y += o.vy * dt; const wasGround = o.ground; o.ground = false;
   let land = null;
-  for (const s of solids) if (overlap(boxOf(o), s)) {
+  for (const s of solids) if (overlap(boxOf(o, BB), s)) {
     if (o.vy <= 0 && prevB >= s.y1 - 0.05) { if (!land || s.y1 > land.y1 || (s.y1 === land.y1 && o.x >= s.x0 && o.x <= s.x1)) land = s; }
     else if (o.vy > 0 && prevT <= s.y0 + 0.05) { o.y = s.y0 - o.h / 2; o.vy = 0; }
   }
@@ -527,7 +572,7 @@ function stepRag(e, dt, t) {
   const r = 0.34;
   e.vy -= 22 * dt; e.cx += e.vx * dt; e.cy += e.vy * dt; e.rot += e.av * dt;
   let grounded = false;
-  const solids = W.statics.concat(W.bodies.map(boxOf), W.barrels.filter(b => b.alive).map(boxOf));
+  const solids = solidsFor(null);
   for (const s of solids) {
     const qx = clamp(e.cx, s.x0, s.x1), qy = clamp(e.cy, s.y0, s.y1); let dx = e.cx - qx, dy = e.cy - qy, d = Math.hypot(dx, dy);
     if (d >= r) continue;
@@ -552,6 +597,10 @@ function aimAt(cx, cy) {
   const p = toWorld(cx, cy), f = p.x >= W.agent.x ? 1 : -1, sx = W.agent.x + 0.35 * f, sy = W.agent.y + 1.34;
   if (Math.hypot(p.x - sx, p.y - sy) < 0.05) return;
   aimA = Math.atan2(p.y - sy, p.x - sx);
+  if (level === 1 && W.enemies[0] && W.enemies[0].alive) {
+    const e = W.enemies[0], ga = Math.atan2(e.y + 1 - sy, e.x - sx), d = Math.atan2(Math.sin(aimA - ga), Math.cos(aimA - ga));
+    if (Math.abs(d) < 0.45) aimA = ga;
+  }
 }
 input({
   onDown: (e) => { if (state !== 'play' || bullet || slowT > 0 || bullets <= 0) return; aiming = true; aimAt(e.clientX, e.clientY); sfx.tap(); },
@@ -561,6 +610,13 @@ input({
 ui.onTap((which) => { WB.start();
   if (which === 'start') { state = 'play'; return; }
   buildLevel(); state = 'play';
+});
+// level 1: tapping the goon on the start card already fires at him (the hint says "Tap a goon to shoot")
+ui.els.start.addEventListener('pointerdown', (e) => {
+  if (level !== 1 || state !== 'play' || !W.enemies[0]) return;
+  const g = W.enemies[0], [gx, gy] = toScreen(g.x, g.y + 1);
+  if (Math.hypot(e.clientX - gx, e.clientY - gy) > 90) return;
+  aimAt(e.clientX, e.clientY); fire();
 });
 
 // ------------------------------------------------------------------ main loop
@@ -604,16 +660,18 @@ loop((dt60, tt) => {
   } else if (tFade > 0) { tFade = Math.max(0, tFade - rdt * 1.4); trailMesh.material.opacity = 0.9 * tFade; if (!tFade) trailMesh.count = 0; }
 
   // ---- pending chain explosions, physics
-  for (const q of pending) q.t -= dt;
-  for (const q of pending.filter(q => q.t <= 0)) explode(q.o);
-  pending = pending.filter(q => q.t > 0);
+  if (pending.length) {
+    for (const q of pending) q.t -= dt;
+    for (const q of pending.filter(q => q.t <= 0)) explode(q.o);
+    pending = pending.filter(q => q.t > 0);
+  }
   if (W) {
     for (const o of W.bodies) stepBody(o, dt);
     for (const e of W.enemies) if (e.rag) stepRag(e, dt, t);
     for (const e of W.hostages) if (e.rag) stepRag(e, dt, t);
   }
   for (const p of puffs) { p.t += dt * 2.2; const k = clamp(p.t, 0, 1); p.m.scale.setScalar(0.1 + p.s * Math.sin(Math.min(1, k * 1.6) * Math.PI / 2)); p.m.material.opacity = 1 - Math.max(0, (k - 0.45) / 0.55); p.m.position.y += dt * 0.8; }
-  puffs = puffs.filter(p => p.t < 1 || (scene.remove(p.m), p.m.material.dispose(), false));
+  if (puffs.length) puffs = puffs.filter(p => p.t < 1 || (detach(p.m), p.m.material.dispose(), false));
 
   // ---- living goons + hostages + agent animation
   if (W) {
@@ -648,6 +706,9 @@ loop((dt60, tt) => {
     laser.count = n; laser.instanceMatrix.needsUpdate = true; laser.material.opacity = aiming ? 0.95 : 0.5;
     const end = segs[1]; reticle.visible = aiming; reticle.position.set(end[0], end[1], 0.85); reticle.scale.setScalar(1 + Math.sin(t * 10) * 0.12);
   } else { laser.count = 0; reticle.visible = false; }
+  const tg = level === 1 && W && state === 'play' && bullets === 3 && !bullet && W.enemies[0] && W.enemies[0].alive ? W.enemies[0] : null;
+  tapRing.visible = !!tg;
+  if (tg) { const k = (t * 1.4) % 1; tapRing.position.set(tg.x, tg.y + 1.05, 0.9); tapRing.scale.setScalar(0.9 + k * 0.7); tapRing.material.opacity = 0.9 * (1 - k); }
 
   // ---- lose when out of bullets and everything has settled
   if (state === 'play' && !bullet && bullets <= 0 && slowT <= 0 && killed < total) {
@@ -661,11 +722,38 @@ loop((dt60, tt) => {
   shake = Math.max(0, shake - rdt * 1.6);
   camX = lerp(camX, tx, 1 - Math.pow(0.004, rdt)); camY = lerp(camY, ty, 1 - Math.pow(0.004, rdt));
   cam.position.set(camX + (Math.random() - 0.5) * shake * 0.4, camY + (Math.random() - 0.5) * shake * 0.4, 20);
-  renderer.render(scene, cam);
+  if (gpuReady) renderer.render(scene, cam);
 });
 
 buildLevel();
 ui.start();
+
+// ------------------------------------------------------------------ shader pre-warm
+// Every material variant the game will ever draw (all 4 themes' scenery, props, particles, explosion puffs, confetti) is
+// compiled once here, in parallel off the main thread where the browser supports it, instead of on the first kill /
+// first explosion / first new theme (those lazy compiles were the mid-game freezes on phone GPUs).
+let gpuReady = false; const KEEP = [];
+(function prewarm() {
+  // 1) the room on screen: compile it, then start drawing (the start card is tappable meanwhile)
+  const ready = () => { if (gpuReady) return; gpuReady = true; setTimeout(rest, 30); };
+  try { renderer.compileAsync(scene, cam).then(ready, ready); } catch (e) { ready(); }
+  setTimeout(ready, 2500);   // never wait longer than this for the first picture
+  // 2) right after the first picture: everything later levels and effects use
+  function rest() {
+    const warm = new THREE.Group(), saveLevel = level;
+    for (let i = 0; i < THEMES.length; i++) { level = i + 1; scenery(THEMES[i], warm); }
+    level = saveLevel;
+    const m = (geo, mt, cast) => { const x = new THREE.Mesh(geo, mt); x.castShadow = !!cast; warm.add(x); return x; };
+    m(PROPG.crate, M('#dc8c3c'), true); m(PROPG.tnt, M('#e3392f'), true); m(TNTPLANE, tntLabel);
+    m(PROPG.puff, new THREE.MeshBasicMaterial({ color: '#ff9a3c', transparent: true, depthWrite: false }));
+    m(PROPG.puff, new THREE.MeshStandardMaterial({ color: '#ffd23f', transparent: true, roughness: 0.4 }));   // burst()/confetti() particles
+    m(PROPG.puff, new THREE.MeshStandardMaterial({ color: '#ffd23f', roughness: 0.4 }));
+    // the warm materials are kept (never disposed): three deletes a shader program when its last material is disposed, so
+    // without them every finished burst / level change threw its program away and the next kill compiled it again
+    warm.traverse(o => { if (o.material) KEEP.push(o.material); });
+    try { renderer.compileAsync(warm, cam, scene).catch(() => {}); } catch (e) {}
+  }
+})();
 
 // ------------------------------------------------------------------ test hooks
 const toScreen = (x, y) => { const v = new THREE.Vector3(x, y, 0).project(cam); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; };
@@ -687,6 +775,7 @@ function bestAngle() {
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
+  get gfx() { const i = renderer.info; return { programs: (i.programs || []).length, geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls }; },
   bot() {
     if (state !== 'play') return;
     const ev = (type, x, y) => dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, bubbles: true }));

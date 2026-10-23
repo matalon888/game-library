@@ -16,9 +16,9 @@ sun.position.set(3.5, 9, 10); sun.intensity = 1.9; hemi.intensity = 1.0; hemi.co
 sun.shadow.mapSize.set(1024, 1024); sun.shadow.radius = 4;
 const save = store('untwine');
 const F = flow('untwine'); let fk = 1;
-const WB = worldBoard({ game: 'untwine', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });
+const WB = worldBoard({ game: 'untwine', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 2 }, mode: 'sum' });
 let level = save.get('level', 1), total = save.get('freed', 0), state = 'ready';
-const ui = createUI({ title: 'UN<br>TWINE', hint: 'Tap a plug, then tap a free peg · or drag', hand: '👆', score: false });
+const ui = createUI({ title: 'UN<br>TWINE', hint: 'Tap the glowing plug, then peg', hand: '👆', score: false });
 
 // ---------------------------------------------------------------- textures
 function ropeTexture() {   // three twisted strands, diagonal grooves + fibres; tinted per rope via material colour
@@ -84,6 +84,19 @@ const sockX = (s, S, sp) => (s - (S - 1) / 2) * sp;
 
 // highlight rings shown on free pegs while dragging
 const hiMat = new THREE.MeshBasicMaterial({ color: '#9effc9', transparent: true, opacity: 0.0 });
+// warm-up guide (levels 1-2): a pulsing gold ring on the plug to move, then on the peg it goes to
+const guideMat = new THREE.MeshBasicMaterial({ color: '#ffe066', transparent: true, opacity: 0, depthTest: false });
+const guideRing = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.06, 8, 32), guideMat); guideRing.renderOrder = 5; scene.add(guideRing);
+let guideMv = null, idleT = 0;
+function guideTarget() {
+  if (level > 2 || state !== 'play' || botAnim || (level === 2 && idleT < 3)) return null;
+  if (!guideMv) { const sol = solve(pos); guideMv = sol && sol.length ? sol[0] : null; }
+  if (!guideMv) return null;
+  const [e, s] = guideMv;
+  if (!drag) return ropes[e >> 1].ends[e & 1].cur;
+  if (drag.e === e) return sockPos(e, s);
+  return null;
+}
 const hiRings = []; for (let i = 0; i < 8; i++) { const m = new THREE.Mesh(RING_GEO, hiMat); m.visible = false; scene.add(m); hiRings.push(m); }
 
 // ---------------------------------------------------------------- level state
@@ -166,7 +179,7 @@ function startLevel() {
   startCross = Math.max(1, crossings(pos));
   for (const r of ropes) for (let k = 0; k < 2; k++) { const e = 2 * r.i + k; r.ends[k].cur.copy(sockPos(e, pos[e])); }
   for (const r of ropes) r.free = ropeCrosses(pos, r.i) === 0;
-  drag = null; botAnim = null; winT = 0; botPlan = null;
+  drag = null; botAnim = null; winT = 0; botPlan = null; guideMv = null; idleT = 0;
   ui.levels(level); updateHud(false);
 }
 function shuffle(a, r) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -232,7 +245,7 @@ function endDrag(toSock) {
   sfx.tap(); tone(640, 0.07, 'triangle', 0.12, 1.25); buzz(12);
   burst(scene, sockPos(e, toSock).setZ(0.4), ['#ffffff', ropes[e >> 1].color], 8, { speed: 0.05, up: 0.04, size: 0.45, gravity: 0.003 });
   ropes.forEach((r, i) => { r.free = ropeCrosses(pos, i) === 0; r.wob = 1; if (r.free && !before[i]) freed(r); });
-  updateHud(true); botPlan = null;
+  updateHud(true); botPlan = null; guideMv = null; idleT = 0;
   const c = crossings(pos);
   if (c === 0) win();
   else if (movesLeft <= 0) { state = 'lost'; F.level(false, Math.max(0, 1 - c / startCross)); sfx.fail(); buzz([60, 40, 60]); ui.lose('OUT OF MOVES', `${c} tangle${c > 1 ? 's' : ''} left`); }
@@ -251,7 +264,8 @@ function win() {
   ui.pop(movesLeft > 0 && movesUsed <= par ? 'PERFECT!' : 'UNTANGLED!', '#fff', 42, 22);
   ropes.forEach((r, i) => setTimeout(() => { r.glow = 1.4; note(67 + i * 4, 0.35, 0.12); }, i * 90));
   level++; save.set('level', level);
-  ui.win(level - 1, `Untangled in ${movesUsed} move${movesUsed > 1 ? 's' : ''}`);
+  ui.win(level - 1, `Untangled in ${movesUsed} move${movesUsed > 1 ? 's' : ''}`); ui.els.win.querySelector('.hint').textContent = `Level ${level} ▶`;
+  setTimeout(() => confetti(scene, new THREE.Vector3(-1.5, 0, 1), 50), 220); setTimeout(() => confetti(scene, new THREE.Vector3(1.5, 0, 1), 50), 420);
 }
 
 function sockAt(cx, cy) {
@@ -331,6 +345,8 @@ loop((dt, t) => {
     const sig = [r.ends[0].cur.x, r.ends[0].cur.y, r.ends[0].cur.z, r.ends[1].cur.x, r.ends[1].cur.y, r.ends[1].cur.z, ...r.bump].map(v => v.toFixed(3)).join() + (r.wob > 0 ? t.toFixed(2) : '');
     if (sig !== r.sig) { r.sig = sig; rebuildRope(r, t); }
   }
+  if (state === 'play' && !drag) idleT += dt / 60;
+  { const g = guideTarget(); guideMat.opacity = g ? 0.65 + 0.35 * Math.sin(t * 8) : 0; if (g) { guideRing.position.set(g.x, g.y, 0.9); guideRing.scale.setScalar(1 + 0.15 * Math.sin(t * 8)); } }
   hiMat.opacity = drag ? 0.55 + 0.35 * Math.sin(t * 9) : 0; hiRings.forEach(h => h.scale.setScalar(1 + 0.08 * Math.sin(t * 9)));
   // gentle camera breathing + win push-in
   if (winT > 0) winT = Math.max(0, winT - 0.01 * dt);
@@ -339,4 +355,4 @@ loop((dt, t) => {
 });
 
 startLevel(); ui.start(); state = 'ready';
-window.__game = { get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, dbg: () => ({ pos, cross: crossings(pos), movesLeft, par }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };
+window.__game = { guideXY: () => guideMat.opacity > 0 ? toScreen(guideRing.position.clone().setZ(Z_PEG)) : null, get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, dbg: () => ({ pos, cross: crossings(pos), movesLeft, par }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };

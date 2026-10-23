@@ -10,7 +10,8 @@ const F = flow('tiptoetower');
 const WB = worldBoard({ game: 'tiptoe-tower', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
 let level = ST.get('level', 1), best = ST.get('best', 0), total = ST.get('gems', 0);
 const { scene, camera, followLight } = createStage({ fov: 50, shadowSize: 14 });
-const ui = createUI({ title: 'TIPTOE<br>TOWER', hint: 'Tap left or right to strut · or drag', hand: '👆', score: false });
+const ui = createUI({ title: 'TIPTOE<br>TOWER', hint: 'Tap a side · grab the shoes', hand: '👆', score: false });
+const nextCard = w => (l, x) => { ui.els.win.querySelector('.hint').textContent = 'Level ' + (l + 1) + ' ▶'; w(l, x); }; ui.win = nextCard(ui.win);   // one tap → next level
 const $ = id => document.getElementById(id);
 const SKIES = [['#3fa9ff', '#c4ecff', '#ff4fa3'], ['#ff7eb6', '#ffe0ef', '#c13aff'], ['#8f6bff', '#ffd1f0', '#ff4fa3'], ['#25c2d9', '#d9fbff', '#ff5d8f']];
 const TW = 5.4, BH = 0.34, SPEED = 9, LANES = [-1.7, 0, 1.7];
@@ -82,7 +83,17 @@ function buildLevel() {
   let heelBudget = 0;
   const pickRow = (zz, lane, n) => { for (let k = 0; k < n; k++) items.push({ kind: 'shoe', x: LANES[lane], z: zz - k * 1.6, got: false }); heelBudget += n; };
   const gemRow = (zz, lane, n) => { for (let k = 0; k < n; k++) items.push({ kind: 'gem', x: LANES[lane], z: zz - k * 1.2, got: false }); };
-  for (let i = 0; i < nSeg; i++) {
+  if (level === 1) {   // first run: shoes in every lane, one low wall, one easy splits, then the podium (~10 s)
+    for (const [l, n] of [[1, 5], [0, 3], [2, 3]]) pickRow(z, l, n);
+    gemRow(z - 9, 0, 3); z -= 14;
+    addWall(z, -TW / 2, TW / 2, 1); heelBudget -= 1; z -= 10;
+    for (const [l, n] of [[1, 4], [0, 2], [2, 2]]) pickRow(z, l, n);
+    gemRow(z - 9, 2, 3); z -= 14;
+    const need = 2, gap = 2 * (0.98 + need * BH) - 0.25, len = 10;
+    rails.push({ z0: z, z1: z - len, gap, need });
+    for (let k = 0; k < 4; k++) items.push({ kind: 'gem', x: (k % 2 ? 1 : -1) * gap / 2, z: z - 2 - k * 2.4, got: false, rail: true });
+    z -= len + 4;
+  } else for (let i = 0; i < nSeg; i++) {
     const kind = i < 1 ? 'pick' : (i % 3 === 2 && heelBudget > 5) ? 'rail' : (i % 2 ? 'wall' : 'pick');
     if (kind === 'pick') {
       const lane = Math.floor(R() * 3); pickRow(z, lane, 4 + Math.floor(R() * 3));

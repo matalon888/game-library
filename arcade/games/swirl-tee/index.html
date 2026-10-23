@@ -20,6 +20,7 @@
   .fold svg{width:54px;height:54px}
   .fold:active{transform:translateY(4px)}
   .fold.bad{animation:shake .4s;background:#ffd0d8}
+  .fold.go{animation:dop .9s ease-in-out infinite;box-shadow:0 0 0 5px #ff3d8b,0 6px 0 rgba(0,0,0,.16)}
   @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
   .ask{position:fixed;left:0;right:0;bottom:calc(146px + env(safe-area-inset-bottom));text-align:center;font-weight:800;font-size:24px;z-index:6;text-shadow:0 3px 0 rgba(0,0,0,.16);pointer-events:none;transition:opacity .25s}
   .ask.off{opacity:0}

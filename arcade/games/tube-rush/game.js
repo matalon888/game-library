@@ -20,7 +20,8 @@ sun.shadow.camera.far = 120;
 hemi.intensity = 1.25; hemi.color.set('#ffffff'); hemi.groundColor.set('#bfe9ff');
 document.body.style.setProperty('--bg1', '#57c7ff'); document.body.style.setProperty('--bg2', '#d6f4ff'); document.body.style.setProperty('--ui', '#ff5d8f');
 scene.fog = new THREE.Fog('#d4f2ff', 120, 420);
-const ui = createUI({ title: 'TUBE<br>RUSH', hint: 'Tap left or right to steer · or drag', hand: '👆' });
+const ui = createUI({ title: 'TUBE<br>RUSH', hint: 'Tap left or right to steer', hand: '👆' });
+const nextCard = w => (l, x) => { ui.els.win.querySelector('.hint').textContent = 'Level ' + (l + 1) + ' ▶'; w(l, x); }; ui.win = nextCard(ui.win);   // one tap → next level
 ui.levels(level);
 
 // ---------------------------------------------------------------- static world (ocean, islands, palms)

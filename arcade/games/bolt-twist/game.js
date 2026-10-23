@@ -20,6 +20,26 @@ const FL = flow('bolttwist');   // (F is the face table inside design)
 let level = save.get('level', 1), total = save.get('bolts', 0), state = 'ready';
 const ui = createUI({ title: 'BOLT<br>TWIST', hint: 'Tap the bolts!', hand: '👆', score: false });
 
+// ---------------------------------------------------------------- goal + danger readouts (bolts left, tray fill)
+const css = document.createElement('style');
+css.textContent = `.bt-left{position:fixed;left:50%;bottom:calc(9vh + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;pointer-events:none;
+  font-weight:800;font-size:30px;line-height:1;padding:8px 20px;border-radius:30px;background:rgba(30,60,120,.32);text-shadow:0 2px 0 rgba(0,0,0,.18);white-space:nowrap;transition:transform .12s}
+.bt-left.bump{transform:translateX(-50%) scale(1.18)}
+.bt-left small{font-size:18px;opacity:.85;margin-left:4px}
+.bt-tray{position:fixed;left:50%;transform:translateX(-50%);z-index:5;pointer-events:none;font-weight:800;font-size:16px;padding:2px 12px;border-radius:14px;background:rgba(30,60,120,.32);white-space:nowrap}
+.bt-tray.warn{background:#ff9f1a}.bt-tray.danger{background:#ff4d5e;animation:btpulse .5s ease-in-out infinite}
+@keyframes btpulse{50%{transform:translateX(-50%) scale(1.12)}}`;
+document.head.appendChild(css);
+const leftEl = Object.assign(document.createElement('div'), { className: 'bt-left hc-hidden' }), trayEl = Object.assign(document.createElement('div'), { className: 'bt-tray hc-hidden' });
+document.body.append(leftEl, trayEl);
+function hudText() {
+  const n = screws.filter((s) => !s.gone).length, used = buffer.filter(Boolean).length;
+  leftEl.innerHTML = n ? `🔩 ${n}<small>left</small>` : '🔩 0'; leftEl.classList.toggle('hc-hidden', state !== 'play' || !screws.length);
+  trayEl.textContent = `TRAY ${used}/${TRAY}`; trayEl.className = 'bt-tray' + (used >= TRAY - 1 ? ' danger' : used >= TRAY - 2 ? ' warn' : '') + (state === 'play' && used ? '' : ' hc-hidden');
+  trayEl.style.top = `${(0.262 + 0.045) * 100}%`;
+  if (tray.bar) tray.bar.material.color.set(used >= TRAY - 1 ? '#ff7a85' : used >= TRAY - 2 ? '#ffd27a' : '#ffffff');
+}
+
 // ---------------------------------------------------------------- shared geometry / materials
 const HEAD = new THREE.LatheGeometry([[0, 0], [0.2, 0], [0.215, 0.022], [0.207, 0.06], [0.16, 0.105], [0.08, 0.13], [0, 0.136]].map(([x, y]) => new THREE.Vector2(x, y)), 24);
 const CROSS = (() => {
@@ -57,7 +77,7 @@ function boxPos(i) { return new THREE.Vector3((i - (K - 1) / 2) * SLOT, fy(0.152
 const tray = new THREE.Group(); hud.add(tray);
 {
   const bar = new THREE.Mesh(rbox(TRAY * 0.62 + 0.2, 0.62, 0.22, 0.11), mat('#ffffff', { roughness: 0.6, transparent: true, opacity: 0.55 }));
-  tray.add(bar);
+  tray.add(bar); tray.bar = bar;
   for (let i = 0; i < TRAY; i++) { const h = new THREE.Mesh(HOLE, mat('#9fb3c8', { roughness: 0.8 })); h.rotation.x = Math.PI / 2; h.scale.set(1.5, 1, 1.5); h.position.set((i - (TRAY - 1) / 2) * 0.62, 0, 0.1); tray.add(h); }
 }
 const traySlot = (i) => new THREE.Vector3((i - (TRAY - 1) / 2) * 0.62, 0, 0.16);
@@ -117,7 +137,7 @@ function design(n, fk = 1) {
   const themes = ['crate', 'house', 'robot', 'gift', 'crate'];
   const theme = n <= 2 ? 'crate' : themes[n % themes.length];
   const W = n === 1 ? 2.9 : 2.6, H = theme === 'crate' ? 2.6 : 2.4, D = 2.6;
-  const faceNames = n === 1 ? ['front'] : n === 2 ? ['front', 'right'] : n === 3 ? ['front', 'right', 'left'] : (theme === 'crate' && n >= 6 ? ['front', 'right', 'back', 'left', 'top'] : ['front', 'right', 'back', 'left']);
+  const faceNames = n <= 2 ? ['front'] : n === 3 ? ['front', 'right'] : n === 4 ? ['front', 'right', 'left'] : (theme === 'crate' && n >= 6 ? ['front', 'right', 'back', 'left', 'top'] : ['front', 'right', 'back', 'left']);
   const F = FACE_DEF(W, H, D);
   const P = [];   // plates {face, type, w,h,r, cx,cy,rot, screws:[[fx,fy]], lv (stack level)}
   for (const fn of faceNames) {
@@ -153,8 +173,18 @@ function design(n, fk = 1) {
       if (ok(p)) { add(p); k++; }
     }
   }
-  // total bolts must be a multiple of 3
+  // bolt budget: short early levels, a steady curve after (players were leaving mid-level on 30-42 bolt toys)
+  const cap = boltCap(n);
   let N = P.reduce((a, p) => a + p.screws.length, 0);
+  while (N > cap) {   // drop a plate nothing sits on, from the back faces first, so the front stays the readable one
+    const free = P.filter((p) => !P.some((q) => q !== p && q.face === p.face && q.lv > p.lv && (overlaps(p, q) || overlaps(q, p))));
+    const order = ['top', 'back', 'left', 'right', 'front'];
+    free.sort((a, b) => order.indexOf(a.face) - order.indexOf(b.face) || b.lv - a.lv);
+    const p = free[0]; if (!p || P.length <= 1) break;
+    if (N - p.screws.length >= cap - 2 || p.screws.length <= 1) { P.splice(P.indexOf(p), 1); N -= p.screws.length; }
+    else { p.screws.length = Math.max(1, p.screws.length - (N - cap)); N = P.reduce((a, q) => a + q.screws.length, 0); }
+  }
+  // total bolts must be a multiple of 3
   while (N % 3) { const p = P.filter((q) => q.screws.length >= 3).pop() || P.filter((q) => q.screws.length >= 2).pop(); p.screws.pop(); N--; }
   // above-lists: plates that sit on top of each plate
   P.forEach((p, i) => p.id = i);
@@ -162,14 +192,16 @@ function design(n, fk = 1) {
   const S = []; P.forEach((p) => p.screws.forEach(([x, y]) => S.push({ plate: p.id, face: p.face, fx: x, fy: y })));
   S.forEach((s, i) => s.id = i);
   // colouring: follow a random legal removal order, chunk into triples, then swap a little for difficulty; verify with the greedy solver
-  const nc = clamp(n + 1, 2, 8), K_ = n === 1 ? 2 : n <= 3 ? 3 : 4, win = n === 1 ? 0 : Math.min(3, 1 + Math.floor(n / 4));
+  const nc = clamp(n + 1, 2, 8), K_ = n <= 11 ? 2 : 3,   // two open boxes: a careless tap now parks a bolt, and a full tray is a real loss from level 5
+    win = n === 1 ? 0 : n <= 3 ? 1 : Math.min(4, 2 + Math.floor(n / 4));
+  const mix = n <= 3 ? 0.3 : 0.6;   // how often a bolt's colour is swapped with a later one: real tray pressure from level 4
   const pal = [...CKEYS].sort(() => R() - 0.5).slice(0, nc);
   for (let attempt = 0; attempt < 40; attempt++) {
     const order = removalOrder(P, S, R);
     const tri = []; let prev = null;
     for (let t = 0; t < order.length / 3; t++) { let c; do c = pal[ri(0, nc - 1)]; while (c === prev && nc > 1); prev = c; tri.push(c); }
     order.forEach((sid, i) => S[sid].color = tri[Math.floor(i / 3)]);
-    const p = attempt < 30 ? Math.min(0.5, 0.35 * fk) : 0;
+    const p = attempt < 30 ? Math.min(0.75, mix * fk) : 0; design.attempt = attempt;
     if (win) for (let i = 0; i < order.length; i++) if (R() < p) { const j = Math.min(order.length - 1, i + ri(3, 3 * win)); const a = S[order[i]], b = S[order[j]]; [a.color, b.color] = [b.color, a.color]; }
     // box queue = colours in triple order, rebalanced so every colour count is a multiple of 3
     const cnt = {}; S.forEach((s) => cnt[s.color] = (cnt[s.color] || 0) + 1);
@@ -182,6 +214,7 @@ function design(n, fk = 1) {
   order.forEach((sid, i) => S[sid].color = pal[Math.floor(i / 3) % nc]);
   return { theme, W, H, D, F, P, S, queue: queueFrom(order.map((sid) => S[sid].color)), K: K_ };
 }
+function boltCap(n) { return n <= 6 ? 3 * n + 3 : Math.min(30, 21 + 3 * Math.floor((n - 5) / 2)); }   // 6, 9, 12, 15, 18, 21, 24, 24, 27, 27, 30…
 function queueFrom(colors) { // box order: triples as they are first needed
   const need = {}, q = []; for (const c of colors) { need[c] = (need[c] || 0) + 1; if (need[c] % 3 === 1) q.push(c); } return q;
 }
@@ -341,6 +374,7 @@ function pullFromTray(b) {
     const t = buffer[j]; if (!t || !t.arrived || t.color !== b.color) continue;
     buffer[j] = null; const slot = b.reserved++; scene.attach(t.fl); flyTo(t.fl, b, slot);
   }
+  hudText();
 }
 async function flyTo(fl, b, slot) {
   const f = { fl }; flights.push(f);
@@ -368,7 +402,7 @@ async function flyToTray(fl, j) {
   tone(500, 0.06, 'triangle', 0.08, 0.9); buffer[j].arrived = true;
   const b = boxes.find((b) => b.active && b.color === buffer[j].color && b.reserved < 3); if (b) pullFromTray(b);
   const used = buffer.filter(Boolean).length;
-  if (used >= TRAY - 1) ui.pop(used >= TRAY ? 'TRAY FULL!' : 'CAREFUL!', '#ff4d5e', 30, 30);
+  hudText(); if (used >= TRAY - 1) { ui.pop(used >= TRAY ? 'TRAY FULL!' : 'LAST SLOT!', '#ff4d5e', 30, 30); buzz(40); }
 }
 const allFlyers = [];
 function makeFlyer(color) {
@@ -387,6 +421,7 @@ function tapScrew(s) {
   if (!b) { j = freeTray(); if (j < 0) { ui.pop('TRAY FULL!', '#ff4d5e', 30, 30); buzz(60); return; } buffer[j] = { color: s.color, arrived: false }; }
   const slot = b ? b.reserved++ : -1;
   s.gone = true; setInst(s, 0); cleared++; total++; ui.progress(cleared / screws.length);
+  hudText(); leftEl.classList.add('bump'); setTimeout(() => leftEl.classList.remove('bump'), 120);
   const fl = makeFlyer(s.color); scene.add(fl);
   fl.position.copy(toy.localToWorld(s.pos.clone())); fl.quaternion.copy(toy.getWorldQuaternion(new THREE.Quaternion()).multiply(s.q));
   if (j >= 0) buffer[j].fl = fl;
@@ -432,16 +467,16 @@ function startLevel() {
   L = design(level, FL.k()); buildToy(L); setupBoxes(L);
   ground.position.y = -L.H / 2 - 0.01; toy.position.y = 0;
   cleared = 0; rotY = level === 1 ? -0.25 : -0.55; rotV = 0; tilt = 0.12; botFace = null;
-  ui.levels(level); ui.progress(0);
+  ui.levels(level); ui.progress(0); hudText();
 }
 function win() {
   if (state === 'play') FL.level(true);
   if (state === 'play') B.submit(1); state = 'won'; wonAt = performance.now(); save.set('bolts', total); level++; save.set('level', level);
   sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 1.5, 0), 90);
-  ui.win(level - 1, `${screws.length} bolts out!`);
+  ui.win(level - 1, `${screws.length} bolts out!`); ui.els.win.querySelector('.hint').textContent = `Level ${level} ▶`; hudText();
 }
-function lose() { if (state === 'play') FL.level(false, screws.length ? screws.filter((s) => s.gone).length / screws.length : 0); state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TRAY FULL!', 'No room left for that bolt.'); }
-ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } startLevel(); state = 'play'; });
+function lose() { if (state === 'play') FL.level(false, screws.length ? screws.filter((s) => s.gone).length / screws.length : 0); state = 'lost'; sfx.fail(); buzz([60, 40, 90]); ui.lose('TRAY FULL!', 'Match the box colours.'); hudText(); }
+ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; hudText(); return; } startLevel(); state = 'play'; hudText(); });
 
 // ---------------------------------------------------------------- input: drag to spin, tap a bolt
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -512,4 +547,36 @@ loop((dt, t) => {
 
 startLevel();
 ui.start();
-window.__game = { get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, design, solve, dbg: () => ({ left: screws.filter((s) => !s.gone).map((s) => [s.id, s.color, s.face, !!blocked(s)]), boxes: boxes.map((b) => [b.color, b.active, b.reserved, b.filled]), buffer: buffer.map((b) => b && [b.color, b.arrived]), qi, queue, flights: flights.length, plates: plates.map((p) => [p.id, p.alive, p.left, p.above]) }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };
+// test hook: screen (CSS px) points of bolts a player could tap right now — unblocked, facing the camera, box-matching first
+function screenBolts() {
+  const out = [], cam = camera.position, v = new THREE.Vector3();
+  for (const s of screws) {
+    if (s.gone || blocked(s)) continue;
+    const wp = toy.localToWorld(s.pos.clone()), n = faces[s.face].n.clone().transformDirection(toy.matrixWorld);
+    if (n.dot(cam.clone().sub(wp).normalize()) < 0.25) continue;
+    v.copy(wp).project(camera); const match = boxes.some((b) => b.active && b.color === s.color && b.reserved < 3);
+    out.push([(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, match ? 0 : 1, s.id]);
+  }
+  return out.sort((a, b) => a[2] - b[2]);
+}
+// test hook: play design(n) with a scripted policy, no rendering. 'greedy' = the verifier, 'casual' = taps a box match 80% of the time else any bolt
+function simulate(n, policy = 'casual', trials = 200, seed = 1, T = TRAY, pm = 0.8) {
+  const R = rng(seed * 131 + n); let won = 0, taps = 0;
+  for (let t = 0; t < trials; t++) {
+    const Lx = design(n, 1), P = Lx.P, S = Lx.S, q = Lx.queue, alive = P.map(() => true), gone = S.map(() => false), bx = [], buf = []; let qi_ = 0, ok = true;
+    const refill = () => { while (bx.length < Lx.K && qi_ < q.length) bx.push({ c: q[qi_++], n: 0 }); };
+    const settleB = () => { let ch = true; while (ch) { ch = false; for (let i = bx.length - 1; i >= 0; i--) if (bx[i].n >= 3) { bx.splice(i, 1); ch = true; } refill(); for (const b of bx) for (let j = buf.length - 1; j >= 0 && b.n < 3; j--) if (buf[j] === b.c) { buf.splice(j, 1); b.n++; ch = true; } } };
+    refill();
+    for (let step = 0; step < S.length; step++) {
+      const acc = S.filter((s) => accessibleIn(P, S, alive, gone, s)); if (!acc.length) { ok = false; break; }
+      const m = acc.filter((s) => bx.some((b) => b.c === s.color && b.n < 3));
+      const pick = (policy === 'greedy' || R() < pm) && m.length ? m[Math.floor(R() * m.length)] : acc[Math.floor(R() * acc.length)];
+      gone[pick.id] = true; settlePlates(P, S, alive, gone); taps++;
+      const b = bx.find((b) => b.c === pick.color && b.n < 3); if (b) b.n++; else { if (buf.length >= T) { ok = false; break; } buf.push(pick.color); }
+      settleB(); if (buf.length >= T && !bx.some((b) => buf.includes(b.c))) { ok = false; break; }
+    }
+    if (ok) won++;
+  }
+  return { n, policy, winPct: Math.round(100 * won / trials), bolts: design(n, 1).S.length, K: design(n, 1).K };
+}
+window.__game = { simulate, get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, design, solve, screenBolts,dbg: () => ({ left: screws.filter((s) => !s.gone).map((s) => [s.id, s.color, s.face, !!blocked(s)]), boxes: boxes.map((b) => [b.color, b.active, b.reserved, b.filled]), buffer: buffer.map((b) => b && [b.color, b.arrived]), qi, queue, flights: flights.length, plates: plates.map((p) => [p.id, p.alive, p.left, p.above]) }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };
