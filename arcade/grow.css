@@ -75,3 +75,9 @@ body > .g-sub .eyebrow { color: #e4ff5a; font-weight: 700; letter-spacing: .12em
 .g-picks img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover }
 .g-picks span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 @media (prefers-reduced-motion: reduce) { .g-swap { transition: none } }
+/* "tap here" hand over the game for the first seconds (grow.js tapHint) */
+.g-tap { position: absolute; left: 50%; top: 55%; z-index: 5; font-size: 64px; pointer-events: none; transform: translate(-50%, -50%);
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.5)); animation: g-tap 1.1s ease-in-out infinite; display: none }
+.player.playing .g-tap { display: block }
+@keyframes g-tap { 0%, 100% { transform: translate(-50%, -50%) scale(1) } 50% { transform: translate(-50%, -38%) scale(.86) } }
+@media (prefers-reduced-motion: reduce) { .g-tap { animation: none } }

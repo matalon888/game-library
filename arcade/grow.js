@@ -153,10 +153,13 @@
     }
     return f;
   }
+  // Next is a different kind of game (2026-10-23: players sampled ~35 s and skipped; someone skipping a shooter wants a
+  // puzzle or a racer, not another shooter). Someone who liked this one taps Play again instead.
   function feedNext(skip = []) {
     const seen = new Set(played().concat(G ? [G.slug] : [], skip));
-    for (const s of feed()) { const g = all.find(x => x.slug === s); if (g && !seen.has(s)) return g; }
-    return pickNext();
+    const cats = new Set([G && G.category].concat(skip.map(s => (all.find(x => x.slug === s) || {}).category)));
+    const fresh = feed().map(s => all.find(x => x.slug === s)).filter(g => g && !seen.has(g.slug));
+    return fresh.find(g => !cats.has(g.category)) || fresh[0] || pickNext();
   }
 
   function onLoad(g, gs) {
@@ -191,6 +194,7 @@
     FR = frame;
     if (window.ArcadeDiag) ArcadeDiag.start(G, frame);
     rail();
+    tapHint(frame);
     const list = played(); if (!list.includes(G.slug)) list.push(G.slug); ss.set('played', list);
     const count = ss.get('games', 0) + 1; ss.set('games', count);
     ev('game');
@@ -215,6 +219,23 @@
       if (AD && st === 'won' && !wonOnce && ss.get('games', 0) >= 2 && subDue() && !document.querySelector('.g-card')) { wonOnce = true; setTimeout(() => subscribe(all, false), 1400); }
     }, 400);
     addEventListener('pagehide', () => clearInterval(watch));
+  }
+
+  // "Tap here": 2026-10-23 one visit in three first tapped empty page around the game (~15 s in), not knowing where to start.
+  // A pulsing hand over the game's middle until the first touch inside it (or 6 s). Never blocks a touch: pointer-events none.
+  function tapHint(frame) {
+    if ($('gTap') || ls.get('tapHinted', 0) >= 3) return;
+    const p = document.querySelector('.player'); if (!p) return;
+    const h = document.createElement('div'); h.id = 'gTap'; h.className = 'g-tap'; h.setAttribute('aria-hidden', 'true'); h.textContent = '👆';
+    p.appendChild(h);
+    const done = () => { h.remove(); };
+    setTimeout(done, 6000);
+    // only a real finger counts: shell.js autostart dispatches a synthetic pointerdown on the game's start card
+    const real = e => { if (e.isTrusted) done(); };
+    let tries = 0;
+    const hook = () => { try { frame.contentWindow.addEventListener('pointerdown', real, { capture: true }); } catch (e) { if (++tries < 20) setTimeout(hook, 300); } };
+    hook(); frame.addEventListener('load', hook);
+    ls.set('tapHinted', ls.get('tapHinted', 0) + 1);
   }
 
   // game over (a kit game reports 'lost'): the share card for the challenge, else Next / the rewarded offer

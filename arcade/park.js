@@ -251,8 +251,8 @@
     // reports show which keeps people; shelves without a list use the best-scored upright game. play.html then starts it on its own.
     if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) {
       // (games that wait for the first move: runners like neon-hop / squish-gate lose a life before a newcomer has tapped)
-      const AD_PICK = { '': ['ricochet-rex', 'bolt-twist', 'flip-agent', 'cube-trek'], '3D': ['cube-trek', 'bolt-twist', 'flip-agent'],
-        Action: ['ricochet-rex', 'flip-agent', 'stretch-dash'], Racing: ['tiptoe-tower', 'marble-dash'], Arcade: ['cube-trek', 'ricochet-rex', 'bolt-twist'],
+      const AD_PICK = { '': ((window.RIFFCADE || {}).OPENERS || []).length ? RIFFCADE.OPENERS : ['stretch-dash', 'swirl-tee', 'tiptoe-tower'], '3D': ['cube-trek', 'bolt-twist'],
+        Action: ['stretch-dash', 'ricochet-rex', 'fort-fling'], Racing: ['tiptoe-tower', 'marble-dash'], Arcade: ['cube-trek', 'ricochet-rex', 'bolt-twist'],
         Puzzle: ['bolt-twist', 'untwine', 'swirl-tee'], Strategy: ['turf-rush'], Idle: ['viral-den', 'bellhop-boss'], 'Word & Math': ['think-twice'] };
       const ok = g => g && !g.linkout && g.orientation !== 'landscape' && g.category !== 'Kids' && !(g.tags || []).includes('Kids');
       const mob = inMode('mobile'), listed = (AD_PICK[qc || ''] || []).map(s => mob.find(g => g.slug === s)).filter(ok);

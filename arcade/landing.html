@@ -138,7 +138,7 @@ footer a { color: var(--muted) }
 // from an ad: straight into a game that starts on its own (play.html), once per tab. Same picks as park.js AD_PICK[''];
 // going direct skips the park page (about 3 s in the Facebook app). Ads with a ?cat= link land in the park, which picks per shelf.
 if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) {
-  const P = ['ricochet-rex', 'bolt-twist', 'flip-agent', 'cube-trek'], pick = P[Math.floor(Math.random() * P.length)];
+  const P = ((window.RIFFCADE || {}).OPENERS || []).length ? RIFFCADE.OPENERS : ['stretch-dash', 'swirl-tee', 'tiptoe-tower'], pick = P[Math.floor(Math.random() * P.length)];
   try { sessionStorage.setItem('ap.jumped', '1'); sessionStorage.setItem('ap.auto', pick); sessionStorage.setItem('ap.aiAd', '1'); } catch (e) {}
   // the store test (2026-10-19): half the tabs get a choice of 6 games (pick.html), half the one game as before
   const ab = (() => { let v; try { v = sessionStorage.getItem('ap.ab'); if (!v) { v = Math.random() < 0.5 ? 'pick' : 'game'; sessionStorage.setItem('ap.ab', v); } } catch (e) { v = 'game'; } return v; })();
