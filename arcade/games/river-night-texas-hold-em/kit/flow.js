@@ -3,6 +3,7 @@
 //   • warm-up: the first few points of an endless run are a little gentler, so a run never dies in the first seconds
 //   • skill: players who keep doing well get up to +HARD harder, players who keep failing get up to −EASE easier
 // It never rigs a single move, never forces a loss, never touches the score.
+import { adaptOff } from './adapt.js';
 const N = 8;                                     // runs remembered
 
 export function flow(key, { par = 20, warmup = 0, hard = 0.2, ease = 0.1 } = {}) {
@@ -20,8 +21,9 @@ export function flow(key, { par = 20, warmup = 0, hard = 0.2, ease = 0.1 } = {})
     get skill() { return skill(); },
     // multiplier for a "harder when bigger" knob (speed, danger density); `score` drives the warm-up of endless runs
     k(score = Infinity) {
-      // games with a world board (RULES.md 5): the same difficulty for everyone, so the skill nudge is off
-      const s = globalThis.__hcRanked ? 0 : skill(), m = 1 + (s > 0 ? s * hard : s * ease);
+      // RULES.md 5: players on the world race (board nickname) all get the same difficulty, so the skill nudge is off
+      // for them; everyone else gets it. ?adapt=0 turns it off too.
+      const s = adaptOff() ? 0 : skill(), m = 1 + (s > 0 ? s * hard : s * ease);
       const w = warmup > 0 ? Math.min(1, score / warmup) : 1;
       return m * (0.85 + 0.15 * w);
     },

@@ -488,7 +488,7 @@ function regular({ game, label = 'Score', limits = null, mode = 'best', corner =
   const Q = new URLSearchParams(location.search);
   let embed = Q.get('embed') === 'chat'; try { embed = embed || new URLSearchParams(parent.location.search).get('embed') === 'chat'; } catch (e) {}
   const noop = { start() {}, submit() {}, open() {}, close() {}, profile, today: () => 0, shareCard() {} };
-  globalThis.__hcRanked = true;                            // flow.js: no skill nudge, the same difficulty for everyone (RULES.md 5)
+  globalThis.__hcRanked = true;                            // this game has a world board (difficulty rules: adapt.js adaptOff, RULES.md 5)
   if (embed) return noop;                                  // chat embeds stay exactly as they are: no board, no prompts
   const quiet = Q.has('demo') || (navigator.webdriver && !Q.get('lbapi'));   // demo and automated runs never post
   title = title || document.title.split(/: | [·|–—-] /)[0].trim();
