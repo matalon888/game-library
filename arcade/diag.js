@@ -25,12 +25,14 @@
   let queue = [], kids = false, sentDevice = false;
   const push = (type, data) => { if (!kids) queue.push({ type, at: Date.now(), ...data }); };
 
+  const aud = () => { let a = /^[fm]$/.test(new URLSearchParams(location.search).get('aud') || '') ? new URLSearchParams(location.search).get('aud') : null;
+    try { a = a || localStorage.getItem('ap.aud'); } catch (e) {} return /^[fm]$/.test(a || '') ? 'aud-' + a : null; };
   function device() {
     const q = new URLSearchParams(location.search), n = navigator, c = n.connection || {};
     return { ua: n.userAgent, lang: n.language, tz: Intl.DateTimeFormat().resolvedOptions().timeZone, sw: screen.width, sh: screen.height,
       vw: innerWidth, vh: innerHeight, dpr: devicePixelRatio, touch: matchMedia('(pointer: coarse)').matches, mem: n.deviceMemory || null,
       cores: n.hardwareConcurrency || null, net: c.effectiveType || null, pwa: matchMedia('(display-mode: standalone)').matches || n.standalone === true,
-      src: SRC, camp: q.get('utm_term') || q.get('utm_campaign') || null };
+      src: SRC, camp: aud() || q.get('utm_term') || q.get('utm_campaign') || null };   // aud-f / aud-m: came from a women / men ad set (go.html)
   }
   function flush(beacon) {
     if (!queue.length && sentDevice) return;

@@ -125,7 +125,10 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
   // so the visitor is never waiting on the AI to start playing
   const F9 = (C.FEED || []).slice(0, 9);
   // one of the best-holding games (rank_feed.py OPENERS, from real plays), rotated so we keep learning which first game holds best
-  const OP = (C.OPENERS || []).length ? C.OPENERS : (C.FEED || []).slice(0, 1);
+  // the ad set's audience (?aud=f|m, women / men ad sets) gets its own openers (rank_feed.py, from that audience's plays)
+  const AUD = /^[fm]$/.test(q.get('aud') || '') ? q.get('aud') : null;
+  if (AUD) try { localStorage.setItem('ap.aud', AUD); } catch (e) {}
+  const OPA = AUD && (C.OPENERS_BY || {})[AUD], OP = (OPA || []).length ? OPA : (C.OPENERS || []).length ? C.OPENERS : (C.FEED || []).slice(0, 1);
   const GAME = INC === 'secret' && F9.length ? F9[Math.floor(Math.random() * F9.length)] : OP[Math.floor(Math.random() * OP.length)] || 'stretch-dash';
   // the incentive's line in the first reply (today.json carries tomorrow's game and the AI-only games)
   let INCL = INC === 'streak' ? '\n🔥 Day 1 streak started: day 7 unlocks a VIP game.' : '';
