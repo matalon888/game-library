@@ -854,7 +854,7 @@
  "nicechunk-game": {
   "github": {
    "forks": 2,
-   "stars": 313,
+   "stars": 308,
    "url": "https://github.com/nicechunk/game"
   }
  },
@@ -1113,14 +1113,14 @@
  "mrzh7-scam-with-your-friends-web": {
   "github": {
    "forks": 23,
-   "stars": 241,
+   "stars": 242,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
    "forks": 6,
-   "stars": 7,
+   "stars": 8,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1429,7 +1429,7 @@
  "daniele-cangi-civic-nightmare": {
   "github": {
    "forks": 4,
-   "stars": 24,
+   "stars": 25,
    "url": "https://github.com/Daniele-Cangi/civic-nightmare"
   }
  },
@@ -2136,7 +2136,7 @@
  "lingikaushikreddy-settlement-village": {
   "github": {
    "forks": 0,
-   "stars": 35,
+   "stars": 29,
    "url": "https://github.com/Lingikaushikreddy/Settlement-Village"
   }
  },
@@ -3078,14 +3078,14 @@
  "pshenok-server-survival": {
   "github": {
    "forks": 715,
-   "stars": 6469,
+   "stars": 6470,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
  "ramazancetinkaya-snake-game": {
   "github": {
-   "forks": 75,
-   "stars": 164,
+   "forks": 73,
+   "stars": 160,
    "url": "https://github.com/ramazancetinkaya/snake-game"
   }
  },
@@ -3114,11 +3114,6 @@
    "forks": 45,
    "stars": 314,
    "url": "https://github.com/felixmariotto/Edelweiss"
-  },
-  "itch": {
-   "rating": 4.2,
-   "count": 6,
-   "url": "https://felixmrtt.itch.io/edelweiss"
   }
  },
  "bkcore-hexgl": {

@@ -10350,7 +10350,7 @@
   "public": {
    "github": {
     "forks": 715,
-    "stars": 6469,
+    "stars": 6470,
     "url": "https://github.com/pshenok/server-survival"
    }
   },
@@ -10445,11 +10445,6 @@
     "forks": 45,
     "stars": 314,
     "url": "https://github.com/felixmariotto/Edelweiss"
-   },
-   "itch": {
-    "rating": 4.2,
-    "count": 6,
-    "url": "https://felixmrtt.itch.io/edelweiss"
    }
   },
   "cover": "covers/felixmariotto-edelweiss.webp",
@@ -10488,8 +10483,8 @@
   "platform": "phone",
   "public": {
    "github": {
-    "forks": 75,
-    "stars": 164,
+    "forks": 73,
+    "stars": 160,
     "url": "https://github.com/ramazancetinkaya/snake-game"
    }
   },
