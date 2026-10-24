@@ -10350,7 +10350,7 @@
   "public": {
    "github": {
     "forks": 715,
-    "stars": 6468,
+    "stars": 6469,
     "url": "https://github.com/pshenok/server-survival"
    }
   },
@@ -10391,7 +10391,7 @@
   "public": {
    "github": {
     "forks": 143,
-    "stars": 551,
+    "stars": 552,
     "url": "https://github.com/basicallydan/skifree.js"
    },
    "hn": {
@@ -10445,6 +10445,11 @@
     "forks": 45,
     "stars": 314,
     "url": "https://github.com/felixmariotto/Edelweiss"
+   },
+   "itch": {
+    "rating": 4.2,
+    "count": 6,
+    "url": "https://felixmrtt.itch.io/edelweiss"
    }
   },
   "cover": "covers/felixmariotto-edelweiss.webp",

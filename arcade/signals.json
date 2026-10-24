@@ -694,7 +694,7 @@
  "nkzw-tech-athena-crisis": {
   "github": {
    "forks": 161,
-   "stars": 1987,
+   "stars": 1988,
    "url": "https://github.com/nkzw-tech/athena-crisis"
   }
  },
@@ -715,7 +715,7 @@
  "rohitg00-k8sgames": {
   "github": {
    "forks": 195,
-   "stars": 1422,
+   "stars": 1423,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -840,7 +840,7 @@
  "innocenat-typingmania": {
   "github": {
    "forks": 3,
-   "stars": 47,
+   "stars": 48,
    "url": "https://github.com/innocenat/typingmania"
   }
  },
@@ -1112,7 +1112,7 @@
  },
  "mrzh7-scam-with-your-friends-web": {
   "github": {
-   "forks": 22,
+   "forks": 23,
    "stars": 241,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
@@ -1120,7 +1120,7 @@
  "lattymoy-daggerfall-js-source": {
   "github": {
    "forks": 6,
-   "stars": 6,
+   "stars": 7,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1786,7 +1786,7 @@
  "btsouth-typearchy": {
   "github": {
    "forks": 0,
-   "stars": 6,
+   "stars": 5,
    "url": "https://github.com/btsouth/typearchy"
   }
  },
@@ -3078,7 +3078,7 @@
  "pshenok-server-survival": {
   "github": {
    "forks": 715,
-   "stars": 6468,
+   "stars": 6469,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
@@ -3092,7 +3092,7 @@
  "basicallydan-skifree-js": {
   "github": {
    "forks": 143,
-   "stars": 551,
+   "stars": 552,
    "url": "https://github.com/basicallydan/skifree.js"
   },
   "hn": {
@@ -3114,11 +3114,16 @@
    "forks": 45,
    "stars": 314,
    "url": "https://github.com/felixmariotto/Edelweiss"
+  },
+  "itch": {
+   "rating": 4.2,
+   "count": 6,
+   "url": "https://felixmrtt.itch.io/edelweiss"
   }
  },
  "bkcore-hexgl": {
   "github": {
-   "forks": 892,
+   "forks": 893,
    "stars": 1744,
    "url": "https://github.com/BKcore/HexGL"
   },
