@@ -118,7 +118,9 @@ function warmup() {
   sfx.pick(2);
 }
 function hintMove() {
-  if (!guide || state !== 'play' || (level === 2 && idleT < 2.5)) return null;
+  if (state !== 'play' || settle > 0) return null;
+  if (!guide) { if (idleT < 6) return null; if (!idleHint || idleHint.p.used || !fits(board, idleHint.p.cells, idleHint.r0, idleHint.c0)) idleHint = bestMove(); return idleHint; }
+  if (level === 2 && idleT < 1) return null;
   for (const g of guide) { const p = tray[g.slot]; if (p && !p.used && fits(board, p.cells, g.r0, g.c0)) return { p, ...g }; }
   return null;
 }
@@ -142,6 +144,7 @@ function rescueTray() {
   return null;
 }
 function dealTray() {
+  idleHint = null;
   const hard = Math.min(1, (lvE() - 1) / 10 * AD.k(fk));
   tray = [0, 1, 2].map(i => ({ cells: pickShape(i === 0 || rand() > hard * 0.7), color: COLORS[Math.floor(rand() * COLORS.length)], slot: i, used: false, pop: 0 }));
   // struggling: up to 20 % of the pieces are dealt the Block Blast way, the best fit of three draws for this board
@@ -157,7 +160,7 @@ function dealTray() {
   sfx.pick(2);
 }
 function buildLevel() {
-  rand = rng(lvE() * 4513 + 7); fk = F.k(); AD.round(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; sel = null; botMove = null; guide = null; idleT = 0;
+  rand = rng(lvE() * 4513 + 7); fk = F.k(); AD.round(); board = blank(); anims = []; flyers = []; combo = 0; score = 0; drag = null; sel = null; botMove = null; guide = null; idleT = 0; idleHint = null;
   if (level <= 2) {
     warmup(); const filled = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c]) { filled.push(1); board[r][c].pop = -((N - r) * 0.04 + c * 0.015); }
     let ng = 0; for (const row of board) for (const b of row) if (b && b.gem) ng++;
@@ -182,6 +185,38 @@ function buildLevel() {
   dealTray(); ui.levels(level); ui.score(0); updateGoal(); ui.progress(0);
 }
 
+// ------------------------------------------------------------------ first-move coach (hook)
+// Real data: most quick quits tapped the start card once and never moved a piece, and the old ghost was a faint grey.
+// Now: no start card, the move glows in the piece's colour with a ring, a hand drags the piece there, a tap on the piece
+// (or on the board) plays it. Warm-ups show it at once (level 2 after 1 s); later levels after 6 s with no move.
+const coach = (() => {
+  const st = document.createElement('style');
+  st.textContent = `.cx-ring{position:fixed;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;border:5px solid #fff;box-shadow:0 0 0 5px rgba(255,255,255,.35),0 0 26px 6px rgba(255,255,255,.9);pointer-events:none;z-index:6;animation:cxr .8s ease-in-out infinite}
+@keyframes cxr{0%,100%{transform:scale(.72);opacity:1}50%{transform:scale(1.12);opacity:.75}}
+.cx-hand{position:fixed;font-size:50px;line-height:1;pointer-events:none;z-index:7;margin:-6px 0 0 -16px;filter:drop-shadow(0 4px 2px rgba(0,0,0,.25))}
+.cx-hand.tap{animation:cxt .8s ease-in-out infinite}@keyframes cxt{0%,100%{transform:translate(10px,18px)}50%{transform:translate(0,0) scale(.92)}}
+.cx-tip{position:fixed;left:50%;transform:translate(-50%,0);z-index:7;pointer-events:none;font-weight:800;font-size:26px;line-height:1.1;padding:7px 20px 4px;border-radius:26px;background:#fff;color:#2b3f8f;box-shadow:0 6px 0 rgba(0,0,0,.16);white-space:nowrap;animation:cxi .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes cxi{from{transform:translate(-50%,0) scale(.4);opacity:0}}
+.cx-off{display:none!important}`;
+  document.head.appendChild(st);
+  const mk = (c, t = '') => { const d = document.createElement('div'); d.className = c + ' cx-off'; d.textContent = t; document.body.appendChild(d); return d; };
+  const ring = mk('cx-ring'), hand = mk('cx-hand tap', '👆'), tip = mk('cx-tip'); let tipT = 0, tipTxt = '';
+  const at = (e, x, y) => { e.style.left = x + 'px'; e.style.top = y + 'px'; e.classList.remove('cx-off'); };
+  return {
+    point(x, y) { at(ring, x, y); at(hand, x + 8, y + 14); hand.classList.add('tap'); },
+    drag(x0, y0, x1, y1, t, sw = 70, sh = sw) { ring.style.width = sw + 'px'; ring.style.height = sh + 'px'; ring.style.margin = `${-sh / 2}px 0 0 ${-sw / 2}px`; ring.style.borderRadius = '22px'; const k = Math.min(1, (t % 1.7) / 1.1), e = k * k * (3 - 2 * k); at(ring, x1, y1); hand.classList.remove('tap'); at(hand, lerp(x0, x1, e) + 8, lerp(y0, y1, e) + 14 - Math.sin(e * Math.PI) * 40); },
+    off() { ring.classList.add('cx-off'); hand.classList.add('cx-off'); },
+    say(text, topPct, ms = 0) { if (text !== tipTxt) { tip.textContent = tipTxt = text; tip.classList.add('cx-off'); void tip.offsetWidth; } tip.style.top = topPct + '%'; tip.classList.remove('cx-off'); tipT = ms ? performance.now() + ms : 0; },
+    quiet(force) { if (force || !tipT || performance.now() > tipT) { tip.classList.add('cx-off'); tipTxt = ''; tipT = 0; } },
+    get timed() { return tipT && performance.now() < tipT; },
+  };
+})();
+let ran = false, idleHint = null;
+addEventListener('pointerdown', () => { if (!ran) { ran = true; WB.start(); } }, true);
+const sameShape = (a, b) => a.length === b.length && a.every(([x, y], i) => b[i][0] === x && b[i][1] === y);
+function guideFor(p) { if (!guide) return null; return guide.find(g => (tray[g.slot] === p || sameShape(tray[g.slot].cells, p.cells)) && fits(board, p.cells, g.r0, g.c0)) || null; }
+function bestMove() { let bm = null; for (const p of tray) { if (p.used) continue; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (fits(board, p.cells, r, c)) { const v = evalMove(board, p.cells, r, c); if (!bm || v > bm.v) bm = { p, slot: p.slot, r0: r, c0: c, v }; } } return bm; }
+
 // ------------------------------------------------------------------ HUD goal
 const goalEl = document.createElement('div'); goalEl.className = 'ct-goal'; document.body.appendChild(goalEl);
 function updateGoal(bump) {
@@ -203,14 +238,14 @@ input({
     if (state !== 'play' || botMove || settle > 0) return;
     const w = toWorld(e.clientX, e.clientY);
     if (w.y > TRAY_Y + 2.6) {
-      if (guide && (!sel || sel.used)) { const h = hintMove() || (guide.map(g => ({ p: tray[g.slot], ...g })).find(g => g.p && !g.p.used && fits(board, g.p.cells, g.r0, g.c0))); if (h) { const [gw] = dims(h.p.cells), [hx, hy] = cellPos(h.r0, h.c0 + (gw - 1) / 2); if (Math.hypot(w.x - hx, w.y - hy) < 2.6) { sel = null; place(h.p, h.r0, h.c0); return; } } }
+      if (guide && (!sel || sel.used)) { const h = hintMove() || (guide.map(g => ({ p: tray[g.slot], ...g })).find(g => g.p && !g.p.used && fits(board, g.p.cells, g.r0, g.c0))); if (h) { const [gw] = dims(h.p.cells), [hx, hy] = cellPos(h.r0, h.c0 + (gw - 1) / 2); if (Math.hypot(w.x - hx, w.y - hy) < (level === 1 ? 99 : 2.6)) { sel = null; place(h.p, h.r0, h.c0); return; } } }
       if (sel && !sel.used) { const p = sel; sel = null; tryDrop({ p, x: w.x, y: w.y }); } return; }   // tap the board with a piece selected: drop it there
     let bestI = -1, bd = 2.2; tray.forEach((p, i) => { if (p.used) return; const d = Math.abs(w.x - SLOT_X[i]); if (d < bd) { bd = d; bestI = i; } });
     if (bestI < 0) return;
     drag = { p: tray[bestI], x: SLOT_X[bestI], y: TRAY_Y, tx: SLOT_X[bestI], ty: TRAY_Y, s: TRAY_S, x0: e.clientX, y0: e.clientY, moved: false }; sfx.tap(); buzz(6);
   },
   onMove: (dx, dy, e) => { if (!drag) return; if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 12) return; drag.moved = true; const w = toWorld(e.clientX, e.clientY); drag.tx = w.x; drag.ty = w.y + LIFT; },
-  onUp: () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) { sel = sel === d.p ? null : d.p; return; } sel = null; tryDrop(d); },   // a tap selects (lifts) a piece
+  onUp: () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) { const g = guideFor(d.p); if (g) { sel = null; botMove = { p: d.p, r0: g.r0, c0: g.c0, k: 0, x: SLOT_X[d.p.slot], y: TRAY_Y, s: TRAY_S }; return; } sel = sel === d.p ? null : d.p; return; } sel = null; tryDrop(d); },   // a tap selects (lifts) a piece
 });
 function tryDrop(d) {
   const [r0, c0] = pieceOrigin(d.p, d.x, d.y);
@@ -228,9 +263,10 @@ function place(p, r0, c0) {
     if (lines) AD.good(lines); else if (rank > 0.5) AD.bad();
   }
   moveAt = performance.now();
-  p.used = true; idleT = 0;
+  p.used = true; idleT = 0; idleHint = null;
   for (const [x, y] of p.cells) board[r0 + y][c0 + x] = { color: p.color, gem: false, pop: 1 };
   score += p.cells.length; sfx.pick(p.cells.length); buzz(10);
+  for (const [x, y] of p.cells) { const [bx, by] = cellPos(r0 + y, c0 + x); burst(scene, new THREE.Vector3(bx, by, 0.6), [p.color, '#ffffff'], 3, { speed: 0.05, up: 0.04, size: 0.5, gravity: 0.006 }); }
   const { rows, cols } = fullLines(board), lines = rows.length + cols.length;
   if (lines) {
     combo++;
@@ -347,16 +383,24 @@ loop((dt, t) => {
   // ghost preview on the board
   ghost.count = 0;
   const hm = !prev && !drag && !botMove ? hintMove() : null;
-  if (hm) { for (const [x, y] of hm.p.cells) { const [gx, gy] = cellPos(hm.r0 + y, hm.c0 + x); m4.compose(v3.set(gx, gy, -0.05), q.identity(), sc.set(0.96, 0.96, 0.5)); ghost.setMatrixAt(ghost.count++, m4); } ghost.instanceMatrix.needsUpdate = true; ghost.material.color.set(hm.p.color).lerp(tmpC.set('#fff'), 0.35); ghost.material.opacity = 0.35 + 0.3 * Math.sin(t * 7); }
+  if (hm) { const gs = 0.9 + 0.08 * Math.sin(t * 7); for (const [x, y] of hm.p.cells) { const [gx, gy] = cellPos(hm.r0 + y, hm.c0 + x); m4.compose(v3.set(gx, gy, 0.1), q.identity(), sc.set(gs, gs, 0.6)); ghost.setMatrixAt(ghost.count++, m4); } ghost.instanceMatrix.needsUpdate = true; ghost.material.color.set(hm.p.color).lerp(tmpC.set('#fff'), 0.12 + 0.2 * Math.sin(t * 7)); ghost.material.opacity = 0.86 + 0.14 * Math.sin(t * 7); }
   else ghost.material.opacity = 0.5;
+  coachTick(hm, t);
   if (prev) { const [w, h] = dims(drag.p.cells); for (const [x, y] of drag.p.cells) { const [gx, gy] = cellPos(prev.r0 + y, prev.c0 + x); m4.compose(v3.set(gx, gy, -0.05), q.identity(), sc.set(0.96, 0.96, 0.5)); ghost.setMatrixAt(ghost.count++, m4); } ghost.instanceMatrix.needsUpdate = true; ghost.material.color.set(drag.p.color).lerp(tmpC.set('#fff'), 0.3); }
   blocks.count = faces.count = ni; gems.count = ng;
   blocks.instanceMatrix.needsUpdate = faces.instanceMatrix.needsUpdate = gems.instanceMatrix.needsUpdate = true;
   if (blocks.instanceColor) blocks.instanceColor.needsUpdate = true; if (faces.instanceColor) faces.instanceColor.needsUpdate = true;
 });
 
+function coachTick(hm, t) {
+  if (!hm || state !== 'play') { coach.off(); if (state !== 'play') coach.quiet(true); else if (!coach.timed) coach.quiet(); return; }
+  const [w, h] = dims(hm.p.cells), [tx, ty] = window.__game.cellXY(hm.r0 + (h - 1) / 2, hm.c0 + (w - 1) / 2), [sx, sy] = window.__game.trayXY(hm.p.slot);
+  const cpx = Math.abs(window.__game.cellXY(0, 1)[0] - window.__game.cellXY(0, 0)[0]);
+  coach.drag(sx, sy, tx, ty, t, w * cpx + 26, h * cpx + 26);
+  if (level === 1) coach.say('Fill the gap, free gems!', 64); else if (level === 2) coach.say('Fill both gaps!', 64); else if (!coach.timed) coach.quiet();
+}
 buildLevel();
-ui.start();
+ui.hideStart(); state = 'play';   // no start card (hook): the first tap is a real move
 
 // ------------------------------------------------------------------ test hooks + bot (plans the best placement, animates it)
 function evalMove(b, cells, r0, c0) {

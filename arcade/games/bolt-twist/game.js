@@ -10,7 +10,8 @@ const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // round
 const COLORS = { red: '#ff4d5e', blue: '#3a8dff', yellow: '#ffc61a', green: '#35c96a', purple: '#9b62ff', orange: '#ff8a2a', pink: '#ff6fc3', cyan: '#22cfd6' };
 const CKEYS = Object.keys(COLORS);
 const BGS = [['#a9d8ff', '#eaf7ff'], ['#ffd0e4', '#fff1f7'], ['#bff0d4', '#effff5'], ['#dcd0ff', '#f6f1ff'], ['#ffe0b0', '#fff7ea']];
-const TRAY = 5, PLATE_T = 0.17;
+let TRAY = 5; const PLATE_T = 0.17;   // TRAY = slots this level: 5 on the warm-up levels 1-4, 4 from level 5 (a careless run really fills it)
+const trayFor = (n) => n <= 4 ? 5 : 4;
 
 const stage = createStage({ fov: 38, shadowSize: 5 });
 const { scene, camera, renderer, sun } = stage;
@@ -80,13 +81,14 @@ function layoutHud() {
 const fy = (f) => HH * (1 - 2 * f);
 function boxPos(i) { return new THREE.Vector3((i - (K - 1) / 2) * SLOT, fy(0.152), HZ); }
 
-// tray: dark bar with 5 sockets
-const tray = new THREE.Group(); hud.add(tray);
-{
-  const bar = new THREE.Mesh(rbox(TRAY * 0.62 + 0.2, 0.62, 0.22, 0.11), mat('#ffffff', { roughness: 0.6, transparent: true, opacity: 0.55 }));
-  tray.add(bar); tray.bar = bar;
-  for (let i = 0; i < TRAY; i++) { const h = new THREE.Mesh(HOLE, mat('#9fb3c8', { roughness: 0.8 })); h.rotation.x = Math.PI / 2; h.scale.set(1.5, 1, 1.5); h.position.set((i - (TRAY - 1) / 2) * 0.62, 0, 0.1); tray.add(h); }
+// tray: bar with TRAY sockets (rebuilt per level)
+const tray = new THREE.Group(); hud.add(tray); const sockMat = mat('#9fb3c8', { roughness: 0.8 }), barMat = mat('#ffffff', { roughness: 0.6, transparent: true, opacity: 0.55 });
+function buildTray() {
+  for (const c of [...tray.children]) if (c.isSock || c === tray.bar) { tray.remove(c); if (c === tray.bar) c.geometry.dispose(); }
+  const bar = new THREE.Mesh(rbox(TRAY * 0.62 + 0.2, 0.62, 0.22, 0.11), barMat); tray.add(bar); tray.bar = bar;
+  for (let i = 0; i < TRAY; i++) { const h = new THREE.Mesh(HOLE, sockMat); h.isSock = true; h.rotation.x = Math.PI / 2; h.scale.set(1.5, 1, 1.5); h.position.set((i - (TRAY - 1) / 2) * 0.62, 0, 0.1); tray.add(h); }
 }
+buildTray();
 const traySlot = (i) => new THREE.Vector3((i - (TRAY - 1) / 2) * 0.62, 0, 0.16);
 
 // boxes
@@ -200,7 +202,7 @@ function design(n, fk = 1) {
   S.forEach((s, i) => s.id = i);
   // colouring: follow a random legal removal order, chunk into triples, then swap a little for difficulty; verify with the greedy solver
   const nc = clamp(n + 1, 2, 8), K_ = n <= 11 ? 2 : 3,   // two open boxes: a careless tap now parks a bolt, and a full tray is a real loss from level 5
-    win = n === 1 ? 0 : n <= 3 ? 1 : Math.min(4, 2 + Math.floor(n / 4));
+    win = n === 1 ? 0 : n <= 3 ? 1 : Math.min(4, 2 + Math.floor(n / 4)), T_ = trayFor(n);
   const mix = n <= 3 ? 0.3 : 0.6;   // how often a bolt's colour is swapped with a later one: real tray pressure from level 4
   const pal = [...CKEYS].sort(() => R() - 0.5).slice(0, nc);
   for (let attempt = 0; attempt < 40; attempt++) {
@@ -214,12 +216,12 @@ function design(n, fk = 1) {
     const cnt = {}; S.forEach((s) => cnt[s.color] = (cnt[s.color] || 0) + 1);
     if (Object.values(cnt).some((v) => v % 3)) continue;
     const q = queueFrom(order.map((sid) => S[sid].color));
-    if (solve(P, S, q, K_, R)) return { theme, W, H, D, F, P, S, queue: q, K: K_ };
+    if (solve(P, S, q, K_, T_)) return { theme, W, H, D, F, P, S, queue: q, K: K_, T: T_ };
   }
   // fallback: pure triple order (always solvable by following order)
   const order = removalOrder(P, S, R);
   order.forEach((sid, i) => S[sid].color = pal[Math.floor(i / 3) % nc]);
-  return { theme, W, H, D, F, P, S, queue: queueFrom(order.map((sid) => S[sid].color)), K: K_ };
+  return { theme, W, H, D, F, P, S, queue: queueFrom(order.map((sid) => S[sid].color)), K: K_, T: T_ };
 }
 function boltCap(n) { return n <= 6 ? 3 * n + 3 : Math.min(30, 21 + 3 * Math.floor((n - 5) / 2)); }   // 6, 9, 12, 15, 18, 21, 24, 24, 27, 27, 30…
 function queueFrom(colors) { // box order: triples as they are first needed
@@ -241,7 +243,7 @@ function removalOrder(P, S, R) {
   return order;
 }
 /** greedy solver (same policy as the bot): match an open box, otherwise park the bolt whose colour is needed soonest */
-function solve(P, S, q, K_) {
+function solve(P, S, q, K_, T_ = TRAY) {
   const alive = P.map(() => true), gone = S.map(() => false); let qi_ = 0; const bx = []; const buf = [];
   const refill = () => { while (bx.length < K_ && qi_ < q.length) bx.push({ c: q[qi_++], n: 0 }); };
   const settleBoxes = () => { let ch = true; while (ch) { ch = false; for (let i = bx.length - 1; i >= 0; i--) if (bx[i].n >= 3) { bx.splice(i, 1); ch = true; } refill();
@@ -250,10 +252,10 @@ function solve(P, S, q, K_) {
   for (let step = 0; step < S.length; step++) {
     const acc = S.filter((s) => accessibleIn(P, S, alive, gone, s)); if (!acc.length) return false;
     let pick = acc.find((s) => bx.some((b) => b.c === s.color && b.n < 3)), toBox = !!pick;
-    if (!pick) { if (buf.length >= TRAY) return false; const rank = (c) => { const i = q.indexOf(c, qi_); return i < 0 ? 1e9 : i; }; pick = acc.slice().sort((a, b) => rank(a.color) - rank(b.color))[0]; }
+    if (!pick) { if (buf.length >= T_) return false; const rank = (c) => { const i = q.indexOf(c, qi_); return i < 0 ? 1e9 : i; }; pick = acc.slice().sort((a, b) => rank(a.color) - rank(b.color))[0]; }
     gone[pick.id] = true; settlePlates(P, S, alive, gone);
     if (toBox) bx.find((b) => b.c === pick.color && b.n < 3).n++; else buf.push(pick.color);
-    settleBoxes(); if (buf.length >= TRAY && !bx.some((b) => buf.includes(b.c))) return false;
+    settleBoxes(); if (buf.length >= T_ && !bx.some((b) => buf.includes(b.c))) return false;
   }
   return true;
 }
@@ -353,7 +355,7 @@ const ground = new THREE.Mesh(new THREE.CircleGeometry(4.2, 40), new THREE.Shado
 function setupBoxes(L) {
   for (const b of boxes) if (b.group) hud.remove(b.group);
   for (const t of buffer) if (t && t.fl) t.fl.parent && t.fl.parent.remove(t.fl);
-  K = L.K; queue = L.queue; qi = 0; boxes = []; buffer = new Array(TRAY).fill(null);
+  K = L.K; queue = L.queue; qi = 0; boxes = []; if (TRAY !== L.T) { TRAY = L.T; buildTray(); } buffer = new Array(TRAY).fill(null);
   for (let i = 0; i < K; i++) { boxes.push({ i, color: null, reserved: 0, filled: 0, active: false, group: null, items: [] }); nextBox(boxes[i], i * 90); }
   layoutHud();
 }
@@ -392,7 +394,7 @@ function completeBox(b) {
   setTimeout(async () => {
     if (gen !== my) return;
     g.lid.visible = true; await anim(120, (k) => g.lid.position.y = lerp(1.2, 0.4, k), (k) => k * k);
-    sfx.coin(); buzz(25); const wp = g.getWorldPosition(new THREE.Vector3());
+    sfx.coin(); buzz(25); ui.flash(0.22); ui.pop('BOX FULL!', COLORS[b.color], 38, 52); const wp = g.getWorldPosition(new THREE.Vector3());
     burst(scene, wp, [COLORS[b.color], '#ffffff', '#ffe36b'], 14, { speed: 0.06, up: 0.05, size: 0.35, gravity: 0.003 });
     await anim(110, (k) => g.scale.setScalar(SLOT * 0.86 * (1 + 0.18 * Math.sin(k * Math.PI))));
     const y0 = g.position.y; await anim(200, (k) => { g.position.y = y0 + k * k * 1.6; g.rotation.z = k * 0.3; });
@@ -419,6 +421,7 @@ async function flyTo(fl, b, slot) {
   if (!b.group) { scene.remove(fl); return; }
   b.group.attach(fl); if (fl.shaft) fl.shaft.visible = false; fl.position.copy(tgtLocal); fl.quaternion.copy(tq); fl.scale.setScalar(0.62);
   tone(1100 + b.filled * 160, 0.05, 'square', 0.05, 1.1); b.filled++; b.items.push(fl);
+  if (b.filled < 3) { const g = b.group; anim(130, (k) => g.scale.setScalar(SLOT * 0.86 * (1 + 0.14 * Math.sin(k * Math.PI)))); }
   if (b.filled === 3) completeBox(b);
 }
 async function flyToTray(fl, j) {
@@ -442,6 +445,62 @@ function makeFlyer(color) {
   g.add(h, c, sh); g.shaft = sh; return g;
 }
 
+
+// ---------------------------------------------------------------- first-move coach (hook): a pulsing ring + hand on the exact next move, ≤ 6-word tips
+// Real data: most quick quits tapped the start card once and never touched the toy. So there is no start card: the toy is live,
+// and the next good bolt glows with a hand on it (level 1 every move, level 2 after 1.5 s idle, later after 4 s idle).
+const coach = (() => {
+  const st = document.createElement('style');
+  st.textContent = `.cx-ring{position:fixed;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;border:5px solid #fff;box-shadow:0 0 0 5px rgba(255,255,255,.35),0 0 26px 6px rgba(255,255,255,.9);pointer-events:none;z-index:6;animation:cxr .8s ease-in-out infinite}
+@keyframes cxr{0%,100%{transform:scale(.72);opacity:1}50%{transform:scale(1.12);opacity:.75}}
+.cx-hand{position:fixed;font-size:50px;line-height:1;pointer-events:none;z-index:7;margin:-6px 0 0 -16px;filter:drop-shadow(0 4px 2px rgba(0,0,0,.25))}
+.cx-hand.tap{animation:cxt .8s ease-in-out infinite}@keyframes cxt{0%,100%{transform:translate(10px,18px)}50%{transform:translate(0,0) scale(.92)}}
+.cx-tip{position:fixed;left:50%;transform:translate(-50%,0);z-index:7;pointer-events:none;font-weight:800;font-size:26px;line-height:1.1;padding:7px 20px 4px;border-radius:26px;background:#fff;color:#2b3f8f;box-shadow:0 6px 0 rgba(0,0,0,.16);white-space:nowrap;animation:cxi .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes cxi{from{transform:translate(-50%,0) scale(.4);opacity:0}}
+.cx-off{display:none!important}`;
+  document.head.appendChild(st);
+  const mk = (c, t = '') => { const d = document.createElement('div'); d.className = c + ' cx-off'; d.textContent = t; document.body.appendChild(d); return d; };
+  const ring = mk('cx-ring'), hand = mk('cx-hand tap', '👆'), tip = mk('cx-tip'); let tipT = 0, tipTxt = '';
+  const at = (e, x, y) => { e.style.left = x + 'px'; e.style.top = y + 'px'; e.classList.remove('cx-off'); };
+  return {
+    point(x, y) { at(ring, x, y); at(hand, x + 8, y + 14); hand.classList.add('tap'); },
+    swipe(x, y, t) { ring.classList.add('cx-off'); hand.classList.remove('tap'); at(hand, x + Math.sin(t * 3.2) * 80, y); },
+    off() { ring.classList.add('cx-off'); hand.classList.add('cx-off'); },
+    say(text, topPct, ms = 0) { if (text !== tipTxt) { tip.textContent = tipTxt = text; tip.classList.add('cx-off'); void tip.offsetWidth; } tip.style.top = topPct + '%'; tip.classList.remove('cx-off'); tipT = ms ? performance.now() + ms : 0; },
+    quiet(force) { if (force || !tipT || performance.now() > tipT) { tip.classList.add('cx-off'); tipTxt = ''; tipT = 0; } },
+    get timed() { return tipT && performance.now() < tipT; },
+  };
+})();
+const seen = store('bolttwist_tips');
+let lastTap = performance.now(), streak = 0, pulsed = null, firstMatchTip = false, ran = false;
+addEventListener('pointerdown', () => { lastTap = performance.now(); if (!ran) { ran = true; B.start(); } }, true);
+function nextMove() {   // the move a first-timer should make now (same preference as bot())
+  if (boxes.some((b) => !b.active && b.color) && !boxes.some((b) => b.active)) return null;
+  const sb = screenBolts(), m = sb.find((v) => v[2] === 0);
+  if (m) return { kind: 'tap', x: m[0], y: m[1], id: m[3] };
+  const live = screws.filter((s) => !s.gone && !blocked(s));
+  if (live.some((s) => boxes.some((b) => b.active && b.color === s.color && b.reserved < 3))) return { kind: 'spin' };
+  if (boxes.some((b) => !b.active && b.color) || flights.length || freeTray() < 0) return null;
+  if (!sb.length) return live.length ? { kind: 'spin' } : null;
+  const rank = (c) => { const i = queue.indexOf(c, qi); return i < 0 ? 1e9 : i; };
+  const v = sb.slice().sort((a, b) => rank(screws[a[3]].color) - rank(screws[b[3]].color))[0];
+  return { kind: 'tap', x: v[0], y: v[1], id: v[3], park: true };
+}
+function coachTick(t) {
+  const unpulse = () => { if (pulsed && !pulsed.gone) setInst(pulsed, 1); pulsed = null; };
+  if (state !== 'play') { coach.off(); coach.quiet(true); unpulse(); return; }
+  const idle = (performance.now() - lastTap) / 1000, wait = level === 1 ? 0.15 : level === 2 ? 1.5 : 4;
+  const mv = idle >= wait ? nextMove() : null;
+  if (!mv) { coach.off(); unpulse(); if (!coach.timed) coach.quiet(); return; }
+  if (mv.kind === 'spin') { unpulse(); coach.swipe(innerWidth / 2, innerHeight * 0.6, t); coach.say('Swipe to spin!', 37); return; }
+  const s = screws[mv.id]; if (pulsed !== s) { unpulse(); pulsed = s; }
+  setInst(s, 1 + 0.22 * Math.abs(Math.sin(t * 5)));
+  coach.point(mv.x, mv.y);
+  if (level === 1 && !cleared) coach.say('Tap the glowing bolt', 37);
+  else if (mv.park && !seen.get('park', 0)) coach.say('No match? Park it', 37);
+  else if (!coach.timed) coach.quiet();
+}
+
 // ---------------------------------------------------------------- tapping bolts
 function blocked(s) { const p = plates[s.plate]; return p.above.map((i) => plates[i]).find((q) => q.alive && contains(q, s.fx, s.fy, 0.12)); }
 function tapScrew(s) {
@@ -452,6 +511,11 @@ function tapScrew(s) {
   let b = boxes.filter((b) => b.active && b.color === s.color && b.reserved < 3).sort((a, c) => c.reserved - a.reserved)[0], j = -1;
   if (b) AD.good(); else if (screenBolts().some((v) => v[2] === 0)) AD.bad();   // parked a bolt while a matching one was in plain view
   if (!b) { j = freeTray(); if (j < 0) { ui.pop('TRAY FULL!', '#ff4d5e', 30, 30); buzz(60); AD.bad(0.5); return; } buffer[j] = { color: s.color, arrived: false }; }
+  // juice: sparks at the bolt, a streak counter for box matches in a row, a rising note per streak step
+  burst(scene, toy.localToWorld(s.pos.clone()), [COLORS[s.color], '#ffffff', '#ffe36b'], b ? 12 : 6, { speed: 0.05, up: 0.05, size: 0.28, gravity: 0.003 });
+  if (b) { streak++; ui.pop(streak === 1 ? 'Nice!' : streak < 4 ? `x${streak}!` : `x${streak} WOW!`, COLORS[s.color], 34 + Math.min(streak, 8) * 3, 52); tone(560 + Math.min(streak, 10) * 70, 0.09, 'triangle', 0.09, 1.3);
+    if (level === 1 && !firstMatchTip) { firstMatchTip = true; setTimeout(() => state === 'play' && coach.say('Match the box colours!', 37, 2200), 120); } }
+  else { if (streak > 1) ui.pop('Parked', '#ffffff', 28, 52); streak = 0; if (!seen.get('park', 0)) { seen.set('park', 1); coach.say('It waits in the tray', 37, 2400); } }
   const slot = b ? b.reserved++ : -1;
   s.gone = true; setInst(s, 0); cleared++; total++; ui.progress(cleared / screws.length);
   hudText(); leftEl.classList.add('bump'); setTimeout(() => leftEl.classList.remove('bump'), 120);
@@ -499,7 +563,7 @@ function startLevel() {
   const bg = BGS[(level - 1) % BGS.length]; document.body.style.setProperty('--bg1', bg[0]); document.body.style.setProperty('--bg2', bg[1]); document.body.style.setProperty('--ui', '#3a7bff');
   L = design(level, AD.k(FL.k())); buildToy(L); setupBoxes(L); AD.round();
   ground.position.y = -L.H / 2 - 0.01; toy.position.y = 0;
-  cleared = 0; rotY = level === 1 ? -0.25 : -0.55; rotV = 0; tilt = 0.12; botFace = null;
+  cleared = 0; streak = 0; lastTap = performance.now(); rotY = level === 1 ? -0.25 : -0.55; rotV = 0; tilt = 0.12; botFace = null;
   ui.levels(level); ui.progress(0); hudText();
 }
 function win() {
@@ -519,9 +583,12 @@ input({
     if (state !== 'play') return;
     ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
     const hits = ray.intersectObjects([headIM, core, ...plates.filter((p) => p.alive).map((p) => p.mesh)], false);
-    if (!hits.length) return;
     const h = hits[0];
-    if (h.object === headIM && h.instanceId !== undefined) return tapScrew(screws[h.instanceId]);
+    if (h && h.object === headIM && h.instanceId !== undefined) return tapScrew(screws[h.instanceId]);
+    // fat-finger on screen: the nearest free bolt within a thumb's width of the tap (bolts are small on a phone)
+    let near = null, nd = level <= 2 ? 64 : 46; for (const v of screenBolts()) { const d = Math.hypot(v[0] - e.clientX, v[1] - e.clientY); if (d < nd) { nd = d; near = screws[v[3]]; } }
+    if (near) return tapScrew(near);
+    if (!h) return;
     // fat-finger: nearest live bolt to the hit point
     let best = null, bd = 0.45; const lp = toy.worldToLocal(h.point.clone());
     for (const s of screws) if (!s.gone) { const d = s.pos.distanceTo(lp); if (d < bd) { bd = d; best = s; } }
@@ -552,7 +619,7 @@ function placeCamera() {
 addEventListener('resize', placeCamera); placeCamera();
 const FACE_YAW = { front: -0.45, right: -Math.PI / 2 + 0.45, back: -Math.PI + 0.45, left: Math.PI / 2 - 0.45, top: null };
 loop((dt, t) => {
-  runTweens(); if (state === 'play') AD.tick(performance.now() - tapAt < 6000);
+  runTweens(); if (state === 'play') AD.tick(performance.now() - tapAt < 6000); coachTick(t);
   if (state === 'play' && botFace && FACE_YAW[botFace] !== null) {
     let target = FACE_YAW[botFace]; while (target - rotY > Math.PI) target -= Math.PI * 2; while (target - rotY < -Math.PI) target += Math.PI * 2;
     rotY += (target - rotY) * 0.1 * dt;
@@ -579,7 +646,7 @@ loop((dt, t) => {
 });
 
 startLevel();
-ui.start();
+ui.hideStart(); state = 'play'; hudText();   // no start card (hook): the first tap is a real move
 // test hook: screen (CSS px) points of bolts a player could tap right now — unblocked, facing the camera, box-matching first
 function screenBolts() {
   const out = [], cam = camera.position, v = new THREE.Vector3();
@@ -593,10 +660,10 @@ function screenBolts() {
   return out.sort((a, b) => a[2] - b[2]);
 }
 // test hook: play design(n) with a scripted policy, no rendering. 'greedy' = the verifier, 'casual' = taps a box match 80% of the time else any bolt
-function simulate(n, policy = 'casual', trials = 200, seed = 1, T = TRAY, pm = 0.8) {
+function simulate(n, policy = 'casual', trials = 200, seed = 1, T = 0, pm = 0.8) {
   const R = rng(seed * 131 + n); let won = 0, taps = 0;
   for (let t = 0; t < trials; t++) {
-    const Lx = design(n, 1), P = Lx.P, S = Lx.S, q = Lx.queue, alive = P.map(() => true), gone = S.map(() => false), bx = [], buf = []; let qi_ = 0, ok = true;
+    const Lx = design(n, 1), TT = T || Lx.T, P = Lx.P, S = Lx.S, q = Lx.queue, alive = P.map(() => true), gone = S.map(() => false), bx = [], buf = []; let qi_ = 0, ok = true;
     const refill = () => { while (bx.length < Lx.K && qi_ < q.length) bx.push({ c: q[qi_++], n: 0 }); };
     const settleB = () => { let ch = true; while (ch) { ch = false; for (let i = bx.length - 1; i >= 0; i--) if (bx[i].n >= 3) { bx.splice(i, 1); ch = true; } refill(); for (const b of bx) for (let j = buf.length - 1; j >= 0 && b.n < 3; j--) if (buf[j] === b.c) { buf.splice(j, 1); b.n++; ch = true; } } };
     refill();
@@ -605,11 +672,11 @@ function simulate(n, policy = 'casual', trials = 200, seed = 1, T = TRAY, pm = 0
       const m = acc.filter((s) => bx.some((b) => b.c === s.color && b.n < 3));
       const pick = (policy === 'greedy' || R() < pm) && m.length ? m[Math.floor(R() * m.length)] : acc[Math.floor(R() * acc.length)];
       gone[pick.id] = true; settlePlates(P, S, alive, gone); taps++;
-      const b = bx.find((b) => b.c === pick.color && b.n < 3); if (b) b.n++; else { if (buf.length >= T) { ok = false; break; } buf.push(pick.color); }
-      settleB(); if (buf.length >= T && !bx.some((b) => buf.includes(b.c))) { ok = false; break; }
+      const b = bx.find((b) => b.c === pick.color && b.n < 3); if (b) b.n++; else { if (buf.length >= TT) { ok = false; break; } buf.push(pick.color); }
+      settleB(); if (buf.length >= TT && !bx.some((b) => buf.includes(b.c))) { ok = false; break; }
     }
     if (ok) won++;
   }
-  return { n, policy, winPct: Math.round(100 * won / trials), bolts: design(n, 1).S.length, K: design(n, 1).K };
+  return { n, policy, winPct: Math.round(100 * won / trials), bolts: design(n, 1).S.length, K: design(n, 1).K, T: T || design(n, 1).T };
 }
 window.__game = { get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; }, simulate, get state() { return state; }, get level() { return level; }, get score() { return total; }, bot, design, solve, screenBolts,dbg: () => ({ left: screws.filter((s) => !s.gone).map((s) => [s.id, s.color, s.face, !!blocked(s)]), boxes: boxes.map((b) => [b.color, b.active, b.reserved, b.filled]), buffer: buffer.map((b) => b && [b.color, b.arrived]), qi, queue, flights: flights.length, plates: plates.map((p) => [p.id, p.alive, p.left, p.above]) }), load(n) { level = n; ui.hideStart(); ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); startLevel(); state = 'play'; } };

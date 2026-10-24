@@ -2,18 +2,26 @@
 import { bake, vcMat } from './merge.js';
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, clamp, lerp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { adapter } from './kit/adapt.js';
 
 import { board } from './kit/board.js';
 const WB = board({ game: 'horde-blast', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum' });
 const save = store('hordeblast');
 const F = flow('hordeblast');
 let fk = 1;
+// in-round adaptation (kit/adapt.js, ADAPT_BRIEF.md): each second, troops steered through blue gates count as good aim and
+// troops lost to red gates and crushers count as bad. The level eases or pushes the waves (size, pace, speed) by up to
+// ±20 %, inside ±25 % with flow.js (never harder on levels 1-2). Rescue (at most one a round, 60 s apart, only for a
+// player who has been aiming well): a shockwave when the mob reaches the cannon, or reinforcements when the troops run
+// out with the fort nearly down. Off for ranked players. Never touches the score. QA reads window.__game.adapt.
+const AD = adapter(); let inAt = -1e9, aimG = 0, aimB = 0, aimT = 0, rescued = false;
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
 const { scene, camera, renderer, sun, hemi, followLight } = createStage({ fov: 50, shadowSize: 30 });
 sun.position.set(8, 20, 6); sun.shadow.camera.far = 90; hemi.intensity = 1.2; sun.intensity = 1.6;
 document.body.style.setProperty('--bg1', '#9fd8ff'); document.body.style.setProperty('--bg2', '#ffe2b0'); document.body.style.setProperty('--ui', '#2f7bff');
 scene.fog = new THREE.Fog('#f6dfb3', 60, 140);
 const ui = createUI({ title: 'HORDE<br>BLAST', hint: 'Tap left or right to fire · hold and drag to aim', hand: '👆' });
+Object.assign(ui.els.sub.style, { color: '#fff', fontSize: '18px', fontWeight: '800', textShadow: '0 2px 5px rgba(0,0,0,.6), 0 0 2px rgba(0,0,0,.5)' });   // tips + OUT OF TROOPS stay readable on the sky
 ui.levels(level);
 
 const W = 5.2, LEN = 44, BASEZ = -LEN, MAXU = 700;
@@ -69,7 +77,15 @@ barrel.position.set(0, 1.35, -0.6); barrel.rotation.x = -0.12; barrel.castShadow
 const ring = new THREE.Mesh(new THREE.RingGeometry(1.5, 1.75, 40), new THREE.MeshBasicMaterial({ color: '#3cff7a', transparent: true, opacity: 0.8 })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.17; cannon.add(ring);
 const flash = new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 8), new THREE.MeshBasicMaterial({ color: '#fff3a0', transparent: true, opacity: 0 })); flash.position.set(0, 1.4, -1.6); cannon.add(flash);
 cannon.position.set(0, 0.15, 3.5);
-const countTag = canvasSprite('0', '#2f6bff'); countTag.scale.set(2.2, 0.82, 1); countTag.position.set(0, 3.0, 0.3); cannon.add(countTag); let lastCount = -1;
+const countTag = canvasSprite('0', '#2f6bff'); countTag.scale.set(2.2, 0.82, 1); countTag.position.set(0, 3.55, 0.3); cannon.add(countTag); let lastCount = -1;
+// troop budget: a bar under the crowd counter. Red when nearly empty.
+const ammoTag = (() => { const c = document.createElement('canvas'); c.width = 256; c.height = 72; const x = c.getContext('2d');
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false })); s.renderOrder = 21;
+  s.set = (left, max) => { const f = max > 0 ? left / max : 0, low = f < 0.25;
+    x.clearRect(0, 0, 256, 72); x.fillStyle = 'rgba(20,24,48,.82)'; x.beginPath(); x.roundRect(4, 6, 248, 60, 26); x.fill();
+    x.fillStyle = low ? '#ff3b4e' : '#3cc8ff'; if (f > 0) { x.beginPath(); x.roundRect(10, 12, Math.max(28, 236 * f), 48, 22); x.fill(); }
+    x.font = '800 44px "Baloo 2", system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff'; x.fillText(left > 0 ? '🪖 ' + left : 'NO TROOPS', 128, 39); s.material.map.needsUpdate = true; };
+  s.scale.set(2.9, 0.82, 1); s.position.set(0, 2.6, 0.3); cannon.add(s); return s; })();
 
 // ---------------------------------------------------------------- fortress (enemy base) + boss
 const fort = new THREE.Group(); scene.add(fort);
@@ -93,46 +109,93 @@ const bossHP = canvasSprite('150', '#7a1020'); bossHP.scale.set(3, 1.12, 1); sce
 
 // ---------------------------------------------------------------- gates
 const gateGroup = new THREE.Group(); scene.add(gateGroup);
-function gateTex(label) {
+function gateTex(label, bad = false) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d');
-  x.fillStyle = 'rgba(70,140,255,0.55)'; x.fillRect(0, 0, 256, 128); x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 8; x.strokeRect(4, 4, 248, 120);
+  x.fillStyle = bad ? 'rgba(255,70,80,0.6)' : 'rgba(70,140,255,0.55)'; x.fillRect(0, 0, 256, 128); x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 8; x.strokeRect(4, 4, 248, 120);
   x.font = '800 86px "Baloo 2", system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 10; x.strokeStyle = 'rgba(10,30,90,.35)'; x.strokeText(label, 128, 70); x.fillStyle = '#fff'; x.fillText(label, 128, 68);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 let gates = [];
 function makeGate(mult, cx, w, z, move) {
   const g = new THREE.Group(); g.position.set(cx, 0, z);
-  const panel = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.5), new THREE.MeshBasicMaterial({ map: gateTex('x' + mult), transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+  const panel = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.5), new THREE.MeshBasicMaterial({ map: gateTex(mult < 1 ? '÷' + Math.round(1 / mult) : 'x' + mult, mult < 1), transparent: true, depthWrite: false, side: THREE.DoubleSide }));
   panel.position.y = 1.0; panel.rotation.x = -0.25; g.add(panel);
-  const pm = glossy('#4b8dff');
+  const pm = glossy(mult < 1 ? '#ff4b5a' : '#4b8dff');
   for (const sx of [-1, 1]) { const p = new THREE.Mesh(rounded(0.22, 1.9, 0.22, 0.08), pm); p.position.set(sx * w / 2, 0.95, 0); p.castShadow = true; g.add(p); }
   const bar = new THREE.Mesh(rounded(w + 0.2, 0.18, 0.22, 0.08), pm); bar.position.y = 1.85; g.add(bar);
   gateGroup.add(g);
   return { g, mult, cx, w, z, move, bit: 1 << gates.length, ph: Math.random() * 6, pulse: 0 };
 }
 
+// ---------------------------------------------------------------- crushers (from level 4): spiked rollers that sweep the lane and eat troops
+const crushGeo = bake([{ geo: new THREE.CylinderGeometry(0.42, 0.42, 2.4, 16), color: '#3b3f57', rot: [0, 0, Math.PI / 2] },
+  ...Array.from({ length: 18 }, (_, i) => { const a = (i % 6) / 6 * Math.PI * 2, xx = -1.0 + Math.floor(i / 6) * 1.0; return { geo: new THREE.ConeGeometry(0.16, 0.42, 6), color: '#ff3048', pos: [xx, Math.cos(a) * 0.55, Math.sin(a) * 0.55], rot: [a, 0, 0] }; }),
+  ...[-1, 1].map(sx => ({ geo: new THREE.CylinderGeometry(0.5, 0.5, 0.12, 16), color: '#ffd23f', pos: [sx * 1.22, 0, 0], rot: [0, 0, Math.PI / 2] }))]);
+const crushGroup = new THREE.Group(); scene.add(crushGroup);
+let crushers = [];
+// each one patrols the centre and one side, so the far side stays clear for a player who looks
+function makeCrusher(z, sp, ph, cc) { const m = new THREE.Mesh(crushGeo, vcMat({ roughness: 0.4 })); m.castShadow = true; m.scale.setScalar(1.15); m.position.set(0, 0.7, z); crushGroup.add(m); return { m, z, x: cc, sp, ph, cc, amp: 2.3, spin: 0 }; }
+
 // ---------------------------------------------------------------- level
 let baseHP = 100, baseMax = 100, bossOn = false, bossHPv = 0, bossMax = 0, bossZ = 0, waveT = 0, fireT = 0, elapsed = 0, aimX = 0, firing = false, volley = 0, botOn = false, killed = 0, rnd = rng(1);
+let ammo = 0, ammoMax = 0, shots = 0, tipOn = false;
+// troop budget per level, from the level itself: what a good aimer needs (fitted on QA runs: a base for the walk to
+// the fort, the fort's HP over the best column's gate multiplier, and the bigger waves of later levels) times a margin.
+// Levels 1-2 get 3× (the hook), 3-4 a 15 % margin, then 8 %, and every third level (5, 8, 11…) 5 % under it: the
+// crowd still in flight has to finish the fort. Holding the centre through the red gates needs 3-8× more, so it runs dry.
+function troops() {
+  const need = 46 + 0.76 * (baseHP + bossMax * 0.5) / colValue(bestColumn()) + 8.2 * level;
+  return Math.round(need * (level < 3 ? 3 : level < 5 ? 1.15 : level % 3 === 2 ? 0.95 : 1.08));
+}
 function buildLevel() {
-  rnd = rng(level * 7717 + 3); fk = F.k();
-  gateGroup.clear(); gates = []; blues = []; reds = [];
+  rnd = rng(level * 7717 + 3); fk = F.k(); AD.round(); rescued = false; aimG = aimB = 0; aimT = 0;
+  gateGroup.clear(); gates = []; blues = []; reds = []; crushGroup.clear(); crushers = [];
   const rows = [-10, -18, -26];
-  for (const z of rows) {
-    if (rnd() < 0.55) { const w = 3.6 + rnd() * 1.4, cx = (rnd() - 0.5) * (2 * W - w); gates.push(makeGate(rnd() < 0.6 ? 2 : 3, cx, w, z, level >= 3 && rnd() < 0.4)); }
+  if (level < 3) for (const z of rows) {   // levels 1-2: blue gates only, the quick first wins
+    if (rnd() < 0.55) { const w = 3.6 + rnd() * 1.4, cx = (rnd() - 0.5) * (2 * W - w); gates.push(makeGate(rnd() < 0.6 ? 2 : 3, cx, w, z, false)); }
     else { gates.push(makeGate(2, -W / 2, W - 0.3, z, false)); gates.push(makeGate(rnd() < 0.5 ? 3 : 4, W / 2, W - 0.3, z, false)); if (rnd() < 0.5) { const a = gates[gates.length - 1], b = gates[gates.length - 2]; [a.cx, b.cx] = [b.cx, a.cx]; a.g.position.x = a.cx; b.g.position.x = b.cx; } }
+  } else {
+    // from level 3 there is always one good side, red ÷2 gates sit in the middle or on the other side, and crushers
+    // patrol the middle. Holding the centre halves the crowd again and again; steering to the good side pays.
+    // the layout is re-rolled until its best column multiplies ×12-×36, so levels don't swing from trivial to brutal
+    const s = rnd() < 0.5 ? -1 : 1, off = W - 1.6, gw = 3.0, D = 1.2;   // D: where the two-halves row splits, past the centre on the good side
+    for (let tries = 0; tries < 12; tries++) {
+    gateGroup.clear(); gates = [];
+    rows.forEach((z, ri) => {
+      const pat = rnd(), hi = rnd() < 0.35 ? 4 : 3, lo = 2;
+      if (pat < 0.45) {   // three lanes: good | wide ÷2 | good (one side bigger)
+        gates.push(makeGate(hi, s * off, gw, z, false)); gates.push(makeGate(0.5, 0, 3.8, z, false)); gates.push(makeGate(lo, -s * off, gw, z, false));
+      } else if (pat < 0.85 || ri === 0) {   // two halves: big blue on the good side, a wider ÷2 that covers the centre
+        gates.push(makeGate(hi, s * (W + D) / 2, W - D - 0.15, z, false)); gates.push(makeGate(0.5, -s * (W - D) / 2, W + D - 0.15, z, false));
+      } else {   // one blue gate sliding across: catch it if you can
+        gates.push(makeGate(lo, 0, 3.2, z, true));
+      }
+    });
+    let bv = 0; for (let x = -W + 1.1; x <= W - 1.1; x += 0.3) bv = Math.max(bv, colValue(x));
+    if (bv >= 12 && bv <= 36) break;
+    }
+    // crushers: one from level 4 (rows 1-2), a second from level 7 (rows 2-3). They patrol the middle and the bad side;
+    // from level 8 the second may patrol the good side instead, so you time your stream around it
+    if (level >= 4) crushers.push(makeCrusher(-14, 0.85 + Math.min(level, 12) * 0.03, rnd() * 6, -s * 1.3));
+    if (level >= 7) crushers.push(makeCrusher(-22, 0.75 + Math.min(level, 12) * 0.03, rnd() * 6, (level >= 8 && rnd() < 0.4 ? s : -s) * 1.3));
   }
-  baseMax = baseHP = Math.round(45 + level * 22 + Math.pow(level, 1.4) * 4);
+  // from level 3 the fort and the waves grow faster: gates multiply your crowd, so a linear ramp was never a threat
+  const lv = Math.max(0, level - 2);
+  baseMax = baseHP = Math.round(45 + level * 22 + Math.pow(level, 1.4) * 4 + lv * 40 + Math.pow(lv, 1.5) * 10);
   bossOn = level % 4 === 0; bossMax = bossHPv = bossOn ? 80 + level * 20 : 0; bossZ = BASEZ + 4;
   boss.visible = bossHP.visible = bossOn; boss.scale.setScalar(1);
   fort.visible = true; fort.scale.set(1, 1, 1); fortHP.visible = true; fortHP.set(String(baseHP));
-  collapse = 0; waveT = 1.5; fireT = 0; volley = 0; elapsed = 0; aimX = 0; killed = 0; cannon.position.x = 0;
-  ui.levels(level); ui.progress(0); ui.score(''); ui.sub(bossOn ? 'BOSS LEVEL!' : ''); if (bossOn) setTimeout(() => ui.sub(''), 2500);
+  collapse = 0; botAim = 0; botT = 1.2; waveT = 1.5; fireT = 0; volley = 0; elapsed = 0; aimX = 0; killed = 0; cannon.position.x = 0;
+  ammoMax = ammo = troops(); shots = 0; ammoTag.set(ammo, ammoMax);
+  ui.levels(level); ui.progress(0); ui.score('');
+  const tip = bossOn ? 'BOSS LEVEL!' : level === 3 ? 'Red gates halve your crowd · drag to aim' : level === 4 ? 'Dodge the crusher!' : level === 7 ? 'Two crushers now!' : '';
+  ui.sub(tip); tipOn = !!tip;   // cleared 3.5 s into play (step)
 }
 
 // ---------------------------------------------------------------- input
 input({
-  onDown: () => { botOn = false; if (state === 'play') firing = true; },
-  onMove: (dx) => { if (state === 'play') aimX = clamp(aimX + dx * 0.03, -W + 1.1, W - 1.1); },
+  onDown: () => { botOn = false; inAt = elapsed; if (state === 'play') firing = true; },
+  onMove: (dx) => { inAt = elapsed; if (state === 'play') aimX = clamp(aimX + dx * 0.03, -W + 1.1, W - 1.1); },
   onUp: (e, st) => { firing = false; if (state === 'play' && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) { volley = 1.2; aimX = clamp(aimX + (e.clientX < innerWidth / 2 ? -1.6 : 1.6), -W + 1.1, W - 1.1); } },   // tap = a 1.2 s volley + a step toward that side
 });
 ui.onTap(w => { WB.start();
@@ -151,11 +214,14 @@ function poof(x, z, color, n = 3) { burst(scene, new THREE.Vector3(x, 0.6, z), c
 let poofBudget = 0, recoil = 0, shake = 0;
 function step(sec) {
   elapsed += sec;
+  if (tipOn && elapsed > 3.5) { tipOn = false; if (ammo > 0) ui.sub(''); }
   // fire
   if (volley > 0) volley -= sec;
-  if (firing || volley > 0) { fireT -= sec; while (fireT <= 0) { fireT += 1 / 9; spawnBlue(cannon.position.x + (Math.random() - 0.5) * 0.4, 0.6); recoil = 1; if (Math.random() < 0.5) tone(700 + Math.random() * 80, 0.03, 'triangle', 0.035, 0.7); } }
+  if ((firing || volley > 0) && ammo > 0) { fireT -= sec; while (fireT <= 0 && ammo > 0) { fireT += 1 / 9; ammo--; shots++; spawnBlue(cannon.position.x + (Math.random() - 0.5) * 0.4, 0.6); recoil = 1; if (Math.random() < 0.5) tone(700 + Math.random() * 80, 0.03, 'triangle', 0.035, 0.7); }
+    ammoTag.set(ammo, ammoMax); if (ammo === 0) { ui.sub('OUT OF TROOPS!'); tone(180, 0.15, 'square', 0.05, 0.6); } }
   // enemy waves from the fortress door (stop once it's destroyed)
-  if (baseHP > 0) { waveT -= sec; if (waveT <= 0) { const n = Math.round((5 + Math.min(30, level * 2)) * fk) + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) spawnRed((Math.random() - 0.5) * 3.4, BASEZ + 2 + Math.random() * 2.5); waveT = Math.max(1.4, (3.6 - level * 0.12) / fk); } }
+  const ak = level < 3 ? Math.min(fk, AD.k(fk)) : AD.k(fk);   // flow.js between runs × in-round adaptation, clamped to ±25 %; never harder on the levels 1-2 hook
+  if (baseHP > 0) { waveT -= sec; if (waveT <= 0) { const n = Math.round((5 + Math.min(30, level * 2) + Math.min(8, Math.max(0, level - 2))) * ak) + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) spawnRed((Math.random() - 0.5) * 3.4, BASEZ + 2 + Math.random() * 2.5); waveT = Math.max(1.4, (3.6 - level * 0.12) / ak); } }
   // gates move
   for (const g of gates) { if (g.move) { g.cx = Math.sin(elapsed * 0.9 + g.ph) * (W - g.w / 2 - 0.2); g.g.position.x = g.cx; } g.pulse = Math.max(0, g.pulse - sec * 4); g.g.scale.setScalar(1 + g.pulse * 0.08); }
   // move blues
@@ -164,12 +230,20 @@ function step(sec) {
     if (Math.abs(u.x) > W - 0.3) { u.x = Math.sign(u.x) * (W - 0.3); u.vx *= -0.5; }
     for (const g of gates) if (pz > g.z && u.z <= g.z && !(u.passed & g.bit) && Math.abs(u.x - g.cx) < g.w / 2) {
       u.passed |= g.bit; g.pulse = 1;
+      if (g.mult < 1) { aimB++; if (Math.random() > g.mult) { u.gone = true; if (poofBudget > 0) { poofBudget--; poof(u.x, u.z, ['#ff3048', '#ffffff'], 2); } } continue; }   // ÷2 gate: about half don't make it
+      aimG++;
       for (let k = 1; k < g.mult; k++) { spawnBlue(u.x + (Math.random() - 0.5) * 1.2, u.z - Math.random() * 0.9, u.passed); blues[blues.length - 1] && (blues[blues.length - 1].vx = (Math.random() - 0.5) * 5); }
     }
   }
-  // move reds toward the cannon, drifting toward the nearest blue cluster a little
-  const RSP = (3.6 + Math.min(level, 10) * 0.12) * fk;
-  for (const e of reds) { e.z += RSP * sec; e.t += sec; e.x += (cannon.position.x * 0.15 - e.x * 0.15) * sec; }
+  // crushers sweep across and eat every troop they roll over
+  for (const c of crushers) { const nx = c.cc + Math.sin(elapsed * c.sp + c.ph) * c.amp; c.spin += (nx - c.x) * 2.2 + sec * 4; c.x = nx; c.m.position.x = nx; c.m.rotation.x = -c.spin;
+    for (const u of blues) if (!u.gone && Math.abs(u.x - c.x) < 1.35 && Math.abs(u.z - c.z) < 0.6) { u.gone = true; aimB++; if (poofBudget > 0) { poofBudget--; poof(u.x, u.z, ['#ff3048', '#3b3f57']); } } }
+  if (blues.some(u => u.gone)) blues = blues.filter(u => !u.gone);
+  // adaptation signal, once a second while firing: mostly blue gates = good aim, more red losses than blue gains = struggling
+  aimT += sec; if (aimT >= 1) { aimT = 0; if (aimG + aimB > 0) { if (aimG >= 2 * aimB) AD.good(1); else if (aimB > aimG) AD.bad(1); } aimG = aimB = 0; }
+  // move reds toward the cannon
+  const RSP = (3.6 + Math.min(level, 10) * 0.12) * ak;
+  for (const e of reds) { e.z += RSP * sec; e.t += sec; e.x += (cannon.position.x - e.x) * 0.5 * sec; }   // they march on your cannon, wherever you aim
   // collisions via spatial hash: each red kills one blue and dies
   hash.clear();
   blues.forEach((u, i) => { const k = key(u.x, u.z); let a = hash.get(k); if (!a) hash.set(k, a = []); a.push(i); });
@@ -193,16 +267,36 @@ function step(sec) {
   blues.forEach((u, i) => { if (!deadB[i] && u.z < BASEZ + 2.2) { deadB[i] = 1; if (baseHP > 0 && (!bossOn || bossHPv <= 0 || Math.abs(u.x) > 2.5)) { baseHP--; score++; fortHit = 1; if (poofBudget > 0) { poofBudget--; poof(u.x, BASEZ + 2.2, ['#ffd23f', '#ff3048']); } } } });
   blues = blues.filter((_, i) => !deadB[i]);
   reds = reds.filter((_, j) => !deadR[j]);
+  // rescue: the mob is at the door, the player has been aiming well → one shockwave clears it (shares the one-a-round rescue)
+  if (!rescued && reds.some(e => e.z > -1.5) && AD.sensible() && AD.rescue()) { rescued = true; let n = 0; for (const e of reds) if (e.z > -7) { e.dead = 1; n++; if (n < 12) poof(e.x, e.z, ['#7dffb2', '#ffffff', '#ff3048']); } reds = reds.filter(e => !e.dead); shake = 0.8; ui.pop('SHOCKWAVE!', '#7dffb2', 36, 30); tone(220, 0.25, 'sawtooth', 0.06, 0.4); buzz([30, 20, 30]); }
   // reds reaching the cannon = lose
-  for (const e of reds) if (e.z > 1.2) return lose('OVERRUN!', 'The red mob reached your cannon');
+  for (const e of reds) if (e.z > 1.2) return lose('OVERRUN!', ammo > 0 ? 'The red mob reached your cannon' : 'Out of troops: the red mob reached your cannon');
+  if (ammo <= 0 && blues.length === 0 && baseHP > 0) {
+    // rescue: once a round, only for a player who has been aiming well, and only when the fort is nearly down
+    if (!rescued && baseHP <= baseMax * 0.3 && AD.sensible() && AD.rescue()) { rescued = true; ammo = Math.max(10, Math.round(ammoMax * 0.12)); ammoTag.set(ammo, ammoMax); ui.sub(''); ui.pop('REINFORCEMENTS!', '#7dffb2', 36, 30); tone(880, 0.12, 'triangle', 0.05, 0.8); }
+    else return lose('OUT OF TROOPS!', `The fort held with ${baseHP} left · steer through blue gates, dodge red`);
+  }
   fortHP.set(String(Math.max(0, baseHP))); if (bossOn) bossHP.set(String(bossHPv));
   if (baseHP <= 0) win();
 }
-let bossHit = 0, fortHit = 0;
-function lose(t, line) { if (state !== 'play') return; state = 'lost'; F.level(false, 1 - Math.max(0, baseHP) / baseMax); firing = false; sfx.fail(); buzz([60, 40, 80]); ui.flash(0.6); shake = 1; burst(scene, cannon.position.clone().setY(1), ['#2f86ff', '#ffffff', '#555'], 30, { speed: 0.25, up: 0.2 }); ui.lose(t, line); }
+let bossHit = 0, fortHit = 0, botT = 0, botAim = 0, botSloppy = false;
+// the demo/QA bot aims like a good player: the column whose gates multiply the most (where moving gates will be when
+// the crowd gets there) and that the crushers don't patrol, keeping its column unless another is clearly better.
+function colValue(x) {
+  let v = 1;
+  for (const g of gates) { if (g.move) { const p = Math.min(1, (g.w - 1) / (2 * W)); v *= 1 + (g.mult - 1) * p; } else if (Math.abs(x - g.cx) < g.w / 2 - 0.5) v *= g.mult; }
+  for (const c of crushers) if (Math.abs(x - c.cc) < c.amp + 1.6) v *= 0.6;
+  return v;
+}
+function bestColumn() {
+  let best = botAim, bv = colValue(botAim) * 1.2;   // stick to the current column unless another is clearly better
+  for (let x = -W + 1.1; x <= W - 1.1 + 1e-6; x += 0.3) { const v = colValue(x); if (v > bv) { bv = v; best = x; } }
+  return best;
+}
+function lose(t, line) { if (state !== 'play') return; state = 'lost'; AD.bad(2); ui.sub(''); F.level(false, 1 - Math.max(0, baseHP) / baseMax); firing = false; sfx.fail(); buzz([60, 40, 80]); ui.flash(0.6); shake = 1; burst(scene, cannon.position.clone().setY(1), ['#2f86ff', '#ffffff', '#555'], 30, { speed: 0.25, up: 0.2 }); ui.lose(t, line); }
 function win() {
   if (state !== 'play') return;
-  state = 'won'; F.level(true); WB.submit(1); firing = false; score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
+  state = 'won'; AD.good(2); ui.sub(''); F.level(true); WB.submit(1); firing = false; score += 100 + level * 20; best = Math.max(best, score); save.set('best', best);
   sfx.smash(); setTimeout(() => sfx.win(), 200); buzz([40, 30, 80]); ui.flash(0.8); shake = 1.5;
   for (let i = 0; i < 4; i++) setTimeout(() => burst(scene, new THREE.Vector3((Math.random() - 0.5) * 8, 3 + Math.random() * 3, BASEZ), ['#e8394d', '#ff5266', '#fff1f1', '#ffd23f'], 30, { speed: 0.35, up: 0.3, size: 2 }), i * 120);
   confetti(scene, new THREE.Vector3(0, 6, BASEZ + 4), 120); collapse = 1; fortHP.visible = false;
@@ -227,7 +321,8 @@ loop((dt, t) => {
   const sec = Math.min(dt / 60, 1 / 30);
   poofBudget = 3;
   if (state === 'play') {
-    if (botOn) { firing = true; let bg = null; for (const g of gates) if (!bg || g.mult > bg.mult || (g.mult === bg.mult && g.z > bg.z)) bg = g; const target = bg ? bg.cx + Math.sin(t * 2.2) * Math.max(0.3, bg.w / 2 - 0.8) : 0; aimX = lerp(aimX, clamp(target, -W + 1.1, W - 1.1), 0.12); }
+    if (botOn) { firing = true; inAt = elapsed; botT -= sec; if (botT <= 0) { botT = botSloppy ? 2.5 : 1; botAim = botSloppy && Math.random() < 0.2 ? (Math.random() * 2 - 1) * (W - 1.1) : bestColumn(); } aimX = lerp(aimX, clamp(botAim + Math.sin(t * (botSloppy ? 1.3 : 2.2)) * (botSloppy ? 1.4 : 0.35), -W + 1.1, W - 1.1), botSloppy ? 0.04 : 0.12); }
+    AD.tick(elapsed - inAt < 6);
     step(sec);
     ui.progress(1 - baseHP / baseMax); if (blues.length !== lastCount) { lastCount = blues.length; countTag.set(String(blues.length)); }
   } else if (state === 'won' || state === 'lost') { // let the crowd keep running for a moment after the end
@@ -252,6 +347,7 @@ loop((dt, t) => {
 buildLevel();
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; }, get fps() { return Math.round(fps); },
-  get dbg() { return { blues: blues.length, reds: reds.length, baseHP, bossHPv }; },
-  bot() { if (state === 'play') botOn = true; },
+  get dbg() { return { blues: blues.length, reds: reds.length, baseHP, bossHPv, ammo, shots }; },
+  get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
+  bot(sloppy) { if (state === 'play') { botOn = true; botSloppy = !!sloppy; } },   // sloppy: QA's "average aiming kid" (slow to react, wide wobble, 1 in 5 picks a random column)
 };

@@ -95,6 +95,7 @@ const STYLES = {
   hostage: { body: '#f4f4f4', legs: '#8a8f9c', hair: '#6b3a1f', tied: true },
 };
 const FLASHG = new THREE.SphereGeometry(0.24, 10, 8);
+const FLASHM = new THREE.MeshBasicMaterial({ color: '#ffe066', transparent: true, opacity: 0 });   // shared: one agent at a time
 function person(style, parent) {
   const S = STYLES[style];
   const g = new THREE.Group(), piv = new THREE.Group(), root = new THREE.Group();
@@ -124,7 +125,7 @@ function person(style, parent) {
     add(PG.shirt, '#ffffff', 0, 1.3, 0.25); add(PG.tie, '#e23b3b', 0, 1.25, 0.28);
     gun = new THREE.Group(); gun.position.y = -0.6; armR.add(gun);
     add(PG.gun, '#2a2d36', 0, -0.06, 0, gun); add(PG.grip, '#2a2d36', 0, 0.06, -0.12, gun);
-    const fl = new THREE.Mesh(FLASHG, new THREE.MeshBasicMaterial({ color: '#ffe066', transparent: true, opacity: 0 }));
+    const fl = new THREE.Mesh(FLASHG, FLASHM); FLASHM.opacity = 0;
     fl.position.y = -0.38; gun.add(fl); gun.flash = fl;
   }
   parent.add(g);
@@ -335,15 +336,22 @@ function genRoom(lv) {
 }
 
 // ------------------------------------------------------------------ scenery per theme
+// Scenery geometries and materials are the same every level (only the instance matrices/colours and the city's stars
+// differ), so they are made once and shared: a fresh set per level meant ~10 new materials and geometries for three to
+// set up and upload in the first frame of every level (a 130–170 ms frame on a 6× throttled CPU).
+const SC = new Map();
+const scShared = (key, make) => { let v = SC.get(key); if (!v) SC.set(key, v = make()); return v; };
 function scenery(th, grp) {
-  const r = rng(level * 31 + 5), dummy = new THREE.Object3D();
+  const r = rng(level * 31 + 5), dummy = new THREE.Object3D(), col = new THREE.Color();
   const inst = (geo, material, list) => {
     const m = new THREE.InstancedMesh(geo, material, list.length);
-    list.forEach((it, i) => { dummy.position.set(it[0], it[1], it[2]); dummy.scale.set(it[3], it[4], it[5] ?? it[3]); dummy.rotation.set(0, it[7] || 0, 0); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); if (it[6]) m.setColorAt(i, new THREE.Color(it[6])); });
+    list.forEach((it, i) => { dummy.position.set(it[0], it[1], it[2]); dummy.scale.set(it[3], it[4], it[5] ?? it[3]); dummy.rotation.set(0, it[7] || 0, 0); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); if (it[6]) m.setColorAt(i, col.set(it[6])); });
     grp.add(m); return m;
   };
-  const flat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.9, flatShading: true });
-  const disc = (c, x, y, rad, z = -12) => { const m = new THREE.Mesh(new THREE.CircleGeometry(rad, 40), new THREE.MeshBasicMaterial({ color: c })); m.position.set(x, y, z); grp.add(m); };
+  const flat = (c) => scShared('flat' + c, () => new THREE.MeshStandardMaterial({ color: c, roughness: 0.9, flatShading: true }));
+  const G = (key, make) => scShared('g:' + key, make);
+  const disc = (c, x, y, rad, z = -12) => { const m = new THREE.Mesh(G('disc' + rad, () => new THREE.CircleGeometry(rad, 40)), scShared('basic' + c, () => new THREE.MeshBasicMaterial({ color: c }))); m.position.set(x, y, z); grp.add(m); };
+  const box = () => G('box', () => new THREE.BoxGeometry(1, 1, 1));
   if (th.name === 'forest') {
     const cones = [], trunks = [];
     for (let i = 0; i < 16; i++) {
@@ -351,29 +359,29 @@ function scenery(th, grp) {
       for (let k = 0; k < 3; k++) cones.push([x, y0 + h * (0.42 + k * 0.2), z - k * 0.01, h * (0.32 - k * 0.07), h * 0.36, h * (0.32 - k * 0.07), far ? '#2c6a3e' : (k % 2 ? '#3d8a4c' : '#357d45'), r() * 3]);
       trunks.push([x, y0 + 1.2, z + 0.3, 0.35, 2.4, 0.35, '#5a3a22']);
     }
-    inst(new THREE.ConeGeometry(1, 1, 7), flat('#ffffff'), cones);
-    inst(new THREE.CylinderGeometry(1, 1, 1, 6), flat('#ffffff'), trunks);
+    inst(G('cone', () => new THREE.ConeGeometry(1, 1, 7)), flat('#ffffff'), cones);
+    inst(G('trunk', () => new THREE.CylinderGeometry(1, 1, 1, 6)), flat('#ffffff'), trunks);
   } else if (th.name === 'desert') {
     disc('#fff1a8', 2.2, 15.4, 3.1); disc('#ffcf7a', 2.2, 15.4, 3.9, -12.5);
     const mesas = []; for (let i = 0; i < 6; i++) mesas.push([-7 + i * 2.8 + r(), IN.y0 + 1.2 + r() * 1.5, -9, 2.2 + r() * 1.6, 2.4 + r() * 3, 1, i % 2 ? '#e3864a' : '#d0703a']);
-    inst(new THREE.BoxGeometry(1, 1, 1), flat('#ffffff'), mesas);
+    inst(box(), flat('#ffffff'), mesas);
     const cac = []; for (const [x, h] of [[-2.6, 2.4], [2.9, 1.8], [0.4, 1.4]]) { cac.push([x, IN.y0 + h / 2, -6, 0.32, h / 1.6, 0.32, '#4caf50']); cac.push([x - 0.42, IN.y0 + h * 0.62, -6, 0.17, 0.42, 0.17, '#43a047']); cac.push([x + 0.42, IN.y0 + h * 0.5, -6, 0.17, 0.35, 0.17, '#43a047']); }
-    inst(new THREE.CapsuleGeometry(1, 1.6, 4, 10), flat('#ffffff'), cac);
+    inst(G('cactus', () => new THREE.CapsuleGeometry(1, 1.6, 4, 10)), flat('#ffffff'), cac);
   } else if (th.name === 'dojo') {
     disc('#ff6a3d', 1.8, 14.8, 2.7);
-    const mt = new THREE.Mesh(new THREE.ConeGeometry(6.5, 9, 6), flat('#6a7fc4')); mt.position.set(0.8, IN.y0 + 4.5, -10); grp.add(mt);
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(2.2, 3.05, 6), flat('#ffffff')); cap.position.set(0.8, IN.y0 + 7.48, -9.9); grp.add(cap);
+    const mt = new THREE.Mesh(G('mount', () => new THREE.ConeGeometry(6.5, 9, 6)), flat('#6a7fc4')); mt.position.set(0.8, IN.y0 + 4.5, -10); grp.add(mt);
+    const cap = new THREE.Mesh(G('snow', () => new THREE.ConeGeometry(2.2, 3.05, 6)), flat('#ffffff')); cap.position.set(0.8, IN.y0 + 7.48, -9.9); grp.add(cap);
     const pag = []; for (let k = 0; k < 4; k++) { pag.push([-3.2, IN.y0 + 1 + k * 2.2, -7, 2.4 - k * 0.35, 1.6, 1.4, '#e6dccb']); pag.push([-3.2, IN.y0 + 1.95 + k * 2.2, -6.9, 3.6 - k * 0.45, 0.32, 1.9, '#8b3a2e']); }
-    inst(new THREE.BoxGeometry(1, 1, 1), flat('#ffffff'), pag);
+    inst(box(), flat('#ffffff'), pag);
   } else {
     disc('#fff3c4', -2.3, 15.6, 1.5);
     const bl = []; for (let i = 0; i < 9; i++) { const h = 4 + r() * 9; bl.push([-6 + i * 1.5 + r() * 0.4, IN.y0 + h / 2, -8 - (i % 2), 1.2 + r() * 0.6, h, 1, i % 2 ? '#5a4f9e' : '#4b4290']); }
-    inst(new THREE.BoxGeometry(1, 1, 1), flat('#ffffff'), bl);
+    inst(box(), flat('#ffffff'), bl);
     const sg = new THREE.BufferGeometry(), sp = []; for (let i = 0; i < 70; i++) sp.push((r() - 0.5) * 12, 9 + r() * 10, -11);
     sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
-    grp.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: 3, sizeAttenuation: false, transparent: true, opacity: 0.7 })));
+    grp.add(new THREE.Points(sg, scShared('stars', () => new THREE.PointsMaterial({ color: '#ffffff', size: 3, sizeAttenuation: false, transparent: true, opacity: 0.7 }))));
   }
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.ShadowMaterial({ opacity: 0.2 }));
+  const back = new THREE.Mesh(G('back', () => new THREE.PlaneGeometry(90, 90)), scShared('shadowbg', () => new THREE.ShadowMaterial({ opacity: 0.2 })));
   back.position.set(0, 10, -1.7); back.receiveShadow = true; grp.add(back);
 }
 
@@ -399,28 +407,48 @@ function detach(o) {
   const i = p.children.indexOf(o); if (i >= 0) p.children.splice(i, 1);
   o.parent = null; o.dispatchEvent({ type: 'removed' });
 }
-const SHARED = new Set([...Object.values(PG), ...Object.values(PROPG), FLASHG, TNTPLANE, tntLabel]);
+const SHARED = new Set([...Object.values(PG), ...Object.values(PROPG), FLASHG, FLASHM, TNTPLANE, tntLabel]);
 function disposeGroup(g) {
-  const MCS = new Set(Object.values(MC));
+  const keepSet = new Set([...SHARED, ...Object.values(MC), ...SC.values(), ...FRAMEG.values()]);
   g.traverse(o => {
-    if (o.geometry && !SHARED.has(o.geometry)) o.geometry.dispose();
-    if (o.material && !SHARED.has(o.material) && !MCS.has(o.material)) o.material.dispose();
+    if (o.isInstancedMesh) o.dispose();   // its instance matrix/colour buffers (were never freed before)
+    if (o.geometry && !keepSet.has(o.geometry)) o.geometry.dispose();
+    if (o.material && !keepSet.has(o.material)) o.material.dispose();
   });
 }
+// the four room-frame blocks (floor, ceiling, side walls) are identical in every level: build their rounded geometry once
+const FRAMEG = new Map();
+const blockGeo = (w, h, d, r, frame) => {
+  if (!frame) return rounded(w, h, d, r);
+  const k = [w, h, d, r].map(v => v.toFixed(4)).join(); let g = FRAMEG.get(k);
+  if (!g) FRAMEG.set(k, g = rounded(w, h, d, r));
+  return g;
+};
+// level layouts are a pure function of (level, difficulty multiplier): the next one is generated while the win / lose card
+// is up, so the tap that starts a level doesn't also run the 720-angle solvability sweeps. Used only when the multiplier
+// computed at that tap is exactly the one it was generated with, so the level is identical either way.
+let prep = null;
+function prepNext() {
+  const lv = level, fk = AD.k(F.k());
+  if (prep && prep.lv === lv && prep.fk === fk) return;
+  const prev = fkL; fkL = fk; try { prep = { lv, fk, L: genLevel(lv) }; } finally { fkL = prev; }
+}
+// after the card has faded in (650 ms), in idle time: the card is a still picture, so a few ms of work can't show
+const idle = (fn, ms = 750) => setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 600 }) : fn()), ms);
 function buildLevel() {
   if (levelGroup) { detach(levelGroup); disposeGroup(levelGroup); }
   levelGroup = new THREE.Group(); scene.add(levelGroup);
   theme = THEMES[(level - 1) % THEMES.length];
   const bs = document.body.style; bs.setProperty('--bg1', theme.bg[0]); bs.setProperty('--bg2', theme.bg[1]); bs.setProperty('--ui', theme.ui); bs.background = theme.bg[1];
   scenery(theme, levelGroup);
-  fkL = AD.k(F.k()); lvl = genLevel(level); AD.round(); lastCheck = false; fullSight = false; sightAngles = null;
+  fkL = AD.k(F.k()); lvl = prep && prep.lv === level && prep.fk === fkL ? prep.L : genLevel(level); prep = null; AD.round(); lastCheck = false; fullSight = false; sightAngles = null;
   W = simWorld(lvl);
-  for (const s of W.statics) {
+  W.statics.forEach((s, si) => {
     const x0 = Math.max(s.x0, -14), x1 = Math.min(s.x1, 14), y0 = Math.max(s.y0, -20), w = x1 - x0, h = s.y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + s.y1) / 2;
-    const rim = new THREE.Mesh(rounded(w + 0.18, h + 0.18, 1.4, 0.1), M(theme.rim)); rim.position.set(cx, cy, -0.4); rim.receiveShadow = true;
-    const fill = new THREE.Mesh(rounded(w - 0.02, h - 0.02, 1.5, 0.07), M(theme.fill)); fill.position.set(cx, cy, -0.3); fill.receiveShadow = true; fill.castShadow = !s.floor;
+    const rim = new THREE.Mesh(blockGeo(w + 0.18, h + 0.18, 1.4, 0.1, si < 4), M(theme.rim)); rim.position.set(cx, cy, -0.4); rim.receiveShadow = true;
+    const fill = new THREE.Mesh(blockGeo(w - 0.02, h - 0.02, 1.5, 0.07, si < 4), M(theme.fill)); fill.position.set(cx, cy, -0.3); fill.receiveShadow = true; fill.castShadow = !s.floor;
     levelGroup.add(rim, fill);
-  }
+  });
   agent = person('agent', levelGroup); agent.g.position.set(W.agent.x, W.agent.y, 0);
   for (const e of W.enemies) { e.p = person(theme.foe, levelGroup); e.p.g.position.set(e.x, e.y, 0); e.ph = Math.random() * 6; }
   for (const e of W.hostages) { e.p = person('hostage', levelGroup); e.p.g.position.set(e.x, e.y, 0); e.ph = Math.random() * 6; e.hostage = true; }
@@ -443,7 +471,7 @@ function buildLevel() {
     g.position.set(o.x, o.y, 0); levelGroup.add(g); o.m = g;
   }
   total = W.enemies.length; killed = 0; bullets = 3; bullet = null; slowT = 0; timeScale = 1; focus = null; loseT = 0; pending = []; tFade = 0;
-  for (const p of puffs) { detach(p.m); p.m.material.dispose(); } puffs = [];
+  for (const p of puffs) { detach(p.m); PUFFM.push(p.m.material); } puffs = [];
   trailMesh.count = 0; bulletMesh.visible = false;
   const near = W.enemies.slice().sort((a, b) => Math.hypot(a.x - W.agent.x, a.y - W.agent.y) - Math.hypot(b.x - W.agent.x, b.y - W.agent.y))[0];
   aimA = near ? Math.atan2(near.y + 1 - W.agent.y - 1.34, near.x - W.agent.x) : 0.3;
@@ -499,11 +527,13 @@ function cutRope(o) {
   burst(scene, V(o.x, o.y + 0.9, 0.5), '#c99a5a', 8, { speed: 0.06, size: 0.5 });
   tone(1400, 0.07, 'triangle', 0.08, 0.5); ui.pop('SNAP!', '#ffe9a8', 30, 33);
 }
+const PUFFM = [];   // explosion-puff materials, reused (an explosion made and disposed 9 new ones)
 function explode(o) {
   if (!o.alive) return;
   o.alive = false; o.m.visible = false;
   for (let i = 0; i < 9; i++) {
-    const m = new THREE.Mesh(PROPG.puff, new THREE.MeshBasicMaterial({ color: ['#ff9a3c', '#ffc94a', '#ff7a2a', '#ffe08a'][i % 4], transparent: true, depthWrite: false }));
+    const pm = PUFFM.pop() || new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }); pm.color.set(['#ff9a3c', '#ffc94a', '#ff7a2a', '#ffe08a'][i % 4]); pm.opacity = 1;
+    const m = new THREE.Mesh(PROPG.puff, pm);
     const a = Math.random() * Math.PI * 2, d = Math.random() * 0.9;
     m.position.set(o.x + Math.cos(a) * d, o.y + Math.sin(a) * d * 0.8 + 0.3, 0.9 + i * 0.01); m.scale.setScalar(0.1); scene.add(m);
     puffs.push({ m, t: -i * 0.025, s: 0.45 + Math.random() * 0.45 });
@@ -520,7 +550,7 @@ function lose(t, line) {
   if (state !== 'play') return;
   state = 'lost'; F.level(false, killed / Math.max(1, total)); slowT = 0; timeScale = 1; AD.bad(2);
   sfx.fail(); buzz([60, 40, 80]); shake = Math.max(shake, 0.4);
-  ui.lose(t, line);
+  ui.lose(t, line); idle(prepNext);
 }
 function win() {
   if (state !== 'play') return;
@@ -534,6 +564,7 @@ function win() {
   level++; save.set('level', level);
   ui.win(level - 1, bullets ? `+${bonus} for ${bullets} spare bullet${bullets > 1 ? 's' : ''}` : `${score} pts`);
   ui.els.win.querySelector('.hint').innerHTML = `<span class="hc-btn rr-next">LEVEL ${level} ▶</span>`;
+  idle(prepNext);
 }
 
 // ------------------------------------------------------------------ physics: crates / weights / ragdolls
@@ -694,7 +725,7 @@ loop((dt60, tt) => {
     for (const e of W.hostages) if (e.rag) stepRag(e, dt, t);
   }
   for (const p of puffs) { p.t += dt * 2.2; const k = clamp(p.t, 0, 1); p.m.scale.setScalar(0.1 + p.s * Math.sin(Math.min(1, k * 1.6) * Math.PI / 2)); p.m.material.opacity = 1 - Math.max(0, (k - 0.45) / 0.55); p.m.position.y += dt * 0.8; }
-  if (puffs.length) puffs = puffs.filter(p => p.t < 1 || (detach(p.m), p.m.material.dispose(), false));
+  if (puffs.length) puffs = puffs.filter(p => p.t < 1 || (detach(p.m), PUFFM.push(p.m.material), false));
 
   // ---- living goons + hostages + agent animation
   if (W) {
@@ -753,8 +784,20 @@ loop((dt60, tt) => {
   shake = Math.max(0, shake - rdt * 1.6);
   camX = lerp(camX, tx, 1 - Math.pow(0.004, rdt)); camY = lerp(camY, ty, 1 - Math.pow(0.004, rdt));
   cam.position.set(camX + (Math.random() - 0.5) * shake * 0.4, camY + (Math.random() - 0.5) * shake * 0.4, 20);
-  if (gpuReady) renderer.render(scene, cam);
+  if (gpuReady) { renderer.render(scene, cam); govern(); }
 });
+// Slow-GPU fallback: real-phone runs under ~45 fps had 8× the freeze rate of smooth ones (diag data, Oct 2026). If play
+// runs below ~33 fps for 1.5 s, draw at 1 device px per CSS px instead of 1.5 (56 % fewer pixels to shade, the
+// same picture a little softer). Once per session; hitches over 250 ms and hidden time aren't counted.
+let govT = 0, govN = 0, govS = 0, govDone = false;
+function govern() {
+  const now = performance.now(), d = now - govT; govT = now;
+  if (govDone || state !== 'play' || document.hidden || d > 250) return;
+  govN++; govS += d;
+  if (govS < 1500) return;
+  if (govS / govN > 30 && renderer.getPixelRatio() > 1.01) { renderer.setPixelRatio(1); stage.resize(); govDone = true; }
+  govN = 0; govS = 0;
+}
 
 buildLevel();
 ui.start();
@@ -769,22 +812,35 @@ let gpuReady = false; const KEEP = [];
   const ready = () => { if (gpuReady) return; gpuReady = true; setTimeout(rest, 30); };
   try { renderer.compileAsync(scene, cam).then(ready, ready); } catch (e) { ready(); }
   setTimeout(ready, 2500);   // never wait longer than this for the first picture
-  // 2) right after the first picture: everything later levels and effects use
-  function rest() {
-    const warm = new THREE.Group(), saveLevel = level;
-    for (let i = 0; i < THEMES.length; i++) { level = i + 1; scenery(THEMES[i], warm); }
+  // 2) right after the first picture: everything later levels and effects use, one theme / one effect group per frame.
+  // Where the browser has no parallel shader compile (KHR_parallel_shader_compile: older iPhones, many Android GPUs)
+  // every program in a compile batch is built in the same task, so one batch of everything was one long stall right as
+  // the start card came up; small batches with a frame between them keep each stall short.
+  async function rest() {
+    const groups = [], saveLevel = level;
+    for (let i = 0; i < THEMES.length; i++) { const g = new THREE.Group(); level = i + 1; scenery(THEMES[i], g); groups.push(g); }
     level = saveLevel;
-    const m = (geo, mt, cast) => { const x = new THREE.Mesh(geo, mt); x.castShadow = !!cast; warm.add(x); return x; };
+    const fx = new THREE.Group(); groups.push(fx);
+    const m = (geo, mt, cast) => { const x = new THREE.Mesh(geo, mt); x.castShadow = !!cast; fx.add(x); return x; };
     m(PROPG.crate, M('#dc8c3c'), true); m(PROPG.tnt, M('#e3392f'), true); m(TNTPLANE, tntLabel);
     m(PROPG.puff, new THREE.MeshBasicMaterial({ color: '#ff9a3c', transparent: true, depthWrite: false }));
     m(PROPG.puff, new THREE.MeshStandardMaterial({ color: '#ffd23f', transparent: true, roughness: 0.4 }));   // burst()/confetti() particles
     m(PROPG.puff, new THREE.MeshStandardMaterial({ color: '#ffd23f', roughness: 0.4 }));
     // the warm materials are kept (never disposed): three deletes a shader program when its last material is disposed, so
     // without them every finished burst / level change threw its program away and the next kill compiled it again
-    warm.traverse(o => { if (o.material) KEEP.push(o.material); });
-    try { renderer.compileAsync(warm, cam, scene).catch(() => {}); } catch (e) {}
+    for (const g of groups) g.traverse(o => { if (o.material) KEEP.push(o.material); });
+    for (const g of groups) {
+      await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+      try { await renderer.compileAsync(g, cam, scene); } catch (e) {}
+    }
+    idle(warmAudio, 0);
   }
 })();
+// The kit creates its AudioContext on the first sound: the first shot (or the first crate landing). Building an
+// AudioContext is slow (150–300 ms of main thread on a 5–6× throttled CPU, audio-hardware setup on phones), so make it
+// now, while the start card is up, with an inaudible blip. A context made before a tap starts suspended; the kit's
+// tone() resumes it on the next sound, which is in the tap that fires the first shot, exactly as before.
+function warmAudio() { tone(40, 0.01, 'sine', 0.00001, 1); }
 
 // ------------------------------------------------------------------ test hooks
 const toScreen = (x, y) => { const v = new THREE.Vector3(x, y, 0).project(cam); return [(v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight]; };
@@ -809,7 +865,7 @@ window.__game = {
   get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
   sim: { goons: () => W.enemies.filter(e => e.alive).map(e => [e.x, e.y + 1]), shoulder: (a) => shoulder(W, a), screen: (x, y) => toScreen(x, y), get ready() { return !bullet && slowT <= 0 && bullets > 0 && settled(); },
     sightHits(a) { const s = shoulder(W, a), T = fullSight ? trace(W, s.x, s.y, a, 6, 40) : trace(W, s.x, s.y, a, 2, sightLen(17)); return T.ev.some(e => e.type === 'kill' && e.d <= T.len); } },
-  get gfx() { const i = renderer.info; return { programs: (i.programs || []).length, geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls }; },
+  get gfx() { const i = renderer.info; return { programs: (i.programs || []).length, geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls, dpr: renderer.getPixelRatio() }; },
   bot() {
     if (state !== 'play') return;
     const ev = (type, x, y) => dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, bubbles: true }));
