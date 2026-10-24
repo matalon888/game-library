@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Gemloft: Block Puzzle</title>
+<meta name="description" content="A relaxing jewel block puzzle: drag glossy gem blocks onto the board, clear rows and columns, chain combos, and earn stars to restore a cozy loft.">
+<meta property="og:title" content="Gemloft: Block Puzzle">
+<meta property="og:description" content="Free block puzzle with endless classic mode, gem-goal adventure levels, a daily puzzle and a loft to decorate. No timers, no lives.">
+<meta name="theme-color" content="#f6d8c8">
+<link rel="icon" href="data:,">
+<style>
+:root{--plum:#4b2a5e;--plum2:#2d1a3c;--gold:#ffc93c;--cream:#fff8ee;--rose:#ff6f9c}
+body{background:linear-gradient(180deg,#f7dccd,#fbeadb)}
+.hc-score,.hc-top,.hc-sub{display:none!important}
+.gl{font-family:'Baloo 2',system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased}
+.gl-hidden{display:none!important}
+.gl-btn{pointer-events:auto;font:inherit;font-weight:800;border:0;cursor:pointer;color:#fff;border-radius:22px;touch-action:manipulation;transition:transform .08s;-webkit-tap-highlight-color:transparent}
+.gl-btn:active{transform:translateY(3px) scale(.98)}
+.gl-green{background:linear-gradient(180deg,#7be05a,#3fae3a);box-shadow:0 6px 0 #2a7d2a,0 10px 24px rgba(40,90,30,.35),inset 0 2px 0 rgba(255,255,255,.55);text-shadow:0 2px 0 rgba(20,80,20,.45)}
+.gl-pink{background:linear-gradient(180deg,#ff8fb1,#ff4f86);box-shadow:0 5px 0 #c2305f,0 8px 18px rgba(160,30,80,.3),inset 0 2px 0 rgba(255,255,255,.5);text-shadow:0 2px 0 rgba(140,20,60,.4)}
+.gl-purple{background:linear-gradient(180deg,#9b6ad6,#6a3b9a);box-shadow:0 5px 0 #46246a,0 8px 18px rgba(70,30,100,.3),inset 0 2px 0 rgba(255,255,255,.4);text-shadow:0 2px 0 rgba(50,20,70,.45)}
+.gl-blue{background:linear-gradient(180deg,#5fc2ff,#2f7fe0);box-shadow:0 5px 0 #1d55a0,0 8px 18px rgba(30,70,140,.3),inset 0 2px 0 rgba(255,255,255,.45);text-shadow:0 2px 0 rgba(20,50,110,.4)}
+.gl-grey{background:linear-gradient(180deg,#d9d2e3,#b6abc6);box-shadow:0 5px 0 #8c7fa0,inset 0 2px 0 rgba(255,255,255,.5);text-shadow:0 2px 0 rgba(80,60,100,.35)}
+.gl-round{width:46px;height:46px;border-radius:50%;background:rgba(255,250,244,.92);color:var(--plum);font-size:21px;box-shadow:0 4px 0 rgba(120,60,120,.22);display:grid;place-items:center;padding:0}
+/* top pills */
+.gl-pill{display:flex;align-items:center;gap:4px;background:linear-gradient(180deg,#7b4bb0,#5b2f7a);border:3px solid #fff3c4;border-radius:999px;padding:0 12px 0 4px;height:42px;font-size:23px;font-weight:800;box-shadow:0 4px 0 rgba(60,20,80,.35);pointer-events:auto;white-space:nowrap}
+i.gc{display:inline-block;width:1em;height:1em;border-radius:50%;vertical-align:-.15em;background:radial-gradient(circle at 35% 30%,#fff6b0 0 12%,#ffd23f 30%,#f0a01a 70%,#c97a0a);box-shadow:inset 0 0 0 .08em #e08a0a,0 .06em 0 rgba(120,60,0,.35);font-style:normal}
+.gl-pill i.gc{width:30px;height:30px;margin-left:2px}
+.gl-pill i{font-style:normal;font-size:24px;filter:drop-shadow(0 2px 0 rgba(120,60,0,.4));display:inline-block}
+.gl-pill.coin{background:linear-gradient(180deg,#ffcf5a,#f2a51c);border-color:#fff3c4;color:#fff;text-shadow:0 2px 0 rgba(150,80,0,.45);box-shadow:0 4px 0 rgba(150,80,0,.35)}
+.gl-pill .plus{margin-left:4px;width:22px;height:22px;border-radius:50%;background:#3fae3a;color:#fff;font-size:18px;line-height:22px;text-align:center;box-shadow:0 2px 0 #2a7d2a}
+.gl-pill.bump{animation:glbump .35s ease-out}
+@keyframes glbump{40%{transform:scale(1.2)}}
+/* home HUD */
+#gl-home-top{position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;right:66px;display:flex;align-items:center;gap:7px;z-index:20;pointer-events:none;flex-wrap:wrap}
+.gl-roomname{flex:1 1 100%;order:3;background:rgba(255,255,255,.9);border-radius:16px;padding:3px 12px 6px;color:var(--plum);box-shadow:0 4px 0 rgba(120,60,120,.18);max-width:420px}
+.gl-roomname b{display:block;font-size:16px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-prog{height:10px;border-radius:6px;background:#f1e2f3;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.12)}
+.gl-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff8fb1,#ffc93c);border-radius:6px;transition:width .6s cubic-bezier(.3,1.4,.5,1)}
+#gl-side{position:fixed;left:10px;top:calc(122px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:10px;z-index:20}
+#gl-side .gl-round{position:relative}
+#gl-side .gl-round b{position:absolute;right:-5px;top:-5px;background:var(--rose);color:#fff;font-size:11px;border-radius:999px;padding:0 6px;border:2px solid #fff;line-height:16px}
+#gl-home-bot{position:fixed;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:10px;z-index:20;pointer-events:none;padding:0 12px}
+.gl-tasks{width:min(420px,100%);background:rgba(255,250,244,.95);border-radius:22px;padding:7px 10px;box-shadow:0 8px 26px rgba(90,40,80,.22),0 3px 0 rgba(160,110,140,.25);pointer-events:auto;color:var(--plum)}
+.gl-tasks h3{margin:0 4px 2px;font-size:13px;letter-spacing:.5px;text-transform:uppercase;opacity:.7;display:flex;justify-content:space-between}
+.gl-task{display:flex;align-items:center;gap:10px;padding:4px}
+.gl-task .ic{width:46px;height:46px;border-radius:14px;background:radial-gradient(circle at 40% 35%,#fff,#ffe6ef);display:grid;place-items:center;font-size:26px;flex:none;box-shadow:inset 0 -3px 0 rgba(200,120,160,.18)}
+.gl-task .ic img{width:44px;height:44px;object-fit:contain}
+.gl-task .nm{flex:1;font-weight:800;font-size:17px;line-height:1.1}
+.gl-task .nm small{display:block;font-weight:600;font-size:12px;opacity:.6}
+.gl-task button{font-size:19px;padding:5px 14px;min-width:74px}
+.gl-modes{display:flex;gap:10px;width:min(420px,100%);pointer-events:auto}
+.gl-modes button{flex:1;font-size:18px;padding:7px 0 8px;border-radius:18px;line-height:1.05}
+.gl-modes button small{display:block;font-size:12px;opacity:.92;font-weight:700}
+.gl-play{font-size:30px;padding:9px 0 11px;width:min(320px,86%);border-radius:28px;line-height:1.05}
+.gl-play small{display:block;font-size:14px;line-height:1;opacity:.92}
+.gl-play.hard{background:linear-gradient(180deg,#ff7d7d,#e0384f);box-shadow:0 6px 0 #a5203a,0 10px 24px rgba(160,30,50,.35),inset 0 2px 0 rgba(255,255,255,.5)}
+/* play HUD */
+#gl-phud{position:fixed;top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;display:flex;gap:8px;z-index:20;pointer-events:none;align-items:stretch;justify-content:center}
+#gl-phud .gl-round{pointer-events:auto;flex:none;align-self:center}
+.gl-panel{flex:1;max-width:330px;background:rgba(255,250,244,.96);border-radius:20px;display:flex;align-items:center;justify-content:space-around;padding:6px 8px 4px;box-shadow:0 4px 0 rgba(160,110,140,.3),0 8px 20px rgba(80,30,60,.15);color:var(--plum);position:relative;min-height:62px}
+.gl-panel .lv{position:absolute;top:-2px;left:50%;transform:translate(-50%,-50%);background:var(--rose);color:#fff;font-size:12px;font-weight:800;border-radius:999px;padding:0 10px;white-space:nowrap;box-shadow:0 2px 0 #c2305f}
+.gl-panel .lv.hard{background:#e0384f}
+.gl-panel .g{display:flex;flex-direction:column;align-items:center;position:relative}
+.gl-panel .g img{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(80,30,60,.25))}
+.gl-panel .g b{font-size:19px;line-height:1;margin-top:-3px}
+.gl-panel .g.done b{color:#2fae4a}
+.gl-panel .g.bump{animation:glbump .25s}
+.gl-panel .sc{text-align:center;line-height:1}
+.gl-panel .sc b{display:block;font-size:34px}
+.gl-panel .sc small{font-size:12px;font-weight:800;opacity:.6;letter-spacing:.5px}
+.gl-sub{position:fixed;left:0;right:0;text-align:center;z-index:19;pointer-events:none;color:var(--plum);font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:14px}
+.gl-sub span{background:rgba(255,250,244,.85);border-radius:999px;padding:1px 12px;box-shadow:0 2px 0 rgba(160,110,140,.25)}
+#gl-boost{position:fixed;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:12px;z-index:20;pointer-events:none}
+#gl-boost button{pointer-events:auto;position:relative;width:64px;height:58px;border-radius:18px;font-size:27px;padding:0;display:grid;place-items:center}
+#gl-boost button b{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);background:#fff;color:var(--plum);border-radius:999px;font-size:12px;padding:0 7px;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.15);line-height:18px}
+#gl-boost button.on{box-shadow:0 0 0 4px #fff3c4,0 5px 0 #1d55a0}
+#gl-boost .gl-round{width:50px;height:50px;align-self:center}
+.gl-fly{position:fixed;width:40px;height:40px;margin:-20px 0 0 -20px;z-index:25;pointer-events:none;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(80,30,80,.35))}
+.gl-combo{position:fixed;left:50%;top:40%;z-index:26;pointer-events:none;font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:50px;color:#fff;white-space:nowrap;-webkit-text-stroke:3px #7a2fb0;paint-order:stroke fill;text-shadow:0 6px 0 #4b1a73,0 12px 24px rgba(60,20,90,.35);animation:glcombo 1.05s cubic-bezier(.3,1.6,.5,1) forwards}
+.gl-combo small{display:block;font-size:.55em;text-align:center;-webkit-text-stroke:2px #c2306a;text-shadow:0 4px 0 #8f1f4c}
+@keyframes glcombo{0%{transform:translate(-50%,-50%) scale(.3) rotate(-8deg);opacity:0}25%{transform:translate(-50%,-50%) scale(1.1) rotate(-3deg);opacity:1}75%{transform:translate(-50%,-60%) scale(1) rotate(-3deg);opacity:1}100%{transform:translate(-50%,-90%) scale(.9);opacity:0}}
+.gl-pts{position:fixed;z-index:24;pointer-events:none;font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:26px;color:#fff;-webkit-text-stroke:2px #6a3b9a;paint-order:stroke fill;animation:glpts .9s ease-out forwards;transform:translate(-50%,-50%)}
+@keyframes glpts{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-160%) scale(1)}}
+.gl-bubble{position:fixed;z-index:19;pointer-events:none;background:#fff;color:var(--plum);font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:15px;line-height:1.15;padding:6px 11px 7px;border-radius:16px;max-width:200px;width:max-content;box-shadow:0 6px 18px rgba(90,40,80,.25);transform:translate(-50%,-100%);animation:glin .3s cubic-bezier(.3,1.5,.5,1)}
+.gl-bubble:after{content:'';position:absolute;left:50%;bottom:-9px;margin-left:-9px;border:9px solid transparent;border-bottom:0;border-top-color:#fff}
+@keyframes glin{from{transform:translate(-50%,-100%) scale(.7);opacity:0}}
+#gl-load{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:linear-gradient(180deg,#f7dccd,#fbeadb);color:var(--plum);font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:24px;transition:opacity .5s}
+#gl-load div{text-align:center} #gl-load i{display:block;width:180px;height:12px;border-radius:8px;background:#fff;margin:10px auto 0;overflow:hidden} #gl-load i b{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff8fb1,#ffc93c);transition:width .2s}
+/* sheets (album, daily share) */
+.gl-veil{position:fixed;inset:0;z-index:40;background:rgba(50,22,60,.5);display:flex;justify-content:center;align-items:center;padding:16px;animation:glf .2s}
+@keyframes glf{from{opacity:0}}
+.gl-card{width:min(400px,100%);max-height:92vh;overflow:auto;background:linear-gradient(180deg,#fffaf3,#ffeede);border-radius:28px;padding:14px 16px 18px;color:var(--plum);text-align:center;box-shadow:0 18px 50px rgba(60,20,70,.4),0 5px 0 #e6b9c9;position:relative;animation:glpop .35s cubic-bezier(.3,1.5,.5,1)}
+@keyframes glpop{from{transform:scale(.7);opacity:0}}
+.gl-card h2{margin:0 0 4px;font-size:26px}
+.gl-card .x{position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;background:#f3dce6;color:var(--plum);font-size:19px;padding:0}
+.gl-tabs{display:flex;gap:6px;justify-content:center;margin:6px 0 10px}
+.gl-tabs button{font-size:14px;padding:4px 10px;border-radius:14px;background:#f3dce6;color:var(--plum);box-shadow:none}
+.gl-tabs button.on{background:var(--plum);color:#fff}
+.gl-stickers{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.gl-st{aspect-ratio:1;border-radius:16px;background:#fff;display:grid;place-items:center;box-shadow:inset 0 -3px 0 rgba(200,140,170,.25);position:relative}
+.gl-st img{width:82%;height:82%;object-fit:contain;filter:drop-shadow(0 0 0 #fff) drop-shadow(0 2px 3px rgba(80,30,60,.3))}
+.gl-st.off img{filter:brightness(0) opacity(.12)}
+.gl-st.new{animation:glnew 1s ease-in-out 3}
+@keyframes glnew{50%{transform:scale(1.15) rotate(-6deg)}}
+.gl-pagebar{margin:10px 0 0;font-weight:800;font-size:14px}
+.gl-share{white-space:pre;font-size:22px;line-height:1.15;background:#fff;border-radius:16px;padding:10px;margin:8px 0;font-family:system-ui,sans-serif}
+/* kit cards restyled */
+body .hc-card{justify-content:center;padding-top:0;background:radial-gradient(circle at 50% 45%,rgba(90,40,110,.25),rgba(50,20,70,.6))}
+body .hc-card h1{font-size:clamp(42px,12vw,68px);color:#fff;-webkit-text-stroke:3px #7a2fb0;paint-order:stroke fill;text-shadow:0 7px 0 #4b1a73,0 14px 30px rgba(60,20,90,.35)}
+body .hc-card p{text-shadow:0 2px 0 rgba(60,20,70,.5)}
+body .hc-card .hint{margin-top:auto;margin-bottom:10vh}
+body .hc-card:not(.gl-title){justify-content:flex-start;padding-top:calc(15vh + env(safe-area-inset-top))}
+body.gl-card-on .gl-sub{opacity:0}
+body .hc-card.gl-title{background:linear-gradient(180deg,rgba(255,220,235,0),rgba(70,30,90,.42));justify-content:flex-start;padding-top:calc(13vh + env(safe-area-inset-top))}
+body .hc-card.gl-title h1{font-size:clamp(56px,17vw,100px);letter-spacing:1px;transform:rotate(-3deg)}
+body .hc-card.gl-title h1 small{display:block;font-size:.34em;-webkit-text-stroke:2px #c2306a;text-shadow:0 4px 0 #8f1f4c;letter-spacing:2px;margin-top:6px;transform:rotate(1deg)}
+body .hc-card.gl-title .hint{margin-top:auto;margin-bottom:12vh}
+.gl-winstars{display:flex;gap:6px;justify-content:center;margin:6px 0 2px}
+.gl-winstars i{font-style:normal;font-size:60px;filter:grayscale(1) brightness(1.6) opacity(.45);transform:scale(.4);transition:transform .4s cubic-bezier(.3,1.8,.5,1),filter .3s}
+.gl-winstars i:nth-child(2){transform:scale(.4) translateY(-14px)}
+.gl-winstars i.on{filter:drop-shadow(0 5px 0 #c27a00);transform:scale(1)}
+.gl-winstars i.on:nth-child(2){transform:scale(1.18) translateY(-14px)}
+.gl-reward{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:6px;flex-wrap:wrap}
+.gl-reward span{background:rgba(255,255,255,.92);color:var(--plum);border-radius:16px;padding:2px 12px;font-weight:800;font-size:20px;display:flex;align-items:center;gap:6px;text-shadow:none}
+.gl-reward img{width:34px;height:34px;object-fit:contain}
+.gl-offer{margin-top:14px;font-size:20px;padding:9px 22px 10px;border-radius:22px}
+.gl-offer small{display:block;font-size:12px;opacity:.9;line-height:1}
+@media (min-width:700px){ #gl-home-top{right:76px} .gl-tasks,.gl-modes{width:420px} }
+</style>
+</head>
+<body>
+<div id="gl-load" class="gl"><div>Gemloft<i><b></b></i></div></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Quill Cottage: Word Garden Crosswords</title>
+<meta name="description" content="A calm, free word puzzle: swipe the letter wheel to fill painted crosswords, find bonus words and restore a cottage garden, with a new daily puzzle every morning.">
+<meta property="og:title" content="Quill Cottage: Word Garden Crosswords">
+<meta property="og:description" content="Swipe letters into words and fill hand-painted crosswords through eight cottage gardens. 120+ puzzles, no timers, big clear type, a daily puzzle and a stamp album.">
+<meta name="theme-color" content="#F4EEE0">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+:root{--navy:#1F2D54;--navy2:#2b3d6e;--rose:#B04A5C;--rosel:#d98a96;--sage:#567854;--gold:#B08834;--goldl:#d9b765;--ivory:#FAF6EC;--cream:#F4EEE0;--ink:#1F2D54;
+  --t:48px;--D:240px;--fs:1;--serif:'Libre Baskerville',Baskerville,'Baskerville Old Face',Georgia,serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+  background:#F4EEE0 url(art/ui/paper.webp) center/512px;font-family:var(--serif);color:var(--ink);-webkit-font-smoothing:antialiased}
+html.big{--fs:1.18}
+.hide{display:none!important}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:0}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:12px}
+
+/* painted garden behind everything (two layers so chapters can cross-fade) */
+.bg{position:fixed;inset:0;background:center/cover no-repeat;transition:opacity 1.2s ease;opacity:0}
+.bg.on{opacity:1}
+#veil{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 38%,rgba(250,246,236,.0),rgba(250,246,236,0) 55%,rgba(244,238,224,.18))}
+
+/* top bar */
+.round{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:center/contain no-repeat;filter:drop-shadow(0 3px 4px rgba(31,45,84,.28))}
+.round:active{transform:scale(.94)}
+#coins{position:fixed;z-index:30;top:calc(12px + env(safe-area-inset-top));right:10px;height:50px;min-width:104px;padding:0 5px 0 3px;display:flex;align-items:center;gap:4px;
+  background:url(art/ui/pill-ivory.webp) center/100% 100% no-repeat;filter:drop-shadow(0 3px 4px rgba(31,45,84,.22))}
+#coins img{width:38px;height:38px}
+#coins b{font-size:20px;font-weight:700;flex:1;text-align:center;letter-spacing:.02em}
+#coins i{width:28px;height:28px;border-radius:50%;background:var(--navy);color:var(--ivory);font:700 22px/28px system-ui,sans-serif;font-style:normal;text-align:center;box-shadow:inset 0 0 0 2px var(--goldl)}
+#coins.bump{animation:bump .45s}
+#ribbon{position:fixed;z-index:25;top:calc(6px + env(safe-area-inset-top));left:50%;width:188px;height:70px;margin-left:-102px;background:url(art/ui/ribbon-rose.webp) center/100% 100% no-repeat;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ivory);text-align:center;padding:0 30px 16px;filter:drop-shadow(0 3px 4px rgba(80,30,40,.25));cursor:pointer;text-shadow:0 1px 2px rgba(40,20,20,.45)}
+#ribbon small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;line-height:1.1;opacity:.95}
+#ribbon b{display:block;font-size:16px;line-height:1.15;letter-spacing:.03em;text-transform:uppercase;font-weight:400;white-space:nowrap}
+#ribbon .daisy{position:absolute;right:-16px;top:24px;width:40px;height:40px;background:url(art/ui/daisy.webp) center/contain no-repeat;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+#ribbon.sage{background-image:url(art/ui/ribbon-sage.webp);text-shadow:0 1px 2px rgba(20,40,20,.55)}
+/* the kit's world-board button, dressed for the garden */
+.bd-trophy.tl{top:calc(12px + env(safe-area-inset-top))!important;left:10px!important;width:56px!important;height:56px!important;background:url(art/ui/i-trophy.webp) center/contain no-repeat!important;
+  border:0!important;box-shadow:none!important;font-size:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:drop-shadow(0 3px 4px rgba(31,45,84,.28))}
+.bd-trophy.tl small{font-size:12px!important;font-family:var(--serif)!important;background:var(--gold)!important;color:#fff!important}
+
+/* crossword */
+#grid{position:fixed;z-index:10}
+.tile{position:absolute;width:var(--t);height:var(--t);border-radius:calc(var(--t)*.12);display:grid;place-items:center;
+  background:rgba(250,246,236,.86) url(art/ui/paper.webp) center/200px;box-shadow:0 0 0 1px rgba(176,136,52,.55),0 2px 4px rgba(31,45,84,.16),inset 0 -2px 0 rgba(176,136,52,.12);transition:background-color .3s}
+.tile span{font-size:calc(var(--t)*.6*var(--fs));line-height:1;font-weight:700;color:var(--navy);opacity:0;transform:scale(.4);transition:opacity .2s,transform .25s cubic-bezier(.3,1.6,.5,1)}
+.tile.on span,.tile.hint span{opacity:1;transform:scale(1)}
+.tile.hint span{color:var(--sage)}
+.tile.gift span{color:var(--gold)}
+.tile.on{background-color:rgba(255,253,246,.97)}
+.tile.pop{animation:pop .42s cubic-bezier(.3,1.5,.5,1)}
+.tile.glow{animation:glow .9s ease-out}
+.tile.shake{animation:shake .38s}
+.tile.peek{box-shadow:0 0 0 2px var(--gold),0 0 14px rgba(217,183,101,.85)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.16)}100%{transform:scale(1)}}
+@keyframes glow{0%{box-shadow:0 0 0 2px var(--goldl),0 0 22px rgba(217,183,101,.9)}100%{box-shadow:0 0 0 1px rgba(176,136,52,.55),0 2px 4px rgba(31,45,84,.16)}}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes bump{40%{transform:scale(1.12)}}
+
+/* word being spelled */
+#preview{position:fixed;z-index:20;transform:translateX(-50%);display:flex;gap:2px;height:52px;padding:0 16px;border-radius:26px;align-items:center;
+  background:rgba(250,246,236,.95);box-shadow:0 0 0 1.5px var(--gold),0 4px 10px rgba(31,45,84,.18);transition:opacity .15s}
+#preview.empty{opacity:0}
+#preview span{font-size:calc(30px*var(--fs));font-weight:700;color:var(--navy);min-width:24px;text-align:center}
+#preview.good{background:#e9f0e2;box-shadow:0 0 0 2px var(--sage)}
+#preview.gold{background:#f8efd4;box-shadow:0 0 0 2px var(--gold)}
+#preview.bad{animation:shake .38s;box-shadow:0 0 0 2px var(--rose)}
+
+/* the letter wheel */
+#wheel{position:fixed;z-index:15;width:var(--D);height:var(--D);border-radius:50%;touch-action:none}
+#wheel::before{content:'';position:absolute;inset:-7px;border-radius:50%;background:var(--navy);box-shadow:0 8px 18px rgba(31,45,84,.35),0 0 0 2px var(--goldl)}
+#wheel::after{content:'';position:absolute;inset:0;border-radius:50%;background:url(art/ui/round-ivory.webp) center/104% no-repeat,#f7f1e3}
+#wheel svg.line{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;overflow:visible}
+#wheel polyline{fill:none;stroke:var(--rose);stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+#orn{position:absolute;left:50%;top:50%;width:26%;height:26%;transform:translate(-50%,-50%);z-index:1;opacity:.95}
+.wl{position:absolute;z-index:3;width:calc(var(--D)*.25);height:calc(var(--D)*.25);margin:calc(var(--D)*-.125) 0 0 calc(var(--D)*-.125);border-radius:50%;display:grid;place-items:center;transition:left .35s cubic-bezier(.4,1.3,.5,1),top .35s cubic-bezier(.4,1.3,.5,1)}
+.wl span{font-size:calc(var(--D)*.2*var(--fs));line-height:1;font-weight:700;color:var(--navy);transition:color .12s,transform .15s}
+.wl.sel{background:var(--rose);box-shadow:0 2px 6px rgba(120,30,50,.35),inset 0 0 0 2px rgba(255,255,255,.35)}
+.wl.sel span{color:var(--ivory);transform:scale(.92)}
+#wheel.many .wl{width:calc(var(--D)*.22);height:calc(var(--D)*.22);margin:calc(var(--D)*-.11) 0 0 calc(var(--D)*-.11)}
+#wheel.many .wl span{font-size:calc(var(--D)*.17*var(--fs))}
+
+/* side buttons: navy roundels with an ivory caption */
+.side{position:fixed;z-index:16;width:80px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.side .round{width:64px;height:64px;position:relative}
+.side .cap{font-size:calc(17px*var(--fs));line-height:1.1;color:var(--navy);font-weight:700;text-align:center;padding:2px 8px;border-radius:10px;background:rgba(250,246,236,.88);box-shadow:0 0 0 1px rgba(176,136,52,.4);white-space:nowrap}
+.side .tag{position:absolute;right:-8px;top:-6px;min-width:30px;height:28px;padding:0 6px;border-radius:14px;background:var(--ivory);box-shadow:0 0 0 1.5px var(--gold),0 2px 3px rgba(0,0,0,.18);
+  font-size:15px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:2px;justify-content:center}
+.side .tag img{width:16px;height:16px}
+.side .tag.vid{background:var(--rose);color:#fff;box-shadow:0 0 0 1.5px #fff}
+.side.bump .round{animation:bump .5s}
+#bonusb .fill{position:absolute;left:4px;right:4px;bottom:4px;height:5px;border-radius:3px;background:rgba(255,255,255,.3);overflow:hidden}
+#bonusb .fill i{display:block;height:100%;width:0;background:var(--goldl);transition:width .4s}
+#dailyb.done .round{filter:grayscale(.5) drop-shadow(0 3px 4px rgba(31,45,84,.2));opacity:.75}
+
+/* bottom band */
+#band{position:fixed;z-index:22;left:0;right:0;bottom:0;height:calc(62px + env(safe-area-inset-bottom));padding:0 10px env(safe-area-inset-bottom);display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,#26386a,#1b2850);box-shadow:0 -2px 0 var(--goldl),0 -6px 14px rgba(31,45,84,.25)}
+#band::before{content:'';position:absolute;left:50%;top:-14px;width:120px;height:24px;margin-left:-60px;border-radius:60px 60px 0 0;background:#26386a;box-shadow:0 -2px 0 var(--goldl)}
+#band .lab{position:relative;color:var(--ivory);font-size:calc(19px*var(--fs));letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:10px;white-space:nowrap}
+#band .lab img{width:34px;height:18px;object-fit:contain;filter:sepia(1) saturate(2) hue-rotate(5deg) brightness(1.1)}
+#band .lab em{font-style:normal;color:var(--goldl)}
+#band .round{width:52px;height:52px;filter:none}
+#band .hard{font-style:normal;padding:3px 10px;border-radius:12px;font-size:15px;letter-spacing:.1em;background:var(--rose);color:#fff;font-size:17px;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 0 0 1.5px var(--goldl)}
+
+/* robin + butterfly */
+#robin{position:fixed;z-index:12;width:92px;height:96px;background:url(art/ui/robin.webp) center/contain no-repeat;filter:drop-shadow(0 4px 3px rgba(40,30,20,.25));transform-origin:50% 100%;pointer-events:none}
+#robin.hop{animation:hop .55s cubic-bezier(.3,.8,.4,1)}
+@keyframes hop{30%{transform:translateY(-16px) rotate(-6deg)}60%{transform:translateY(0) scaleY(.92)}100%{transform:none}}
+.bfly{position:fixed;z-index:26;width:54px;height:54px;background:url(art/ui/special-butterfly.webp) center/contain no-repeat;pointer-events:none}
+.bfly.flap{animation:flap .22s ease-in-out infinite alternate}
+@keyframes flap{to{transform:scaleX(.45)}}
+
+/* flying letters, coins */
+.fly{position:fixed;z-index:40;display:grid;place-items:center;font-weight:700;color:var(--navy);pointer-events:none;border-radius:8px;background:rgba(250,246,236,.96);box-shadow:0 0 0 1px var(--gold)}
+.flycoin{position:fixed;z-index:60;width:34px;height:34px;margin:-17px 0 0 -17px;pointer-events:none}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:45;pointer-events:none}
+
+/* toast */
+#toast{position:fixed;z-index:80;left:50%;top:calc(72px + env(safe-area-inset-top));transform:translate(-50%,-10px);opacity:0;transition:all .3s;pointer-events:none;
+  background:var(--ivory);color:var(--navy);font-size:20px;padding:9px 20px;border-radius:16px;box-shadow:0 0 0 1.5px var(--gold),0 8px 20px rgba(31,45,84,.22);max-width:92vw;text-align:center;line-height:1.3}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#praise{position:fixed;z-index:30;left:50%;transform:translate(-50%,0) scale(.6);opacity:0;pointer-events:none;font-size:calc(34px*var(--fs));font-style:italic;color:var(--rose);
+  text-shadow:0 0 10px rgba(250,246,236,1),0 0 3px rgba(250,246,236,1),0 2px 0 rgba(250,246,236,1);white-space:nowrap}
+#praise.go{animation:praise 1.1s ease-out forwards}
+@keyframes praise{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.05)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-24px) scale(1)}}
+
+/* full screens: title, garden, album */
+.screen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center}
+#title{padding:calc(84px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))}
+.logo{text-align:center;position:relative;padding:18px 26px 12px;margin-top:4px}
+.logo::before{content:'';position:absolute;inset:-6px -18px;background:radial-gradient(ellipse at center,rgba(250,246,236,.92) 30%,rgba(250,246,236,.6) 58%,rgba(250,246,236,0) 72%);z-index:-1}
+.logo h1{margin:0;font-size:calc(min(13vw,60px));line-height:1;font-weight:700;color:var(--navy);letter-spacing:.01em}
+.logo h1 em{display:block;font-size:.42em;font-weight:400;letter-spacing:.42em;text-transform:uppercase;color:var(--rose);font-style:normal;margin-bottom:6px;padding-left:.42em}
+.logo .div{display:block;width:210px;height:40px;margin:6px auto 0;background:url(art/ui/divider.webp) center/contain no-repeat}
+.logo p{margin:2px 0 0;font-size:20px;font-style:italic;color:var(--navy)}
+#tcard{margin-top:auto;width:min(360px,100%);position:relative;padding:22px 26px 20px;text-align:center;background:url(art/ui/panel-wide.webp) center/100% 100% no-repeat;filter:drop-shadow(0 6px 10px rgba(31,45,84,.2))}
+#tcard .ch{font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--rose)}
+#tcard h2{margin:2px 0 8px;font-size:28px;font-weight:700;color:var(--navy);line-height:1.1}
+.bar{height:14px;border-radius:7px;background:rgba(31,45,84,.12);box-shadow:inset 0 0 0 1px rgba(176,136,52,.5);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:7px;background:linear-gradient(90deg,var(--sage),#7fa06f);transition:width .6s}
+#tcard .row{display:flex;justify-content:space-between;margin-top:8px;font-size:20px}
+#tcard .row b{color:var(--gold)}
+.big-btn{display:block;width:min(340px,100%);height:70px;margin:16px auto 0;border-radius:35px;background:linear-gradient(180deg,#c35d6f,#a13f52);color:var(--ivory);font-size:calc(28px*var(--fs));font-weight:700;letter-spacing:.04em;
+  box-shadow:0 0 0 2px var(--goldl),0 5px 0 #7d2c3d,0 10px 18px rgba(80,20,30,.28);line-height:1.05}
+.big-btn small{display:block;font-size:17px;font-weight:400;letter-spacing:.1em;opacity:.95;text-transform:uppercase;margin-top:3px}
+.big-btn:active{transform:translateY(3px);box-shadow:0 0 0 2px var(--goldl),0 2px 0 #7d2c3d}
+.big-btn.navy{background:linear-gradient(180deg,#2d4178,#1f2d54);box-shadow:0 0 0 2px var(--goldl),0 5px 0 #121b36,0 10px 18px rgba(20,30,60,.28)}
+.big-btn.sage{background:linear-gradient(180deg,#6b8f66,#4f7050);box-shadow:0 0 0 2px var(--goldl),0 5px 0 #34503a,0 10px 18px rgba(30,60,30,.25)}
+.trow{display:flex;gap:18px;justify-content:center;margin-top:16px}
+.tb{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;min-width:76px}
+.tb .round{width:62px;height:62px}
+.tb span{font-size:calc(18px*var(--fs));color:var(--navy);font-weight:700;background:rgba(250,246,236,.9);padding:1px 8px;border-radius:9px;box-shadow:0 0 0 1px rgba(176,136,52,.4)}
+.tb .dot{position:absolute;right:4px;top:-2px;width:20px;height:20px;border-radius:50%;background:var(--rose);box-shadow:0 0 0 2px var(--ivory)}
+
+/* paper sheets */
+.sheet{position:relative;background:var(--ivory) url(art/ui/paper.webp) center/400px;border-radius:22px;box-shadow:0 0 0 2px var(--goldl),0 0 0 7px rgba(250,246,236,.85),0 18px 40px rgba(31,45,84,.32);text-align:center}
+.sheet .corner{position:absolute;width:70px;height:76px;background:url(art/ui/corner-roses.webp) center/contain no-repeat;pointer-events:none}
+.sheet .corner.tl{left:-30px;top:-34px;transform:scaleX(-1)}
+.sheet .corner.br{right:-30px;bottom:-34px;transform:rotate(180deg) scaleX(-1)}
+.dim{background:rgba(31,45,84,.32)}
+
+/* win card */
+#win{justify-content:center;padding:20px 16px;z-index:55}
+#wsheet{width:min(370px,100%);padding:26px 22px 22px}
+#wsub{font-size:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--rose)}
+#wtitle{margin:4px 0 6px;font-size:calc(40px*var(--fs));line-height:1.05;color:var(--navy)}
+#wstars{display:flex;justify-content:center;gap:8px;height:72px;align-items:flex-end}
+#wstars i{width:60px;height:60px;background:url(art/ui/star-empty.webp) center/contain no-repeat;transform:scale(.9)}
+#wstars i:nth-child(2){width:72px;height:72px}
+#wstars i.on{background-image:url(art/ui/star-full.webp);animation:starin .5s cubic-bezier(.3,1.7,.5,1)}
+@keyframes starin{0%{transform:scale(0) rotate(-40deg)}100%{transform:scale(1)}}
+#wline{font-size:calc(20px*var(--fs));margin:10px 0 4px;line-height:1.35}
+#wreward{display:flex;align-items:center;justify-content:center;gap:8px;font-size:26px;font-weight:700;margin:6px 0}
+#wreward img{width:40px;height:40px}
+#wstamp{display:flex;align-items:center;gap:12px;justify-content:center;margin:8px 0 2px;font-size:20px;text-align:left}
+#wstamp img{width:72px;height:auto;filter:drop-shadow(0 3px 3px rgba(0,0,0,.2));animation:stampin .7s cubic-bezier(.3,1.5,.5,1)}
+@keyframes stampin{0%{transform:scale(2.2) rotate(18deg);opacity:0}100%{transform:none;opacity:1}}
+#wdouble{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:58px;margin-top:10px;border-radius:29px;background:var(--ivory);color:var(--navy);font-size:calc(20px*var(--fs));font-weight:700;
+  box-shadow:0 0 0 2px var(--gold),0 3px 0 rgba(176,136,52,.6)}
+#wdouble img{width:34px;height:34px}
+#wnext{margin-top:12px;width:100%}
+#wshare{margin-top:10px;width:100%;height:58px}
+
+/* garden + album */
+#garden,#album{background:var(--cream) url(art/ui/paper.webp) center/512px;z-index:60}
+.scenebox{position:relative;height:100%;aspect-ratio:2/3;max-width:100%;margin:0 auto;overflow:hidden}
+.scenebox>.paint{position:absolute;inset:0;background:url(art/bg/meta-garden.webp) center/cover no-repeat}
+.deco{position:absolute;transform:translate(-50%,-100%);background:center bottom/contain no-repeat;filter:drop-shadow(0 6px 4px rgba(40,50,20,.25));transition:opacity .8s}
+.deco.ghost{opacity:.42;filter:grayscale(1) brightness(1.25) drop-shadow(0 0 0 transparent)}
+.deco.new{animation:grow 1.1s cubic-bezier(.3,1.4,.5,1)}
+@keyframes grow{0%{transform:translate(-50%,-100%) scale(0);opacity:0}100%{transform:translate(-50%,-100%) scale(1);opacity:1}}
+.ghostlab{position:absolute;transform:translate(-50%,8px);font-size:17px;font-weight:700;padding:2px 10px;border-radius:12px;background:rgba(250,246,236,.92);box-shadow:0 0 0 1px var(--gold);white-space:nowrap}
+.panelhead{position:absolute;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top));width:min(360px,calc(100% - 24px));padding:14px 18px 14px;z-index:3}
+.panelhead h2{margin:0;font-size:calc(28px*var(--fs));color:var(--navy)}
+.panelhead p{margin:4px 0 0;font-size:20px;line-height:1.3}
+.closeb{position:absolute;z-index:5;right:10px;top:calc(12px + env(safe-area-inset-top))}
+.backbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));width:min(340px,calc(100% - 32px));z-index:3}
+#album .sheet{width:min(520px,calc(100% - 24px));margin:calc(20px + env(safe-area-inset-top)) auto 0;padding:18px 14px 16px;max-height:calc(100% - 120px);display:flex;flex-direction:column}
+#stamps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;overflow:auto;padding:6px 4px;touch-action:pan-y}
+.stamp{aspect-ratio:1/1.08;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;position:relative}
+.stamp img{width:92%;height:84%;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
+.stamp.lock{border:2px dashed rgba(176,136,52,.55);background:rgba(244,238,224,.6)}
+.stamp.lock img{display:none}
+.stamp.lock b{font-size:17px;color:rgba(31,45,84,.6);font-weight:400}
+.stamp.new img{animation:stampin .8s cubic-bezier(.3,1.5,.5,1)}
+
+/* settings */
+#settings{justify-content:flex-end;z-index:70}
+#settings .sheet{width:min(440px,100%);margin:0 auto;border-radius:22px 22px 0 0;padding:20px 22px calc(22px + env(safe-area-inset-bottom));text-align:left}
+#settings h2{margin:0 0 6px;text-align:center;font-size:28px}
+.opt{display:flex;align-items:center;justify-content:space-between;min-height:64px;border-bottom:1px solid rgba(176,136,52,.3);font-size:21px;gap:12px}
+.opt:last-of-type{border:0}
+.sw{width:72px;height:40px;border-radius:20px;background:#cfc6b3;position:relative;transition:background .2s;flex:none}
+.sw::after{content:'';position:absolute;left:4px;top:4px;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 2px 3px rgba(0,0,0,.25);transition:left .2s}
+.sw.on{background:var(--sage)}.sw.on::after{left:36px}
+.how{font-size:20px;line-height:1.45;margin:10px 0 4px;color:var(--navy)}
+
+#load{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:var(--cream) url(art/ui/paper.webp) center/512px;transition:opacity .5s;font-size:26px;color:var(--navy);font-style:italic}
+
+/* desktop: the puzzle sits on the left, the wheel on the right */
+@media (min-aspect-ratio: 1/1){
+  #title{justify-content:center}
+  #tcard{margin-top:24px}
+}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="bg" id="bg0"></div><div class="bg" id="bg1"></div><div id="veil"></div>
+
+<!-- play -->
+<div id="play" class="hide">
+  <div id="ribbon" role="button" aria-label="Daily puzzle"><small>Daily streak</small><b>1 day</b><div class="daisy"></div></div>
+  <div id="grid"></div>
+  <div id="preview" class="empty"></div>
+  <div id="praise"></div>
+    <div id="robin"></div>
+  <div id="wheel"><svg class="line" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline id="line" points=""/></svg>
+    <svg id="orn" viewBox="0 0 64 64" aria-hidden="true"><g fill="#B08834" stroke="#7d5f1f" stroke-width=".5" stroke-linejoin="round">
+      <path d="M32 3c-6 8-8 16-4 26h8c4-10 2-18-4-26z"/>
+      <path d="M27 31c-3-7-9-11-16-10-5 1-7 6-4 10 2 3 6 2 6-1 0-2-2-3-3-2 1-3 5-4 9-2 4 2 6 6 7 9z"/>
+      <path d="M37 31c3-7 9-11 16-10 5 1 7 6 4 10-2 3-6 2-6-1 0-2 2-3 3-2-1-3-5-4-9-2-4 2-6 6-7 9z"/>
+      <rect x="22" y="31" width="20" height="5" rx="2"/>
+      <path d="M29 36h6c0 7 2 12 6 15 2 1 3 4 0 4-4 0-7-4-9-9-2 5-5 9-9 9-3 0-2-3 0-4 4-3 6-8 6-15z"/></g></svg>
+  </div>
+  <button class="side" id="hintb" aria-label="Hint"><div class="round" style="background-image:url(art/ui/i-hint.webp)"><span class="tag"><img src="art/ui/coin.webp" alt="">60</span></div><span class="cap">Hint</span></button>
+  <button class="side" id="shufb" aria-label="Shuffle letters"><div class="round" style="background-image:url(art/ui/i-shuffle.webp)"></div><span class="cap">Shuffle</span></button>
+  <button class="side" id="bonusb" aria-label="Bonus words"><div class="round" style="background-image:url(art/ui/i-album.webp)"><span class="tag" id="bonusn">0/10</span></div><span class="cap">Bonus</span></button>
+  <button class="side" id="dailyb" aria-label="Daily puzzle"><div class="round" style="background-image:url(art/ui/i-calendar.webp)"></div><span class="cap">Daily</span></button>
+  <div id="band">
+    <button class="round" id="homeb" aria-label="Back to the cottage" style="background-image:url(art/ui/i-home.webp)"></button>
+    <div class="lab"><img src="art/ui/sprig.webp" alt="" style="transform:scaleX(-1) rotate(90deg)"><span id="bandl">Puzzle 1</span><img src="art/ui/sprig.webp" alt="" style="transform:rotate(90deg)"></div>
+    <button class="round" id="setb" aria-label="Settings" style="background-image:url(art/ui/i-settings.webp)"></button>
+  </div>
+</div>
+
+<!-- coins (always visible) -->
+<button id="coins" aria-label="Coins: open the shop"><img src="art/ui/coin.webp" alt=""><b id="coinn">0</b><i>+</i></button>
+
+<!-- title -->
+<div id="title" class="screen">
+  <div class="logo"><h1>Quill<br>Cottage</h1><span class="div"></span><p>Word garden crosswords</p></div>
+  <div id="tcard">
+    <div class="ch" id="tch">Garden 1 of 8</div>
+    <h2 id="tname">Quill Cottage</h2>
+    <div class="bar"><i id="tbar"></i></div>
+    <div class="row"><span id="tlv">Puzzle 1 of 15</span><span><b>★</b> <span id="tstars">0</span></span></div>
+  </div>
+  <button class="big-btn" id="goplay">Play<small>Puzzle 1</small></button>
+  <div class="trow">
+    <button class="tb" id="godaily"><div class="round" style="background-image:url(art/ui/i-calendar.webp)"></div><span>Daily</span><i class="dot hide" id="ddot"></i></button>
+    <button class="tb" id="gogarden"><div class="round" style="background-image:url(art/ui/i-gift.webp)"></div><span>Garden</span><i class="dot hide" id="gdot"></i></button>
+    <button class="tb" id="goalbum"><div class="round" style="background-image:url(art/ui/i-album.webp)"></div><span>Album</span></button>
+    <button class="tb" id="goset"><div class="round" style="background-image:url(art/ui/i-settings.webp)"></div><span>Settings</span></button>
+  </div>
+</div>
+
+<!-- win -->
+<div id="win" class="screen dim hide">
+  <div class="sheet" id="wsheet"><div class="corner tl"></div><div class="corner br"></div>
+    <div id="wsub">Quill Cottage · Puzzle 1</div>
+    <h2 id="wtitle">Splendid!</h2>
+    <div id="wstars"><i></i><i></i><i></i></div>
+    <div id="wline"></div>
+    <div id="wreward"><img src="art/ui/coin.webp" alt="">+<span id="wcoins">20</span></div>
+    <div id="wstamp" class="hide"><img id="wstampi" alt=""><span id="wstampt">A new stamp for your album</span></div>
+    <button id="wdouble"><img src="art/ui/i-video.webp" alt="">Double to <span id="wdbl">40</span> coins</button>
+    <button id="wshare" class="big-btn sage hide" style="font-size:22px">Share my garden</button>
+    <button id="wnext" class="big-btn">Continue</button>
+  </div>
+</div>
+
+<!-- garden (meta) -->
+<div id="garden" class="screen hide">
+  <div class="scenebox" id="gbox"><div class="paint"></div></div>
+  <div class="sheet panelhead"><h2>Your Cottage Garden</h2><p id="gline">Earn stars to bring the garden back to life.</p></div>
+  <button class="big-btn navy backbar" id="gback">Back to puzzles</button>
+</div>
+
+<!-- album (collection) -->
+<div id="album" class="screen hide">
+  <div class="sheet"><div class="corner tl"></div><div class="corner br"></div>
+    <h2 style="margin:0;font-size:28px">Stamp Album</h2>
+    <p style="margin:4px 0 8px;font-size:20px" id="aline">A stamp for every five puzzles.</p>
+    <div id="stamps"></div>
+  </div>
+  <button class="big-btn navy backbar" id="aback">Back</button>
+</div>
+
+<!-- settings -->
+<div id="settings" class="screen dim hide">
+  <div class="sheet"><h2>Settings</h2>
+    <button class="opt" id="o-big" style="width:100%"><span>Larger text</span><i class="sw" id="sw-big"></i></button>
+    <button class="opt" id="o-snd" style="width:100%"><span>Sounds</span><i class="sw" id="sw-snd"></i></button>
+    <button class="opt" id="o-mus" style="width:100%"><span>Gentle music</span><i class="sw" id="sw-mus"></i></button>
+    <p class="how">Slide your finger across the letters on the wheel to spell a word, then let go. Words that fit the crossword fill in; other real words count as bonus words. No timers, no rush.</p>
+    <button class="big-btn navy" id="sclose" style="width:100%">Done</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<canvas id="fx"></canvas>
+<div id="load">Opening the garden gate…</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

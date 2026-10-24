@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<link rel="icon" href="data:,">
+<title>Peony Mahjong: Relaxing Tile Solitaire</title>
+<meta name="description" content="Free, untimed mahjong solitaire with large, high-contrast painted tiles: match pairs of free tiles across 46 garden layouts, from a 16-tile seedling to the classic Turtle.">
+<meta property="og:title" content="Peony Mahjong: Relaxing Tile Solitaire">
+<meta property="og:description" content="Match painted garden tiles in calm, untimed mahjong solitaire. A new daily puzzle, a stamp album, and a garden to restore.">
+<meta name="theme-color" content="#F4EEE0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Libre+Baskerville:wght@400;700&display=swap">
+<style>
+:root{--navy:#1F2D54;--rose:#B04A5C;--sage:#567854;--gold:#B08834;--gold2:#D9B865;--ivory:#FAF6EC;--cream:#F4EEE0;--ink:#1F2D54;
+  --serif:'Libre Baskerville',Baskerville,Georgia,'Times New Roman',serif;--display:'Cormorant Garamond','Libre Baskerville',Georgia,serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:20px}
+html.big{font-size:23px}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--cream);color:var(--ink);font-family:var(--serif);
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+img{-webkit-user-drag:none;user-select:none}
+#bg{position:fixed;inset:0;background:var(--cream) url(assets/bg/peony-mahjong-s.webp) center 38%/cover no-repeat;transition:filter .6s}
+#bg.hi{background-image:url(assets/bg/peony-mahjong.webp)}
+@media (min-aspect-ratio:1/1){#bg{background-image:url(assets/bg/peony-mahjong-wide-s.webp);background-position:center}#bg.hi{background-image:url(assets/bg/peony-mahjong-wide.webp)}}
+#bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 52% at 50% 52%,rgba(250,246,236,.55),rgba(250,246,236,0) 70%)}
+#board{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:2}
+
+/* ---------- header */
+#top{position:fixed;left:0;right:0;top:0;z-index:5;padding:calc(10px + env(safe-area-inset-top)) 12px 0;display:grid;grid-template-columns:62px 1fr 76px;align-items:start;pointer-events:none}
+#top>*{pointer-events:auto}
+.rbtn{width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);background:radial-gradient(circle at 40% 35%,#fffdf6,var(--ivory) 60%,#efe5cc);
+  box-shadow:inset 0 0 0 3px var(--ivory),inset 0 0 0 4.5px rgba(176,136,52,.55),0 4px 10px rgba(60,50,30,.22);display:grid;place-items:center;padding:0}
+.rbtn svg{width:28px;height:28px;stroke:var(--navy);stroke-width:2.6;stroke-linecap:round;fill:none}
+.rbtn:active,.tool:active,.btn:active{transform:translateY(2px) scale(.98)}
+#title{text-align:center;padding-top:2px;pointer-events:none}
+#title h1{margin:0;font:700 2rem/1.05 var(--display);color:var(--navy);letter-spacing:.01em;text-shadow:0 1px 0 #fff,0 0 14px rgba(250,246,236,.9);white-space:nowrap}
+#title .orn{display:block;width:150px;height:30px;margin:0 auto;background:url(assets/kit/divider.webp) center/contain no-repeat;opacity:.95}
+#coins{width:74px;height:74px;border-radius:50%;justify-self:end;border:2px solid var(--gold);background:radial-gradient(circle at 40% 35%,#fffdf6,var(--ivory) 60%,#efe5cc);
+  box-shadow:inset 0 0 0 3px var(--ivory),inset 0 0 0 4.5px rgba(176,136,52,.55),0 4px 10px rgba(60,50,30,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0}
+#coins img{width:26px;height:26px}
+#coins b{font:700 .9rem/1.1 var(--serif);color:var(--navy);letter-spacing:-.02em}
+#info{position:fixed;left:50%;transform:translateX(-50%);top:calc(84px + env(safe-area-inset-top));z-index:5;white-space:nowrap;pointer-events:none;
+  font-size:1rem;color:var(--navy);background:rgba(250,246,236,.86);border:1px solid rgba(176,136,52,.45);border-radius:22px;padding:5px 16px;box-shadow:0 2px 8px rgba(60,50,30,.12)}
+#info .hard{color:var(--rose);font-weight:700}
+
+/* ---------- bottom tools */
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:center;gap:10px;padding:0 10px calc(12px + env(safe-area-inset-bottom))}
+.tool{position:relative;flex:1;max-width:220px;height:72px;border-radius:16px;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 6px;
+  background:linear-gradient(#fffdf7,var(--ivory) 55%,#f1e7cf);box-shadow:inset 0 0 0 3px var(--ivory),inset 0 0 0 4.5px rgba(176,136,52,.5),0 5px 12px rgba(60,50,30,.25)}
+.tool img{width:42px;height:42px;flex:none}
+.tool span{font:700 1.4rem/1 var(--display);color:var(--navy)}
+.tool i{position:absolute;top:-10px;right:-6px;min-width:34px;height:34px;border-radius:17px;background:var(--rose);color:#fff;font:700 1rem/30px var(--serif);font-style:normal;text-align:center;padding:0 7px;border:2px solid var(--ivory);box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.tool i.c{background:var(--navy);display:flex;align-items:center;gap:3px;line-height:1}
+.tool i.c::before{content:'';width:18px;height:18px;background:url(assets/kit/coin.webp) center/contain}
+.tool i.v{background:var(--sage)}
+.tool[disabled]{opacity:.55}
+@media (max-width:699px){
+  #bar{gap:8px;padding:0 8px calc(10px + env(safe-area-inset-bottom))}
+  .tool{flex-direction:column;gap:2px;height:84px;min-width:0;padding:4px 2px}
+  .tool img{width:40px;height:40px}
+  .tool span{font-size:1.3rem}
+  #roseL,#roseR{display:none}
+}
+#roseL,#roseR{position:fixed;bottom:0;width:96px;height:102px;z-index:6;pointer-events:none;background:url(assets/kit/corner-roses.webp) center/contain no-repeat}
+#roseL{left:-14px;transform:scaleY(-1) rotate(0deg);bottom:-18px}
+#roseR{right:-14px;transform:scale(-1,-1);bottom:-18px}
+#zoom{position:fixed;right:12px;z-index:5;bottom:calc(100px + env(safe-area-inset-bottom));width:56px;height:56px}
+#zoom svg{width:26px;height:26px}
+
+/* ---------- toasts + coach */
+#toast{position:fixed;left:50%;top:calc(132px + env(safe-area-inset-top));transform:translate(-50%,-8px);z-index:30;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none;
+  max-width:min(92vw,520px);text-align:center;font-size:1rem;line-height:1.35;color:var(--navy);background:var(--ivory);border:2px solid var(--gold);border-radius:18px;padding:10px 18px;box-shadow:0 8px 24px rgba(40,40,30,.25)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#coach{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom));z-index:6;width:min(92vw,520px);text-align:center;font-size:1rem;line-height:1.4;
+  color:var(--navy);background:rgba(250,246,236,.95);border:2px solid var(--sage);border-radius:18px;padding:10px 16px;box-shadow:0 6px 18px rgba(40,40,30,.2);pointer-events:none;transition:opacity .4s}
+#coach[hidden]{display:block;opacity:0}
+#ribbon{position:fixed;left:50%;top:42%;width:min(86vw,420px);height:150px;transform:translate(-50%,-50%) scale(.6);opacity:0;z-index:7;pointer-events:none;
+  background:url(assets/kit/ribbon-rose.webp) center/contain no-repeat;display:grid;place-items:center;transition:transform .5s cubic-bezier(.2,1.6,.4,1),opacity .4s}
+#ribbon b{font:700 2rem/1 var(--display);color:#fff;text-shadow:0 2px 0 rgba(90,20,30,.45);margin-top:-14px}
+#ribbon.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* ---------- screens + sheets */
+.screen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center}
+.screen[hidden],.sheet[hidden]{display:none}
+.sheet{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;background:rgba(31,45,84,.32);padding:16px}
+.panel{position:relative;width:min(100%,460px);max-height:calc(100% - 8px);overflow:auto;border-radius:22px;padding:40px 22px 30px;text-align:center;
+  background:var(--ivory) url(assets/kit/paper.webp) center/360px;border:2px solid var(--gold);box-shadow:inset 0 0 0 5px var(--ivory),inset 0 0 0 6.5px rgba(176,136,52,.55),0 18px 50px rgba(30,30,40,.35);
+  touch-action:pan-y;animation:pin .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pin{from{transform:translateY(24px) scale(.94);opacity:0}}
+.panel::before,.panel::after{content:'';position:absolute;width:86px;height:92px;background:url(assets/kit/corner-roses.webp) center/contain no-repeat;pointer-events:none}
+.panel::before{left:-6px;top:-8px;width:58px;height:62px;transform:scale(-1,-1) rotate(180deg) scaleX(-1)}
+.panel::after{right:-6px;bottom:-8px;width:58px;height:62px;transform:scale(-1,-1)}
+.panel h2{margin:4px 0 2px;font:700 2.2rem/1.05 var(--display);color:var(--navy)}
+.panel p{margin:8px 0;font-size:1rem;line-height:1.45}
+.panel .sub{color:var(--sage);font-style:italic}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:62px;border-radius:32px;border:2px solid var(--gold);margin:12px 0 0;padding:8px 20px;
+  font:700 1.1rem/1.2 var(--serif);background:var(--navy);color:var(--ivory);box-shadow:inset 0 0 0 3px var(--navy),inset 0 0 0 4.5px rgba(217,184,101,.7),0 5px 14px rgba(31,45,84,.3)}
+.btn.alt{background:linear-gradient(#fffdf7,var(--ivory) 60%,#f1e7cf);color:var(--navy);box-shadow:inset 0 0 0 3px var(--ivory),inset 0 0 0 4.5px rgba(176,136,52,.5),0 4px 10px rgba(60,50,30,.18)}
+.btn.rose{background:var(--rose);box-shadow:inset 0 0 0 3px var(--rose),inset 0 0 0 4.5px rgba(255,230,210,.6),0 5px 14px rgba(120,30,50,.3)}
+.btn img{width:36px;height:36px}
+.btn small{font-weight:400;font-size:1rem;opacity:.9}
+.stars{display:flex;justify-content:center;gap:6px;margin:6px 0 2px}
+.stars img{width:62px;height:62px;opacity:0;transform:scale(.3) rotate(-30deg);transition:transform .5s cubic-bezier(.2,1.8,.4,1),opacity .3s}
+.stars img:nth-child(2){width:74px;height:74px;margin-top:-10px}
+.stars img.on{opacity:1;transform:none}
+.reward{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:1.1rem;font-weight:700;margin:8px 0}
+.reward img{width:34px;height:34px}
+.pillbtn{border:2px solid var(--sage);background:#eef3e8;color:var(--sage);border-radius:26px;min-height:56px;padding:6px 16px;font:700 1rem/1.1 var(--serif);display:inline-flex;align-items:center;gap:8px}
+.pillbtn img{width:30px;height:30px}
+.stampnew{display:flex;align-items:center;gap:14px;justify-content:center;margin:10px 0 0;padding:10px;border-radius:16px;background:rgba(86,120,84,.08);border:1px dashed rgba(86,120,84,.5)}
+.stampnew img{width:84px;height:auto;transform:rotate(-4deg);filter:drop-shadow(0 3px 5px rgba(0,0,0,.2));animation:stampin .6s .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stampin{from{transform:scale(2.2) rotate(-18deg);opacity:0}}
+.stampnew p{text-align:left;margin:0}
+
+/* home */
+#home{justify-content:flex-start;padding:calc(18px + env(safe-area-inset-top)) 18px calc(14px + env(safe-area-inset-bottom))}
+#home .logo{margin-top:4vh;text-align:center}
+#home .logo h1{margin:0;font:700 3.1rem/.95 var(--display);color:var(--navy);text-shadow:0 2px 0 #fff,0 0 22px rgba(250,246,236,.95)}
+#home .logo .orn{display:block;width:210px;height:40px;margin:2px auto 0;background:url(assets/kit/divider.webp) center/contain no-repeat}
+#home .logo p{margin:2px 0 0;font-size:1rem;color:var(--sage);font-style:italic;text-shadow:0 0 10px #fff}
+.fan{position:relative;width:250px;height:min(30vh,250px);margin:2.5vh auto 0;flex:none}
+.fan img{position:absolute;left:50%;bottom:0;width:min(116px,14vh);transform-origin:50% 120%;filter:drop-shadow(4px 6px 6px rgba(40,50,30,.3));border-radius:10px}
+.fan img:nth-child(1){transform:translateX(-50%) rotate(-16deg) translateX(-14px)}
+.fan img:nth-child(2){transform:translateX(-50%) translateY(-10px);z-index:2}
+.fan img:nth-child(3){transform:translateX(-50%) rotate(16deg) translateX(14px)}
+#home .menu{width:min(100%,420px);margin-top:auto;display:flex;flex-direction:column;align-items:stretch}
+#home .play{min-height:76px;font-size:1.35rem}
+#home .play b{font:700 1.7rem/1 var(--display);letter-spacing:.02em}
+.row4{display:flex;justify-content:space-between;margin-top:16px;gap:4px}
+.ibtn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:0;min-width:72px}
+.ibtn img{width:64px;height:64px;filter:drop-shadow(0 4px 6px rgba(30,40,60,.25))}
+.ibtn span{font-size:1rem;color:var(--navy);font-weight:700;text-shadow:0 0 8px #fff,0 0 4px #fff}
+.ibtn em{position:absolute;margin-left:44px;margin-top:-4px;min-width:26px;height:26px;border-radius:13px;background:var(--rose);color:#fff;font:700 .8rem/26px var(--serif);font-style:normal;padding:0 6px}
+.ibtn{position:relative}
+#home .streak{margin:10px auto 0;font-size:1rem;color:var(--navy);background:rgba(250,246,236,.86);border:1px solid rgba(176,136,52,.45);border-radius:22px;padding:4px 14px;text-align:center}
+
+/* garden */
+#garden{background:#e9e4d2 url(assets/bg/meta-garden-wide-s.webp) center/cover;overflow:hidden}
+#garden::before{content:'';position:absolute;inset:0;backdrop-filter:blur(8px) saturate(.8) brightness(1.05);-webkit-backdrop-filter:blur(8px) saturate(.8) brightness(1.05)}
+#garden .gbox{position:absolute;left:50%;top:50%;aspect-ratio:1024/1536;height:max(100%,calc(100vw * 1.5));transform:translate(-50%,-50%);background:url(assets/bg/meta-garden.webp) center/100% 100%;box-shadow:0 0 60px rgba(0,0,0,.25)}
+@media (min-aspect-ratio:2/3){#garden .gbox{height:100%}}
+#garden .gbox img{position:absolute;transform:translate(-50%,-100%);transition:opacity .8s,transform .8s cubic-bezier(.2,1.5,.4,1);filter:drop-shadow(0 6px 6px rgba(40,50,30,.3))}
+#garden .gbox img.off{opacity:0;transform:translate(-50%,-80%) scale(.6)}
+#garden .gbox img.ghost{opacity:.35;filter:grayscale(1) brightness(1.4) drop-shadow(0 0 0 transparent)}
+#garden .gpanel::before,#garden .gpanel::after{display:none}
+#garden .gpanel{position:absolute;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(94%,460px);animation:none;padding:16px 18px 16px}
+#garden .gtop{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;font-weight:700;font-size:1rem;background:rgba(250,246,236,.92);border:2px solid var(--gold);border-radius:24px;padding:6px 14px;color:var(--navy)}
+.chip img{width:28px;height:28px}
+.gnext{display:flex;align-items:center;gap:12px;text-align:left}
+.gnext img{width:72px;height:72px;object-fit:contain}
+.gnext h3{margin:0;font:700 1.6rem/1 var(--display)}
+.gbtns{display:flex;flex-direction:column}
+
+/* album */
+.tabs{display:flex;gap:8px;justify-content:center;margin:8px 0 6px}
+.tabs button{min-height:52px;border-radius:26px;border:2px solid var(--gold);background:var(--ivory);padding:4px 16px;font:700 1rem/1 var(--serif);color:var(--navy)}
+.tabs button[aria-pressed=true]{background:var(--navy);color:var(--ivory)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+.grid div{aspect-ratio:263/271;display:grid;place-items:center;border-radius:6px;font-size:.8rem;color:#8d8170;border:2px dashed rgba(176,136,52,.45);background:rgba(244,238,224,.6)}
+.grid div.got{border:0;background:none}
+.grid img{width:100%;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
+.grid.gild div.got img{filter:sepia(.55) saturate(1.5) hue-rotate(-12deg) brightness(1.04) drop-shadow(0 0 4px rgba(217,184,101,.9))}
+@media (min-width:700px){.grid{grid-template-columns:repeat(6,1fr)}.panel.wide{width:min(100%,640px)}}
+
+/* settings rows */
+.set{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;border-bottom:1px solid rgba(176,136,52,.3);text-align:left;font-size:1rem}
+.set:last-of-type{border-bottom:0}
+.sw{flex:none;width:70px;height:40px;border-radius:20px;border:2px solid var(--gold);background:#e8e1cf;position:relative;padding:0}
+.sw::after{content:'';position:absolute;left:3px;top:3px;width:30px;height:30px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:left .2s}
+.sw[aria-checked=true]{background:var(--sage)}
+.sw[aria-checked=true]::after{left:33px}
+.seg{display:flex;border:2px solid var(--gold);border-radius:22px;overflow:hidden}
+.seg button{border:0;background:var(--ivory);min-height:44px;padding:0 12px;font:700 .9rem/1 var(--serif);color:var(--navy)}
+.seg button[aria-pressed=true]{background:var(--navy);color:var(--ivory)}
+.two{display:flex;gap:10px}.two .btn{flex:1;white-space:nowrap;padding:8px 10px}
+@media (max-width:420px){.two{flex-direction:column;gap:0}}
+.how{display:flex;gap:12px;align-items:center;text-align:left;margin:10px 0}
+.how img{width:58px;flex:none;border-radius:6px;filter:drop-shadow(2px 3px 3px rgba(0,0,0,.2))}
+
+/* board button (kit) restyled for the garden */
+.bd-trophy{width:56px!important;height:56px!important;background:radial-gradient(circle at 40% 35%,#fffdf6,var(--ivory) 60%,#efe5cc)!important;border:2px solid var(--gold)!important;color:var(--navy)!important;font-size:24px!important;box-shadow:0 4px 10px rgba(60,50,30,.22)!important}
+.bd-trophy.tl{top:calc(100px + env(safe-area-inset-top))!important;left:14px!important}
+body.playing .bd-trophy,body.sheet-open .bd-trophy,body.ingarden .bd-trophy{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<canvas id="board" aria-label="Mahjong board"></canvas>
+
+<div id="top">
+  <button class="rbtn" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+  <div id="title"><h1 id="lname">Peony Mahjong</h1><span class="orn"></span></div>
+  <button id="coins" aria-label="Coins and shop"><img src="assets/kit/coin.webp" alt=""><b id="coinN">100</b></button>
+</div>
+<div id="info"></div>
+<div id="bar">
+  <button class="tool" id="hintBtn" aria-label="Hint"><img src="assets/icons/hint.webp" alt=""><span>Hint</span><i id="hintN">3</i></button>
+  <button class="tool" id="shufBtn" aria-label="Shuffle"><img src="assets/icons/shuffle.webp" alt=""><span>Shuffle</span><i id="shufN">2</i></button>
+  <button class="tool" id="undoBtn" aria-label="Undo"><img src="assets/icons/undo.webp" alt=""><span>Undo</span></button>
+</div>
+<div id="roseL"></div><div id="roseR"></div>
+<button class="rbtn" id="zoom" aria-label="Zoom" hidden><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5M8 10.5h5M10.5 8v5"/></svg></button>
+<div id="coach" hidden></div>
+<div id="ribbon"><b>Hard level</b></div>
+<div id="toast"></div>
+
+<section class="screen" id="home" hidden>
+  <div class="logo"><h1>Peony Mahjong</h1><span class="orn"></span><p>relaxing tile solitaire</p></div>
+  <div class="fan"><img src="assets/mahjong/alt-blue-jay.webp" alt=""><img src="assets/mahjong/flower-1.webp" alt=""><img src="assets/mahjong/season-2.webp" alt=""></div>
+  <div class="streak" id="hStreak" hidden></div>
+  <div class="menu">
+    <button class="btn play" id="playBtn"><b>Play</b><small id="playLvl">Level 1</small></button>
+    <button class="btn alt" id="dailyBtn"><img src="assets/icons/calendar.webp" alt=""><span id="dailyTxt">Daily puzzle</span></button>
+    <div class="row4">
+      <button class="ibtn" id="gardenBtn"><img src="assets/icons/home.webp" alt=""><span>Garden</span><em id="gardenDot" hidden>!</em></button>
+      <button class="ibtn" id="albumBtn"><img src="assets/icons/album.webp" alt=""><span>Album</span></button>
+      <button class="ibtn" id="shopBtn"><img src="assets/icons/shop.webp" alt=""><span>Shop</span></button>
+      <button class="ibtn" id="setBtn"><img src="assets/icons/settings.webp" alt=""><span>Settings</span></button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="garden" hidden>
+  <div class="gbox" id="gbox"></div>
+  <div class="gtop"><button class="rbtn" id="gBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="chip"><img src="assets/kit/star-full.webp" alt=""><span id="gStars">0</span></div>
+    <div class="chip"><img src="assets/kit/coin.webp" alt=""><span id="gCoins">0</span></div></div>
+  <div class="panel gpanel" id="gpanel"></div>
+</section>
+
+<div class="sheet" id="sheet" hidden><div class="panel" id="panel"></div></div>
+
+<script type="module" src="game.js"></script>
+</body>
+</html>

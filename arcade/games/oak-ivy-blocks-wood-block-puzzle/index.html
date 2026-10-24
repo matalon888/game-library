@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<link rel="icon" href="data:,">
+<title>Oak &amp; Ivy Blocks: Wood Block Puzzle</title>
+<meta name="description" content="A calm wood block puzzle on a 9×9 board: drag pieces, fill rows, columns and 3×3 squares, restore a painted cottage garden. No timer, big clear type.">
+<meta property="og:title" content="Oak &amp; Ivy Blocks: Wood Block Puzzle">
+<meta property="og:description" content="Drag painted wooden blocks, clear rows, columns and squares, and restore a storybook garden. Calm levels, an endless mode and a daily puzzle. No timer.">
+<meta name="theme-color" content="#f4eee0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,700&family=Libre+Baskerville:wght@400;700&display=swap">
+<style>
+  #oi-load{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#f4eee0;color:#1F2D54;font:700 22px/1.2 'Libre Baskerville',Georgia,serif;transition:opacity .5s}
+  #oi-load h1{margin:0;font:700 54px/1 'Cormorant Garamond',Georgia,serif}
+  #oi-load .bar{width:220px;height:10px;border-radius:6px;background:#e5dac2;overflow:hidden;box-shadow:inset 0 0 0 1px #c6a35a}
+  #oi-load .bar b{display:block;height:100%;width:0;background:#567854;transition:width .2s}
+</style>
+</head>
+<body>
+<div id="oi-load"><h1>Oak &amp; Ivy</h1><div class="bar"><b></b></div></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

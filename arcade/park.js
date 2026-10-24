@@ -34,9 +34,11 @@
     "What's Hot":      { park: 'Carnival Boardwalk', scene: 'z-carnival', who: 'dog-trophy' },
     'Epic games':      { park: 'Speedway',          scene: 'z-speedway', who: 'robot-dunk' },
     'Cozy games':      { park: 'Style Studio',      scene: 'z-studio',   who: 'bunny-scooter' },
+    'Kawaii Pop':      { park: 'Style Studio',      scene: 'z-studio',   who: 'blob-frisbee' },
+    'Storybook Garden': { park: 'Picnic Hill',      scene: 'z-picnic',   who: 'sloth-hang' },
   };
   const zone = c => ZONES[c] || ZONES.Arcade;
-  const COLLS = ['Cozy games', "What's Hot", 'Epic games', 'Classics', 'Hyper-casual', 'Endless runners', 'Daily puzzles', 'Shooters'];   // tag-based categories, next to the genres
+  const COLLS = ['Cozy games', 'Kawaii Pop', 'Storybook Garden', "What's Hot", 'Epic games', 'Classics', 'Hyper-casual', 'Endless runners', 'Daily puzzles', 'Shooters'];   // tag-based categories, next to the genres
   const isAI = g => (g.tags || []).includes('Connect your AI');
   const MODES = {
     mobile:  { label: 'Mobile',         who: 'axolotl-phone',  sub: 'Touch games · phone or computer', has: g => !isAI(g) && !K.isDesk(g) },

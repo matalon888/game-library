@@ -1,0 +1,189 @@
+{
+ "tile": [
+  192,
+  256
+ ],
+ "faces": {
+  "bamboo-1": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-1": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-1": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-2": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-2": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-2": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-3": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-3": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-3": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-4": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-4": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-4": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-5": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-5": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-5": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-6": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-6": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-6": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-7": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-7": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-7": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-8": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-8": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-8": {
+   "group": "characters",
+   "count": 4
+  },
+  "bamboo-9": {
+   "group": "bamboo",
+   "count": 4
+  },
+  "circles-9": {
+   "group": "circles",
+   "count": 4
+  },
+  "characters-9": {
+   "group": "characters",
+   "count": 4
+  },
+  "wind-e": {
+   "group": "wind",
+   "count": 4
+  },
+  "wind-s": {
+   "group": "wind",
+   "count": 4
+  },
+  "wind-w": {
+   "group": "wind",
+   "count": 4
+  },
+  "wind-n": {
+   "group": "wind",
+   "count": 4
+  },
+  "dragon-red": {
+   "group": "dragon",
+   "count": 4
+  },
+  "dragon-green": {
+   "group": "dragon",
+   "count": 4
+  },
+  "dragon-white": {
+   "group": "dragon",
+   "count": 4
+  },
+  "flower-1": {
+   "group": "flower",
+   "count": 1
+  },
+  "flower-2": {
+   "group": "flower",
+   "count": 1
+  },
+  "flower-3": {
+   "group": "flower",
+   "count": 1
+  },
+  "flower-4": {
+   "group": "flower",
+   "count": 1
+  },
+  "season-1": {
+   "group": "season",
+   "count": 1
+  },
+  "season-2": {
+   "group": "season",
+   "count": 1
+  },
+  "season-3": {
+   "group": "season",
+   "count": 1
+  },
+  "season-4": {
+   "group": "season",
+   "count": 1
+  }
+ },
+ "alt_faces": [
+  "alt-blue-jay",
+  "alt-chickadee",
+  "alt-goldfinch",
+  "alt-wren",
+  "alt-bluebird",
+  "alt-plum-blossom",
+  "alt-orchid",
+  "alt-chrysanthemum",
+  "alt-lotus",
+  "alt-camellia-dot"
+ ],
+ "match_rule": "identical face matches; any flower-* matches any flower-*; any season-* matches any season-*"
+}

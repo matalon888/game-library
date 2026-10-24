@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Mergie Dorm: Merge &amp; Decorate Story</title>
+<meta name="description" content="A cute 3D merge game: tap generators, merge lip balms, macarons and plushies into better things, fill your dorm-mates' orders and glow up three dorm rooms while you solve the cupcake mystery.">
+<meta property="og:title" content="Mergie Dorm: Merge &amp; Decorate Story">
+<meta property="og:description" content="Merge beauty, sweets and plushies, fill your friends' orders and decorate a kawaii dorm. Free, cozy, a little bit chaotic.">
+<meta name="theme-color" content="#f3e6ff">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@500;600;700&display=swap">
+<style>
+:root{--ink:#5b2a6e;--ink2:#8a5a9c;--pink:#ff5fa2;--pink2:#e23f86;--lilac:#b48cff;--lilac2:#8a5cf0;--mint:#5fdcb6;--mint2:#22a985;--butter:#ffd95e;--card:#fff7fc}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;font-family:Fredoka,system-ui,sans-serif;color:var(--ink);background:#f3e6ff}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+.hide{display:none!important}
+.h{font-family:'Baloo 2',Fredoka,sans-serif;font-weight:800}
+/* jelly gloss: a soft highlight on top of every chunky element */
+.jelly{position:relative;overflow:hidden}
+.jelly:before{content:'';position:absolute;left:8%;right:8%;top:3px;height:42%;border-radius:99px;background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,0));pointer-events:none}
+/* ---------- HUD */
+#hud{position:fixed;top:calc(10px + env(safe-area-inset-top));left:0;right:0;display:flex;align-items:center;gap:6px;padding:0 10px 0 62px;z-index:5;pointer-events:none}
+.chip{pointer-events:auto;height:38px;display:flex;align-items:center;gap:4px;padding:0 4px 0 4px;border-radius:20px;background:linear-gradient(180deg,#ffffff,#f4e8ff);box-shadow:0 3px 0 #d6bdf5,0 6px 14px rgba(120,60,170,.18),inset 0 0 0 2px #fff;font-weight:700;font-size:16px;white-space:nowrap}
+.chip svg.ic{width:28px;height:28px;flex:0 0 auto;filter:drop-shadow(0 1px 0 rgba(90,30,110,.2))}
+.chip b{min-width:18px;text-align:center;padding-right:2px}
+.chip .plus{width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#ff8cc0,#ff4f99);color:#fff;font:800 19px/24px 'Baloo 2',sans-serif;text-align:center;box-shadow:0 2px 0 #c9337a}
+.chip.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.2)}}
+#lvlchip{padding:0 14px;background:linear-gradient(180deg,#ff9fd0,#ff5fa2);color:#fff;box-shadow:0 3px 0 #cf3f84,0 6px 14px rgba(220,60,140,.3),inset 0 0 0 2px rgba(255,255,255,.5);font:800 18px 'Baloo 2',sans-serif;letter-spacing:.3px;text-shadow:0 1px 0 rgba(160,30,90,.4)}
+#lvlchip.hard{background:linear-gradient(180deg,#b38cff,#7a4cf0);box-shadow:0 3px 0 #5a32c0,0 6px 14px rgba(110,60,220,.3)}
+#spacer{flex:1}
+#mute{pointer-events:auto;width:38px;height:38px;border-radius:50%;background:linear-gradient(180deg,#fff,#f4e8ff);box-shadow:0 3px 0 #d6bdf5;display:grid;place-items:center;font-size:17px}
+#energychip .tm{position:absolute;left:50%;top:100%;transform:translate(-50%,3px);font-size:11px;font-weight:700;color:var(--ink2);background:#fff;border-radius:8px;padding:0 5px;box-shadow:0 2px 0 #e2d0f5;white-space:nowrap}
+#energychip{position:relative;overflow:visible}
+/* level meter */
+#meter{position:fixed;top:calc(58px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:10px;padding:5px 14px 5px 10px;border-radius:18px;background:rgba(255,250,255,.92);box-shadow:0 3px 0 rgba(180,140,230,.45),0 8px 18px rgba(90,40,120,.15);pointer-events:none;font-weight:700;font-size:14px;white-space:nowrap}
+#meter .stars{display:flex;gap:1px}
+#meter .stars svg{width:20px;height:20px;transition:opacity .3s,transform .3s}
+#meter .stars svg.off{opacity:.25;transform:scale(.8);filter:grayscale(1)}
+#meter .en{color:var(--ink2);font-size:13px}
+#meter .hardtag{background:linear-gradient(180deg,#b38cff,#7a4cf0);color:#fff;border-radius:9px;padding:1px 7px;font-size:12px}
+/* order bubbles over friends */
+#bubbles{position:fixed;inset:0;pointer-events:none;z-index:4}
+.bub{position:absolute;left:0;top:0;pointer-events:auto;display:flex;flex-direction:column;align-items:center;transition:opacity .25s}
+.bub .box{position:relative;display:flex;gap:3px;padding:5px;border-radius:18px;background:linear-gradient(180deg,#fff,#fff3fa);box-shadow:0 3px 0 #f0b9d7,0 8px 16px rgba(120,40,110,.22);border:2.5px solid #ffd0e8}
+.bub .box:after{content:'';position:absolute;left:50%;bottom:-10px;margin-left:-9px;border:9px solid transparent;border-top-color:#ffd0e8;border-bottom:0}
+.bub .it{position:relative;width:46px;height:46px;border-radius:13px;background:radial-gradient(circle at 50% 40%,#fff,#fde9f6);display:grid;place-items:center}
+.bub .it img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 2px rgba(90,30,90,.18))}
+.bub .it .ok{position:absolute;right:-4px;bottom:-4px;width:19px;height:19px;border-radius:50%;background:var(--mint);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;box-shadow:0 2px 0 var(--mint2);transform:scale(0);transition:transform .25s cubic-bezier(.3,1.8,.5,1)}
+.bub .it.have .ok{transform:scale(1)}
+.bub .give{margin-top:13px;height:30px;padding:0 15px;border-radius:15px;background:linear-gradient(180deg,#ff9cd0,#ff4f99);color:#fff;font:800 16px 'Baloo 2',sans-serif;box-shadow:0 3px 0 #c9337a,0 6px 12px rgba(200,40,120,.3);text-shadow:0 1px 0 rgba(0,0,0,.15);transform:scale(0);transition:transform .25s cubic-bezier(.3,1.8,.5,1)}
+.bub.ready .give{transform:scale(1);animation:pulse 1s ease-in-out infinite}
+.bub.ready .box{border-color:#8ff0cf}
+.bub .who{margin-top:2px;font:800 12px 'Baloo 2',sans-serif;color:#fff;padding:0 8px;border-radius:9px;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.bub.gone{opacity:0;pointer-events:none}
+.bub .say{position:absolute;bottom:100%;margin-bottom:6px;white-space:nowrap;background:#fff;border-radius:12px;padding:3px 9px;font-weight:700;font-size:13px;box-shadow:0 3px 0 #f0b9d7;opacity:0;transform:translateY(6px) scale(.8);transition:all .25s cubic-bezier(.3,1.6,.5,1)}
+.bub .say.on{opacity:1;transform:none}
+@keyframes pulse{50%{transform:scale(1.1)}}
+/* bottom bar */
+#bar{position:fixed;left:0;right:0;bottom:0;padding:0 10px calc(10px + env(safe-area-inset-bottom));z-index:5;display:flex;gap:8px;align-items:stretch;pointer-events:none}
+#info{pointer-events:auto;flex:1;min-width:0;height:66px;border-radius:20px;background:linear-gradient(180deg,#fff,#fbefff);box-shadow:0 4px 0 #d9bff4,0 8px 18px rgba(90,40,120,.18),inset 0 0 0 2px #fff;display:flex;align-items:center;gap:8px;padding:0 8px}
+#info img{width:48px;height:48px;object-fit:contain;flex:0 0 auto}
+#info .txt{flex:1;min-width:0;line-height:1.1}
+#info .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#info .sub{font-size:12px;color:var(--ink2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#info .chain{display:flex;gap:2px;margin-top:3px}
+#info .chain img{width:18px;height:18px;opacity:.3;filter:grayscale(.8) brightness(1.1)}
+#info .chain img.on{opacity:1;filter:none}
+#info .chain img.cur{outline:2px solid var(--pink);border-radius:5px;opacity:1;filter:none;background:#ffe3f1}
+#sell{height:40px;padding:0 10px;border-radius:14px;background:linear-gradient(180deg,#ffe58a,#ffc634);color:#7a4a00;font-weight:700;font-size:14px;box-shadow:0 3px 0 #d39a00;white-space:nowrap;flex:0 0 auto;display:flex;align-items:center;gap:3px}
+#sell svg{width:18px;height:18px}
+#sell:active,.boost:active,.btn:active,.mini:active{transform:translateY(2px)}
+.boost{pointer-events:auto;position:relative;width:66px;height:66px;border-radius:20px;background:linear-gradient(180deg,#d7bdff,#9d6cf6);box-shadow:0 4px 0 #6e43c8,0 8px 18px rgba(90,50,180,.25),inset 0 0 0 2px rgba(255,255,255,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font:800 12px 'Baloo 2',sans-serif;line-height:1;text-shadow:0 1px 0 rgba(60,20,120,.4)}
+.boost.b2{background:linear-gradient(180deg,#a6f3dc,#3fcaa0);box-shadow:0 4px 0 #1f936f,0 8px 18px rgba(30,150,110,.25),inset 0 0 0 2px rgba(255,255,255,.35)}
+.boost img{width:38px;height:38px;object-fit:contain;margin-bottom:1px;filter:drop-shadow(0 2px 1px rgba(0,0,0,.2))}
+.boost .n{position:absolute;top:-7px;right:-7px;min-width:24px;height:24px;border-radius:12px;padding:0 6px;background:var(--pink);border:2px solid #fff;font:800 13px/20px 'Baloo 2',sans-serif;display:grid;place-items:center;box-shadow:0 2px 0 #c9337a}
+/* cards */
+.card{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0 12px calc(14px + env(safe-area-inset-bottom));pointer-events:none}
+.card>*{pointer-events:auto}
+.panel{width:100%;max-width:440px;border-radius:30px;background:linear-gradient(180deg,#fffaff,#ffeaf6);box-shadow:0 6px 0 #e6b6d8,0 20px 40px rgba(90,30,100,.3),inset 0 0 0 3px #fff;padding:14px 16px 16px;text-align:center;position:relative}
+.panel h1{margin:0;font:800 36px/1 'Baloo 2',sans-serif;color:var(--pink);text-shadow:0 3px 0 #fff,0 0 0 #fff;-webkit-text-stroke:0}
+.panel h1 small{display:block;font:700 13px Fredoka,sans-serif;color:var(--ink2);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+.panel p{margin:4px 0 0;font-weight:600;font-size:15px;color:var(--ink2)}
+.gprog{margin:9px auto 0;height:18px;border-radius:10px;background:#f2dcf0;overflow:hidden;box-shadow:inset 0 2px 0 rgba(90,30,100,.08);position:relative}
+.gprog i{display:block;height:100%;width:0;background:linear-gradient(180deg,#ffb3dc,#ff5fa2);border-radius:10px;transition:width .6s}
+.gprog span{position:absolute;inset:0;font-size:12px;font-weight:700;line-height:18px;color:var(--ink)}
+.task{margin-top:10px;display:flex;align-items:center;gap:10px;padding:8px;border-radius:20px;background:#fff;box-shadow:0 3px 0 #f0cfe6}
+.task img{width:54px;height:54px;object-fit:contain;flex:0 0 auto;border-radius:14px;background:radial-gradient(circle,#fff,#f5eaff)}
+.task .tt{flex:1;text-align:left;line-height:1.15;min-width:0}
+.task .tt b{display:block;font-size:16px}
+.task .tt span{font-size:12px;color:var(--ink2)}
+.btn{height:48px;padding:0 16px;border-radius:24px;font:800 18px 'Baloo 2',sans-serif;color:#7a4a00;background:linear-gradient(180deg,#ffe58a,#ffc634);box-shadow:0 4px 0 #d39a00;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn svg{width:24px;height:24px}
+.btn.off{filter:grayscale(.7);opacity:.6}
+.btn.play{width:100%;height:62px;margin-top:12px;justify-content:center;font-size:28px;color:#fff;background:linear-gradient(180deg,#ffa6d5,#ff4f99);box-shadow:0 5px 0 #c9337a,0 10px 20px rgba(220,50,140,.3);text-shadow:0 2px 0 rgba(160,20,90,.35)}
+.btn.play.daily{background:linear-gradient(180deg,#c7a8ff,#8a5cf0);box-shadow:0 5px 0 #5f36c4,0 10px 20px rgba(110,60,220,.3)}
+.row{display:flex;gap:8px;margin-top:10px}
+.mini{flex:1;height:46px;border-radius:16px;background:#fff;box-shadow:0 3px 0 #e2c6ef;font:700 14px Fredoka,sans-serif;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:5px;position:relative}
+.mini img{width:28px;height:28px;object-fit:contain}
+.mini .dot{position:absolute;top:-5px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:var(--pink);color:#fff;font:800 12px/20px 'Baloo 2';padding:0 5px;border:2px solid #fff}
+#win{pointer-events:auto;justify-content:center;background:radial-gradient(circle at 50% 45%,rgba(255,230,250,.5),rgba(70,20,80,.38))}
+#win .panel{padding-top:20px}
+#win .bigstars{display:flex;justify-content:center;gap:4px;margin:6px 0 2px}
+#win .bigstars svg{width:66px;height:66px;transform:scale(0);filter:drop-shadow(0 4px 0 rgba(200,100,0,.3))}
+#win .bigstars svg:nth-child(2){width:86px;height:86px;margin-top:-14px}
+#win .bigstars svg.in{animation:starin .45s cubic-bezier(.3,1.7,.5,1) forwards}
+#win .bigstars svg.dim{opacity:.28;filter:grayscale(1)}
+@keyframes starin{0%{transform:scale(0) rotate(-40deg)}100%{transform:scale(1) rotate(0)}}
+#win .reward{display:flex;justify-content:center;gap:14px;margin-top:6px;font-weight:700;font-size:20px}
+#win .reward span{display:flex;align-items:center;gap:4px}
+#win .reward svg{width:26px;height:26px}
+#win .tapc{margin-top:10px;font-weight:700;font-size:15px;color:var(--pink2);animation:pulse 1.2s ease-in-out infinite}
+#win .btnrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.hc-btn,.wbtn{height:44px;padding:0 18px;border-radius:22px;background:linear-gradient(180deg,#a6f3dc,#3fcaa0);color:#fff;font:800 16px 'Baloo 2',sans-serif;box-shadow:0 3px 0 #1f936f;text-shadow:0 1px 0 rgba(0,0,0,.15)}
+.wbtn.vid{background:linear-gradient(180deg,#ffa6d5,#ff4f99);box-shadow:0 3px 0 #c9337a}
+.wbtn small{font:600 11px Fredoka;opacity:.9;margin-left:3px}
+.wbtn[disabled]{opacity:.7}
+#win .hc-btn{margin-top:0!important}
+#win .portrait{position:absolute;left:10px;top:-46px;width:92px;height:92px;border-radius:50%;background-color:#ffe3f3;background-size:250%;background-position:50% 5%;background-repeat:no-repeat;box-shadow:inset 0 0 0 4px #fff,0 4px 0 #f0b9d7,0 8px 16px rgba(90,30,100,.25)}
+/* story overlay: chibi portrait + speech bubble (B2 style) */
+#story{position:fixed;inset:0;z-index:14;background:linear-gradient(180deg,rgba(80,30,100,0) 30%,rgba(80,30,100,.45));display:flex;align-items:flex-end;padding:0 10px calc(16px + env(safe-area-inset-bottom))}
+#story .por{position:absolute;left:-14px;bottom:calc(8px + env(safe-area-inset-bottom));width:min(56vw,270px);height:min(56vw,270px);background-size:175%;background-position:50% 2%;background-repeat:no-repeat;filter:drop-shadow(0 6px 10px rgba(80,20,90,.35));animation:porin .4s cubic-bezier(.3,1.5,.5,1)}
+@keyframes porin{0%{transform:translateY(40px) scale(.9);opacity:0}}
+#story .sb{position:relative;margin:0 0 min(42vw,210px) auto;max-width:330px;width:calc(100% - 30px);background:#fff;border-radius:24px;padding:12px 16px 14px;box-shadow:0 5px 0 #f0b9d7,0 14px 30px rgba(80,20,90,.3);border:3px solid #ffd0e8;animation:sbin .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes sbin{0%{transform:scale(.6);opacity:0}}
+#story .sb:after{content:'';position:absolute;left:44px;bottom:-16px;border:14px solid transparent;border-top-color:#ffd0e8;border-bottom:0}
+#story .nm{position:absolute;top:-15px;left:16px;padding:2px 12px;border-radius:12px;color:#fff;font:800 15px 'Baloo 2',sans-serif;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+#story .tx{font-weight:600;font-size:18px;line-height:1.3;text-align:left;margin-top:4px}
+#story .nx{position:absolute;right:12px;bottom:6px;font-size:12px;color:var(--ink2);font-weight:700;animation:pulse 1.2s infinite}
+#story .ch{position:absolute;top:calc(80px + env(safe-area-inset-top));left:0;right:0;text-align:center;font:800 30px 'Baloo 2',sans-serif;color:#fff;text-shadow:0 3px 0 #e23f86,0 0 18px rgba(255,120,190,.8)}
+#story .ch small{display:block;font:700 14px Fredoka;letter-spacing:3px;text-transform:uppercase;text-shadow:0 2px 0 #b03070}
+/* sheets (album, energy) */
+.sheet{position:fixed;inset:0;z-index:16;display:flex;align-items:flex-end;justify-content:center;background:rgba(70,20,80,.38)}
+.sheet .in{width:min(440px,100%);max-height:86%;overflow:auto;border-radius:28px 28px 0 0;background:linear-gradient(180deg,#fffaff,#ffeef8);box-shadow:0 -8px 30px rgba(80,20,90,.25);padding:16px 14px calc(16px + env(safe-area-inset-bottom));position:relative;animation:shin .3s cubic-bezier(.2,1.2,.4,1)}
+@media (min-height:700px) and (min-width:600px){.sheet{align-items:center}.sheet .in{border-radius:28px}}
+@keyframes shin{0%{transform:translateY(60px);opacity:0}}
+.sheet h3{margin:0 0 6px;font:800 26px 'Baloo 2',sans-serif;color:var(--pink);text-align:center}
+.sheet .x{position:absolute;right:10px;top:10px;width:44px;height:44px;border-radius:50%;background:#f6e6ff;font:800 22px 'Baloo 2';color:var(--ink)}
+.sheet p{text-align:center;margin:4px 0 10px;color:var(--ink2);font-weight:600}
+.tabs{display:flex;gap:6px;justify-content:center;margin:6px 0 10px;flex-wrap:wrap}
+.tabs button{height:36px;padding:0 12px;border-radius:18px;background:#fff;box-shadow:0 2px 0 #e2c6ef;font-weight:700;font-size:14px}
+.tabs button.on{background:linear-gradient(180deg,#ffa6d5,#ff5fa2);color:#fff;box-shadow:0 2px 0 #c9337a}
+.stickers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.st{background:#fff;border-radius:18px;padding:8px 4px 6px;box-shadow:0 3px 0 #efd3ea;text-align:center;position:relative;transform:rotate(var(--r,0deg))}
+.st img{width:72px;height:72px;object-fit:contain;filter:brightness(0) opacity(.12)}
+.st.got img{filter:drop-shadow(0 3px 0 #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 4px 6px rgba(90,30,100,.2))}
+.st span{display:block;font-size:12px;font-weight:700;line-height:1.1;min-height:26px}
+.st .tier{position:absolute;top:4px;left:6px;font:800 11px 'Baloo 2';color:#fff;background:var(--lilac);border-radius:8px;padding:0 5px}
+.big{display:flex;width:100%;height:56px;border-radius:20px;justify-content:center;align-items:center;gap:6px;font:800 19px 'Baloo 2',sans-serif;color:#fff;background:linear-gradient(180deg,#ffa6d5,#ff4f99);box-shadow:0 4px 0 #c9337a;margin-top:10px}
+.big.gold{color:#7a4a00;background:linear-gradient(180deg,#ffe58a,#ffc634);box-shadow:0 4px 0 #d39a00}
+.big.grey{color:var(--ink);background:#fff;box-shadow:0 3px 0 #e2c6ef}
+.big svg{width:24px;height:24px}
+#toast{position:fixed;left:50%;top:26%;transform:translate(-50%,-50%);z-index:12;pointer-events:none;font:800 30px 'Baloo 2',sans-serif;color:#fff;text-shadow:0 3px 0 #e23f86,0 0 18px rgba(255,120,190,.7);white-space:nowrap;opacity:0}
+#toast.on{animation:toast 1.2s ease-out forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}75%{opacity:1;transform:translate(-50%,-62%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+#quip{position:fixed;left:50%;top:calc(120px + env(safe-area-inset-top));transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:8px;max-width:min(92vw,420px);background:#fff;border-radius:20px;padding:6px 14px 6px 6px;box-shadow:0 4px 0 #f0b9d7,0 10px 24px rgba(90,20,90,.25);border:2.5px solid #ffd0e8;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s cubic-bezier(.3,1.6,.5,1)}
+#quip.on{opacity:1;transform:translateX(-50%) translateY(4px)}
+#quip .av{width:54px;height:54px;flex:0 0 auto;border-radius:50%;background-color:#ffe3f3;background-size:260%;background-position:50% 5%;background-repeat:no-repeat;box-shadow:inset 0 0 0 3px #fff,0 2px 0 #f0b9d7}
+#quip b{font:800 14px 'Baloo 2';display:block;line-height:1}
+#quip span{font-weight:600;font-size:14px;line-height:1.2}
+.fly{position:fixed;left:0;top:0;z-index:11;width:28px;height:28px;pointer-events:none;transition:transform .7s cubic-bezier(.5,-.3,.6,1),opacity .2s}
+.fly svg{width:100%;height:100%}
+.float{position:fixed;z-index:11;pointer-events:none;font:800 20px 'Baloo 2';color:#fff;text-shadow:0 2px 0 #c9337a;transform:translate(-50%,-50%);animation:floatup 1s ease-out forwards;white-space:nowrap}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,-20%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-160%) scale(1)}}
+#loading{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:linear-gradient(180deg,#f6e2ff,#ffe3f1);font:800 38px 'Baloo 2',sans-serif;color:var(--pink);transition:opacity .5s;text-shadow:0 3px 0 #fff}
+#loading div{text-align:center}
+#loading small{display:block;font:600 15px Fredoka;color:var(--ink2);text-shadow:none}
+#loading img{width:120px;height:120px;object-fit:contain;display:block;margin:0 auto 6px;animation:pulse 1s infinite}
+@media (min-aspect-ratio:1/1){
+  #bar{left:50%;right:auto;transform:translateX(-50%);width:min(560px,100vw)}
+  .card{padding-bottom:20px}
+  #start{align-items:flex-end;padding-right:28px}
+  #start .panel{max-width:400px}
+  #story .sb{margin:0 auto 140px;max-width:420px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="loading"><div><img src="assets/thumbs/k01.webp" alt="">Mergie Dorm<small>unpacking the moving boxes…</small></div></div>
+<div id="hud">
+  <div class="chip" id="lvlchip">Level <span id="lvl">1</span></div>
+  <div class="chip hide" id="starchip"><svg class="ic" viewBox="0 0 24 24"><use href="#star"/></svg><b id="stars">0</b></div>
+  <div id="spacer"></div>
+  <button class="chip" id="energychip" aria-label="Energy"><svg class="ic" viewBox="0 0 24 24"><use href="#bolt"/></svg><b id="energy">0</b><span class="plus">+</span><span class="tm hide" id="etm"></span></button>
+  <button class="chip" id="coinchip" aria-label="Coins and shop"><svg class="ic" viewBox="0 0 24 24"><use href="#coin"/></svg><b id="coins">0</b><span class="plus">+</span></button>
+  <button id="mute" aria-label="Sound">🔊</button>
+</div>
+<div id="meter" class="hide">
+  <span id="hardtag" class="hardtag hide">HARD</span>
+  <span>💌 <span id="ordn">0/3</span></span>
+  <span class="stars" id="mstars"><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg></span>
+  <span class="en" id="taps">⚡ 0/10</span>
+</div>
+<div id="bubbles"></div>
+<div id="bar" class="hide">
+  <div id="info"><img id="infoimg" alt=""><div class="txt"><div class="nm" id="infonm">Drag two alike to merge</div><div class="sub" id="infosub">Tap the bag to make something</div><div class="chain" id="infochain"></div></div><button id="sell" class="hide">Sell</button></div>
+  <button class="boost" id="bwand"><img src="assets/thumbs/x04.webp" alt="">Upgrade<span class="n" id="nwand">1</span></button>
+  <button class="boost b2" id="blucky"><img src="assets/thumbs/x05.webp" alt="">Lucky<span class="n" id="nlucky">1</span></button>
+</div>
+<div id="start" class="card hide">
+  <div class="panel">
+    <h1><small id="stitle">Chapter 1 · Room 404</small><span id="slevel">Level 1</span></h1>
+    <div class="gprog"><i id="gbar"></i><span id="gtext">Room glow-up 0/12</span></div>
+    <div class="task" id="task"><img id="timg" alt=""><div class="tt"><b id="tname">Paint the walls</b><span id="tsub">Earn stars to decorate</span></div><button class="btn" id="tbtn"><svg viewBox="0 0 24 24"><use href="#star"/></svg><span id="tcost">1</span></button></div>
+    <button class="btn play jelly" id="play">Play</button>
+    <div class="row">
+      <button class="mini" id="albumBtn"><img src="assets/thumbs/g14.webp" alt="">Album <span id="albumN">0/24</span></button>
+      <button class="mini" id="dailyBtn"><img src="assets/thumbs/x04.webp" alt=""><span id="dailyL">Daily</span></button>
+      <button class="mini" id="shopBtn"><img src="assets/thumbs/x01.webp" alt="">Shop</button>
+    </div>
+  </div>
+</div>
+<div id="win" class="card hide">
+  <div class="panel">
+    <div class="portrait" id="wpor"></div>
+    <h1><small id="wlevel">Level 1</small><span id="wtitle">Slay!</span></h1>
+    <div class="bigstars" id="bigstars"><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg><svg viewBox="0 0 24 24"><use href="#star"/></svg></div>
+    <p data-x id="wline">All orders filled</p>
+    <div class="reward"><span><svg viewBox="0 0 24 24"><use href="#star"/></svg>+<b id="wstars">3</b></span><span><svg viewBox="0 0 24 24"><use href="#coin"/></svg>+<b id="wcoins">0</b></span><span><svg viewBox="0 0 24 24"><use href="#bolt"/></svg>+<b id="wen">0</b></span></div>
+    <p id="wstreak" class="hide"></p>
+    <div class="btnrow"><button class="wbtn vid" id="dbl">▶ Double coins</button><button class="wbtn hide" id="grid">Share grid</button></div>
+    <div class="tapc">Tap to continue</div>
+  </div>
+</div>
+<div id="story" class="hide"><div class="ch hide" id="stch"></div><div class="por" id="spor"></div><div class="sb"><div class="nm" id="snm">Mochi</div><div class="tx" id="stx"></div><div class="nx">tap ▶</div></div></div>
+<div id="quip"><div id="qimg" class="av"></div><div><b id="qnm"></b><span id="qtx"></span></div></div>
+<div id="toast"></div>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff59a"/><stop offset=".55" stop-color="#ffcf2e"/><stop offset="1" stop-color="#ff9f1a"/></linearGradient>
+    <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1a6"/><stop offset=".6" stop-color="#ffc93d"/><stop offset="1" stop-color="#f09a00"/></linearGradient>
+    <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb3da"/><stop offset="1" stop-color="#ff4f99"/></linearGradient>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d7fff2"/><stop offset=".5" stop-color="#6fe7c3"/><stop offset="1" stop-color="#22b88c"/></linearGradient>
+    <symbol id="star" viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.4 7 .9-5.1 4.9 1.3 7-6.3-3.4-6.3 3.4 1.3-7L1.9 9.1l7-.9z" fill="url(#sg)" stroke="#e08a00" stroke-width="1.3" stroke-linejoin="round"/><path d="M8.6 8.9l2.2-.4 1-2.3" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity=".85"/><circle cx="10" cy="13.4" r=".9" fill="#7a3a00"/><circle cx="14" cy="13.4" r=".9" fill="#7a3a00"/></symbol>
+    <symbol id="coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.2" fill="url(#cg)" stroke="#d48300" stroke-width="1.3"/><circle cx="12" cy="12" r="7.2" fill="#ffe27a" stroke="#e9a200" stroke-width="1"/><path d="M12 16.2c-3-2-4.3-3.5-4.3-5.2 0-1.3 1-2.3 2.2-2.3.9 0 1.6.5 2.1 1.2.5-.7 1.2-1.2 2.1-1.2 1.2 0 2.2 1 2.2 2.3 0 1.7-1.3 3.2-4.3 5.2z" fill="url(#hg)"/><path d="M6.4 8.4a6.4 6.4 0 0 1 4-3" stroke="#fff" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".8"/></symbol>
+    <symbol id="bolt" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.6" fill="url(#bg2)" stroke="#16a079" stroke-width="1.2"/><path d="M13.4 3.8L6.9 13.1h4.4l-1.2 7.1 6.6-9.6h-4.5z" fill="#fff" stroke="#fff" stroke-width=".6" stroke-linejoin="round"/><path d="M5.8 8.2a7 7 0 0 1 3.5-3.4" stroke="#fff" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".7"/></symbol>
+  </defs>
+</svg>
+<script type="module" src="./game.js"></script>
+</body>
+</html>
