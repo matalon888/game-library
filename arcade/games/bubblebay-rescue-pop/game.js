@@ -54,7 +54,7 @@ sun.shadow.mapSize.set(C.lite ? 1024 : 2048, C.lite ? 1024 : 2048); Object.assig
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03; sun.shadow.radius = 4; scene.add(sun, sun.target);
 
 // ---------------------------------------------------------------- UI + kit layers
-const ui = createUI({ title: 'Bubblebay<small>RESCUE POP</small>', hint: 'Tap to start', hand: '🫧', progress: false, score: false });
+const ui = createUI({ title: 'Bubblebay<small>RESCUE POP</small>', hint: 'Tap to start', hand: '🫧', progress: false, score: false, button: 'Play ▶' });
 ui.els.start.classList.add('bb-title');
 const D = daily('bubblebay', ui, { name: NAME });
 const kitShare = ui.els.win.querySelector('.hc-btn');

@@ -229,6 +229,7 @@ body{background:linear-gradient(180deg,var(--bg1,#ffd1dc),var(--bg2,#ffe9b8));tr
 .hc-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:4;transition:opacity .3s}
 .hc-btn{pointer-events:auto;font:inherit;font-weight:800;font-size:22px;color:#fff;background:var(--ui,#ff5d8f);border:0;border-radius:40px;padding:12px 34px;box-shadow:0 5px 0 rgba(0,0,0,.18);cursor:pointer}
 .hc-btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.hc-card .hc-play{margin-top:auto;margin-bottom:12vh;font-size:28px;padding:16px 64px;background:#3cc46a;box-shadow:0 6px 0 #2a9a50;animation:hcpulse 1.6s ease-in-out infinite}
 `;
 function el(html) { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; }
 
@@ -237,7 +238,7 @@ function el(html) { const d = document.createElement('div'); d.innerHTML = html.
  *   ui.start()/ui.hideStart(), ui.win(level, extra), ui.lose(title, line), ui.progress(0..1), ui.levels(n), ui.score(n), ui.sub(text), ui.pill(text)
  *   ui.pop(text, color, size, topPercent), ui.flash(alpha), ui.onTap(fn) — tap anywhere on a card continues
  */
-export function createUI({ title = 'GAME', hint = 'Tap to play', hand = '👆', progress = true, score = true } = {}) {
+export function createUI({ title = 'GAME', hint = 'Tap to play', hand = '👆', progress = true, score = true, button = '' } = {}) {
   if (!document.getElementById('hc-css')) {
     const st = document.createElement('style'); st.id = 'hc-css'; st.textContent = CSS; document.head.appendChild(st);
     const f = document.createElement('link'); f.rel = 'stylesheet'; f.href = 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap'; document.head.appendChild(f);
@@ -245,7 +246,9 @@ export function createUI({ title = 'GAME', hint = 'Tap to play', hand = '👆', 
   const top = el(`<div class="hc-top ${progress ? '' : 'hc-hidden'}"><div class="hc-prog"><div class="hc-lvl" data-a>1</div><div class="hc-bar"><i></i></div><div class="hc-lvl next" data-b>2</div></div></div>`);
   const sc = el(`<div class="hc-score ${score ? '' : 'hc-hidden'}">0</div>`), sub = el(`<div class="hc-sub"></div>`), pill = el(`<div class="hc-pill hc-hidden"></div>`);
   const flash = el(`<div class="hc-flash"></div>`);
-  const start = el(`<div class="hc-card"><h1>${title}</h1><div class="hint">${hand ? `<div class="hand">${hand}</div>` : ''}${hint}</div></div>`);
+  // button: a big Play pill instead of the pulsing hint (2026-10-25: first screens with only "Tap to start" lost players in ~3 s)
+  const start = el(button ? `<div class="hc-card"><h1>${title}</h1><button type="button" class="hc-btn hc-play">${button}</button></div>`
+    : `<div class="hc-card"><h1>${title}</h1><div class="hint">${hand ? `<div class="hand">${hand}</div>` : ''}${hint}</div></div>`);
   const win = el(`<div class="hc-card hc-hidden"><p>LEVEL <span data-l>1</span></p><h1>CLEARED!</h1><p data-x></p><div class="hint">Tap to continue</div></div>`);
   const lose = el(`<div class="hc-card dim hc-hidden"><h1 data-t>OOPS!</h1><p data-x></p><div class="hint">Tap to retry</div></div>`);
   document.body.append(top, sc, sub, pill, flash, start, win, lose);

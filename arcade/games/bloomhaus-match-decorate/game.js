@@ -40,7 +40,7 @@ sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03; sun.shadow.radius = 4; 
 const fill = new THREE.PointLight('#ffb37a', 0, 9, 1.6); fill.position.set(-3.2, 1.6, -1.4); scene.add(fill);
 
 // ---------------------------------------------------------------- UI + kit layers
-const ui = createUI({ title: 'Bloomhaus<small>MATCH &amp; DECORATE</small>', hint: 'Tap to start', hand: '✨', progress: false, score: false });
+const ui = createUI({ title: 'Bloomhaus<small>MATCH &amp; DECORATE</small>', hint: 'Tap to start', hand: '✨', progress: false, score: false, button: 'Play ▶' });
 ui.els.start.classList.add('bh-title');
 const D = daily('bloomhaus', ui, { name: NAME });
 const B = worldBoard({ game: 'bloomhaus', label: 'Stars earned', limits: { maxRun: 6, maxPerSec: 0.5 }, mode: 'sum', corner: 'tr', accent: '#ff8fb1' });
@@ -466,7 +466,8 @@ loop((d) => {
   cam.setViewOffset(innerWidth, innerHeight, 0, camCur.off, innerWidth, innerHeight);
   // atmosphere
   atm.cur += (atm.target - atm.cur) * Math.min(1, dt * 1.5);
-  const p = atm.cur, inMatch = mode === 'match';
+  // the room brightens as it is decorated; it starts 30% of the way up so the first screen isn't a grey haze (2026-10-25)
+  const p = 0.3 + 0.7 * atm.cur, inMatch = mode === 'match';
   hemi.intensity = 0.62 + 0.55 * p; sun.intensity = 1.5 + 1.2 * p; sun.color.set(mixHex('#d8dde8', '#ffe6c0', p));
   scene.environmentIntensity = 0.45 + 0.35 * p;
   C.grade.uniforms.uSat.value = inMatch ? 1.22 : 0.85 + 0.35 * p;
