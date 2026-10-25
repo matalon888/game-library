@@ -427,7 +427,7 @@
     }
 
     frame.addEventListener('load', () => {
-      $('lb').classList.add('done');
+      $('lb')?.classList.add('done');   // the splash can be gone already (auto-start removes it before the frame loads)
       fit(); matchBackground();
       [300, 1200, 3000].forEach(t => setTimeout(autoFit, t));
       try { // menus and dialogs usually open on a tap: re-measure after each one
