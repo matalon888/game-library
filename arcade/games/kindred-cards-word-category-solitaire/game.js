@@ -373,7 +373,7 @@ function down(ev, id) {
   if (st.stock.includes(id)) { play({ t: 'draw' }); return; }
   const src = srcOf(id); if (!src) return;
   const ids = runFrom(st, src); if (!ids) { nope(id); return; }
-  drag = { id, src, ids, x: ev.clientX, y: ev.clientY, moved: false, base: ids.map(i => { const m = /translate\(([-\d.]+)px,([-\d.]+)px\)/.exec(cardEls[i].style.transform); return [+m[1], +m[2]]; }) };
+  drag = { id, src, ids, x: ev.clientX, y: ev.clientY, moved: false, base: ids.map(i => { const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cardEls[i].style.transform); return m ? [+m[1], +m[2]] : [0, 0]; }) };
 }
 addEventListener('pointermove', (ev) => {
   if (!drag) return; const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
