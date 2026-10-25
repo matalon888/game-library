@@ -142,7 +142,8 @@
     const ok = x => x.chat_safe !== false && !x.linkout && !x.external && !seen.has(x.slug) && !(phone && (x.platform === 'desktop' || x.orientation === 'landscape')) && x.category !== 'Kids';
     const tags = new Set(G && G.tags || []);
     const same = all.filter(x => ok(x) && (x.category === G.category || (x.tags || []).some(t => tags.has(t))));
-    const pool = same.length ? same : all.filter(ok);
+    let pool = same.length ? same : all.filter(ok);
+    if (window.ApTaste && ApTaste.warm()) pool = ApTaste.rank(pool).filter(x => ApTaste.like(x) > -1);   // what they play most first, not what they quit
     return pool[Math.floor(Math.random() * Math.min(pool.length, 12))] || null; // among the best-ranked few, so it's not always the same one
   }
   // the feed (config.js FEED): upright one-thumb games on our kit, shuffled once per tab with the hand-checked ones first.
@@ -166,7 +167,9 @@
     const cats = new Set([G && G.category].concat(skip.map(s => (all.find(x => x.slug === s) || {}).category)));
     const fresh = feed().map(s => all.find(x => x.slug === s)).filter(g => g && !seen.has(g.slug));
     if (window.ApTaste && ApTaste.active()) return fresh[0] || pickNext();   // her style: the same look, not a different category
-    return fresh.find(g => !cats.has(g.category)) || fresh[0] || pickNext();
+    // a player we know: the most likely-liked of the next few in the feed (still another category than the one just skipped)
+    const T = window.ApTaste, near = T && T.warm() ? T.rank(fresh.slice(0, 12)) : fresh;
+    return near.find(g => !cats.has(g.category)) || near[0] || pickNext();
   }
 
   function onLoad(g, gs) {

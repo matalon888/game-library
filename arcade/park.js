@@ -233,15 +233,23 @@
     CAST = cast;
     let stats = {};
     const byScore = l => l.slice().sort((a, b) => (score(b, stats[b.slug]) ?? 0) - (score(a, stats[a.slug]) ?? 0));
-    const ordered = byScore;   // every shelf: best Park score first
+    // every shelf in this player's order (taste.js): Park score + how much they'll probably like it, learnt from every game they
+    // play (stayed long: its category, collections and kind rise; left in seconds: they sink). A new visitor sees best scored first.
+    const T = window.ApTaste, warm = !!(T && T.warm());
+    const ordered = l => warm ? T.rank(byScore(l), g => score(g, stats[g.slug]) ?? 5) : byScore(l);
+    const catLike = (l, c) => { if (!warm) return 0; const top = ordered(l.filter(g => catOf(g, c))).slice(0, 6); return top.reduce((n, g) => n + T.like(g), 0) / (top.length || 1); };
+    const MORE = 24, SHELVES = 6;   // not a wall of 300 games: the best two dozen of a shelf, six shelves; more arrive as they scroll (no buttons)
     let mode = K.store.get('pmode', null); if (!MODES[mode]) mode = 'mobile';
-    let cat = K.store.get('pcat', null), sort = 'score', q = '';
+    let cat = K.store.get('pcat', null), sort = warm ? 'for' : 'score', q = '', open = false, more = MORE;
     const inMode = m => all.filter(MODES[m].has);
     const catOf = (g, c) => COLLS.includes(c) ? (g.tags || []).includes(c) : (g.category || 'Arcade') === c;
     const catsFor = m => {
       const l = inMode(m), n = {};
       l.forEach(g => { n[g.category || 'Arcade'] = (n[g.category || 'Arcade'] || 0) + 1; (g.tags || []).forEach(t => COLLS.includes(t) && (n[t] = (n[t] || 0) + 1)); });
-      return Object.entries(n).filter(([, k]) => k >= 2).sort((a, b) => b[1] - a[1]);
+      const e = Object.entries(n).filter(([, k]) => k >= 2).sort((a, b) => b[1] - a[1]);
+      if (!warm) return e;
+      const lk = Object.fromEntries(e.map(([c]) => [c, catLike(l, c)]));
+      return e.sort((a, b) => lk[b[0]] - lk[a[0]] || b[1] - a[1]);   // their favourite corners first
     };
     // Ad / share deep link: /arcade/?cat=Puzzle opens that shelf, in the first mode that has it (phones first).
     const qc = new URLSearchParams(location.search).get('cat');
@@ -285,10 +293,15 @@
     tabs(); chips();
 
     $('modes').onclick = e => { const b = e.target.closest('.mode'); if (!b) return; mode = b.dataset.m; cat = null; K.store.set('pmode', mode); K.store.set('pcat', null); tabs(); chips(); draw(); };
-    $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; K.store.set('pcat', cat); chips(); draw(); $('nav').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); };
+    $('cats').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.c === 'All' ? null : b.dataset.c; more = MORE; K.store.set('pcat', cat); chips(); draw(); $('nav').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); };
     document.addEventListener('click', e => {
-      const z = e.target.closest('[data-zone]'); if (z) { e.preventDefault(); cat = z.dataset.zone; K.store.set('pcat', cat); chips(); draw(); $('nav').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }
+      const z = e.target.closest('[data-zone]'); if (z) { e.preventDefault(); cat = z.dataset.zone; more = MORE; K.store.set('pcat', cat); chips(); draw(); $('nav').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }
       const s = e.target.closest('[data-sort]'); if (s) { sort = s.dataset.sort; draw(); }
+      // a card tapped: a small vote for its kind of game, and against the few shown before it that were passed over
+      const c = T && e.target.closest('.gc[data-slug]');
+      if (c) { const g = all.find(x => x.slug === c.dataset.slug), box = c.parentElement;
+        const before = box ? [...box.querySelectorAll('.gc[data-slug]')].slice(0, [...box.children].indexOf(c)).map(x => all.find(y => y.slug === x.dataset.slug)).filter(Boolean) : [];
+        try { T.tap(g, before.slice(-6)); } catch (er) {} }
     });
     $('q').oninput = e => { q = e.target.value.trim().toLowerCase(); draw(); };
 
@@ -297,7 +310,7 @@
         <header><div class="sh-t">${CAST[zone(key).scene] ? `<img class="zthumb" src="${A}${zone(key).scene}-s.webp" alt="">` : ''}<div><h2>${esc(title)}</h2><span>${esc(park)} · ${list.length} games</span></div></div>
           <a href="#" data-zone="${esc(key)}">See all</a>
           <div class="perch ${who === 'sloth-hang' ? 'hang' : ''}" data-who="${who}" data-opt='${who === 'sloth-hang' ? '{"kind":"hang","h":110,"y":0,"shadow":false}' : '{"kind":"idle","h":84,"maxw":96}'}'></div></header>
-        <div class="rail">${list.slice(0, 16).map(g => card(g, stats[g.slug])).join('')}</div></section>` : '';
+        <div class="rail">${list.slice(0, warm ? 12 : 16).map(g => card(g, stats[g.slug])).join('')}</div></section>` : '';
 
     // 🏆 World boards: today's leaders across every game with a board (real, checked scores only: arcade-api /api/world)
     const slugOf = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -334,31 +347,43 @@
       } else if (mode === 'ai' || cat) {
         const key = mode === 'ai' ? 'AI' : cat, z = zone(key);
         let list = mode === 'ai' ? pool : pool.filter(g => catOf(g, cat));
-        list = sort === 'new' ? list.slice().sort((a, b) => ((b.made || b.added) > (a.made || a.added) ? 1 : -1)) : sort === 'played' ? list.slice().sort((a, b) => ((stats[b.slug] || {}).plays || 0) - ((stats[a.slug] || {}).plays || 0)) : ordered(list);
+        list = sort === 'new' ? list.slice().sort((a, b) => ((b.made || b.added) > (a.made || a.added) ? 1 : -1)) : sort === 'played' ? list.slice().sort((a, b) => ((stats[b.slug] || {}).plays || 0) - ((stats[a.slug] || {}).plays || 0)) : sort === 'for' ? ordered(list) : byScore(list);
+        const shown = list.slice(0, more);
         const who = mode === 'ai' ? 'kid-agent-laptop,agent-token' : z.who + ',' + (key === 'Sports' ? 'fox-kick' : key === 'Racing' ? 'hamster-run' : 'robot-map');
         html = `<section class="cat-head" style="--scene:url('${A}${z.scene}.webp')">
             <div class="ch-txt"><span class="eyebrow">${esc(z.park)}</span><h2>${mode === 'ai' ? 'AI token games' : esc(cat)}</h2>
-            <p>${mode === 'ai' ? '<b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch. Results count, tokens don\'t: it counts the work they finish and never spends tokens. World leaderboards with country flags, unrigged.' : `${list.length} ${MODES[mode].label.toLowerCase()} games, best scored first.`}</p></div>
+            <p>${mode === 'ai' ? '<b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch. Results count, tokens don\'t: it counts the work they finish and never spends tokens. World leaderboards with country flags, unrigged.' : `${list.length} ${MODES[mode].label.toLowerCase()} games, ${sort === 'for' ? 'the ones you\'ll like most first' : 'best scored first'}.`}</p></div>
             <div class="stagebox" data-who="${who}" data-opt='{"kind":"walk","h":92,"speed":34}'></div></section>
-          <div class="sorts" role="group" aria-label="Sort">${[['score', 'Top scored'], ['new', 'Newest'], ['played', 'Most played']].map(([k, l]) => `<button data-sort="${k}" aria-pressed="${k === sort}">${l}</button>`).join('')}</div>
-          <div class="grid">${list.map(g => card(g, stats[g.slug], false)).join('')}</div>`;
+          <div class="sorts" role="group" aria-label="Sort">${[...(warm ? [['for', 'For you']] : []), ['score', 'Top scored'], ['new', 'Newest'], ['played', 'Most played']].map(([k, l]) => `<button data-sort="${k}" aria-pressed="${k === sort}">${l}</button>`).join('')}</div>
+          <div class="grid">${shown.map(g => card(g, stats[g.slug], false)).join('')}</div>
+          ${list.length > shown.length ? '<div class="more" data-more="games"></div>' : ''}`;
       } else {
-        const picks = byScore(pool.filter(g => g.clip)).slice(0, 6);
-        const cs = catsFor(mode);
+        // a player we know: "For you" (her order, games she left in seconds out); a new one: the best scored with a gameplay clip
+        const picks = warm ? ordered(pool).filter(g => T.like(g) > -1).slice(0, 8) : byScore(pool.filter(g => g.clip)).slice(0, 6);
+        const all_cs = catsFor(mode), cs = warm && !open ? all_cs.slice(0, SHELVES) : all_cs;
         const W = ['robot-dunk,penguin-skates', 'hamster-run,duck-net', 'bunny-scooter,snail-race', 'frog-skate,robot-map', 'blob-frisbee,cat-binoculars'];
-        html = `<section class="picks"><header><h2>Park picks</h2><span>Highest scored ${MODES[mode].label.toLowerCase()} games right now</span></header>
+        html = `<section class="picks"><header><h2>${warm ? 'For you' : 'Park picks'}</h2><span>${warm ? 'Picked from what you play, and how long you stay' : `Highest scored ${MODES[mode].label.toLowerCase()} games right now`}</span></header>
             <div class="rail big">${picks.map(g => card(g, stats[g.slug], true)).join('')}</div></section>
           <section class="worldb" id="worldb" hidden></section>
           <section class="zones"><header><h2>Explore the park</h2><span>Every category has its own corner</span></header>
-            <div class="rail">${cs.map(([c, n]) => `<a class="zc" href="#" data-zone="${esc(c)}"><img src="${A}${zone(c).scene}-s.webp" alt="" loading="lazy">
+            <div class="rail">${all_cs.map(([c, n]) => `<a class="zc" href="#" data-zone="${esc(c)}"><img src="${A}${zone(c).scene}-s.webp" alt="" loading="lazy">
               <span class="zres">${CAST[zone(c).who] ? img(zone(c).who) : ''}</span><b>${esc(c)}</b><small>${esc(zone(c).park)} · ${n}</small></a>`).join('')}</div></section>
           ${pathStrip(W[0])}
           ${cs.slice(0, 9).map(([c], i) => shelf(c, zone(c).park, ordered(pool.filter(g => catOf(g, c))), c, zone(c).who, i) + (i % 3 === 2 ? pathStrip(W[(i / 3 + 1) % W.length | 0]) : '')).join('')}
           <section class="chart"><header><div class="peek" data-who="giraffe-peek" data-opt='{"kind":"peek","h":150,"shadow":false}'></div><h2>Top scored</h2><span>Park score = Claude's review of depth + polish; players' stars count once 3+ have rated</span></header>
             ${byScore(pool).slice(0, 12).map((g, i) => row(g, i, stats[g.slug])).join('')}</section>
-          ${cs.slice(9).map(([c], i) => shelf(c, zone(c).park, ordered(pool.filter(g => catOf(g, c))), c, zone(c).who, i)).join('')}`;
+          ${cs.slice(9).map(([c], i) => shelf(c, zone(c).park, ordered(pool.filter(g => catOf(g, c))), c, zone(c).who, i)).join('')}
+          ${cs.length < all_cs.length ? '<div class="more" data-more="shelves"></div>' : ''}`;
       }
+      const y = scrollY;
       $('shelves').innerHTML = html;
+      if (y) scrollTo(0, y);
+      // scrolled near the end: the next games (or the rest of the shelves) come in by themselves
+      const sent = $('shelves').querySelector('[data-more]');
+      if (sent && 'IntersectionObserver' in window) {
+        const ob = new IntersectionObserver(es => { if (!es[0].isIntersecting) return; ob.disconnect(); if (sent.dataset.more === 'shelves') open = true; else more += 48; draw(); }, { rootMargin: '900px' });
+        ob.observe(sent);
+      } else if (sent) { open = true; more = 1e9; setTimeout(draw); }
       worldBoards();
       residents($('shelves'));
       wireClips($('shelves'));

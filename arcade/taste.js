@@ -8,7 +8,11 @@
 // Until her style is clear (it must lead the others), the choices show one game of each style, so one tap teaches us.
 // Women's ad visitors (ap.aud = f), and anyone who has played a women's game, get these games first in the feed.
 // A test: half of new women visitors (ap.tst = style) get the style flow, half the old feed (base), counted in diag runs.
-// window.ApTaste: { active(), style(), art(g), played(g, secs), chose(g), feed(all, opts), oneOfEach(all, opts), arm() }
+// Everyone else too (every game, not only the women's): each play teaches her categories, collections (tags), kinds and the
+// game itself, newest plays weighing most (older scores fade 3% per signal). like(g) is how much she will probably like a game,
+// rank(list) sorts a shelf by it on top of the Park score: games like the ones she stays in rise, ones she left in seconds sink.
+// window.ApTaste: { active(), style(), art(g), played(g, secs), chose(g), tap(g, skipped), like(g), rank(list, base), warm(),
+//   feed(all, opts), oneOfEach(all, opts), arm() }
 (function () {
   if (window.ApTaste) return;
   const ART = { 'Cozy games': 'A', 'Kawaii Pop': 'B', 'Storybook Garden': 'C' };
@@ -16,7 +20,7 @@
   const KEY = 'ap.taste', q = new URLSearchParams(location.search);
   const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
   const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-  const load = () => Object.assign({ a: { A: 0, B: 0, C: 0 }, k: {}, n: 0 }, get(KEY, {}));
+  const load = () => Object.assign({ a: { A: 0, B: 0, C: 0 }, k: {}, n: 0, c: {}, t: {}, g: {}, m: 0 }, get(KEY, {}));
   const art = g => { for (const t of (g && g.tags) || []) if (ART[t]) return ART[t]; return null; };
 
   // the 50/50 test, decided once per device for women's ad visitors
@@ -38,16 +42,54 @@
     if (/^[ABC]$/.test(st) || load().n > 0) return true;   // a style ad, or she already played one: always on
     return women() && arm() === 'style';
   }
+  const clamp = v => Math.max(-6, Math.min(30, Math.round(v * 100) / 100));
+  const bump = (o, k, w) => { if (k) o[k] = clamp((o[k] || 0) + w); };
+  const fade = o => { for (const k in o) { o[k] = Math.round(o[k] * 97) / 100; if (Math.abs(o[k]) < 0.05) delete o[k]; } };
+  // what she plays, in every game: category, collections, kind, the game itself (all = false: only the general part)
+  function learn(p, g, w, wg) {
+    [p.c, p.t, p.g, p.k].forEach(fade);
+    bump(p.c, g.category || 'Arcade', w);
+    for (const t of g.tags || []) bump(p.t, t, t === 'Hyper-casual' ? w * 0.2 : w);   // on 3 in 4 games: says little
+    bump(p.k, g.kind, w);
+    bump(p.g, g.slug, wg == null ? w : wg);
+    p.m = (p.m || 0) + 1;
+  }
   function add(g, w) {
-    const s = art(g); if (!s) return;
-    const p = load();
-    p.a[s] = Math.max(-3, Math.min(30, p.a[s] + w));
-    if (g.kind) p.k[g.kind] = Math.max(-3, Math.min(30, (p.k[g.kind] || 0) + w));
-    p.n++; p.last = s; put(KEY, p);
+    if (!g) return;
+    const p = load(), s = art(g);
+    learn(p, g, w);
+    if (s) { p.a[s] = Math.max(-3, Math.min(30, p.a[s] + w)); p.n++; p.last = s; }
+    put(KEY, p);
   }
   // a finished run (diag.js): how long she stayed is the honest signal
-  function played(g, secs) { if (!art(g)) return; add(g, secs >= 60 ? 2 : secs >= 25 ? 1 : secs < 15 ? -1 : 0); }
+  function played(g, secs) { add(g, secs >= 180 ? 3 : secs >= 60 ? 2 : secs >= 25 ? 1 : secs < 15 ? -1 : 0); }
   function chose(g) { add(g, 1); }
+  // a card tapped on the home page: a small vote for its kind of game; the ones shown just before it and passed over, a tiny one against
+  function tap(g, skipped = []) {
+    if (!g) return;
+    const p = load();
+    learn(p, g, 0.5, 0);
+    for (const x of skipped.slice(0, 6)) bump(p.g, x.slug, -0.15);
+    put(KEY, p);
+  }
+  const warm = (p = load()) => (p.m || 0) > 0 || !!style(p);
+  // how much she'll probably like g, about -6..6 (0 = we know nothing)
+  function like(g, p = load(), s = style(p)) {
+    let r = (p.c[g.category || 'Arcade'] || 0) * 1.2 + (p.k[g.kind] || 0) * 1.2;
+    const tg = (g.tags || []).filter(t => t in p.t);
+    if (tg.length) r += tg.reduce((n, t) => n + p.t[t], 0) / Math.sqrt(tg.length);
+    const a = art(g); if (s && a) r += a === s ? 4 : -1;
+    const own = p.g[g.slug] || 0;
+    r += own < 0 ? own * 3 : own * 0.6;                 // left it in seconds: it sinks; loved it: stays near the top
+    if (!own && r > 0) r += 0.5;                        // like her games but not played yet: a little lift
+    return 6 * Math.tanh(r / 8);
+  }
+  // a shelf in her order: base(g) (the Park score, 0-10) + like(g); a cold visitor keeps the plain order
+  function rank(list, base = () => 0) {
+    const p = load(); if (!warm(p)) return list.slice();
+    const s = style(p);
+    return list.map((g, i) => [(base(g) || 0) + like(g, p, s) - i * 1e-6, g]).sort((x, y) => y[0] - x[0]).map(x => x[1]);
+  }
 
   const okFor = (g, o) => !g.external && !g.linkout && g.category !== 'Kids' && !(o.phone && (g.platform === 'desktop' || g.orientation === 'landscape'));
   // her games: her style first (all three while it's unclear), favourite kinds first, then a kind she hasn't tried, unplayed first
@@ -66,5 +108,5 @@
     for (const s of ['A', 'B', 'C']) { const g = f.find(x => art(x) === s && !(o.seen || []).includes(x.slug)); if (g) out.push(g); }
     return out;
   }
-  window.ApTaste = { active, style, art, played, chose, feed, oneOfEach, arm, name: s => NAMES[s] || '', profile: load };
+  window.ApTaste = { active, style, art, played, chose, tap, like, rank, warm, feed, oneOfEach, arm, name: s => NAMES[s] || '', profile: load };
 })();
