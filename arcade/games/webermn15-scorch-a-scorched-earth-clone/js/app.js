@@ -485,7 +485,7 @@ const scorch = (() => {
 				nextTurn = i+1;
 			}
 		}
-		// console.log(whoseTurn);
+		if (!whoseTurn) return;  // no tank yet: players not chosen
 		// console.log(nextTurn);
 
 		if (key === 39) {

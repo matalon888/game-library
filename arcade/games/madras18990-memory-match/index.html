@@ -75,7 +75,7 @@ function flip(c){
       document.getElementById('win').textContent=`🎉 Solved in ${moves} moves and ${seconds}s!`;}
   }else{
     lock=true;
-    setTimeout(()=>{first.classList.remove('flip');c.classList.remove('flip');first=null;lock=false;},800);
+    const a=first;setTimeout(()=>{if(first!==a)return;a.classList.remove('flip');c.classList.remove('flip');first=null;lock=false;},800);
   }
 }
 document.getElementById('restart').onclick=build;
