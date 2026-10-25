@@ -92,7 +92,7 @@
   addEventListener('error', e => push('error', { slug: game && game.slug, where: 'page', msg: String(e.message || e).slice(0, 200), src: (e.filename || '').split('/').slice(-2).join('/') + ':' + (e.lineno || 0) }));
 
   // ---- one game run ----
-  let game = null;
+  let game = null, lastStart = -1;
   function watch(frame, g) {
     const w = frame.contentWindow; if (!w || w.__diag) return; w.__diag = true;
     const r = game;
@@ -148,15 +148,21 @@
       // the shell calls this before it builds the game frame: wait for the frame, then give it 20 s (it used to grab no frame or
       // an ad / pixel frame, so nearly every visit counted as "never loaded")
       const t = performance.now(); let loaded = false, tries = 0;
+      const done = () => { if (loaded) return; loaded = true; push('loaded', { slug: g.slug, ms: Math.round(performance.now() - t) }); };
       const arm = () => {
         const f = document.querySelector('.player iframe');
         if (!f) { if (++tries < 50) setTimeout(arm, 100); return; }
-        f.addEventListener('load', () => { loaded = true; push('loaded', { slug: g.slug, ms: Math.round(performance.now() - t) }); }, { once: true });
-        setTimeout(() => { if (!loaded && !game && !document.hidden) push('load_fail', { slug: g.slug, ms: 20000 }); }, 20000);
+        f.addEventListener('load', done, { once: true });
+        // a frame that finished loading before we got here never fires 'load' again (Oct 21-24: 388 started games had no "loaded")
+        try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') done(); } catch (e) {}
+        // a game that started on this page has loaded, whatever the frame's events said: Oct 21-24, 220 of 230 load_fail fired
+        // 5-25 s after this game's own start, while it was still running (false alarms, ~11% of opens shown as broken)
+        setTimeout(() => { if (!loaded && !game && lastStart < t && !document.hidden) push('load_fail', { slug: g.slug, ms: 20000 }); }, 20000);
       };
       arm();
     },
     start(g, frame) {
+      lastStart = performance.now();
       if (game) endRun('next');
       game = { g, slug: g.slug, cat: g.category || '', frame, t0: performance.now(), loadMs: Math.round(performance.now() - T0), errors: [], freezes: [], frames: 0, visMs: 0, slow: 0,
         taps: 0, rage: 0, rageAt: [], stuck: 0, lastRage: 0, lastStuck: 0, lastState: '', progressAt: performance.now() };
