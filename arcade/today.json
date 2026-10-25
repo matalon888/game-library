@@ -470,6 +470,27 @@
   ],
   "3D": [
    {
+    "name": "Edelweiss",
+    "new": false,
+    "pitch": "Guide a small girl up a mountain village and its cliffs, using a touch joystick and jump button to climb between ledges.",
+    "image": "https://agentpark.co/arcade/covers/felixmariotto-edelweiss.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=felixmariotto-edelweiss&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "MineWorld",
+    "new": false,
+    "pitch": "Walk around a blocky voxel landscape, dig and place blocks to build your own structures, with touch controls on mobile.",
+    "image": "https://agentpark.co/arcade/covers/evedensity-mineworld.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=evedensity-mineworld&ref=daily&pos=list-3D"
+   },
+   {
+    "name": "Scary Classroom Hide & Seek",
+    "new": false,
+    "pitch": "Hide from a threat in a low-poly haunted classroom, on desktop or mobile.",
+    "image": "https://agentpark.co/arcade/covers/bossmancom-scary-classroom-hide-seek.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bossmancom-scary-classroom-hide-seek&ref=daily&pos=list-3D"
+   },
+   {
     "name": "Buddy Rollback",
     "new": false,
     "pitch": "Fight through five glitchy software-themed realms as Buddy, building boons and defeating bosses in a Hades II-inspired roguelite.",
@@ -477,39 +498,18 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=octobooth-4-buddy-rollback&ref=daily&pos=list-3D"
    },
    {
+    "name": "Dante",
+    "new": false,
+    "pitch": "Descend through Dante's Inferno in a 13KB 3D platformer with dynamic shadows, Beethoven's music, and award-winning polish.",
+    "image": "https://agentpark.co/arcade/covers/salvatorepreviti-js13k-2022.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=salvatorepreviti-js13k-2022&ref=daily&pos=list-3D"
+   },
+   {
     "name": "Nova Lancer",
     "new": false,
     "pitch": "Pilot a Star Fox-style fighter through sunset seas, canyons and neon fortresses, then battle a giant mechanical sea serpent boss.",
     "image": "https://agentpark.co/arcade/covers/tanuu5-nova-lancer.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=tanuu5-nova-lancer&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "Forager",
-    "new": false,
-    "pitch": "Fly as a honeybee through a procedural 3D meadow, decode the waggle dance, dodge predators, and see in ultraviolet.",
-    "image": "https://agentpark.co/arcade/covers/markldn-forager.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=markldn-forager&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "Operation Ironhold",
-    "new": false,
-    "pitch": "Clear a container yard of ten hostiles in three minutes using four weapons, ADS, double jumps and a sniper scope.",
-    "image": "https://agentpark.co/arcade/covers/starknightt-operation-ironhold.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=starknightt-operation-ironhold&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "JS13kGame2026",
-    "new": false,
-    "pitch": "Push deeper into the void, defend colored beacons through waves, pick upgrade cards, and take down bosses in desktop, mobile, or VR.",
-    "image": "https://agentpark.co/arcade/covers/justgibas-js13kgame2026.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=justgibas-js13kgame2026&ref=daily&pos=list-3D"
-   },
-   {
-    "name": "Splat Tanks",
-    "new": false,
-    "pitch": "Drive toy tanks with up to 8 friends, splatting paint across the floor and growing bigger as you go.",
-    "image": "https://agentpark.co/arcade/covers/ferdousbhai-splat-tanks.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ferdousbhai-splat-tanks&ref=daily&pos=list-3D"
    }
   ],
   "Sports": [
