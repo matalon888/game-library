@@ -10,7 +10,7 @@ import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
 import { TAGS, COLOURS, FAMS, SLOTS, PIECES, BOUTIQUE, THEMES, RULE_BANS, MODELS, STICKERS, PAGES, DECOR, FANS,
-  pieceById, colourById, score, bestFor, simulateVote, lookPieces } from './data.js';
+  pieceById, colourById, score, bestFor, simulateVote, lookPieces, THEME_LOOK, RIVALS, SLOT_ART } from './data.js';
 import { loadProp, loadChar, createModel, wear, buildCodePieces, pieceMesh, propMesh } from './dress.js';
 import { buildStage, buildStudio, RUN_Z0, POSE_Z, STUDIO, heartPath } from './stage.js';
 import { S as SND, music, setMuted, unlock, pauseAll } from './audio.js';
@@ -108,7 +108,8 @@ function makeShow(L) {
   const ban = !daily && L >= 6 && r() < 0.5 ? RULE_BANS.filter(t => !theme.want.includes(t))[Math.floor(r() * 6)] : (daily && r() < 0.5 ? RULE_BANS.filter(t => !theme.want.includes(t))[Math.floor(r() * 6)] : null);
   const others = MODELS.filter(m => m.id !== P.model).map(m => m.id);
   for (let i = others.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [others[i], others[j]] = [others[j], others[i]]; }
-  const rivals = others.slice(0, 3);
+  // Coco, Sunny, Luna: each takes her closest-looking free model (the shuffle above still runs, so the show's rolls stay the same)
+  const used = new Set([P.model]), rivals = RIVALS.map(rv => { const b = rv.body.find(id => !used.has(id) && MODELS.some(m => m.id === id)); used.add(b); return b; });
   // rival skill: how often a rival picks the best piece for a slot. Sawtooth: easy start, a short Hard show every 6th.
   const base = daily ? 0.82 : L <= 5 ? 0.15 + L * 0.05 : Math.min(0.9, 0.7 + (L - 5) * 0.015) + (hard ? 0.12 : 0);   // tuned by sim: L1-5 ~95%+, normal ~75-90%, Hard ~40-75%, daily ~80%
   const skill = clamp(daily ? base : base * (L <= 5 ? 1 : F.k()), 0.05, 0.92);
@@ -280,9 +281,10 @@ for (const el of [$('showc'), $('models')]) ['pointerdown', 'pointerup'].forEach
 function renderLobby() {
   const L = curL(), s = makeShow(L);
   $('showc').innerHTML = `<div class="k">${isDaily() ? 'DAILY SHOW · SAME BRIEF FOR EVERYONE TODAY' : s.hard ? `SHOW ${L} · ⚡ HARD SHOW` : `SHOW ${L}`}</div>
+    ${THEME_LOOK[s.theme.id] ? `<div class="inspo" title="Style inspiration"><img alt="" src="./assets/art/look-${THEME_LOOK[s.theme.id]}.webp"><span>inspo</span></div>` : ''}
     <h2>${s.theme.emoji} ${s.theme.name}</h2><p>${s.theme.line}</p>
     <div class="tags">${s.want.map(t => tagHtml(t)).join('')}${s.ban ? tagHtml(s.ban, 'ban') : ''}<span class="tg">🎨 ${palHtml(s.pal)}</span></div>
-    <div class="vsrow">vs ${s.rivals.map(id => MODELS.find(m => m.id === id).name).join(' · ')} · top 2 win · 100 simulated fans vote</div>
+    <div class="vsrow">vs ${RIVALS.map(rv => `<img class="rva" alt="" src="./assets/art/rival-${rv.id}.webp">${rv.name}`).join(' · ')} · top 2 win · 100 simulated fans vote</div>
     <button class="jbtn" id="playb">Style it! ✨</button>`;
   $('playb').addEventListener('click', e => { e.stopPropagation(); unlock(); if (phase === 'title') startShow(); });
   $('models').innerHTML = `<span class="lab">Your model</span>` + MODELS.map(m => `<button class="${m.id === P.model ? 'on' : ''}" data-m="${m.id}" aria-label="${m.name}">${ports[m.id] ? `<img alt="" src="${ports[m.id]}">` : m.name[0]}</button>`).join('');
@@ -323,7 +325,7 @@ function startShow() {
 }
 function placeVs() { const p = $('panel').getBoundingClientRect(); $('vs').style.bottom = (H - p.top + 4) + 'px'; }
 function renderRivals() {
-  $('rivals').innerHTML = show.rivals.map((id, i) => `<div class="riv" title="${MODELS.find(m => m.id === id).name}"><img alt="" src="${show['port' + i]}"><span class="h">${heartSvg('#ff5fae')}</span></div>`).join('');
+  $('rivals').innerHTML = show.rivals.map((id, i) => `<div class="riv" title="${RIVALS[i].name}"><img alt="" src="${show['port' + i]}"><span class="h">${heartSvg('#ff5fae')}</span></div>`).join('');
 }
 let lastTotal = 0;
 function renderStyle(first = false) {
@@ -342,7 +344,7 @@ function renderStyle(first = false) {
   return sc;
 }
 function renderTabs() {
-  $('tabs').innerHTML = SLOTS.map(s => `<button class="tab ${s.key === tab ? 'on' : ''}" data-t="${s.key}" aria-label="${s.name}">${IC[s.icon]}${look[s.key] ? '<i></i>' : ''}</button>`).join('');
+  $('tabs').innerHTML = SLOTS.map(s => `<button class="tab ${s.key === tab ? 'on' : ''}" data-t="${s.key}" aria-label="${s.name}">${SLOT_ART[s.key] ? `<img class="tabart" alt="" src="./assets/art/item-${SLOT_ART[s.key]}.webp">` : IC[s.icon]}${look[s.key] ? '<i></i>' : ''}</button>`).join('');
   $('tabs').querySelectorAll('.tab').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); unlock(); tab = b.dataset.t; SND.tab(); renderTabs(); renderCards(); }));
 }
 const prefCw = id => P.cw[id] || 'orig';
@@ -480,21 +482,21 @@ function updateWalk(dt) {
 function startRivals() {
   // lineup order is seeded; you are in the middle-left
   show.myPos = 1; show.rivalPos = [0, 2, 3];
-  $('ov').innerHTML = `<div id="banner">Rivals on the runway<small>${show.rivals.map(id => MODELS.find(m => m.id === id).name).join(' · ')}</small></div>
+  $('ov').innerHTML = `<div id="banner">Rivals on the runway<small>${RIVALS.map(rv => `<img class="rva" alt="" src="./assets/art/rival-${rv.id}.webp">${rv.name}`).join(' · ')}</small></div>
     <div id="pickq"><h3>Which rival will the crowd love most?<small>Guess right for +15 coins · just for fun</small></h3><div class="row">${show.rivals.map((id, i) => `<button class="riv" data-i="${i}"><img alt="" src="${show['port' + i]}"></button>`).join('')}</div></div>`;
   $('pickq').addEventListener('pointerdown', e => e.stopPropagation());
   $('pickq').querySelectorAll('.riv').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); faveGuess(+b.dataset.i); }));
 }
 function faveGuess(i) {
   if (faveRival >= 0) return; faveRival = i; SND.pick(i + 2);
-  const q = $('pickq'); if (q) { q.querySelectorAll('.riv')[i].classList.add('pick'); q.querySelector('h3').innerHTML = `Locked in: ${MODELS.find(m => m.id === show.rivals[i]).name}! 💖<small>Results after the vote</small>`; }
+  const q = $('pickq'); if (q) { q.querySelectorAll('.riv')[i].classList.add('pick'); q.querySelector('h3').innerHTML = `Locked in: ${RIVALS[i].name}! 💖<small>Results after the vote</small>`; }
 }
 
 // ---------------------------------------------------------------- the simulated vote
 function startVote() {
   setPhase('vote'); SND.drum();
   const ents = [{ me: true, m: me, sc: show.sc, look, pos: show.myPos, name: MODELS.find(m => m.id === P.model).name }];
-  show.rivals.forEach((id, i) => ents.push({ me: false, m: models[id], sc: lookScore(show.rivalLooks[i]), look: show.rivalLooks[i], pos: show.rivalPos[i], name: MODELS.find(m => m.id === id).name, ri: i }));
+  show.rivals.forEach((id, i) => ents.push({ me: false, m: models[id], sc: lookScore(show.rivalLooks[i]), look: show.rivalLooks[i], pos: show.rivalPos[i], name: RIVALS[i].name, ri: i }));
   for (const e of ents) e.tags = lookPieces(e.look).flatMap(x => x.p.tags);
   // the vote's randomness is seeded by the show and your look, so replaying the same look gives the same result
   const h = JSON.stringify(look).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
@@ -579,9 +581,10 @@ function finish() {
   if (!beatenShown && D.beaten(meE.sc.total)) { beatenShown = true; ui.pop('BEATEN!', '#ffe066', 40, 30); }
   saveP(); setPhase('result'); music(null);
   const sc = meE.sc, box = won ? winBox : loseBox;
-  const pod = [...vote.order].map(e => `<div class="${e.me ? 'me' : ''}"><img alt="" src="${e.me ? (ports[P.model] || '') : show['port' + e.ri]}"><b>${['1st', '2nd', '3rd', '4th'][e.place]}</b>${e.me ? 'You' : e.name}<br>💗 ${e.votes} · ${e.sc.total}</div>`).join('');
+  const pod = [...vote.order].map(e => `<div class="${e.me ? 'me' : ''}"><img alt="" src="${e.me ? (ports[P.model] || '') : `./assets/art/rival-${RIVALS[e.ri].id}.webp`}"><b>${['1st', '2nd', '3rd', '4th'][e.place]}</b>${e.me ? 'You' : e.name}<br>💗 ${e.votes} · ${e.sc.total}</div>`).join('');
   const bar = (v, mx) => `<span class="bar"><i style="width:${v / mx * 100}%"></i></span>`;
   box.innerHTML = `<div class="rt">${isDaily() ? 'DAILY SHOW' : `SHOW ${L}`} · ${show.theme.emoji} ${show.theme.name.toUpperCase()}</div>
+    ${THEME_LOOK[show.theme.id] ? `<div class="inspo res"><img alt="" src="./assets/art/look-${THEME_LOOK[show.theme.id]}.webp"><span>${show.theme.emoji} inspo</span></div>` : ''}
     <h2>${won ? ['Runway Queen!', 'So Stylish!'][place] : place === 2 ? 'So close!' : 'Almost!'}</h2>
     ${won ? '<div class="stars"><span>★</span><span>★</span><span>★</span></div>' : `<div style="font:600 13px var(--f);margin:6px 0;color:#8a5fb0">${place === 2 ? '3rd' : '4th'} place: the top 2 go through. Try more ${show.want.map(t => TAGS[t][0]).join(' ')} pieces in ${show.pal.map(f => `<span class="dot" style="background:${FAMS[f]};width:11px;height:11px"></span>`).join('')} colours.</div>`}
     <div class="podium">${pod}</div>

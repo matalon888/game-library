@@ -29,7 +29,17 @@ export const VILLAGERS = [
   { id: 'swan',      name: 'Lady Swann',    stamp: 'swan',      says: ['For the lake-house ball.', 'Exquisite, darling.', 'Simply divine.'] },
   { id: 'kingfisher',name: 'Captain Kingsley', stamp: 'kingfisher', says: ['For the riverboat!', 'Shipshape bouquet.', 'Bright as a summer river.'] },
   { id: 'bluetit',   name: 'Little Wren',   stamp: 'bluetit',   says: ['For Grandma\'s birthday!', 'So pretty!', 'I\'ll tie a ribbon on it.'] },
+  // the village folk (art wave 1, painted portraits assets/art/vil-<img>.webp; their stamps are made from the portraits)
+  { id: 'baker',     name: 'Mrs Pennywhistle', stamp: 'v-baker', img: 'baker', says: ['For the bakery window, dear!', 'Pie and posies, my favourite pair.', 'They\'ll sit by the cake stand.'] },
+  { id: 'postman',   name: 'Mr Abernathy', stamp: 'v-postman', img: 'postman', says: ['Signed, sealed, delivered. To me!', 'Brightens the whole round.', 'First class, these.'] },
+  { id: 'bride',     name: 'Poppy the bride', stamp: 'v-bride', img: 'bride', says: ['For my wedding day!', 'I could cry, they\'re perfect.', 'Something new, something blooming.'] },
+  { id: 'boy',       name: 'Felix',         stamp: 'v-boy',     img: 'boy',       says: ['Wow! Are these for real?', 'For my mum, she\'ll love them!', 'I found a ladybird in them!'] },
 ];
+// painted flower icons (art wave 1, assets/art/flower-<id>.webp) for the nine species they show; sweet pea, poppy and dahlia
+// have no painting and keep their bloom sprite. The beds keep the cut-out growth sprites; the potted stages are for the
+// growth strip (seedling = seed, young = sprout, bud = bud, then the flower).
+export const FLOWER_ART = new Set(['daisy', 'tulip', 'sunflower', 'lavender', 'rose', 'larkspur', 'peony', 'foxglove', 'hydrangea']);
+export const STAGE_ART = ['seed', 'sprout', 'bud'];
 export const VIL = Object.fromEntries(VILLAGERS.map(v => [v.id, v]));
 
 // decoration slots (fractions of the garden rect are set per layout in game.js); items cost coins, add charm

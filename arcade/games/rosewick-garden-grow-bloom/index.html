@@ -43,6 +43,19 @@ button{font-family:inherit;color:inherit}
 .ord .needs{display:flex;flex-direction:column;gap:1px;width:100%;align-items:center}
 .ord .nd{display:flex;align-items:center;gap:2px;font-size:calc(19px*var(--fs));font-weight:700;color:var(--navy);line-height:1}
 .ord .nd img{width:34px;height:36px;object-fit:contain}
+/* art wave 1: painted flower icons, village folk portraits, bouquets, the growth strip, the walled garden while decorating */
+.ord .nd img,.pk img,.alb .pg img,.tray img{border-radius:10px}
+.ord .who.face{width:46px;height:58px;object-fit:cover;object-position:50% 15%;border-radius:12px;border:3px solid #fffaf0;filter:none;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.vface{width:96px;height:128px;object-fit:cover;object-position:50% 12%;border-radius:16px;border:4px solid #fffaf0;margin-top:-74px;box-shadow:0 6px 14px rgba(60,40,20,.3)}
+.card .big.bq{border-radius:20px;width:min(220px,58vw);height:auto}
+.stg{display:flex;align-items:center;justify-content:center;gap:2px;margin:0 0 8px}
+.stg img{width:40px;height:40px;border-radius:9px;opacity:.45;filter:grayscale(.5)}
+.stg img.past{opacity:.8;filter:none}.stg img.on{opacity:1;filter:none;width:50px;height:50px;box-shadow:0 0 0 3px #e2c06b}
+.stg i{font-style:normal;color:#9a8d70}
+#wallg{position:fixed;left:10px;top:calc(env(safe-area-inset-top) + 150px);width:118px;aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:4px solid #fffaf0;box-shadow:0 6px 16px rgba(60,40,20,.3);z-index:6;pointer-events:none}
+#wallg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#wallg .aft{-webkit-mask-image:linear-gradient(180deg,#000 var(--p),transparent calc(var(--p) + 18%));mask-image:linear-gradient(180deg,#000 var(--p),transparent calc(var(--p) + 18%))}
+#wallg span{position:absolute;left:0;right:0;bottom:0;background:rgba(255,250,240,.9);font:600 12px/1.6 'Libre Baskerville',Georgia,serif;color:#4b6a46;text-align:center}
 .ord .nd.ok{color:var(--sage)}
 .ord .nd.ok::after{content:'✓';font-size:16px;margin-left:2px}
 .ord .rw{display:flex;align-items:center;gap:3px;font-size:calc(17px*var(--fs));font-weight:700;color:#7a5a1c;margin-top:auto}

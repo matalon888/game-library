@@ -21,8 +21,18 @@ const PAINT = [
   ['lawn-teatime', 'Tea on the Lawn'], ['tea-table', 'Lemon Cake & Tea'], ['conservatory', 'The Conservatory'], ['cat-window', 'Cat on the Sill'],
   ['harbour', 'Little Harbour'], ['lighthouse', 'Cliff Lighthouse'], ['lavender-farm', 'Lavender Farm'], ['spaniel', 'Spaniel in Tulips'],
   ['orchard', 'Apple Orchard'], ['kitchen-garden', 'Kitchen Garden'], ['flower-market', 'Flower Market'], ['snow-cottage', 'Snowy Cottage'],
-].map(([id, name], k) => ({ id, name, ch: k >> 2 }));
-const CHAP = [{ name: 'Spring Garden', need: 0 }, { name: 'Teatime', need: 3 }, { name: 'Seaside & Country', need: 7 }, { name: 'Turning Seasons', need: 12 }];
+].map(([id, name], k) => ({ id, name, ch: k >> 2 })).concat([
+  // the Enchanted pack (art wave 1, 2026-10): 12 portrait paintings, 3:4, cut on a portrait grid of square pieces (TALL)
+  ['ench-carousel', 'Moonlit Carousel'], ['ench-castle', 'Windmill Castle'], ['ench-coral', 'Coral Palace'], ['ench-cottage', 'Foxglove Cottage'],
+  ['ench-market', 'Fountain Market'], ['ench-library', 'Tree House Library'], ['ench-sakura', 'Sakura Bridge'], ['ench-door', 'The Secret Door'],
+  ['ench-sky', 'Sky Islands'], ['ench-swan', 'Swan Lake Gazebo'], ['ench-teaparty', 'Fairy Tea Party'], ['ench-winter', 'Gingerbread Village'],
+].map(([id, name]) => ({ id, name, ch: 4, tall: true })));
+const CHAP = [{ name: 'Spring Garden', need: 0 }, { name: 'Teatime', need: 3 }, { name: 'Seaside & Country', need: 7 }, { name: 'Turning Seasons', need: 12 }, { name: 'Enchanted', need: 0 }];
+// a portrait painting's grid (columns × rows of square pieces) for each size, close to N × N pieces and to the 3:4 shape
+const TALL = { 6: [5, 7], 7: [6, 8], 8: [7, 9], 9: [8, 10], 10: [9, 12], 12: [10, 14], 14: [12, 16] };
+const gridOf = (p, N) => p && p.tall ? TALL[N] || [N, Math.round(N * 4 / 3)] : [N, N];
+const countOf = (p, N) => { const [C, R] = gridOf(p, N); return C * R; };
+const paintOf = id => PAINT.find(p => p.id === id);
 const SIZES = [6, 8, 10, 12, 14];                  // 36 · 64 · 100 · 144 · 196 pieces
 const tier = n => n >= 14 ? 3 : n >= 10 ? 2 : 1;   // stars a size earns for its painting
 const coinsFor = n => ({ 6: 20, 7: 25, 8: 30, 9: 38, 10: 45, 12: 60, 14: 80 })[n] || 30;
@@ -39,6 +49,8 @@ const STAMPS = [
   ['kingfisher', 'Kingfisher', 'No ghost image', s => s.noGhost], ['beehive', 'Beehive', '3 in one day', s => s.today.n >= 3],
   ['cat', 'Cat', 'Cat on the Sill', s => !!st.done['cat-window']], ['lighthouse', 'Lighthouse', 'Cliff Lighthouse', s => !!st.done.lighthouse],
   ['swan', 'Swan', 'The Duck Pond', s => !!st.done['duck-pond']], ['tulip', 'Tulip', 'Spaniel in Tulips', s => !!st.done.spaniel],
+  ['ench-castle', 'Windmill Castle', 'Enchanted chapter', s => chapDone(4)], ['ench-carousel', 'Carousel', 'Moonlit Carousel', s => !!st.done['ench-carousel']],
+  ['ench-door', 'Secret Door', 'The Secret Door', s => !!st.done['ench-door']], ['ench-teapot', 'Fairy Teapot', 'Fairy Tea Party', s => !!st.done['ench-teaparty']],
 ].map(([img, name, how, test]) => ({ id: img, img, name, how, test }));
 
 // ---------------------------------------------------------------- saved state
@@ -55,7 +67,8 @@ const totalStars = () => PAINT.reduce((a, p) => a + starsOf(p.id), 0);
 const chapOpen = k => totalStars() >= CHAP[k].need || !!(st.unlocked && st.unlocked[k]);
 const chapDone = k => PAINT.filter(p => p.ch === k).every(p => st.done[p.id]);
 const thumb = id => `${A}jig/${id}-thumb.webp`;
-const dailyPick = (d = dayKey()) => { let x = d * 2654435761 % 4294967296; x = (x ^ (x >>> 15)) >>> 0; return PAINT[x % PAINT.length]; };
+// today's daily, or the painting today's daily was started on (the pack grew mid-day: a save keeps its own picture)
+const dailyPick = (d = dayKey()) => { const sv = st.saves['daily_' + d]; if (sv && paintOf(sv.id)) return paintOf(sv.id); let x = d * 2654435761 % 4294967296; x = (x ^ (x >>> 15)) >>> 0; return PAINT[x % PAINT.length]; };
 function journeyPlan(n = st.journey) {
   const N = n <= 5 ? 6 : [8, 7, 8, 9, 8, 10][(n - 6) % 6];
   const hard = n > 5 && (n - 6) % 6 === 5;
@@ -125,6 +138,7 @@ html.big .tb{font-size:21px;padding:0 .5rem 0 .2rem}html.big .tb img{width:36px;
 .gi .nm{margin-top:4px}
 .unl{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:.3rem 0 .6rem;font-size:.9rem;color:var(--soft)}
 .pick-im{width:min(260px,70vw);aspect-ratio:1;margin:.4rem auto .6rem;display:block;border-radius:12px;border:4px solid #fff;box-shadow:0 6px 18px rgba(31,45,84,.3);background:center/cover}
+.pick-im.tall{width:min(210px,56vw);aspect-ratio:3/4}
 .sizes{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:.4rem 0 .8rem}
 .sz{min-height:64px;border-radius:16px;border:2px solid var(--gold);background:#fffdf7;color:var(--navy);font-weight:700;font-size:1.15rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
 .sz small{font-size:.62rem;color:var(--gold);letter-spacing:1px}
@@ -172,7 +186,7 @@ function loadImg(src) { return imgCache[src] || (imgCache[src] = new Promise((re
 
 // ---------------------------------------------------------------- puzzle model
 let state = 'ready', cur = null, filter = 0, scroll = 0, dirty = true, sel = null, drag = null, flies = [], parts = [], hintP = null, hintAt = 0, doneAt = 0, t0 = 0;
-const PAD = 0.36, SRC = 1024;
+const PAD = 0.36;
 function rngOf(seed) { let s = (Math.floor(seed) % 2147483647) || 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 const keyOf = (id, N, isDaily) => isDaily ? 'daily_' + dayKey() : id + '_' + N;
 
@@ -183,14 +197,16 @@ async function startPuzzle({ p, N, isDaily = false, hard = false, journey = fals
   const img = await loadImg(`${A}jig/${p.id}.webp`);
   const seed = isDaily ? dayKey() : (PAINT.indexOf(p) + 1) * 7919 + N * 104729;
   const r = rngOf(seed);
-  const hT = [], vT = [], hJ = [], vJ = [];
-  for (let i = 0; i < N; i++) { hT.push([]); vT.push([]); hJ.push([]); vJ.push([]); for (let j = 0; j < N; j++) { hT[i].push(r() < 0.5 ? 1 : -1); vT[i].push(r() < 0.5 ? 1 : -1); hJ[i].push((r() - 0.5) * 0.12); vJ[i].push((r() - 0.5) * 0.12); } }
+  const [C, R] = gridOf(p, N), M2 = Math.max(C, R), hT = [], vT = [], hJ = [], vJ = [];
+  for (let i = 0; i < M2; i++) { hT.push([]); vT.push([]); hJ.push([]); vJ.push([]); for (let j = 0; j < M2; j++) { hT[i].push(r() < 0.5 ? 1 : -1); vT[i].push(r() < 0.5 ? 1 : -1); hJ[i].push((r() - 0.5) * 0.12); vJ[i].push((r() - 0.5) * 0.12); } }
   const pieces = [];
-  for (let i = 0; i < N * N; i++) { const pr = (i / N) | 0, pc = i % N; pieces.push({ i, r: pr, c: pc, edge: pr === 0 || pc === 0 || pr === N - 1 || pc === N - 1, ord: r(), rot: 0, ra: 0, placed: false, loose: null, at: 0 }); }
+  for (let i = 0; i < C * R; i++) { const pr = (i / C) | 0, pc = i % C; pieces.push({ i, r: pr, c: pc, edge: pr === 0 || pc === 0 || pr === R - 1 || pc === C - 1, ord: r(), rot: 0, ra: 0, placed: false, loose: null, at: 0 }); }
   if (save.rotate) for (const q of pieces) q.rot = q.ra = save.rot[q.i] ?? Math.floor(r() * 4);
   for (const i of save.placed) { pieces[i].placed = true; pieces[i].rot = pieces[i].ra = 0; }
   for (const [i, v] of Object.entries(save.loose)) if (!pieces[i].placed) pieces[i].loose = { x: v[0], y: v[1] };
-  cur = { p, N, key, save, img, hT, vT, hJ, vJ, pieces, isDaily, hard, journey, looseOrder: Object.keys(save.loose).map(Number) };
+  // the painting's source square-cell size and centred crop (a portrait grid is not exactly 3:4)
+  const sc = Math.min(img.width / C, img.height / R), sx0 = (img.width - sc * C) / 2, sy0 = (img.height - sc * R) / 2;
+  cur = { p, N, C, R, sc, sx0, sy0, key, save, img, hT, vT, hJ, vJ, pieces, isDaily, hard, journey, looseOrder: Object.keys(save.loose).map(Number) };
   for (const q of pieces) q.can = cut(q);
   // the finished picture at source size for the ghost / peek / finale
   state = 'play'; filter = 0; scroll = 0; sel = null; drag = null; flies = []; parts = []; hintP = null; doneAt = 0; t0 = performance.now();
@@ -202,7 +218,7 @@ async function startPuzzle({ p, N, isDaily = false, hard = false, journey = fals
   B.start();
   if (hard) toast('A challenge puzzle: take your time');
   else if (N >= 10 && !st.set.zoomTip) { st.set.zoomTip = true; st.save(); toast('Pinch or double-tap to zoom'); }
-  else if (save.placed.length) toast(`Welcome back: ${save.placed.length} of ${N * N} placed`);
+  else if (save.placed.length) toast(`Welcome back: ${save.placed.length} of ${C * R} placed`);
   dirty = true;
 }
 function edge(x0, y0, x1, y1, t, j, path) {
@@ -214,19 +230,19 @@ function edge(x0, y0, x1, y1, t, j, path) {
   path.lineTo(x1, y1);
 }
 function piecePath(q, ox, oy, c) {
-  const { N, hT, vT, hJ, vJ } = cur, path = new Path2D(), { r, c: k } = q;
+  const { C, R, hT, vT, hJ, vJ } = cur, path = new Path2D(), { r, c: k } = q;
   path.moveTo(ox, oy);
   edge(ox, oy, ox + c, oy, r === 0 ? 0 : -hT[r - 1][k], r === 0 ? 0 : -hJ[r - 1][k], path);
-  edge(ox + c, oy, ox + c, oy + c, k === N - 1 ? 0 : vT[r][k], k === N - 1 ? 0 : vJ[r][k], path);
-  edge(ox + c, oy + c, ox, oy + c, r === N - 1 ? 0 : hT[r][k], r === N - 1 ? 0 : hJ[r][k], path);
+  edge(ox + c, oy, ox + c, oy + c, k === C - 1 ? 0 : vT[r][k], k === C - 1 ? 0 : vJ[r][k], path);
+  edge(ox + c, oy + c, ox, oy + c, r === R - 1 ? 0 : hT[r][k], r === R - 1 ? 0 : hJ[r][k], path);
   edge(ox, oy + c, ox, oy, k === 0 ? 0 : -vT[r][k - 1], k === 0 ? 0 : -vJ[r][k - 1], path);
   path.closePath(); return path;
 }
 function cut(q) {
-  const c = SRC / cur.N, size = Math.ceil(c * (1 + 2 * PAD)), can = document.createElement('canvas'); can.width = can.height = size;
+  const c = cur.sc, size = Math.ceil(c * (1 + 2 * PAD)), can = document.createElement('canvas'); can.width = can.height = size;
   const x = can.getContext('2d'), path = piecePath(q, PAD * c, PAD * c, c);
   x.save(); x.clip(path);
-  x.drawImage(cur.img, q.c * c - PAD * c, q.r * c - PAD * c, size, size, 0, 0, size, size);
+  x.drawImage(cur.img, cur.sx0 + q.c * c - PAD * c, cur.sy0 + q.r * c - PAD * c, size, size, 0, 0, size, size);
   const lw = Math.max(2, c * 0.055);
   x.lineWidth = lw; x.translate(lw * 0.45, lw * 0.45); x.strokeStyle = 'rgba(30,20,10,.32)'; x.stroke(path);
   x.translate(-lw * 0.9, -lw * 0.9); x.strokeStyle = 'rgba(255,252,240,.55)'; x.stroke(path);
@@ -237,7 +253,7 @@ function cut(q) {
 
 // ---------------------------------------------------------------- layout + view (zoom / pan)
 let W = 0, H = 0, dpr = 1, wide = false;
-const L = { bx: 0, by: 0, bs: 300, tray: { x: 0, y: 0, w: 0, h: 0 }, ts: 72, rows: 2, cols: 4 };
+const L = { bx: 0, by: 0, bs: 300, bw: 300, bh: 300, tray: { x: 0, y: 0, w: 0, h: 0 }, ts: 72, rows: 2, cols: 4 };
 const view = { z: 1, ox: 0, oy: 0 };
 function layout() {
   dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr;
@@ -245,34 +261,38 @@ function layout() {
   const big = st.set.big ? 1.2 : 1, top = 12 + 56 + 14 + 34 * big;
   const tools = $('#hud .tools'), ttl = $('#hud .ttl');
   if (!wide) {
-    L.bs = Math.floor(Math.min(W - 24, H - top - 12 - 56 - 12 - (66 * 2 + 14) - 14)); L.bx = Math.round((W - L.bs) / 2); L.by = Math.round(top + 4);
-    const ty = L.by + L.bs + 12;
+    fit(W - 24, H - top - 12 - 56 - 12 - (66 * 2 + 14) - 14); L.bx = Math.round((W - L.bw) / 2); L.by = Math.round(top + 4);
+    const ty = L.by + L.bh + 12;
     const ts = Math.max(66, Math.min(112, (H - (ty + 56 + 12) - 14 - 18 - 14) / 2));
     Object.assign(tools.style, { left: '12px', right: '12px', top: ty + 'px', width: '' });
     L.ts = ts; L.tray = { x: 8, y: ty + 56 + 12, w: W - 16, h: ts * 2 + 14 }; L.rows = 2; L.orient = 'h';
     ttl.style.top = (12 + 56 + 8) + 'px';
   } else {
     const panelW = Math.min(440, Math.max(300, W * 0.3));
-    L.bs = Math.floor(Math.min(H - top - 24, W - panelW - 72)); L.bx = Math.round((W - L.bs - panelW - 28) / 2); L.by = Math.round(top + 4);
-    const px = L.bx + L.bs + 28;
+    fit(W - panelW - 72, H - top - 24); L.bx = Math.round((W - L.bw - panelW - 28) / 2); L.by = Math.round(top + 4);
+    const px = L.bx + L.bw + 28;
     Object.assign(tools.style, { left: px + 'px', right: '', width: panelW + 'px', top: L.by + 'px' });
-    L.ts = 88; L.tray = { x: px, y: L.by + 56 + 12, w: panelW, h: L.by + L.bs - (L.by + 68) }; L.cols = Math.max(2, Math.floor((panelW - 12) / L.ts)); L.orient = 'v';
+    L.ts = 88; L.tray = { x: px, y: L.by + 56 + 12, w: panelW, h: L.by + L.bh - (L.by + 68) }; L.cols = Math.max(2, Math.floor((panelW - 12) / L.ts)); L.orient = 'v';
     ttl.style.top = (12 + 56 + 8) + 'px';
   }
   clampView(); dirty = true;
 }
+// the board in the space given: square cells, as many columns and rows as the puzzle has (a portrait painting: a tall board)
+function fit(aw, ah) {
+  const C = cur ? cur.C : 1, R = cur ? cur.R : 1, c = Math.min(aw / C, ah / R);
+  L.bw = Math.floor(c * C); L.bh = Math.floor(c * R); L.bs = Math.max(L.bw, L.bh);
+}
 addEventListener('resize', () => layout());
-const cell = () => L.bs / cur.N;
+const cell = () => L.bw / cur.C;
 function clampView() {
   view.z = Math.max(1, Math.min(view.z, cur ? Math.max(1.5, cur.N / 4.5) : 1));
-  const s = L.bs * view.z;
-  view.ox = Math.min(L.bx, Math.max(L.bx + L.bs - s, view.ox ?? L.bx)); view.oy = Math.min(L.by, Math.max(L.by + L.bs - s, view.oy ?? L.by));
+  view.ox = Math.min(L.bx, Math.max(L.bx + L.bw - L.bw * view.z, view.ox ?? L.bx)); view.oy = Math.min(L.by, Math.max(L.by + L.bh - L.bh * view.z, view.oy ?? L.by));
   if (view.z === 1) { view.ox = L.bx; view.oy = L.by; }
 }
 const toBoard = (x, y) => [(x - view.ox) / view.z, (y - view.oy) / view.z];
 const toScreen = (bx, by) => [view.ox + bx * view.z, view.oy + by * view.z];
 const target = q => [(q.c + 0.5) * cell(), (q.r + 0.5) * cell()];
-const inBoard = (x, y) => x >= L.bx && x < L.bx + L.bs && y >= L.by && y < L.by + L.bs;
+const inBoard = (x, y) => x >= L.bx && x < L.bx + L.bw && y >= L.by && y < L.by + L.bh;
 const inTray = (x, y) => x >= L.tray.x && x < L.tray.x + L.tray.w && y >= L.tray.y - 6 && y < L.tray.y + L.tray.h + 6;
 function zoomAt(z, sx, sy) { const [bx, by] = toBoard(sx, sy); view.z = z; view.ox = sx - bx * z; view.oy = sy - by * z; clampView(); dirty = true; }
 
@@ -388,7 +408,7 @@ function drop() {
   const [bx, by] = toBoard(cx, cy), [tx, ty] = target(q), c = cell();
   const thr = Math.max(c * 0.42, 16 / view.z);
   if (!q.rot && Math.hypot(bx - tx, by - ty) < thr) { place(q, cx, cy, c * view.z, true); return; }
-  if (bx > -c * 0.3 && by > -c * 0.3 && bx < L.bs + c * 0.3 && by < L.bs + c * 0.3) {
+  if (bx > -c * 0.3 && by > -c * 0.3 && bx < L.bw + c * 0.3 && by < L.bh + c * 0.3) {
     q.loose = { x: bx, y: by }; cur.looseOrder.push(q.i); cur.save.loose[q.i] = [bx, by]; snd.soft(); saveSoon(); dirty = true; return;
   }
   delete cur.save.loose[q.i]; snd.soft(); saveSoon(); dirty = true;
@@ -404,7 +424,7 @@ function landed(q) {
   q.placed = true; q.rot = q.ra = 0; q.at = performance.now();
   const s = cur.save; s.placed.push(q.i); s.order.push(q.i);
   if (!q.edge && cur.pieces.some(p => p.edge && !p.placed)) s.edgesFirst = false;
-  const n = s.placed.length, all = cur.N * cur.N;
+  const n = s.placed.length, all = cur.C * cur.R;
   snd.place(n); try { navigator.vibrate && navigator.vibrate(8); } catch (_) {}
   const [tx, ty] = target(q), [sx, sy] = toScreen(tx, ty);
   sparkle(sx, sy, 9);
@@ -414,7 +434,7 @@ function landed(q) {
   syncTools();
   if (n === all) finish();
 }
-function updateCount() { if (!cur) return; $('#hud .ct').textContent = `${cur.save.placed.length} / ${cur.N * cur.N}`; }
+function updateCount() { if (!cur) return; $('#hud .ct').textContent = `${cur.save.placed.length} / ${cur.C * cur.R}`; }
 let saveT = 0;
 function saveSoon() { clearTimeout(saveT); saveT = setTimeout(() => { if (cur && state === 'play') { cur.save.ms += performance.now() - t0; t0 = performance.now(); } st.save(); }, 400); }
 async function hint() {
@@ -460,20 +480,20 @@ function finish() {
 }
 function shareGrid(s) {
   // spoiler-free: the board in 4×4 blocks, each coloured by when you finished it (sprout → full bloom)
-  const N = cur.N, when = {}; s.order.forEach((i, k) => when[i] = k / (N * N));
+  const { C, R } = cur, when = {}; s.order.forEach((i, k) => when[i] = k / (C * R));
   const E = ['🌱', '🌿', '🌷', '🌸'], rows = [];
   for (let br = 0; br < 4; br++) { let row = ''; for (let bc = 0; bc < 4; bc++) { let m = 0;
-    for (let r = Math.floor(br * N / 4); r < Math.floor((br + 1) * N / 4); r++) for (let c = Math.floor(bc * N / 4); c < Math.floor((bc + 1) * N / 4); c++) m = Math.max(m, when[r * N + c] || 0);
+    for (let r = Math.floor(br * R / 4); r < Math.floor((br + 1) * R / 4); r++) for (let c = Math.floor(bc * C / 4); c < Math.floor((bc + 1) * C / 4); c++) m = Math.max(m, when[r * C + c] || 0);
     row += E[Math.min(3, Math.floor(m * 4))]; } rows.push(row); }
   return rows.join('\n');
 }
 function winCard({ coins, stars, gained, newStamps, streak, grid, unlocked }) {
-  const daily = cur.isDaily, name = cur.p.name, N = cur.N;
+  const daily = cur.isDaily, name = cur.p.name, N = cur.C * cur.R;
   const starRow = [1, 2, 3].map(k => `<img src="${A}ui/${k <= stars ? 'star-full' : 'star-empty'}.webp" alt="">`).join('');
   const stamp = newStamps[0];
   const sh = sheet(`
     <h2>${daily ? 'Daily puzzle done' : 'Beautifully done'}</h2><img class="sb-div" src="${A}ui/divider.webp" alt="">
-    <p style="text-align:center;margin:0"><i>${name}</i> · ${N * N} pieces</p>
+    <p style="text-align:center;margin:0"><i>${name}</i> · ${N} pieces</p>
     <div class="wstars" aria-label="${stars} of 3 stars">${starRow}</div>
     <div class="wline"><img src="${A}ui/coin.webp" alt=""><span class="cn">+${coins}</span> coins</div>
     ${daily && streak ? `<p style="text-align:center"><b>${streak.n}-day streak</b>${streak.used ? ' · a freeze kept it going' : ''}</p><div class="sb-grid">${grid.replace(/\n/g, '<br>')}</div>` : ''}
@@ -495,7 +515,7 @@ function winCard({ coins, stars, gained, newStamps, streak, grid, unlocked }) {
   const dbl = sh.el.querySelector('.dbl');
   if (dbl) dbl.onclick = async e => { e.stopPropagation(); if (await M.rewarded('double', { what: `${coins * 2} coins instead of ${coins}` })) { M.add(coins, 'double'); sh.el.querySelector('.cn').textContent = '+' + coins * 2; snd.coin(); } dbl.remove(); };
   const shr = sh.el.querySelector('.shr');
-  if (shr) shr.onclick = e => { e.stopPropagation(); shareText(`Petal Jigsaw · ${prettyDay()}\n${grid}\n${N * N} pieces · ${streak ? streak.n + '-day streak' : ''}\n${location.origin}${location.pathname}?daily=1`); };
+  if (shr) shr.onclick = e => { e.stopPropagation(); shareText(`Petal Jigsaw · ${prettyDay()}\n${grid}\n${N} pieces · ${streak ? streak.n + '-day streak' : ''}\n${location.origin}${location.pathname}?daily=1`); };
   // tap anywhere else on the card: continue
   sh.el.parentElement.addEventListener('click', e => { if (!e.target.closest('button')) go('next'); });
   if (stamp) setTimeout(() => snd.chime(5), 300);
@@ -518,26 +538,26 @@ const ease = t => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 function draw(now) {
   g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
   if (!cur || state === 'ready') return;
-  const { bx, by, bs } = L, c = cell(), z = view.z;
+  const { bx, by, bw, bh } = L, c = cell(), z = view.z, pic = (x, y, w, h) => g.drawImage(cur.img, cur.sx0, cur.sy0, cur.sc * cur.C, cur.sc * cur.R, x, y, w, h);
   // board mat: ivory mount, gold hairline, soft shadow
-  g.save(); g.shadowColor = 'rgba(31,45,84,.28)'; g.shadowBlur = 24; g.shadowOffsetY = 8; rr(bx - 9, by - 9, bs + 18, bs + 18, 14); g.fillStyle = '#fbf7ee'; g.fill(); g.restore();
-  g.strokeStyle = '#B08834'; g.lineWidth = 1.5; rr(bx - 5, by - 5, bs + 10, bs + 10, 10); g.stroke();
-  g.save(); g.beginPath(); g.rect(bx, by, bs, bs); g.clip();
-  g.fillStyle = '#eee5d2'; g.fillRect(bx, by, bs, bs);
+  g.save(); g.shadowColor = 'rgba(31,45,84,.28)'; g.shadowBlur = 24; g.shadowOffsetY = 8; rr(bx - 9, by - 9, bw + 18, bh + 18, 14); g.fillStyle = '#fbf7ee'; g.fill(); g.restore();
+  g.strokeStyle = '#B08834'; g.lineWidth = 1.5; rr(bx - 5, by - 5, bw + 10, bh + 10, 10); g.stroke();
+  g.save(); g.beginPath(); g.rect(bx, by, bw, bh); g.clip();
+  g.fillStyle = '#eee5d2'; g.fillRect(bx, by, bw, bh);
   g.translate(view.ox, view.oy); g.scale(z, z);
-  if (st.set.ghost || doneAt) { g.globalAlpha = doneAt ? 0.25 : 0.24; g.drawImage(cur.img, 0, 0, bs, bs); g.globalAlpha = 1; }
-  if (!doneAt && !st.set.ghost) { g.strokeStyle = 'rgba(176,136,52,.18)'; g.lineWidth = 1 / z; g.beginPath(); for (let i = 1; i < cur.N; i++) { g.moveTo(i * c, 0); g.lineTo(i * c, bs); g.moveTo(0, i * c); g.lineTo(bs, i * c); } g.stroke(); }
+  if (st.set.ghost || doneAt) { g.globalAlpha = doneAt ? 0.25 : 0.24; pic(0, 0, bw, bh); g.globalAlpha = 1; }
+  if (!doneAt && !st.set.ghost) { g.strokeStyle = 'rgba(176,136,52,.18)'; g.lineWidth = 1 / z; g.beginPath(); for (let i = 1; i < cur.C; i++) { g.moveTo(i * c, 0); g.lineTo(i * c, bh); } for (let i = 1; i < cur.R; i++) { g.moveTo(0, i * c); g.lineTo(bw, i * c); } g.stroke(); }
   g.restore();
   // placed pieces (in screen space so the board clip + zoom match)
-  g.save(); g.beginPath(); g.rect(bx - 2, by - 2, bs + 4, bs + 4); g.clip();
+  g.save(); g.beginPath(); g.rect(bx - 2, by - 2, bw + 4, bh + 4); g.clip();
   let anim = false;
   for (const q of cur.pieces) if (q.placed) {
     const k = (now - q.at) / 260, pop = k < 1 ? 1 + Math.sin(k * Math.PI) * 0.07 : 1; if (k < 1) anim = true;
     const [tx, ty] = target(q), [sx, sy] = toScreen(tx, ty); drawPiece(q, sx, sy, c * z * pop, 0, k < 1 ? 10 : 0);
   }
   if (doneAt) {
-    const k = ease((now - doneAt) / 900); g.globalAlpha = k; g.drawImage(cur.img, view.ox, view.oy, bs * z, bs * z); g.globalAlpha = 1;
-    const sw = ((now - doneAt) / 1100); if (sw < 2) { anim = true; const gx = bx - bs * 0.4 + (sw % 1) * bs * 1.8, gr = g.createLinearGradient(gx - 90, by, gx + 90, by + bs * 0.3); gr.addColorStop(0, 'rgba(255,250,230,0)'); gr.addColorStop(0.5, 'rgba(255,250,230,.55)'); gr.addColorStop(1, 'rgba(255,250,230,0)'); g.fillStyle = gr; g.fillRect(bx, by, bs, bs); }
+    const k = ease((now - doneAt) / 900); g.globalAlpha = k; pic(view.ox, view.oy, bw * z, bh * z); g.globalAlpha = 1;
+    const sw = ((now - doneAt) / 1100); if (sw < 2) { anim = true; const gx = bx - bw * 0.4 + (sw % 1) * bw * 1.8, gr = g.createLinearGradient(gx - 90, by, gx + 90, by + bh * 0.3); gr.addColorStop(0, 'rgba(255,250,230,0)'); gr.addColorStop(0.5, 'rgba(255,250,230,.55)'); gr.addColorStop(1, 'rgba(255,250,230,0)'); g.fillStyle = gr; g.fillRect(bx, by, bw, bh); }
   }
   // hint target
   if (hintP && now - hintAt < 2800 && !hintP.placed) {
@@ -549,8 +569,8 @@ function draw(now) {
   for (const i of cur.looseOrder) { const q = cur.pieces[i]; if (!q.loose) continue; const [sx, sy] = toScreen(q.loose.x, q.loose.y); q.ra += (q.rot - q.ra) * 0.3; if (Math.abs(q.rot - q.ra) > 0.01) anim = true; else q.ra = q.rot;
     drawPiece(q, sx, sy, c * z, ((q.ra % 4) * Math.PI) / 2, 6); if (q === sel) ring(sx, sy, c * z * 0.62); }
   g.restore();
-  if (doneAt) { const k = ease((now - doneAt - 400) / 800); if (k > 0) { g.globalAlpha = k; g.strokeStyle = '#B08834'; g.lineWidth = 4; rr(bx - 6, by - 6, bs + 12, bs + 12, 10); g.stroke(); g.lineWidth = 1.2; rr(bx - 12, by - 12, bs + 24, bs + 24, 15); g.stroke(); g.globalAlpha = 1; } }
-  if (peek) { g.save(); g.shadowColor = 'rgba(31,45,84,.4)'; g.shadowBlur = 20; g.drawImage(cur.img, bx, by, bs, bs); g.restore(); }
+  if (doneAt) { const k = ease((now - doneAt - 400) / 800); if (k > 0) { g.globalAlpha = k; g.strokeStyle = '#B08834'; g.lineWidth = 4; rr(bx - 6, by - 6, bw + 12, bh + 12, 10); g.stroke(); g.lineWidth = 1.2; rr(bx - 12, by - 12, bw + 24, bh + 24, 15); g.stroke(); g.globalAlpha = 1; } }
+  if (peek) { g.save(); g.shadowColor = 'rgba(31,45,84,.4)'; g.shadowBlur = 20; pic(bx, by, bw, bh); g.restore(); }
   // tray
   if (state === 'play') {
     const T = L.tray;
@@ -615,10 +635,10 @@ function renderHome() {
       <div class="ribbon" role="button">${sn.n > 0 ? `${sn.n}-day streak` : 'Begin a streak'}</div>
       <div class="card daily" role="button"><div class="th" style="background-image:url(${thumb(dp.id)})"></div><div class="tx">
         <div class="k">Today · ${prettyDay().replace(/(\d+ \w{3})\w*/, '$1')}</div><div class="t">${dp.name}</div>
-        <div class="s">${doneToday ? `Done <span class="done-tick">✓</span> · play it again` : dsave ? `${dsave.placed.length} of 64 placed · tap to carry on` : '64 pieces · the same for everyone'}</div></div></div>
+        <div class="s">${doneToday ? `Done <span class="done-tick">✓</span> · play it again` : dsave ? `${dsave.placed.length} of ${countOf(dp, 8)} placed · tap to carry on` : `${countOf(dp, 8)} pieces · the same for everyone`}</div></div></div>
       ${dmode ? '' : ''}<div class="card big cont" role="button"><div class="row"><div class="th" style="background-image:url(${thumb((rp || j.p).id)})"></div><div class="tx">
         <div class="k">${rp ? 'In progress' : j.hard ? 'Challenge puzzle' : 'Puzzle ' + st.journey}</div><div class="t">${(rp || j.p).name}</div>
-        <div class="s">${rp ? `${resume.placed.length} of ${resume.N * resume.N} pieces placed` : `${j.N * j.N} pieces${j.hard ? ' · a bigger one' : ''}`}</div></div></div>
+        <div class="s">${rp ? `${resume.placed.length} of ${countOf(rp, resume.N)} pieces placed` : `${countOf(j.p, j.N)} pieces${j.hard ? ' · a bigger one' : ''}`}</div></div></div>
         <button class="sb-btn go"><img src="${A}ui/i-play.webp" alt="">${rp ? 'Carry on' : 'Play'}</button></div>
       <div class="hrow"><button class="sb-btn ivory gal"><img src="${A}ui/i-album.webp" alt="">Gallery</button><button class="sb-btn ivory alb"><img src="${A}ui/i-star.webp" alt="">Stamps</button></div>
     </div>`;
@@ -630,7 +650,7 @@ function renderHome() {
   $('.cont', home).onclick = () => { snd.tap(); if (dmode) return playDaily(); if (rp) startPuzzle({ p: rp, N: resume.N, journey: resume.journey, hard: resume.hard }); else startPuzzle({ p: j.p, N: j.N, hard: j.hard, journey: true }); };
   $('.gal', home).onclick = e => { e.stopPropagation(); snd.tap(); gallery(); };
   $('.alb', home).onclick = e => { e.stopPropagation(); snd.tap(); albumSheet(STAMPS, st.stamps); };
-  if (dmode) { $('.daily', home).remove(); const c = $('.cont', home); $('.th', c).style.backgroundImage = `url(${thumb(dp.id)})`; $('.k', c).textContent = `Daily puzzle · ${prettyDay().replace(/(\d+ \w{3})\w*/, '$1')}`; $('.t', c).textContent = dp.name; $('.s', c).textContent = dsave ? `${dsave.placed.length} of 64 placed` : '64 pieces · the same for everyone today';
+  if (dmode) { $('.daily', home).remove(); const c = $('.cont', home); $('.th', c).style.backgroundImage = `url(${thumb(dp.id)})`; $('.k', c).textContent = `Daily puzzle · ${prettyDay().replace(/(\d+ \w{3})\w*/, '$1')}`; $('.t', c).textContent = dp.name; $('.s', c).textContent = dsave ? `${dsave.placed.length} of ${countOf(dp, 8)} placed` : `${countOf(dp, 8)} pieces · the same for everyone today`;
     $('.go', c).innerHTML = `<img src="${A}ui/i-calendar.webp" alt="">Play today's puzzle`; }
 }
 function streakSheet() {
@@ -648,7 +668,7 @@ function gallery() {
   const ts = totalStars();
   const s = sheet(`<h2>Gallery</h2><img class="sb-div" src="${A}ui/divider.webp" alt="">
     <p style="text-align:center"><img src="${A}ui/star-full.webp" alt="" style="width:30px;vertical-align:middle"> <b>${ts}</b> star${ts === 1 ? '' : 's'} · bigger puzzles earn more</p>
-    <div class="gal">${CHAP.map((ch, k) => { const open = chapOpen(k); return `<h3>${ch.name}<small>${open ? PAINT.filter(p => p.ch === k && st.done[p.id]).length + ' of 4 done' : ch.need + ' stars to open'}</small></h3>
+    <div class="gal">${CHAP.map((ch, k) => { const open = chapOpen(k); return `<h3>${ch.name}<small>${open ? PAINT.filter(p => p.ch === k && st.done[p.id]).length + ' of ' + PAINT.filter(p => p.ch === k).length + ' done' : ch.need + ' stars to open'}</small></h3>
       ${open ? '' : `<div class="unl"><span>Collect ${ch.need - ts} more star${ch.need - ts === 1 ? '' : 's'}, or</span><button class="sb-btn ivory un" data-k="${k}"><img src="${A}ui/coin.webp" alt="">300</button></div>`}
       <div class="ggrid">${PAINT.filter(p => p.ch === k).map(p => `<div class="gi ${open ? '' : 'lock'}" data-id="${p.id}"><div class="im" style="background-image:url(${thumb(p.id)})"></div>
         ${open ? '' : `<img class="lk" src="${A}ui/i-lock.webp" alt="">`}<div class="stars">${[1, 2, 3].map(i => `<img src="${A}ui/${i <= starsOf(p.id) ? 'star-full' : 'star-empty'}.webp" alt="">`).join('')}</div><div class="nm">${p.name}</div></div>`).join('')}</div>`; }).join('')}</div>`);
@@ -659,10 +679,10 @@ function picker(p) {
   let N = (st.done[p.id] && st.done[p.id].best) ? Math.min(14, SIZES.find(n => n > st.done[p.id].best) || 14) : 6;
   const saves = SIZES.map(n => st.saves[p.id + '_' + n]).filter(Boolean);
   const s = sheet(`<h2>${p.name}</h2><img class="sb-div" src="${A}ui/divider.webp" alt="">
-    <div class="pick-im" style="background-image:url(${A}jig/${p.id}.webp)"></div>
+    <div class="pick-im${p.tall ? ' tall' : ''}" style="background-image:url(${A}jig/${p.id}.webp)"></div>
     <p style="text-align:center;margin:.2rem 0">How many pieces?</p>
-    <div class="sizes">${SIZES.map(n => `<button class="sz ${n === N ? 'on' : ''}" data-n="${n}">${n * n}<small>${'★'.repeat(tier(n))}</small></button>`).join('')}</div>
-    <div class="col">${saves.map(v => `<button class="sb-btn ivory res" data-n="${v.N}">Carry on ${v.N * v.N} · ${v.placed.length} placed</button>`).join('')}
+    <div class="sizes">${SIZES.map(n => `<button class="sz ${n === N ? 'on' : ''}" data-n="${n}">${countOf(p, n)}<small>${'★'.repeat(tier(n))}</small></button>`).join('')}</div>
+    <div class="col">${saves.map(v => `<button class="sb-btn ivory res" data-n="${v.N}">Carry on ${countOf(p, v.N)} · ${v.placed.length} placed</button>`).join('')}
     <button class="sb-btn go"><img src="${A}ui/i-play.webp" alt="">Start</button></div>`);
   s.el.querySelectorAll('.sz').forEach(b => b.onclick = () => { N = +b.dataset.n; s.el.querySelectorAll('.sz').forEach(x => x.classList.toggle('on', x === b)); snd.tap(); });
   s.el.querySelectorAll('.res').forEach(b => b.onclick = () => { s.close(); startPuzzle({ p, N: +b.dataset.n }); });
