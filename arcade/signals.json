@@ -700,7 +700,7 @@
  },
  "starknightt-operation-ironhold": {
   "github": {
-   "forks": 31,
+   "forks": 30,
    "stars": 104,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
@@ -708,14 +708,14 @@
  "haan-lightbot": {
   "github": {
    "forks": 56,
-   "stars": 71,
+   "stars": 72,
    "url": "https://github.com/haan/Lightbot"
   }
  },
  "rohitg00-k8sgames": {
   "github": {
    "forks": 195,
-   "stars": 1423,
+   "stars": 1422,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -2136,7 +2136,7 @@
  "lingikaushikreddy-settlement-village": {
   "github": {
    "forks": 0,
-   "stars": 29,
+   "stars": 30,
    "url": "https://github.com/Lingikaushikreddy/Settlement-Village"
   }
  },
@@ -2206,7 +2206,7 @@
  "andrewmunn-ciws-command": {
   "github": {
    "forks": 1,
-   "stars": 0,
+   "stars": 1,
    "url": "https://github.com/andrewmunn/ciws-command"
   }
  },
@@ -2944,7 +2944,7 @@
  "j3vb-sanctuarys-end": {
   "github": {
    "forks": 0,
-   "stars": 1,
+   "stars": 2,
    "url": "https://github.com/J3vb/Sanctuarys_End"
   }
  },
@@ -3114,6 +3114,11 @@
    "forks": 45,
    "stars": 314,
    "url": "https://github.com/felixmariotto/Edelweiss"
+  },
+  "itch": {
+   "rating": 4.2,
+   "count": 6,
+   "url": "https://felixmrtt.itch.io/edelweiss"
   }
  },
  "bkcore-hexgl": {
@@ -3502,5 +3507,38 @@
  "koi-court-3d-mahjong": {},
  "strut-off-fashion-battle": {},
  "peakpatch-tripeaks-solitaire-journey": {},
+ "morning-set-daily-puzzles": {},
+ "daubdeck-bingo-free-bingo-travel-rooms": {},
+ "shelfie-goods-sort": {},
+ "gemloft-block-puzzle": {},
+ "bubblebay-rescue-pop": {},
+ "twistwood-screw-puzzle": {},
+ "lantern-bay-story-choices": {},
+ "quill-cottage-word-garden-crosswords": {},
+ "rosewick-garden-grow-bloom": {},
+ "larkspur-manor-hidden-objects": {},
+ "bluebell-bingo-free-bingo-in-painted-gardens": {},
+ "teatime-solitaire-klondike-spider-card-game": {},
+ "robin-s-rescue-bubble-shooter-garden": {},
+ "peony-mahjong-relaxing-tile-solitaire": {},
+ "petal-jigsaw-painted-jigsaw-puzzles": {},
+ "botanical-brush-colour-by-number": {},
+ "oak-ivy-blocks-wood-block-puzzle": {},
+ "pantry-sort-jam-jar-puzzle": {},
+ "garden-gather-match-3-garden": {},
+ "morning-paper-puzzles-daily-crossword-word-search-sudoku": {},
+ "jelly-blocks-block-puzzle": {},
+ "boba-trio-triple-match-3d": {},
+ "bowtwist-pin-puzzle": {},
+ "pocket-pom-cozy-pet-cafe": {},
+ "sprinkle-sort-cute-sort-puzzle": {},
+ "mochi-match-match-3-dorm-decor": {},
+ "bubble-buns-bubble-shooter-pop": {},
+ "starlit-crush-romance-story-choices": {},
+ "mergie-dorm-merge-decorate-story": {},
+ "glowfit-runway-dress-up-fashion-battle": {},
+ "dumpling-dash-kawaii-cooking-rush": {},
+ "dailies-club-daily-puzzle-set": {},
+ "pastel-pixel-color-by-number": {},
  "hero-lab-build-your-agentpark-hero": {}
 }

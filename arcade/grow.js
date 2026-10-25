@@ -353,9 +353,16 @@
     requestAnimationFrame(() => o.classList.add('in'));
     setTimeout(() => go(nx.slug, '&from=' + how), 900);   // a beat on the next game's cover, so the switch reads as a switch
   }
-  function rail() {
+  // focus test (2026-10-25): 65% of runs ended by jumping to another game and 0-5% came back to a game on another day, so
+  // half the tabs get one game to stick with: no "Next game" strip for the first 90 s and a round-over
+  // card that is "Play again" with their best, other games behind a small link. ap.ab = focus / feed (diag sessions.ab).
+  // The strip comes back after 90 s of the game either way.
+  const FOCUS = (() => { let v; try { v = sessionStorage.getItem('ap.ab'); if (v !== 'focus' && v !== 'feed') { v = Math.random() < 0.5 ? 'focus' : 'feed'; sessionStorage.setItem('ap.ab', v); } } catch (e) { v = 'feed'; } return v === 'focus'; })();
+  let railLater = 0;
+  function rail(now) {
     const p = document.querySelector('.player');
     if (!p || $('gRail') || kids) return;
+    if (FOCUS && !now) { clearTimeout(railLater); railLater = setTimeout(() => rail(true), 90000); return; }
     const nx = feedNext(); if (!nx) return;
     const r = document.createElement('div'); r.id = 'gRail'; r.className = 'g-rail';
     r.innerHTML = `<img src="${esc(art(nx))}" alt=""><span class="g-rt"><small>Next game</small><b>${esc(nx.name)}</b></span><button type="button" class="g-next" aria-label="Next game: ${esc(nx.name)}">Next game ▶</button>`;
@@ -373,12 +380,16 @@
     // her style isn't clear yet: one game of each art style, so her tap tells us which look she likes
     const picks = T && T.active() && !T.style() ? T.oneOfEach(all, { phone: matchMedia('(pointer: coarse)').matches, seen: played().concat(G ? [G.slug] : []) }) : [];
     for (let i = picks.length; i < 3; i++) { const g = feedNext(picks.map(x => x.slug)); if (g && !picks.includes(g)) picks.push(g); }
+    const lv = window.ApSave && ApSave.level ? ApSave.level(G.slug) : 0;
     const o = card('g-round', `<div class="eyebrow">Round over</div><h2>One more go?</h2>
+      ${FOCUS && (best || lv > 1) ? `<p class="g-best">${lv > 1 ? `Level ${lv}` : ''}${lv > 1 && best ? ' · ' : ''}${best ? `Best ${best.toLocaleString()}` : ''}</p>` : ''}
       <button class="btn big" id="gAgain">↻ Play again</button>
-      ${picks.length ? `<p>Or try another game</p><div class="g-picks">${picks.map(g => `<button type="button" data-s="${esc(g.slug)}"><img src="${esc(art(g))}" alt=""><span>${esc(g.name)}</span></button>`).join('')}</div>` : ''}
+      ${FOCUS && picks.length ? '<button type="button" class="g-other" id="gOther">Other games ▸</button>' : ''}
+      ${picks.length ? `<p${FOCUS ? ' hidden' : ''}>Or try another game</p><div class="g-picks"${FOCUS ? ' hidden' : ''}>${picks.map(g => `<button type="button" data-s="${esc(g.slug)}"><img src="${esc(art(g))}" alt=""><span>${esc(g.name)}</span></button>`).join('')}</div>` : ''}
       ${kids || C.SPONSOR_OFF ? '' : '<a class="g-earn" href="earn.html">💵 Earn real money with sponsored apps ▶</a>'}`);
     o.id = 'gRound';
     ev('round_shown');
+    if (FOCUS) { if ($('gOther')) $('gOther').onclick = () => { $('gOther').remove(); o.querySelectorAll('[hidden]').forEach(x => x.hidden = false); }; }
     $('gAgain').onclick = () => {
       ev('round_replay'); o.remove();
       try { const w = FR.contentWindow, c = w.document.querySelector('.hc-card:not(.hc-hidden)'); if (c) c.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true })); w.focus(); } catch (e) {}

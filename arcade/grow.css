@@ -74,6 +74,10 @@ body > .g-sub .eyebrow { color: #e4ff5a; font-weight: 700; letter-spacing: .12em
 .g-picks button { border: 0; background: none; color: inherit; padding: 0; cursor: pointer; display: grid; gap: 5px; font: 600 12px/1.2 system-ui, sans-serif }
 .g-picks img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover }
 .g-picks span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+/* focus test: the player's progress above Play again, other games one tap away */
+.g-card [hidden] { display: none !important }
+.g-best { margin: -4px 0 0; font: 700 15px/1.3 system-ui, sans-serif; opacity: .85 }
+.g-other { border: 0; background: none; color: inherit; opacity: .7; font: 600 14px/1 system-ui, sans-serif; padding: 8px; cursor: pointer; text-decoration: underline }
 @media (prefers-reduced-motion: reduce) { .g-swap { transition: none } }
 /* "tap here" hand over the game for the first seconds (grow.js tapHint) */
 .g-tap { position: absolute; left: 50%; top: 55%; z-index: 5; font-size: 64px; pointer-events: none; transform: translate(-50%, -50%);

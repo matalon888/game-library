@@ -11512,6 +11512,11 @@
     "forks": 45,
     "stars": 314,
     "url": "https://github.com/felixmariotto/Edelweiss"
+   },
+   "itch": {
+    "rating": 4.2,
+    "count": 6,
+    "url": "https://felixmrtt.itch.io/edelweiss"
    }
   },
   "cover": "covers/felixmariotto-edelweiss.webp",
@@ -11631,7 +11636,7 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 31,
+    "forks": 30,
     "stars": 104,
     "url": "https://github.com/StarKnightt/operation-ironhold"
    }
