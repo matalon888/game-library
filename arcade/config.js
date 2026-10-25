@@ -22,7 +22,7 @@
 //                    games today or okay_minutes_7 minutes this week; everyone else is weak
 window.RIFFCADE = {
   "AUTO_NEXT": false,
-  "DAILY_CHALLENGE": false,
+  "DAILY_CHALLENGE": true,
   "SUBSCRIBE_V2": false,
   "ADS_ENABLED": false,
   "ADS_FORCED": false,

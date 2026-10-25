@@ -174,6 +174,10 @@ if cfg.get("DAILY_CHALLENGE") and cfg.get("CHALLENGE_GAMES"):
     if cg and os.path.exists(os.path.join(OUT, "c", str(n), "index.html")):  # only link a challenge page that exists
         challenge = (f'<a class="chal" href="{SITE}/c/{n}"><span>🔥</span><div><b>Today\'s challenge: {e(cg["name"])}</b>'
                      f'<small>Everyone plays the same game today. Beat your friends: {SITE}/c/{n}</small></div><i>›</i></a>')
+        # the return test (2026-10-25): the challenge reaches only the dc half (arcade-api adds it to their daily message from
+        # today.json), so this page, which every player's AI reads, doesn't show it
+        data["challenge"] = {"n": n, "slug": cg["slug"], "name": cg["name"].split(":")[0], "play_url": f"{SITE}/arcade/play.html?g={cg['slug']}&ch={n}&ref=daily&pos=challenge"}
+        challenge = ""
 
 def tile(g, pos):
     s = score(g)

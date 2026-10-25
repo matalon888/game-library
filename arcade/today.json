@@ -705,6 +705,12 @@
    }
   ]
  },
+ "challenge": {
+  "n": 11,
+  "slug": "switchback",
+  "name": "Switchback",
+  "play_url": "https://agentpark.co/arcade/play.html?g=switchback&ch=11&ref=daily&pos=challenge"
+ },
  "peek": {
   "name": "Skyline Scope",
   "play_url": "https://agentpark.co/arcade/play.html?g=skyline-scope&ref=daily&pos=peek"

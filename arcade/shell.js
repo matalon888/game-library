@@ -274,6 +274,8 @@
       if (!ok) try { const u = localStorage.getItem('ap.u'); if (/^[a-z0-9]{10}$/.test(u || '')) ok = (await (await fetch('https://mcp.riffcade.com/api/vip?u=' + u, { cache: 'no-store' })).json()).vip === true; } catch (e) {}
       // a friend's gift link (the daily message's "unlock a game for a friend"): open it, and invite them to get their own
       if (gift) setTimeout(() => document.body.insertAdjacentHTML('beforeend', `<a class="aigift" href="go.html?inc=vip&utm_source=gift&utm_medium=friend&utm_content=${gift}">🎁 A friend unlocked this for you. <b>Get your own AI games ▶</b></a>`), 1500);
+      // today's 3 missions done (grow.js, ms half): today's secret game opens all day
+      if (!ok) try { const un = JSON.parse(localStorage.getItem('arcade.unlock') || 'null'); ok = !!un && un.slug === g.slug && un.day === new Date().toISOString().slice(0, 10); } catch (e) {}
       try { const k = 'ap.vip.' + g.slug; if (ok) sessionStorage.setItem(k, '1'); else ok = !!sessionStorage.getItem(k); } catch (e) {}
       if (!ok) {
         document.body.insertAdjacentHTML('beforeend', `<div class="ailock"><div><span class="cv" style="background-image:url('${esc(g.cover || g.thumb)}')"></span>

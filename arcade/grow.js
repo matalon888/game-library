@@ -17,6 +17,15 @@
     set(k, v) { try { sessionStorage.setItem('arcade.s.' + k, JSON.stringify(v)); } catch (e) {} },
   };
 
+  // ---------------------------------------------------------------- return tests (2026-10-25)
+  // Three independent coin flips per player, from their prompt code (ap.u) so the server's daily message (arcade-api
+  // server.js xpOn) puts each player in the same half: dc = daily challenge, ct = Continue card, ms = 3 daily missions.
+  // Each is on for half the players; the daily report compares next-day return per half (diag.js retentionText).
+  const XCODE = (() => { try { return (window.RiffHabits && RiffHabits.agentCode && RiffHabits.agentCode()) || localStorage.getItem('ap.u') || ''; } catch (e) { return ''; } })();
+  const xpOn = f => { let h = 0x811c9dc5; for (const c of f + ':' + XCODE) { h ^= c.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return ((h >>> 24) & 1) === 1; };   // a high bit: the low bit of FNV-1a only sees the letters' odd/even codes
+  const XP = { dc: xpOn('dc'), ct: xpOn('ct'), ms: xpOn('ms') };
+  window.ApXP = XP;
+
   // ---------------------------------------------------------------- counting (/stats-internal)
   // A random id for this tab's session only (sessionStorage): sessions and games per session, nothing that lasts.
   const sid = ss.get('sid', null) || (() => { const s = ((crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2) + Date.now()).replace(/[^\w-]/g, '').slice(0, 36); ss.set('sid', s); return s; })();
@@ -99,7 +108,7 @@
     return o;
   }
   const copyText = t => navigator.clipboard && isSecureContext ? navigator.clipboard.writeText(t).then(() => true, () => false) : Promise.resolve(false);
-  const toast = t => { const el = document.createElement('div'); el.className = 'g-toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 3200); };
+  const toast = (t, ms = 3200) => { const el = document.createElement('div'); el.className = 'g-toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), ms); };
   const art = g => g.icon || g.cover || g.thumb;
 
   // ---------------------------------------------------------------- streak (localStorage, never nags)
@@ -115,9 +124,65 @@
     return n;
   }
 
+  // ---------------------------------------------------------------- 3 daily missions (ms half)
+  // Across all games, one UTC day: play 3 rounds, reach level 3 in any game, play 5 minutes. All three unlock today's
+  // secret game (an AI-only game, shell.js reads arcade.unlock). Counted from what our kit games report (__game state / level).
+  const MISSIONS = [['rounds', 3, 'Play 3 rounds'], ['lvl', 3, 'Reach level 3 in any game'], ['secs', 300, 'Play 5 minutes']];
+  const msGet = () => { const m = ls.get('ms', null); return m && m.day === today() ? m : { day: today(), rounds: 0, lvl: 0, secs: 0, done: false }; };
+  const msDone = m => MISSIONS.filter(([k, n]) => m[k] >= n).length;
+  const secretSlug = () => { const L = C.AI_ONLY || []; return L.length ? L[Math.floor(Date.now() / 864e5) % L.length] : null; };
+  const secretName = sl => sl.split('-')[0].replace(/^./, c => c.toUpperCase());   // AI-only games aren't in the listed catalogue
+  function msRow(m) {
+    return MISSIONS.map(([k, n, label]) => `<li class="${m[k] >= n ? 'ok' : ''}">${m[k] >= n ? '✅' : '⬜'} ${label}${k === 'secs' ? ` <small>${Math.min(5, Math.floor(m.secs / 60))}/5 min</small>` : k === 'rounds' ? ` <small>${Math.min(3, m.rounds)}/3</small>` : ''}</li>`).join('');
+  }
+  function missionsPanel(put) {
+    const m = msGet(), el = document.createElement('div'); el.className = 'g-missions';
+    el.innerHTML = `<div class="eyebrow">Today's missions · ${msDone(m)}/3</div><ul>${msRow(m)}</ul><small>${m.done ? '🎁 Secret game unlocked for today' : 'All 3 unlock a secret game for today 🎁'}</small>`;
+    put(el); ev('missions_shown');
+  }
+  function msPill() {
+    if (!XP.ms || $('gMs') || kids) return;
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'gMs'; b.className = 'g-ms';
+    document.body.appendChild(b); msPaint();
+    b.onclick = () => { const m = msGet(), un = ls.get('unlock', null);
+      if (m.done && un && un.day === today() && un.slug) { ev('missions_play'); location.href = `play.html?g=${encodeURIComponent(un.slug)}&from=missions`; return; }
+      toast(`🎯 ${msDone(m)}/3 · ` + MISSIONS.map(([k, n, label]) => (m[k] >= n ? '✅ ' : '⬜ ') + label).join(' · '), 5000); };
+  }
+  function msPaint() { const b = $('gMs'); if (b) { const m = msGet(); b.textContent = m.done ? '🎁 3/3' : `🎯 ${msDone(m)}/3`; } }
+  let msLast = '', msSecT = 0;
+  function msTrack(st, s) {
+    if (!XP.ms || kids) return;
+    const m = msGet(), before = msDone(m);
+    if (st === 'play' && msLast !== 'play') m.rounds++;
+    msLast = st;
+    let lv = 0; try { lv = +s.level || 0; } catch (e) {}
+    if (lv > m.lvl) m.lvl = lv;
+    const t = Date.now(); if (st === 'play' && !document.hidden && msSecT) m.secs += Math.min(2, (t - msSecT) / 1000); msSecT = t;
+    const finished = msDone(m) === 3 && !m.done, sl = finished ? secretSlug() : null;
+    if (finished) { m.done = true; ls.set('unlock', { day: today(), slug: sl }); }
+    ls.set('ms', m);
+    if (msDone(m) > before) { ev('mission_done'); msPaint(); }
+    if (finished) { ev('missions_all'); setTimeout(() => toast(`🎁 All 3 missions done! ${sl ? secretName(sl) + ' is unlocked for today: tap 🎁 to play' : 'Secret game unlocked for today'}`, 7000), 600); }
+  }
+
   // ---------------------------------------------------------------- home: today's challenge at the top
   function home(gs) {
-    if (!C.DAILY_CHALLENGE) { if (q.get('sub') === '1') subscribe(gs, true); return; }
+    // the park home (park.js) has a full-width #cont slot under the header with "Back to the park" for everyone: the Continue
+    // half gets the richer card there (the level they reached); challenge and missions go under it, full width too
+    const main = document.querySelector('main.home'), cont = document.getElementById('cont'), brand = main && main.querySelector('.brand');
+    const put = el => { if (cont) cont.after(el); else if (brand) brand.after(el); };
+    let lastSlug = (ls.get('lastGame', null) || {}).slug; if (!lastSlug) try { lastSlug = String(localStorage.getItem('arcade.last') || '').replace(/"/g, ''); } catch (e) {}
+    const lg = XP.ct && lastSlug && gs.find(x => x.slug === lastSlug);
+    if (lg && (cont || brand)) {
+      const lv = window.ApSave && ApSave.level ? ApSave.level(lg.slug) : 0;
+      const el = document.createElement('a'); el.className = 'g-challenge g-continue'; el.href = `play.html?g=${encodeURIComponent(lg.slug)}&from=continue`;
+      el.innerHTML = `<img src="${esc(art(lg))}" alt=""><div><div class="eyebrow">Continue</div><b>${esc(lg.name)}</b><span>${lv > 1 ? `You reached level ${lv}` : 'Pick up where you left off'}</span></div><span class="go">▶</span>`;
+      el.addEventListener('click', () => ev('continue_tap'));
+      if (cont) { cont.innerHTML = ''; cont.appendChild(el); } else brand.after(el);
+      ev('continue_shown');
+    }
+    if (XP.ms) missionsPanel(put);
+    if (!C.DAILY_CHALLENGE || !XP.dc) { if (q.get('sub') === '1') subscribe(gs, true); return; }
     const n = dayNum(), g = gs.find(x => x.slug === challengeSlug(n));
     if (g) {
       const s = streak(), done = (ls.get('streak', null) || {}).last === today();
@@ -125,8 +190,8 @@
       el.className = 'g-challenge'; el.href = `play.html?g=${encodeURIComponent(g.slug)}&ch=${n}`;
       el.innerHTML = `<img src="${esc(art(g))}" alt=""><div><div class="eyebrow">Today's challenge · #${n}</div><b>${esc(g.name)}</b>
         <span>${done ? 'Played today ✓' : esc(g.blurb || '')}</span></div>${s ? `<span class="g-streak" aria-label="Streak: day ${s}">Day ${s} 🔥</span>` : '<span class="go">Play</span>'}`;
-      const main = document.querySelector('main.home'), brand = main && main.querySelector('.brand');
-      if (brand) brand.after(el);
+      el.addEventListener('click', () => ev('challenge_tap'));
+      put(el);
     }
     if (q.get('sub') === '1') subscribe(gs, true);
   }
@@ -223,6 +288,8 @@
   let FR = null;
   function onStart(frame) {
     FR = frame;
+    if (G) ls.set('lastGame', { slug: G.slug, name: G.name, at: Date.now() });   // the Continue card (ct half)
+    msPill();
     if (window.ArcadeDiag) ArcadeDiag.start(G, frame);
     rail();
     tapHint(frame);
@@ -246,6 +313,7 @@
       let st, sc; try { st = s.state; sc = s.score; } catch (e) { return; }
       if (typeof sc === 'number' && isFinite(sc)) best = Math.max(best ?? 0, Math.round(sc));
       if ((st === 'lost' || st === 'won') && st !== lastSt && typeof sc === 'number' && isFinite(sc) && sc > 0) compare(Math.round(sc), st);
+      msTrack(st, s);
       lastSt = st;
       if (st === 'lost' && !ended) { ended = true; roundsLost++; (RC.gaNow || ga)('round_end', { game_id: G.slug, outcome: 'lost', score: typeof sc === 'number' && isFinite(sc) ? Math.round(sc) : undefined, round_n: roundsLost, player_tier: tierNow }); setTimeout(() => { try { if (frame.contentWindow.__game.state === 'lost') gameOver(); else ended = false; } catch (e) { ended = false; } }, 1200); }
       else if (st !== 'lost' && ended && !$('gNext') && !$('gShare') && !$('gRound')) ended = false; // they retried
