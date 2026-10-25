@@ -139,7 +139,7 @@
     const taste = T && T.art(r.g) ? { art: T.art(r.g), kind: r.g.kind || null, arm: T.active() ? 'style' : 'base', style: T.style() } : undefined;
     push('game', { slug: r.slug, cat: r.cat, secs, reason, taste, load_ms: r.loadMs, fps: r.frames && r.visMs > 500 ? Math.round(r.frames * 1000 / r.visMs) : null, vis_s: Math.round(r.visMs / 1000),
       slow_pct: r.frames ? Math.round(100 * r.slow / r.frames) : null, freezes: r.freezes.slice(0, 5), errors: [...new Set(r.errors)].slice(0, 5),
-      taps: r.taps, rage: r.rage, rage_at: r.rageAt.slice(0, 5), stuck: r.stuck, quick_quit: secs < 15, final: (() => { try { return state(r.frame.contentWindow); } catch (e) { return ''; } })() });
+      taps: r.taps, rage: r.rage, rage_at: r.rageAt.slice(0, 5), stuck: r.stuck, quick_quit: secs < 15, tarm: (() => { try { return localStorage.getItem('ap.tarm'); } catch (e) { return null; } })(), final: (() => { try { return state(r.frame.contentWindow); } catch (e) { return ''; } })() });
     flush(false);
   }
   window.ArcadeDiag = {

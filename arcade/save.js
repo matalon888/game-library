@@ -18,7 +18,7 @@
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} } };
   const META = 'ap.save', LV = 'ap.lv', OK = /^[a-z0-9]{10}$/;
   // device and visit details stay on the device: ad click ids, consent, first source, prompt test arm, the code itself
-  const SKIP = /^(ap\.(save|u|fbc|ad|src|tap|set|cpaplay|aud|app|lite\.)|arcade\.(consent|pv|cid)|riffcade_link_code|board_client)/;
+  const SKIP = /^(ap\.(save|u|fbc|ad|src|tap|set|cpaplay|aud|app|tune|lite\.)|arcade\.(consent|pv|cid)|riffcade_link_code|board_client)/;
   const MAX_VALUE = 60 * 1024;
 
   function code() {
