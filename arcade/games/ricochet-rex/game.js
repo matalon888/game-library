@@ -318,7 +318,8 @@ function firstLevel() {
 }
 function genLevel(lv) { return lv <= 1 ? firstLevel() : genRoom(lv - 1); }   // level 2 = the old level 1, and so on
 function genRoom(lv) {
-  const base = 2 + Math.floor(lv / 3), n = Math.max(2, Math.min(7, clamp(Math.round(base * fkL), Math.ceil(base * 0.75), Math.floor(base * 1.25))));   // never more than ±25 % goons
+  // steeper (2026-10-25, "too easy"): a goon every 2 levels (was 3), ricochets needed from level 3 and 2+ bullets from level 5
+  const base = 2 + Math.floor(lv / 2), n = Math.max(2, Math.min(7, clamp(Math.round(base * fkL), Math.ceil(base * 0.75), Math.floor(base * 1.25))));   // never more than ±25 % goons
   let fallback = null;
   for (let att = 0; att < 70; att++) {
     const r = rng(lv * 9973 + att * 131 + 7), L = layout(lv, n, r); if (!L) continue;
@@ -328,8 +329,8 @@ function genRoom(lv) {
     if (att > 50) return L;
     // harder levels must need a ricochet or more than one bullet
     const direct = new Set(); for (const s of sw) if (!s.hostage) for (const [e, b] of s.kills) if (b === 0) direct.add(e);
-    if (lv >= 3 && direct.size === w.enemies.length && g.plan.length < 2) continue;
-    if (lv >= 6 && g.plan.length < 2) continue;
+    if (lv >= 2 && direct.size === w.enemies.length && g.plan.length < 2) continue;
+    if (lv >= 4 && g.plan.length < 2) continue;
     return L;
   }
   return fallback || layout(1, 2, rng(1));

@@ -3,8 +3,8 @@
 //     streak and the time since the last success. Never device, country, money or ads.
 //   • struggling → level drifts toward −1, cruising (streak, no misses) → toward +1, nothing happening → back to 0.
 //     It moves at most one step every few seconds, so the game never lurches. An idle player gets no adjustment.
-//   • A.k(fk) = the multiplier for a "harder when bigger" knob: ±max (≤ 20%) from the level, stacked on flow.js's
-//     between-run fk and clamped to ±25% in total. Easier-when-bigger knobs (gaps, time, aim window) divide by it.
+//   • A.k(fk) = the multiplier for a "harder when bigger" knob: up to +35% (up) when cruising, −max (≤ 20%) when struggling,
+//     stacked on flow.js's between-run fk and clamped to −25% / +40% in total. Easier-when-bigger knobs (gaps, time, aim window) divide by it.
 //   • A.rescue(): at most one per round, only for an active player who has earned it (≥ minOk successes this round).
 //     The game calls it at the moment the player is about to lose and gives a small lucky break if it returns true.
 //   • never touches the score. QA reads window.__game.adapt = { level, rescues, total, k }; ?adapt=0 turns it off.
@@ -12,15 +12,16 @@
 //     same difficulty (RULES.md 5). Checked live, so joining mid-session switches it off from the next step.
 const QOFF = /[?&]adapt=0(&|$)/.test(location.search);
 export const adaptOff = () => { if (QOFF) return true; try { return !!JSON.parse(localStorage.getItem('board_profile')); } catch (e) { return false; } };
-export function adapt({ max = 0.2, every = 2.5, step = 0.25, span = 20, minOk = 2, idle = 6, fresh = 4 } = {}) {
+export function adapt({ max = 0.2, up = 0.35, every = 2.5, step = 0.25, span = 20, minOk = 2, idle = 6, fresh = 4 } = {}) {
   let now = 0, lvl = 0, cap = 1, nextT = every, ev = [], streak = 0, lastOk = 0, lastIn = -1e9, oks = 0, rescues = 0, total = 0;
   const sum = k => ev.reduce((a, e) => a + (e.k === k && now - e.t < span ? e.w : 0), 0);
   const active = (s = idle) => now - lastIn < s;
   const add = (k, w) => { ev.push({ k, t: now, w }); if (ev.length > 80) ev.shift(); };
   const A = {
     // new round: the level and the last ~20 s of signals carry over (quick retries still count), the rescue and the
-    // "has earned it" tally are per round. cap = the highest level allowed this round (0 on level 1: never harder there)
-    round(c = 1) { cap = c; lvl = Math.min(cap, lvl); lastOk = Math.max(lastOk, now - 6); oks = 0; rescues = 0; },
+    // "has earned it" tally are per round. cap = the highest level allowed this round. Games pass 0 on level 1; since
+    // 2026-10-25 ("too easy", a 7-year-old) a player cruising through level 1 still gets up to half a step harder there
+    round(c = 1) { cap = Math.max(c, 0.5); lvl = Math.min(cap, lvl); lastOk = Math.max(lastOk, now - 6); oks = 0; rescues = 0; },
     tick(sec) {
       now += sec; if (now < nextT) return; nextT = now + every;
       if (adaptOff()) { lvl = 0; return; }
@@ -38,7 +39,8 @@ export function adapt({ max = 0.2, every = 2.5, step = 0.25, span = 20, minOk = 
     ok(w = 1) { add('ok', w); streak += w; oks += w; lastOk = now; },
     near(w = 1) { add('near', w); },
     miss(w = 1) { add('miss', w); streak = 0; },
-    k(fk = 1) { return adaptOff() ? fk : Math.max(0.75, Math.min(1.25, fk * (1 + lvl * max))); },
+    // harder goes further than easier (2026-10-25): up to +35% for a player who is cruising, down to −20% for one who struggles
+    k(fk = 1) { return adaptOff() ? fk : Math.max(0.75, Math.min(1.4, fk * (1 + lvl * (lvl > 0 ? up : max)))); },
     rescue() {
       if (adaptOff() || rescues >= 1 || oks < minOk || !active(fresh)) return false;
       rescues++; total++; A.near(); return true;
@@ -51,7 +53,7 @@ export function adapt({ max = 0.2, every = 2.5, step = 0.25, span = 20, minOk = 
 
 // adapter(): the event-weighted variant (cube-trek, bolt-twist, swirl-tee, flip-agent, ricochet-rex). good()/bad() moves
 // in the last 20 s and time since the last success set level −1 … +1, ≤ 0.25 per 3 s, back to 0 when neutral.
-// k(fk, range) = multiplier for a harder-when-bigger knob, within ±25 % together with flow.js. sensible() = the player
+// k(fk, range) = multiplier for a harder-when-bigger knob, −25 % / +40 % together with flow.js. sensible() = the player
 // has been playing well enough to earn a rescue; rescue() = at most one a round and 60 s apart. Same off-switch as adapt().
 export function adapter() {
   const ev = []; let lv = 0, stepAt = 0, okAt = 0, rescues = 0, used = false, lastR = -1e9;
@@ -69,7 +71,7 @@ export function adapter() {
       const want = stuck ? -1 : g + b > 0 ? clamp((g - 2 * b) / Math.max(4, g + b), -1, 1) : 0;
       lv = clamp(lv + clamp(want - lv, -0.25, 0.25), -1, 1);
     },
-    k(fk = 1, range = 0.2) { return adaptOff() ? fk : clamp(fk * (1 + range * lv), 0.75, 1.25); },
+    k(fk = 1, range = 0.2) { return adaptOff() ? fk : clamp(fk * (1 + (lv > 0 ? Math.max(range, 0.35) : range) * lv), 0.75, 1.4); },   // up to +35% when cruising (2026-10-25)
     sensible(min = 3) { const { g, b } = recent(); return g >= min && g >= 0.75 * (g + b); },
     round() { used = false; okAt = now(); },
     rescue() { if (adaptOff() || used || now() - lastR < 60) return false; used = true; lastR = now(); rescues++; return true; },   // rare: ≤ 1 a round and ≥ 60 s apart

@@ -147,17 +147,18 @@ function genLevel(lv) {
   lv = lv - 2;
   const r = rng(lv * 7919 + 13), fk = F.k();
   const fold = lv <= 3 ? FOLDS[lv - 1] : ['spiral', 'rings', 'stripes', 'spiral'][Math.floor(r() * 4)];
-  const N = fold === 'spiral' ? Math.min(8, 3 + Math.floor((lv + 1) / 2)) : fold === 'rings' ? Math.min(5, 2 + Math.floor(lv / 3)) : Math.min(6, 3 + Math.floor(lv / 3));
+  // steeper (2026-10-25, "too easy"): more sections, colours and decoy dyes sooner, a higher match target and a finer brush each level
+  const N = fold === 'spiral' ? Math.min(8, 3 + lv) : fold === 'rings' ? Math.min(5, 2 + Math.floor((lv + 1) / 2)) : Math.min(6, 3 + Math.floor(lv / 2));
   const order = DYES.map((_, i) => i); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-  const nCol = Math.max(2, Math.min(N, 2 + Math.ceil(lv / 2), 5)), tpal = order.slice(0, nCol), cols = [];
+  const nCol = Math.max(2, Math.min(N, 2 + lv, 5)), tpal = order.slice(0, nCol), cols = [];
   for (let i = 0; i < N; i++) {
     let c, tries = 0;
     do { c = tpal[Math.floor(r() * nCol)]; tries++; } while (tries < 30 && (c === cols[i - 1] || (fold === 'spiral' && i === N - 1 && c === cols[0]) || (i < nCol && cols.includes(c))));
     cols.push(c);
   }
-  const btns = order.slice(0, Math.min(6, nCol + (lv >= 2 ? 1 : 0) + (lv >= 5 ? 1 : 0)));
+  const btns = order.slice(0, Math.min(6, nCol + 1 + (lv >= 3 ? 1 : 0)));
   for (let i = btns.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [btns[i], btns[j]] = [btns[j], btns[i]]; }
-  return { fold, N, cols, btns, thr: Math.min(0.9, (0.7 + (lv - 1) * 0.012) * fk), twist: 4.6 + r() * 2.2, seed: r() * 100, brush: Math.max(0.21, (0.34 - lv * 0.008) / fk), folds: 3, guide: false };
+  return { fold, N, cols, btns, thr: Math.min(0.9, (0.7 + (lv - 1) * 0.03) * fk), twist: 4.6 + r() * 2.2, seed: r() * 100, brush: Math.max(0.21, (0.34 - lv * 0.02) / fk), folds: 3, guide: false };
 }
 
 // bundle space: nx, nz in [-1, 1]; the bound shirt is an ellipse nx² + (nz/Q)² <= 1, world = n * EXT

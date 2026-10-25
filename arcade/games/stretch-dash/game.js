@@ -56,7 +56,7 @@ function buildLevel() {
   world = new THREE.Group(); scene.add(world);
   R = rng(level * 613 + 5); fk = F.k(); A.round(level === 1 ? 0 : 1);
   rows = []; gems = 0; chunks = []; climbStep = -1; endT = 0; mult = 1;
-  const nRows = Math.min(14, 5 + level);
+  const nRows = level === 1 ? 6 : Math.min(16, 4 + 2 * level);
   let z = -16;
   for (let i = 0; i < nRows; i++) {
     const kind = i % 2 === 0 ? 'gates' : (R() < 0.5 ? 'bar' : 'gap');
@@ -80,7 +80,7 @@ function buildLevel() {
       for (const sx of [-1, 1]) { const post = new THREE.Mesh(new THREE.BoxGeometry(0.32, row.h + 0.32, 0.32), mat('#23232e')); post.position.set(sx * (TW / 2 + 0.3), (row.h + 0.32) / 2, z); post.castShadow = true; world.add(post); }
       row.m = bar;
     } else {
-      row.gw = clamp((1.6 - level * 0.05 + R() * 0.8) / fk, 0.8, 2.6); row.gx = (R() - 0.5) * (TW - row.gw - 0.6);
+      row.gw = clamp((1.55 - (level - 1) * 0.12 + R() * 0.8) / fk, 0.8, 2.6); row.gx = (R() - 0.5) * (TW - row.gw - 0.6);
       row.blocks = [];
       for (const sd of [-1, 1]) {
         const x0 = sd < 0 ? -TW / 2 : row.gx + row.gw / 2, x1 = sd < 0 ? row.gx - row.gw / 2 : TW / 2, w = x1 - x0;
@@ -154,6 +154,8 @@ function win() {
 }
 const stepCost = () => 0.2;
 // one lucky save per round (adapt.js decides if it's deserved): the jelly wobbles back to a just-alive size
+// steeper from level 2 (2026-10-25, "too easy"): +6% speed and +0.03 crash cost a level, capped; level 1 unchanged
+const lvlK = () => 1 + Math.min(0.5, (level - 1) * 0.06);
 function saved(axis) { if (!A.rescue()) return false; if (axis === 'h') P.H = Math.max(P.H, MIN_H + 0.1); else P.W = Math.max(P.W, MIN_W + 0.1); ui.pop('PHEW! 🍀', '#7dffb0', 40, 40); sfx.coin(); buzz([10, 30, 10]); burst(world, new THREE.Vector3(P.x, BASE_H * P.H, P.z), ['#7dffb0', '#ffffff'], 16, { speed: 0.1, up: 0.1 }); return true; }
 function bodyMass() { return P.H * P.W; }
 
@@ -165,7 +167,7 @@ loop((dt, t) => {
   if (state === 'play') {
     A.tick(s);
     if (climbStep < 0) {
-      P.z -= SPEED * A.k(fk) * s;
+      P.z -= SPEED * lvlK() * A.k(fk) * s;
       if (botX !== null && !dragging) P.tx = botX;
       P.x = lerp(P.x, P.tx, 0.2 * dt);
       const halfW = 0.36 * P.W;
@@ -189,7 +191,7 @@ loop((dt, t) => {
         } else {
           const l = row.gx - row.gw / 2, r = row.gx + row.gw / 2;
           if (P.x < l || P.x > r) {      // smashed into the wall
-            const cost = 0.35 * A.k(); P.H -= cost; chop('h', cost); A.miss(); for (const b of row.blocks) if (P.x >= b.x0 - 0.2 && P.x <= b.x1 + 0.2) { burst(world, b.m.position, ['#ffd21f', '#23232e'], 18, { speed: 0.15, up: 0.1, size: 1.2 }); b.m.visible = false; }
+            const cost = Math.min(0.55, 0.35 + (level - 1) * 0.03) * A.k(); P.H -= cost; chop('h', cost); A.miss(); for (const b of row.blocks) if (P.x >= b.x0 - 0.2 && P.x <= b.x1 + 0.2) { burst(world, b.m.position, ['#ffd21f', '#23232e'], 18, { speed: 0.15, up: 0.1, size: 1.2 }); b.m.visible = false; }
             ui.pop('CRASH! -' + Math.round(cost * 100), '#ff3b4e', 36, 30); if (P.H < MIN_H && !saved('h')) return lose('CRUSHED!');
           } else if (halfW * 2 > row.gw) { const nw = (row.gw * 0.92) / 0.72, cut = P.W - nw; P.W = nw; chop('w', cut * 0.5); ui.pop('SQUEEZED!', '#ffd21f', 34, 30); A.near(); if (P.W < MIN_W && !saved('w')) return lose('SQUEEZED FLAT!'); }
           else { ui.pop('PERFECT FIT!', '#fff', 30, 30); sfx.coin(); A.ok(); }
