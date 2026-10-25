@@ -76,6 +76,8 @@ button { font: inherit; color: inherit }
 .row p { margin: 0; font-size: 12.5px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden }
 .row .sub { font-size: 11.5px; color: var(--muted); opacity: .8 }
 .star { color: var(--coin) }
+.lv { color: var(--accent); font-weight: 700 }
+.lv { color: var(--accent, #2a8); font-weight: 600 }
 @media (min-width: 700px) { .featured .hero { flex-basis: 46% } .rail .tile { flex-basis: 150px } .tile img { width: 150px; height: 150px; border-radius: 34px } }
 @media (prefers-reduced-motion: reduce) { .hero video { display: none } .hero { background-size: cover } }
 

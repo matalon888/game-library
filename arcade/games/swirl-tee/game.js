@@ -504,6 +504,8 @@ loop((dt, t) => {
 let botAim = null, botAimT = 0;
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
+  // progress for the arcade's tap diagnostics: dye that landed (dabbing the shirt is the game, not frustration)
+  get progress() { return phase === 'dye' ? Math.round(L.cols.reduce((a, c, i) => a + secFrac(i), 0) * 20) : phase; },
   get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
   // test hooks for simulated players (they go through the same calls as the buttons / a finger)
   sim: { get phase() { return phase; }, get L() { return L; }, get sel() { return sel; }, secOf, secFrac, fold: (f) => chooseFold(f), pick: (c) => selectDye(c), dab: (nx, nz) => dab(nx, nz), done: () => reveal(true) },

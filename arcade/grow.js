@@ -136,6 +136,8 @@
   const played = () => ss.get('played', []);
   function pickNext() {
     const seen = new Set(played().concat(G ? [G.slug] : []));
+    // her style (taste.js): auto-next stays in the look she likes, favourite kinds first
+    if (window.ApTaste && ApTaste.active() && all.length) { const t = ApTaste.feed(all, { phone: matchMedia('(pointer: coarse)').matches, seen: [...seen] }).find(x => !seen.has(x.slug)); if (t) return t; }
     const phone = matchMedia('(pointer: coarse)').matches;
     const ok = x => x.chat_safe !== false && !x.linkout && !x.external && !seen.has(x.slug) && !(phone && (x.platform === 'desktop' || x.orientation === 'landscape')) && x.category !== 'Kids';
     const tags = new Set(G && G.tags || []);
@@ -146,6 +148,9 @@
   // the feed (config.js FEED): upright one-thumb games on our kit, shuffled once per tab with the hand-checked ones first.
   // Feeds the next-game rail under every game and the round-over picks. Skips games played this tab.
   function feed() {
+    // a woman whose style we're learning (taste.js): the women's games in her art style and favourite kinds come first
+    const T = window.ApTaste;
+    if (T && T.active() && all.length) return T.feed(all, { phone: matchMedia('(pointer: coarse)').matches, seen: played() }).map(g => g.slug).concat(ss.get('feed', null) || C.FEED || []);
     let f = ss.get('feed', null);
     if (!f) {
       let a = null; try { a = localStorage.getItem('ap.aud'); } catch (e) {}
@@ -160,11 +165,13 @@
     const seen = new Set(played().concat(G ? [G.slug] : [], skip));
     const cats = new Set([G && G.category].concat(skip.map(s => (all.find(x => x.slug === s) || {}).category)));
     const fresh = feed().map(s => all.find(x => x.slug === s)).filter(g => g && !seen.has(g.slug));
+    if (window.ApTaste && ApTaste.active()) return fresh[0] || pickNext();   // her style: the same look, not a different category
     return fresh.find(g => !cats.has(g.category)) || fresh[0] || pickNext();
   }
 
   function onLoad(g, gs) {
     G = g; all = gs;
+    if (window.ApTaste && /^(round|tap)$/.test(q.get('from') || '') && ApTaste.active()) ApTaste.chose(g);   // she picked this one
     if (window.ArcadeDiag) ArcadeDiag.load(g);
     kids = g.category === 'Kids' || (g.tags || []).includes('Kids');
     RC.setKids(kids); // consent.js starts GA / the pixel now (never on a Kids game)
@@ -359,8 +366,10 @@
   // ---------------------------------------------------------------- round over (our kit games report 'lost'): play again or 3 others
   function roundCard() {
     if (document.querySelector('.g-card')) return;
-    const picks = [];
-    for (let i = 0; i < 3; i++) { const g = feedNext(picks.map(x => x.slug)); if (g && !picks.includes(g)) picks.push(g); }
+    const T = window.ApTaste;
+    // her style isn't clear yet: one game of each art style, so her tap tells us which look she likes
+    const picks = T && T.active() && !T.style() ? T.oneOfEach(all, { phone: matchMedia('(pointer: coarse)').matches, seen: played().concat(G ? [G.slug] : []) }) : [];
+    for (let i = picks.length; i < 3; i++) { const g = feedNext(picks.map(x => x.slug)); if (g && !picks.includes(g)) picks.push(g); }
     const o = card('g-round', `<div class="eyebrow">Round over</div><h2>One more go?</h2>
       <button class="btn big" id="gAgain">↻ Play again</button>
       ${picks.length ? `<p>Or try another game</p><div class="g-picks">${picks.map(g => `<button type="button" data-s="${esc(g.slug)}"><img src="${esc(art(g))}" alt=""><span>${esc(g.name)}</span></button>`).join('')}</div>` : ''}

@@ -108,16 +108,17 @@
       last = w.document.hidden || document.hidden ? 0 : t; w.requestAnimationFrame(tick);
     };
     w.requestAnimationFrame(tick);
-    // taps: rage = 4+ taps within 1.2 s inside 40 px; no-progress = 25+ taps in 20 s with the score/level/state unchanged
+    // taps: rage = 4+ taps within 1.2 s inside 40 px while the game's state/score/level stays the same; no-progress = 25+ taps in 20 s with the score/level/state unchanged
     const taps = [];
     w.addEventListener('pointerdown', e => {
       const now = performance.now(); r.taps++; taps.push([now, e.clientX, e.clientY]);
       if (r.visMs >= 20000 && r.taps >= 5 && !r.cpaTried) { r.cpaTried = true; cpaPlay(r); }
       while (taps.length && now - taps[0][0] > 20000) taps.shift();
       const near = taps.filter(([t, x, y]) => now - t < 1200 && Math.hypot(x - e.clientX, y - e.clientY) < 40);
-      if (near.length >= 4 && now - r.lastRage > 3000) { r.rage++; r.lastRage = now; r.rageAt.push([Math.round(e.clientX / w.innerWidth * 100), Math.round(e.clientY / w.innerHeight * 100)]); }
-      const s = state(w);
-      if (s !== r.lastState) { r.lastState = s; r.progressAt = now; }
+      const s = state(w), moved = s !== r.lastState;
+      // fast taps that move the score are play (tapper games like Viral Den), not frustration: rage only when nothing changed for 1.2 s
+      if (near.length >= 4 && !moved && now - r.progressAt > 1200 && now - r.lastRage > 3000) { r.rage++; r.lastRage = now; r.rageAt.push([Math.round(e.clientX / w.innerWidth * 100), Math.round(e.clientY / w.innerHeight * 100)]); }
+      if (moved) { r.lastState = s; r.progressAt = now; }
       if (taps.length >= 25 && now - r.progressAt > 20000 && now - r.lastStuck > 20000) { r.stuck++; r.lastStuck = now; }
     }, true);
   }
@@ -130,11 +131,13 @@
       body: JSON.stringify({ u, slug: r.slug, vis_s: Math.round(r.visMs / 1000), taps: r.taps }) })
       .then(x => x.json()).then(j => { if (j && j.counted) try { localStorage.setItem('ap.cpaplay', '1'); } catch (e) {} }).catch(() => {});
   }
-  const state = w => { try { const g = w.__game; return g ? [g.state, g.score, g.level].join('|') : ''; } catch (e) { return ''; } };
+  const state = w => { try { const g = w.__game; return g ? [g.state, g.score, g.level].join('|') + (g.progress != null ? '|' + g.progress : '') : ''; } catch (e) { return ''; } };
   function endRun(reason) {
     const r = game; if (!r) return; game = null;
     const secs = Math.round((performance.now() - r.t0) / 1000);
-    push('game', { slug: r.slug, cat: r.cat, secs, reason, load_ms: r.loadMs, fps: r.frames && r.visMs > 500 ? Math.round(r.frames * 1000 / r.visMs) : null, vis_s: Math.round(r.visMs / 1000),
+    const T = window.ApTaste; if (T) try { T.played(r.g, Math.round(r.visMs / 1000)); } catch (e) {}   // her art style (taste.js)
+    const taste = T && T.art(r.g) ? { art: T.art(r.g), kind: r.g.kind || null, arm: T.active() ? 'style' : 'base', style: T.style() } : undefined;
+    push('game', { slug: r.slug, cat: r.cat, secs, reason, taste, load_ms: r.loadMs, fps: r.frames && r.visMs > 500 ? Math.round(r.frames * 1000 / r.visMs) : null, vis_s: Math.round(r.visMs / 1000),
       slow_pct: r.frames ? Math.round(100 * r.slow / r.frames) : null, freezes: r.freezes.slice(0, 5), errors: [...new Set(r.errors)].slice(0, 5),
       taps: r.taps, rage: r.rage, rage_at: r.rageAt.slice(0, 5), stuck: r.stuck, quick_quit: secs < 15, final: (() => { try { return state(r.frame.contentWindow); } catch (e) { return ''; } })() });
     flush(false);
@@ -155,7 +158,7 @@
     },
     start(g, frame) {
       if (game) endRun('next');
-      game = { slug: g.slug, cat: g.category || '', frame, t0: performance.now(), loadMs: Math.round(performance.now() - T0), errors: [], freezes: [], frames: 0, visMs: 0, slow: 0,
+      game = { g, slug: g.slug, cat: g.category || '', frame, t0: performance.now(), loadMs: Math.round(performance.now() - T0), errors: [], freezes: [], frames: 0, visMs: 0, slow: 0,
         taps: 0, rage: 0, rageAt: [], stuck: 0, lastRage: 0, lastStuck: 0, lastState: '', progressAt: performance.now() };
       try { watch(frame, g); } catch (e) { game.errors.push('diag: ' + e.message); }
       push('start', { slug: g.slug, cat: g.category || '' }); flush(false);   // counted even if the in-app browser is closed mid-game

@@ -72,6 +72,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 <script>window.RC_NO_POPUP = true;</script>
 <script src="consent.js"></script>
 <script src="habits.js"></script>
+<script src="taste.js"></script>
 <script src="attrib.js"></script>
 <script src="diag.js"></script>
 <script src="reward.js"></script>
@@ -129,7 +130,11 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
   const AUD = /^[fm]$/.test(q.get('aud') || '') ? q.get('aud') : null;
   if (AUD) try { localStorage.setItem('ap.aud', AUD); } catch (e) {}
   const OPA = AUD && (C.OPENERS_BY || {})[AUD], OP = (OPA || []).length ? OPA : (C.OPENERS || []).length ? C.OPENERS : (C.FEED || []).slice(0, 1);
-  const GAME = INC === 'secret' && F9.length ? F9[Math.floor(Math.random() * F9.length)] : OP[Math.floor(Math.random() * OP.length)] || 'stretch-dash';
+  // the style test (taste.js): a woman gets her first game in her art style (one she showed us, or a random one to learn from)
+  const T = window.ApTaste, TO = C.TASTE_OPENERS || {};   // config TASTE_OPENERS: first games per art style (A Hero Lab 3D, B Kawaii Pop, C Storybook Garden)
+  const TS = AUD === 'f' && T && T.active() ? T.style() || (T.profile().ad) || 'ABC'[Math.floor(Math.random() * 3)] : null;
+  const TL = TS && TO[TS] || [];
+  const GAME = TL.length ? TL[Math.floor(Math.random() * TL.length)] : INC === 'secret' && F9.length ? F9[Math.floor(Math.random() * F9.length)] : OP[Math.floor(Math.random() * OP.length)] || 'stretch-dash';
   // the incentive's line in the first reply (today.json carries tomorrow's game and the AI-only games)
   let INCL = INC === 'streak' ? '\n🔥 Day 1 streak started: day 7 unlocks a VIP game.' : '';
   if (INC === 'peek' || INC === 'vip') fetch('today.json').then(r => r.json()).then(t => {

@@ -139,7 +139,7 @@ let actx;
 export function tone(f = 440, t = 0.08, type = 'sine', vol = 0.16, slide = 0.6) {
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    if (actx.state === 'suspended') actx.resume();
+    if (actx.state === 'suspended') actx.resume().catch(() => {});
     const o = actx.createOscillator(), g = actx.createGain(), n = actx.currentTime;
     o.type = type; o.frequency.setValueAtTime(f, n); if (slide !== 1) o.frequency.exponentialRampToValueAtTime(f * slide, n + t);
     g.gain.setValueAtTime(vol, n); g.gain.exponentialRampToValueAtTime(0.001, n + t);

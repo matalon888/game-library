@@ -141,6 +141,8 @@
   const tgt = g => g.linkout ? ' target="_blank" rel="noopener"' : '';
   // ratings first; public reception only when it says something (no '0 GitHub stars'); else the category
   const metaLine = (g, st) => {
+    const lv = window.ApSave && ApSave.level(g.slug);   // highest level this player reached (arcade/save.js)
+    if (lv > 1) return `<span class="lv">Level ${lv}</span> · ${esc(g.category || 'Arcade')}`;
     if (g.platform === 'desktop') return '⌨ ' + esc(g.category || 'Arcade') + ' · Desktop';
     if (g.linkout) return esc(g.category || 'Arcade') + ' · on ' + esc(g.host || 'creator site') + ' ↗';
     if (st && st.rating) return `<span class="star">${starsTxt(st)}</span> · ${esc(g.category || 'Arcade')}`;

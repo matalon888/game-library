@@ -136,10 +136,14 @@ export function stickman(color = '#3a86ff', skin = '#ffd7ba', scale = 1) {
 
 // ---------------------------------------------------------------- juice
 let actx;
+// iOS rejects resume() while another app holds the audio device: catch it (it surfaced as an error in every game).
+// The context starts on the first touch, so the first sound effect doesn't stall a frame creating it.
+const AUDIO_RESUME = () => { if (actx && actx.state === 'suspended') actx.resume().catch(() => {}); };
+try { addEventListener('pointerdown', () => { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); AUDIO_RESUME(); } catch (e) {} }, { once: true, capture: true }); } catch (e) {}
 export function tone(f = 440, t = 0.08, type = 'sine', vol = 0.16, slide = 0.6) {
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    if (actx.state === 'suspended') actx.resume();
+    AUDIO_RESUME();
     const o = actx.createOscillator(), g = actx.createGain(), n = actx.currentTime;
     o.type = type; o.frequency.setValueAtTime(f, n); if (slide !== 1) o.frequency.exponentialRampToValueAtTime(f * slide, n + t);
     g.gain.setValueAtTime(vol, n); g.gain.exponentialRampToValueAtTime(0.001, n + t);

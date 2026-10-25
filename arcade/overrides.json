@@ -6806,7 +6806,8 @@
    ],
    "original": true,
    "repo_dir": "trinket-trio-match-3d-puzzle",
-   "review": null
+   "review": null,
+   "kind": "triple"
   },
   {
    "slug": "keepsake-lane-hidden-objects",
@@ -6829,7 +6830,8 @@
    ],
    "original": true,
    "repo_dir": "keepsake-lane-hidden-objects",
-   "review": null
+   "review": null,
+   "kind": "hidden"
   },
   {
    "slug": "mergewood-manor-merge-restore",
@@ -6852,7 +6854,8 @@
    ],
    "original": true,
    "repo_dir": "mergewood-manor-merge-restore",
-   "review": null
+   "review": null,
+   "kind": "merge"
   },
   {
    "slug": "bloomhaus-match-decorate",
@@ -6875,7 +6878,8 @@
    ],
    "original": true,
    "repo_dir": "bloomhaus-match-decorate",
-   "review": null
+   "review": null,
+   "kind": "match3"
   },
   {
    "slug": "sugarloaf-cafe-cooking-rush",
@@ -6898,7 +6902,8 @@
    ],
    "original": true,
    "repo_dir": "sugarloaf-cafe-cooking-rush",
-   "review": null
+   "review": null,
+   "kind": "cooking"
   },
   {
    "slug": "wordvista-word-journey",
@@ -6921,7 +6926,8 @@
    ],
    "original": true,
    "repo_dir": "wordvista-word-journey",
-   "review": null
+   "review": null,
+   "kind": "words"
   },
   {
    "slug": "honeyfield-farm-harvest-bake",
@@ -6944,7 +6950,8 @@
    ],
    "original": true,
    "repo_dir": "honeyfield-farm-harvest-bake",
-   "review": null
+   "review": null,
+   "kind": "garden"
   },
   {
    "slug": "koi-court-3d-mahjong",
@@ -6967,7 +6974,8 @@
    ],
    "original": true,
    "repo_dir": "koi-court-3d-mahjong",
-   "review": null
+   "review": null,
+   "kind": "mahjong"
   },
   {
    "slug": "strut-off-fashion-battle",
@@ -6990,7 +6998,8 @@
    ],
    "original": true,
    "repo_dir": "strut-off-fashion-battle",
-   "review": null
+   "review": null,
+   "kind": "fashion"
   },
   {
    "slug": "peakpatch-tripeaks-solitaire-journey",
@@ -7013,7 +7022,8 @@
    ],
    "original": true,
    "repo_dir": "peakpatch-tripeaks-solitaire-journey",
-   "review": null
+   "review": null,
+   "kind": "cards"
   },
   {
    "slug": "morning-set-daily-puzzles",
@@ -7036,7 +7046,8 @@
    ],
    "original": true,
    "repo_dir": "morning-set-daily-puzzles",
-   "review": null
+   "review": null,
+   "kind": "daily"
   },
   {
    "slug": "daubdeck-bingo-free-bingo-travel-rooms",
@@ -7058,7 +7069,8 @@
    ],
    "original": true,
    "repo_dir": "daubdeck-bingo-free-bingo-travel-rooms",
-   "review": null
+   "review": null,
+   "kind": "bingo"
   },
   {
    "slug": "shelfie-goods-sort",
@@ -7081,7 +7093,8 @@
    ],
    "original": true,
    "repo_dir": "shelfie-goods-sort",
-   "review": null
+   "review": null,
+   "kind": "sort"
   },
   {
    "slug": "gemloft-block-puzzle",
@@ -7104,7 +7117,8 @@
    ],
    "original": true,
    "repo_dir": "gemloft-block-puzzle",
-   "review": null
+   "review": null,
+   "kind": "blocks"
   },
   {
    "slug": "bubblebay-rescue-pop",
@@ -7127,7 +7141,8 @@
    ],
    "original": true,
    "repo_dir": "bubblebay-rescue-pop",
-   "review": null
+   "review": null,
+   "kind": "bubbles"
   },
   {
    "slug": "twistwood-screw-puzzle",
@@ -7150,7 +7165,8 @@
    ],
    "original": true,
    "repo_dir": "twistwood-screw-puzzle",
-   "review": null
+   "review": null,
+   "kind": "screws"
   },
   {
    "slug": "lantern-bay-story-choices",
@@ -7173,7 +7189,8 @@
    ],
    "original": true,
    "repo_dir": "lantern-bay-story-choices",
-   "review": null
+   "review": null,
+   "kind": "story"
   },
   {
    "slug": "quill-cottage-word-garden-crosswords",
@@ -7196,7 +7213,8 @@
    ],
    "original": true,
    "repo_dir": "quill-cottage-word-garden-crosswords",
-   "review": null
+   "review": null,
+   "kind": "words"
   },
   {
    "slug": "rosewick-garden-grow-bloom",
@@ -7219,7 +7237,8 @@
    ],
    "original": true,
    "repo_dir": "rosewick-garden-grow-bloom",
-   "review": null
+   "review": null,
+   "kind": "garden"
   },
   {
    "slug": "larkspur-manor-hidden-objects",
@@ -7242,7 +7261,8 @@
    ],
    "original": true,
    "repo_dir": "larkspur-manor-hidden-objects",
-   "review": null
+   "review": null,
+   "kind": "hidden"
   },
   {
    "slug": "bluebell-bingo-free-bingo-in-painted-gardens",
@@ -7264,7 +7284,8 @@
    ],
    "original": true,
    "repo_dir": "bluebell-bingo-free-bingo-in-painted-gardens",
-   "review": null
+   "review": null,
+   "kind": "bingo"
   },
   {
    "slug": "teatime-solitaire-klondike-spider-card-game",
@@ -7287,7 +7308,8 @@
    ],
    "original": true,
    "repo_dir": "teatime-solitaire-klondike-spider-card-game",
-   "review": null
+   "review": null,
+   "kind": "cards"
   },
   {
    "slug": "robin-s-rescue-bubble-shooter-garden",
@@ -7310,7 +7332,8 @@
    ],
    "original": true,
    "repo_dir": "robin-s-rescue-bubble-shooter-garden",
-   "review": null
+   "review": null,
+   "kind": "bubbles"
   },
   {
    "slug": "peony-mahjong-relaxing-tile-solitaire",
@@ -7333,7 +7356,8 @@
    ],
    "original": true,
    "repo_dir": "peony-mahjong-relaxing-tile-solitaire",
-   "review": null
+   "review": null,
+   "kind": "mahjong"
   },
   {
    "slug": "petal-jigsaw-painted-jigsaw-puzzles",
@@ -7356,7 +7380,8 @@
    ],
    "original": true,
    "repo_dir": "petal-jigsaw-painted-jigsaw-puzzles",
-   "review": null
+   "review": null,
+   "kind": "jigsaw"
   },
   {
    "slug": "botanical-brush-colour-by-number",
@@ -7379,7 +7404,8 @@
    ],
    "original": true,
    "repo_dir": "botanical-brush-colour-by-number",
-   "review": null
+   "review": null,
+   "kind": "colour"
   },
   {
    "slug": "oak-ivy-blocks-wood-block-puzzle",
@@ -7402,7 +7428,8 @@
    ],
    "original": true,
    "repo_dir": "oak-ivy-blocks-wood-block-puzzle",
-   "review": null
+   "review": null,
+   "kind": "blocks"
   },
   {
    "slug": "pantry-sort-jam-jar-puzzle",
@@ -7425,7 +7452,8 @@
    ],
    "original": true,
    "repo_dir": "pantry-sort-jam-jar-puzzle",
-   "review": null
+   "review": null,
+   "kind": "sort"
   },
   {
    "slug": "garden-gather-match-3-garden",
@@ -7448,7 +7476,8 @@
    ],
    "original": true,
    "repo_dir": "garden-gather-match-3-garden",
-   "review": null
+   "review": null,
+   "kind": "match3"
   },
   {
    "slug": "morning-paper-puzzles-daily-crossword-word-search-sudoku",
@@ -7471,7 +7500,8 @@
    ],
    "original": true,
    "repo_dir": "morning-paper-puzzles-daily-crossword-word-search-sudoku",
-   "review": null
+   "review": null,
+   "kind": "daily"
   },
   {
    "slug": "jelly-blocks-block-puzzle",
@@ -7494,7 +7524,8 @@
    ],
    "original": true,
    "repo_dir": "jelly-blocks-block-puzzle",
-   "review": null
+   "review": null,
+   "kind": "blocks"
   },
   {
    "slug": "boba-trio-triple-match-3d",
@@ -7517,7 +7548,8 @@
    ],
    "original": true,
    "repo_dir": "boba-trio-triple-match-3d",
-   "review": null
+   "review": null,
+   "kind": "triple"
   },
   {
    "slug": "bowtwist-pin-puzzle",
@@ -7540,7 +7572,8 @@
    ],
    "original": true,
    "repo_dir": "bowtwist-pin-puzzle",
-   "review": null
+   "review": null,
+   "kind": "screws"
   },
   {
    "slug": "pocket-pom-cozy-pet-cafe",
@@ -7563,7 +7596,8 @@
    ],
    "original": true,
    "repo_dir": "pocket-pom-cozy-pet-cafe",
-   "review": null
+   "review": null,
+   "kind": "pets"
   },
   {
    "slug": "sprinkle-sort-cute-sort-puzzle",
@@ -7586,7 +7620,8 @@
    ],
    "original": true,
    "repo_dir": "sprinkle-sort-cute-sort-puzzle",
-   "review": null
+   "review": null,
+   "kind": "sort"
   },
   {
    "slug": "mochi-match-match-3-dorm-decor",
@@ -7609,7 +7644,8 @@
    ],
    "original": true,
    "repo_dir": "mochi-match-match-3-dorm-decor",
-   "review": null
+   "review": null,
+   "kind": "match3"
   },
   {
    "slug": "bubble-buns-bubble-shooter-pop",
@@ -7632,7 +7668,8 @@
    ],
    "original": true,
    "repo_dir": "bubble-buns-bubble-shooter-pop",
-   "review": null
+   "review": null,
+   "kind": "bubbles"
   },
   {
    "slug": "starlit-crush-romance-story-choices",
@@ -7655,7 +7692,8 @@
    ],
    "original": true,
    "repo_dir": "starlit-crush-romance-story-choices",
-   "review": null
+   "review": null,
+   "kind": "story"
   },
   {
    "slug": "mergie-dorm-merge-decorate-story",
@@ -7678,7 +7716,8 @@
    ],
    "original": true,
    "repo_dir": "mergie-dorm-merge-decorate-story",
-   "review": null
+   "review": null,
+   "kind": "merge"
   },
   {
    "slug": "glowfit-runway-dress-up-fashion-battle",
@@ -7701,7 +7740,8 @@
    ],
    "original": true,
    "repo_dir": "glowfit-runway-dress-up-fashion-battle",
-   "review": null
+   "review": null,
+   "kind": "fashion"
   },
   {
    "slug": "dumpling-dash-kawaii-cooking-rush",
@@ -7724,7 +7764,8 @@
    ],
    "original": true,
    "repo_dir": "dumpling-dash-kawaii-cooking-rush",
-   "review": null
+   "review": null,
+   "kind": "cooking"
   },
   {
    "slug": "dailies-club-daily-puzzle-set",
@@ -7747,7 +7788,8 @@
    ],
    "original": true,
    "repo_dir": "dailies-club-daily-puzzle-set",
-   "review": null
+   "review": null,
+   "kind": "daily"
   },
   {
    "slug": "pastel-pixel-color-by-number",
@@ -7770,7 +7812,8 @@
    ],
    "original": true,
    "repo_dir": "pastel-pixel-color-by-number",
-   "review": null
+   "review": null,
+   "kind": "colour"
   },
   {
    "slug": "hero-lab-build-your-agentpark-hero",
