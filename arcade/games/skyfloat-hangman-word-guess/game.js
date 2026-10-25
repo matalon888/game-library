@@ -163,10 +163,16 @@ const slotFor = (i, n) => OFF[n][i];
 
 // ---------------------------------------------------------------- drawing
 let clouds = []; { const r = rngf(99); clouds = Array.from({ length: 5 }, () => ({ x: r(), y: 0.08 + r() * 0.45, s: 0.6 + r() * 0.7, v: 0.004 + r() * 0.006 })); }
+// art wave 2: the painted sky (cover-fit) under the sun, clouds, balloons and ground, washed with this sky's colours
+const ART = new Image(); ART.src = 'assets/bg-art.webp';
 function drawSky(t) {
   const { W, H, groundY } = geo;
   const gr = g.createLinearGradient(0, 0, 0, groundY); sk.sky.forEach((c, i) => gr.addColorStop(i / (sk.sky.length - 1), c));
   g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  if (ART.complete && ART.naturalWidth) {
+    const k = Math.max(W / ART.naturalWidth, H / ART.naturalHeight), w = ART.naturalWidth * k, h = ART.naturalHeight * k;
+    g.drawImage(ART, (W - w) / 2, (H - h) / 2, w, h); g.globalAlpha = 0.3; g.fillStyle = gr; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
+  }
   // sun + glow
   const sx = W * 0.8, sy = geo.top + 40, sr = 30;
   const gl = g.createRadialGradient(sx, sy, sr * 0.5, sx, sy, sr * 4); gl.addColorStop(0, sk.sun + 'cc'); gl.addColorStop(1, sk.sun + '00'); g.fillStyle = gl; g.fillRect(0, 0, W, H);

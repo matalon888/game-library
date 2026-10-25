@@ -35,7 +35,8 @@ const SCENES = [
   { name: 'Moonlit Fjord', sky: ['#2c3460', '#45457c', '#7c6a9c'], sun: '#fdf3d8', mts: ['#5d5b8f', '#46467a', '#323462', '#20224a'], mist: '#8c84b8', acc: '#e0a64a', lake: true, night: true },
   { name: 'Tea Terraces', sky: ['#f1f8df', '#d8eeb9', '#b4d99a'], sun: '#ffffff', mts: ['#b9da9c', '#8fc27a', '#669e5c', '#41714a'], mist: '#f2fae6', acc: '#4d8a3f', pines: true },
 ];
-const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0'; document.body.prepend(bg);
+// art wave 2: the painted background (index.html, tinted with this game's colours) replaces the drawn landscape
+const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;display:none'; document.body.prepend(bg);
 function rngf(seed) { let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
 function paint(sc, seed) {
   const dpr = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight, r = rngf(seed * 977 + 3);

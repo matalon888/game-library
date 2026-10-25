@@ -142,6 +142,9 @@
   body .hc-card h1{font-size:clamp(48px,15vw,78px)}
   body .hc-card{padding-top:calc(96px + env(safe-area-inset-top))}
 </style>
+<style data-art-bg>/* art wave 2: the painted background, tinted with the game's own colour so its text keeps its contrast */
+html,body{background:linear-gradient(rgba(127,163,107,.5),rgba(127,163,107,.5)),url(assets/bg-art.webp) center/cover no-repeat,rgb(127,163,107)!important;min-height:100%}
+#bg{display:none!important}   /* the drawn backdrop steps aside for the painting */</style>
 </head>
 <body>
 <canvas id="bg"></canvas>

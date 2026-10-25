@@ -194,11 +194,14 @@ function fit() {
   cv.width = W * dpr; cv.height = H * dpr;
   makeSprites(th); cv.width = W * dpr; cv.height = H * dpr; paintBg();
 }
+// art wave 2: the painted backdrop (assets/bg-art.webp); paintBg redraws once it has loaded
+const ART = new Image(); ART.onload = () => { if (typeof th !== 'undefined' && th) paintBg(); }; ART.src = 'assets/bg-art.webp';
 let bgCanvas = null;
 function paintBg() {
   const W = innerWidth, H = innerHeight; bgCanvas = document.createElement('canvas'); bgCanvas.width = W * dpr; bgCanvas.height = H * dpr;
   const c = bgCanvas.getContext('2d'); c.scale(dpr, dpr);
   const gr = c.createRadialGradient(W / 2, H * 0.42, 20, W / 2, H * 0.5, H * 0.75); th.bg.forEach((col, i) => gr.addColorStop(i / 2, col)); c.fillStyle = gr; c.fillRect(0, 0, W, H);
+  if (ART.complete && ART.naturalWidth) { const k = Math.max(W / ART.naturalWidth, H / ART.naturalHeight), w = ART.naturalWidth * k, h = ART.naturalHeight * k; c.drawImage(ART, (W - w) / 2, (H - h) / 2, w, h); c.globalAlpha = 0.5; c.fillStyle = gr; c.fillRect(0, 0, W, H); c.globalAlpha = 1; }   // art wave 2: the painting, washed with this theme
   // bamboo silhouettes at the edges
   const r = rngf(level * 17 + 3); c.globalAlpha = 0.22; c.fillStyle = th.leaf; c.strokeStyle = th.leaf;
   for (const side of [0, 1]) for (let k = 0; k < 3; k++) {

@@ -277,6 +277,9 @@ body.playing .bd-trophy,body.sheet-open .bd-trophy{display:none}
 @media (max-height:740px){.mast h1{font-size:calc(32px * var(--fs))}.pz{min-height:84px;padding:8px 2px}.thumb{width:60px;height:60px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+<style data-art-bg>/* art wave 2: the painted background, tinted with the game's own colour so its text keeps its contrast */
+html,body{background:linear-gradient(rgba(138,141,152,.28),rgba(138,141,152,.28)),url(assets/bg-art.webp) center/cover no-repeat,rgb(138,141,152)!important;min-height:100%}
+#bg{background:linear-gradient(rgba(138,141,152,.28),rgba(138,141,152,.28)),url(assets/bg-art.webp) center/cover no-repeat!important}   /* the game's own backdrop shows the painting */</style>
 </head>
 <body>
 <div id="bg"></div>

@@ -36,7 +36,8 @@ const SCENES = [
   { sky: ['#283058', '#414276', '#77659a'], sun: '#fdf3d8', mts: ['#5a588c', '#444478', '#313260', '#1f2148'], mist: '#8a82b6', acc: '#e0a64a', lake: true, night: true },
   { sky: ['#f3f9e2', '#dcefbf', '#b9db9e'], sun: '#ffffff', mts: ['#bddca0', '#93c47e', '#6a9f5f', '#43734c'], mist: '#f3fae8', acc: '#4f8a3e', pines: true },
 ];
-const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0'; document.body.prepend(bg);
+// art wave 2: the painted background (index.html, tinted with this game's colours) replaces the drawn landscape
+const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;display:none'; document.body.prepend(bg);
 function rngf(seed) { let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
 function paint(sc, seed) {
   const dpr = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight, r = rngf(seed * 977 + 3);

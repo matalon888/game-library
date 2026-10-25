@@ -35,7 +35,8 @@ const SCENES = {
   city: { sky: ['#ffd0c2', '#ffe6d6', '#fff4e8'], layers: ['#c7b8e0', '#a796cf', '#8b7cc0', '#6f63a8'], sun: '#fff6e8', city: true },
   blossom: { sky: ['#ffd6e7', '#ffeaf2', '#fff7ea'], layers: ['#c9e7a8', '#a8d88f', '#f7b5cd', '#8cc879'], sun: '#ffffff', blossom: true },
 };
-const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0'; document.body.prepend(bg);
+// art wave 2: the painted background (index.html, tinted with this game's colours) replaces the drawn landscape
+const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;display:none'; document.body.prepend(bg);
 function paint(sc, seed) {
   const dpr = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight, r = rngf(seed * 977 + 3);
   bg.width = W * dpr; bg.height = H * dpr; const g = bg.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);

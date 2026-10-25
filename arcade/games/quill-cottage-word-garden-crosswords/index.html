@@ -235,6 +235,9 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-rad
 }
 @media (prefers-reduced-motion: reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
 </style>
+<style data-art-bg>/* art wave 2: the painted background, tinted with the game's own colour so its text keeps its contrast */
+html,body{background:linear-gradient(rgba(195,180,155,.28),rgba(195,180,155,.28)),url(assets/bg-art.webp) center/cover no-repeat,rgb(195,180,155)!important;min-height:100%}
+.bg{background:linear-gradient(rgba(195,180,155,.28),rgba(195,180,155,.28)),url(assets/bg-art.webp) center/cover no-repeat!important}   /* the game's own backdrop shows the painting */</style>
 </head>
 <body>
 <div class="bg" id="bg0"></div><div class="bg" id="bg1"></div><div id="veil"></div>
