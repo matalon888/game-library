@@ -50,6 +50,7 @@ h1 { margin: 0; font: 800 32px/1.05 var(--display); letter-spacing: -.01em; text
 .alt { color: var(--muted); font-size: 15px; margin-top: -4px }
 #again .copy { font: inherit; font-size: 15px; color: var(--ink); background: none; border: 1px solid rgba(255,255,255,.3); border-radius: 14px; padding: 10px 14px; width: 100% }
 #again p { margin: 0 } #again .go { width: 100% } #again .skip { color: var(--muted); font-size: 15px }
+#again .alt2:not(.nudge) { filter: saturate(.35) brightness(.9) }   /* the backup way out: quieter until the first way fails */
 @media (prefers-reduced-motion: reduce) { .go.first, .go small .plus { animation: none } }
 @media (max-height: 640px) { main { gap: 12px } h1 { font-size: 27px } .go img { width: 50px; height: 50px } }
 </style>
@@ -116,8 +117,18 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
   const AB = (() => { let v = q.get('ab'); try { v = /^[wj][ot]$/.test(v || '') ? v : sessionStorage.getItem('ap.goab'); } catch (e) {}
     if (!/^[wj][ot]$/.test(v || '')) v = (Math.random() < .5 ? 'w' : 'j') + (Math.random() < .5 ? 'o' : 't');
     try { sessionStorage.setItem('ap.goab', v); } catch (e) {} return v; })();
-  const WAIT = !!code && (!!cpaClick || AB[0] === 'w'), ONE = AB[1] === 'o';
-  window.AP_PLACE = cpaClick ? 'go-cpa' : 'go-' + AB;
+  // way-out test (2026-10-25), iPhone Facebook / Instagram browser only: the in-app browser never hands chatgpt.com to the app,
+  // and 40% of the Safari hop (x-safari-) never reached Safari (Oct 21-24: 145 of 358). d = the app's own link first
+  // (chatgpt://chatgpt.com/?q=, claude://claude.ai/new?q=: in Safari both open the app with the message), h = the Safari hop
+  // first; either way the other one is the backup. These visitors always wait for the AI instead of turning into the game
+  // (the w/j test above found no difference, and a game tab hides the backup). Place go-id / go-ih in the onboarding report.
+  const OUT = INAPP && IOS ? (() => { let v = q.get('ch'); try { v = /^[dh]$/.test(v || '') ? v : sessionStorage.getItem('ap.goch'); } catch (e) {}
+    if (!/^[dh]$/.test(v || '')) v = Math.random() < .5 ? 'd' : 'h';
+    try { sessionStorage.setItem('ap.goch', v); } catch (e) {} return v; })() : null;
+  const WAIT = !!code && (!!cpaClick || !!OUT || AB[0] === 'w'), ONE = AB[1] === 'o';
+  // the Safari page after the hop (?hop=safari&ch=) stays in its visitor's arm
+  const OUTP = OUT || (q.get('hop') === 'safari' && /^[dh]$/.test(q.get('ch') || '') ? q.get('ch') : null);
+  window.AP_PLACE = cpaClick ? 'go-cpa' : OUTP ? 'go-i' + OUTP : 'go-' + AB;
   if (code && cpaClick && /^[\w.:-]{1,128}$/.test(cpaClick))
     fetch('https://mcp.riffcade.com/api/cpa', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ u: code, click: cpaClick, pub: q.get('cpa_pub'), camp: q.get('cpa_camp'), pay: q.get('cpa_pay') }) }).catch(() => {});
@@ -157,15 +168,17 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     // out of the in-app browser first: on iPhone this page reopens in Safari (x-safari-), where the visitor's tap on the AI link
     // is a universal link (chatgpt.com/?q=, claude.ai/new) and opens the signed-in app. Jumping straight to the AI URL opened
     // the website in Safari instead, mostly signed out: 2026-10-18..20, 107 iPhone Facebook taps, few connected. Android: Chrome (intent:)
-    let href = aiUrl;
+    let href = aiUrl, alt = null;
+    const direct = (ai === 'claude' ? 'claude://claude.ai/new?q=' : 'chatgpt://chatgpt.com/?q=') + encodeURIComponent(P);
     if (INAPP && IOS) {
-      const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.set('hop', 'safari'); self.searchParams.set('ab', AB); self.searchParams.delete('fbclid');
-      href = 'x-safari-' + self.href;
+      const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.set('hop', 'safari'); self.searchParams.set('ab', AB); if (OUT) self.searchParams.set('ch', OUT); self.searchParams.delete('fbclid');
+      const hop = 'x-safari-' + self.href;
+      href = OUT === 'd' ? direct : hop; alt = OUT === 'd' ? hop : direct;
     } else if (INAPP && AND) href = `intent://${aiUrl.replace(/^https:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(aiUrl)};end`;
     // retry for a tap that opened nothing: from the Facebook / Instagram browser, this page in Safari (one tap there opens the AI)
     const self = new URL(location.href); self.searchParams.set('apu', code || ''); self.searchParams.set('ai', ai); self.searchParams.set('ab', AB); self.searchParams.delete('fbclid'); self.searchParams.delete('hop');
     const retry = INAPP && IOS ? 'x-safari-' + self.href : href;
-    return { P, href, retry };
+    return { P, href, retry, alt };
   }
   // a plain https link opens the AI in a new tab: in the same tab, the switch to the game cancelled a slow chatgpt.com load
   // (go_nojump, mostly iPhone Safari), so the visitor got the game and never the AI
@@ -250,7 +263,21 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     const a = d.querySelector('.go');
     Object.entries(ownTab(t.href)).forEach(([k, v]) => a.setAttribute(k, v));
     a.addEventListener('click', () => { ev('go_retry_' + ai); if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(t.P).catch(() => {}); });
+    if (t.alt) {   // iPhone in-app: the other way out, plus the copied message for an AI that opened with an empty box
+      const n = document.createElement('a'); n.className = 'go alt2'; n.href = t.alt;
+      n.innerHTML = `<small>${OUT === 'd' ? 'TRY ANOTHER WAY: SAFARI ▶' : 'TRY ANOTHER WAY ▶'}</small>`;
+      n.addEventListener('click', () => ev('go_next_' + ai));
+      const tip = document.createElement('p'); tip.className = 'note'; tip.innerHTML = `Empty chat box? Press and hold it, tap <b>Paste</b>: the message is copied.`;
+      d.querySelector('#wait').append(n, tip);
+    }
     document.body.appendChild(d);
+    if (t.alt) {   // nothing opened at all (the page never went to the background): the backup becomes the big button
+      let left = false; const mark = () => { if (document.hidden) left = true; };
+      document.addEventListener('visibilitychange', mark);
+      setTimeout(() => { document.removeEventListener('visibilitychange', mark); if (left || done) return;
+        ev('go_nojump_' + ai); $('wst').innerHTML = `${NAMES[ai]} didn't open. Try the other way 👇`;
+        const a2 = d.querySelector('.alt2'); $('wst').after(a2); a2.classList.add('nudge'); a2.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 2500);
+    }
     const game = 'play.html?g=' + GAME + '&ref=go-' + ai + '&apu=' + code + '&from=go';
     let done = false;
     const check = () => done || fetch('https://mcp.riffcade.com/api/agent?u=' + code, { cache: 'no-store' }).then(r => r.json()).then(r => {
