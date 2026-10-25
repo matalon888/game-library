@@ -6,6 +6,38 @@ import { piece, prop } from './assets.js';
 
 const PI = Math.PI;
 // task kinds: clutter | walls | floor | window | item
+// paint: the painted room (art wave 1, assets/paint/<img>-before|after.webp, same camera). The room screen shows the
+// "before" painting; each finished task reveals the "after" at its spots ([x, y, r] as fractions of the width/height, r of
+// the width), a finished room reveals all of it. names: what a task is called in the painting, where its 3D item isn't there.
+export const PAINTED = {
+  living: { img: 'living', spots: {
+    clutter: [[0.5, 0.86, 0.2], [0.18, 0.97, 0.16]], window: [[0.87, 0.32, 0.2]], sofa: [[0.22, 0.63, 0.2], [0.12, 0.84, 0.2]],
+    walls: [[0.3, 0.18, 0.3], [0.06, 0.12, 0.18], [0.66, 0.06, 0.18]], rug: [[0.5, 0.82, 0.2], [0.44, 0.96, 0.15]], table: [[0.82, 0.66, 0.13]],
+    floor: [[0.3, 0.98, 0.18], [0.7, 0.72, 0.13]], fire: [[0.6, 0.6, 0.17], [0.6, 0.3, 0.16]], chair: [[0.86, 0.86, 0.22]],
+    lamp: [[0.03, 0.56, 0.09], [0.47, 0.45, 0.07], [0.69, 0.45, 0.07]], shelf: [[0.14, 0.36, 0.14], [0.4, 0.38, 0.12]], plant: [[0.93, 0.5, 0.1]],
+    art: [[0.57, 0.42, 0.08]], cat: [[0.25, 0.6, 0.08]] },
+    names: { table: 'Velvet ottoman', art: 'Mantel flowers', lamp: 'Lamps', plant: 'Window plants' } },
+  bedroom: { img: 'bedroom', spots: {
+    clutter: [[0.4, 0.86, 0.2], [0.15, 0.96, 0.15]], walls: [[0.25, 0.2, 0.3], [0.75, 0.08, 0.22], [0.5, 0.32, 0.12]],
+    bed: [[0.65, 0.7, 0.25], [0.75, 0.55, 0.16]], chest: [[0.88, 0.9, 0.12]], window: [[0.82, 0.4, 0.16]],
+    floor: [[0.3, 0.76, 0.15], [0.5, 0.97, 0.16]], drawers: [[0.15, 0.66, 0.13]], vanity: [[0.08, 0.52, 0.1], [0.2, 0.47, 0.1]],
+    rug: [[0.1, 0.92, 0.14]], clock: [[0.5, 0.42, 0.1]], fig: [[0.05, 0.7, 0.08], [0.95, 0.73, 0.09], [0.95, 0.5, 0.06]], gramo: [[0.42, 0.6, 0.13]] },
+    names: { chest: 'Bedside table', vanity: 'Lamp & vanity', rug: 'Pink pouf', clock: 'Book nook', fig: 'Flower vases', gramo: 'Cozy armchair' } },
+  garden: { img: 'garden', spots: {
+    clutter: [[0.5, 0.6, 0.18], [0.35, 0.47, 0.1]], floor: [[0.25, 0.6, 0.16], [0.7, 0.55, 0.15], [0.5, 0.93, 0.2]], fountain: [[0.5, 0.7, 0.16]],
+    walls: [[0.86, 0.36, 0.18], [0.1, 0.36, 0.12], [0.55, 0.06, 0.2], [0.2, 0.06, 0.18]], bench: [[0.88, 0.86, 0.17]], gazebo: [[0.33, 0.3, 0.22]],
+    roses: [[0.25, 0.53, 0.12]], swing: [[0.75, 0.62, 0.12]], hydra: [[0.82, 0.1, 0.2]], lav: [[0.6, 0.45, 0.1]], bath: [[0.78, 0.4, 0.1]],
+    barrow: [[0.12, 0.74, 0.14], [0.12, 0.53, 0.07]] },
+    names: { fountain: 'Lily pond', bench: 'Porch armchair', roses: 'Flower beds', swing: 'Stone bridge', hydra: 'Blossom tree', bath: 'Garden gate', barrow: 'Porch fire & lamp' } },
+  // the Music Room has no painting: it became the Kitchen (task ids, costs and order unchanged, so saves carry on)
+  dining: { img: 'kitchen', name: 'Kitchen', spots: {
+    clutter: [[0.6, 0.95, 0.2], [0.45, 0.8, 0.12]], walls: [[0.5, 0.08, 0.25], [0.2, 0.14, 0.2], [0.85, 0.06, 0.15]], floor: [[0.25, 0.86, 0.15], [0.78, 0.97, 0.12]],
+    rug: [[0.33, 0.95, 0.12], [0.83, 0.8, 0.12]], table: [[0.62, 0.72, 0.2]], window: [[0.85, 0.38, 0.15]], chand: [[0.25, 0.5, 0.12], [0.12, 0.45, 0.08]],
+    piano: [[0.32, 0.65, 0.15], [0.2, 0.25, 0.15]], art: [[0.23, 0.22, 0.08]], shelf: [[0.45, 0.27, 0.13], [0.83, 0.17, 0.12]], lamp: [[0.78, 0.6, 0.13]],
+    plant: [[0.07, 0.68, 0.1], [0.93, 0.92, 0.1], [0.75, 0.45, 0.08]] },
+    names: { walls: 'Fresh plaster', floor: 'Scrubbed floorboards', rug: 'Cushions', table: 'Farmhouse table', chand: 'Copper pans', piano: 'Wood stove',
+      art: 'Herb wreath', shelf: 'Pantry shelves', lamp: 'Sink & counter', plant: 'Potted plants' } },
+};
 export const ROOMS = [
   { id: 'living', name: 'Living Room', W: 10, D: 8, H: 5, host: [2.7, 0, 1.2, -0.35],
     wall: { shabby: ['#d4bb9b', '#b99d7c'], nice: { kind: 'damask', a: '#efb9b4', b: '#e49f9c', c: '#fff1e4' }, wains: '#fffaf2' },
@@ -88,6 +120,8 @@ export const ROOMS = [
       { id: 'plant', name: 'Fig in a basket', cost: 1, item: 'h06', at: [4.4, 0, 0.0], rot: 0, size: 2.3 },
     ] },
 ];
+// the painted rooms take their painting's names (the Music Room is the Kitchen)
+for (const d of ROOMS) { const P = PAINTED[d.id]; if (!P) continue; d.paint = P; if (P.name) d.name = P.name; for (const t of d.tasks) if (P.names && P.names[t.id]) t.name = P.names[t.id]; }
 
 // ---------------------------------------------------------------- canvas textures
 function canvas(w, h, fn) {

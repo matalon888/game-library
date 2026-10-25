@@ -31,6 +31,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const BOT = () => !!navigator.webdriver;
 const dayNum = (d = new Date()) => Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 864e5);
 const thumb = id => `./assets/thumbs/${CAST[id]?.char || id}.webp`;
+// painted art (art wave 1, assets/art/): speaker portraits in the dialogue box, establishing shots behind the location card when
+// a scene changes, chapter cards. Mapped by role: the heroine is you; the lighthouse "keeper" in a peacoat is Kai (lifeboat crew,
+// the tower climb); the baker is Theo (by name); the marine biologist is Juno (the harbour mechanic); the widow is Aunt Wren.
+// No art yet: Mr Pike, Vesper, the bookshop, chapters 4, 5 and 7.
+const ART = {
+  pt: { me: 1, kai: 1, theo: 1, juno: 1, wren: 1 },
+  set: { 'harbor dusk': 'harbour', 'harbor afternoon': 'harbour', 'harbor festival': 'harbour', 'harbor stall': 'harbour', 'harbor night': 'date', 'harbor launch': 'date', tearoom: 'bakery', lighthouse: 'lantern-room' },
+  ch: { 1: 'harbour', 2: 'lighthouse', 3: 'date', 6: 'lighthouse', 8: 'lantern-room' },
+};
+const ptOf = id => ART.pt[id] ? `./assets/art/pt-${id}.webp` : null;
+const sceneOf = b => ART.set[b.set + ' ' + b.v] || ART.set[b.set] || null;
+const artImgs = {};
+const artLoad = src => artImgs[src] || (artImgs[src] = new Promise(ok => { const i = new Image(); i.onload = () => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()).then(() => ok(true)); i.onerror = () => ok(false); i.src = src; }));
 
 // ------------------------------------------------------------------------------------------------- renderer
 const LITE = Q.has('lite') || (Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
@@ -213,6 +226,7 @@ function renderLobby() {
     ${D.streak > 1 ? `<div class="streak">🔥 ${D.streak}-day streak</div>` : ''}
     <div class="lspace"></div>
     <div class="book" id="bookC">
+      ${!D.seed && !allDone && ART.ch[n] ? `<div class="bkart" style="background-image:url(./assets/art/scene-${ART.ch[n]}-s.webp)"></div>` : ''}
       <span class="chn">${allDone ? 'BOOK 1 · 3/8' : `CH ${n}/8`}</span>
       <div class="bk">Book One · ${esc(BOOK.title)}</div>
       <h2>${D.seed ? 'Case of the Day' : allDone ? 'Chapter 4 is coming soon' : `${c.icon} ${esc(c.title)}`}</h2>
@@ -356,6 +370,8 @@ async function doSet(b, quick = false) {
   $('fade').style.opacity = 1; await sleep(quick ? 50 : 450);
   if (RUN !== R0 || R0.stale) return;
   useSet(b.set, b.v);
+  const sc = !quick && sceneOf(b), est = $('est');
+  if (sc) { const src = `./assets/art/scene-${sc}.webp`; await Promise.race([artLoad(src), sleep(700)]); est.style.backgroundImage = `url(${src})`; est.classList.add('on'); }
   const [where, when] = (b.cap || '').split('·').map(s => s.trim());
   $('loc').querySelector('small').textContent = when || ''; $('loc').querySelector('h2').textContent = where || '';
   // look ahead: stage everyone who enters before the first line, so the scene opens already set up
@@ -364,7 +380,7 @@ async function doSet(b, quick = false) {
   RUN.i = j;
   const nb = ch.beats[j]; setCam(nb && nb.k === 'say' && nb.id ? shotFor(nb) : { ...set.est, off: [0, -40] }, true);
   if (!quick) { $('loc').classList.add('on'); SND.swoosh(); await sleep(BOT() ? 500 : 1500); }
-  $('fade').style.opacity = 0; await sleep(quick ? 50 : 350); $('loc').classList.remove('on');
+  $('fade').style.opacity = 0; est.classList.remove('on'); await sleep(quick ? 50 : 350); $('loc').classList.remove('on');
 }
 // the lighthouse flashes three times
 async function lightEvent() {
@@ -420,6 +436,8 @@ function say(b) {
   el.className = isN ? 'narr' : think ? 'think' : '';
   const tag = el.querySelector('.tag');
   if (!isN) { const c = CAST[b.id] || CAST.me; tag.textContent = nm(c.name) + (think ? ' · thinking' : ''); tag.style.background = c.color; }
+  const pt = !isN && ptOf(alias(b.id) in ART.pt ? alias(b.id) : b.id), pi = el.querySelector('.pt');
+  el.classList.toggle('has-pt', !!pt); if (pt) { if (pi.getAttribute('src') !== pt) pi.src = pt; pi.style.borderColor = (CAST[b.id] || CAST.me).color; }
   typeOut(0);
   el.classList.remove('off');
   requestAnimationFrame(() => setCam(shotFor(b), false, prevId === say.prev ? 2.2 : 5.5));
@@ -580,7 +598,7 @@ function openSheet(kind, opt = {}) {
   if (kind === 'chapters') {
     inn.innerHTML = head('Book One · ' + esc(BOOK.title)) + `<div class="sh-b"><p class="note">Every chapter is about 10–15 minutes. Your choices carry forward. Replays never change your saved story.</p>${BOOK.chapters.map(c => {
       const done = P.done[c.n], cur = !c.soon && !done && c.n === P.next;
-      return `<div class="chrow ${c.soon ? 'soon' : ''}"><div class="num">${c.icon}</div><div style="flex:1"><small>Chapter ${c.n} · ${esc(c.place)}</small><h4>${esc(c.title)}</h4><p>${esc(c.teaser)}</p>${done ? `<button class="rp" data-rp="${c.n}">↺ Replay with different choices</button>` : cur ? `<button class="rp" data-go="${c.n}">▶ Read now</button>` : ''}</div>
+      return `<div class="chrow ${c.soon ? 'soon' : ''}">${ART.ch[c.n] ? `<div class="num art" style="background-image:url(./assets/art/scene-${ART.ch[c.n]}-s.webp)"><i>${c.icon}</i></div>` : `<div class="num">${c.icon}</div>`}<div style="flex:1"><small>Chapter ${c.n} · ${esc(c.place)}</small><h4>${esc(c.title)}</h4><p>${esc(c.teaser)}</p>${done ? `<button class="rp" data-rp="${c.n}">↺ Replay with different choices</button>` : cur ? `<button class="rp" data-go="${c.n}">▶ Read now</button>` : ''}</div>
         <span class="st ${cur ? 'cur' : c.soon || c.n > P.next ? 'lock' : ''}">${done ? '✓ Read' : cur ? 'Up next' : c.soon ? 'Soon' : '🗝️'}</span></div>`; }).join('')}</div>`;
   } else if (kind === 'album') {
     P.seen = P.album.length; saveP();
