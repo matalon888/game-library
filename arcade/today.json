@@ -19,11 +19,11 @@
  "total": 339,
  "poster": "https://agentpark.co/arcade/today-poster.jpg?d=2026-10-25",
  "game_of_the_day": {
-  "name": "Bumpy Buggy",
-  "category": "Racing",
-  "pitch": "Tilt a toy jeep over rolling seeded hills using only gas and brake, chasing distance, coins and fuel while avoiding flips.",
-  "image": "https://agentpark.co/arcade/covers/bumpy-buggy.webp",
-  "play_url": "https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd"
+  "name": "Smooch Roll",
+  "category": "Puzzle",
+  "pitch": "Sketch ink lines that become physical objects so a blue and a pink ball roll into each other, with simple, readable physics puzzles.",
+  "image": "https://agentpark.co/arcade/covers/smooch-roll.webp",
+  "play_url": "https://agentpark.co/arcade/play.html?g=smooch-roll&ref=daily&pos=gotd"
  },
  "games": [
   {
@@ -338,27 +338,6 @@
   ],
   "Racing": [
    {
-    "name": "Zip Lanes: Traffic Racer",
-    "new": false,
-    "pitch": "Swipe between lanes, weave through highway traffic at rising speed and chain close-call combos.",
-    "image": "https://agentpark.co/arcade/covers/zip-lanes-traffic-racer.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=zip-lanes-traffic-racer&ref=daily&pos=list-Racing"
-   },
-   {
-    "name": "Thrill Loop: Roller Coaster Ride",
-    "new": false,
-    "pitch": "Hold to build speed and release to brake, matching pace to track sections so every rider stays aboard through loops, jumps and hairpins.",
-    "image": "https://agentpark.co/arcade/covers/thrill-loop-roller-coaster-ride.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=thrill-loop-roller-coaster-ride&ref=daily&pos=list-Racing"
-   },
-   {
-    "name": "Brick Climb",
-    "new": false,
-    "pitch": "Race rivals across a brick-strewn floor, collecting only your colour to stack and lay as stairs, then climb first to the next level.",
-    "image": "https://agentpark.co/arcade/covers/brick-climb.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=brick-climb&ref=daily&pos=list-Racing"
-   },
-   {
     "name": "Marble Dash",
     "new": false,
     "pitch": "Hold to roll a glossy marble down a wooden sky track, steering around red blocks and over boost pads toward the next level.",
@@ -378,6 +357,27 @@
     "pitch": "Swipe to steer a tube-riding sledder down an icy slope, jumping, ducking under limbo bars, and grabbing coins as levels advance.",
     "image": "https://agentpark.co/arcade/covers/chilly-chute.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=chilly-chute&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Doodle Legs",
+    "new": false,
+    "pitch": "Sketch any curve to shape your cube's spinning legs, then redraw mid-race so big arcs vault steps and small ones slip under low roofs.",
+    "image": "https://agentpark.co/arcade/covers/doodle-legs.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=doodle-legs&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Tiptoe Tower",
+    "new": false,
+    "pitch": "Steer a runner down rooftop lanes, stacking heels while dodging brick walls, splitting across rails, then climbing a rainbow multiplier podium.",
+    "image": "https://agentpark.co/arcade/covers/tiptoe-tower.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=tiptoe-tower&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Flip Volt",
+    "new": false,
+    "pitch": "Throttle a glowing neon bike along a curving light track, backflipping in midair and landing on both wheels to reach each level's finish gate.",
+    "image": "https://agentpark.co/arcade/covers/flip-volt.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=flip-volt&ref=daily&pos=list-Racing"
    }
   ],
   "Word & Math": [
@@ -712,8 +712,8 @@
   "play_url": "https://agentpark.co/arcade/play.html?g=switchback&ch=11&ref=daily&pos=challenge"
  },
  "peek": {
-  "name": "Skyline Scope",
-  "play_url": "https://agentpark.co/arcade/play.html?g=skyline-scope&ref=daily&pos=peek"
+  "name": "Core Crusher",
+  "play_url": "https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=peek"
  },
  "ai_only": [
   {
@@ -729,5 +729,5 @@
    "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly"
   }
  ],
- "daily_message": "🌅 Your games for Sunday, 25 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-25)\n\n🏆 Today's game: [Bumpy Buggy ▶](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd)\n🆕 New: [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new) · [Shelfie](https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 339 games →](https://agentpark.co)"
+ "daily_message": "🌅 Your games for Sunday, 25 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-25)\n\n🏆 Today's game: [Smooch Roll ▶](https://agentpark.co/arcade/play.html?g=smooch-roll&ref=daily&pos=gotd)\n🆕 New: [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new) · [Shelfie](https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 339 games →](https://agentpark.co)"
 }
