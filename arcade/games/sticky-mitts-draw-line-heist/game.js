@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { canvasTex } from './geo.js';
 
 const NAME = 'Sticky Mitts: Draw Line Heist';
@@ -369,6 +370,14 @@ input({
   onUp: () => { dragging = false; finger = null; glove.fingers.forEach(f => f.rotation.x = Math.PI / 2); },
 });
 ui.onTap((which) => { B.start(); build(); state = 'play'; ui.hideStart(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the glove stretches the arm along a safe route toward the loot (the bot's own path) for a moment, then the vault resets
+const DM = demo(null, { ready: () => state === 'play' && sub === 'reach' && level === 1 && !D.isDaily, wait: 1300, ms: 2600 });
+let demoOn = false;
+function demoReach() {
+  if (DM.on && !dragging && progress < 0.4) { window.__game.bot(); demoOn = true; }
+  else if (demoOn) { demoOn = false; botOn = false; if (!DM.touched && state === 'play') build(); }
+}
 
 // ---------------------------------------------------------------- loop
 const camPos = new THREE.Vector3(0, 13.4, 9.2), camLook = new THREE.Vector3(0, 0, -0.35);
@@ -376,6 +385,7 @@ camera.position.copy(camPos); camera.lookAt(camLook);
 loop((dt) => {
   t += dt / 60;
   if (state === 'play' && sub === 'reach') {
+    demoReach();
     if (tapTo && !finger && !moveTip(tapTo, dt)) tapTo = null;
     const tgt = finger || (botOn && botPath[botI] ? new THREE.Vector3(botPath[botI].x, ARMY, botPath[botI].z) : null);
     if (tgt) moveTip(tgt, dt);

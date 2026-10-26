@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { bake, vcMat, crowdMesh } from './people.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'swarm-streets', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ST = store('swarmstreets');
@@ -222,6 +223,10 @@ ui.onTap(w => { B.start();
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else { buildLevel(); state = 'play'; }
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// your mob walks by itself toward the nearest grey crowd (the game's own bot) for a few seconds, then stands still again
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !joy && !tapDir, wait: 1200, ms: 3500 });
+let demoWalk = false;
 
 // ---------------------------------------------------------------- AI (rivals + bot)
 function think(c) {
@@ -284,6 +289,7 @@ let camD = 38, popAcc = 0, pitch = 0, shake = 0;
 const camT = new THREE.Vector3(), V = new THREE.Vector3();
 loop((dt, t) => {
   const s = dt / 60, play = state === 'play';
+  if (DM.on && play) { window.__game.bot(); demoWalk = true; } else if (demoWalk) { demoWalk = false; botDir = null; }
   if (play) {
     T += s; ui.progress(T / dur);
     if (T >= dur) { hud(); finish('time'); }

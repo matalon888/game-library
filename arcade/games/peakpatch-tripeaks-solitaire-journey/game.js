@@ -8,6 +8,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import * as TP from './tripeaks.js';
+import { demo } from './kit/demo.js';
 import { buildAtlas, cardGeo, setCells, quadGeo, setQuadCell, cardMaterial, shadowTex, CELL, CH, BACKS } from './cards.js';
 import { createWorld, ISLAND_NAMES, ISLAND_SKY } from './world.js';
 import { snd } from './audio.js';
@@ -339,6 +340,15 @@ function drawStock() {
   if (lost >= 4) floatText(`Streak ${lost} ✓`, L.streak.x + 60, L.streak.y - 26, '#d98a10');
   refreshPlayHUD(); afterMove();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, once the how-to banner
+// has gone and until the first touch, open cards one higher or lower hop onto the waste pile (the bot's own pick); when
+// none fits, the stock flips its next card first, the move the player would be forced to make anyway
+let demoN = 0;
+demo(() => {
+  if (busy || cards.some(c => c.tw)) return;
+  if (demoN >= 3 || TP.left(G) < 8) return false;
+  const s = TP.choose(G); demoN++; if (s) return void playSlot(s); if (G.stock.length > 10) return void drawStock(); return false;
+}, { ready: () => mode === 'play' && state === 'play' && st.level === 1 && !dailyMode && G && !pop, wait: 4300, every: 1200, max: 6, ms: 6000 });
 function afterMove() {
   if (TP.left(G) === 0) { winSequence(); return; }
   if (TP.stuck(G)) setTimeout(() => { if (mode === 'play' && state === 'play' && G && TP.stuck(G) && !pop) outOfCards(); }, 650);

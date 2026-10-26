@@ -3,6 +3,7 @@
 // The computer never peeks: it only knows where it has fired and what it was told (miss, hit, sunk).
 import { board } from './kit/board.js';
 import { store } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { duel, rngf, rrect, ease, SVG, buzz, tone, note, soft, chime } from './duel.js';
 
 const NAME = 'Salvo Bay: Sea Battle vs Computer';
@@ -122,6 +123,14 @@ const T = duel({
   debug: () => ({ phase, turn, busy, myHits, cpuHits }),
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first game, until the first real
+// touch, two of your ships turn themselves on the placement sea (the same turn a tap does), then one turns back
+let demoShip = -1;
+demo(n => {
+  if (n === 3) { if (demoShip >= 0) rotate(demoShip); return; }
+  for (let k = 0; k < mine.length; k++) { const i = (k + n * 2) % mine.length, t = { ...mine[i], h: !mine[i].h }; if (fits(mine, t, i)) { rotate(i); demoShip = i; return; } }
+  return false;
+}, { ready: () => phase === 'place' && T.state === 'play' && !drag && window.__game?.level === 1, wait: 1800, every: 1200, max: 3 });
 function head() {
   const fl = (ships) => ships.filter(s => !s.sunk).length;
   T.header([{ name: 'You', init: 'Y', color: YOU, score: fl(mine) }, { name: 'CPU', init: 'C', color: CPU, score: fl(foe) }], T.state === 'play' && phase === 'battle' ? turn : -1);

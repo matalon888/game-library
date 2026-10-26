@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { part, merge, canvasTex } from './geo.js';
+import { demo } from './kit/demo.js';
 import { board } from './kit/board.js';
 
 const S = createStage({ fov: 55, shadowSize: 16 });
@@ -388,6 +389,10 @@ function shotFromDrag(d) {
   const dir = fwd.clone().multiplyScalar(d.dy).addScaledVector(right, -d.dx).normalize();
   return { ang: Math.atan2(dir.z, dir.x), v: 1.2 + pw * (MAXV - 1.2), pw };
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on hole 1, until the first real touch,
+// your ball putts itself once along the suggested line at half power (too soft to sink), and the stroke is given back
+demo(() => { const p = planShot(player); shootBall(player, p.ang, p.v * 0.5); player.strokes--; hud.querySelector('[data-s]').textContent = player.strokes; },
+  { ready: () => state === 'play' && level === 1 && !drag && !player.done && atRest(player) && player.strokes === 0, wait: 1800, max: 1 });
 ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; B.start(); });
 
 // ---------------------------------------------------------------- loop

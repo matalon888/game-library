@@ -6,6 +6,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { tableCSS } from './cards.js';
 import { trickTable } from './trick.js';
@@ -241,6 +242,13 @@ function gameOver() {
 }
 
 // ---------------------------------------------------------------- your taps
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first hand, until the first
+// touch, your suggested bid is placed for you and, on your first turn, a legal card slides into the trick; then it's your hand
+demo(() => {
+  if (phase === 'bid') return void placeBid(0, estimate(0, 1).bid);
+  const L = legal(0); tapCard(L.length === 1 ? L[0] : choose(0, L, 1)); return false;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && handNo === 0 && !busy && !T.sheetOpen && ((phase === 'bid' && bidTurn === 0 && !pad.hidden) || (phase === 'play' && trickNo === 0 && turnSeat() === 0 && trick.length < 4)), wait: 1500, max: 2, ms: 15000 });
+
 function tapCard(id) {
   if (state !== 'play' || phase !== 'play' || turnSeat() !== 0 || busy || trick.length === 4) return;
   if (!hands[0].includes(id)) return;

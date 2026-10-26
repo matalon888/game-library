@@ -1,6 +1,7 @@
 // Hivefall: Alien Horde Shooter. First-person defence of Outpost Kestrel-7 on a dusk desert planet.
 import { cine, procTex, THREE } from './kit/cine.js';
 import { createUI, store, rng, buzz } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
@@ -596,6 +597,9 @@ ui.onTap(which => {
 });
 
 // ------------------------------------------------------------------ bot: aims at the nearest threat, picks weapons, moves with the objective
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in mission 1, until the first real touch,
+// the trooper turns, aims and fires at the nearest bugs for about 4.5 s (the bot's own aim; no orbital strike, no turret spent)
+const DM = demo(null, { ready: () => state === 'play' && missionIdx === 1 && !D.seed, wait: 1200, ms: 4500 });
 let botT = -9, botFire = false; const botOn = () => performance.now() - botT < 600;
 let botStrafe = 1, botStrafeT = 0;
 function botControl(dt) {
@@ -617,8 +621,8 @@ function botControl(dt) {
     const dy = Math.atan2(Math.sin(ty - PL.yaw), Math.cos(ty - PL.yaw)), dp = tp - PL.pitch; const k = Math.min(1, dt * 9); PL.yaw += clamp(dy * k, -0.12, 0.12); PL.pitch += dp * k;
     const err = Math.hypot(dy, dp); botFire = err < (cur === 1 ? 0.25 : cur === 2 ? 0.05 : 0.07) && dist < (cur === 1 ? 10 : 120); }
   // abilities
-  if (orbCd <= 0 && !orbital_) { let bestC = null, bn = 0; for (const b of swarm.all) { if (b.dead) continue; const d = Math.hypot(b.x - p.x, b.z - p.z); if (d < 14 || d > 60) continue; let n = 0; swarm.forRadius(b.x, b.z, 9, () => n++); if (b.type === 'queen') n += 10; if (n > bn) { bn = n; bestC = b; } } if (bn >= 7) orbital(new V3(bestC.x, 0, bestC.z)); else if (hv && hv.p.distanceTo(p) < 50 && hv.p.distanceTo(p) > 15) orbital(hv.p.clone()); }
-  if (turretCharges > 0 && turrets.length < 3 && runT > 2 && (mission.type !== 'extract' || extract.phase === 'hold')) deployTurret();
+  if (!DM.on && orbCd <= 0 && !orbital_) { let bestC = null, bn = 0; for (const b of swarm.all) { if (b.dead) continue; const d = Math.hypot(b.x - p.x, b.z - p.z); if (d < 14 || d > 60) continue; let n = 0; swarm.forRadius(b.x, b.z, 9, () => n++); if (b.type === 'queen') n += 10; if (n > bn) { bn = n; bestC = b; } } if (bn >= 7) orbital(new V3(bestC.x, 0, bestC.z)); else if (hv && hv.p.distanceTo(p) < 50 && hv.p.distanceTo(p) > 15) orbital(hv.p.clone()); }
+  if (!DM.on && turretCharges > 0 && turrets.length < 3 && runT > 2 && (mission.type !== 'extract' || extract.phase === 'hold')) deployTurret();
   // movement
   let gx = 0, gz = 0;
   if (mission.type === 'hives' && hv) { gx = hv.p.x; gz = hv.p.z; const d = hv.p.distanceTo(p); if (d < 20) { gx = p.x; gz = p.z; } }
@@ -673,6 +677,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; fpsA = fpsA * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
   if (state === 'play') {
     runT += dt;
+    if (DM.on) botT = performance.now();
     if (botOn()) botControl(dt);
     PL.yaw -= IN.look[0]; PL.pitch = clamp(PL.pitch - IN.look[1] + recoil * 0, -1.35, 1.35); IN.look[0] = IN.look[1] = 0;
     movePlayer(dt);

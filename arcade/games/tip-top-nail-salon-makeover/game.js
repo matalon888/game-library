@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Tip Top: Nail Salon Makeover';
 const $ = (id) => document.getElementById(id);
@@ -386,6 +387,14 @@ loop((dt, t) => {
 });
 
 // ------------------------------------------------------------------ test hooks
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the nail grows into the shape on the client's card, then the file takes a couple of strokes off; the rest of the set is yours
+demo((n) => {
+  if (phase === 'shape') return void chooseShape(L.shape);
+  if (phase !== 'file') return;   // the nail is still growing
+  if (curLen - L.len < 0.25) return false; shave(0.08); fileX = n % 2 ? 0.35 : -0.35;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && (phase === 'shape' || phase === 'grow' || phase === 'file'), wait: 1800, every: 700, max: 6 });
+
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; }, get phase() { return phase; },
   bot() {

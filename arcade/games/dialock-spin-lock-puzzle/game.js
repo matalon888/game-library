@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confet
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'dialock', label: 'Locks cracked', limits: { maxRun: 2, maxPerSec: 1 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Dialock: Spin Lock Puzzle';
@@ -199,6 +200,19 @@ function bot() {
   const i = lvl.order.find((k) => x[k] !== 0); if (i === undefined) return;
   commit(i, x[i]);
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the outer dial spins its gap round to the exit slot and clicks (no move used); if that alone would free the core, it spins back
+let demoMv = null;
+demo((n) => {
+  if (n === 1) {
+    const x = solveFor(pos, links, rings.length, lvl.order), i = [...lvl.order].sort((a, b) => b - a).find((k) => x[k] !== 0); if (i === undefined) return false;
+    demoMv = [i, x[i]]; drive(i, x[i]); anim = 0.25; tone(520, 0.06, 'triangle', 0.1, 1.3);
+    if (!pos.every((v) => v === 0)) { updateLocks(false); return false; }
+    updateLocks(true); return;
+  }
+  drive(demoMv[0], -demoMv[1]); anim = 0.25; tone(440, 0.06, 'triangle', 0.08, 1.3); updateLocks(true); return false;
+}, { ready: () => state === 'play' && level === 1 && !D.seed && !drag && movesUsed === 0, wait: 1800, every: 1100, max: 2 });
 
 // ---------------------------------------------------------------- loop
 ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } state = 'play'; build(); });

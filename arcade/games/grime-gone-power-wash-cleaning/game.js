@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, loop, tone, note, buzz, confetti, burst, store, clamp, lerp, rng, mat, glossy, rounded } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 // No flow.js: cleaning has no fail state or skill element (FLOW_BRIEF rule 4) — every object can always be finished.
 
 const NAME = 'Grime Gone: Power Wash Cleaning';
@@ -276,11 +277,17 @@ addEventListener('pointermove', e => { if (!down) return; setAim(e.clientX, e.cl
 const up = () => { down = false; spraying = false; aimEl.style.display = 'none'; };
 addEventListener('pointerup', e => { const tap = down && d0 && Math.hypot(e.clientX - d0[0], e.clientY - d0[1]) < 12; if (!tap || state !== 'play') return up();
   down = false; aim = [e.clientX, e.clientY]; aimEl.style.left = aim[0] + 'px'; aimEl.style.top = aim[1] + 'px'; tapT = setTimeout(() => { if (!down) up(); }, 550); }); addEventListener('pointercancel', up);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the jet sprays itself in a slow sweep across the object for about 3 s, so a clean stripe shows what dragging the aim does
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed, wait: 1500, ms: 3000 });
+let demoWas = false;
 ui.onTap((which) => { audioOn(); WB.start(); if (which === 'start' && state === 'ready') { state = 'play'; return; } build(); state = 'play'; });
 
 // ---------------------------------------------------------------- loop
 let measureT = 0, hissV = 0, bendT = 0;
 loop((dt, t) => {
+  if (DM.on && !down) { demoWas = true; spraying = true; aim = [innerWidth * (0.5 + Math.sin(t * 1.4) * 0.22), innerHeight * (0.47 + Math.sin(t * 0.7) * 0.06)]; aimEl.style.display = 'block'; aimEl.style.left = aim[0] + 'px'; aimEl.style.top = aim[1] + 'px'; }
+  else if (demoWas) { demoWas = false; if (!down) up(); }
   const active = state === 'play' && spraying && aim;
   hit = active ? aimHit(aim[0], aim[1]) : null;
   // gun points at the aim (or rests)

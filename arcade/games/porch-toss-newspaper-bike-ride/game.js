@@ -1,6 +1,7 @@
 // Porch Toss — original newspaper bike ride. Hold to pedal, let go to brake. Letting go beside a waiting mailbox
 // tosses the paper (right beside it = PERFECT). Stop in time for crossing cars and trains, deliver enough and reach the depot.
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, sfx, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded, stickman } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
@@ -339,6 +340,10 @@ input({
   onDown: () => { if (state === 'play') { ptr = true; sfx.tap(); } },
   onUp: () => { if (ptr && state === 'play') toss(); ptr = false; },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on route 1, until the first real touch,
+// the bike pedals and tosses at the first mailbox by itself (the bot's own timing, 4.5 s at most), then lets go and coasts
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed && !crash && delivered < 1, wait: 1200, ms: 4500 });
+let demoWas = false;
 ui.onTap((which) => { B.start();
   if (which === 'win' || which === 'lose') buildLevel();
   state = 'play'; ui.hideStart(); ptr = false;
@@ -348,6 +353,7 @@ ui.onTap((which) => { B.start();
 loop((dt, t) => {
   if (!crash) frames += dt;
   if (state === 'play') {
+    if (DM.on) { demoWas = true; botStep(); } else if (demoWas) { demoWas = false; botHold = false; }
     holding = ptr || botHold;
     v = holding ? Math.min(VMAX, v + ACC * dt) : Math.max(0, v - BRAKE * dt);
     rz -= v * dt;

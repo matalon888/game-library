@@ -4,6 +4,7 @@
 import { board } from './kit/board.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, note } from './puzzle.js';
 import { generate, step } from './gridgen.js';
+import { demo } from './kit/demo.js';
 
 let N = 5, sol = [], col = [], rc = [], cc = [], given = [], st = [], name = '', mode = 1, geo = {}, drag = null, anim = new Map(), wonAt = 0, hintCell = -1, hintAt = 0, doneR = [], doneC = [];
 const FILL_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" style="fill:currentColor;stroke:none"/></svg>';
@@ -68,6 +69,14 @@ const P = shell({
     const c = sol.findIndex((v, i) => v === 1 && st[i] !== 1); if (c >= 0) { P.push(); put(c, 1); }
   },
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on picture 1, until the first touch,
+// the squares line logic proves filled paint in one by one (the hint's own deduction), so the clue → square link shows
+demo(() => {
+  const t = st.slice();
+  for (let guard = 0; guard < N * N; guard++) { const q = step(N, rc, cc, t); if (!q) return false; t[q.c] = q.v; if (q.v === 1) { if (st[q.c] === 1) continue; P.push(); put(q.c, 1); return; } }
+  return false;
+}, { ready: () => P.state === 'play' && P.level === 1 && !P.D.isDaily && !drag, wait: 1800, every: 450, max: 4 });
 
 function setMode(m, quiet) {
   mode = m; const b = P.btns.mode; if (!b) return;

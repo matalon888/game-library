@@ -1,6 +1,7 @@
 // Froggle — original bubble-popping game for kids. Tippy the pond frog blows bubbles: aim, let go, match 3 of a colour to pop them.
 // Bubbles left hanging fall into the pond, and ladybugs trapped in bubbles fly free. Clear the board before the bubbles run out.
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette, mat, glossy, rounded } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
@@ -253,6 +254,10 @@ function angTo(e) {
 addEventListener('pointerdown', e => { if (state !== 'play') return; aiming = true; aim = angTo(e); });
 addEventListener('pointermove', e => { if (aiming) aim = angTo(e); });
 addEventListener('pointerup', e => { if (!aiming) return; aiming = false; if (state === 'play') fire(aim); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the frog aims along the dotted guide and blows the best bubble twice (the bot's own aim), and each shot is given back
+demo(() => { const n = shots; window.__game.bot(); if (shots < n) { shots++; showShots(); } else return false; },
+  { ready: () => state === 'play' && level === 1 && !D.seed && !shot && !busy && !aiming && shots >= shotsMax - 1, wait: 1800, every: 1600, max: 2 });
 ui.onTap((which) => { if (which === 'lose') score = 0; build(); state = 'play'; ui.hideStart(); levelStart = score; B.start(); });
 
 // ---------------------------------------------------------------- loop

@@ -4,6 +4,7 @@
 // smart bomb, commits recharge shields, deploys fire a mega laser, tokens charge the player's super meter.
 import { THREE, createStage, rounded, burst, tone, note, store, loop, lerp, clamp } from './kit/hc.js';
 import { agents, toolName, toast } from './kit/agents.js';
+import { demo } from './kit/demo.js';
 import { board, flag } from './kit/board.js';
 
 const $ = s => document.querySelector(s);
@@ -458,11 +459,15 @@ function triggerSuper() {
   hud();
 }
 function addSuper(v) { const was = superM >= 1; superM = Math.min(1, superM + v); if (!was && superM >= 1 && state === 'play') { popAt(pl.x, pl.z - 2, 'SUPER READY', '#ffd23f', 18); SFX.ping(); } }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first wave of a run, until the
+// first real touch, the ship slides under the nearest enemy for about 4 s while it auto-fires (the attract steering)
+const DM = demo(null, { ready: () => state === 'play' && run.wave === 1 && P.runs === 0, wait: 1200, ms: 4000 });
 function updPlayer(dt, sec, t) {
   const sd = shipDef(), sch = scheme();
   if (state === 'play') {
     const kx = (keys.ArrowRight || keys.d || keys.D ? 1 : 0) - (keys.ArrowLeft || keys.a || keys.A ? 1 : 0), kz = (keys.ArrowDown || keys.s || keys.S ? 1 : 0) - (keys.ArrowUp || keys.w || keys.W ? 1 : 0);
     pl.tx += kx * 0.34 * dt; pl.tz += kz * 0.3 * dt;
+    if (DM.on) { const tg = nearest(pl.x, pl.z); pl.tx = tg ? clamp(tg.x, -F.W, F.W) * 0.85 : Math.sin(t * 0.6) * F.W * 0.5; }
   } else if (state === 'attract') {
     const tg = nearest(pl.x, pl.z); pl.tx = tg ? clamp(tg.x, -F.W, F.W) * 0.8 + Math.sin(t * 0.7) * 1.5 : Math.sin(t * 0.6) * F.W * 0.5; pl.tz = F.zBot - (portrait ? 10 : 8.5) + Math.sin(t * 0.9) * 0.6;
   }

@@ -4,6 +4,7 @@ import * as THREE from './kit/three.module.min.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { cine } from './kit/cine.js';
 import { sfx, tone, buzz, confetti, burst, updateParticles } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { CHARS, ITEMS, TAGS, TAG_COLOR, SLOTS, NAMES_A, NAMES_B, charById, itemById } from './catalog.js';
 import { createParts } from './parts.js';
 import { readHero, writeHero, DEFAULT_HERO } from './store.js';
@@ -176,6 +177,11 @@ function play(name, instant = false) {
 const MOVES = [['idle', '🧍', 'Idle'], ['run', '🏃', 'Run'], ['jump', '⤴️', 'Jump'], ['cheer', '🙌', 'Cheer'], ['slide', '💨', 'Slide']];
 $('#moves').innerHTML = MOVES.map(([k, i, l]) => `<button class="mv" data-k="${k}"><i>${i}</i>${l}</button>`).join('');
 $('#moves').addEventListener('click', e => { const b = e.target.closest('.mv'); if (!b) return; sfx.tap(); play(b.dataset.k); if (b.dataset.k !== 'idle') { spinVel += 0; } });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): until the first touch, the hero
+// cheers, then jumps while the showroom spins it round, so the move buttons and drag-to-spin show what they do
+demo((n) => { const k = n === 1 ? 'cheer' : 'jump'; play(k); if (n === 2) spinVel = 2.2; },
+  { ready: () => !loading && !!cur, wait: 1800, every: 1800, max: 2 });
 
 // ------------------------------------------------------------ colours
 function applyColors() {

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const V3 = THREE.Vector3;
 const S = createStage({ fov: 50, shadowSize: 10 });
@@ -224,6 +225,10 @@ function reach(i, w) {
   tapMove = setInterval(() => { k++; if (state === 'play') l.p.lerpVectors(from, to, Math.min(1, k / 6)); if (k >= 6 || state !== 'play') { clearInterval(tapMove); tapMove = null; release(); } }, 30);
 }
 ui.onTap(which => { if (which === 'start') { state = 'play'; sfx.tap(); } else { buildLevel(); state = 'play'; } B.start(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// Gummo's rear-most hand or foot stretches up to the next safe grip (the bot's own reach), twice; the moves aren't counted
+demo(() => { const m0 = moves; window.__game.bot(); setTimeout(() => { moves = m0; movesEl.textContent = `✋ ${moves} move${moves === 1 ? '' : 's'}`; }, 400); },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && !drag && !botMove && !slips.length, wait: 1600, every: 1100, max: 2 });
 
 function die(kind, li) {
   if (state !== 'play') return;

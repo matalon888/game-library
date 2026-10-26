@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, sfx
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { glowSprite, sparks } from './_music/fx.js';
 
 const NAME = 'Boltpack: Jetpack Runner';
@@ -308,6 +309,10 @@ function finish() {
 input({ onDown: () => { holding = true; }, onUp: () => { holding = false; } });
 addEventListener('pointercancel', () => { holding = false; });
 ui.onTap(which => { B.start(); if (which !== 'start') reset(); state = 'play'; holding = false; runT = 0; tone(660, 0.08, 'triangle', 0.12, 1.4); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first touch,
+// Bolt fires the rockets and drops by itself to weave past the zappers (the game's own bot) for a few seconds, then lets go
+const DM = demo(null, { ready: () => state === 'play' && sector === 1, wait: 700, ms: 4000 });
+let demoOn = false;
 
 // ---------------------------------------------------------------- loop
 const tmpV = new THREE.Vector3();
@@ -318,6 +323,7 @@ function screenRightX(y) { // world x at the right screen edge for height y on t
 loop((dtf) => {
   const dt = dtf / 60; clock += dt;
   blendPalette(dtf);
+  if (DM.on) { window.__game.bot(); demoOn = true; } else if (demoOn) { demoOn = false; botHold = false; }
   const thrust = (holding || botHold) && state === 'play';
   if (state === 'play') {
     runT += dt;

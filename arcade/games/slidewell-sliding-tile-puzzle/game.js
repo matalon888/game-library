@@ -2,6 +2,7 @@
 // Tap a tile in the gap's row or column to slide it (and the ones between) into the gap, or swipe it. 3×3, 4×4, 5×5.
 // Every shuffle is checked for solvability (permutation parity); hints and the test bot use a layer-by-layer exact solver.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, SVG } from './puzzle.js';
 import { solve, shuffled, isSolved } from './slidesolve.js';
 
@@ -230,4 +231,12 @@ function draw(g) {
 }
 
 if (P.D.isDaily && P.btns.menu) P.btns.menu.style.display = 'none';   // the daily puzzle has one fixed size
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first real touch,
+// the solver's next tile slides into the gap and back again (the move counter is given back), so the slide is shown, twice
+let demoGap = -1;
+demo(k => {
+  if (k % 2) { const p = solve(a, n); if (!p || p.length < 3) return false; demoGap = a.indexOf(0); slideFrom(p[0], false, true); }
+  else { slideFrom(demoGap, false, true); moves = Math.max(0, moves - 2); hud(); }
+}, { ready: () => P.state === 'play' && P.level === 1 && !P.D.isDaily && !wonAt, wait: 1800, every: 1400, max: 4 });
+
 P.start();

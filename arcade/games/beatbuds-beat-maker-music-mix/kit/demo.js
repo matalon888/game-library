@@ -7,17 +7,19 @@
 // ready(): the game is on a playable screen where a demo move makes sense (first level, no card or menu up, nothing animating).
 // wait: idle ms on that screen before the first move; every: ms between moves; max: moves at most; ms: how long D.on lasts.
 // step(n) returning false ends the demo early (e.g. nothing sensible to do).
-let touched = false;
-for (const ev of ['pointerdown', 'touchstart', 'keydown']) addEventListener(ev, e => { if (e.isTrusted) touched = true; }, { capture: true, passive: true });
+// only touches once the game is playable count: a Play tap on a home screen or a closed panel must not cancel the demo
+let lastTouch = -1;
+for (const ev of ['pointerdown', 'touchstart', 'keydown']) addEventListener(ev, e => { if (e.isTrusted) lastTouch = performance.now(); }, { capture: true, passive: true });
 
 export function demo(step, { ready = () => true, wait = 2000, every = 1300, max = 3, ms = 4500 } = {}) {
   let since = 0, n = 0, t0 = 0, done = false;
+  const touched = () => t0 > 0 && lastTouch >= t0;   // touched since the game first became ready
   const tick = () => {
     if (done) return;
-    if (touched || (step && n >= max) || (t0 && performance.now() - t0 > ms + wait)) { done = true; return clearInterval(id); }
+    if (touched() || (step && n >= max) || (t0 && performance.now() - t0 > ms + wait)) { done = true; return clearInterval(id); }
     let ok = false; try { ok = !document.hidden && ready(); } catch (e) {}
     if (!ok) { since = 0; return; }
-    const now = performance.now(); if (!since) since = now; if (!t0) t0 = now;
+    const now = performance.now(); if (!since) since = now; if (!t0) t0 = now + 1;   // the tap that made it ready (e.g. Play) does not count
     if (!step || now - since < wait) return;
     since = now - wait + every; n++;
     let r; try { r = step(n); } catch (e) { r = false; }
@@ -26,8 +28,8 @@ export function demo(step, { ready = () => true, wait = 2000, every = 1300, max 
   const id = setInterval(tick, 100);
   return {
     // continuous demos: true while the demo is playing (idle `wait` ms on a ready screen, then for `ms`, until a real touch)
-    get on() { if (done || touched || !since) return false; const a = performance.now() - since; return a >= wait && performance.now() - t0 <= ms + wait; },
-    get touched() { return touched; },
+    get on() { if (done || touched() || !since) return false; const a = performance.now() - since; return a >= wait && performance.now() - t0 <= ms + wait; },
+    get touched() { return touched(); },
     stop() { done = true; clearInterval(id); },
   };
 }

@@ -409,8 +409,19 @@ export function createShooter({ group, P, snd, hooks, clip }) {
 
   // ------------------------------------------------------------ bot: one sensible action per call, paced like a person
   let botAim = null;
-  function bot() {
+  function bot(demo = false) {   // demo: the self-playing first seconds pick a shot that frees no baby (game.js)
     if (G.state !== 'play' || G.busy || flight || !settled()) return;
+    if (!botAim && demo) {
+      const y0 = G.grid.launchY(); let best = null;
+      for (let deg = 20; deg <= 160; deg += 2) {
+        const a = deg * Math.PI / 180, tr = G.grid.trace(0, y0, a), [r, c] = tr.cell; if (G.grid.get(r, c)) continue;
+        const res = G.grid.clone().resolve(r, c, G.cur), all = [...res.popped, ...res.dropped];
+        if (all.some(v => v.critter >= 0)) continue;
+        const v = all.length - tr.bounces * 0.5; if (!best || v > best.v) best = { v, a };
+      }
+      if (!best) return false;
+      botAim = { a: best.a, t: 0, from: G.aim };
+    }
     if (!botAim) {
       const y0 = G.grid.launchY();
       const b = bestShot(G.grid, 0, y0, special(G.cur) ? [G.cur] : [G.cur, G.nxt], { step: 2 });
@@ -420,7 +431,7 @@ export function createShooter({ group, P, snd, hooks, clip }) {
     }
     // sweep the aim toward the target over a few calls so the line is visible, hold a beat, then fire
     botAim.t++; const k = Math.min(1, botAim.t / 4); setAim(botAim.from + (botAim.a - botAim.from) * (1 - Math.pow(1 - k, 2))); G.aiming = true; computePath();
-    if (botAim.t >= 7) { setAim(botAim.a); botAim = null; fire(); }
+    if (botAim.t >= 7) { setAim(botAim.a); botAim = null; return fire() ? 'fired' : false; }
   }
 
   return {

@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { tableCSS, cardEl, tableDOM, shakeEl, cascade } from './cards.js';
 import { SU, RK, ROW, COL, PASSES, dealCards, fresh, exposed, wasteTop, stockNext, moves as genMoves, apply, legal, solve, cleared } from './rules.js';
@@ -274,6 +275,10 @@ function lose() {
   undoBtn.style.display = hist.length ? '' : 'none';
   ui.lose('Out of moves', `${popcount(st.gone)} of 28 pyramid cards cleared`);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on deal 1, until the first real touch,
+// the solver's first two moves play themselves (a pair making 13 lifts off the pyramid, or a card is drawn), so the move is shown
+demo(() => { const r = solve(st, 20000), m = r.ok ? r.path[0] : genMoves(st)[0]; if (!m || !legal(st, m)) return false; plan = null; exec(m); },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && !finishing && !dealing && !dragS && nMoves < 2, wait: 2000, every: 1500, max: 2 });
 ui.onTap((which) => {
   B.start();
   if (which === 'start') { state = 'play'; return; }

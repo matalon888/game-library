@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Tenpair: Digit Pairs Puzzle', COLS = 9;
@@ -316,6 +317,13 @@ function lose() {
   soft.err(); buzz([30, 40, 30]);
   ui.lose('No pairs left', `${cells.filter(c => !c.x).length} digits remain · ${score.toLocaleString()} pts`);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on stage 1, until the first real touch,
+// one digit then its partner are tapped (the bot's own pair), twice, so the tap-two-that-pair move is shown and they cross out
+let demoPair = null;
+demo(n => {
+  if (n % 2) { demoPair = bestMove(); if (!demoPair || cells.filter(c => !c.x).length < 8) return false; if (sel >= 0) tap(sel); tap(demoPair[0]); }
+  else if (demoPair) tap(demoPair[1]);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily, wait: 1800, every: 800, max: 4 });
 ui.onTap((which) => {
   WB.start();
   if (which === 'start') { state = 'play'; return; }

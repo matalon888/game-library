@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { demo } from './kit/demo.js';
 import * as world from './kit/board.js';           // `board` is taken here
 
 const NAME = 'Noggin Cup: 1v1 Soccer';
@@ -319,6 +320,9 @@ function endMatch() {
   }
   powerEl.style.display = 'none';
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in match 1, until the first real touch,
+// your player runs, heads and kicks for about 4 s with the bot's brain (the CPU's own), so the screen shows what you control
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed && phase !== 'goal', wait: 1200, ms: 4000 });
 ui.onTap(() => { buildLevel(); state = 'play'; WB.start(); powerEl.style.display = ''; });
 
 // ---------------------------------------------------------------- CPU brain (same physics, reaction delay, imperfect choices)
@@ -350,6 +354,7 @@ const camP = new THREE.Vector3(0, 3.6, 17), _t = new THREE.Vector3();
 let lastSec = 60;
 loop((rawDt, t) => {
   const real = rawDt / 60;
+  if (DM.on) window.__game.bot();
   if (phase === 'goal') { slow = lerp(slow, 1, 0.02); }
   else slow = lerp(slow, 1, 0.1);
   if (state === 'play') {

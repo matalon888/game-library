@@ -536,9 +536,10 @@
       let aiAd = false; try { sessionStorage.removeItem('ap.auto'); aiAd = sessionStorage.getItem('ap.aiAd') === '1'; sessionStorage.removeItem('ap.aiAd'); } catch (e) {}
       ov.classList.add('autostart');
       const intro = aiAd ? aiIntro(g) : Promise.resolve();
-      const START = /^\s*(▶\s*)?(tap|click|touch)( anywhere)? to (start|play|begin)|^\s*(▶\s*)?(play|start|start game|play now|let'?s go|fight!?)(\s+(level|day|round|run)\s*\d+)?\s*(▶)?\s*$/i;
+      const START = /^\s*(▶\s*)?(tap|click|touch)( anywhere)? to (start|play|begin)|^\s*(▶\s*)?(play|start|start game|play now|let'?s go|fight!?)(\s+(level|day|round|run)\s*\d+)?\s*(▶)?\s*$|^\s*(▶\s*)?(level|day|stage)\s*\d+\s*(▶)?\s*$/i;   // a home screen whose only button is "Level 1" (Twistwood, Oct 26)
       const titleButton = d => {   // a visible, big "Play / Tap to start" control on the game's own title screen
-        for (const e of d.querySelectorAll('button, [role=button], .btn, a, div, h2, p')) {
+        // real buttons first, then text blocks: a HUD label "Level 1" sat before Twistwood's "Level 1" button (Oct 26)
+        for (const e of [...d.querySelectorAll('button, [role=button], .btn, a'), ...d.querySelectorAll('div, h2, p')]) {
           const t = (e.innerText || '').trim(); if (!t || t.length > 24 || !START.test(t)) continue;
           const r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 24 || r.bottom < 0 || r.top > d.defaultView.innerHeight) continue;
           const cs = d.defaultView.getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;

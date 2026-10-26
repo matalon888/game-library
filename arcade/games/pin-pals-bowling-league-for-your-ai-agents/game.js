@@ -3,6 +3,7 @@
 // tool results that worked decides the pins. The player bowls on lane 1 with real aim, power and hook.
 import { THREE, createStage, loop, tone, note, burst, confetti, clamp, lerp } from './kit/hc.js';
 import { agents, toast } from './kit/agents.js';
+import { demo } from './kit/demo.js';
 import { board, flag } from './kit/board.js';
 import { L, HALF, BR, PIT, status, frames, total, runningTotal, rng, outcome, pickFall, isSplit, bits, makeRack, Deck, throwBall, scriptBall } from './bowl.js';
 import { createWorld, makeBowler, makeTag, makeTurkey, ballMaterial, ballSwatch, BALLS, THEMES, SLOT_X, PITCH, STANCE } from './world.js';
@@ -502,6 +503,14 @@ function endGame() {
   save(); submitBoard(); showEnd(score, lastRolls, best); hud();
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): before your first ball, until the first
+// real touch, the bowler lines up by sliding left and right across the lane for about 3.5 s (no ball is thrown), then re-centres
+const DM = demo(null, { ready: () => P.phase === 'ready' && !panelOpen() && !S.game.length, wait: 1500, ms: 3500 });
+let demoWas = false, demoT0 = 0;
+function demoAim() {
+  if (DM.on) { if (!demoWas) { demoWas = true; demoT0 = performance.now(); } aimX = 0.06 + Math.sin((performance.now() - demoT0) / 1000 * 2.4) * 0.3; }
+  else if (demoWas) { demoWas = false; if (!DM.touched) aimX = 0.06; }
+}
 // ---- input: drag sideways to line up, flick up to bowl (curve the flick to hook)
 let gest = null;
 const canvas = renderer.domElement;
@@ -880,6 +889,7 @@ setInterval(() => RV && duelHud(), 1000);
 // ================================================================== loop
 let lastSweepCheck = 0;
 loop((dt, t) => {
+  demoAim();
   for (const ln of lanes) updateLane(ln, dt, t);
   rivalUpdate(dt, t);
   // the player's aim guide

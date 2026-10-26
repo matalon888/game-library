@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { canvasTex } from './geo.js';
 import { createDoll, buildItem, cloth } from './doll.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 const B = board({ game: 'dress-diva', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.3 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
@@ -332,6 +333,12 @@ function judge() {
   }, 3300);
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the first outfit step tries on three looks in turn (ending on the one that fits the theme best), so tap-to-dress is shown
+demo(n => {
+  const list = opts[step]; let best = 0; list.forEach((it, i) => { if (affinity(it, theme) > affinity(list[best], theme)) best = i; });
+  choose(n < 3 ? (best + n) % list.length : best);
+}, { ready: () => state === 'play' && phase === 'style' && level === 1 && step === 0, wait: 1800, every: 1100, max: 3 });
 ui.onTap(w => { B.start();
   if (w === 'win') level++;
   setupLevel(); state = 'play'; panel.classList.remove('off');

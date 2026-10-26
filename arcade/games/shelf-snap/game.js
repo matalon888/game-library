@@ -1,6 +1,7 @@
 // Shelf Snap — original game. Unpack the shopping baskets and snap every grocery into its outlined spot on the fridge
 // shelves. All code and art original (three.js primitives).
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
 
@@ -350,6 +351,10 @@ function win() {
   setTimeout(() => { if (state !== 'won') return; sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); confetti(scene, V(0, 5, 2), 70); burst(scene, V(0, 4, 2), ['#ffffff', '#ffd23f'], 20, { speed: 0.16, up: 0.12, size: 0.5, shape: 'sphere' }); }, 700);
   ui.win(level, `Fridge stocked! ${score} pts`);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// two groceries lift and fly onto their matching fridge shelf (the bot's own pick), so the drag-to-shelf move is shown
+demo(() => { const n = placedN, left = items.filter(x => !x.placed).length; if (left <= 3) return false; window.__game.bot(); if (!items.some(x => x.anim && !x.placed) && placedN === n) return false; },
+  { ready: () => state === 'play' && level === 1 && !drag && !sel && doorAng >= 0.6 && !items.some(x => x.anim && !x.placed), wait: 1800, every: 1500, max: 2 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; doorTarget = 1; sfx.tap(); tone(180, 0.25, 'sine', 0.08, 1.4); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; doorTarget = 1; tone(180, 0.25, 'sine', 0.08, 1.4); }

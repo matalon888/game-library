@@ -6,6 +6,7 @@ import { levelPlan, arrange, hits } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, skyDome, starField, ease } from './_music/fx.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'neon-hop', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'starlight', 'ode', 'neon', 'cancan', 'saints', 'mountain', 'minuet', 'elise', 'turkish', 'canon'];
@@ -112,6 +113,9 @@ function begin() { state = 'play'; player.start(track, { melody: true, lead: 1.6
 // ---------------------------------------------------------------- input: drag steers (relative), one verb
 input({ onMove: (dx) => { if (state === 'play' || state === 'ready') tx = clamp(tx + dx * (7.5 / Math.min(innerWidth, 520)), -3.4, 3.4); } });
 ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the ball slides itself onto each next tile for a few beats (the game's own bot), then the steering is yours
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 300, ms: 3500 });
 
 function land(i, now) {
   const t = tiles[i], dx = Math.abs(bx - tileX(t, now));
@@ -143,6 +147,7 @@ function win() {
 
 // ---------------------------------------------------------------- frame
 loop((dt) => {
+  if (DM.on) window.__game.bot();
   clock += dt / 60; fx.update(dt);
   const now = state === 'ready' ? -1.6 : player.time();
   bx = lerp(bx, tx, 1 - Math.pow(0.6, dt));

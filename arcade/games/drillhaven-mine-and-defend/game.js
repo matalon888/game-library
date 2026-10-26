@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, confetti, tone, note, buzz, store, 
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { bake, vcMat } from './merge.js';
 
 const NAME = 'Drillhaven: Mine and Defend';
@@ -603,6 +604,7 @@ let hudT = 0;
 loop((dt, T) => {
   clockT = T;
   if (state === 'play' && !shopOpen()) {
+    demoSteer();
     let h = Math.min(dt / 60, 0.05) * gs;
     while (h > 0 && state === 'play') {
       const s = Math.min(h, 1 / 60); h -= s; phaseT += s;
@@ -680,6 +682,11 @@ ui.onTap(w => {
   if (w === 'lose') { S.set('run', null); go(null); }
 });
 genMine(1); paintGrid(); paintStart(); paintHud();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first mine phase, until the first
+// touch, the mole flies down and drills toward the nearest ore by itself (the bot's own steering), then lets go of the stick
+const DM = demo(null, { ready: () => state === 'play' && phase === 'mine' && wave === 0 && !D.seed && !shopOpen(), wait: 1200, ms: 4000 });
+let demoOn = false;
+function demoSteer() { if (DM.on) { const t = nearestOre(); if (t) steer(t[0], t[1]); demoOn = true; } else if (demoOn) { demoOn = false; joy.x = joy.y = 0; } }
 camera.position.set(0, 1, camD);
 
 // ================================================================ bot (QA)

@@ -5,6 +5,7 @@ import { THREE, store, loop, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { createScene, DECOR } from './scene.js';
 import { createBoards } from './boards.js';
 import { snd } from './audio.js';
@@ -300,6 +301,11 @@ addEventListener('keydown', e => {
   if (kind !== 'w' || e.metaKey || e.ctrlKey) return;
   if (e.key === 'Enter') key('enter'); else if (e.key === 'Backspace') key('back'); else if (/^[a-zA-Z]$/.test(e.key)) key(e.key.toLowerCase());
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first word puzzle, until the
+// first real touch, a starter word types itself into row one letter by letter and is wiped again (never submitted)
+const DEMO_W = 'heart';
+demo(n => { const w = W.ans === DEMO_W ? 'crane' : DEMO_W; if (n <= 5) { if (W.cur.length !== n - 1) return false; key(w[n - 1]); } else key('back'); },
+  { ready: () => view === 'play' && kind === 'w' && state === 'play' && !ov && W && !W.busy && !rec(day).w.g.length, wait: 2000, every: 380, max: 10 });
 async function submitWord() {
   const r = rec(day).w, y = r.g.length, g = W.cur;
   if (g.length < 5) { W.board.shake(y); snd.bad(); return toast('Not enough letters'); }

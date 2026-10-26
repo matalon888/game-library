@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, loop, rounded, tone, note, sfx, buzz, sto
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 import { part, merge, vmat, canvasTex, G, hudCSS, H, btn, banner, feed, vignette, controls, Pool, healthBars, floaters, shaker, music, robot } from './lib.js';
@@ -606,6 +607,7 @@ loop((dt) => {
   for (const l of LANES) l.goo.rotation.z += s;
   for (const p of PADS) if (!p.b) p.mesh.position.y = 0.07 + Math.sin(tt * 3 + p.id) * 0.03;
   if (state === 'play') {
+    demoFight();
     nadeCd = Math.max(0, nadeCd - s); dashCd = Math.max(0, dashCd - s);
     nadeB.cool(nadeCd / h.nadeCd); dashB.cool(dashCd / 2.6);
     if (phase === 'build') { if (cards.style.display === 'none') buildT -= s; if (buildT <= 0) startWave(); }
@@ -638,6 +640,17 @@ loop((dt) => {
 });
 
 ui.onTap(w => { if (w === 'lose') { newRun(); coreGem.visible = true; } begin(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on a fresh run, until the first touch,
+// wave 1 is sent in (the ▶ button) and the hero runs out between the core and the nearest slime, auto-firing, for a few seconds
+const DEMO = demo(null, { ready: () => state === 'play' && wave <= 1 && P.bestWave < 2 && !D.seed && cards.style.display === 'none' && h.alive, wait: 1500, ms: 4500 });
+function demoFight() {
+  if (!DEMO.on) return;
+  if (phase === 'build') { if (wave === 0) startWave(); return; }
+  const t = nearestSlime(h.p, 40); let gx = 0, gz = 4;
+  if (t) { const a = Math.atan2(t.p.z, t.p.x), k = Math.min(Math.hypot(t.p.x, t.p.z) - 6, 12); gx = Math.cos(a) * Math.max(4, k); gz = Math.sin(a) * Math.max(4, k); }
+  const dx = gx - h.p.x, dz = gz - h.p.z, d = Math.hypot(dx, dz);
+  ctl.drive(d > 1 ? { mx: dx / d, my: -dz / d } : { mx: 0, my: 0 });
+}
 newRun(); showHud(false); ui.start();
 // hero bar on the start card, under the loadout chips and above "tap to hold the line"
 { const hb = heroBar({ parent: ui.els.start, onPick: () => useHero() }); hb.el.style.width = 'min(360px,100%)'; ui.els.start.querySelector('.hint').before(hb.el); }

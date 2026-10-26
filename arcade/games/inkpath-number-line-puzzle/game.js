@@ -2,6 +2,7 @@
 // Later puzzles add little walls the line can't cross. Every puzzle is generated (seeded) and checked by an exhaustive
 // solver to have exactly one line, so it can always be finished by reasoning.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, note } from './puzzle.js';
 import { generate, neighbours, wallKey } from './inkgen.js';
 
@@ -141,5 +142,13 @@ function draw(g) {
   g.fillStyle = 'rgba(37,42,68,.5)'; g.font = `600 13px -apple-system,system-ui,sans-serif`; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
   if (P.level <= 3 && !P.D.isDaily) g.fillText('Connect 1 → ' + stops.length + ' in order and fill every square', X + B / 2, Y + B + 34);
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first real touch,
+// the ink line draws itself four squares out of 1 (any free neighbours, not the answer) and rubs itself back, so the drag is shown
+let demoOut = 0;
+demo(n => {
+  if (n <= 4) { const h = path[path.length - 1], d = neighbours(N, h, walls).find(c => !path.includes(c) && !stopIdx.has(c)); if (d == null || !extend(d)) return n > 1 ? void 0 : false; demoOut++; }
+  else if (demoOut > 0 && path.length >= 2) { extend(path[path.length - 2]); demoOut--; }
+}, { ready: () => P.state === 'play' && P.level === 1 && !P.D.isDaily && !drag && path.length === 1 + demoOut, wait: 1800, every: 300, max: 8 });
 
 P.start();

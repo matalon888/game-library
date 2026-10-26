@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { canvasTex } from './geo.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Backyard Plop: Bean Bag Toss';
 const S = createStage({ fov: 31, shadowSize: 12 });
@@ -254,12 +255,23 @@ input({
   onMove: (dx, dy, e) => { if (drag) { drag.x = e.clientX; drag.y = e.clientY; } },
   onUp: (e) => { if (!drag) return; const d = dragParams(), mv = Math.hypot(drag.x - drag.x0, drag.y - drag.y0); drag = null; if (mv < 12) tapToss(e.clientX, e.clientY); else if (d.p > 0.08) toss(d.p, d.aim); },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in game 1, until the first real touch,
+// your aim drags itself up for about 3 s until the arc lands on the board, then lets go of the aim without tossing (no bag spent)
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && sub === 'aim' && turn === 0 && !!handBag && thrown[0] === 0, wait: 1500, ms: 3000 });
+let demoWas = false, demoT0 = 0;
+function demoAim() {
+  if (!DM.on) { if (demoWas) { demoWas = false; if (!DM.touched) drag = null; } return; }
+  if (!demoWas) { demoWas = true; demoT0 = performance.now(); }
+  const k = Math.min(1, (performance.now() - demoT0) / 2000), a = aimCache[0] || { p: 0.6, aim: 0 }, x0 = innerWidth / 2, y0 = innerHeight * 0.8;
+  drag = { x0, y0, x: x0 + a.aim / 0.3 * innerWidth * 0.55 * k + Math.sin(k * 6) * 12 * (1 - k), y: y0 - a.p * innerHeight * 0.4 * k };
+}
 ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); setBoardUI(); });
 
 // ---------------------------------------------------------------- loop
 const camPos = new THREE.Vector3(0.5, 6.4, 10.5);
 let camLook = new THREE.Vector3(0, 0.6, -9), camFollow = 0;
 loop((dt) => {
+  if (state === 'play') demoAim();
   const h = Math.min(dt / 60, 0.04); t += h;
   // preview arc (first part of the flight) while dragging
   const d = dragParams(); let shown = 0;

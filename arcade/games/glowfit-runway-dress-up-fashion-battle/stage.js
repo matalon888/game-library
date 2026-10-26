@@ -77,12 +77,6 @@ export function buildStage(scene) {
   const wall = add(new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 9, 64, 1, true, Math.PI * 0.62, Math.PI * 0.76), wallM), 0, 4.4, -1.5);
   wall.material.side = THREE.BackSide; wall.receiveShadow = true;
   const stripM = new THREE.MeshBasicMaterial({ color: '#fff0fb' });
-  // the painted stage (art wave 1, assets/art/stage.webp) prints across the wall once it loads: its spotlights, balloons and
-  // crowd glow behind the 3D arch. The 3:4 painting is cropped to its top band to fit the wide curved wall; the strips step aside.
-  new THREE.TextureLoader().load('./assets/art/stage.webp', t => {
-    t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.repeat.set(-1, 0.36); t.offset.set(1, 0.6); t.anisotropy = 4;
-    wallM.map = t; wallM.color.set('#ffffff'); wallM.emissive = new THREE.Color('#ffffff'); wallM.emissiveMap = t; wallM.emissiveIntensity = 0.35; wallM.needsUpdate = true; stripM.visible = false;
-  });
   for (let i = -6; i <= 6; i++) { if (Math.abs(i) < 1) continue; const a = i * 0.11; const s = add(new THREE.Mesh(new THREE.PlaneGeometry(0.12, 7), stripM), Math.sin(a) * 8.85, 4.6, -1.5 - Math.cos(a) * 8.85); s.lookAt(0, 4.6, -1.5); }
   const neon = add(new THREE.Mesh(new THREE.ExtrudeGeometry(heartShape(1.15), { depth: 0.08, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2, curveSegments: 20 }), std('#ff8fcf', { emissive: '#ff6fbf', emissiveIntensity: 1.3 })), 0, 6.3, -9.6);
   H.neon = neon;

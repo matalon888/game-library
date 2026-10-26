@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, loop, burst, confetti, sfx, tone, note, b
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { carModel, TIERS, merge as mergeGeo, vmat } from './cars.js';
 
 const NAME = 'Piston Pop: Merge Cars Racing';
@@ -279,6 +280,19 @@ ui.onTap(w => {
   backToGarage();
 });
 ui.start();
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// one car lifts and glides onto its twin in the lot and they merge into the next car up (the move a drag makes)
+demo(() => {
+  const seen = {}; let a = -1, b = -1;
+  for (let i = 0; i < 12 && a < 0; i++) { const t = slots[i]; if (t < 0 || t >= TIERS.length - 1) continue; if (seen[t] !== undefined) { a = i; b = seen[t]; } else seen[t] = i; }
+  if (a < 0 || !carObjs[a]) return false;
+  const m = carObjs[a], from = m.position.clone(), to = SLOT[b], t0 = performance.now();
+  const glide = () => { if (carObjs[a] !== m || mode !== 'garage') return; const k = Math.min(1, (performance.now() - t0) / 450);
+    m.position.set(from.x + (to.x - from.x) * k, 0.7 + Math.sin(k * Math.PI) * 0.6, from.z + (to.z - from.z) * k);
+    if (k < 1) requestAnimationFrame(glide); else if (slots[a] === slots[b]) mergeCars(a, b); };
+  tone(500, 0.05, 'sine', 0.08, 1.3); glide(); return false;
+}, { ready: () => state === 'play' && mode === 'garage' && level === 1 && !D.isDaily && !drag, wait: 1800 });
 
 // ---------------------------------------------------------------- test hook
 window.__game = {

@@ -3,6 +3,7 @@
 // them to the bar. Doubles play four times. Dice are fair (crypto random; the daily game uses one shared seeded stream)
 // and the computer only knows its own roll.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { duel, rngf, fair, rrect, ease, SVG, buzz, tone, note, soft, chime } from './duel.js';
 import { START, copy, flip, apply, legalNext, sequences, maxLen, pips, judge } from './rules.js';
 
@@ -57,6 +58,21 @@ function botMove() {
     if (best && best.moves.length) { phase = 'anim'; playMoves(best.moves.slice(), 0, () => afterMove()); }
   }
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on your first turn of game 1, until
+// the first touch, the dice roll if needed, the best checker lights its glowing points, then hops one die's worth; the rest is yours
+let demoSeq = null;
+demo(() => {
+  if (phase === 'roll') { roll(); return; }
+  if (phase !== 'move' || made.length) return false;
+  if (!demoSeq) {
+    const seqs = sequences(rel(), left); let best = seqs[0], bv = -1e9;
+    for (const q of seqs) { const v = judge(q.R, true); if (v > bv) { bv = v; best = q; } }
+    if (!best || !best.moves.length) return false;
+    demoSeq = best.moves[0]; select(demoSeq.from); return sel === -1 ? false : undefined;
+  }
+  sel = -1; targets = new Map(); phase = 'anim'; T.refreshButtons(); playMoves([demoSeq], 0, () => afterMove()); return false;
+}, { ready: () => T.state === 'play' && T.wins === 0 && !T.D.isDaily && side === 0 && undoTurns.length <= 1 && (phase === 'roll' || phase === 'move'), wait: 1800, every: 1100, max: 3 });
 
 function head() {
   T.header([{ name: 'You', init: 'Y', color: YOU, score: R.off }, { name: 'CPU', init: 'C', color: CPU, score: R.ooff }], T.state === 'play' ? side : -1);

@@ -8,6 +8,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { buildCafe, loadProps, loadChar, prop, iconOf, MODELS, sparkles, updateSparkles, blob, kibbleBowl, brush, FLOOR, K, FY } from './world.js';
 import { S as SND, music, setMuted, unlock, pauseAll } from './audio.js';
 
@@ -740,6 +741,12 @@ function pickPet() {
   return best;
 }
 const floorPl = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.1);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first shift, until the first real
+// touch, the waiting pet's order serves itself from the tray once (level 1 asks for only 3), so the tap-to-serve move is shown
+demo(() => {
+  const c = customers.filter(c => c.phase === 'order' && c.shown > 0.7)[0]; if (!c) return false;
+  const k = c.want.find((w, i) => !c.got[i]); if (!k) return false; serve(k, c);
+}, { ready: () => state === 'play' && shift && shift.n === 1 && !shift.daily && !shift.ended && card.classList.contains('hidden') && !$('sheet') && !focus && customers.some(c => c.phase === 'order' && c.shown > 0.7), wait: 1500, every: 1500, max: 1, ms: 30000 });
 R.domElement.addEventListener('pointerdown', e => {
   unlock(); input.down = true; input.sx = input.x = e.clientX; input.sy = input.y = e.clientY; input.drag = false; input.lastT = performance.now();
   setRay(e);

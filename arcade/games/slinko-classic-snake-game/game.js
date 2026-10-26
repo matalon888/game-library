@@ -5,6 +5,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, BASE_CSS, ICON, stage2d, rr, fx as mkfx, hud as mkhud, keys, swiper, touchy, dressStart, paused } from './neo.js';
 
 const NAME = 'Slinko: Classic Snake Game';
@@ -87,6 +88,17 @@ function die(why) {
   ui.lose(nb ? 'NEW BEST!' : why, `Score ${score} · Length ${snake.length} · Best ${best}`);
 }
 let runT0 = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first run, until the first real
+// touch, the snake steers itself to the food for about 4 s (the bot's own path, no slips), so turning and eating are shown;
+// when it hands back it turns toward the longest open run, so an idle player is not steered into a wall
+const DM = demo(null, { ready: () => state === 'play' && eaten < 2 && !D.seed, wait: 1200, ms: 4000 });
+let demoWas = false;
+function demoSteer() {
+  if (DM.on) { demoWas = true; return window.__game.bot(true); }
+  if (!demoWas || state !== 'play') return; demoWas = false;
+  const [hx, hy] = snake[0], run = d => { let n = 0, x = hx, y = hy; for (;;) { x += DIRS[d][0]; y += DIRS[d][1]; if (x < 0 || y < 0 || x >= GW || y >= GH || snake.some(s => s[0] === x && s[1] === y)) return n; n++; } };
+  const d = Object.keys(DIRS).filter(d => d !== OPP[dir]).sort((a, b) => run(b) - run(a))[0]; if (d !== dir) turn(d);
+}
 ui.onTap(() => { reset(); state = 'play'; B.start(); runT0 = performance.now(); });
 
 // ---------------------------------------------------------------- controls
@@ -184,7 +196,7 @@ function frame(now) {
   if (!paused()) {
     if (state === 'play') {
       acc += dt * 1000; const iv = interval();
-      while (acc >= iv && state === 'play') { acc -= iv; tick(); }
+      while (acc >= iv && state === 'play') { acc -= iv; demoSteer(); tick(); }
       if (gold) { gold.t -= dt; if (gold.t <= 0) { gold = null; } }
       gulps = gulps.map(g => g + dt * 1000 / iv).filter(g => g < snake.length + 2);
     } else if (state === 'lost') {
@@ -208,7 +220,7 @@ function bfs(sx, sy, tx, ty, blocked) {
 function area(x, y, blocked) { const seen = new Uint8Array(GW * GH), st = [y * GW + x]; let n = 0; seen[st[0]] = 1; while (st.length && n < 200) { const c = st.pop(); n++; const cx = c % GW, cy = (c / GW) | 0; for (const [dx, dy] of Object.values(DIRS)) { let nx = cx + dx, ny = cy + dy; if (wrap) { nx = (nx + GW) % GW; ny = (ny + GH) % GH; } if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue; const id = ny * GW + nx; if (seen[id] || blocked[id]) continue; seen[id] = 1; st.push(id); } } return n; }
 window.__game = {
   get state() { return state; }, get level() { return level(); }, get score() { return score; }, get length() { return snake.length; },
-  bot() {
+  bot(safe) {   // safe: the first-seconds demo, never a random slip
     if (state !== 'play' || q.length) return;
     const blocked = new Uint8Array(GW * GH); snake.forEach((s, i) => { if (i < snake.length - 1) blocked[s[1] * GW + s[0]] = 1; });
     const [hx, hy] = snake[0], tgt = gold || (food && { x: food[0], y: food[1] });
@@ -216,7 +228,7 @@ window.__game = {
     const opts = Object.keys(DIRS).filter(d => d !== OPP[dir]).map(d => { let nx = hx + DIRS[d][0], ny = hy + DIRS[d][1]; if (wrap) { nx = (nx + GW) % GW; ny = (ny + GH) % GH; } const ok = nx >= 0 && ny >= 0 && nx < GW && ny < GH && !blocked[ny * GW + nx]; return { d, nx, ny, ok, a: ok ? area(nx, ny, blocked) : -1 }; });
     if (step >= 0) { const o = opts.find(o => o.ny * GW + o.nx === step); if (o && o.a > snake.length * 0.6) want = o.d; }
     if (!want) { opts.sort((a, b) => b.a - a.a); want = opts[0].d; }
-    if (Math.random() < 0.02 + (performance.now() - runT0) / 1000 * 0.01) want = opts[Math.floor(Math.random() * opts.length)].d;   // a human-ish slip now and then
+    if (!safe && Math.random() < 0.02 + (performance.now() - runT0) / 1000 * 0.01) want = opts[Math.floor(Math.random() * opts.length)].d;   // a human-ish slip now and then
     if (want !== dir) turn(want);
   },
 };

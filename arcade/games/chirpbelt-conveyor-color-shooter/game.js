@@ -5,6 +5,7 @@ import { createUI, store, sfx, note, tone, buzz, loop } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { COL, MOTIFS, ORDER, BGS } from './motifs.js';
 
 const NAME = 'Chirpbelt: Conveyor Color Shooter';
@@ -337,6 +338,10 @@ cv.addEventListener('pointerdown', e => {
     if (Math.abs(x - p.x) < lay.cw / 2 && y > p.y - lay.br * 1.4 && y < p.y + lay.gap * 2.5) { if (queues[q].length) launch(queues[q][0], { q }); return; }
   }
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// two birds hop from their queues onto the belt and shoot their colour (the bot's own pick), so tap-to-launch is shown
+demo(() => { const n = belt.length; window.__game.bot(); if (belt.length === n) return false; },
+  { ready: () => state === 'play' && level === 1 && !D.seed && canLaunch(), wait: 1800, every: 1500, max: 2 });
 ui.onTap(w => {
   if (w === 'win' || w === 'lose') build();
   state = 'play'; t0 = performance.now(); B.start();

@@ -4,6 +4,7 @@
 import { createUI, store, buzz, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { board } from './kit/board.js';
 const B = board({ game: 'huebound', label: 'Wins', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board (RULES.md part C)
@@ -376,6 +377,10 @@ function endRound(p) {
     ui.lose(`${SEATS[p].name} wins`, `You had ${hands[0].length} card${hands[0].length === 1 ? '' : 's'} left`);
   }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in game 1, until the first real touch,
+// your first turn plays itself: a matching colour or number card (never a wild) slides from your hand onto the pile
+demo(() => { const c = hands[0].find(c => canPlay(c) && !isWild(c)); if (!c) return false; tapCard(c); },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && turn === 0 && !busy && !pickCb && !drawnPending && hands[0].length === startN, wait: 2000, max: 1 });
 ui.onTap((which) => {
   B.start();
   if (which === 'start') { state = 'play'; startTurn(); return; }

@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { ROOMS, ROUNDS_PER_ROOM, STAMP_NAMES, BALL, ballOf, DAB_INK, CALLS, levelDef, DAILY, POWER_DAUBS, CARD_COST, BOOST_COST, PAY, SPEEDS } from './data.js';
 import { fairRng, seededRng, shuffle, pick, makeCard, makeBag, readyMasks, closeness, pickPower, oddsTable, SHAPES, LETTER, MAX_BINGOS, POWERS } from './rules.js';
 import { snd } from './audio.js';
@@ -518,6 +519,11 @@ function tapCell(ci, i) {
   if (!Rd.called.has(card.nums[i])) { const c = card.cells[i]; c.classList.remove('nope'); void c.offsetWidth; c.classList.add('nope'); snd.nope(); return; }
   daub(ci, i, 'call');
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first round, until the first real
+// touch, up to three called numbers on the cards dab themselves as they come up, so the tap-to-dab move is shown
+const demoCell = () => { for (const [ci, c] of Rd.cards.entries()) for (let i = 0; i < 25; i++) if (!c.daub[i] && Rd.called.has(c.nums[i])) return [ci, i]; return null; };
+demo(() => { const c = demoCell(); if (!c) return false; tapCell(c[0], c[1]); },
+  { ready: () => mode !== 'lobby' && state === 'play' && st.level === 1 && !dailyMode && Rd && !Rd.over && !Rd.pick && !busy && !document.querySelector('.bb-wrap') && !!demoCell(), wait: 1500, every: 1600, max: 3, ms: 30000 });
 let combo = 0, lastDaub = 0;
 function daub(ci, i, how) {
   const card = Rd.cards[ci], cell = card.cells[i];

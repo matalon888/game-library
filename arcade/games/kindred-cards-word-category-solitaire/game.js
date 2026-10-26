@@ -4,6 +4,7 @@
 import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { CATS } from './categories.js';
 import { board } from './kit/board.js';
@@ -442,6 +443,10 @@ function lose() {
   soft.err(); buzz([40, 60, 40]);
   ui.lose('Out of moves', `${st.done.length} of ${G.cats.length} categories done`);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the solver's next two moves play themselves (a card slides onto its category or column), and each move is given back
+demo(() => { const mv = bestMove(st); if (!mv || movesLeft < 10 || play(mv) === false) return false; movesLeft++; movesEl.querySelector('span').textContent = movesLeft; },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && !busy && !drag, wait: 2000, every: 1500, max: 2 });
 ui.onTap((which) => {
   B.start();
   if (which === 'start') { state = 'play'; return; }

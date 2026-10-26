@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, store, rng, lerp, clamp, mat, glossy, rounded, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { buildModels, THEMES } from './models.js';
+import { demo } from './kit/demo.js';
 import { board as worldBoard } from './kit/board.js';
 const B = worldBoard({ game: 'gulp-garden', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
@@ -178,6 +179,17 @@ const inp = input({
     HOLE.z = clamp(HOLE.z + dy * dragK, -BD / 2 + HOLE.r * 0.6, BD / 2 - HOLE.r * 0.6);
   },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the hole glides to the nearest non-goal thing it can swallow for about 3 s (the same glide a tap gives), so moving and gulping
+// are shown without ticking off the level's goals
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 1200, ms: 3000 });
+let demoWas = false;
+function demoGlide() {
+  if (!DM.on) { if (demoWas) { demoWas = false; tapTo = null; } return; }
+  demoWas = true; let best = null, bd = 1e9;
+  for (const o of objs) { if (o.state !== 0 || o.goal || o.r > HOLE.r * 0.92) continue; const d = Math.hypot(o.x - HOLE.x, o.z - HOLE.z); if (d < bd) { bd = d; best = o; } }
+  if (best) tapTo = { x: clamp(best.x, -BW / 2 + HOLE.r * 0.6, BW / 2 - HOLE.r * 0.6), z: clamp(best.z, -BD / 2 + HOLE.r * 0.6, BD / 2 - HOLE.r * 0.6) };
+}
 ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
@@ -224,6 +236,7 @@ const camPos = new THREE.Vector3(0, 14, 14), camAt = new THREE.Vector3();
 loop((dt60) => {
   const dt = Math.min(dt60 / 60, 0.05);
   if (state === 'play') { timeLeft -= dt; updateTime(); if (timeLeft <= 0) { timeLeft = 0; lose(); } }
+  if (state === 'play') demoGlide();
   if (tapTo && state === 'play') { const dx = tapTo.x - HOLE.x, dz = tapTo.z - HOLE.z, L = Math.hypot(dx, dz), st = Math.min(L, 7 * dt); if (L < 0.05) tapTo = null; else { HOLE.x += dx / L * st; HOLE.z += dz / L * st; } }
   if (comboT > 0) { comboT -= dt; if (comboT <= 0) combo = 0; }
   // hole grows smoothly

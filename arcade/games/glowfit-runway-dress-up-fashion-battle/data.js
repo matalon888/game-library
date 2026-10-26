@@ -82,20 +82,6 @@ export const THEMES = [
   { id: 'teaparty', name: 'Garden Tea Party', emoji: '🫖', want: ['preppy', 'dreamy'], pal: ['berry', 'mint', 'lilac'], lvl: 19, line: 'Pinkies up, petals everywhere.' },
   { id: 'bday', name: 'Birthday Glow', emoji: '🎂', want: ['party', 'sweet'], pal: ['berry', 'butter', 'sky'], lvl: 20, line: 'Your day. Your cake. Your runway.' },
 ];
-// painted art (art wave 1, assets/art/): each brief's inspiration look (a complete painted outfit on the Glowfit model, shown on
-// the show card and the results; the 3D outfits stay built piece by piece, the looks are not layers)
-export const THEME_LOOK = { y2kpicnic: 'beach', campus: 'autumn', fairy: 'princess', soiree: 'princess', arcade: 'sporty', boba: 'autumn', popstar: 'popstar',
-  strawfest: 'beach', rainy: 'autumn', mall: 'popstar', skate: 'sporty', prom: 'galaxy', library: 'autumn', unicorn: 'galaxy', bonfire: 'beach', snow: 'autumn',
-  matcha: 'autumn', cyber: 'sporty', teaparty: 'princess', bday: 'popstar' };
-// the three rivals of every show: Coco, Sunny and Luna (painted portraits), each walking as the chibi model closest to her look
-// that isn't yours (body = models in order of preference)
-export const RIVALS = [
-  { id: 'coco', name: 'Coco', body: ['k04', 'k02', 'k05', 'k03', 'k01'] },
-  { id: 'sunny', name: 'Sunny', body: ['k03', 'k05', 'k02', 'k04', 'k01'] },
-  { id: 'luna', name: 'Luna', body: ['k05', 'k02', 'k04', 'k03', 'k01'] },
-];
-// wardrobe tab icons (painted): slot → assets/art/item-<name>.webp
-export const SLOT_ART = { top: 'top', bottom: 'skirt', shoes: 'shoes', bag: 'bag', head: 'bow', face: 'glasses' };
 export const RULE_BANS = ['street', 'preppy', 'glam', 'cozy', 'party', 'dreamy', 'y2k', 'sweet'];
 
 // the five chibi models. sig = the colour family of their own outfit (what shows when a slot is empty)

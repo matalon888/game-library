@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Zip Lanes: Traffic Racer';
 const S = store('ziplanes');
@@ -204,6 +205,9 @@ input({
   onTap: (e) => { if (state !== 'play') return; steer(e.clientX < innerWidth / 2 ? -1 : 1); },
 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the car swerves around traffic by itself for a few seconds (the game's own lane bot), then the wheel is yours
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !crashed, wait: 600, ms: 4000 });
 
 // ---------------------------------------------------------------- loop
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
@@ -212,6 +216,7 @@ loop((rawDt, t) => {
   const dt = rawDt / 60;
   const moving = state === 'play' ? speed : state === 'ready' ? 12 : state === 'won' ? speed * 0.6 : 0;
   if (state === 'play') {
+    if (DM.on) window.__game.bot();
     speed = Math.min(speed + accel * dt, 72);
     dist += speed * dt / 1.0;
     ui.progress(dist / goal);

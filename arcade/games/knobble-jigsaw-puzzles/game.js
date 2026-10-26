@@ -5,6 +5,7 @@ import { createUI, store, buzz, tone, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft, chime, fmtTime } from './calm.js';
 import { paint, rngOf } from './pictures.js';
 
@@ -211,6 +212,14 @@ function finish() {
   D.won(solved, 'completed');
   setTimeout(() => ui.win(D.isDaily ? 'Daily' : level - 1, `${title} · ${N * N} pieces · ${fmtTime(t)}${nb && prev ? ' · new best!' : ''}`), 900);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first real touch,
+// two edge pieces lift out of the tray and fly into their spots (the bot's own pick), so the picture starts to come together
+demo(() => {
+  const L = pieces.filter(p => !p.placed).sort((a, b) => (b.edge - a.edge) || a.ord - b.ord); if (L.length < 6) return false;
+  const p = L[0]; filter = 0; const k = trayList().indexOf(p);
+  scroll = Math.max(0, Math.min(maxScroll(), Math.floor(k / 2) * geo.ts - geo.tw / 2 + geo.ts));
+  const [sx, sy] = slotOf(trayList().indexOf(p)); place(p, sx, sy, trayScale());
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !drag && !down && !flies.length, wait: 1800, every: 1300, max: 2 });
 ui.onTap(which => { if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; } newPuzzle(); });
 
 // ---------------------------------------------------------------- drawing

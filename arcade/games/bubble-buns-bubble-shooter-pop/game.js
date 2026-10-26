@@ -8,6 +8,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { piece, chibi } from './assets.js';
 import { ROOMS, buildRoom, critterHerd, ROOM_W } from './room.js';
 import { makeLevel, CRITTERS, COLORS, COLOR_NAMES, isHard, rng } from './levels.js';
@@ -648,6 +649,11 @@ loop(d => {
   if (sayEl) { sayT -= dt; if (sayT <= 0) { sayEl.remove(); sayEl = null; } else placeSay(); }
   R.info.reset(); C.render(dt); perf = { calls: R.info.render.calls, tris: R.info.render.triangles };
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the aim line swings over and one bubble pops a colour group (never one holding a baby); the bubble is given back
+demo(() => { const r = SH.bot(true); if (r === 'fired') { SH.G.shots++; hooks.shots(SH.G.shots); return false; } if (r === false) return false; },
+  { ready: () => mode === 'level' && state === 'play' && !dailyMode && curLevel?.n === 1 && SH && SH.state === 'play' && !SH.busy && SH.shots > 1 && !popEl && !(outPop && outPop.isConnected), wait: 1800, every: 150, max: 12 });
 
 // ---------------------------------------------------------------- test hooks
 let botBusy = false, botWait = 0;

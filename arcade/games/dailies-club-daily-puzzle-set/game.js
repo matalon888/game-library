@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { createScene, DECOR } from './scene.js';
 import { snd } from './audio.js';
 import * as P from './puzzles.js';
@@ -288,6 +289,13 @@ function paintVibe(anim = false) {
   stage.querySelector('[data-sub]').disabled = V.sel.length !== 4;
   stage.querySelector('[data-hint]').disabled = r.found.length >= 3;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first Vibe Check, until the
+// first touch, two tiles from different groups light up as picked and let go again, so a tap's effect shows and no group is given away
+let demoPick = null;
+demo(n => {
+  if (n === 1) { const o = V.order.filter(i => !V.sel.includes(i)); const a = o[Math.floor(o.length / 3)], b = o.find(i => V.s.tiles[i].g !== V.s.tiles[a].g && i !== o[0]); if (a == null || b == null) return false; demoPick = [a, b]; }
+  const i = demoPick[(n - 1) % 2]; vibeTap(i); if (n >= 4) return false;
+}, { ready: () => view === 'play' && kind === 'v' && state === 'play' && !ov && !busy && st.solved === 0 && (demoPick || !V.sel.length), wait: 1800, every: 700, max: 4 });
 function vibeTap(i, b) {
   if (state !== 'play' || busy) return;
   const k = V.sel.indexOf(i);

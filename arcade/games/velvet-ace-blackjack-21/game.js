@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, loop, store, confetti, buzz } from './kit
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import * as C from './casino.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Velvet Ace: Blackjack 21';
 C.installCSS();
@@ -374,6 +375,9 @@ function setupTable(n) {
 }
 function shade(hex, k) { const c = new THREE.Color(hex).multiplyScalar(k); return '#' + c.getHexString(); }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): at table 1, until the first real touch,
+// two of the smallest chips hop onto the bet circle so DEAL lights up (nothing is dealt or spent; Clear takes them back)
+demo(() => { addBet(chipVals()[0]); }, { ready: () => state === 'play' && tableN === 1 && !D.seed && phase === 'bet' && bet < chipVals()[0] * 2, wait: 1800, every: 900, max: 2 });
 ui.onTap(which => {
   B.start();
   if (which === 'start') { state = 'play'; enterBet(); }

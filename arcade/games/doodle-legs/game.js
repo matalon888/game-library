@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, conf
 import { makeRacer, setShape, step, course, floorAt, HALF } from './physics.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const OMEGA = -2 * Math.PI * 0.9;            // player motor (rad/s, negative = forward)
 const LANE_Z = [0, -1.75, -3.5, -5.25], LANE_D = 1.0;
@@ -253,6 +254,15 @@ function bot() {
     botDraw = { i: 0, pts: fine.map(([x, y]) => [padRect.width / 2 + x / k, padRect.height / 2 - y / k]) };
   }
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// a leg shape scribbles itself into the pad (the bot's own stroke), the cube runs on it for a moment, then the level rewinds
+let demoDrew = 0;
+demo(() => {
+  if (!demoDrew) { bot(); if (!botDraw) demoDrew = performance.now(); return; }
+  if (performance.now() - demoDrew < 2600) return;
+  botMode = ''; startLevel(); fitPad(); return false;
+}, { ready: () => state === 'play' && level === 1, wait: 1500, every: 90, max: 80, ms: 7000 });
 
 // ---------------------------------------------------------------- main loop
 const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), tmp = new THREE.Vector3();

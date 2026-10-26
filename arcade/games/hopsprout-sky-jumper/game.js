@@ -5,6 +5,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, arcadeCards, startCard, canvas2d, particles, shaker, keys, lerpc } from './arc.js';
 
 const NAME = 'Hopsprout: Sky Jumper';
@@ -103,6 +104,10 @@ ui.onTap(w => {
   if (w !== 'start') reset(); state = 'play'; t0 = performance.now(); B.start(); bounce(0.8);
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first climb, until the first
+// touch, the sprout steers itself from pad to pad (the game's own bot) for a few seconds, then the steering is yours
+const DM = demo(null, { ready: () => state === 'play' && zoneN === 0 && !D.isDaily, wait: 800, ms: 3500 });
+
 // ---------------------------------------------------------------- update
 function bounce(k = 1, pad = null) {
   hero.vy = JV * k; hero.squash = 0.45;
@@ -119,6 +124,7 @@ function update(dt) {
   if (K.has('ArrowLeft') || K.has('KeyA')) ax -= 1;
   if (K.has('ArrowRight') || K.has('KeyD')) ax += 1;
   if (mode === 1 && tiltSeen && !ptr.down) ax += tilt;
+  if (DM.on) bot.until = clock + 0.05;
   if (clock < bot.until) botThink();
   if (ax) { hero.vx += ax * 2600 * dt; hero.vx = Math.max(-MAXV, Math.min(MAXV, hero.vx)); hero.face = Math.sign(ax); hero.tx = null; }
   else if (hero.tx != null) {

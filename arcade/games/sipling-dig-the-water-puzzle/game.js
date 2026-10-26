@@ -4,6 +4,7 @@ import { createUI, store, buzz, tone, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft } from './calm.js';
 
 const NAME = 'Sipling: Dig the Water Puzzle';
@@ -237,6 +238,10 @@ function lose(title, line) {
 }
 ui.els.win.querySelector('p').innerHTML = 'LEVEL <span data-l>1</span>';
 ui.onTap(w => { build(); state = 'play'; B.start(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// a tunnel scrapes itself up from Sipling's pipe along the level's path (the bot's own dig), stopping well short of the water
+demo(() => { if (botI < 12 || digging) return false; window.__game.bot(); },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily, wait: 1600, every: 550, max: 3 });
 
 // ---------------------------------------------------------------- drawing
 function ell(x, y, rx, ry, c) { g.beginPath(); g.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), 0, 0, Math.PI * 2); g.fillStyle = c; g.fill(); }

@@ -8,6 +8,7 @@ import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 import { buildWorld, ROOM } from './world.js';
 import { S as SND, music, setMuted, unlock } from './audio.js';
@@ -742,6 +743,16 @@ function suggest(wait = customers.filter(c => c.phase === 'wait').sort((a, b) =>
   return null;
 }
 const act = g => (g.c ? tapCustomer(g.c) : g.p ? tapPastry(g.p) : tapStation(g.s));
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on day 1, until the first touch,
+// the station a waiting customer needs starts cooking their order by itself; handing it over (and the coins) is left to you
+demo(() => {
+  for (const c of customers) if (c.phase === 'wait') for (const it of c.order) {
+    if (it.got || it.pend || IT[it.k].st === 'pastry') continue;
+    const st = stations[IT[it.k].st]; if (st.slots.some((q, i) => i < nSlots(st.key) && q.state !== 'idle')) continue;
+    if (tapStation(st)) return;
+  }
+  return false;
+}, { ready: () => state === 'play' && !D.seed && day && day.L === 1 && customers.some(c => c.phase === 'wait'), wait: 1500, every: 1600, max: 2 });
 const hintEl = document.createElement('div'); hintEl.id = 'hint'; hintEl.innerHTML = '<i>👆</i><b></b>'; hintEl.style.display = 'none'; document.body.appendChild(hintEl);
 let idleT = 0;
 addEventListener('pointerdown', () => { idleT = 0; hintEl.style.display = 'none'; }, true);

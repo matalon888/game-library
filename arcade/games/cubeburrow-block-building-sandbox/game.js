@@ -1,6 +1,7 @@
 // Cubeburrow — first-person block island. Dig, chop, craft and build; today's island comes with three build goals
 // to finish before night. Free Sandbox mode keeps your own island between visits.
 import { THREE, createStage, createUI, store, loop, buzz, tone, note, burst, confetti, clamp, rng } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
@@ -554,10 +555,15 @@ function botThink() {
 const angDiff = (a, b) => { let d = b - a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
 const botOn = () => performance.now() - bot.t < 500 && state === 'play';
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first challenge, until the first
+// real touch, the burrower walks, looks and digs toward its first goal for about 4.5 s (the bot's own brain), then hands back
+const DM = demo(null, { ready: () => state === 'play' && mode === 'challenge' && wins === 0, wait: 1500, ms: 4500 });
+let demoT = 0;
 // ---------------------------------------------------------------- frame
 let flyA = 0, cloudT = 0;
 loadWorld(mode === 'challenge' ? 'day' : 'sandbox'); paintStart(); sky(0.32);
 loop((dt, t) => {
+  if (DM.on && t - demoT > 0.1) { demoT = t; botThink(); }
   cloudT += dt / 60;
   for (let i = 0; i < NCL; i++) { const c = cloudD[i]; const x = ((c.x + cloudT * 0.8 + 120) % 360) - 120; _m.compose(_p.set(x, c.y, c.z), _q, _s.set(c.sx, 2, c.sz)); clouds.setMatrixAt(i, _m); }
   clouds.instanceMatrix.needsUpdate = true;

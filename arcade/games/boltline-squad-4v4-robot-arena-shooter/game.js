@@ -1,5 +1,6 @@
 // Boltline Squad — original 4v4 team deathmatch with toy robots and foam blasters. All art built in code.
 import { THREE, createStage, createUI, loop, rounded, tone, note, sfx, buzz, store, lerp, clamp, rng } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
@@ -570,6 +571,8 @@ let tt = 0;
 loop((dt, now) => {
   const s = dt / 60; tt += s;
   ctl.poll();
+  if (DM.on) { demoWas = true; const o = think(player, s), rel = o.move === null ? 0 : o.move - player.yaw; ctl.drive({ mx: -Math.sin(rel) * o.speed, my: Math.cos(rel) * o.speed }); }
+  else if (demoWas) { demoWas = false; ctl.mx = ctl.my = 0; ctl.bot = 0; }
   if (state === 'play') {
     tLeft -= s; if (tLeft <= 0) { tLeft = 0; endMatch(); }
     bombCd = Math.max(0, bombCd - s); shield = Math.max(0, shield - s);
@@ -632,6 +635,10 @@ loop((dt, now) => {
 });
 const shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(1.5, 24, 16), new THREE.MeshStandardMaterial({ color: '#9ff3ff', transparent: true, opacity: 0.3, emissive: '#5ad7ff', emissiveIntensity: 0.4, depthWrite: false })); shieldMesh.visible = false; scene.add(shieldMesh);
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in match 1, until the first real touch,
+// your robot drives, turns and fires at the nearest rival for about 4.5 s (the squad's own brain), so the controls are shown
+let demoWas = false;
+const DM = demo(null, { ready: () => state === 'play' && matchN === 1 && !D.seed && player && player.alive, wait: 1500, ms: 4500 });
 ui.onTap(w => { if (w === 'win' || w === 'lose') newMatch(); begin(); });
 newMatch(); showHud(false); ui.start();
 

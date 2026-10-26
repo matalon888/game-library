@@ -11,6 +11,7 @@ import { mergeGeometries } from './kit/addons/utils/BufferGeometryUtils.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { loadHero } from './kit/heroes.js';
 import { snd } from './audio.js';
 import { drawAtlas, symbolIcon, SYMBOLS, COLS, ROWS, TREASURE } from './tiles.js';
@@ -505,6 +506,10 @@ function pickAt(x, y) {
   for (const t of Lv.tiles) { if (!Lv.alive[t.i] || !Lv.free[t.i]) continue; const top = t.base.y + TH / 2; const p = ray.ray.at((top - ray.ray.origin.y) / ray.ray.direction.y, hitP); const d = Math.hypot(p.x - t.base.x, (p.z - t.base.z) * 0.8); if (d < fd) { fd = d; fb = t.i; } }
   return fb;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// two matching free tiles are tapped in turn (the bot's own hint), so one pair lifts and clears and the tap-two move is shown
+demo(() => { if (Lv.alive.filter(Boolean).length <= 8) return false; bot(); },
+  { ready: () => state === 'play' && Lv.n === 1 && !Lv.daily && !(Lv.intro > 0) && !(Lv.hop > 0) && !Lv.busy, wait: 2000, every: 900, max: 2 });
 R.domElement.addEventListener('pointerdown', e => {
   snd.unlock();
   if (state !== 'play') return;

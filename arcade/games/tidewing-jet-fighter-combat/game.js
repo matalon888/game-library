@@ -1,5 +1,6 @@
 // Tidewing: Jet Fighter Combat — modern jet combat over an ocean archipelago. Original game, all art and sound in code.
 import { THREE, createUI, store, buzz } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { cine } from './kit/cine.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
@@ -593,6 +594,9 @@ ui.onTap(which => {
   else if (which === 'lose') { if (G.mode === 'intercept') startIntercept(); else startMission(G.mi); }
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in mission 1, until the first real touch,
+// the jet banks toward the nearest target and fires its guns for about 4.5 s (the attract bot), never a missile or a flare
+const DM = demo(null, { ready: () => G.state === 'play' && G.running && G.mode === 'mission' && G.mi === 0 && G.introT <= 0 && P.alive, wait: 1000, ms: 4500 });
 // ---------------------------------------------------------------- main loop
 attract(); buildMenu();
 let last = performance.now();
@@ -601,6 +605,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; G.t += dt;
   if (G.running) {
     G.time += dt; G.introT = Math.max(0, G.introT - dt); G.comboT -= dt; armorMsgT -= dt; P.lastHit += dt;
+    if (DM.on) { bot(); if (G.bot) { G.bot.msl = false; G.bot.flr = false; G.bot.ttl = 0.1; } }
     const b = G.bot && (G.bot.ttl -= dt) > 0 ? G.bot : null;
     const inp = b ? { stick: { x: b.x, y: b.y }, boost: b.boost, brake: b.brake, gun: b.gun } : { stick: ctl.read(dt), boost: ctl.boost, brake: ctl.brake, gun: ctl.gun };
     if (P.alive) {

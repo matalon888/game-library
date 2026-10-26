@@ -7,6 +7,7 @@ import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { QUOTES } from './quotes.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'cipherleaf', label: 'Quotes cracked', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Cipherleaf: Quote Code Puzzle';
@@ -207,6 +208,14 @@ function reveal(L, byPlayer) {
   sel = left ? next(sel) : -1; paint();
   if (!left) win();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on quote 1, until the first touch,
+// the cursor hops to the first open square and its letter drops into every square with that code (a free given, no points)
+demo((n) => {
+  if (n === 1) { select(next(-1)); soft.click(); return sel >= 0 ? undefined : false; }
+  if (!open(sel) || new Set(cells.filter(c => c.isL && !solvedL.has(c.ch)).map(c => c.ch)).size < 5) return false;
+  givenL.add(cells[sel].ch); reveal(cells[sel].ch, false); return false;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !busy && mistakes === 0, wait: 1800, every: 900, max: 2 });
+
 hintBtn.addEventListener('pointerdown', (e) => {
   e.preventDefault(); e.stopPropagation(); if (state !== 'play' || !hints || busy) return;
   if (sel < 0 || !open(sel)) select(next(sel)); if (sel < 0) return;

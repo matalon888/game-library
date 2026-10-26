@@ -5,6 +5,7 @@ import { createUI, store, buzz, sfx, tone, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, arcadeCards, startCard, canvas2d, particles, shaker } from './arc.js';
 
 const NAME = 'Bumperlark: Pinball Table';
@@ -165,6 +166,9 @@ function release() {
   ball.vy = -(1000 + 900 * pw); plunge = 0; saveT = Math.max(saveT, 8 / F.k(score));
   tone(120, 0.18, 'sawtooth', 0.1, 2.4); buzz(20);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on ball 1, until the first real touch,
+// the plunger launches and the flippers flick by themselves for about 4.5 s (the bot's own timing, under ball save)
+const DM = demo(null, { ready: () => state === 'play' && ballN === 1 && score < 2000 && !D.seed, wait: 1500, ms: 4500 });
 ui.onTap(w => { if (w !== 'start') reset(); state = 'play'; t0 = performance.now(); B.start(); press.L.clear(); press.R.clear(); });
 
 // ---------------------------------------------------------------- physics
@@ -289,7 +293,7 @@ function frame(t) {
   for (const f of floats) { f.t -= dt; f.y -= 40 * dt; } while (floats.length && floats[0].t <= 0) floats.shift();
   msgT -= dt; orbitArm -= dt;
   if (state === 'play' && ball) {
-    if (clock < bot.until) botThink();
+    if (clock < bot.until || DM.on) botThink();
     flipOn(flips[0], press.L.size > 0 || keyL.v || (botFlip[0] > clock && botWait[0] < clock));
     flipOn(flips[1], press.R.size > 0 || keyR.v || (botFlip[1] > clock && botWait[1] < clock));
     if (plungeHeld && ball.inLane) plunge = Math.min(1, plunge + dt / 0.9);

@@ -6,6 +6,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, arp, soft, todayKey } from './calm.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'thumb-duel', label: 'Wins vs CPU', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Thumb Duel: Party Duels for Two';
@@ -302,13 +303,24 @@ function drawResult() {
     g.restore();
   });
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first duel of match 1 vs the
+// CPU, until the first touch, blue plays itself for a few seconds (mashes halfway, dashes, blocks) but never takes the point
+const DM = demo(null, { ready: () => state === 'play' && mode === 0 && level === 1 && !D.isDaily && pts[0] + pts[1] === 0 && phase === 'play', wait: 400, ms: 3000 });
+let demoT = 0;
+function demoPlay(dt) {
+  demoT -= dt / 60; const n = cur.name;
+  if (n === 'Rocket Race') { if (demoT <= 0 && cur.pos[0] < 0.5) { demoT = 0.17; cur.tap(0); } }
+  else if (n === 'Tug of War') { if (demoT <= 0 && cur.k < 0.5) { demoT = 0.17; cur.tap(0); } }
+  else if (n === 'Sumo Ring') { const o = cur.b[1]; if (Math.hypot(o.x - W / 2, o.y - H / 2) < cur.R * 0.5) cur.bot(); }
+  else if (n === 'Air Hockey') { if (cur.k.y > H * 0.35) cur.bot(); }
+}
 let last = performance.now(), botTick = 0;
 function frame(t) {
   const dt = Math.min(2.5, (t - last) / 16.67); last = t;
   drawBoard();
   if (cur && state !== 'ready') {
     if (phase === 'intro') { pt += dt / 60; if (pt > 0.9 + 0.42 * 3) { phase = 'play'; pt = 0; tone(880, 0.1, 'triangle', 0.1, 1); } }
-    else if (phase === 'play') { cur.update && cur.update(dt); if (mode === 0 && phase === 'play' && state === 'play') cur.cpu(dt); }
+    else if (phase === 'play') { if (DM.on) demoPlay(dt); cur.update && cur.update(dt); if (mode === 0 && phase === 'play' && state === 'play') cur.cpu(dt); }
     else if (phase === 'result') { pt += dt / 60; if (pt > 1.25) nextRound(); }
     cur.draw();
     drawScores();

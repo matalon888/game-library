@@ -3,6 +3,7 @@
 import { board } from './kit/board.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, SVG, css } from './puzzle.js';
 import { generate, OPS } from './cagegen.js';
+import { demo } from './kit/demo.js';
 
 const SIZES = [4, 5, 6];
 let sizeI = Math.max(0, Math.min(2, +(localStorage.getItem('cagewise_size') || 0)));
@@ -64,6 +65,14 @@ const P = shell({
     sel = c; P.push(); place(c, sol[c]);
   },
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first touch,
+// the smallest cage's square is picked, then its number drops in and the cage glows; twice, then the grid is yours
+demo((k) => {
+  if (wonAt || notesMode) return false;
+  if (k % 2) { const c = bestEmpty(); if (c < 0 || val.filter(v => !v).length < 5) return false; sel = c; soft.click(); refreshPad(); return; }
+  if (sel < 0 || val[sel]) return false; P.push(); place(sel, sol[sel]);
+}, { ready: () => P.state === 'play' && P.level === 1 && !P.D.isDaily, wait: 1800, every: 800, max: 4 });
 
 function bestEmpty() { let best = -1, bk = 99; for (const cg of cages) { const e = cg.cells.filter(c => !val[c]); if (e.length && e.length < bk) { bk = e.length; best = e[0]; } } return best; }
 function cellAt(x, y) { const cx = Math.floor((x - geo.x) / geo.s), cy = Math.floor((y - geo.y) / geo.s); return cx < 0 || cy < 0 || cx >= n || cy >= n ? -1 : cy * n + cx; }

@@ -2,6 +2,7 @@
 // Legal moves are shown as soft dots, flips ripple out from the placed disc, a player with no move passes,
 // and the game ends when neither side can move: most discs wins. CPU thinks in a Web Worker. Undo on Easy.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { duel, DIFFS, rrect, ease, soft, tone, chime, buzz, note } from './duel.js';
 import { initial, moves, apply, think, search, count } from './engine.js';
 
@@ -123,5 +124,10 @@ function draw(g, now) {
   }
   void note; void DIFFS;
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first game, until the first real
+// touch, your opening disc places itself on a legal square and flips its line, then the computer answers as usual
+demo(() => { const m = legal[0] && search(bd, 1, { depth: 2, ms: 30 }); if (!m) return false; place(m); },
+  { ready: () => P.state === 'play' && P.turn === 0 && !P.busy && !placed && count(bd, 1) + count(bd, -1) === 4 && window.__game?.level === 1, wait: 2000, max: 1 });
 
 P.start();

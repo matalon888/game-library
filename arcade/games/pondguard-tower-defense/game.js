@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, confetti, sfx, tone, note, buzz, st
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { vcMat } from './merge.js';
 import { towerGeo, slimeGeo, shellGeo, bulkGeo, beeGeo, quillGeo, shellShotGeo, treeGeo, canopyGeo, icon } from './models.js';
 import { MAPS, UNLOCK, buildPath, roundSpawns, TIER_COL, TIER_SPD, TIER_SIZE, rbe, BULK_HP, GIANT_HP, BULK_RBE } from './maps.js';
@@ -633,6 +634,10 @@ ui.onTap(w => {
   if (w === 'lose') newRun();
 });
 buildMap(mapI); paintStart(); paintHud();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on a fresh run of the first map, until
+// the first touch, the first critter tower drops onto the spot that covers the most path (the bot's pick); its coins are given back
+demo(() => { const w = BUILD.find(t => towerOpen(t)) || 'hog', sp = bestSpot(w); if (!sp) return false; const c = TW[w].cost; if (place(w, sp[0], sp[1])) { coins += c; paintHud(); } return false; },
+  { ready: () => state === 'play' && mapI === 0 && !D.seed && round === 0 && !inRound && !towers.length && !placing && !selected, wait: 1800 });
 
 // ================================================================ bot (QA): builds on the best-covering spots, upgrades, runs at ×3
 function coverage(x, z, R) { let c = 0; for (let i = 0; i < P.x.length; i += 3) if ((P.x[i] - x) ** 2 + (P.z[i] - z) ** 2 < R * R) c += 1 + i / P.x.length; return c; }

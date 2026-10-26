@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { COLS, RH, W as GW, DEAD, XWALL, LAUNCH_Y, cellPos, bestShot } from './grid.js';
 import { makeLevel, nextBerry, BERRIES, CHICKS, isHard, rng } from './levels.js';
 import { snd } from './audio.js';
@@ -359,6 +360,27 @@ function freeChick(v, delay) {
   fx.birds.push({ sp: v.chick, x0: p.x, y0: p.y, t: -delay, dur: 1.15 + Math.random() * 0.2 });
 }
 function nestPoint() { const r = H.nest.querySelector('img').getBoundingClientRect(); return { X: r.left + r.width / 2, Y: r.top + r.height * 0.45 }; }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// Robin swings the aim line over and flicks one berry into its colour group (never one that frees a chick); the berry is given back
+let demoA = null, demoT = 0;
+demo(() => {
+  if (fx.fly) return false;
+  const now = performance.now();
+  if (demoA === null) {
+    let best = null;
+    for (let deg = 20; deg <= 160; deg += 1.5) {
+      const a = deg * Math.PI / 180, tr = grid.trace(LAUNCH.x, LAUNCH.y, a), [r, c] = tr.cell; if (grid.get(r, c)) continue;
+      const res = grid.clone().land(r, c, { color: cur }), all = [...res.popped, ...res.dropped];
+      if (all.some(v => v.chick >= 0)) continue;
+      const v = all.length - tr.bounces * 0.5; if (!best || v > best.v) best = { v, a };
+    }
+    if (!best) return false;
+    demoA = best.a; demoT = now; aiming = true; aimOk = true; aimA = Math.PI / 2; return;
+  }
+  const k = Math.min(1, (now - demoT) / 650); aimA = Math.PI / 2 + (demoA - Math.PI / 2) * (k * k * (3 - 2 * k)); aiming = true; aimOk = true;
+  if (k >= 1) { fire(demoA); demoA = null; if (fx.fly) { shotsLeft++; hudLevel(); } return false; }
+}, { ready: () => state === 'play' && levelN === 1 && !isDaily && !special && (demoA !== null || (!busy && !fx.fly && !aiming && grid && shotsLeft > 1)), wait: 1800, every: 120, max: 12 });
 
 // pointer: drag to aim, let go to flick; tap the next berry (or the current one) to swap
 let downOn = null;

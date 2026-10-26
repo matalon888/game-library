@@ -8,6 +8,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -247,6 +248,10 @@ function endSel() {
   if (w.length < 3) { setTimeout(() => { if (!dragging) drawPreview(); }, w.length ? 250 : 0); return; }
   submit(w, spans);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first touch,
+// the shortest word traces itself across the letter wheel (the bot's own swipe) and flies into the crossword; the rest are yours
+demo(n => { botNext = 0; if (n > 1 && !botQ) return false; bot(); if (n > 1 && !botQ) return false; },
+  { ready: () => state === 'play' && P && P.n === 1 && !P.isDaily && (botQ || (!dragging && P.words.filter(w => !w.found).length >= 2)), wait: 1800, every: 320, max: 9 });
 wheelEl.addEventListener('pointerdown', e => {
   if (state !== 'play') return; e.preventDefault(); snd.unlock();
   ptr = { x: e.clientX, y: e.clientY }; const i = letterAt(e.clientX, e.clientY);

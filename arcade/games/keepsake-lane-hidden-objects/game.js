@@ -9,6 +9,7 @@ import { mergeGeometries } from './kit/addons/utils/BufferGeometryUtils.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 import * as RM from './room.js';
 import * as SND from './sound.js';
@@ -616,6 +617,12 @@ function pickAt(sx, sy) {
   }
   return best;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in room 1, until the first real touch,
+// two listed objects in plain sight are tapped for the player (the QA aim), so they lift, sparkle and fly into the list
+demo(() => {
+  if (L.targets.filter(i => !i.found).length <= 3) return false;
+  const p = window.__game.aim(); if (!p) return false; onTap(p[0], p[1]);
+}, { ready: () => state === 'play' && L && L.n === 1 && !isDaily && performance.now() >= lockUntil, wait: 1800, every: 1600, max: 2 });
 function onTap(x, y) {
   if (state === 'intro') { endIntro(); return; }
   if (state !== 'play' || !L) return;

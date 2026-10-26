@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = worldBoard({ game: 'latte-jam', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const S = createStage({ fov: 40, shadowSize: 10 });
@@ -212,6 +213,10 @@ input({ onTap: (e) => {
   tapTray(trays[hits[0].object.userData.tray]);
 } });
 ui.onTap(w => { B.start(); if (w === 'win') level++; genLevel(); state = 'play'; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the tray matching the front cup flies into a slot and the cups hop off the belt into it (the bot's own pick), twice
+demo(() => { if (served + 12 > total) return false; window.__game.bot(); },
+  { ready: () => state === 'play' && level === 1 && !trays.some(x => x.st === 'fly'), wait: 1600, every: 1700, max: 2 });
 
 function studPos(t, k) { const i = k % 3, j = Math.floor(k / 3); return new THREE.Vector3(t.m.position.x + (i - 1) * CELL, t.m.position.y + TRAY_H + 0.07, t.m.position.z + (j - 0.5) * CELL); }
 function frontCup() { return cups.find(c => c.st === 'queue' && c.q === 0); }

@@ -4,6 +4,7 @@ import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Plumb Pairs: Connect the Dots Pipe Puzzle';
@@ -168,6 +169,19 @@ function endDrag() {
 }
 const cellXY = (c) => [G.x + (c % n + 0.5) * G.c, G.y + (((c / n) | 0) + 0.5) * G.c];
 function cellAt(px, py) { const x = Math.floor((px - G.x) / G.c), y = Math.floor((py - G.y) / G.c); return x < 0 || y < 0 || x >= n || y >= n ? -1 : y * n + x; }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the shortest pipe draws itself from one dot to its twin (the solver's path); the move is not counted
+let demoI = -1;
+demo(() => {
+  if (demoI < 0) {
+    if (pairs.length < 2 || paths.some(p => p.length)) return false;
+    demoI = pairs.reduce((b, p, i) => p.sol.length < pairs[b].sol.length ? i : b, 0); startAt(pairs[demoI].a); return;
+  }
+  if (active !== demoI) return false;
+  stepTo(pairs[demoI].sol[paths[demoI].length]);
+  if (complete(demoI)) { endDrag(); moves = Math.max(0, moves - 1); lastMoved = -1; refresh(); return false; }
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && (demoI >= 0 || active < 0), wait: 1800, every: 280, max: 14 });
 
 cv.addEventListener('pointerdown', e => { if (state !== 'play') return; ptr = [e.clientX, e.clientY]; startAt(cellAt(e.clientX, e.clientY)); });
 addEventListener('pointermove', e => { if (active < 0 || !ptr) return; ptr = [e.clientX, e.clientY]; stepTo(cellAt(e.clientX, e.clientY)); });

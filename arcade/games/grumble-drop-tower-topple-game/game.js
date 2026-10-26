@@ -5,6 +5,7 @@ import { createUI, store, buzz, tone, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, fx2d, arp, todayKey } from './calm.js';
 import { makeLevel, build, describe, DT, WATER, MAT } from './gen.js';
 
@@ -287,6 +288,7 @@ function simulate(dtS) {
 }
 function check(dtS) {
   if (state !== 'play') return;
+  if (demoing) { if (DM.touched || performance.now() - demoT0 > 4000) demoRewind(); return; }   // the demo topple never wins or loses; a touch rewinds it at once
   const pip = W.bodies.some(b => b.kind === 'pip'), left = W.bodies.filter(b => b.kind === 'troll').length;
   if (!pip) { endT += dtS; if (endT > 0.5) lose('Oh no, Pip!', 'Pip took a swim. Keep the sprout dry!'); return; }
   if (!left) { endT += dtS; if (endT > 0.45) win(); return; }
@@ -334,6 +336,17 @@ function removeBlock(b) {
   buzz(12); shake = Math.max(shake, 3);
   for (const o of W.bodies) if (!o.fixed && Math.hypot(o.x - b.x, o.y - b.y) < 1.2) o.squash = 0.06;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the right block pops (tap given back) and the tower topples for a moment, then the level rewinds, like the retry button
+let demoing = false, demoScore = 0, demoT0 = 0;
+function demoRewind() { demoing = false; newLevel(false); score = demoScore; S.set('score', score); hud(); }
+const DM = demo((n) => {
+  if (n === 1) {
+    const b = L.sol.map(bi => W.bodies.find(o => o.bi === bi)).find(Boolean); if (!b) return false;
+    demoing = true; demoScore = score; demoT0 = performance.now(); removeBlock(b); taps++; hud(); return;
+  }
+  if (demoing) demoRewind(); return false;
+}, { ready: () => state === 'play' && level === 1 && !isDaily && (demoing || (!awake && taps === tapsMax)), wait: 1500, every: 2000, max: 2 });
 cv.addEventListener('pointerdown', (e) => { const [wx, wy] = toWorld(e.clientX, e.clientY); tapAt(wx, wy); });
 retry.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); if (state !== 'play') return; newLevel(false); tone(600, 0.06, 'sine', 0.08, 0.7); });
 

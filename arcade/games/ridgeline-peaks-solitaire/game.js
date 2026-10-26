@@ -4,6 +4,7 @@ import { createUI, store, buzz, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Ridgeline: Peaks Solitaire';
@@ -250,6 +251,10 @@ function lose() {
   state = 'lost'; if (!recorded) { recorded = true; if (!D.isDaily) F.level(false, cleared()); }
   ui.lose('Out of cards', `${Math.round(cleared() * 28)} of 28 cleared · tap to redeal`);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on deal 1, until the first real touch,
+// the solver's first two moves play themselves (a card one higher or lower jumps from the peaks onto the pile), so tapping is shown
+let demoN = 0;
+demo(() => { window.__game.bot(); demoN++; }, { ready: () => state === 'play' && level === 1 && !D.isDaily && !busy && (demoN > 0 || !mask), wait: 2000, every: 1300, max: 2 });
 ui.onTap((which) => { B.start();
   if (which === 'start') { state = 'play'; return; }
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }

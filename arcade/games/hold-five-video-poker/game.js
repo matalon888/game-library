@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, loop, store, confetti, buzz } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import * as C from './casino.js';
 
 const NAME = 'Hold Five: Video Poker';
@@ -242,6 +243,20 @@ function holdStrategy(c) {
   return mask([]);
 }
 function choose(a, n) { if (n === 0) return [[]]; if (a.length < n) return []; const [f, ...r] = a; return [...choose(r, n - 1).map(x => [f, ...x]), ...choose(r, n)]; }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): at the first table, until the first
+// touch, a one-coin hand is dealt (the chips are given back) and the cards worth keeping flip to HELD; Draw is left to you
+let demoDealt = false;
+demo(() => {
+  if (!demoDealt) {
+    if (phase !== 'bet') return false; const prev = coins; coins = 1; const c = coins * T.u; if (chips < c) { coins = prev; return false; }
+    demoDealt = true; deal(); chips += c; hud();
+    const back = setInterval(() => { if (phase === 'bet' || state !== 'play') { clearInterval(back); if (coins === 1) { coins = prev; hud(); } } }, 300);   // the bet goes back to what it was after this hand
+    return;
+  }
+  if (phase !== 'hold') return;   // still dealing
+  const want = holdStrategy(hand), i = want.findIndex((w, j) => w !== held[j]); if (i < 0) return false; toggleHold(i);
+}, { ready: () => state === 'play' && tableN === 1 && !D.isDaily && (demoDealt ? phase === 'hold' || phase === 'busy' : phase === 'bet' && chips === T.start), wait: 1600, every: 650, max: 8 });
 
 window.__game = {
   get state() { return state; }, get level() { return tableN; }, get score() { return chips; },

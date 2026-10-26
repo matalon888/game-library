@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, buzz, tone, note, burst, con
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
@@ -311,6 +312,10 @@ const endStick = (e) => {
 addEventListener('pointerup', endStick); addEventListener('pointercancel', endStick);
 const keys = {}; addEventListener('keydown', e => keys[e.key] = true); addEventListener('keyup', e => keys[e.key] = false);
 ui.onTap(() => { B.start(); buildRun(); hero.visible = true; state = 'play'; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first room, until the first
+// touch, Sprig steps left, stops and looses arrows, then steps right and stops again: move to dodge, stand still to shoot
+demo((n) => { botVec = [n === 1 ? -1 : 1, 0]; botUntil = performance.now() + 550; },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && roomIdx === 0 && !picks && !cleared && !stick, wait: 1500, every: 1600, max: 2 });
 
 // ---------------------------------------------------------------- loop
 const camQ = new THREE.Quaternion();

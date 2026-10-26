@@ -10,6 +10,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { snd } from './audio.js';
 import { SHOPS, NAMES, ALL_GOODS, shopOfLevel, POSE } from './items.js';
 import * as LV from './levels.js';
@@ -668,6 +669,10 @@ function failAndLeave() {
   record(false);
   if (!Lv.daily) { M.useLife(); }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// goods slide shelf to shelf until three alike pop (the bot's own greedy move); the moves are not counted against par
+demo(() => { document.querySelector('.tut')?.remove(); const m = LV.greedy(view(), () => 0.5); const o = m && Lv.comps[m.a].L[0][m.sa]; if (!o || !doMove(o, m.b, m.sb, true)) return false; Lv.moves = Math.max(0, Lv.moves - 1); Lv.last = null; refreshHUD(); },
+  { ready: () => state === 'play' && mode !== 'home' && !busy && Lv.n === 1 && !Lv.daily && !document.querySelector('.sh-wrap') && Lv.objs.filter(o => o.mode !== 'gone' && o.mode !== 'pop').length > 6 && !Lv.objs.some(o => o.mode === 'fly' || o.mode === 'drop' || o.mode === 'pop'), wait: 1500, every: 1300, max: 3 });
 ui.onTap(which => {
   snd.unlock();
   if (which === 'start') { ui.start(); return; }

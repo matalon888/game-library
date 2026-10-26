@@ -1,6 +1,7 @@
 // Goo Lab: Slime Simulator ASMR — original DIY-slime game. Drip dyes into the glue and stir, pour activator into the
 // stretchy zone, sprinkle the add-ins, then squish and poke the soft-body slime. Scored against the recipe card.
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst, confetti, store, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
@@ -305,6 +306,12 @@ function doneStep() {
   if (phase === 'mix' && stir >= 1) beginActivator();
   else if (phase === 'add') beginPlay();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in recipe 1, until the first real touch,
+// one dye drop the recipe asks for falls into the bowl and the glue stirs itself a few turns, so drop-and-stir is shown
+demo(n => {
+  if (n === 1) { const need = L.counts.findIndex((c, i) => counts[i] < c && L.opts.includes(i)); if (need < 0) return false; return void addDrop(need); }
+  for (let k = 0; k < 4; k++) doStir(0.05, Math.cos(n * 1.6 + k * 0.4) * 0.8, Math.sin(n * 1.6 + k * 0.4) * 0.8);
+}, { ready: () => state === 'play' && phase === 'mix' && level === 1 && stir < 0.6, wait: 1800, every: 500, max: 6 });
 ui.onTap((which) => {
   B.start();
   if (which === 'start') { state = 'play'; beginMix(); sfx.tap(); }

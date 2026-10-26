@@ -6,6 +6,7 @@ import { createUI, store, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { ShaderPass } from './kit/addons/postprocessing/ShaderPass.js';
 import { RoundedBoxGeometry } from './kit/addons/geometries/RoundedBoxGeometry.js';
 import { CHAPTERS, ENDING, survivalMap, buildLevel, materials, textures, blocked, los, path, tileOf, solidTile, T, HL, HH, hash, RAMP } from './world.js';
@@ -537,6 +538,11 @@ function botTick() {
     if (!tgt) aimAt(P.x + bot.mx * 5, 1.4, P.z + bot.mz * 5, .5);
   }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in chapter 1, until the first touch,
+// you walk and look along the path to the first objective by yourself (the bot's navigation, never firing), then stop
+const DEMO = demo(null, { ready: () => state === 'play' && mode === 'chapter' && chapter === 1 && !logOpen && !P.hidden, wait: 1500, ms: 4000 });
+let demoOn = false;
+function demoWalk() { if (DEMO.on) { botTick(); bot.fire = false; bot.use = false; demoOn = true; } else if (demoOn) { demoOn = false; bot.t = 0; bot.mx = bot.mz = 0; bot.aim = null; } }
 function aimAt(x, y, z, k) {
   const dx = x - P.x, dz = z - P.z, dy = y - eyeY(); const yaw = Math.atan2(-dx, -dz), pitch = Math.atan2(dy, Math.hypot(dx, dz));
   let dyaw = Math.atan2(Math.sin(yaw - P.yaw), Math.cos(yaw - P.yaw)); P.yaw += dyaw * k; P.pitch += (pitch - P.pitch) * k; return Math.abs(dyaw) * (1 - k) + Math.abs(pitch - P.pitch);
@@ -553,7 +559,7 @@ function frame(now) {
   if (!L) return;
   const playing = state === 'play'; R.info.reset();
   if (playing && window.__freeze) { for (const a of actors) { a.yaw = Math.atan2(P.x - a.x, P.z - a.z); const x = a.x, z = a.z; a.update(.016, { x: P.x, z: P.z, hidden: false, lightOn: true }); a.x = x; a.z = z; a.m.position.set(x, 0, z); } }
-  else if (playing) { runT += dt; update(dt); }
+  else if (playing) { runT += dt; demoWalk(); update(dt); }
   else if (state === 'caught') { caughtT -= dt; if (caughtBy) { const dx = P.x - caughtBy.x, dz = P.z - caughtBy.z, d = Math.hypot(dx, dz) || 1; if (d < 1.9) { const nx = caughtBy.x + dx / d * 1.9, nz = caughtBy.z + dz / d * 1.9; if (!blocked(L, nx, nz, .2)) { P.x += (nx - P.x) * Math.min(1, dt * 6); P.z += (nz - P.z) * Math.min(1, dt * 6); } } aimAt(caughtBy.x, 2.9, caughtBy.z, Math.min(1, dt * 8)); caughtBy.update(dt, { x: P.x, z: P.z, hidden: false, lightOn: true }); } trauma = Math.max(trauma, .6); if (caughtT <= 0) { state = 'play'; lose('CAUGHT', 'The Warden found you.'); } }
   else if (state === 'ready') { P.yaw += dt * .12; P.pitch = Math.sin(time * .3) * .08 + .08; for (const a of actors) a.update(dt, { x: -999, z: -999, hidden: true }); }
   else for (const a of actors) if (a.kind === 'warden') a.update(dt, { x: -999, z: -999, hidden: true });

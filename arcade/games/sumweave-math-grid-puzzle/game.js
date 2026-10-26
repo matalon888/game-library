@@ -4,6 +4,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 
 const NAME = 'Sumweave: Math Grid Puzzle';
@@ -267,6 +268,13 @@ function tapTile(k) {
   selTile = selTile === k ? -1 : k; refresh();
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the number tile that fits the most nearly-finished sum lights up, flies into its blank and the sum turns green
+demo(() => {
+  selectNext(); const i = selCell; if (i < 0 || P.cells.filter((c, j) => c.blank && !fills[j]).length < 3) return false;
+  const k = tiles.findIndex(t => !t.used && t.v === P.cells[i].v); if (k < 0) return false;
+  selTile = k; refresh(); setTimeout(() => { if (state === 'play' && !busy && selTile === k && !fills[i]) place(i, k); }, 600); return false;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !busy && P && selTile < 0, wait: 1800 });
 function flyTo(k, i, a, cb) {
   const b = cellEls[i].getBoundingClientRect();
   const f = document.createElement('div'); f.className = 'fly'; f.textContent = tiles[k].v;

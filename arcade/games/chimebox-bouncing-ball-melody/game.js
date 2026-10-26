@@ -6,6 +6,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { SONG } from './_music/songs.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'chimebox', label: 'Songs finished', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Chimebox: Bouncing Ball Melody';
@@ -250,8 +251,12 @@ ui.onTap(w => {
   state = 'play'; ui.els.sc.classList.remove('hc-hidden');
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the box turns itself so a golden wall swings under the biggest ball (the game's own bot) for a few seconds
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !D.isDaily, wait: 1200, ms: 4000 });
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {
+  if (DM.on) window.__game.bot();
   clock = t; const st = dt / 60;
   const prevPhi = phi; phi = lerp(phi, phiT, Math.min(1, 16 * st));
   if (state === 'play') { for (let i = 0; i < 6 && state === 'play'; i++) physics(st / 6); }

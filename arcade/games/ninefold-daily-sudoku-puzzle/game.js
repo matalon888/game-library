@@ -4,6 +4,7 @@ import { createUI, store, buzz, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, fmtTime, todayKey } from './calm.js';
 
 const NAME = 'Ninefold: Daily Sudoku Puzzle';
@@ -281,6 +282,13 @@ ui.onTap((which) => { LB.start();
 build();
 
 // ---------------------------------------------------------------- test hook: the bot fills the most constrained cell correctly
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first touch,
+// the square with only one possible digit is picked, then that digit drops in; twice, then the grid is yours
+demo((n) => {
+  if (n % 2) { let best = 99, i = -1; for (let j = 0; j < 81; j++) if (val[j] !== sol[j]) { const c = candidates(j); if (c < best) { best = c; i = j; } } if (i < 0) return false; select(i); return; }
+  if (sel < 0 || val[sel] === sol[sel]) return false; press(sol[sel]);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !notesMode, wait: 1800, every: 800, max: 4 });
+
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() {

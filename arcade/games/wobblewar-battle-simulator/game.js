@@ -1,6 +1,7 @@
 // Wobblewar — original wobbly battle simulator. Place your cartoon army on your half within the budget, press FIGHT,
 // watch the springy little fighters bonk, tumble and pop into confetti. 30 puzzle battles, a daily battle and a sandbox.
 import { THREE, createStage, createUI, store, loop, buzz, tone, note, lerp, clamp, rng, rounded, mat } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
@@ -623,6 +624,13 @@ loop((d, t) => {
   sun.position.set(cam.tx + 6, 16, cam.tz + 7); sun.target.position.set(cam.tx, 0, cam.tz);
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on battle 1, until the first real touch,
+// two of the cheapest units pop onto your half (most of the budget stays yours), so placing is shown; it never presses FIGHT
+demo(() => {
+  const k = def.avail.filter(k => U[k].cost <= budget - spent).sort((a, b) => U[a].cost - U[b].cost)[0]; if (!k) return false; const mel = MELEE.includes(k);
+  for (let t = 0; t < 40; t++) if (tryPlace(k, 0, (Math.random() - 0.5) * 6, mel ? 1.4 + Math.random() * 1.4 : 3.8 + Math.random() * 1.8, false)) return;
+  return false;
+}, { ready: () => state === 'play' && phase === 'place' && mode === 'camp' && def && def.L === 1, wait: 1800, every: 900, max: 2 });
 // boot: show the current battle behind the start card
 load(); setHud(); ui.start();
 

@@ -4,6 +4,7 @@ import { createUI, store, buzz, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as scoreboard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { outline, roundPath, classify, ITEMS, drawItem, fillOf, shade, INK } from './art.js';
 
@@ -246,6 +247,16 @@ function hitPiece(px, py) {
   }
   return null;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on case 1, until the first real touch,
+// a piece glides into the case at a spot that is NOT its answer, sits a beat and slides back out, so the drag-to-pack is shown
+let demoP = null;
+demo(n => {
+  if (n === 1) {
+    for (const p of P()) { if (p.placed) continue; for (let y = 0; y < lv.rows; y++) for (let x = 0; x < lv.cols; x++) if ((x !== p.sol.x || y !== p.sol.y || p.rot) && fits(p, { x, y })) { demoP = p; place(p, { x, y }, false); return; } }
+    return false;
+  }
+  if (demoP && demoP.placed) sendHome(demoP, false); return false;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !closing && !drag && (demoP ? !!demoP.placed : !P().some(p => p.placed)), wait: 1800, every: 1500, max: 2 });
 cv.addEventListener('pointerdown', (e) => {
   if (state !== 'play' || closing || drag) return;
   const p = hitPiece(e.clientX, e.clientY); if (!p) return;

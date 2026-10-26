@@ -5,6 +5,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, BASE_CSS, stage2d, rr, sprite, blit, fx as mkfx, hud as mkhud, keys, touchy, dressStart, paused } from './neo.js';
 
 const NAME = 'Zapline: Alien Wave Shooter';
@@ -92,6 +93,7 @@ function update(dt) {
   for (const s of stars) { s.y += s.z * 22 * dt; if (s.y > FH) { s.y = 0; s.x = Math.random() * FW; } }
   if (state !== 'play') return;
   if (clearT >= 0) { clearT += dt; if (clearT > 1.6) buildWave(wave + 1); return; }
+  if (DM.on) { window.__game.bot(); demoOn = true; } else if (demoOn) { demoOn = false; botT = null; }
   // ship
   if (ship.dead > 0) { ship.dead -= dt; if (ship.dead <= 0 && lives > 0) { ship.inv = 1.5; ship.x = FW / 2; } }
   else {
@@ -154,6 +156,10 @@ keys({
   ' |Enter': { press: () => { for (const k of ['start', 'lose']) { const c = ui.els[k]; if (!c.classList.contains('hc-hidden')) { c.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); return; } } } },
 });
 ui.onTap(() => { reset(); state = 'play'; B.start(); runT0 = performance.now(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in wave 1, until the first touch,
+// the ship slides under the lowest alien and dodges bombs by itself (the game's own bot) for a few seconds, then stops
+const DM = demo(null, { ready: () => state === 'play' && wave === 1 && !D.isDaily, wait: 900, ms: 4000 });
+let demoOn = false;
 
 // ---------------------------------------------------------------- drawing
 const L = { k: 1, ox: 0, oy: 0 };

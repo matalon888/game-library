@@ -8,6 +8,7 @@ import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { snd } from './audio.js';
 import * as G from './logic.js';
 import { SCREW, initMaterials, initGeometry, makeScrew, makePlate, makeHoles, makeBox, woodTex, wallTex, blobTex, starTex, MAT } from './art.js';
@@ -505,6 +506,14 @@ function denyBlocked(v) {
 }
 function shakeBox(vb) { const g = vb.g, x = g.position.x; tween(0.3, k => { g.position.x = x + Math.sin(k * 30) * 0.12 * (1 - k); }, () => g.position.x = x); }
 let downAt = null;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// a free screw twists out and flies into its matching box twice (the bot's own pick, box moves only), so the tap is shown
+demo(() => {
+  const m = G.bestMove(S); if (!m || !m.box) return false;
+  const v = vis.screws[m.s.i]; if (v.st !== 'seat') return false;
+  if (sel) { liftVisual(sel, false); sel = null; }
+  commit(v, { box: m.box });
+}, { ready: () => state === 'play' && Lv && !Lv.daily && Lv.n === 1 && !busy && !anims.length && !Lv.drill && vis.screws.filter(v => v.st === 'seat').length > 4, wait: 1800, every: 1500, max: 2 });
 R.domElement.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY, t: performance.now() }; });
 R.domElement.addEventListener('pointerup', e => { if (!downAt) return; if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 18) onTap(e.clientX, e.clientY); downAt = null; });
 

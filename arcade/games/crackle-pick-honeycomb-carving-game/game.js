@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, burst, c
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Crackle Pick: Honeycomb Carving Game';
 const S = store('cracklepick');
@@ -297,6 +298,10 @@ input({
 });
 let trace = null;
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); crackEl.classList.remove('off'); ui.els.sc.classList.remove('hc-hidden'); onCarve.q = 0; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the pin drops onto the line and carves two short stretches along it by itself (what a tap near the line does)
+demo(() => { const bi = carved.indexOf(false); if (bi < 0 || nCarved / path.length > 0.3) return false; trace = { i: bi, dir: 1, n: Math.ceil(path.length * 0.06) }; tip.set(path[bi].x, TH, path[bi].y); tone(900, 0.03, 'triangle', 0.06, 0.8); },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && !pressing && !trace, wait: 1500, every: 1200, max: 2 });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { CLUES } from './clues.js';
 import { BANK } from './puzzles.js';
@@ -161,6 +162,10 @@ function tapCell(i) {
   else { sel = i; if (!wordAt(i, dir)) dir = 1 - dir; }
   soft.click(); paint();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first touch,
+// the highlight flips across ↔ down and hops to the next clues, so the clue bar changes with it; no letter is given away
+demo((n) => { if (n === 1) tapCell(sel); else jump(1); },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && P && !fill.some(Boolean), wait: 1800, every: 1100, max: 3 });
 function nextEmptyIn(w, from) { const k = w.cells.indexOf(from); for (let j = k + 1; j < w.cells.length; j++) if (!fill[w.cells[j]]) return w.cells[j]; for (let j = 0; j < k; j++) if (!fill[w.cells[j]]) return w.cells[j]; return -1; }
 function jump(step) {
   if (state !== 'play') return;

@@ -2,6 +2,7 @@
 // with a rising note. Tap to flip the spin of every ring (and give the ball a little kick) to steer the gaps toward it.
 // Clear every ring before the timer runs out; later levels add rings, speed, tighter gaps and red spike arcs that pop the ball.
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
@@ -152,6 +153,9 @@ function win() {
   D.won(score); ui.win(level, `${score} points · ${Math.ceil(timeLeft)}s to spare`);
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the rings flip their spin twice (the same flip a tap does, back to where it was), so the screen shows what a tap changes
+demo(() => { flip(); }, { ready: () => state === 'play' && level === 1 && !D.isDaily, wait: 1500, every: 1200, max: 2 });
 input({ onDown: () => flip() });
 ui.onTap(w => {
   B.start();

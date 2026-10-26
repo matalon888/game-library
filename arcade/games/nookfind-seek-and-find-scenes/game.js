@@ -4,6 +4,7 @@ import { createUI, store, buzz, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as scoreboard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { KINDS, NAMES, drawItem } from './items.js';
 import { THEMES, WW, HH, drawCover } from './scenes.js';
@@ -190,6 +191,15 @@ function collect(t) {
   hud(); checkBeat();
   if (f === lv.total) setTimeout(win, 750);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on scene 1, until the first touch,
+// the view glides to one hidden item and it gets tapped, flying into the tray; its points are taken back off the score
+let demoT = null;
+demo(() => {
+  if (!demoT) { demoT = lv.targets.find(q => !q.found); if (!demoT || lv.targets.filter(q => !q.found).length < 5) return false; cam.aim = { wx: demoT.x, wy: demoT.y, s: Math.min(cam.maxS, cam.minS * 1.4) }; return; }
+  cam.aim = null; clampCam(); const s0 = score, d0 = dailyScore; tap(cam.tx + demoT.x * cam.s, cam.ty + demoT.y * cam.s);
+  score = s0; dailyScore = d0; S.set('score', score); hud(); return false;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && lv && (!!demoT || !lv.targets.some(q => q.found)), wait: 1800, every: 1300, max: 2 });
+
 function landed(fl) {
   const o = fl.ch.o; o.left--; fl.ch.badge.textContent = o.left; fl.ch.el.classList.remove('bump'); void fl.ch.el.offsetWidth; fl.ch.el.classList.add('bump');
   fx.sparks(fl.x1, fl.y1, ['#ffd23f', '#fff'], 6, { speed: 2, size: 2.5 });

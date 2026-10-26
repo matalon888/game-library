@@ -5,6 +5,7 @@ import { createUI, store, buzz, tone, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft } from './calm.js';
 
 const NAME = 'Railknot: Subway Map Puzzle';
@@ -390,6 +391,17 @@ function frame(now) {
   render(dt); requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in week 1, until the first real touch,
+// the first line draws itself between two nearby stations and then reaches one more (the bot's own pick), so the drag is shown
+demo(() => {
+  const used = new Set(lines.flatMap(l => l.stops)), s = stations.find(s => !used.has(s)); if (!s) return false;
+  if (!lines.length) {
+    const o = stations.filter(o => o !== s && o.shape !== s.shape && canLink(s, o)).sort((a, b) => Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(b.x - s.x, b.y - s.y))[0];
+    if (!o) return false; newLine(o, s); tone(700, 0.06, 'triangle', 0.08, 1.2); drawBar(); return;
+  }
+  const L = lines[0], e = L.stops[L.stops.length - 1]; if (isLoop(L) || !canLink(e, s)) return false;
+  extend(L, 1, s); tone(700, 0.06, 'triangle', 0.08, 1.2); drawBar();
+}, { ready: () => state === 'play' && phase === 'play' && week === 1 && !drag && lines.length <= 1, wait: 1800, every: 1400, max: 2 });
 ui.onTap(w => { if (w === 'start' || w === 'lose') newGame(); else if (w === 'win') showRewards(); });
 ui.start();
 

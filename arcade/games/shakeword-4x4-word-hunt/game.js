@@ -5,6 +5,7 @@ import { createUI, store, buzz, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { SAFE } from './safe.js';
 
@@ -252,6 +253,14 @@ function frame(t) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in round 1, until the first real touch,
+// the shortest hidden word traces itself die by die and is sent (a few points of the target), so the drag-a-word move is shown
+let demoPath = null;
+demo(() => {
+  if (!demoPath) { const w = SOL.filter(w => !found.has(w)).sort((a, b) => a.length - b.length)[0]; demoPath = w && findPath(G, w); sel = []; if (!demoPath) return false; }
+  if (sel.length < demoPath.length) { add(demoPath[sel.length]); const p = center(sel[sel.length - 1]); drawSel(p[0], p[1]); }
+  else { submit(); return false; }
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !dragging && !found.size, wait: 1800, every: 380, max: 8 });
 ui.onTap((which) => {
   B.start();
   if (which === 'start') { state = 'play'; lastT = performance.now(); paintDice(true); return; }

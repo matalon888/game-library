@@ -1,6 +1,7 @@
 // Thrill Loop — original roller-coaster game. Hold to speed the train, release to brake.
 // Loops and jumps need speed (green track), crests and hairpins throw riders out if you are too fast (red track).
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
@@ -312,6 +313,15 @@ ui.onTap(which => {
   else if (which === 'lose') { buildLevel(); state = 'play'; }
   B.start();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on ride 1, until the first real touch,
+// the coaster holds and lets go of the throttle by itself for about 4.5 s (the bot's own speed rule); if nobody touched, it is
+// then rewound to the station at rest, exactly where an untouched ride waits, so the demo never strands it before a loop
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 1000, ms: 4500 });
+let demoWas = false, demoAboard = 0;
+function demoDrive() {
+  if (DM.on) { if (!demoWas) demoAboard = aboard; demoWas = true; const { cap, needV } = ahead(); holding = needV > v ? true : v < cap - 0.4; }
+  else if (demoWas) { demoWas = false; if (!DM.touched && aboard === demoAboard) { holding = false; s = 2; v = 0; time = 0; topV = 0; ejectCd = 0; } }
+}
 input({ onDown: () => { if (state === 'play') { holding = true; sfx.tap(); } }, onUp: () => { holding = false; } });
 
 // ---------------------------------------------------------------- loop
@@ -319,6 +329,7 @@ const tmpV = new V3();
 loop((dt, t) => {
   const dts = dt / 60;
   if (state === 'play') {
+    demoDrive();
     time += dts;
     frameAt(s, fr);
     const acc = (holding ? 10 : -7.5) - G * fr.t.y - 0.0035 * v * v;

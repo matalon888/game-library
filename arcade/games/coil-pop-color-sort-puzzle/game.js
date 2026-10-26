@@ -2,6 +2,7 @@
 // (only onto an empty peg or the same colour). Fill every peg with one colour. Every level is checked solvable by a solver
 // before you see it; the move budget is the solver's route plus generous slack.
 import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note, burst, confetti, lerp, clamp, rng, mat, glossy, rounded } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as scoreboard } from './kit/board.js';
@@ -211,6 +212,13 @@ input({ onDown: (e) => {
   if (hits.length) tapPeg(hits[0].object.userData.peg);
   else if (sel >= 0) drop(sel);
 } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the solver's first move plays itself (a peg's top coils lift, then drop onto their colour) and the move is given back
+let demoMv = null;
+demo(n => {
+  if (n === 1) { const p = solve(dataState(), 30000); if (!p || p.length < 3) return false; demoMv = p[0]; if (sel >= 0) drop(sel); tapPeg(demoMv[0]); return; }
+  if (sel === demoMv[0] && move(demoMv[0], demoMv[1])) { used--; moves = budget - used; ui.score(moves); }
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && anims === 0 && used === 0, wait: 2000, every: 900, max: 2 });
 ui.onTap(w => { B.start();
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();

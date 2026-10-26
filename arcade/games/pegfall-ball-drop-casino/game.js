@@ -2,6 +2,7 @@
 // Honest odds: each bounce is one fair bit from crypto.getRandomValues; tables are fixed and published in the Odds panel.
 import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp } from './kit/hc.js';
 import { daily } from './kit/daily.js';
+import { demo } from './kit/demo.js';
 import * as world from './kit/board.js';           // `board` is taken here
 
 const NAME = 'Pegfall: Ball Drop Casino';
@@ -317,6 +318,10 @@ ui.onTap(which => {
   B.start();
   ctl.classList.remove('off'); refreshCtl();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// two balls drop at the smallest bet and bounce down the pegs into a slot; each stake is given back, so no chips are spent
+demo(() => { const keep = betI; betI = 0; const ok = drop(); betI = keep; if (!ok) return false; chips += BETS[0]; refreshCtl(); },
+  { ready: () => state === 'play' && level === 1 && !D.seed && !pendingWin && !balls.length, wait: 1800, every: 1600, max: 2 });
 // tapping the board drops a ball too (one verb)
 S.renderer.domElement.addEventListener('pointerdown', () => drop());
 

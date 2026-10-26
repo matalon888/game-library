@@ -7,6 +7,7 @@ import { money } from './kit/money.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { A, $, wait, dayNum, ymd, rng, store, injectCSS, prefs, background, sheet, sheetOpen, toast, word, fx, fxMount, flyTo, bump, buzz, audio, streak, share, album, settingsSheet, preload, reduced } from './sb.js';
 import { N, GOALS, emptyGrid, cloneGrid, fits, anyFit, wouldClear, clearCells, place, bestMove, makeDealer, makeLevel, endlessDealer, points } from './logic.js';
 import { GARDEN, CHAPTERS, gardenScene } from './garden.js';
@@ -297,6 +298,14 @@ function snap(px, py, p) {   // px,py = top-left of the floating piece in screen
   if (gx < -1 || gy < -1 || gx > N || gy > N) return [null, null];
   return [gx, gy];
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// two wooden pieces glide from the tray onto the board (spots that clear nothing, so it never scores or wins by itself)
+demo(() => {
+  const g = game, b = bestMove(g.grid, g.tray, { want: g.need }), ok = (i, x, y) => g.tray[i] && fits(g.grid, g.tray[i].shape, x, y) && !wouldClear(g.grid, g.tray[i].shape, x, y).n;
+  if (b && ok(b.i, b.x, b.y)) return void commit(b.i, b.x, b.y, null);
+  for (let i = 0; i < 3; i++) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (ok(i, x, y)) return void commit(i, x, y, null);
+  return false;
+}, { ready: () => state === 'play' && game && game.kind === 'level' && game.n === 1 && !busy && !drag && !card && !sheetOpen() && game.tray.filter(Boolean).length >= 2, wait: 1800, every: 1500, max: 2 });
 trayEl.addEventListener('pointerdown', e => {
   if (state !== 'play' || busy || sheetOpen()) return;
   const slot = e.target.closest('.oi-slot'); if (!slot) return; const i = +slot.dataset.i, p = game.tray[i]; if (!p) return;

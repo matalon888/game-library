@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng,
 import { createBloom } from './bloom.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const stage = createStage({ fov: 40, shadows: false, clear: '#141a3a' });
 const { scene, camera, renderer } = stage;
@@ -386,12 +387,21 @@ function win() {
 // ------------------------------------------------------------------ input + UI flow
 input({ onDown: () => { if (state === 'play') hold = true; }, onUp: () => { hold = false; } });
 ui.onTap(w => { WB.start(); if (w !== 'start') buildLevel(); state = 'play'; hold = false; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the bike throttles along the line and backflips off a jump by itself (the game's own bot); once landed, the level rewinds
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 1000, ms: 3500 });
+let demoOn = false;
+function demoRide() {
+  if (DM.on || (demoOn && !B.ground && !DM.touched)) { window.__game.bot(); demoOn = true; }
+  else if (demoOn) { demoOn = false; botOn = false; botPlan = null; if (!DM.touched) buildLevel(); }   // rewind: an idle player never coasts home on the demo's speed
+}
 
 // ------------------------------------------------------------------ main loop
 const _v = new THREE.Vector3();
 loop((dtf) => {
   const dt = Math.min(dtf, 2.5) / 60, t = performance.now() / 1000;
   ui.els.sc.style.visibility = state === 'ready' ? 'hidden' : ''; ui.els.sub.style.visibility = state === 'play' ? '' : 'hidden';
+  if (state === 'play') demoRide();
   if (state === 'play' || state === 'won') {
     const holding = state === 'won' ? false : hold, N = 5, h = dt / N;
     for (let k = 0; k < N; k++) {

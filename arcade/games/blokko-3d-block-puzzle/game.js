@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Blokko: 3D Block Puzzle';
 const S = store('blokko');
@@ -192,6 +193,12 @@ const IN = input({
   onTap: (e) => { if (state !== 'play') return; const b = pick(e.clientX, e.clientY); if (b) tapBlock(b); else tone(220, 0.04, 'sine', 0.04, 0.9); },
 });
 ui.onTap((w) => { B.start(); if (w !== 'start') build(); state = 'play'; ui.hideStart(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the shape turns a little, then one cube with a clear path slides out along its arrow (the bot's own pick), twice
+demo((n) => {
+  if (n === 1) { botSpin = 0.8; return; }
+  const free = blocks.filter(b => b.state === 'idle' && blockedAt(b) === Infinity); if (!free.length || removedN + 4 > blocks.length) return false; tapBlock(free[0]);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily, wait: 1500, every: 1100, max: 3 });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

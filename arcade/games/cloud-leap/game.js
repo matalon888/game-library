@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, rng, clamp, ler
 import { levelPlan, arrange } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, skyDome, ease } from './_music/fx.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 const B = board({ game: 'cloud-leap', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
@@ -123,6 +124,17 @@ function applyMood(m, k) {
 function begin() { state = 'play'; player.start(track, { melody: true, lead: 1.4, melVol: 0.2, accVol: 0.95, drumVol: 0.9 }); document.body.style.background = `linear-gradient(180deg,#${cur.top.getHexString()},#${cur.hor.getHexString()})`; }
 
 input({ onMove: (dx) => { if (state === 'play' || state === 'ready') tx = clamp(tx + dx * (8 / Math.min(innerWidth, 520)), -3.4, 3.4); } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the ball slides itself onto the next safe pillar on each beat for about 3.5 s (the bot's own pick), so the slide is shown;
+// then it drifts back to the middle lane an untouched ball rides, so an idle player never clears the level thanks to it
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 600, ms: 3500 });
+let demoWas = false;
+function demoSteer() {
+  if (!DM.on) { if (demoWas) { demoWas = false; if (!DM.touched) tx = 0; } return; }
+  demoWas = true; const row = rows[landed + 1]; if (!row) return;
+  const st = stars.find(s => !s.got && s.row === landed + 1), q = st ? st.q : row.plats.filter(q => !q.spike).sort((a, b) => Math.abs(a.x - bx) - Math.abs(b.x - bx))[0];
+  if (q) tx = q.x;
+}
 ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
 
 function land(ri, now) {
@@ -158,6 +170,7 @@ function win() {
 // ---------------------------------------------------------------- frame
 loop((dt) => {
   clock += dt / 60; fx.update(dt);
+  if (state === 'play') demoSteer();
   const now = state === 'ready' ? -1.4 : player.time();
   bx = lerp(bx, tx, 1 - Math.pow(0.55, dt));
   if (state === 'play') {

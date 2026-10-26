@@ -4,6 +4,7 @@ import { createUI, store, buzz, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, fx2d, arp, soft } from './calm.js';
 import { LINES, lineOf, classicResult, classicScores, classicMove, uNew, uClone, uLegal, uPlay, mcts, ultimateMove } from './ai.js';
 
@@ -117,6 +118,10 @@ function playerTap(i) {
   place(i, 1);
   if (!result) cpuSoon();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in your first game, until the first
+// touch, your X goes on the best square by itself (the bot's own pick) and Pebble answers; the next move is yours
+demo(() => { window.__game.bot(); return false; },
+  { ready: () => state === 'play' && games === 1 && !thinking && turn === 1 && !result && history.length <= 1, wait: 1800, max: 1 });
 function cpuMove() {
   if (state !== 'play' || result) { thinking = false; return; }
   const fk = F.k();

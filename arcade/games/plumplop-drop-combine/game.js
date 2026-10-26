@@ -1,6 +1,7 @@
 // Plumplop — aim and drop berries, plums and melons into the crate. Two of a kind squish into the next size up.
 // Our own 2D circle physics (verlet + substeps) drives the 3D models. Anything resting over the line too long ends the run.
 import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confetti, sfx, tone, note, buzz, store, clamp, lerp } from './kit/hc.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { FRUITS, fruitMesh } from './fruits.js';
@@ -167,6 +168,9 @@ function gameOver() {
   if (nb && score > 0) { state = 'won'; D.won(score); ui.win(score, `Biggest yet: ${FRUITS[bestType].name}`); }
   else ui.lose('CRATE FULL!', `${score} point${score === 1 ? '' : 's'}` + (best ? ` · best ${best}` : ''));
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first crate, until the first real
+// touch, three fruits glide over and drop on the bot's spot (matching fruit first), so aim-and-release and a merge are shown
+demo(() => { if (bodies.length >= 4) return false; bot(); }, { ready: () => state === 'play' && !D.seed && held && cool <= 0 && bodies.length < 4 && score < 20, wait: 1600, every: 1100, max: 3 });
 ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } reset(); state = 'play'; });
 reset(); ui.start();
 

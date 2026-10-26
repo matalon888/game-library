@@ -5,6 +5,7 @@ import { createUI, store, buzz, note, tone, sfx } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { fx2d, startCard, cardTheme, arp, chime, soft } from './calm.js';
 import { LAYERS, drawStack, drawLayerIcon, drawCup, drawFolk, FOLKS, pattyColor, INK } from './art.js';
 
@@ -270,6 +271,13 @@ function frame() {
   }
   requestAnimationFrame(frame);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on day 1, until the first real touch,
+// the kitchen works the first order by itself (patty on the grill, toppings on, the cooked patty onto the bun) and stops once
+// the patty is on the plate, never serving and never leaving a patty to burn
+demo(() => {
+  const w = customers.find(c => c.state === 'wait'); if (w && plate.length >= w.order.layers.length) return false;
+  window.__game.bot(); if (plate.some(l => l.k === 'patty')) return false;
+}, { ready: () => state === 'play' && mode === 'day' && day === 1 && !D.isDaily && customers.some(c => c.state === 'wait'), wait: 1500, every: 900, max: 9, ms: 30000 });
 ui.onTap(w => {
   B.start();
   if (w === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }

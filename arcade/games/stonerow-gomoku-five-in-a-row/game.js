@@ -2,6 +2,7 @@
 // Pinch-free on a phone: tap a point to aim (a ghost stone with guide lines appears), tap it again to place;
 // with a mouse a single click places. Five or more in a line wins and lights up. CPU thinks in a Web Worker. Undo on Easy.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { duel, DIFFS, rrect, ease, soft, tone, chime, buzz } from './duel.js';
 import { empty, lineAt, think, search, N } from './engine.js';
 
@@ -42,6 +43,13 @@ function down(x, y) {
   if (ptype === 'mouse' || aim === i) { place(i); return; }
   aim = i; soft.click(); buzz(5); P.status('Tap the ghost stone again to place');
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in your first game, until the first
+// touch, a ghost stone appears on the best point, then is placed (tap, tap again) and the CPU answers; the next move is yours
+let demoAt = -1;
+demo((n) => {
+  if (n === 1) { demoAt = search(bd, 1, { depth: 2, width: 10, ms: 60 }); if (demoAt < 0) return false; aim = demoAt; soft.click(); P.status('Tap the ghost stone again to place'); return; }
+  if (aim === demoAt) place(demoAt); return false;
+}, { ready: () => P.state === 'play' && P.turn === 0 && !P.busy && !placed && moveNo === 0 && !P.D.isDaily && (r => !r.w && !r.l && !r.d)(P.S.get('rec' + P.diff, { w: 0, l: 0, d: 0 })), wait: 1800, every: 900, max: 2 });
 function place(i) { aim = -1; P.push({ bd: bd.slice(), last, moveNo }); put(i, 1, () => { if (!checkEnd(i, 1)) cpuTurn(); }); }
 async function cpuTurn() {
   const i = await P.think({ b: bd, side: -1, diff: P.diff, seed: (P.seed + moveNo * 7919) >>> 0, fk: P.F.k() });
