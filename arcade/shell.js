@@ -354,6 +354,10 @@
       if (l) l.onclick = () => { try { localStorage.setItem('ap.lite.' + g.slug, '1'); } catch (x) {} try { window.RiffConsent && RiffConsent.ga('game_lite', { game: g.slug }); } catch (x) {} bar.remove(); frame.src = gameUrl; };
     });
     const player = document.querySelector('.player');
+    // on a computer a phone game plays in a phone-sized frame in the middle of the page, with the site around it, never
+    // stretched across the whole window or pushed into fullscreen (Daniel, Oct 26: "very annoying")
+    const phoneFrame = PC && !EMBED && !isDesk(g) && g.orientation !== 'landscape' && !matchMedia('(pointer: coarse)').matches;
+    if (phoneFrame) player.classList.add('phone-frame');
 
     const ov = document.createElement('div');
     ov.className = 'overlay';
@@ -496,7 +500,7 @@
 
     $('go').onclick = async () => {
       const de = document.documentElement;
-      if (!standalone && de.requestFullscreen) await de.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+      if (!standalone && de.requestFullscreen && matchMedia('(pointer: coarse)').matches) await de.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});   // phones only: on a computer fullscreen was annoying
       if (g.orientation !== 'any' && screen.orientation && screen.orientation.lock) screen.orientation.lock(g.orientation).catch(() => {});
       ov.remove();
       player.classList.add('playing');

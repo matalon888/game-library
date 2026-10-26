@@ -331,3 +331,9 @@ body .doc .band span:nth-child(1) { background: var(--bg); color: var(--paper) }
 .svip{display:block;margin:6px 16px 0;color:#CFCBE6;font-size:13px;text-decoration:none}
 .earnchip{flex:none;align-self:center;background:#3ddc84;color:#052b14;font-weight:800;font-size:14px;padding:8px 12px;border-radius:999px;text-decoration:none;white-space:nowrap}
 .g-earn{display:block;margin-top:12px;text-align:center;color:#3ddc84;font-weight:700;text-decoration:none}
+
+/* a phone game on a computer: a phone-sized screen in the middle, the site's bar (back, name) stays on top (Oct 26) */
+.player.phone-frame, .player.phone-frame.playing { grid-template-rows: auto 1fr auto; background: radial-gradient(circle at 50% 30%, #2a2650, #0d0c18 70%) }
+.player.phone-frame.playing .topbar { display: flex }
+.player.phone-frame .stage { width: min(440px, calc((100vh - 140px) * 0.5)); justify-self: center; margin: 14px 0; border-radius: 26px;
+  box-shadow: 0 0 0 8px #15131f, 0 0 0 9px #3a3658, 0 24px 60px rgba(0,0,0,.55) }

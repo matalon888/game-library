@@ -241,7 +241,7 @@
     const ordered = l => warm ? T.rank(byScore(l), g => score(g, stats[g.slug]) ?? 5) : byScore(l);
     const catLike = (l, c) => { if (!warm) return 0; const top = ordered(l.filter(g => catOf(g, c))).slice(0, 6); return top.reduce((n, g) => n + T.like(g), 0) / (top.length || 1); };
     const MORE = 24, SHELVES = 6;   // not a wall of 300 games: the best two dozen of a shelf, six shelves; more arrive as they scroll (no buttons)
-    let mode = K.store.get('pmode', null); if (!MODES[mode]) mode = 'mobile';
+    let mode = K.store.get('pmode', null); if (!MODES[mode]) mode = K.PC ? 'desktop' : 'mobile';   // on a computer: the keyboard & mouse games first (Oct 26)
     let cat = K.store.get('pcat', null), sort = 'played', q = '', open = false, more = MORE;
     const inMode = m => all.filter(MODES[m].has);
     const catOf = (g, c) => COLLS.includes(c) ? (g.tags || []).includes(c) : (g.category || 'Arcade') === c;
@@ -283,7 +283,7 @@
 
     world();
     const tabs = () => {
-      $('modes').innerHTML = Object.entries(MODES).map(([k, m]) => `<button class="mode${k === 'ai' ? ' ai' : ''}" data-m="${k}" aria-pressed="${k === mode}">
+      $('modes').innerHTML = Object.entries(MODES).sort(([a], [b]) => K.PC ? (b === 'desktop') - (a === 'desktop') : 0).map(([k, m]) => `<button class="mode${k === 'ai' ? ' ai' : ''}" data-m="${k}" aria-pressed="${k === mode}">
         <span class="mimg">${CAST[m.who] ? img(m.who) : ''}</span><span class="mt"><b>${m.label}</b><small>${inMode(k).length} games · ${m.sub}</small></span></button>`).join('');
     };
     const chips = () => {

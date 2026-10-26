@@ -221,7 +221,10 @@
     if (!f) {
       let a = null; try { a = localStorage.getItem('ap.aud'); } catch (e) {}
       const L = (C.FEED_BY || {})[a] || C.FEED || [], top = L.slice(0, 9), sh = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(x => x[1]);
-      f = sh(top).concat(sh(L.slice(9))); ss.set('feed', f);
+      f = sh(top).concat(sh(L.slice(9)));
+      // on a computer: keyboard & mouse games come up next first (Oct 26), the best-rated ones first
+      if (!matchMedia('(pointer: coarse)').matches && all.length) f = all.filter(g => g.platform === 'desktop' && !g.linkout).sort((x, y) => (y.stars || 0) - (x.stars || 0)).map(g => g.slug).concat(f);
+      ss.set('feed', f);
     }
     return f;
   }
