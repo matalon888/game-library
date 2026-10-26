@@ -790,6 +790,14 @@ loop((d) => {
 async function renderIcons() {
   for (let i = 0; i < GEM_IDS.length; i++) ICON['g' + i] = `./assets/thumbs/${GEM_IDS[i]}.webp`;
 }
+// every shader is compiled behind the loading screen: the hidden board, gems, effects and furniture otherwise all compiled
+// at once on the first level, a 3-6 s freeze on iPhones (diag 2026-10-26: ~40% of runs). One frame with everything shown.
+function warmUp() {
+  const hid = [], fc = [];
+  scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; } });
+  try { C.render(0); } catch (e) {}
+  hid.forEach(o => { o.visible = false; }); fc.forEach(o => { o.frustumCulled = true; });
+}
 async function boot() {
   let n = 0; const total = 9; const tick = () => { n++; loadBar.style.width = Math.min(100, n / total * 100) + '%'; };
   const got = await Promise.all(GEM_IDS.map(id => piece(id, 'mid').then(p => { tick(); return p; })));
@@ -800,9 +808,14 @@ async function boot() {
   await enterRoom(st.room, true); tick();
   host = await hp; placeHostInRoom(); tick();
   refreshHome();
+  warmUp();
   loadEl.style.opacity = 0; setTimeout(() => loadEl.remove(), 600);
   mode = 'title'; state = 'ready'; titleShow();
-  for (let k = 0; k < ROOMS.length; k++) if (k !== st.room) setTimeout(() => ensureRoom(k), 5000 + k * 1500);
+  // the other rooms are built one at a time and only while no level is being played: building one mid-level froze iPhones
+  // for 3-6 s (diag 2026-10-26, ~40% of runs). Unbuilt rooms are built on demand when entered.
+  const prebuild = () => { const k = ROOMS.findIndex((_, i) => !rooms[i]); if (k < 0) return;
+    if (state === 'play') return setTimeout(prebuild, 4000); ensureRoom(k).then(() => setTimeout(prebuild, 2500)); };
+  setTimeout(prebuild, 4000);
   if (Q.get('daily') === '1') { /* the kit's daily seed is used when the Daily button is pressed or on autostart */ }
 }
 

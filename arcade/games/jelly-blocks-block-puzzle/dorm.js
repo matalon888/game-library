@@ -148,6 +148,7 @@ export async function buildRoom(def) {
   // furniture (hidden until placed)
   for (const t of def.tasks) {
     if (!t.item) continue;
+    await new Promise(r => setTimeout(r, 30));   // one piece per task, so a room build never blocks the screen in one go
     const m = await prop(t.item, t.size); m.position.set(...t.at); m.rotation.y = t.rot || 0;
     if (t.sy) m.scale.y *= t.sy;
     m.visible = false; m.userData.base = m.scale.clone(); g.add(m); R.items[t.id] = m;
