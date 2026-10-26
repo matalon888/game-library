@@ -57,7 +57,18 @@ new_shown = [g for g in new_shown if g["slug"] not in AI_ONLY]
 newest = [g for g in newest if g["slug"] not in AI_ONLY]
 top_new = [_by[s] for s in _feed if s in _by and upright(_by[s])] or [g for g in best(shown) if (score(g) or 0) >= 7.5 and phone(g)] or new_shown[:1]
 gotd = top_new[today.toordinal() % len(top_new)]
-peek = top_new[(today.toordinal() + 1) % len(top_new)]   # tomorrow's game of the day: the daily message shows it a day early
+# 2026-10-26: the Game of the Day is the best learned pick for visitors we know nothing about (arcade-api picks.js: a Beta score
+# per game from every real run, everyone games only, 15+ trials, not one of the last 3 days'), not the blind rotation above
+# (it picked Smooch Roll, 3 plays ever). Women and men from the ads and every player code get their own in today.json (arcade-api).
+# The rotation stays as the fallback when the API doesn't answer.
+try:
+    import urllib.request
+    _P = json.load(urllib.request.urlopen(urllib.request.Request("https://mcp.riffcade.com/api/picks", headers={"user-agent": "Mozilla/5.0 agentpark-build"}), timeout=20))
+    if _P.get("day") == today.isoformat() and _P.get("gotd", {}).get("u") in _by and upright(_by[_P["gotd"]["u"]]): gotd = _by[_P["gotd"]["u"]]
+    _nx = [s for s in _P.get("order", {}).get("u", []) if s in _by and upright(_by[s]) and s != gotd["slug"] and s in _feed]
+except Exception as _e:
+    print("today: no learned pick, using the rotation:", _e); _nx = []
+peek = _by[_nx[0]] if _nx else top_new[(today.toordinal() + 1) % len(top_new)]   # one more good game for tomorrow's message
 cats = sorted({g["category"] for g in ok}, key=lambda c: (-sum(g["category"] == c for g in ok), c))
 cats = [c for c in cats if sum(g["category"] == c for g in ok) >= 3]
 
@@ -205,7 +216,10 @@ msg += ["", f"🏆 Today's game: [{gotd['name'].split(':')[0]} ▶]({play(gotd, 
 def _week(g):  # added in the last 7 days: "New" stays true even on a day nothing was added
     try: return (today - datetime.date.fromisoformat(g.get("added") or "")).days <= 6
     except ValueError: return False
-_new = [g for g in newest if g in shown and g is not gotd and g.get("category") != "Kids" and _week(g)][:2]
+# everyone games first: today's message goes out as it is to visitors we know nothing about (arcade-api drops the other
+# gender's games for the ones we know)
+_FOR = json.loads(re.search(r"window\.RIFFCADE\s*=\s*(\{.*\})\s*;", _cfg0, re.S).group(1)).get("GAME_FOR", {})
+_new = sorted([g for g in newest if g in shown and g is not gotd and g.get("category") != "Kids" and _week(g)], key=lambda g: bool(_FOR.get(g["slug"])))[:2]
 if _new: msg += ["🆕 New: " + " · ".join(f"[{g['name'].split(':')[0]}]({play(g, 'new')})" for g in _new)]
 msg += ["<!--ST-->"]
 if ai_only: msg += [f"🔒 Only in your AI: [{ai_only[0]['name'].split(':')[0]}]({play(ai_only[0], 'aionly')})"]

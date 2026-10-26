@@ -273,9 +273,9 @@
       const pc = store.get('pc', {}), lg = store.get('lastGame', null);
       const recent = lg && lg.slug === g.slug && Date.now() - lg.at < 30 * 60 * 1000;   // a reload mid-game keeps the game
       if (!linked && !recent && (nav === 'reload' || nav === 'back_forward' || !ours) && ((pc[g.slug] || 0) >= 2 || (lg && lg.slug === g.slug))) {
-        const C0 = window.RIFFCADE || {}; let aud = null; try { aud = localStorage.getItem('ap.aud'); } catch (e) {}
+        const C0 = window.RIFFCADE || {}; let aud = null; try { aud = localStorage.getItem('ap.aud'); } catch (e) {} if (window.ApPicks) aud = ApPicks.seg() || aud;
         const list = [].concat((C0.OPENERS_BY || {})[aud] || [], C0.OPENERS || [], C0.FEED || []);
-        const fresh = list.map(s => all.find(x => x.slug === s)).find(x => x && !pc[x.slug] && x.slug !== g.slug && !x.linkout && x.orientation !== 'landscape');
+        const fresh = list.map(s => all.find(x => x.slug === s)).find(x => x && !pc[x.slug] && x.slug !== g.slug && !x.linkout && x.orientation !== 'landscape' && (!window.ApPicks || ApPicks.ok(x)));
         if (fresh) { location.replace(`play.html?g=${encodeURIComponent(fresh.slug)}&from=fresh`); return; }
       }
     } catch (e) {}

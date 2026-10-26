@@ -19,11 +19,11 @@
  "total": 339,
  "poster": "https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26",
  "game_of_the_day": {
-  "name": "Smooch Roll",
-  "category": "Puzzle",
-  "pitch": "Sketch ink lines that become physical objects so a blue and a pink ball roll into each other, with simple, readable physics puzzles.",
-  "image": "https://agentpark.co/arcade/covers/smooch-roll.webp",
-  "play_url": "https://agentpark.co/arcade/play.html?g=smooch-roll&ref=daily&pos=gotd"
+  "name": "Bumpy Buggy",
+  "category": "Racing",
+  "pitch": "Tilt a toy jeep over rolling seeded hills using only gas and brake, chasing distance, coins and fuel while avoiding flips.",
+  "image": "https://agentpark.co/arcade/covers/bumpy-buggy.webp",
+  "play_url": "https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd"
  },
  "games": [
   {
@@ -162,46 +162,46 @@
  "categories": {
   "Puzzle": [
    {
-    "name": "Chirpbelt: Conveyor Color Shooter",
+    "name": "Jelly Blocks: Block Puzzle",
     "new": false,
-    "pitch": "Send colourful chicks round a conveyor belt to peck a pixel picture clean, one matching colour at a time.",
-    "image": "https://agentpark.co/arcade/covers/chirpbelt-conveyor-color-shooter.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=chirpbelt-conveyor-color-shooter&ref=daily&pos=list-Puzzle"
+    "pitch": "Drag squishy jelly blocks with tiny faces onto the board, clear rows and columns for combos, and decorate a kawaii dorm with your stars.",
+    "image": "https://agentpark.co/arcade/covers/jelly-blocks-block-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=jelly-blocks-block-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Clumpop: Cube Crush Puzzle",
+    "name": "Boba Trio: Triple Match 3D",
     "new": false,
-    "pitch": "Tap clumps of matching cubes to pop them, build rockets, bombs and prism orbs, and hit every goal before your moves run out.",
-    "image": "https://agentpark.co/arcade/covers/clumpop-cube-crush-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=clumpop-cube-crush-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Tap kawaii boba, mochi, strawberries and plushies from a squishy 3D heap, match three alike in your tray and clear the cushion before time runs out.",
+    "image": "https://agentpark.co/arcade/covers/boba-trio-triple-match-3d.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=boba-trio-triple-match-3d&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Nookfind: Seek and Find Scenes",
+    "name": "Bowtwist: Pin Puzzle",
     "new": false,
-    "pitch": "Find every item on your list in cozy scenes drawn in code, from a sunny den to a lakeside camp.",
-    "image": "https://agentpark.co/arcade/covers/nookfind-seek-and-find-scenes.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=nookfind-seek-and-find-scenes&ref=daily&pos=list-Puzzle"
+    "pitch": "Pop cute bow-pins out of squishy jelly plates, fill the colour gift boxes, collect kawaii stickers and decorate Momo's dorm room.",
+    "image": "https://agentpark.co/arcade/covers/bowtwist-pin-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bowtwist-pin-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Slidegate: Sliding Shapes Puzzle",
+    "name": "Sprinkle Sort: Cute Sort Puzzle",
     "new": false,
-    "pitch": "Drag chunky coloured shapes around the board and out through the gate of their own colour before time runs out.",
-    "image": "https://agentpark.co/arcade/covers/slidegate-sliding-shapes-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=slidegate-sliding-shapes-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Pour sprinkles, boba and jelly between cute cups with faces until each holds one topping, then decorate a kawaii café. Every level is solvable.",
+    "image": "https://agentpark.co/arcade/covers/sprinkle-sort-cute-sort-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=sprinkle-sort-cute-sort-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Pilepick: Triple Sort 3D",
+    "name": "Mochi Match: Match 3 & Dorm Decor",
     "new": false,
-    "pitch": "Tap toys in a messy 3D pile to send them to your shelf, clear three alike, and empty the pile before the timer ends.",
-    "image": "https://agentpark.co/arcade/covers/pilepick-triple-sort-3d.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=pilepick-triple-sort-3d&ref=daily&pos=list-Puzzle"
+    "pitch": "Swap squishy kawaii sweets, make rockets and rainbow balls, pop gift boxes and jelly ice, and spend your stars decorating a pastel dorm room and café.",
+    "image": "https://agentpark.co/arcade/covers/mochi-match-match-3-dorm-decor.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=mochi-match-match-3-dorm-decor&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Grumble Drop: Tower Topple Game",
+    "name": "Bubble Buns: Bubble Shooter Pop",
     "new": false,
-    "pitch": "Tap wooden and glass blocks out of little island towers so the grumpy trolls tumble into the sea, but keep Pip the sprout dry.",
-    "image": "https://agentpark.co/arcade/covers/grumble-drop-tower-topple-game.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=grumble-drop-tower-topple-game&ref=daily&pos=list-Puzzle"
+    "pitch": "Aim, bounce and pop squishy jelly bubbles with tiny faces to free baby bunnies, then decorate their cozy burrow.",
+    "image": "https://agentpark.co/arcade/covers/bubble-buns-bubble-shooter-pop.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bubble-buns-bubble-shooter-pop&ref=daily&pos=list-Puzzle"
    }
   ],
   "Arcade": [
@@ -338,11 +338,25 @@
   ],
   "Racing": [
    {
-    "name": "Bumpy Buggy",
+    "name": "Doodle Legs",
     "new": false,
-    "pitch": "Tilt a toy jeep over rolling seeded hills using only gas and brake, chasing distance, coins and fuel while avoiding flips.",
-    "image": "https://agentpark.co/arcade/covers/bumpy-buggy.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=list-Racing"
+    "pitch": "Sketch any curve to shape your cube's spinning legs, then redraw mid-race so big arcs vault steps and small ones slip under low roofs.",
+    "image": "https://agentpark.co/arcade/covers/doodle-legs.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=doodle-legs&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Tiptoe Tower",
+    "new": false,
+    "pitch": "Steer a runner down rooftop lanes, stacking heels while dodging brick walls, splitting across rails, then climbing a rainbow multiplier podium.",
+    "image": "https://agentpark.co/arcade/covers/tiptoe-tower.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=tiptoe-tower&ref=daily&pos=list-Racing"
+   },
+   {
+    "name": "Flip Volt",
+    "new": false,
+    "pitch": "Throttle a glowing neon bike along a curving light track, backflipping in midair and landing on both wheels to reach each level's finish gate.",
+    "image": "https://agentpark.co/arcade/covers/flip-volt.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=flip-volt&ref=daily&pos=list-Racing"
    },
    {
     "name": "Porch Toss: Newspaper Bike Ride",
@@ -364,20 +378,6 @@
     "pitch": "Drag to stretch or squeeze a roller-skater's legs so each skate stays on its rail, collecting gems along winding sunset tracks.",
     "image": "https://agentpark.co/arcade/covers/splitstream.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=splitstream&ref=daily&pos=list-Racing"
-   },
-   {
-    "name": "Nugget Rush: Mine Cart Runner",
-    "new": false,
-    "pitch": "Swipe between three canyon rails to dodge wagons and barricades, grab gold nuggets, and stay ahead of a grumpy rolling boulder.",
-    "image": "https://agentpark.co/arcade/covers/nugget-rush-mine-cart-runner.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=nugget-rush-mine-cart-runner&ref=daily&pos=list-Racing"
-   },
-   {
-    "name": "Stormchase: Endless Rail Runner",
-    "new": false,
-    "pitch": "Swipe to turn, jump and slide. The storm is right behind you.",
-    "image": "https://agentpark.co/arcade/covers/stormchase-endless-rail-runner.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=stormchase-endless-rail-runner&ref=daily&pos=list-Racing"
    }
   ],
   "Word & Math": [
@@ -712,8 +712,8 @@
   "play_url": "https://agentpark.co/arcade/play.html?g=color-groove&ch=12&ref=daily&pos=challenge"
  },
  "peek": {
-  "name": "Core Crusher",
-  "play_url": "https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=peek"
+  "name": "Bellhop Boss",
+  "play_url": "https://agentpark.co/arcade/play.html?g=bellhop-boss&ref=daily&pos=peek"
  },
  "ai_only": [
   {
@@ -729,5 +729,5 @@
    "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly"
   }
  ],
- "daily_message": "🌅 Your games for Monday, 26 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26)\n\n🏆 Today's game: [Smooch Roll ▶](https://agentpark.co/arcade/play.html?g=smooch-roll&ref=daily&pos=gotd)\n🆕 New: [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new) · [Shelfie](https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 339 games →](https://agentpark.co)"
+ "daily_message": "🌅 Your games for Monday, 26 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26)\n\n🏆 Today's game: [Bumpy Buggy ▶](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd)\n🆕 New: [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new) · [Shelfie](https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 339 games →](https://agentpark.co)"
 }

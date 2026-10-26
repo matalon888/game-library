@@ -229,7 +229,9 @@
   // ---------------------------------------------------------------- home
   async function home() {
     K = window.Arcade.kit;
-    const [all, cast] = await Promise.all([K.games(), fetch(A + 'cast.json').then(r => r.json()).catch(() => ({}))]);
+    const [all0, cast] = await Promise.all([K.games(), fetch(A + 'cast.json').then(r => r.json()).catch(() => ({}))]);
+    // a visitor whose audience we know (taste.js ApPicks: their ad set, or what they stayed in) never sees the other gender's games
+    const AP = window.ApPicks, all = AP ? AP.filter(all0) : all0;
     CAST = cast;
     let stats = {};
     const byScore = l => l.slice().sort((a, b) => (score(b, stats[b.slug]) ?? 0) - (score(a, stats[a.slug]) ?? 0));
@@ -239,6 +241,10 @@
     // play (stayed long: its category, collections and kind rise; left in seconds: they sink). A new visitor sees best scored first.
     const T = window.ApTaste, warm = !!(T && T.warm());
     const ordered = l => warm ? T.rank(byScore(l), g => score(g, stats[g.slug]) ?? 5) : byScore(l);
+    // the home's shelves in the learned order for their audience (arcade-api picks.js: holds 3+ min, comes back; new games get
+    // every 4th place to prove themselves), then a known player's own taste on top
+    const learned = l => { if (!AP || !AP.has()) return byPlays(l); const r = AP.rank(byPlays(l)); if (!warm) return r;
+      const ix = new Map(r.map((g, i) => [g, i])), n = r.length || 1; return T.rank(r, g => 10 - 10 * ix.get(g) / n); };
     const catLike = (l, c) => { if (!warm) return 0; const top = ordered(l.filter(g => catOf(g, c))).slice(0, 6); return top.reduce((n, g) => n + T.like(g), 0) / (top.length || 1); };
     const MORE = 24, SHELVES = 6;   // not a wall of 300 games: the best two dozen of a shelf, six shelves; more arrive as they scroll (no buttons)
     let mode = K.store.get('pmode', null); if (!MODES[mode]) mode = K.PC ? 'desktop' : 'mobile';   // on a computer: the keyboard & mouse games first (Oct 26)
@@ -263,7 +269,8 @@
     // reports show which keeps people; shelves without a list use the best-scored upright game. play.html then starts it on its own.
     if (window.ApAttrib && ApAttrib.fromAd() && !sessionStorage.getItem('ap.jumped')) {
       // (games that wait for the first move: runners like neon-hop / squish-gate lose a life before a newcomer has tapped)
-      const AD_PICK = { '': ((window.RIFFCADE || {}).OPENERS || []).length ? RIFFCADE.OPENERS : ['stretch-dash', 'swirl-tee', 'tiptoe-tower'], '3D': ['cube-trek', 'bolt-twist'],
+      const C0 = window.RIFFCADE || {}, OPA = AP && (C0.OPENERS_BY || {})[AP.seg()];   // their audience's openers (rank_feed.py)
+      const AD_PICK = { '': (OPA || []).length ? OPA : (C0.OPENERS || []).length ? C0.OPENERS : ['stretch-dash', 'swirl-tee', 'tiptoe-tower'], '3D': ['cube-trek', 'bolt-twist'],
         Action: ['stretch-dash', 'ricochet-rex', 'fort-fling'], Racing: ['tiptoe-tower', 'marble-dash'], Arcade: ['cube-trek', 'ricochet-rex', 'bolt-twist'],
         Puzzle: ['bolt-twist', 'untwine', 'swirl-tee'], Strategy: ['turf-rush'], Idle: ['viral-den', 'bellhop-boss'], 'Word & Math': ['think-twice'] };
       const ok = g => g && !g.linkout && g.orientation !== 'landscape' && g.category !== 'Kids' && !(g.tags || []).includes('Kids');
@@ -361,20 +368,20 @@
           ${list.length > shown.length ? '<div class="more" data-more="games"></div>' : ''}`;
       } else {
         // a player we know: "For you" (her order, games she left in seconds out); a new one: the best scored with a gameplay clip
-        const picks = byPlays(pool).slice(0, 8);
+        const picks = learned(pool).slice(0, 8);
         const all_cs = catsFor(mode), cs = warm && !open ? all_cs.slice(0, SHELVES) : all_cs;
         const W = ['robot-dunk,penguin-skates', 'hamster-run,duck-net', 'bunny-scooter,snail-race', 'frog-skate,robot-map', 'blob-frisbee,cat-binoculars'];
-        html = `<section class="picks"><header><h2>Most played</h2><span>The ${MODES[mode].label.toLowerCase()} games people play most</span></header>
+        html = `<section class="picks"><header><h2>Top picks</h2><span>The ${MODES[mode].label.toLowerCase()} games players like you stay in longest</span></header>
             <div class="rail big">${picks.map(g => card(g, stats[g.slug], true)).join('')}</div></section>
           <section class="worldb" id="worldb" hidden></section>
           <section class="zones"><header><h2>Explore the park</h2><span>Every category has its own corner</span></header>
             <div class="rail">${all_cs.map(([c, n]) => `<a class="zc" href="#" data-zone="${esc(c)}"><img src="${A}${zone(c).scene}-s.webp" alt="" loading="lazy">
               <span class="zres">${CAST[zone(c).who] ? img(zone(c).who) : ''}</span><b>${esc(c)}</b><small>${esc(zone(c).park)} · ${n}</small></a>`).join('')}</div></section>
           ${pathStrip(W[0])}
-          ${cs.slice(0, 9).map(([c], i) => shelf(c, zone(c).park, byPlays(pool.filter(g => catOf(g, c))), c, zone(c).who, i) + (i % 3 === 2 ? pathStrip(W[(i / 3 + 1) % W.length | 0]) : '')).join('')}
+          ${cs.slice(0, 9).map(([c], i) => shelf(c, zone(c).park, learned(pool.filter(g => catOf(g, c))), c, zone(c).who, i) + (i % 3 === 2 ? pathStrip(W[(i / 3 + 1) % W.length | 0]) : '')).join('')}
           <section class="chart"><header><div class="peek" data-who="giraffe-peek" data-opt='{"kind":"peek","h":150,"shadow":false}'></div><h2>Top scored</h2><span>Park score = Claude's review of depth + polish; players' stars count once 3+ have rated</span></header>
             ${byScore(pool).slice(0, 12).map((g, i) => row(g, i, stats[g.slug])).join('')}</section>
-          ${cs.slice(9).map(([c], i) => shelf(c, zone(c).park, byPlays(pool.filter(g => catOf(g, c))), c, zone(c).who, i)).join('')}
+          ${cs.slice(9).map(([c], i) => shelf(c, zone(c).park, learned(pool.filter(g => catOf(g, c))), c, zone(c).who, i)).join('')}
           ${cs.length < all_cs.length ? '<div class="more" data-more="shelves"></div>' : ''}`;
       }
       const y = scrollY;
@@ -392,6 +399,7 @@
     }
     draw();
     K.getStats().then(s => { stats = s || {}; draw(); });
+    if (AP && !AP.fresh()) AP.ready.then(() => draw());   // the learned order arrived (first visit, or an hour old)
 
     const lastG = all.find(g => g.slug === K.store.get('last'));
     if (lastG) $('cont').innerHTML = `<a class="continue" href="${K.href(lastG)}"${K.tgt(lastG)}><img src="${esc(K.art(lastG))}" alt="">

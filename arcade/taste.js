@@ -110,3 +110,39 @@
   }
   window.ApTaste = { active, style, art, played, chose, tap, like, rank, warm, feed, oneOfEach, arm, name: s => NAMES[s] || '', profile: load };
 })();
+
+// Who this visitor's games are for (2026-10-26, Daniel: "when I open the games, I see men's and women's games that are not
+// related to me"): women / men from the ad set they came from (ap.aud, go.html ?aud=), else from what they stayed in (two games
+// made for one gender, a minute or more each, and at least twice the other's: ap.taste above), else unknown. A known visitor
+// never sees games made for the other gender (config GAME_FOR); unknown visitors get the everyone games first. Orders come from
+// the learned scores (arcade-api picks.js /api/picks: how long each game holds real players of that audience and whether they
+// come back to it, Thompson-sampled so new games keep being tried). Public numbers, no identifiers; cached here for an hour.
+// window.ApPicks: { seg(), ok(g), filter(list), rank(list), ready (Promise), has() }
+(function () {
+  if (window.ApPicks) return;
+  const C = window.RIFFCADE || {}, KEY = 'ap.picks';
+  let P = null, fresh = false;
+  try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v && v.p && v.p.order) { P = v.p; fresh = Date.now() - v.t < 3600e3; } } catch (e) {}
+  const FOR = () => C.GAME_FOR || (P && P.for) || {};
+  const slug = g => (g && g.slug) || g;
+  function seg() {
+    let a = null; try { a = localStorage.getItem('ap.aud'); } catch (e) {}
+    if (a === 'f' || a === 'm') return a;
+    try {
+      const g = (JSON.parse(localStorage.getItem('ap.taste')) || {}).g || {}, F = FOR(), c = { f: 0, m: 0 };
+      for (const s in g) if (g[s] >= 2 && F[s]) c[F[s]]++;
+      return c.f >= 2 && c.f >= 2 * c.m ? 'f' : c.m >= 2 && c.m >= 2 * c.f ? 'm' : null;
+    } catch (e) { return null; }
+  }
+  const ok = (g, s = seg()) => { const f = FOR()[slug(g)]; return !s || !f || f === s; };
+  const filter = list => { const s = seg(); return s ? list.filter(g => ok(g, s)) : list.slice(); };
+  function rank(list) {
+    const s = seg() || 'u', o = P && P.order && P.order[s], F = FOR();
+    if (!o) return s === 'u' ? list.map((g, i) => [F[slug(g)] ? 1 : 0, i, g]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(x => x[2]) : list.slice();
+    const pos = new Map(o.map((x, i) => [x, i]));   // unknown visitors: the everyone games first, whatever the order says
+    return list.map((g, i) => [s === 'u' && F[slug(g)] ? 1 : 0, pos.has(slug(g)) ? pos.get(slug(g)) : 1e6 + i, g]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(x => x[2]);
+  }
+  const ready = fresh ? Promise.resolve(P) : fetch('https://mcp.riffcade.com/api/picks').then(r => r.ok ? r.json() : null)
+    .then(p => { if (p && p.order) { P = p; try { localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), p })); } catch (e) {} } return P; }).catch(() => P);
+  window.ApPicks = { seg, ok, filter, rank, ready, has: () => !!P, fresh: () => fresh };
+})();
