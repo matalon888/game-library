@@ -6,9 +6,46 @@
      never inside ChatGPT / Claude (embed=chat) or Kids games; privacy scripts load before the header script, in order. -->
 <script>(function () {
   var q = new URLSearchParams(location.search); if (q.get('embed') === 'chat' || (window.RIFFCADE || {}).EZOIC_OFF) return;
-  ['https://cmp.gatekeeperconsent.com/min.js', 'https://the.gatekeeperconsent.com/cmp.min.js', 'https://www.ezojs.com/ezoic/sa.min.js', 'https://ezoicanalytics.com/analytics.js']
-    .forEach(function (src, i) { var s = document.createElement('script'); s.src = src; s.async = i === 2; if (i < 2) s.setAttribute('data-cfasync', 'false'); document.head.appendChild(s); });
   window.ezstandalone = window.ezstandalone || {}; ezstandalone.cmd = ezstandalone.cmd || [];
+  var go = function () { if (go.done) return; go.done = 1;
+    ['https://cmp.gatekeeperconsent.com/min.js', 'https://the.gatekeeperconsent.com/cmp.min.js', 'https://www.ezojs.com/ezoic/sa.min.js', 'https://ezoicanalytics.com/analytics.js']
+      .forEach(function (src, i) { var s = document.createElement('script'); s.src = src; s.async = i === 2; if (i < 2) s.setAttribute('data-cfasync', 'false'); document.head.appendChild(s); }); };
+  // The privacy card is answered once (Daniel, 2026-10-26: it came back on every game). ChatGPT and other in-app browsers
+  // open each link from the chat in a fresh webview with empty storage, so the answer (accept or decline) is also kept on
+  // our server under the player's code (?apu=, carried by their AI's links; arcade-api /api/cmp) and put back here before
+  // the card's script loads. Nothing about the person is sent: the choice string and the code.
+  var API = 'https://mcp.riffcade.com/api/cmp', OK = /^[a-z0-9]{10}$/, ls = function (k, v) { try { return v === undefined ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } };
+  var ck = function () { var m = document.cookie.match(/(?:^|; )ez-consent-tcf=([^;]+)/); return m ? m[1] : ''; };
+  var u = OK.test(q.get('apu') || '') ? q.get('apu') : (function () { try { return sessionStorage.getItem('ap.u'); } catch (e) { return null; } })() || ls('ap.u');
+  u = OK.test(u || '') ? u : null;
+  var sig = function (u, t, e) { return u + '|' + t.length + '|' + t.slice(-24) + '|' + e; };
+  var dom = /(^|\.)agentpark\.co$/.test(location.hostname) ? '; domain=.agentpark.co' : '';
+  if (u && !ck() && !ls('ez-consents') && window.fetch) {
+    var t = setTimeout(go, 1500);
+    fetch(API + '?u=' + u, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
+      if (c && c.tcf) document.cookie = 'ez-consent-tcf=' + c.tcf + '; path=/; max-age=31536000; SameSite=Lax; Secure' + dom;
+      if (c && c.ez) ls('ez-consents', c.ez);
+      if (c && c.ac) ls('ez-ac-consents', c.ac);
+      if (c && c.rc && !ls('arcade.consent')) ls('arcade.consent', JSON.stringify(c.rc));
+      if (c && (c.tcf || c.ez)) ls('arcade.consent.sent', sig(u, ck(), ls('ez-consents') || ''));   // already on the server
+    }).catch(function () {}).then(function () { clearTimeout(t); go(); });
+  } else go();
+  // once answered (now or before), keep it under the code: sent again only when the code or the answer changes
+  if (u) {
+    var send = function () {
+      var b = { u: u, tcf: ck(), ez: ls('ez-consents') || '', ac: ls('ez-ac-consents') || '' }, rc = ls('arcade.consent');
+      try { rc = JSON.parse(rc); } catch (e) { rc = null; } if (rc) b.rc = rc;
+      if (!b.tcf && !b.ez) return;
+      var k = sig(u, b.tcf, b.ez);
+      if (ls('arcade.consent.sent') === k) return;
+      fetch(API, { method: 'POST', body: JSON.stringify(b), keepalive: true }).then(function (r) { if (r.ok) ls('arcade.consent.sent', k); }).catch(function () {});
+    };
+    var n = 0, w = setInterval(function () {
+      if (typeof window.__tcfapi !== 'function') { if (++n > 60) clearInterval(w); return; }
+      clearInterval(w);
+      try { __tcfapi('addEventListener', 2, function (d, ok) { if (ok && d && (d.eventStatus === 'useractioncomplete' || d.eventStatus === 'tcloaded')) setTimeout(send, 800); }); } catch (e) {}
+    }, 250);
+  }
 })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Play · AGENTPARK</title>
