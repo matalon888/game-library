@@ -170,5 +170,6 @@
       push('start', { slug: g.slug, cat: g.category || '' }); flush(false);   // counted even if the in-app browser is closed mid-game
     },
     end(reason) { endRun(reason); },
+    note(type, data) { push(type, data); },   // one-off events from the shell (e.g. 'doa': a game frame that never started)
   };
 })();

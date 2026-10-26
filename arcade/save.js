@@ -116,7 +116,9 @@
   window.ApSave = { code, sync, level: s => levels()[s] || 0 };
   if (q.get('embed') === 'chat' || navigator.webdriver && !q.get('saveapi')) return;   // chat widgets and QA robots never write player saves
   const t0 = Date.now();
-  sync().then(() => {
+  // ApSave.ready: the first pull. The play page waits for it (up to ~1.2 s) before opening the game frame, so the game reads
+  // the save on its first load and the reload below is only a fallback (Oct 26: an iPhone came back blank after it)
+  (window.ApSave.ready = sync()).then(() => {
     // a game page that started before its save arrived (first visit on this device): reload once so it reads it
     if (slug && pulledAny && Date.now() - t0 < 6000 && !ss.get('ap.save.r.' + slug)) { ss.set('ap.save.r.' + slug, '1'); location.reload(); }
   });

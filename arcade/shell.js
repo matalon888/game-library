@@ -320,6 +320,15 @@
     // that wanders off-site is sent back to the game
     frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-orientation-lock');
     frame.src = gameUrl;
+    // a game of ours that loaded but never started (no window.__game and no kit UI 8 s after load): reload it once, and tell diagnostics ('doa'),
+    // so the keeper sees games real phones can't start. The AI-agent games and Twist Drop have no __game, so they're left alone
+    let healed = false;
+    if (g.original && !/for-your-ai-agents$|^twist-drop$/.test(g.slug)) frame.addEventListener('load', () => setTimeout(() => {
+      let w; try { w = frame.contentWindow; if (w.__game || document.hidden) return; } catch (e) { return; }
+      try { if (w.document.querySelector('.hc-prog, .hc-card')) return; } catch (e) {}   // the kit's UI is up: the game did run
+      try { window.ArcadeDiag && ArcadeDiag.note('doa', { slug: g.slug, healed: !healed }); } catch (e) {}
+      if (!healed) { healed = true; frame.src = gameUrl; }
+    }, 8000));
     frame.addEventListener('load', () => {
       let w;
       try { w = frame.contentWindow; if (w.location.origin !== location.origin) throw 0; } catch (e) { frame.src = gameUrl; return; }
@@ -333,7 +342,10 @@
       try { w.open = () => null; } catch (e) {}
     });
     frame.className = 'fit';
-    stage.appendChild(frame);
+    // the game frame goes in once this player's saves have arrived (arcade/save.js ApSave.ready, at most 1.2 s): before, a game
+    // that loaded first reloaded itself to read them, and on Daniel's iPhone (Oct 26, Smooch Roll from ChatGPT) it came back blank
+    const slot = stage.appendChild(document.createComment('game'));   // keeps the frame's place under the overlays added below
+    Promise.race([window.ApSave && ApSave.ready, new Promise(r => setTimeout(r, 1200))]).catch(() => {}).then(() => slot.replaceWith(frame));
     // guard.js in the game reports it can't keep up (under 22 fps for 6 s): offer lighter graphics (devicePixelRatio 1 for this
     // game, kept on the device), and if it's already light, suggest another game. Counted in GA as game_slow.
     // kit/heroes.js asks to open Hero Lab (or return to the game) as a real page: only same-origin arcade links
