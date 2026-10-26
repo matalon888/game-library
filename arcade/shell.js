@@ -264,6 +264,21 @@
     const every = await gamesAll(), all = every.filter(x => !AI_ONLY.has(x.slug));
     const g = every.find(x => x.slug === slug);
     if (!g) { location.replace(EMBED ? './?embed=chat' : './'); return; }
+    // A stale reopen: Safari brings back the game tab from days ago (or the page is reloaded with no link behind it) on a
+    // game this device already played. 91-100% of those left within a minute (Oct 22-26), so they get a game they haven't
+    // played yet instead. Any link (ref / from / ch / apu / ads) means the person chose this game: it opens as asked.
+    if (!EMBED) try {
+      const qs = new URLSearchParams(location.search), nav = (performance.getEntriesByType('navigation')[0] || {}).type;
+      const linked = [...qs.keys()].some(k => k !== 'g'), ours = /agentpark\.co|riffcade\.com|localhost/.test(document.referrer);
+      const pc = store.get('pc', {}), lg = store.get('lastGame', null);
+      const recent = lg && lg.slug === g.slug && Date.now() - lg.at < 30 * 60 * 1000;   // a reload mid-game keeps the game
+      if (!linked && !recent && (nav === 'reload' || nav === 'back_forward' || !ours) && ((pc[g.slug] || 0) >= 2 || (lg && lg.slug === g.slug))) {
+        const C0 = window.RIFFCADE || {}; let aud = null; try { aud = localStorage.getItem('ap.aud'); } catch (e) {}
+        const list = [].concat((C0.OPENERS_BY || {})[aud] || [], C0.OPENERS || [], C0.FEED || []);
+        const fresh = list.map(s => all.find(x => x.slug === s)).find(x => x && !pc[x.slug] && x.slug !== g.slug && !x.linkout && x.orientation !== 'landscape');
+        if (fresh) { location.replace(`play.html?g=${encodeURIComponent(fresh.slug)}&from=fresh`); return; }
+      }
+    } catch (e) {}
     // an AI-only game: opens from an AI's link (the daily message: ref=daily-*, the setup reply: ref=daily-*/go-*) or inside
     // the AI (embed=chat); this tab remembers it. Anyone else gets a lock card that sends them to set up their AI.
     if (AI_ONLY.has(g.slug)) {
@@ -331,9 +346,10 @@
       try { window.RiffConsent && RiffConsent.ga('game_slow', { game: g.slug, fps: e.data.fps, lite: e.data.lite ? 1 : 0 }); } catch (x) {}
       const bar = document.createElement('div'); bar.className = 'slowbar'; bar.setAttribute('role', 'status');
       bar.innerHTML = e.data.lite ? `<span>This game is heavy for this device.</span><a href="./">Try another game</a><button type="button" aria-label="Close">✕</button>`
-        : `<span>Running slow on this device?</span><button type="button" class="lite">Lighter graphics</button><button type="button" aria-label="Close">✕</button>`;
+        : `<span>Laggy?</span><button type="button" class="lite">Smoother graphics</button><button type="button" aria-label="Close">✕</button>`;
       player.appendChild(bar);
       bar.querySelector('[aria-label=Close]').onclick = () => bar.remove();
+      setTimeout(() => bar.remove(), 8000);   // a question about graphics shouldn't stay over the first round
       const l = bar.querySelector('.lite');
       if (l) l.onclick = () => { try { localStorage.setItem('ap.lite.' + g.slug, '1'); } catch (x) {} try { window.RiffConsent && RiffConsent.ga('game_lite', { game: g.slug }); } catch (x) {} bar.remove(); frame.src = gameUrl; };
     });

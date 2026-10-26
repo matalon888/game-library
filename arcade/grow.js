@@ -289,7 +289,10 @@
   function onStart(frame) {
     FR = frame;
     if (G) ls.set('lastGame', { slug: G.slug, name: G.name, at: Date.now() });   // the Continue card (ct half)
-    msPill();
+    // the missions chip waits for the first round to end (or a minute): a badge on screen in the first seconds is one
+    // more thing to read before the game (under-1-minute players left within 10 s, Oct 26)
+    setTimeout(msPill, 60000);
+    { const pc = ls.get('pc', {}); pc[G.slug] = (pc[G.slug] || 0) + 1; ls.set('pc', pc); }   // games started on this device (shell.js: no stale reopen)
     if (window.ArcadeDiag) ArcadeDiag.start(G, frame);
     rail();
     tapHint(frame);
@@ -325,8 +328,12 @@
   // "Tap here": 2026-10-23 one visit in three first tapped empty page around the game (~15 s in), not knowing where to start.
   // A pulsing hand over the game's middle until the first touch inside it (or 6 s). Never blocks a touch: pointer-events none.
   function tapHint(frame) {
-    if ($('gTap') || ls.get('tapHinted', 0) >= 3) return;
+    // our own games draw their own tutorial hand: a second one on top (and over a loading screen) read as "tap here" on a
+    // screen where a tap did nothing (Oct 26 first-10-seconds review). Other games get it once they have loaded.
+    if ($('gTap') || ls.get('tapHinted', 0) >= 3 || (G && G.original)) return;
     const p = document.querySelector('.player'); if (!p) return;
+    let ready = false; try { ready = frame.contentDocument && frame.contentDocument.readyState === 'complete'; } catch (e) { ready = true; }
+    if (!ready) { frame.addEventListener('load', () => tapHint(frame), { once: true }); return; }
     const h = document.createElement('div'); h.id = 'gTap'; h.className = 'g-tap'; h.setAttribute('aria-hidden', 'true'); h.textContent = '👆';
     p.appendChild(h);
     const done = () => { h.remove(); };
@@ -343,6 +350,7 @@
   let leaving = false;
   async function gameOver() {
     if (leaving || document.querySelector('.g-card, .g-ad-full')) return; // one card at a time
+    msPill();
     if (chN && !shared) return shareCard(false);
     if (pushDue()) await pushCard();
     else if (ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);

@@ -49,7 +49,7 @@
   setTimeout(() => flush(false), 3000);   // early first batch: most visitors who leave do it within seconds
   addEventListener('pagehide', () => { if (game) endRun('close'); push('page_end', { secs: Math.round((performance.now() - T0) / 1000), taps, scroll: maxScroll, kinds: byKind }); flush(true); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) flush(true); });
-  push('page', { page: location.pathname.split('/').pop() || 'index', bot: navigator.webdriver === true || /HeadlessChrome|Playwright|puppeteer|externalads|facebookexternalhit|AdsBot|Googlebot|bingbot|crawler|spider/i.test(navigator.userAgent) ? 1 : 0 });
+  push('page', { page: location.pathname.split('/').pop() || 'index', bot: navigator.webdriver === true || /HeadlessChrome|Playwright|puppeteer|externalads|externalagent|facebookexternalhit|AdsBot|Googlebot|bingbot|crawler|spider/i.test(navigator.userAgent) ? 1 : 0 });
 
   // ---- what happened on the page before (or instead of) a game: why visitors leave without playing
   // perf: how long the page took to show (time to first byte, DOM ready, load, largest paint) and how much it downloaded.

@@ -19,7 +19,7 @@ const AD = adapter(); let dabAt = 0, dabSig = 0;
 // unfold needs, up to 20 % lower / 10 % higher (the same number flow.js already scales between runs; the result card shows it)
 const brushNow = () => L.brush * (level <= 2 ? 1 : 2 - AD.k());
 const thrNow = () => Math.min(0.9, L.thr * (level <= 2 ? 1 : AD.k(1, AD.level > 0 ? 0.1 : 0.2)));   // target: −20 % / +10 %
-const ui = createUI({ title: 'SWIRL<br>TEE', hint: 'Tap the fold, rub the shirt', hand: '👆', score: false });
+const ui = createUI({ title: 'SWIRL<br>TEE', hint: 'Tie-dye the shirt to match', hand: '👆', score: false });
 const stage = createStage({ fov: 38, shadowSize: 6 });
 const { scene, camera } = stage;
 stage.followLight(new THREE.Vector3(0, 0, 0));
@@ -365,7 +365,9 @@ function buildLevel() {
   show('dyes', false); show('reset', false); show('done', false); show('ask', state === 'play'); show('folds', state === 'play');
   const shown = L.folds >= 3 ? FOLDS : L.folds === 1 ? [L.fold] : FOLDS.filter(f => f === L.fold || f === (L.fold === 'rings' ? 'spiral' : 'rings')).slice(0, 2);
   $('folds').querySelectorAll('.fold').forEach(b => { b.classList.remove('bad'); b.style.display = shown.includes(b.dataset.f) ? '' : 'none'; b.classList.toggle('go', L.folds === 1); });
-  $('ask').textContent = L.folds === 1 ? 'Tap the fold!' : 'Pick the fold!';
+  // name the button: "Tap the fold!" over a blank shirt left new players looking at the shirt (Oct 26)
+  const fl = (($('folds').querySelector(`[data-f="${L.fold}"]`) || {}).textContent || '').trim();
+  $('ask').textContent = L.folds === 1 ? (fl ? `Tap ${fl.toUpperCase()} below ▼` : 'Tap the fold below ▼') : 'Pick the fold below ▼';
 }
 function chooseFold(f, btn) {
   if (state !== 'play' || phase !== 'fold') return;

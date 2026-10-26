@@ -28,7 +28,7 @@ function fit() {
 addEventListener('resize', fit); fit();
 cam.position.set(0, camBaseY, 20);
 
-const ui = createUI({ title: 'RICOCHET<br>REX', hint: 'Tap a goon to shoot', hand: '☝️' });
+const ui = createUI({ title: 'RICOCHET<br>REX', hint: 'Tap the bad guy to shoot him', hand: '☝️' });
 const css = document.createElement('style');
 css.textContent = `.hc-score{font-size:40px;top:calc(52px + env(safe-area-inset-top))}
 .hc-card{padding-top:calc(200px + env(safe-area-inset-top))}
@@ -666,7 +666,7 @@ ui.onTap((which) => { WB.start();
   if (which === 'start') { state = 'play'; return; }
   buildLevel(); state = 'play';
 });
-// level 1: tapping the goon on the start card already fires at him (the hint says "Tap a goon to shoot")
+// level 1: tapping the goon on the start card already fires at him (the hint says "Tap the bad guy to shoot him")
 ui.els.start.addEventListener('pointerdown', (e) => {
   if (level !== 1 || state !== 'play' || !W.enemies[0]) return;
   const g = W.enemies[0], [gx, gy] = toScreen(g.x, g.y + 1);

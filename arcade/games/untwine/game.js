@@ -26,7 +26,7 @@ const WB = worldBoard({ game: 'untwine', label: 'Levels cleared', limits: { maxR
 // solved → one extra move ("LUCKY KNOT!"). Score is levels cleared, never touched. QA reads window.__game.adapt.
 const AD = adapter(); let moveAt = 0;
 let level = save.get('level', 1), total = save.get('freed', 0), state = 'ready';
-const ui = createUI({ title: 'UN<br>TWINE', hint: 'Tap the glowing plug, then peg', hand: '👆', score: false });
+const ui = createUI({ title: 'UN<br>TWINE', hint: 'Tap a glowing end, then an empty peg', hand: '👆', score: false });
 
 // ---------------------------------------------------------------- textures
 function ropeTexture() {   // three twisted strands, diagonal grooves + fibres; tinted per rope via material colour
