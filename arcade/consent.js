@@ -1,9 +1,9 @@
 // AGENTPARK consent: one blocking choice for everything that needs it (Google Analytics, the Meta pixel, personalised ads).
-// Outside the US nothing loads until the visitor taps Accept: no gtag.js, no fbevents.js, no cookieless pings. "No thanks" or no answer = off.
+// Outside the US nothing loads until the visitor opts in (Privacy choices in the footer): no gtag.js, no fbevents.js, no cookieless pings. "No thanks" or no answer = off.
 // In the US (device time zone is a US one) it's on by default, as US law allows, with no popup: "Privacy choices" in the
 // footer turns it off (stored 'declined' wins from then on).
 // Used by the landing page and the arcade (never the chat versions, /today, privacy, terms or support).
-// API (window.RiffConsent): state(), accepted(), ga(name, params), setUser(props), pixel(name, custom), setKids(bool), onChange(fn), open().
+// API (window.RiffConsent): state(), accepted(), ga(name, params), setUser(props), pixel(name, custom), setKids(bool), onChange(fn), open(), adult() (18+ check for Casino games).
 (function () {
   if (new URLSearchParams(location.search).get('embed') === 'chat') return;
   const C = window.RIFFCADE || {};
@@ -98,8 +98,34 @@ html.rc-lock,html.rc-lock body{overflow:hidden}
     b.querySelector('.rc-yes').onclick = () => pick('accepted');
   }
 
+  // 18+ check: Casino games only (Daniel, 2026-10-26: not the whole site). Asked once per device; "No" takes them back to the park.
+  const AGE = 'arcade.adult';
+  function adult() {
+    try { if (localStorage.getItem(AGE) === '1') return Promise.resolve(true); } catch (e) {}
+    return new Promise(done => {
+      if (!document.getElementById('rcCss')) { const st = document.createElement('style'); st.id = 'rcCss'; st.textContent = css; document.head.appendChild(st); }
+      const b = document.createElement('div');
+      b.id = 'rcAge'; b.className = 'rc-veil';
+      b.innerHTML = `<div class="rc-card" tabindex="-1" role="alertdialog" aria-modal="true" aria-labelledby="rcAT" aria-describedby="rcAD">
+        <img src="${at('park/hippo-cheer.webp')}" alt="">
+        <h2 id="rcAT">Casino games are 18+</h2>
+        <p id="rcAD">Free play with pretend chips. No real money, no prizes. Are you 18 or older?</p>
+        <div class="rc-row"><button class="rc-no" type="button">No</button><button class="rc-yes" type="button">I'm 18+</button></div></div>`;
+      document.body.appendChild(b);
+      document.documentElement.classList.add('rc-lock');
+      b.addEventListener('keydown', e => { if (e.key === 'Escape') e.preventDefault(); });
+      setTimeout(() => b.firstElementChild.focus({ preventScroll: true }), 50);
+      const pick = ok => {
+        if (ok) try { localStorage.setItem(AGE, '1'); } catch (e) {}
+        b.remove(); document.documentElement.classList.remove('rc-lock'); done(ok);
+      };
+      b.querySelector('.rc-no').onclick = () => pick(false);
+      b.querySelector('.rc-yes').onclick = () => pick(true);
+    });
+  }
+
   window.RiffConsent = {
-    needed, state, open,
+    needed, state, open, adult,
     accepted: () => state() === 'accepted',
     onChange: f => listeners.push(f),
     setKids(v) { kids = !!v; start(); },
@@ -129,13 +155,8 @@ html.rc-lock,html.rc-lock body{overflow:hidden}
   if (!needed) return;
   start();
   const ready = () => {
-    // no popup on the agent funnel: go.html (RC_NO_POPUP), and the first game it or the AI's reply opens (agreed to the Terms with
-    // the GET IN tap). Outside the US tracking just stays off there, no extra tap
-    let fromGo = /[?&](ref=go-|pos=go\b)/.test(location.search); try { fromGo = fromGo || sessionStorage.getItem('ap.goTerms') === '1'; } catch (e) {}
-    // nor for anyone who came from our ads (Daniel, 2026-10-20: the ad tap goes straight in). The ads target the US only, where
-    // tracking is on by default; a non-US phone keeps tracking off without asking (no extra tap, and no consent assumed)
-    try { fromGo = fromGo || /[?&](fbclid=|utm_source=(meta|facebook|instagram|fb|ig)\b)/i.test(location.search) || sessionStorage.getItem('ap.fromAd') === '1'; } catch (e) {}
-    if (!stored() && !US && !window.RC_NO_POPUP && !fromGo) open();
+    // no popup on entry (Daniel, 2026-10-26: the only gate is the 18+ check on Casino games, adult() below). Outside the US
+    // tracking stays off until the visitor opts in under "Privacy choices"
     // "Privacy choices" in the footer: change your mind as easily as you chose (arcade .foot, landing footer nav)
     const foot = document.querySelector('.foot, footer nav');
     if (foot && !document.getElementById('rcChoices')) {

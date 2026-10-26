@@ -233,6 +233,8 @@
     CAST = cast;
     let stats = {};
     const byScore = l => l.slice().sort((a, b) => (score(b, stats[b.slug]) ?? 0) - (score(a, stats[a.slug]) ?? 0));
+    // every category, All included, opens on the most played first (Daniel, 2026-10-26); unplayed games follow, best scored first
+    const byPlays = l => byScore(l).sort((a, b) => ((stats[b.slug] || {}).plays || 0) - ((stats[a.slug] || {}).plays || 0));
     // every shelf in this player's order (taste.js): Park score + how much they'll probably like it, learnt from every game they
     // play (stayed long: its category, collections and kind rise; left in seconds: they sink). A new visitor sees best scored first.
     const T = window.ApTaste, warm = !!(T && T.warm());
@@ -240,7 +242,7 @@
     const catLike = (l, c) => { if (!warm) return 0; const top = ordered(l.filter(g => catOf(g, c))).slice(0, 6); return top.reduce((n, g) => n + T.like(g), 0) / (top.length || 1); };
     const MORE = 24, SHELVES = 6;   // not a wall of 300 games: the best two dozen of a shelf, six shelves; more arrive as they scroll (no buttons)
     let mode = K.store.get('pmode', null); if (!MODES[mode]) mode = 'mobile';
-    let cat = K.store.get('pcat', null), sort = warm ? 'for' : 'score', q = '', open = false, more = MORE;
+    let cat = K.store.get('pcat', null), sort = 'played', q = '', open = false, more = MORE;
     const inMode = m => all.filter(MODES[m].has);
     const catOf = (g, c) => COLLS.includes(c) ? (g.tags || []).includes(c) : (g.category || 'Arcade') === c;
     const catsFor = m => {
@@ -347,32 +349,32 @@
       } else if (mode === 'ai' || cat) {
         const key = mode === 'ai' ? 'AI' : cat, z = zone(key);
         let list = mode === 'ai' ? pool : pool.filter(g => catOf(g, cat));
-        list = sort === 'new' ? list.slice().sort((a, b) => ((b.made || b.added) > (a.made || a.added) ? 1 : -1)) : sort === 'played' ? list.slice().sort((a, b) => ((stats[b.slug] || {}).plays || 0) - ((stats[a.slug] || {}).plays || 0)) : sort === 'for' ? ordered(list) : byScore(list);
+        list = sort === 'new' ? list.slice().sort((a, b) => ((b.made || b.added) > (a.made || a.added) ? 1 : -1)) : sort === 'played' ? byPlays(list) : sort === 'for' ? ordered(list) : byScore(list);
         const shown = list.slice(0, more);
         const who = mode === 'ai' ? 'kid-agent-laptop,agent-token' : z.who + ',' + (key === 'Sports' ? 'fox-kick' : key === 'Racing' ? 'hamster-run' : 'robot-map');
         html = `<section class="cat-head" style="--scene:url('${A}${z.scene}.webp')">
             <div class="ch-txt"><span class="eyebrow">${esc(z.park)}</span><h2>${mode === 'ai' ? 'AI token games' : esc(cat)}</h2>
-            <p>${mode === 'ai' ? '<b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch. Results count, tokens don\'t: it counts the work they finish and never spends tokens. World leaderboards with country flags, unrigged.' : `${list.length} ${MODES[mode].label.toLowerCase()} games, ${sort === 'for' ? 'the ones you\'ll like most first' : 'best scored first'}.`}</p></div>
+            <p>${mode === 'ai' ? '<b>Your AI agents power these games.</b> Connect Claude Code or Codex: every task your agents finish is a pass, a shot or a launch. Results count, tokens don\'t: it counts the work they finish and never spends tokens. World leaderboards with country flags, unrigged.' : `${list.length} ${MODES[mode].label.toLowerCase()} games, ${sort === 'for' ? 'the ones you\'ll like most first' : sort === 'played' ? 'most played first' : sort === 'new' ? 'newest first' : 'best scored first'}.`}</p></div>
             <div class="stagebox" data-who="${who}" data-opt='{"kind":"walk","h":92,"speed":34}'></div></section>
-          <div class="sorts" role="group" aria-label="Sort">${[...(warm ? [['for', 'For you']] : []), ['score', 'Top scored'], ['new', 'Newest'], ['played', 'Most played']].map(([k, l]) => `<button data-sort="${k}" aria-pressed="${k === sort}">${l}</button>`).join('')}</div>
+          <div class="sorts" role="group" aria-label="Sort">${[['played', 'Most played'], ...(warm ? [['for', 'For you']] : []), ['score', 'Top scored'], ['new', 'Newest']].map(([k, l]) => `<button data-sort="${k}" aria-pressed="${k === sort}">${l}</button>`).join('')}</div>
           <div class="grid">${shown.map(g => card(g, stats[g.slug], false)).join('')}</div>
           ${list.length > shown.length ? '<div class="more" data-more="games"></div>' : ''}`;
       } else {
         // a player we know: "For you" (her order, games she left in seconds out); a new one: the best scored with a gameplay clip
-        const picks = warm ? ordered(pool).filter(g => T.like(g) > -1).slice(0, 8) : byScore(pool.filter(g => g.clip)).slice(0, 6);
+        const picks = byPlays(pool).slice(0, 8);
         const all_cs = catsFor(mode), cs = warm && !open ? all_cs.slice(0, SHELVES) : all_cs;
         const W = ['robot-dunk,penguin-skates', 'hamster-run,duck-net', 'bunny-scooter,snail-race', 'frog-skate,robot-map', 'blob-frisbee,cat-binoculars'];
-        html = `<section class="picks"><header><h2>${warm ? 'For you' : 'Park picks'}</h2><span>${warm ? 'Picked from what you play, and how long you stay' : `Highest scored ${MODES[mode].label.toLowerCase()} games right now`}</span></header>
+        html = `<section class="picks"><header><h2>Most played</h2><span>The ${MODES[mode].label.toLowerCase()} games people play most</span></header>
             <div class="rail big">${picks.map(g => card(g, stats[g.slug], true)).join('')}</div></section>
           <section class="worldb" id="worldb" hidden></section>
           <section class="zones"><header><h2>Explore the park</h2><span>Every category has its own corner</span></header>
             <div class="rail">${all_cs.map(([c, n]) => `<a class="zc" href="#" data-zone="${esc(c)}"><img src="${A}${zone(c).scene}-s.webp" alt="" loading="lazy">
               <span class="zres">${CAST[zone(c).who] ? img(zone(c).who) : ''}</span><b>${esc(c)}</b><small>${esc(zone(c).park)} · ${n}</small></a>`).join('')}</div></section>
           ${pathStrip(W[0])}
-          ${cs.slice(0, 9).map(([c], i) => shelf(c, zone(c).park, ordered(pool.filter(g => catOf(g, c))), c, zone(c).who, i) + (i % 3 === 2 ? pathStrip(W[(i / 3 + 1) % W.length | 0]) : '')).join('')}
+          ${cs.slice(0, 9).map(([c], i) => shelf(c, zone(c).park, byPlays(pool.filter(g => catOf(g, c))), c, zone(c).who, i) + (i % 3 === 2 ? pathStrip(W[(i / 3 + 1) % W.length | 0]) : '')).join('')}
           <section class="chart"><header><div class="peek" data-who="giraffe-peek" data-opt='{"kind":"peek","h":150,"shadow":false}'></div><h2>Top scored</h2><span>Park score = Claude's review of depth + polish; players' stars count once 3+ have rated</span></header>
             ${byScore(pool).slice(0, 12).map((g, i) => row(g, i, stats[g.slug])).join('')}</section>
-          ${cs.slice(9).map(([c], i) => shelf(c, zone(c).park, ordered(pool.filter(g => catOf(g, c))), c, zone(c).who, i)).join('')}
+          ${cs.slice(9).map(([c], i) => shelf(c, zone(c).park, byPlays(pool.filter(g => catOf(g, c))), c, zone(c).who, i)).join('')}
           ${cs.length < all_cs.length ? '<div class="more" data-more="shelves"></div>' : ''}`;
       }
       const y = scrollY;

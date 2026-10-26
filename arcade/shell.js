@@ -285,6 +285,8 @@
       }
     }
     if (g.linkout) { location.replace(g.external); return; }
+    // Casino games ask for 18+ first (consent.js); "No" goes back to the park
+    if ((g.category === 'Casino' || (g.tags || []).includes('Casino')) && window.RiffConsent && RiffConsent.adult && !(await RiffConsent.adult())) { location.replace('./'); return; }
     // came from the daily AI task (today page links carry ?ref=daily-<ai>): counted like a button click, no ids
     const REF = (r => /^daily(-(chatgpt|claude|gemini|perplexity|other))?$/.test(r || '') ? r : null)(new URLSearchParams(location.search).get('ref'));
     if (REF) api('/api/click', { button: REF });
