@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'pose-rush', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.25 }, mode: 'sum' });
 const ST = store('poserush');
 let level = ST.get('level', 1), best = ST.get('best', 0);
@@ -171,6 +172,12 @@ input({
   onTap() { if (state === 'play' && active && active.phase === 'slow') { autoPose(); sfx.tap(); buzz(8); } },   // a tap = strike the target / dodge the bullet
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the first slow-mo strike throws itself (the same move a tap makes, its points not counted), so the screen shows what a tap does
+let demoHit = false;
+demo(() => { if (active.type === 'gun') return false; demoHit = true; autoPose(); },
+  { ready: () => state === 'play' && level === 1 && !!active && active.phase === 'slow' && !grabbed, wait: 1400, max: 1 });
+
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
@@ -192,7 +199,7 @@ const BANGS = ['BANG!', 'POW!', 'WHAM!', 'BOOM!', 'KO!'];
 function hitEnemy(ev, at) {
   ev.st = 'done'; const e = ev.e;
   e.vel = new THREE.Vector3((R() - 0.5) * 0.04, 0.12, -0.3); e.spin = 0.12 + R() * 0.08; e.dead = true;
-  hitStop = 9; score += 100; ui.score(score);
+  hitStop = 9; score += demoHit ? 0 : 100; demoHit = false; ui.score(score);
   const b = $('bang'); b.textContent = BANGS[Math.floor(Math.random() * BANGS.length)]; b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 520);
   burst(worldG, at, ['#ffe14d', '#ffffff', '#ff7a1a'], 22, { speed: 0.12, up: 0.08, size: 0.8, gravity: 0.003 });
   sfx.smash(); buzz([30, 20, 40]); ui.flash(0.55); camShake = 1;

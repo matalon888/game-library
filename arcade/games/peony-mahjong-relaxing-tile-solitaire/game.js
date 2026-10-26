@@ -2,6 +2,7 @@
 // Board: 2D canvas with painted tile faces on ivory-and-jade bodies. UI: DOM. Rules: engine.js. Layouts: layouts.js.
 import { money } from './kit/money.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { LAYOUTS, parse, transpose, bounds, layoutFor, dailyLayout, COUNTS } from './layouts.js';
@@ -635,6 +636,13 @@ addEventListener('visibilitychange', () => { if (!G) return; if (document.visibi
 
 // ---------------------------------------------------------------- test hooks
 let botNext = null, botT = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the hinted pair is tapped for you, one tile then the other, and clears with its petals; the rest of the board is yours
+let demoPair = null;
+demo((n) => {
+  if (n === 1) { const mv = bestMove(); if (!mv || pairsLeft() < 3) return false; demoPair = mv; tapTile(mv[0]); return; }
+  if (sel !== demoPair[0]) return false; const tip = $('#coach').textContent; tapTile(demoPair[1]); coach(tip); return false;   // the rule text stays up for the player
+}, { ready: () => G && G.level === 1 && !G.daily && state === 'play' && G.hist.length === 0 && performance.now() > busyUntil && $('#sheet').hidden, wait: 2200, every: 750, max: 2 });
 window.__game = {
   get state() { return state === 'next' ? 'won' : state; },
   get level() { return G ? G.level : prog.level; },

@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { adapt } from './kit/adapt.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'stretch-dash', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum', corner: 'bl' });
 const ST = store('stretchdash');
 const F = flow('stretchdash'); let fk = 1;
@@ -128,6 +129,14 @@ input({
   onUp() { dragging = false; },
   onTap(e) { if (state === 'play') { botX = null; P.tx = clamp(P.tx + (e.clientX < innerWidth / 2 ? -1 : 1) * TW / 4, -TW / 2 + 0.4, TW / 2 - 0.4); } },   // tap a side = hop one gate that way
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the runner steers itself into the blue (growing) gate and lines up with each wall's gap, so the screen shows what steering does
+const D = demo(null, { ready: () => state === 'play' && level === 1 && climbStep < 0, wait: 400, ms: 5000 });
+function demoSteer() {
+  const next = rows.find(r => !r.done); if (!next) return;
+  const x = next.kind === 'gates' ? next.gates.reduce((a, b) => b.d > a.d ? b : a).x : next.kind === 'gap' ? next.gx : P.x;
+  P.tx = clamp(x, -TW / 2 + 0.4, TW / 2 - 0.4);
+}
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
@@ -169,6 +178,7 @@ loop((dt, t) => {
     if (climbStep < 0) {
       P.z -= SPEED * lvlK() * A.k(fk) * s;
       if (botX !== null && !dragging) P.tx = botX;
+      if (D.on && !dragging) demoSteer();
       P.x = lerp(P.x, P.tx, 0.2 * dt);
       const halfW = 0.36 * P.W;
       for (const row of rows) {

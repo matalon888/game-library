@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { adapter } from './kit/adapt.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'horde-blast', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.3 }, mode: 'sum' });
 const save = store('hordeblast');
 const F = flow('hordeblast');
@@ -198,6 +199,17 @@ input({
   onMove: (dx) => { inAt = elapsed; if (state === 'play') aimX = clamp(aimX + dx * 0.03, -W + 1.1, W - 1.1); },
   onUp: (e, st) => { firing = false; if (state === 'play' && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) { volley = 1.2; aimX = clamp(aimX + (e.clientX < innerWidth / 2 ? -1.6 : 1.6), -W + 1.1, W - 1.1); } },   // tap = a 1.2 s volley + a step toward that side
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real
+// touch, the cannon slides over and fires a short burst through the gates (4 troops, given back) so the crowd multiplies
+const D = demo(null, { ready: () => state === 'play' && level === 1 });
+let demoFire = false, demoShots = -1;
+function demoShoot(sec, t) {
+  if (D.on && !botOn) {
+    if (!demoFire) { demoFire = true; demoShots = shots; }
+    aimX = lerp(aimX, W * 0.5 + Math.sin(t * 1.8) * 0.5, 0.08);
+    firing = Math.abs(aimX - W * 0.5) < 0.7 && shots - demoShots < 4;
+  } else if (demoFire) { demoFire = false; ammo = Math.min(ammoMax, ammo + shots - demoShots); ammoTag.set(ammo, ammoMax); if (!D.touched) firing = false; }
+}
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; firing = false; }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
@@ -322,6 +334,7 @@ loop((dt, t) => {
   poofBudget = 3;
   if (state === 'play') {
     if (botOn) { firing = true; inAt = elapsed; botT -= sec; if (botT <= 0) { botT = botSloppy ? 2.5 : 1; botAim = botSloppy && Math.random() < 0.2 ? (Math.random() * 2 - 1) * (W - 1.1) : bestColumn(); } aimX = lerp(aimX, clamp(botAim + Math.sin(t * (botSloppy ? 1.3 : 2.2)) * (botSloppy ? 1.4 : 0.35), -W + 1.1, W - 1.1), botSloppy ? 0.04 : 0.12); }
+    demoShoot(sec, t);
     AD.tick(elapsed - inAt < 6);
     step(sec);
     ui.progress(1 - baseHP / baseMax); if (blues.length !== lastCount) { lastCount = blues.length; countTag.set(String(blues.length)); }

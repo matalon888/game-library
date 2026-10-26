@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng,
 import { flow } from './kit/flow.js';
 import { createRagdoll, placeRagdoll, stepRagdoll, syncCollider } from './ragdoll.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'smash-dummy', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 9 });
@@ -204,7 +205,7 @@ function flushHits() {
   if (sum > 12) { burst(scene, top.at, ['#ffd23f', '#ffffff', '#ff8a1f'], Math.min(16, 4 + sum / 4), { speed: 0.08 + sum / 900, up: 0.05, size: 0.45, shape: 'sphere', life: 0.7 }); }
   if (sum > 25) { shake = Math.max(shake, Math.min(0.6, sum / 100)); buzz(Math.min(40, sum / 2)); flashT = 1; }
   if (sum > 45 && popCD <= 0) { ui.pop(WORDS[Math.floor(Math.random() * WORDS.length)], '#ff8a1f', 40 + Math.min(20, sum / 6), 26); hitStop = 0.09; popCD = 0.5; }
-  if (damage >= goal && slowT <= 0 && state === 'play') { slowT = 1.6; ui.flash(0.5); ui.pop('SMASHED!', '#ffd23f', 54, 30); sfx.smash(); }
+  if (damage >= goal && slowT <= 0 && state === 'play' && !demoThrow) { slowT = 1.6; ui.flash(0.5); ui.pop('SMASHED!', '#ffd23f', 54, 30); sfx.smash(); }
 }
 
 // ------------------------------------------------------------------ input: grab the nearest body part, drag, release to fling
@@ -252,6 +253,19 @@ input({
 });
 function maxSpeed() { let m = 0; for (const j of rd.P) m = Math.max(m, j.p.distanceTo(j.o) * 120); return m; }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, if nobody has touched it
+// 2 s in, the dummy is grabbed and flung into the setpiece (damage pops up), then the round resets: the throw is given back
+let demoThrow = false;
+addEventListener('pointerdown', e => { if (e.isTrusted && demoThrow) { demoThrow = false; buildLevel(); } }, { capture: true });
+demo(n => {
+  if (n > 1) { if (demoThrow) { demoThrow = false; buildLevel(); } return false; }
+  const scr = v => { _s.copy(v).project(camera); return [(_s.x + 1) / 2 * innerWidth, (1 - _s.y) / 2 * innerHeight]; };
+  const c = rd.P[rd.IDX.chest].p.clone(), dir = aimAt.clone().sub(c); dir.z = 0; dir.y += 1.5; dir.normalize();
+  const a = scr(c), b = scr(c.clone().addScaledVector(dir, 2.6)), fire = (type, x, y) => dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y }));
+  demoThrow = true; fire('pointerdown', a[0], a[1]);
+  for (let i = 1; i <= 4; i++) setTimeout(() => { if (!demoThrow) return; const x = a[0] + (b[0] - a[0]) * i / 4, y = a[1] + (b[1] - a[1]) * i / 4; fire('pointermove', x, y);
+    if (i === 4) { fire('pointerup', x, y); throws = 3; ui.pill('✋'.repeat(throws)); } }, i * 40);
+}, { ready: () => state === 'play' && level === 1 && slowT <= 0 && throws === 3 && (demoThrow || !dummyLive), every: 2800, max: 2 });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; buildLevel(); }
   else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }

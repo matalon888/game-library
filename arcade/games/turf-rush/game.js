@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'turf-rush', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const save = store('turfrush');
 const F = flow('turfrush');
@@ -280,6 +281,18 @@ input({
   onUp: () => { joy = null; },
   onTap: (e) => { const p = players[0]; if (state !== 'play' || !p) return; const q = new THREE.Vector3(p.x, 0, p.z).project(camera), vx = e.clientX - (q.x + 1) / 2 * innerWidth, vy = e.clientY - (1 - q.y) / 2 * innerHeight; if (Math.hypot(vx, vy) > 8) { p.want = Math.atan2(vx, -vy); sfx.tap(); } },   // tap = head toward that spot
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// your blob runs one careful loop out of its base and back, so the screen shows a trail closing into new turf
+const DT = demo(null, { ready: () => state === 'play' && level === 1 && players[0] && !players[0].dead, wait: 800, ms: 6000 });
+let demoLoop = 0, demoWas = 0, demoH = 0;   // demoLoop: 0 idle, 1 steering, 2 done (one loop closed, or touched)
+function demoThink(p, sec) {   // one loop only, steered until it is closed, so it never leaves an open trail behind; then the old heading again
+  if (demoLoop === 0 && DT.on) { demoLoop = 1; demoH = p.want; p.ai.wps = []; }
+  if (demoLoop !== 1) return;
+  if (DT.touched || botOn) { demoLoop = 2; return; }
+  if (p.out) demoWas = 1;
+  else if (demoWas) { demoLoop = 2; p.want = demoH; return; }
+  const r0 = r; r = Math.random; think(p, sec, true); r = r0;   // its own dice, so the rivals' seeded moves stay as they were
+}
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
@@ -294,7 +307,7 @@ loop((dt, t) => {
   const sec = dt / 60, me = players[0];
   if (state === 'play') {
     elapsed += sec;
-    for (const p of players) { if (!p.isP && !p.dead) think(p, sec, false); if (p.isP && botOn && !p.dead) think(p, sec, true); }
+    for (const p of players) { if (!p.isP && !p.dead) think(p, sec, false); if (p.isP && botOn && !p.dead) think(p, sec, true); if (p.isP && !p.dead) demoThink(p, sec); }
     for (const p of players) stepPlayer(p, sec);
     const pct = me.count / (G * G);
     ui.progress(pct / goal); ui.score((pct * 100).toFixed(1) + '%');

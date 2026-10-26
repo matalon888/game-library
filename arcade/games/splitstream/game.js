@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const ST = store('splitstream');
 const F = flow('splitstream');
@@ -173,6 +174,10 @@ ui.onTap(w => { WB.start();
   else { buildLevel(); state = 'play'; }
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the legs stretch and narrow by themselves to fit the track ahead (the game's own bot), then hand the skates back
+const DM = demo(null, { ready: () => level === 1 && state === 'play' && !fall && !dragging, wait: 1200, ms: 4800 });
+let demoBot = false;
 function ok(A, s) {
   if (A.type === 'deck') return s > A.s.b + 0.2 && s < A.s.W - 0.05;
   return Math.abs(s - A.g) < RW + 0.12;
@@ -193,6 +198,7 @@ loop((dt, t) => {
   const s = dt / 60, play = state === 'play';
   if (play && !fall) {
     K.z -= speed * s;
+    if (DM.on && level === 1 && !dragging) { demoBot = true; window.__game.bot(); } else if (demoBot) { demoBot = false; botS = null; }
     if (botS !== null && !dragging) K.t = lerp(K.t, botS, 0.45 * dt);
     const A = at(K.z);
     K.c = lerp(K.c, A.c, 0.35 * dt);

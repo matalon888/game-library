@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst
 import { flow } from './kit/flow.js';
 import { adapter } from './kit/adapt.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const COLORS = ['#ff4b5c', '#ffc93c', '#3ccf6e', '#3b8bff', '#a66bff', '#ff8a2b'];
 const Y_TOP = 2.75, Z_PEG = 0.16, R_ROPE = 0.155, SAMPLES = 22;
@@ -312,6 +313,18 @@ input({
     endDrag(sockAt(ev.clientX, ev.clientY));
   },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch, the
+// plug that frees the knot lifts off its peg and carries its rope over to the free peg (the tangle opens), then sets it back
+demo(() => {
+  const mv = (solve(pos) || [])[0]; if (!mv) return false;
+  const [e, s] = mv, from = sockPos(e, pos[e]), to = sockPos(e, s), t0 = performance.now();
+  beginDrag(e); const d = drag; d.auto = d.demo = true;
+  const tw = () => { if (drag !== d) return; const a = (performance.now() - t0) / 1000, k = clamp(a < 0.8 ? a / 0.8 : a < 1.7 ? 1 : 1 - (a - 1.7) / 0.6, 0, 1), ez = k * k * (3 - 2 * k);
+    d.target = from.clone().lerp(to, ez); d.target.z = 1.2; d.target.y += Math.sin(Math.PI * ez) * (rowOf(e) ? 0.6 : -0.6);
+    if (a < 2.4) requestAnimationFrame(tw); else { drag = null; hiRings.forEach(h => h.visible = false); } };
+  requestAnimationFrame(tw);
+}, { ready: () => level === 1 && state === 'play' && !drag && !botAnim, wait: 1800, every: 3200, max: 2 });
+addEventListener('pointerdown', e => { if (e.isTrusted && drag && drag.demo) { drag = null; hiRings.forEach(h => h.visible = false); } }, true);   // a real touch puts the demo plug back
 ui.onTap((which) => { WB.start();
   if (which === 'lose') startLevel();
   if (which === 'win') startLevel();

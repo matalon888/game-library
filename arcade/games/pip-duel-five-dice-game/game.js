@@ -9,6 +9,7 @@ import { flow } from './kit/flow.js';
 import { adapt } from './kit/adapt.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const V3 = THREE.Vector3, Q = THREE.Quaternion;
 const S = createStage({ fov: 60, shadowSize: 5 });
@@ -502,6 +503,14 @@ renderer.domElement.addEventListener('pointerdown', e => {
   if (hit) toggleHold(hit.object.userData.die);
   else if (state === 'play' && phase === 'you' && !rolled) playerRoll();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first turn of level 1, if
+// nobody touches, the dice roll themselves (the roll is given back) and then the best dice lift into hold, never a box pick
+demo(n => {
+  if (n === 1) { if (rolled) return false; playerRoll().then(ok => { if (ok) { rollsLeft++; refresh(); } }); return; }
+  if (!rolled || dice.some(d => d.held)) return false;
+  const m = bestHold(P, dice.map(d => d.v)).mask; if (!m || m === 31) return false;
+  dice.forEach((d, i) => { if (m >> i & 1) toggleHold(i); }); return false;
+}, { ready: () => state === 'play' && phase === 'you' && level === 1 && round === 1 && !modal && !anim() && rollsLeft >= 3, max: 2 });
 ui.onTap(() => {
   if (busted) { busted = false; chips = START; save.set('chips', chips); ui.pop(`Fresh stack: ${fmt(START)} chips`, '#ffd23f', 34, 40); }
   document.body.classList.remove('ready');

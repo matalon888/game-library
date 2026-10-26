@@ -7,6 +7,7 @@ import { makeHedgehog } from './creature.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 import { adapter } from './kit/adapt.js';
+import { demo } from './kit/demo.js';
 
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 12 });
 const { scene, camera, sun } = stage;
@@ -150,6 +151,25 @@ function botAct(a) {   // the bot plays through real pointer events, exactly the
   else { const p = a.type === 'pop' ? [sim.candy.x, sim.candy.y] : [sim.cushions[0].x, sim.cushions[0].y]; const s = screen(p[0], p[1]); fire('pointerdown', s); fire('pointerup', s); }
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real
+// touch, a swipe snips the rope and the candy drops toward Pip, then rewinds to the swing (no stars, no win, nothing kept)
+let demoCut = null;
+function demoRestore() {
+  const z = demoCut; demoCut = null; if (!z || z.sim !== sim) return;
+  sim.P.forEach((p, i) => { [p.x, p.y, p.ox, p.oy] = z.P[i]; }); sim.candy.ang = z.ang; sim.inBubble = z.bub;
+  sim.ropes.forEach((r, i) => { r.cut = z.cut[i]; r.segs.forEach((g, j) => { g.alive = z.alive[i][j]; }); });
+  if (bubbleObj) bubbleObj.visible = z.bubV; trailPts = []; bestP = z.bp; ui.progress(bestP);
+}
+function demoRewind() { if (!demoCut) return false; demoCut.t += DT; const c = sim.candy; if (demoCut.t > 0.7 || Math.hypot(c.x - L.mouth.x, c.y - L.mouth.y) < 2.4) demoRestore(); return true; }
+addEventListener('pointerdown', e => { if (e.isTrusted && demoCut) demoRestore(); }, { capture: true });
+demo(() => {
+  demoCut = { sim, t: 0, bp: bestP, P: sim.P.map(p => [p.x, p.y, p.ox, p.oy]), ang: sim.candy.ang, bub: sim.inBubble, bubV: bubbleObj ? bubbleObj.visible : false,
+    cut: sim.ropes.map(r => r.cut), alive: sim.ropes.map(r => r.segs.map(g => g.alive)) };
+  const [ax, ay, bx, by] = botStroke(sim, 0), mx = (ax + bx) / 2, my = (ay + by) / 2, a = { x: mx + (ax - mx) * 3.5, y: my + (ay - my) * 3.5 }, b = { x: mx + (bx - mx) * 3.5, y: my + (by - my) * 3.5 };
+  if (!swipe(sim, a.x, a.y, b.x, b.y)) { demoCut = null; return false; }
+  addTrail(a, b);
+}, { ready: () => state === 'play' && level === 1 && !caught && !!sim && !demoCut && !sim.ropes.some(r => r.cut), every: 2600, max: 2 });
+
 // ------------------------------------------------------------------ events / juice
 const V = (x, y, z = 0.3) => new THREE.Vector3(x, y, z);
 function handleEvents() {
@@ -231,6 +251,7 @@ loop((dt60) => {
       if (botOn) for (const a of L.plan) if (!a.done && a.step === sim.steps) { a.done = true; botAct(a); }
       sim.step(); acc -= DT; k++; playT += DT;
       handleEvents();
+      if (demoRewind()) continue;
       const c = sim.candy;
       starObjs.forEach((s, i) => { if (!s.got && Math.hypot(c.x - s.x, c.y - s.y) < 0.62) onStar(s, i); });
       const dM = Math.hypot(c.x - L.mouth.x, c.y - L.mouth.y); minD = Math.min(minD, dM);

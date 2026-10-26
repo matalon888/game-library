@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { RoomEnvironment } from './kit/addons/environments/RoomEnvironment.js';
 import { loader, piece } from './assets.js';
 import { ROOMS, buildRoom, roomStars } from './dorm.js';
@@ -693,6 +694,11 @@ addEventListener('pointermove', e => {
   else if (drag) yawT = Math.max(-0.5, Math.min(0.5, drag.yaw - (e.clientX - drag.x) / innerWidth * 1.4));
 });
 addEventListener('pointerup', () => { if (mode === 'match') M3.input.up(); drag = null; });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, if nobody has touched the
+// board 2.5 s in, one match makes itself (a free move, the counter is given back) so the hearts swap, pop and cascade
+demo(() => { if (M3.goals.some(g => g.left <= 6)) return false; M3.addMoves(1); M3.bot(); return false; },
+  { ready: () => mode === 'match' && state === 'play' && !paused && !popEl && !overlay && !dailyMode && curLevel?.n === 1 && M3 && !M3.busy && !M3.over && M3.moves === M3.movesStart, wait: 2500, max: 1 });
 
 // ---------------------------------------------------------------- frame
 function resize() { R.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); C.resize(innerWidth, innerHeight); layoutBoard(); hostMatchPose(); if (mode !== 'match') placeHostInRoom(); }

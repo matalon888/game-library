@@ -4,6 +4,7 @@ import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'chilly-chute', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum' });
 const S = createStage({ fov: 54, shadowSize: 16 });
 const { scene, camera, sun, hemi } = S;
@@ -393,6 +394,10 @@ function win() {
   ui.win(level, `${coinsGot} coins collected`);
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first swipe,
+// the sled dodges the first obstacles on its own (the game's own bot) for ~2 s, then the run is the player's
+const DEMO = demo(null, { ready: () => level === 1 && state === 'play' && !dead, wait: 1000, ms: 2400 });
+let demoT = 0, demoBack = false;
 function placeRider(dt) {
   const z = -dist, laneX = P.lane * LW;
   P.x = lerp(P.x, laneX, 1 - Math.pow(0.0008, dt / 60));
@@ -408,6 +413,11 @@ function placeRider(dt) {
 const tmpV = new THREE.Vector3();
 loop((dt, t) => {
   const sec = dt / 60;
+  if (DEMO.on && level === 1 && state === 'play' && !dead && t - demoT > 0.12) { demoT = t; demoBack = true; window.__game.bot(); }
+  else if (demoBack && !DEMO.on && state === 'play' && !dead) {   // demo over, nobody touched: back to the middle lane, where an untouched run rides
+    if (DEMO.touched || P.lane === 0) demoBack = false;
+    else if (!P.air && !obs.some(o => !o.passed && o.lanes.includes(0) && o.d - dist > -1.5 && o.d - dist < 9 && o.kind !== 'boost' && o.kind !== 'ramp')) { steer(-Math.sign(P.lane)); demoBack = false; }
+  }
   if (state === 'play' || (state === 'won' && winT < 2)) {
     if (state === 'play') { speed = Math.min(baseSpeed() + 5, speed + 0.4 * sec); }
     const sp = state === 'won' ? speed * Math.max(0, 1 - winT) : speed + boost * 9;

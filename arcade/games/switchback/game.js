@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const COLH = 16, CAP = 170, AHEAD = 46, BALL_R = 0.2, TIER = 40;
 const HUES = [212, 268, 330, 18, 160, 190, 45];                 // path hue per tier (blue → purple → pink → ...)
@@ -99,6 +100,16 @@ function lose() {
   setTimeout(() => state === 'lost' && ui.els.sc.classList.add('hc-hidden'), 650);
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first level, until the first
+// real touch, the ball turns by itself at the centre of each corner (no points while it does), so it shows what a tap does
+const D = demo(null, { ready: () => state === 'play' && tier === 1, wait: 250, ms: 4500 });
+function demoTurn() {
+  if (!D.on) return;
+  for (let m = Math.max(0, pathIdx); m < path.length - 1; m++) {
+    const a = path[m], b = path[m + 1]; if ((b[0] > a[0] ? 0 : 1) === dir) continue;
+    const dist = dir === 0 ? a[0] - bx : a[1] - bz; if (dist <= 0.02 && dist > -0.3) turn(); return;
+  }
+}
 input({ onDown: () => { if (state === 'play') turn(); } });
 ui.onTap(which => { WB.start(); if (which !== 'start') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
 
@@ -107,6 +118,7 @@ const OFF = new THREE.Vector3(-24, 25, -24);
 loop((dt, t) => {
   clock += dt / 60;
   if (state === 'play' || state === 'lost') {
+    if (state === 'play') demoTurn();
     const step = speed / 60 * dt;
     if (state === 'play' || by > -0.5) { if (dir === 0) bx += step * (state === 'lost' ? 0.6 : 1); else bz += step * (state === 'lost' ? 0.6 : 1); }
     const here = map.get(key(Math.round(bx), Math.round(bz)));
@@ -115,7 +127,7 @@ loop((dt, t) => {
       if (!onTile) { state = 'falling'; }
       else {
         if (here.idx > pathIdx) {                       // reached a new tile: score + speed up
-          const gained = here.idx - pathIdx; pathIdx = here.idx; score += Math.max(0, gained); ui.score(score);
+          const gained = here.idx - pathIdx; pathIdx = here.idx; if (!D.on) score += Math.max(0, gained); ui.score(score);
           speed = Math.min(7.6, (3.4 + score * 0.018) * F.k(score));
           const nt = Math.floor(score / TIER) + 1;
           if (nt > tier) { tier = nt; ui.levels(tier); hueT = HUES[(tier - 1) % HUES.length]; ui.pop(`LEVEL ${tier}!`, '#fff', 38, 30); [0, 4, 7, 12].forEach((s, i) => setTimeout(() => note(72 + s, 0.35, 0.14), i * 80)); confetti(scene, new THREE.Vector3(bx, 1, bz), 40); }

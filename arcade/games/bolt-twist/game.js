@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, conf
 import { flow } from './kit/flow.js';
 import { adapter } from './kit/adapt.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'bolt-twist', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // rounded() grows by its bevel; this keeps exact outer size
 
@@ -595,6 +596,11 @@ input({
     if (best) tapScrew(best);
   },
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the glowing bolt unscrews itself into its matching box twice (never a parked bolt), so the toy shows what a tap does
+demo(() => { const m = nextMove(); if (!m || m.kind !== 'tap' || m.park) return false; tapScrew(screws[m.id]); },
+  { ready: () => state === 'play' && level === 1 && !flights.length && cleared + 3 < screws.length, wait: 1800, every: 1500, max: 2 });
 
 // ---------------------------------------------------------------- bot: same greedy policy as the level verifier
 function bot() {

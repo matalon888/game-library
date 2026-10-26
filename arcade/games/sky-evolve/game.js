@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'sky-evolve', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.25 }, mode: 'sum' });
 const save = store('skyevolve');
 let level = save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
@@ -251,6 +252,11 @@ ui.onTap(w => { WB.start();
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
   else if (w === 'lose') { score = 0; buildLevel(); state = 'play'; }
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the plane is pulled back on the sling (power climbs) and eased off again, twice; it never launches by itself
+const DM = demo(null, { ready: () => level === 1 && state === 'play' && !launched && !holding, wait: 1500, ms: 4400 });
+let demoShown = false;
+const demoHold = (t) => DM.on && !launched && t % 2.2 < 1.3 && (demoShown = true);
 function release() {
   launched = true; power = Math.round(25 + pull * 35); pullPeak = pull;
   const tag = pull > 0.9 ? 'PERFECT LAUNCH!' : pull > 0.6 ? 'GREAT!' : 'GO!';
@@ -318,10 +324,11 @@ loop((dt0, t) => {
   const dt = dt0 * slowmo, sec = dt / 60;
   slowmo = lerp(slowmo, 1, 0.04 * dt0);
   if (state === 'play' && !launched) {
-    if (holding) pull = Math.min(1, pull + sec * 1.3);
+    const dh = holding || demoHold(t);
+    if (dh) pull = Math.min(1, pull + sec * 1.3);
     else pull = Math.max(0, pull - sec * 3);
     plane.position.set(0, 1.3, 2.5 + pull * 4.5); plane.rotation.x = -pull * 0.12;
-    ui.progress(0); if (holding) ui.score(Math.round(25 + pull * 35));
+    ui.progress(0); if (dh) ui.score(Math.round(25 + pull * 35)); else if (demoShown && !pull) { demoShown = false; ui.score(''); }
   }
   if (state === 'play' && launched && !crashed) {
     const T = TIERS[tier];

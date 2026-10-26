@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { canvasTex } from './geo.js';
 
 const S = createStage({ fov: 30, shadowSize: 7 });
@@ -353,6 +354,18 @@ input({
   onUp: () => { if (pulling) { pulling = false; if (power > 0.04 && phase === 'aim' && state === 'play') shoot(aim, power); else power = 0; } },
 });
 ui.onTap(w => { if (w === 'win') level++; startLevel(); state = 'play'; refreshHud(); B.start(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first break, until the first
+// touch, the cue swings onto the rack (the guide line finds the ball) and the power bar pulls back and eases off; no shot is taken
+const D = demo(null, { ready: () => level === 1 && state === 'play' && phase === 'aim' && turn === 0 && !pulling, wait: 1500, ms: 5000 });
+let demoOn = false;
+function demoAim(t) {
+  if (D.on && level === 1 && state === 'play' && phase === 'aim' && turn === 0 && !pulling) {
+    const tgt = balls.filter(b => b !== cue && !b.in).sort((a, b) => Math.hypot(a.x - cue.x, a.z - cue.z) - Math.hypot(b.x - cue.x, b.z - cue.z))[0]; if (!tgt) return;
+    if (!demoOn) { demoOn = true; D.t0 = t; }
+    const a = t - D.t0, ga = Math.atan2(tgt.z - cue.z, tgt.x - cue.x);
+    aim = ga + Math.sin(a * 2.4) * 0.45 * Math.max(0, 1 - a / 2.2); power = a > 1.6 ? 0.55 * (0.5 - 0.5 * Math.cos((a - 1.6) * 2.6)) : 0;
+  } else if (demoOn) { demoOn = false; if (!pulling) power = 0; if (!D.touched) aim = -Math.PI / 2; }
+}
 
 // ---------------------------------------------------------------- loop
 const camTarget = new THREE.Vector3(0, 0, 0.05);
@@ -363,6 +376,7 @@ loop((dtRaw, t) => {
   const aspect = innerWidth / innerHeight, needW = (W + 1.5) / 0.9, vt = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const dist = Math.max(needW / 2 / (vt * aspect), (L + 2.2 + 3.2) / 2 / vt);
   camera.position.set(0, dist * 0.996, dist * 0.09 + 0.3); camera.lookAt(camTarget);
+  demoAim(t);
   if (state === 'play') {
     if (phase === 'roll') {
       simAcc += real * 2.4; const h = 1 / 1200;

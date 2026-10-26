@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { adapt } from './kit/adapt.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'tube-rush', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const R = 3.0;            // half-pipe radius
 const RIM = 1.62;         // fly-off angle (rad from bottom)
@@ -279,6 +280,9 @@ function buildLevel() {
 // ---------------------------------------------------------------- input
 let steer = 0, botOn = false, tapSteer = 0;   // tapSteer: a tap = a short push toward that side (fed in over a few frames)
 input({ onDown: () => { botOn = false; A.input(); }, onMove: (dx) => { if (state === 'play') steer += dx; }, onTap: (e) => { if (state === 'play') tapSteer = (e.clientX < innerWidth / 2 ? -1 : 1) * 55; } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the float weaves left and right up the tube wall (well below the rim) and around riders, so the screen shows what steering does
+const D = demo(null, { ready: () => state === 'play' && level === 1 && !player.air, wait: 500, ms: 5000 });
 const sky = new THREE.Mesh(new THREE.SphereGeometry(450, 32, 16), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
 { const p = sky.geometry.attributes.position, c = [], a = new THREE.Color('#d4f2ff'), b = new THREE.Color('#3fb6f5'), k = new THREE.Color();
   for (let i = 0; i < p.count; i++) { const y = Math.max(0, p.getY(i) / 450); k.copy(a).lerp(b, Math.pow(y, 0.6)); c.push(k.r, k.g, k.b); }
@@ -354,6 +358,7 @@ function stepRider(rd, dt) {
   rd.om += acc * sec - rd.om * 2.6 * sec;
   if (rd.isP) {
     rd.th += steer * 0.0085; rd.om += steer * 0.012; steer = 0;
+    if (D.on && !botOn) { const tgt = clamp(botTarget(rd) + Math.sin(raceT * 2.2) * 0.7, -1.0, 1.0); rd.th += clamp(tgt - rd.th, -0.04, 0.04) * dt; rd.om *= 0.85; }
     if (botOn) { const tgt = botTarget(rd); rd.th += clamp(tgt - rd.th, -0.06, 0.06) * dt; rd.om *= 0.8; }
   } else {
     rd.wob += sec;

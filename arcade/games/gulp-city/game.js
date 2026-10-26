@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'gulp-city', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const save = store('gulpcity');
 const F = flow('gulpcity');
@@ -179,6 +180,9 @@ input({
   onMove: (dx, dy, e) => { if (!joy) return; joy.cx = e.clientX; joy.cy = e.clientY; const vx = joy.cx - joy.x, vy = joy.cy - joy.y, d = Math.hypot(vx, vy); if (d > 70) { joy.x = joy.cx - vx / d * 70; joy.y = joy.cy - vy / d * 70; } },
   onUp: () => { joy = null; },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real
+// touch, your hole glides itself to the nearest cluster (the rivals' own steering) and gulps a few things down
+const D = demo(null, { ready: () => state === 'play' && level === 1 && holes[0] && !holes[0].dead });
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; save.set('level', level); buildLevel(); state = 'play'; }
@@ -284,7 +288,7 @@ loop((dt, t) => {
     for (const h of holes) {
       if (h.dead) { if (h.respawn !== undefined && (h.respawn -= sec) <= 0 && !h.isP) { h.dead = false; h.respawn = undefined; h.eaten = Math.round(h.eaten * 0.3); h.r = radiusFor(h.eaten); h.x = 2 + Math.random() * (M - 4); h.z = 2 + Math.random() * (M - 4); h.g.visible = h.tag.visible = true; } continue; }
       let ix = 0, iz = 0;
-      if (h.isP) { if (joy) { const vx = joy.cx - joy.x, vy = joy.cy - joy.y, d = Math.hypot(vx, vy); if (d > 6) { ix = vx / 70; iz = vy / 70; } } else if (goTo) { const gx = goTo.x - h.x, gz = goTo.z - h.z, gd = Math.hypot(gx, gz); if (gd < 0.4) goTo = null; else { ix = gx / gd; iz = gz / gd; } } else if (botOn) [ix, iz] = aiSteer(h, sec); }
+      if (h.isP) { if (joy) { const vx = joy.cx - joy.x, vy = joy.cy - joy.y, d = Math.hypot(vx, vy); if (d > 6) { ix = vx / 70; iz = vy / 70; } } else if (goTo) { const gx = goTo.x - h.x, gz = goTo.z - h.z, gd = Math.hypot(gx, gz); if (gd < 0.4) goTo = null; else { ix = gx / gd; iz = gz / gd; } } else if (botOn || D.on) [ix, iz] = aiSteer(h, sec); }
       else { [ix, iz] = aiSteer(h, sec); ix *= h.skill; iz *= h.skill; }
       const sp = 6.2 + h.r * 0.55;
       h.vx = lerp(h.vx, ix * sp, 0.2); h.vz = lerp(h.vz, iz * sp, 0.2);

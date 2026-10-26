@@ -6,6 +6,7 @@ import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { generate, forced, deducible, N, COLS, ROWS, rc, LETTER } from './logic.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'alibi-grid', label: 'Cases solved', limits: { maxRun: 2, maxPerSec: 0.05 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Alibi Grid: Daily Logic Puzzle';
@@ -209,6 +210,14 @@ ui.onTap((which) => {
   build(); state = 'play';
 });
 layout(); build();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first case, until the first
+// touch, the opening clue lights up the people it talks about, then one of them is picked and asked about (never answered)
+const DM = demo((n) => {
+  const refs = PZ.clues[PZ.start].cells.filter(k => known[k] < 0);
+  if (n === 1) { showRefs(PZ.start); return; }
+  const i = refs[0]; if (i === undefined) return false;
+  tapCard(i); setTimeout(() => { if (!DM.touched && sel === i) closeAsk(); }, 2200); return false;
+}, { ready: () => level === 1 && !D.isDaily && state === 'play' && !t0 && sel < 0 && known.filter(v => v >= 0).length === 1, wait: 1800, every: 1900, max: 2 });
 
 // ---------------------------------------------------------------- test hook: the bot marks one provable person per call
 window.__game = {

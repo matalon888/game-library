@@ -6,6 +6,7 @@ import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'bellhop-boss', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.1 }, mode: 'sum' });
 const S = store('bellhopboss');
 const F = flow('bellhopboss');
@@ -257,6 +258,13 @@ input({
   onUp: (e, st) => { joyOn = false; joy.style.display = 'none'; joyV = { x: 0, y: 0 }; if (state === 'play' && st && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) goal = floorAt(e.clientX, e.clientY); },
 });
 ui.onTap(w => { WB.start(); if (w === 'start') state = 'play'; else { buildLevel(); state = 'play'; } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the manager walks (tap-to-walk) over to the cash pile, scoops up the first bills and walks back to the desk
+let demoWent = false;
+demo(() => {
+  if (!demoWent) { if (!pileCount()) return; goal = { x: PILE.x + 0.3, z: PILE.z }; demoWent = true; return; }
+  goal = { x: SERVE.x, z: SERVE.z }; return false;
+}, { ready: () => level === 1 && state === 'play' && !joyOn && !goal, wait: 1200, every: 700, max: 12 });
 
 function collide(o, r = 0.35) {
   for (const w of walls) {

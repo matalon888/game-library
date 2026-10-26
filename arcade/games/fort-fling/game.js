@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 import { World, makeBox, makeCircle } from './physics.js';
 import { adapt } from './kit/adapt.js';
+import { demo } from './kit/demo.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 14 });
 const { scene, camera, sun } = stage;
@@ -271,6 +272,18 @@ input({
     launch();
   },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real
+// touch, the sling draws itself back toward the raccoon (band stretches, dotted arc shows) and eases off again, never firing
+const D = demo(null, { ready: () => state === 'play' && level === 1 && phase === 'aim' && !!fruit && !fruit.body && slowT <= 0, ms: 4400 });
+let demoAim = null, demoT = 0;
+addEventListener('pointerdown', e => { if (e.isTrusted && demoAim) { demoAim = null; pull.set(0, 0); aiming = false; } }, { capture: true });
+function demoPull(rdt) {
+  if (D.on && phase === 'aim' && fruit && !fruit.body) {
+    if (!demoAim) { demoAim = solve(); demoT = 0; if (!demoAim) return D.stop(); }
+    demoT += rdt; const c = demoT % 2.2, k = c < 1.1 ? 1 - Math.pow(1 - c / 1.1, 3) : c < 1.7 ? 1 : Math.max(0, 1 - (c - 1.7) / 0.4);
+    setPull(demoAim[0] * k, demoAim[1] * k); aiming = k > 0.1;
+  } else if (demoAim) { demoAim = null; pull.set(0, 0); aiming = false; }
+}
 // a plain tap = fling at the tapped spot (full power, flattest arc that reaches it; a tap near a raccoon aims at that raccoon)
 const _ray = new THREE.Raycaster(), _pl = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), _hit = new THREE.Vector3();
 function tapShot(cx, cy) {
@@ -388,6 +401,7 @@ loop((dt60) => {
       if (racLeft() > 0 && slowT <= 0 && (world.sleeping && phaseT > 0.4 || phaseT > 3.5)) { judge(); if (shots > 0) loadFruit(); else if (A.rescue()) bonusFruit(); else lose(); }
     }
   }
+  demoPull(rdt);
   // fruit + sling visuals
   const pp = new THREE.Vector3(REST.x + pull.x, REST.y + pull.y, 0);
   if (fruit && !fruit.body) {

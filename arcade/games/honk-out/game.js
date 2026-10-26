@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, confetti, store, rng, rounded, mat, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'honk-out', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);   // rounded() grows by its bevel; this keeps exact outer size
 
@@ -368,6 +369,13 @@ input({
     if (best) tapVehicle(best);
   },
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the right car honks out of the lot to its spot twice (the bot's own pick), so the screen shows what a tap does
+demo(() => {
+  const lot = () => vehicles.filter((v) => v.state === 'lot').length, n0 = lot();
+  if (n0 <= 3) return false; bot(); if (lot() === n0) return false;
+}, { ready: () => state === 'play' && level === 1 && !vehicles.some((v) => v.state === 'moving'), wait: 1800, every: 1600, max: 2 });
 
 // ---------------------------------------------------------------- bot: same greedy rule as the verifier
 function stallPoint() {   // where would the queue stop boarding with the vehicles already parked / on their way?

@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const S = createStage({ fov: 24, shadows: false });
 const { scene, camera, sun, hemi } = S;
@@ -222,7 +223,7 @@ function onHit(p, kind) {
   const at = new THREE.Vector3(p.x, p.y, 0.3), sp = at.clone().project(camera);
   starPop(at, head ? 16 : 9); confetti(scene, at, head ? 40 : 18);
   dmgText('-' + dmg, (sp.x + 1) / 2 * innerWidth, (1 - sp.y) / 2 * innerHeight - 30, head ? '#ffd23f' : '#ffffff', head ? 46 : 36);
-  if (head) { ui.pop('BULLSEYE!', '#ffd23f', 44, 24); sfx.smash(); } else { tone(150, 0.15, 'square', 0.1, 0.5); tone(90, 0.2, 'sine', 0.12, 0.6); }
+  if (head) { ui.pop('HEADSHOT!', '#ffd23f', 44, 24); sfx.smash(); } else { tone(150, 0.15, 'square', 0.1, 0.5); tone(90, 0.2, 'sine', 0.12, 0.6); }
   tone(880, 0.08, 'triangle', 0.1, 1.5); buzz(head ? [30, 30, 50] : 25); shake = head ? 0.9 : 0.5; ui.flash(head ? 0.35 : 0.18);
   if (tg === foe) hits++;
   if (tg.hp <= 0) { tg.ko = 0.001; slow = 0.25; slowT = 1.3; tg.stars = starRing(tg); ui.pop('K.O.!', '#ff3d7f', 64, 34); }
@@ -256,6 +257,16 @@ input({
   onMove: (dx, dy, e) => { if (!drag) return; drag.cx = e.clientX; drag.cy = e.clientY; },
   onUp: () => { if (!drag) return; const a = aimFromDrag(drag), d = drag; drag = null; if (phase !== 'aim' || state !== 'play') return; if (a.len < 12) tapThrow(d.sx, d.sy); else if (a.pw > 0.08) throwFrom(you, a.ang, a.pw); },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// your aim is pulled back and swept around the rival's head (arc dots + power bubble), so the screen shows what a drag does; no throw
+const DF = demo(null, { ready: () => state === 'play' && level === 1 && phase === 'aim' && (!drag || drag === demoDrag), wait: 900, ms: 5000 });
+let demoDrag = null;
+function demoAim() {
+  if (DF.on && phase === 'aim' && (!drag || drag === demoDrag)) {
+    const b = bestShot(you, foe), T = performance.now() / 1000, ang = b.ang + Math.sin(T * 2.1) * 0.3, len = b.pw * (0.75 + 0.25 * Math.sin(T * 1.3)) * innerHeight * 0.3;
+    drag = demoDrag = { sx: 120, sy: 520, cx: 120 - Math.cos(ang) * len, cy: 520 + Math.sin(ang) * len };
+  } else if (demoDrag) { if (drag === demoDrag) drag = null; demoDrag = null; }
+}
 ui.onTap(w => { if (w === 'win') level++; if (you) { scene.remove(you.root); } if (foe) scene.remove(foe.root); startLevel(); state = 'play'; B.start(); });
 
 // ---------------------------------------------------------------- loop
@@ -291,6 +302,7 @@ loop((dtRaw, t) => {
   if (sayT > 0) { sayT -= real; if (sayT <= 0) turnEl.style.opacity = 0; }
   if (!you) return;
   // aim state
+  demoAim();
   const aiming = state === 'play' && phase === 'aim' && drag && Math.hypot(drag.cx - drag.sx, drag.cy - drag.sy) > 8;
   const a = aiming ? aimFromDrag(drag) : null;
   // AI turn

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'steady-wheels', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
 const S = store('steadywheels');
 const F = flow('steadywheels');
@@ -233,6 +234,9 @@ input({
 });
 let tapUntil = 0, tapSteer = 0;
 ui.onTap(w => { WB.start(); if (w === 'start') { state = 'play'; } else { buildLevel(); state = 'play'; } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the car rolls slowly down the road on its own (the game's own steering bot, half throttle), then coasts to a stop
+const DM = demo(null, { ready: () => level === 1 && state === 'play' && !holding, wait: 1500, ms: 3200 });
 
 // ------------------------------------------------------------------ collision helpers
 function circleBox(cx, cz, rad, o) {
@@ -267,6 +271,7 @@ const MAXSTEER = 0.6;
 loop((dt, t) => {
   const sec = dt / 60;
   if (!veh) return;
+  if (DM.on && level === 1 && state === 'play' && !holding) { window.__game.bot(); bot.hold = bot.hold && veh.v < spec.vmax * 0.45 && Math.hypot(zone.x - veh.x, zone.z - veh.z) > spec.len + 14; }
   const tapRoll = !holding && performance.now() < tapUntil;
   const drive = state === 'play' && (holding || tapRoll || (performance.now() < botUntil && bot.hold));
   const sIn = performance.now() < botUntil ? bot.steer : tapRoll ? tapSteer : steerIn;

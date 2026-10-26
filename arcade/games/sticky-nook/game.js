@@ -4,6 +4,7 @@ import { createUI, input, loop, sfx, tone, note, buzz, store, lerp, clamp, rng }
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'sticky-nook', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const ST = store('stickynook');
 const F = flow('stickynook');
@@ -267,6 +268,10 @@ function place(s) {
     ui.win(level, `${theme.name} decorated!`); level++; ST.set('level', level);
   }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, if nobody has touched
+// the room 2 s in, the first tray sticker peels itself off, glides to its outline and sticks (one sticker, never the last)
+demo(() => { const s = tray[0], f = trayFit(s, 0); botMove = { s, sx: f.x, sy: f.y, x: f.x, y: f.y, k: f.k, t: 0, demo: true }; tone(700, 0.05, 'triangle', 0.08, 1.4); return false; },
+  { ready: () => state === 'play' && level === 1 && placedN === 0 && tray.length > 1 && !botMove && !drag && !fly && !sel, max: 1 });
 ui.onTap(w => { WB.start(); if (w === 'start') state = 'play'; else { buildLevel(); state = 'play'; } });
 
 // ------------------------------------------------------------------ render
@@ -324,7 +329,7 @@ loop((dt, t) => {
     mv.k = lerp(mv.k, 1, 0.25);
     drawSticker(mv.s, mv.x, mv.y, mv.k, 8, Math.sin(t * 6) * 0.04);
     if (mv === fly && Math.hypot(fly.x - fly.tx, fly.y - fly.ty) < 3) { const d = fly; fly = null; drop(d); }
-    if (botMove) { ctx.font = '42px system-ui'; ctx.fillText('👆', botMove.x + 10, botMove.y + 60); if (botMove.t >= 1) { const s = botMove.s; botMove = null; place(s); } }
+    if (botMove) { ctx.font = '42px system-ui'; if (!botMove.demo) ctx.fillText('👆', botMove.x + 10, botMove.y + 60); if (botMove.t >= 1) { const s = botMove.s; botMove = null; place(s); } }
   }
   // idle hint: ghost hand drags from the first tray sticker to its spot
   if (state === 'play' && idleT > 4 && tray[0] && !drag && !sel && !fly) {

@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
 import { bake, vcMat } from './bake.js';
 import { adapt } from './kit/adapt.js';
+import { demo } from './kit/demo.js';
 
 const ST = store('tiptoetower');
 const F = flow('tiptoetower');
@@ -167,6 +168,14 @@ input({
   onUp() { dragging = false; },
   onTap(e) { if (state === 'play') { botX = null; G.tx = clamp(G.tx + (e.clientX < innerWidth / 2 ? -1.7 : 1.7), -TW / 2 + 0.45, TW / 2 - 0.45); } },   // tap a side = step one lane that way
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first
+// real touch, she steps lane to lane like a tap does (left, middle, right) and scoops up the side shoes, then back to the middle
+const D = demo(null, { ready: () => state === 'play' && level === 1 && G && !G.rail && G.climb < 0 && !G.fall, ms: 4000 });
+let demoed = false;
+function demoSteer(t) {
+  if (D.on && !dragging) { demoed = true; G.tx = [0, -1.7, 0, 1.7][Math.floor(t * 0.9) % 4]; }
+  else if (demoed) { demoed = false; if (!D.touched) G.tx = 0; }
+}
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
@@ -206,6 +215,7 @@ loop((dt, t) => {
       else { ui.pop('SPLITS!', '#fff', 40, 30); sfx.coin(); buzz(15); }
     }
     if (!rail && G.rail) { G.rail = null; ui.pop('NAILED IT!', '#fff', 32, 30); }
+    demoSteer(t);
     if (!G.rail) { if (botX !== null && !dragging) G.tx = lerp(G.tx, botX, 0.3 * dt); G.x = lerp(G.x, G.tx, 0.2 * dt); }
     else G.x = lerp(G.x, 0, 0.2 * dt);
     // walls

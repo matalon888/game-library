@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { makeTerrain, DX, X0 } from './terrain.js';
 import { createCar, stepCar, headPos, WHEEL_R } from './car.js';
 
@@ -233,6 +234,20 @@ const keys = {};
 addEventListener('keydown', e => { keys[e.key] = 1; if (state === 'play') engineOn(); });
 addEventListener('keyup', e => { keys[e.key] = 0; });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the GAS pedal lights and the buggy drives itself over the first bumps, then the BRAKE pedal stops it (that fuel is free)
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 1200, ms: 4200 });
+let demoT0 = 0;
+function demoCtl() {
+  if (!demoT0) demoT0 = performance.now();
+  if (performance.now() - demoT0 > 1800) return { gas: false, brake: true, noFuel: fuel <= 0 };
+  const a = Math.atan2(Math.sin(car.a), Math.cos(car.a));
+  let g = true, b = false;
+  if (car.grounded) { const e = a - Math.atan(T.slope(car.p.x)) + 0.2 * car.w; if (e > 0.45) { g = false; b = e > 0.75; } }
+  else { const rel = a - Math.atan(T.slope(car.p.x + car.v.x * 0.3)) * 0.7 + 0.35 * car.w; g = rel < -0.15; b = rel > 0.15; }
+  return { gas: g, brake: b, noFuel: fuel <= 0 };
+}
+
 ui.onTap(w => {
   held.clear(); refreshCtl();
   if (w === 'win') { level++; save.set('level', level); }
@@ -277,11 +292,12 @@ loop((dt60) => {
   if (slow > 0) slow = Math.max(0, slow - rdt * 0.8);
   if (state === 'play') {
     const kg = keys.ArrowRight || keys.ArrowUp || keys.d, kb = keys.ArrowLeft || keys.ArrowDown || keys.a;
-    const c2 = { gas: ctl.gas || !!kg, brake: (ctl.brake || !!kb) && !(ctl.gas || kg), noFuel: fuel <= 0 };
+    const dm = DM.on && !held.size && !kg && !kb ? demoCtl() : null;
+    const c2 = dm || { gas: ctl.gas || !!kg, brake: (ctl.brake || !!kb) && !(ctl.gas || kg), noFuel: fuel <= 0 };
     acc += rdt; let n = 0;
     while (acc >= 1 / 480 && n < 20) { stepCar(car, T, c2, 1 / 480); acc -= 1 / 480; n++; }
     // fuel
-    fuel = Math.max(0, fuel - rdt * (c2.gas ? 2.4 : 0.9) * fk);
+    fuel = Math.max(0, fuel - rdt * (c2.gas && !dm ? 2.4 : 0.9) * fk);
     gaugeI.style.width = fuel + '%'; hudFuel.querySelector('.bb-gauge').classList.toggle('low', fuel < 22);
     if (fuel < 22 && (lowFuelT -= rdt) < 0) { lowFuelT = 0.8; tone(880, 0.08, 'square', 0.05, 1); }
     pedGas.classList.toggle('on', c2.gas); pedBrake.classList.toggle('on', c2.brake);

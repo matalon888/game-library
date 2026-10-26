@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
 import { bake, vcMat, crowdMesh } from './people.js';
+import { demo } from './kit/demo.js';
 
 const ST = store('squadsurge');
 const F = flow('squadsurge');
@@ -140,6 +141,14 @@ input({
   onMove(dx) { if (state === 'play' && dragging && phase === 'run') C.tx = clamp(C.tx + dx * 0.028, -TW / 2 + 0.6, TW / 2 - 0.6); },
   onUp() { dragging = false; },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the squad steers itself to the lane with buddies to recruit and no saws, so the screen shows what dragging does
+const DS = demo(null, { ready: () => state === 'play' && level === 1 && phase === 'run', wait: 600, ms: 2400 });
+let demoBot = 0;
+function demoSteer() {
+  if (DS.on && !dragging) { if (demoBot++ % 12 === 0) window.__game.bot(); }
+  else if (demoBot) { demoBot = 0; botX = null; }
+}
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
@@ -178,6 +187,7 @@ loop((dt, rt) => {
   if (play) {
     if (phase === 'run') {
       C.z -= SPEED * s;
+      demoSteer();
       if (botX !== null && !dragging) C.tx = lerp(C.tx, botX, 0.25 * dt);
       C.x = lerp(C.x, C.tx, 0.22 * dt);
       ui.progress(Math.min(0.9, C.z / endZ * 0.9));

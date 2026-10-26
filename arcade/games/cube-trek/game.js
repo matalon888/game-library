@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { adapter } from './kit/adapt.js';
 
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = worldBoard({ game: 'cube-trek', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 2 }, mode: 'sum' });
 const S = store('cubetrek');
 const F = flow('cubetrek'); let fk = 1;
@@ -247,6 +248,17 @@ input({
   onMove: (dx, dy, e) => { if (!drag) return; if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 12) return; drag.moved = true; const w = toWorld(e.clientX, e.clientY); drag.tx = w.x; drag.ty = w.y + LIFT; },
   onUp: () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) { const g = guideFor(d.p); if (g) { sel = null; botMove = { p: d.p, r0: g.r0, c0: g.c0, k: 0, x: SLOT_X[d.p.slot], y: TRAY_Y, s: TRAY_S }; return; } sel = sel === d.p ? null : d.p; return; } sel = null; tryDrop(d); },   // a tap selects (lifts) a piece
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch, the
+// first piece lifts off the tray, glides over the gap (the line it would clear lights up) and floats back; the drop stays yours
+demo(() => {
+  const g = guide && guide[0], p = g && tray[g.slot]; if (!p || p.used) return false;
+  const [w, h] = dims(p.cells), [gx, gy] = cellPos(g.r0 + (h - 1) / 2, g.c0 + (w - 1) / 2), sx = SLOT_X[p.slot], t0 = performance.now();
+  const d = drag = { p, x: sx, y: TRAY_Y, tx: sx, ty: TRAY_Y, s: TRAY_S, moved: true, demo: true }; sfx.tap();
+  const tw = () => { if (drag !== d) return; const a = (performance.now() - t0) / 1000, k = a < 0.7 ? a / 0.7 : a < 1.5 ? 1 : 1 - (a - 1.5) / 0.5, e = clamp(k, 0, 1), s = e * e * (3 - 2 * e);
+    d.tx = lerp(sx, gx, s); d.ty = lerp(TRAY_Y, gy, s) + Math.sin(s * Math.PI) * 1.2; if (a < 2) requestAnimationFrame(tw); else drag = null; };
+  requestAnimationFrame(tw);
+}, { ready: () => level === 1 && state === 'play' && !drag && !botMove && settle <= 0, wait: 1800, every: 2600, max: 2 });
+addEventListener('pointerdown', e => { if (e.isTrusted && drag && drag.demo) drag = null; }, true);   // a real touch drops the demo piece back
 function tryDrop(d) {
   const [r0, c0] = pieceOrigin(d.p, d.x, d.y);
   if (fits(board, d.p.cells, r0, c0)) place(d.p, r0, c0);
