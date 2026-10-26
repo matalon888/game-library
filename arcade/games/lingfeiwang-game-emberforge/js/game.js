@@ -594,3 +594,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('settings-btn').onclick = ()=>openSettings();
   showTitle();
 });
+
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (continue the saved run, else a new standard descent)
+window.__game.autostart = ()=>{
+  const t = $('screen-title');
+  if(!t || !t.classList.contains('active')) return false;
+  if(hasSavedRun()) continueRun(); else { openCharSelect(); embark(); }
+  window.__game.state = 'play'; return true;
+};

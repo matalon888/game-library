@@ -9,10 +9,11 @@ import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { loader, piece } from './assets.js';
 import { ROOMS, buildRoom } from './dorm.js';
-import { N, GEMS, emptyGrid, cloneGrid, fits, anyFit, wouldClear, place, bestMove, makeDealer, makeLevel, classicDealerOpts, points } from './blocks.js';
+import { N, GEMS, emptyGrid, cloneGrid, fits, anyFit, wouldClear, place, bestMove, evalPlacement, makeDealer, makeLevel, classicDealerOpts, points } from './blocks.js';
 import { createView, PAL, PEARL, FRAME, TRAY_Y, TRAY_H, SLOT_X, TRAY_S, STACK, cellPos } from './view.js';
 import { snd } from './audio.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 
 addEventListener('unhandledrejection', e => console.error('unhandled: ' + (e.reason?.stack || e.reason)));
 const NAME = 'Jelly Blocks: Block Puzzle', PI = Math.PI, V3 = THREE.Vector3, Q = new URLSearchParams(location.search);
@@ -664,6 +665,20 @@ addEventListener('pointerup', () => {
   if (d.snap && state === 'play' && doPlace(d.i, d.snap[0], d.snap[1])) { s.ts = TRAY_S; s.tz = 0; s.x = s.tx; s.y = s.ty; s.s = TRAY_S; s.z = 0; return; }
   s.ts = TRAY_S; s.tz = 0; snd.drop();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
+// first real touch, a jelly lifts off the tray, hovers over a good spot (any row it fills lights up) and drops in; no charm is freed and the piece is given back
+demo(() => {
+  let m = null;   // the best-looking placement that frees no charm, so the level's goals are left whole for the player
+  game.tray.forEach((p, i) => { if (p && p.gem < 0) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (fits(game.grid, p.shape, x, y)) {
+    const e = evalPlacement(game.grid, p, x, y); if (!e.res.cleared.some(c => c.gem >= 0) && (!m || e.score > m.score)) m = { i, x, y, score: e.score }; } });
+  if (!m) return false;
+  const p = game.tray[m.i];
+  const g = game, s = g.slots[m.i], [cx, cy] = cellPos(m.x + (p.shape.w - 1) / 2, m.y + (p.shape.h - 1) / 2);
+  const dd = { i: m.i, x: cx, y: cy - dragOff, snap: null }; s.ts = 1; s.tz = 1.2; snd.pick(); g.drag = dd;
+  setTimeout(() => { if (game !== g) return; if (g.drag !== dd) { if (!g.drag || g.drag.i !== m.i) { s.ts = TRAY_S; s.tz = 0; } return; } g.drag = null; s.ts = TRAY_S; s.tz = 0;
+    if (state === 'play' && doPlace(m.i, m.x, m.y)) { g.placed--; refreshSub(); } s.x = s.tx = SLOT_X[m.i]; s.y = s.ty = TRAY_Y; s.s = TRAY_S; s.z = 0; }, 1000);
+  return false;
+}, { ready: () => mode === 'play' && state === 'play' && !busy && game && !game.drag && game.kind === 'adv' && st.level === 1 && game.placed === 0, wait: 2200 });
 
 // ---------------------------------------------------------------- camera
 const camCur = { pos: new V3(8, 9, 18), tgt: new V3(0, 1.5, 0), off: 0 };

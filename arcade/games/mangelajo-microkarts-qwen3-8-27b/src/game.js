@@ -481,6 +481,14 @@ startBtn.addEventListener('click', () => {
   primaryAction();
   startBtn.blur();
 });
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (solo race, current track)
+window.__game.autostart = () => {
+  if (game.state !== 'menu') return true;
+  if (n2.role()) return true;   // 2P pairing link: leave the menu to the players
+  startRace();
+  window.__game.state = 'play';
+  return true;
+};
 
 // DAILY CHALLENGE: the same UTC day always yields the same track + setup.
 // Applying it sets the hazard/item config + selects the track (persisted,

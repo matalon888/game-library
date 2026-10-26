@@ -311,6 +311,8 @@
 
   ui.startBtn.addEventListener("click", () => startGame("solo"));
   ui.startBtn2.addEventListener("click", () => startGame("duel"));
+  window.__game = window.__game || {}; // AGENTPARK: open straight into play
+  window.__game.autostart = () => { if (state.running) return false; startGame("solo"); window.__game.state = "play"; return true; };
   ui.againBtn.addEventListener("click", () => startGame(state.mode));
 
   // ---------------------------------------------------------------

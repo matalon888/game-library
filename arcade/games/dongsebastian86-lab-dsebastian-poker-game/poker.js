@@ -935,6 +935,16 @@
   }
 
   window.PokerApp = { open, cashOut, leave: cashOut, isActive: () => !!App.game && App.game.handInProgress };
+  window.__game = window.__game || {}; // AGENTPARK: open straight into play (poker vs AI, default buy-in)
+  window.__game.autostart = () => {
+    if (document.readyState === 'loading' || !window.Wallet || !window.Casino || !$('#startGameBtn')) return false;
+    if (App.game) return true;
+    open();
+    if (Wallet.balance <= 0) return true;
+    startGame();
+    if (App.game) window.__game.state = 'play';
+    return true;
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupLobby);

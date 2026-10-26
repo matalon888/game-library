@@ -2209,3 +2209,6 @@ class Game {
 window.addEventListener('load', () => {
     new Game();
 });
+
+window.__game = window.__game || {}; // AGENTPARK: open straight into play
+window.__game.autostart = () => { const s = document.getElementById('start-screen'), b = document.getElementById('start-btn'); if (!s || !b || !document.getElementById('gameCanvas').width) return false; if (!s.classList.contains('hidden')) b.click(); window.__game.state = 'play'; return true; };

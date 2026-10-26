@@ -168,6 +168,14 @@
         if (!run.pausedUsed) store.attempt(level.id);
         updateHud();
     }
+    window.__game = window.__game || {}; // AGENTPARK: open straight into play (cast off on the current harbor)
+    window.__game.autostart = () => {
+        if (status === 'running') { window.__game.state = 'play'; return true; }
+        if (modal !== 'intro') return false;
+        begin();
+        window.__game.state = 'play';
+        return true;
+    };
     function resume() {
         if (status !== 'paused')
             return;

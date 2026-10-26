@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, PALETTES } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { adapter } from './kit/adapt.js';
+import { demo } from './kit/demo.js';
 import { part, merge, canvasTex } from './geo.js';
 
 import { board as worldBoard } from './kit/board.js';
@@ -353,6 +354,9 @@ function buy(i) {
   refreshHUD();
 }
 input({ onDown: () => film() });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
+// first real touch, Kai films a quick burst of six clips by himself, so the +follower pops and the HYPE bar show what a tap does
+demo(() => film(), { ready: () => state === 'play' && level === 1 && gained < 60, wait: 1800, every: 300, max: 6 });
 
 // ---------------------------------------------------------------- level flow
 function startLevel() {

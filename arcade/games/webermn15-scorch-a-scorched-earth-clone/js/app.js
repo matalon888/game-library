@@ -516,6 +516,8 @@ const scorch = (() => {
 	game.bgGradient();
 	game.drawTerrain();
 	game.bindEvents();
+	window.__game = window.__game || {}; // AGENTPARK: open straight into play
+	window.__game.autostart = () => { if (game.titleLoopFrame <= 76 || game.allPlayers.length) return false; twoButton.click(); window.__game.state = 'play'; return true; };
 	game.titleLoop();
 
 });

@@ -114,6 +114,8 @@ export function initUI() {
   G.onAct = showActBanner;
   G.onSalvage = showModules;
   showPanel('title');
+  window.__game = window.__game || {}; // AGENTPARK: open straight into play
+  window.__game.autostart = () => { if (G.state !== 'title') return false; startRun(); window.__game.state = 'play'; return true; };
 }
 
 function clearBanners() { for (const b of el.stage.querySelectorAll('.act-banner')) b.remove(); }

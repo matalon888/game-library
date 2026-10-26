@@ -1215,3 +1215,6 @@ $(function () {
 });
 
 // vim: fdl=0
+
+window.__game = window.__game || {}; // AGENTPARK: open straight into play
+window.__game.autostart = function () { if (!window.Game || !Game.FSM || Game.FSM.state !== 'waiting') return false; window.gameStart = true; window.__game.state = 'play'; return true; };

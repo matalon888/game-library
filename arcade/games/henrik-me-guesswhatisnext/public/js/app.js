@@ -5690,3 +5690,5 @@ function initModerationScreen() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (Practice Free Play, random category)
+window.__game.autostart = () => { if (currentScreen !== 'home') return false; showScreen('category'); renderCategories(); Game.startFreePlay(activePuzzles, null, ui, selectedDifficulty); window.__game.state = 'play'; return true; };

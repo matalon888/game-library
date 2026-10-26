@@ -895,6 +895,8 @@ window.addEventListener("keydown", (event) => {
 });
 
 ui.start.addEventListener("click", () => { initAudio(); resetGame(); });
+window.__game = window.__game || {}; // AGENTPARK: open straight into play
+window.__game.autostart = () => { if (state.mode === "playing") return true; ui.start.click(); window.__game.state = 'play'; return true; };
 ui.restart.addEventListener("click", () => { initAudio(); resetGame(); });
 ui.pause.addEventListener("click", () => setPaused(state.mode === "playing"));
 ui.resume.addEventListener("click", () => setPaused(false));

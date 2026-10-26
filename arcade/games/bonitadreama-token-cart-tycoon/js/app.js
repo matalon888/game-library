@@ -18,3 +18,5 @@ document.querySelector("#open-app-button").addEventListener("click", () => { con
 document.querySelector("#next-day-button").addEventListener("click", () => { if (state.gameOver) { renderEnd(state); showScreen("end"); return; } advanceDay(state); document.querySelector("#request-queue").replaceChildren(); renderAll(); document.querySelector(".action-button")?.focus({ preventScroll: true }); });
 document.querySelector("#start-button").addEventListener("click", startGame); document.querySelector("#play-again-button").addEventListener("click", startGame); document.querySelector("#restart-button").addEventListener("click", startGame);
 renderAll();
+window.__game = window.__game || {}; // AGENTPARK: open straight into play
+window.__game.autostart = () => { if (screens.landing.hidden) return true; startGame(); window.__game.state = "play"; return true; };

@@ -6,6 +6,7 @@ import { makeLevel, solution, budgetFor, designCost } from './levels.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 import { adapter } from './kit/adapt.js';
+import { demo } from './kit/demo.js';
 
 const stage = createStage({ fov: 40, shadows: true, shadowSize: 16 });
 const { scene, camera, sun, renderer } = stage;
@@ -314,6 +315,13 @@ input({
     if (d.end) addBeam(d.sx, d.sy, d.end[0], d.end[1], material);
   },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
+// first real touch, the left red anchor gets picked and one road plank is laid from it (tap anchor, tap a spot), the way a tap builds
+demo(n => { const x = lv.L, y = 0;
+  if (n === 1) { sel = { x, y }; ring.visible = true; ring.position.set(x, y, 1.1); tone(500, 0.04, 'sine', 0.1, 1.2); return; }
+  if (!sel || !addBeam(x, y, x + 2, y, 'road', true)) return false;
+  sel = { x: x + 2, y }; ring.position.set(x + 2, y, 1.1); return false;
+}, { ready: () => state === 'play' && level === 1 && mode === 'build' && !drag && !design.beams.length, every: 900, max: 2 });
 
 // ------------------------------------------------------------------ simulation
 let simT = 0, shake = 0, debris = [], stuckT = 0, lastX = 0, broken = 0;

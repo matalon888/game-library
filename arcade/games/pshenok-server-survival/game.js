@@ -1735,6 +1735,13 @@ function openMainMenu() {
     STATE.sound.playMenuBGM();
 }
 
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (Survival)
+window.__game.autostart = () => {
+    const m = document.getElementById("main-menu-modal");
+    if (!m || m.classList.contains("hidden")) return false;
+    window.startGame(); window.__game.state = "play"; return true;
+};
+
 window.resumeGame = () => {
     // Hide main menu, keep game paused
     document.getElementById("main-menu-modal").classList.add("hidden");

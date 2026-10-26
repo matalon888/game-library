@@ -1,6 +1,7 @@
 // Dust Descent — original downhill MTB racer. First-person handlebars, canyon trail, rivals, boost pads, kickers.
 import { THREE, createStage, createUI, input, loop, confetti, burst, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { demo } from './kit/demo.js';
 
 import { board as worldBoard } from './kit/board.js';
 const WB = worldBoard({ game: 'dust-descent', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
@@ -489,6 +490,13 @@ ui.onTap(w => { WB.start();
   else { buildLevel(); state = 'play'; ui.pop('GO!', '#7dff6a', 64, 34); tone(660, 0.2, 'triangle', 0.14, 1); }
 });
 let tapLat = null;   // a tap on the left / right half glides the bike one line that way
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s, before touching): on level 1, until the
+// first real touch, the bike weaves left and right across the trail (around any rock or log), so the screen shows what a drag does
+const D = demo(null, { ready: () => state === 'play' && level === 1 && !me.air && !me.glide, ms: 4500 }); let demoed = false;
+function demoSteer() { let target = Math.sin(raceT * 1.7) * 2.6;
+  for (const it of items) { const ds = it.s - me.s; if (ds < -1 || ds > 26) continue;
+    if ((it.type === 'rock' || it.type === 'log') && Math.abs(target - it.lat) < it.hw + 0.8) target = clamp(it.lat + (it.lat > 0 ? -1 : 1) * (it.hw + 1.2), -4.4, 4.4); }
+  tapLat = target; demoed = true; }
 input({
   onMove: (dx) => { if (state !== 'play') return; tapLat = null; me.lat = clamp(me.lat + dx * 0.03, -4.5, 4.5); steerVel = lerp(steerVel, dx, 0.5); },
   onTap: (e) => { if (state === 'play') tapLat = clamp((tapLat ?? me.lat) + (e.clientX < innerWidth / 2 ? -1.6 : 1.6), -4.5, 4.5); },
@@ -499,6 +507,7 @@ loop((dt, t) => {
   if (state === 'play' || me.finished) { stepRider(me, dt, true); }
   if (state === 'play') {
     raceT += dt / 60;
+    if (D.on) demoSteer(); else if (demoed) { demoed = false; if (!D.touched) tapLat = 0; }   // demo over: back on the centre line
     if (performance.now() < botUntil) { const d = clamp(botLat - me.lat, -1, 1) * 0.11 * dt; me.lat += d; steerVel = lerp(steerVel, d * 25, 0.3); }
     else if (tapLat != null) { const d = clamp(tapLat - me.lat, -1, 1) * 0.14 * dt; me.lat += d; steerVel = lerp(steerVel, d * 25, 0.3); if (Math.abs(tapLat - me.lat) < 0.05) tapLat = null; }
     if (me.s >= finishS && !me.finished) { me.finished = true; me.ftime = raceT; finishRace(); }

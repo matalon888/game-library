@@ -1177,6 +1177,10 @@ class Game {
    ============================================ */
 window.addEventListener('DOMContentLoaded', async () => {
   const game = new Game();
+  window.__game = window.__game || {}; // AGENTPARK: open straight into play (tap the start screen once the world is built)
+  let ready = false;
+  window.__game.autostart = () => { if (!ready) return false; game.ui.startScreen.click(); window.__game.state = 'play'; return true; };
   await game.init();
+  ready = true;
   game.animate();
 });

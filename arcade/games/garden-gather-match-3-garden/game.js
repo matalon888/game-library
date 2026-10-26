@@ -8,6 +8,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 
 const SLUG = 'garden-gather', A = 'assets/';
 const $ = (s, r = document) => r.querySelector(s);
@@ -305,6 +306,23 @@ function engine() {
   addEventListener('pointerup', () => E && E.up());
   return E;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
+// first real touch, one plain three-in-a-row of a flower the goals don't ask for swaps itself (a free move, the counter is given back)
+function demoMove() {   // no goal flowers and no 4s, Ls or squares, so the level's goals are left whole for the player
+  const g = E.debug().cells, want = new Set(E.goals.filter(q => q.k === 'color' && q.left > 0).map(q => q.c)), C = (x, y) => g[y]?.[x];
+  const info = (x, y) => { const c = C(x, y); if (typeof c !== 'number') return null; let h = 1, v = 1, sq = false;
+    for (let i = 1; C(x - i, y) === c; i++) h++; for (let i = 1; C(x + i, y) === c; i++) h++; for (let i = 1; C(x, y - i) === c; i++) v++; for (let i = 1; C(x, y + i) === c; i++) v++;
+    for (const [dx, dy] of [[0, 0], [-1, 0], [0, -1], [-1, -1]]) if (C(x + dx, y + dy) === c && C(x + dx + 1, y + dy) === c && C(x + dx, y + dy + 1) === c && C(x + dx + 1, y + dy + 1) === c) sq = true;
+    return { c, h, v, sq }; };
+  for (const m of E.validMoves()) { if (m.sp || m.nudge) continue;
+    const [a, b] = [m.a, m.b], t = g[a[1]][a[0]]; g[a[1]][a[0]] = g[b[1]][b[0]]; g[b[1]][b[0]] = t;
+    const ia = info(...a), ib = info(...b), hit = [ia, ib].filter(i => i && (i.h >= 3 || i.v >= 3 || i.sq));
+    g[b[1]][b[0]] = g[a[1]][a[0]]; g[a[1]][a[0]] = t;
+    if (hit.length === 1 && !hit[0].sq && hit[0].h + hit[0].v === 4 && !want.has(hit[0].c)) return m; }
+  return null;
+}
+demo(() => { const m = demoMove(); if (!m) return false; E.addMoves(1); E.trySwap(m.a, m.b); return false; },
+  { ready: () => screen === 'play' && state === 'play' && E && !E.busy && !E.over && !openCard && cur && !cur.daily && cur.n === 1 && E.moves === E.movesStart, wait: 2200 });
 function layoutPlay() {
   if (!E) return;
   const dpr = Math.min(2, devicePixelRatio || 1); E.resize(innerWidth, innerHeight, dpr);
@@ -599,6 +617,8 @@ window.__game = {
     const m = E.bestMove(); if (m) { lastBot = performance.now(); E.trySwap(m.a, m.b); }
   },
   debug: () => ({ st, money: M.debug(), engine: E && E.debug() }),
+  // the arcade shell starts every game by itself: from the garden screen, jump straight into the next level (false = still loading)
+  autostart() { if (!IMG.paper || $('#load') || screen !== 'home' || state !== 'ready' || openCard || innerHeight < 300) return false; requestAnimationFrame(() => screen === 'home' && state === 'ready' && begin(st.level, makeLevel(st.level, st.level > 5 ? F.k() : 1))); },
   get E() { return E; },
 };
 

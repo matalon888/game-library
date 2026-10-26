@@ -1773,6 +1773,13 @@ function agentToMenu() {
 // --- Boot --------------------------------------------------------------------------------
 
 async function boot() {
+  window.__game = window.__game || {} // AGENTPARK: open straight into play (menu defaults; a guest waits for its host)
+  window.__game.autostart = () => {
+    if (game.phase !== 'menu') return false
+    if (isHost()) hostStartMatch()
+    window.__game.state = 'play'
+    return true
+  }
   bindMouse(renderer.domElement)
   bindTouch()
   setupMenu()

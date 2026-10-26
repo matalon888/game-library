@@ -484,9 +484,19 @@ export function createMatch3({ group, P, snd, hooks }) {
     if (best.tap) tapBooster(...best.tap); else trySwap(best.a, best.b);
   }
 
+  // first-seconds demo (game.js): one plain three-in-a-row of a colour no goal asks for, away from crates and ice, as a free move
+  function demo() {
+    if (busy || over) return false;
+    for (const mv of validMoves()) { if (mv.boost) continue;
+      lswap(mv.a, mv.b); const gs = findGroups(); lswap(mv.a, mv.b);
+      if (gs.length !== 1 || gs[0].kind || gs[0].cells.length !== 3 || goals.some(q => q.k === 'color' && q.c === gs[0].c && q.left > 0)) continue;
+      if (gs[0].cells.some(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => inB(x + dx, y + dy) && (crate[y + dy][x + dx] || ice[y + dy][x + dx])))) continue;
+      moves++; trySwap(mv.a, mv.b); return true; }
+    return false;
+  }
   function hide() { root.visible = false; over = true; }
   return {
-    start, update, input, bot, hide,
+    start, update, input, bot, hide, demo,
     get busy() { return busy; }, get over() { return over; }, get moves() { return moves; }, get goals() { return goals; }, get score() { return score; },
     get size() { return [W, H]; },
     get dbg() { let empty = 0; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (mask[y][x] && !crate[y][x] && !cells[y][x]) empty++; return { T, d0: dying[0] && dying[0].dying, busy, over, moves, pieces: pieces.length, dying: dying.length, empty, settled: settled(), queue: queue.length, unsettled: pieces.filter(p => p.tw || Math.abs(p.y - ly(p.gy)) > 1e-3 || Math.abs(p.x - lx(p.gx)) > 1e-3).slice(0, 3).map(p => [p.x, p.y, p.gx, p.gy, p.vy, !!p.tw]) }; },

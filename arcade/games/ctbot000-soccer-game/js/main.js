@@ -190,6 +190,9 @@ function setMuteLabel(m) {
 }
 
 $('#kickoff').addEventListener('click', () => startMatch(0));
+// AGENTPARK: open straight into play (default teams/settings, player controls the home side)
+window.__game = window.__game || {};
+window.__game.autostart = () => { if (!inMenu) return false; startMatch(0); window.__game.state = 'play'; return true; };
 $('#spectate').addEventListener('click', () => startMatch(-1));
 $('#pausebtn').addEventListener('click', togglePause);
 $('[data-act="resume"]').addEventListener('click', togglePause);

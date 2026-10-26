@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, buzz, mat, glossy, rounded, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { adapt } from './kit/adapt.js';
+import { demo } from './kit/demo.js';
 
 import { board } from './kit/board.js';
 const WB = board({ game: 'marble-dash', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.2 }, mode: 'sum', corner: 'bl' });
@@ -158,6 +159,9 @@ input({
   onMove(dx) { if (state === 'play' && holding) steerPx += dx; },
   onUp(e, st) { holding = false; if (state === 'play' && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) { roll = 0.8; const k = e.clientX / innerWidth; if (k < 0.33 || k > 0.67) B.vx = k < 0.5 ? -3 : 3; } },   // tap = a short roll forward (side thirds nudge left/right)
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
+// first real touch, the ball rolls a few metres up the start deck weaving left and right, then brakes before the first slope
+const D = demo(null, { ready: () => state === 'play' && level === 1 && lives === 3, ms: 4500 }); let demoT = 0;
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
@@ -224,6 +228,8 @@ loop((dt, t) => {
     if (holding && state === 'play') { B.vx = lerp(B.vx, steerPx * 0.011 / s, 0.45); steerPx = 0; }
     else if (botOn && state === 'play') B.vx = lerp(B.vx, clamp((botX - B.p.x) * 5, -7, 7), 0.3);
     else B.vx *= Math.exp(-(B.ground ? 5 : 0.5) * s);
+    if (D.on && state === 'play' && !holding) { demoT += s; const sg = segAt(B.p.z) || segs[0];   // demo: roll + weave, stop on the start deck
+      B.vz = lerp(B.vz, demoT < 2.6 && B.p.z > -2.5 ? -2.4 : 0, 0.08); B.vx = lerp(B.vx, clamp((cx(sg, B.p.z) + Math.sin(demoT * 2.4) * 0.9 - B.p.x) * 4, -4, 4), 0.2); }
     B.p.x += B.vx * s; B.p.z += B.vz * s;
     const sf = surfAt(B.p.x, B.p.z);
     if (B.ground) {

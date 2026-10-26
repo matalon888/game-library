@@ -170,3 +170,7 @@ $('fullscreen-button').onclick=async()=>{try{if(document.fullscreenElement)await
 // Explicit QA mode permits deterministic interaction checks without shipping a visible debug panel.
 if(new URLSearchParams(location.search).has('qa'))window.__raincoil={get game(){return game;},get state(){return state;},get countdown(){return countdown;},get variant(){return selectedVariant;},start,menu,learn,pause,resume,snapshot:()=>({state,variant:game.variant,time:game.time,score:game.score,health:game.health,length:game.snake.length,skins:game.skins?.length||0,stats:{...game.stats}})};
 menu();requestAnimationFrame(frame);
+
+// AGENTPARK: open straight into play
+window.__game = window.__game || {};
+window.__game.autostart = () => { if (state === 'menu') start('storm'); window.__game.state = 'play'; return true; };

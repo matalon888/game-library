@@ -521,6 +521,20 @@ fishSpawner.seedAmbient(window.innerWidth, window.innerHeight);
 ensureRendererRunning();
 showScreen(Screens.MODE);
 
+// AGENTPARK: open straight into play (Free Play). Audio + iOS tilt permission need a real gesture: asked on the first tap.
+window.__game = window.__game || {};
+window.__game.autostart = () => {
+  if (currentScreen !== Screens.MODE || bootstrapped) return true;
+  bootstrapped = true;
+  window.addEventListener('pointerdown', () => { initAudio(); ensureOrientationPermission(); }, { once: true, capture: true });
+  initBattery().catch(() => {}).then(() => {
+    initOrientation(); wireCharging(); wireEvents();
+    Game.resetState(); Mode.setMode(MODE.FREE); goToGame();
+  });
+  window.__game.state = 'play';
+  return true;
+};
+
 if (DEBUG.enabled) {
   window.__game = Game;
   window.__mode = Mode;

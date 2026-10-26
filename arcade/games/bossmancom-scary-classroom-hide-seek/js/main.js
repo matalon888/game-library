@@ -324,6 +324,8 @@ document.addEventListener(
 );
 
 window.__startHideGame = startGame;
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (the HTML Play button exists before this module loads)
+window.__game.autostart = () => { if (running) return true; startGame(); if (!running) return false; window.__game.state = 'play'; return true; };
 
 // If modules loaded, mark ready (for debugging)
 document.body?.classList?.add('game-ready');

@@ -1728,4 +1728,8 @@ function init() {
     requestAnimationFrame(frame);
 }
 
+// AGENTPARK: open straight into play (current rival + difficulty; default Melody / Easy). Audio starts on the first tap.
+window.__game = window.__game || {};
+window.__game.autostart = () => { if (!canvas || state !== 'title') return false; startBattle(); window.__game.state = 'play'; return true; };
+
 window.addEventListener('load', init);

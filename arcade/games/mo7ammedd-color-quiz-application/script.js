@@ -208,3 +208,6 @@ startButton.addEventListener("click", () => {
   populateQuiz();
   initial();
 });
+
+window.__game = window.__game || {}; // AGENTPARK: open straight into play
+window.__game.autostart = () => { if (startScreen.classList.contains("hide")) return true; startButton.click(); window.__game.state = "play"; return true; };

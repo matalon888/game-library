@@ -9,6 +9,11 @@ function setUp() {
 }
 	
 	
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (random manager, city, club; default league + difficulty)
+window.__game.autostart = () => { if (!document.getElementById("randomNameButton")) return false;
+	["randomNameButton", "confirmManagerNameButton", "randomCityButton", "confirmCityButton", "generateRandomClubNameButton", "acceptClubNameButton", "acceptDifficulty"].forEach(id => mUp({ id: id }));
+	startGame(); window.__game.state = 'play'; return true; };
+
 //set up leagues and start game
 function startGame() {	
 	console.log("startGame");

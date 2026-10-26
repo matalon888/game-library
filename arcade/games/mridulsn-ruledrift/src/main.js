@@ -1413,7 +1413,10 @@ async function boot() {
   }
 }
 
-boot();
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (Quick play, fresh random board)
+let apBooted = false;
+window.__game.autostart = () => { if (!apBooted) return false; if (!game) startGame("quick", randomSeedCode()); window.__game.state = 'play'; return true; };
+boot().finally(() => { apBooted = true; });
 
 // Anything that failed to reach the server gets another chance on reconnect.
 window.addEventListener("online", () => {

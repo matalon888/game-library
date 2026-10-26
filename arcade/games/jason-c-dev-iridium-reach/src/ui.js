@@ -588,6 +588,8 @@ export function initUI(G) {
     start();
   });
   el('ir-fly').addEventListener('click', (e) => { e.stopPropagation(); closeSettings(); start(); });
+  window.__game = window.__game || {}; // AGENTPARK: open straight into play
+  window.__game.autostart = () => { if (G.uiState !== 'start') return false; start(); window.__game.state = 'play'; return true; };
   el('ir-start-set').addEventListener('click', (e) => { e.stopPropagation(); toggleSettings('ir-start-settings-host'); });
 
   el('ir-resume').addEventListener('click', (e) => { e.stopPropagation(); resume(); });

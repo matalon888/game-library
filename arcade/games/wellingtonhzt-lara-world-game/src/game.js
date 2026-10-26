@@ -3381,6 +3381,22 @@ import { createAdventureScreen } from './adventure/adventure-screen.js';
     setupDebugMode();
     _updateDebugTimeLabel();
     console.log('[INIT] concluído');
+
+    // AGENTPARK: open straight into play (quick game, 1 player vs bot, first world, player 1 starts)
+    window.__game = window.__game || {};
+    window.__game.autostart = () => {
+      if (modoJogo) return true; // already left the menu
+      const solo = document.querySelector('.mode-option input[value="1p"]');
+      if (solo) { solo.checked = true; solo.dispatchEvent(new Event('change')); }
+      modoJogo = GAME_MODES.QUICK;
+      hideMainMenu();
+      selectWorld('floresta-encantada');
+      prepareAndDraw();
+      drawState.drawWinnerIndex = 0;
+      continueAfterDraw();
+      window.__game.state = 'play';
+      return true;
+    };
   }
 
   document.addEventListener("DOMContentLoaded", async () => {

@@ -1859,3 +1859,7 @@ state.mode = 'start';
 state.toastTimer = 0;
 ui.toast.classList.remove('is-visible');
 requestAnimationFrame(frame);
+
+// AGENTPARK: open straight into play
+window.__game = window.__game || {};
+window.__game.autostart = () => { if (state.mode !== 'start') return true; startGame(); window.__game.state = 'play'; return true; };

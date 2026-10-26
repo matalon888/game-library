@@ -2248,6 +2248,17 @@ const Game = (() => {
     };
     window.addEventListener("pointerdown", kickstart);
     window.addEventListener("keydown", kickstart);
+
+    // AGENTPARK: open straight into play (level 1, past the story pages and level intro card)
+    window.__game = window.__game || {};
+    window.__game.autostart = () => {
+      if (document.getElementById("screenTitle").classList.contains("active")) {
+        loadLevel(0);
+        if (!overlay.classList.contains("hidden")) overlayBtn.click();
+      }
+      window.__game.state = "play";
+      return true;
+    };
   }
 
   return { loadLevel, playCustom, render, init };

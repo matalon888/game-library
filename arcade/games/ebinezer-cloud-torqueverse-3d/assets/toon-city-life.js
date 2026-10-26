@@ -468,3 +468,13 @@
         return { root: root, vehicles: vehicles, pedestrians: pedestrians, update: update, honk: honk, resolvePlayer: resolvePlayer, dispose: dispose, stats: stats };
     };
 }());
+
+// AGENTPARK: open straight into play (the menu code is inline in index.html; startForestMode is a global there)
+window.__game = window.__game || {};
+window.__game.autostart = function () {
+    const card = document.getElementById('btn-mode-city');
+    if (typeof startForestMode !== 'function' || !card || document.getElementById('main-menu').style.display === 'none') return false;
+    card.click();
+    window.__game.state = 'play';
+    return true;
+};

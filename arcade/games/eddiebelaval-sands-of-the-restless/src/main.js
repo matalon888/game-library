@@ -1388,6 +1388,8 @@ function boot() {
   }, { passive: true });
 
   beginBtn.addEventListener('click', start);
+  window.__game = window.__game || {}; // AGENTPARK: open straight into play
+  window.__game.autostart = () => { if (started) return false; start(); briefing.finish(); window.__game.state = 'play'; return true; };
   window.addEventListener('keydown', (e) => {
     if (started || pause.paused) return;
     if (e.code !== 'Enter' && e.code !== 'Space') return;

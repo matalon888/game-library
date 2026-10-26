@@ -1,6 +1,7 @@
 // Brick Climb — original game. Grab bricks of your colour, lay them as stair steps, climb to the top before your rivals.
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, palette, applyPalette, mat, glossy, rounded, stickman, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
+import { demo } from './kit/demo.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
@@ -200,6 +201,12 @@ input({
   onUp(e, st) { if (down && st && Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12) goal = floorAt(e.clientX, e.clientY); down = false; joy.x = joy.y = 0; joyEl.style.display = 'none'; joyEl.firstChild.style.transform = ''; },
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
+// first real touch, the blue runner jogs from brick to blue brick and stacks them on his back, so the screen shows the move
+const D = demo(null, { ready: () => state === 'play' && level === 1 && player.floor === 0 && player.lane < 0, ms: 4500 });
+function demoDir() { let bestB = null, bd = 1e9;
+  for (const b of blocks) if (b.k === player.floor && b.c === player.ci && b.alive) { const d = Math.hypot(b.x - player.x, b.z - player.z); if (d < bd) { bd = d; bestB = b; } }
+  return bestB ? { x: bestB.x - player.x, z: bestB.z - player.z } : { x: 0, z: 0 }; }
 ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; sfx.tap(); }
   else if (w === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }
@@ -400,6 +407,7 @@ loop((dt, t) => {
       let dir;
       if (ch === player) {
         if (down) dir = { x: joy.x, z: joy.y };
+        else if (D.on) dir = demoDir();
         else if (botJoy) dir = botJoy;
         else if (goal && performance.now() < goal.t && Math.hypot(goal.x - ch.x, goal.z - ch.z) > 0.3) dir = { x: (goal.x - ch.x) * 2, z: (goal.z - ch.z) * 2 };
         else dir = { x: 0, z: 0 };

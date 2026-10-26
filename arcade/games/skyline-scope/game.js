@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti, sfx, tone, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
+import { demo } from './kit/demo.js';
 import { board } from './kit/board.js';
 
 const S = createStage({ fov: 62, shadowSize: 90 });
@@ -318,6 +319,14 @@ input({
   onUp: () => { holding = false; },
 });
 addEventListener('pointercancel', () => holding = false);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
+// first real touch, the scope zooms in and pans slowly onto the red cap and steadies there, then lowers again without firing
+const D = demo(null, { ready: () => state === 'play' && level === 1 && mode === 'aim' && killed === 0 && ammo === ammoMax, ms: 4500 }); let demoHeld = false;
+function demoAim(real) {
+  for (const p of people) { if (!p.alive || p.kind !== 'target') continue;
+    const d = p.g.position.clone().add(new THREE.Vector3(0, 1.1 * PS, 0)).sub(camPos0).normalize(); if (rayHit(camPos0, d).p !== p) continue;
+    const k = Math.min(1, real * 1.6); yaw = lerp(yaw, Math.atan2(-d.x, -d.z), k); pitch = lerp(pitch, Math.asin(d.y), k); return; }
+}
 
 function panic(at, rad = 30) { for (const p of people) if (p.alive && p.g.position.distanceTo(at) < rad && !(p.still && level === 1)) { p.panic = 2.5 + Math.random() * 1.5; p.dest = pickDest(p); p.wait = 0; } }
 function kill(p, dir, head) {
@@ -339,7 +348,7 @@ function fire() {
     const lastOne = people.filter(p => p.kind === 'target' && p.alive).length === 1;
     if (lastOne) { startCam(h, o, d); return; }
     kill(h.p, d, h.head); killed++; setHud(); sfx.smash(); buzz([20, 30, 40]);
-    ui.pop(h.head ? 'BULLSEYE!' : 'TARGET DOWN!', h.head ? '#ffd166' : '#ffffff', h.head ? 42 : 36, 27);
+    ui.pop(h.head ? 'HEADSHOT!' : 'TARGET DOWN!', h.head ? '#ffd166' : '#ffffff', h.head ? 42 : 36, 27);
     ts = 0.25; setTimeout(() => ts = 1, 450); panic(h.point, 40);
   } else if (h.type === 'person') {
     kill(h.p, d, h.head); sfx.fail(); buzz([60, 40, 60]); panic(h.point, 40);
@@ -371,7 +380,9 @@ loop((dtRaw, t) => {
   const real = dtRaw / 60;
   // input → scope, release fires
   if (tapAim) { if (state !== 'play' || mode !== 'aim') tapAim = null; else { const sw = window.__sway || { sx: 0, sy: 0 }, k = Math.min(1, real * 14); yaw = lerp(yaw, tapAim.yaw - sw.sx, k); pitch = lerp(pitch, tapAim.pitch - sw.sy, k); moveAcc = 0; if ((tapAim.t -= real) <= 0) tapAim = null; } }
-  const hold = state === 'play' && mode === 'aim' && (holding || botHold || !!tapAim);
+  const dm = D.on && state === 'play' && mode === 'aim' && !holding; if (dm) { demoAim(real); demoHeld = true; }
+  else if (demoHeld) { demoHeld = false; if (!holding) wasHold = false; }   // demo over: the scope lowers without a shot
+  const hold = state === 'play' && mode === 'aim' && (holding || botHold || !!tapAim || dm);
   if (wasHold && !hold && scope > 0.55 && state === 'play' && mode === 'aim') fire();
   wasHold = hold;
   scope = clamp(scope + (hold ? 5 : -6) * real, 0, 1);
@@ -435,7 +446,7 @@ loop((dtRaw, t) => {
       if (u >= 1) {
         cam.hit = true; cam.t2 = 0; ts = 0.3; bullet.visible = trail.visible = false;
         kill(cam.p, cam.d, cam.head); killed++; setHud(); sfx.smash(); buzz([30, 30, 60]); shake = 1; ui.flash(0.5);
-        ui.pop(cam.head ? 'BULLSEYE!' : 'MISSION COMPLETE!', '#ffd166', cam.head ? 52 : 38, 22);
+        ui.pop(cam.head ? 'HEADSHOT!' : 'MISSION COMPLETE!', '#ffd166', cam.head ? 52 : 38, 22);
         panic(cam.to, 40);
         cam.orbit = Math.atan2(-cam.d.x, -cam.d.z);
       }

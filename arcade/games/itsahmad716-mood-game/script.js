@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
     setupGameEvents();
 });
 
+window.__game = window.__game || {}; // AGENTPARK: open straight into play (Happy = tap-to-guess emoji game, no typing)
+window.__game.autostart = () => { if (document.readyState === 'loading') return false; showGame('happy'); document.getElementById('happy-game').scrollIntoView({ block: 'start' }); window.__game.state = 'play'; return true; };
+
 // Setup mood selection buttons
 function setupMoodButtons() {
     const moodBtns = document.querySelectorAll('.mood-btn');

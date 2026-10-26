@@ -3227,3 +3227,7 @@ window.addEventListener('DOMContentLoaded', () => {
   game = new GameEngine();
   requestAnimationFrame(gameLoop);
 });
+
+// AGENTPARK: open straight into play (default operative Alex, sector 1)
+window.__game = window.__game || {};
+window.__game.autostart = () => { if (!game) return false; if (game.state !== 'START') return true; game.startNewGame(); window.__game.state = 'play'; return true; };

@@ -65,6 +65,10 @@ const Game=(()=>{
     state=GS.PLAYING;
   }
 
+  // AGENTPARK: open straight into play (default difficulty: Officer)
+  window.__game = window.__game || {};
+  window.__game.autostart = () => { if (!canvas || state !== GS.TITLE) return false; startGame(); window.__game.state = 'play'; return true; };
+
   function loop(ts){
     requestAnimationFrame(loop);
     const rdt=Math.min(ts-last,50); last=ts;

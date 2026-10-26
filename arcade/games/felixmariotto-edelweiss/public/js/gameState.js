@@ -53,6 +53,15 @@ function GameState() {
 
     });
 
+    // AGENTPARK: open straight into play (solo, no display name needed)
+    window.__game = window.__game || {};
+    window.__game.autostart = () => {
+        if ( !loadingFinished ) return false;
+        if ( params.isGamePaused ) startGame( ('ontouchstart' in window) || navigator.maxTouchPoints > 0 );
+        window.__game.state = 'play';
+        return true;
+    };
+
     // LOADING MANAGER
 
     THREE.DefaultLoadingManager.onStart = function ( url, itemsLoaded, itemsTotal ) {

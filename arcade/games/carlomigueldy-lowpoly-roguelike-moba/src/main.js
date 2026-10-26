@@ -28,6 +28,10 @@ function newGame(withNet) {
   return game;
 }
 
+// AGENTPARK: open straight into play (solo run)
+window.__game = window.__game || {};
+window.__game.autostart = () => { if (!renderer || game) return false; startSolo(); window.__game.state = 'play'; return true; };
+
 async function startSolo() {
   ui.hideMenu();
   ui.startHUD();

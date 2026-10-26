@@ -67,6 +67,8 @@ game.titlescreen = me.ScreenObject.extend({
                 me.state.change(me.state.PLAY);
             } 
         });
+        window.__game = window.__game || {}; // AGENTPARK: open straight into play
+        window.__game.autostart = function () { if (window.__game.state === 'play') return false; me.state.change(me.state.PLAY); window.__game.state = 'play'; return true; };
         
     },
     /**

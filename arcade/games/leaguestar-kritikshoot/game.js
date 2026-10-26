@@ -5044,6 +5044,8 @@ window.addEventListener("unhandledrejection", e => {
 window.addEventListener("load", () => {
   try {
     window.kGame = new Game();
+    window.__game = window.__game || {}; // AGENTPARK: open straight into play
+    window.__game.autostart = () => { const b = document.getElementById("startBtn"); if (!b || !b.getClientRects().length) return false; b.click(); window.__game.state = "play"; return true; };
   } catch (err) {
     showFatalErrorOverlay(err);
   }
