@@ -4,6 +4,7 @@ import { createUI, store, buzz, tone, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft } from './calm.js';
 import * as T from './trail.js';
 
@@ -352,6 +353,11 @@ let last = performance.now();
 function frame(now) { const dt = Math.min(2.5, (now - last) / 16.67); last = now; render(dt); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
 ui.start();
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first real
+// touch, the GO button's move happens once: Pip walks into day 1 and meets whatever the trail rolls
+demo(() => { nextDay(); },
+  { ready: () => state === 'play' && run && run.day === 0 && !busy && !choice && S.get('runs', 0) === 1 && !D.seed, wait: 2200, max: 1 });
 
 // ---------------------------------------------------------------- bot
 window.__game = {

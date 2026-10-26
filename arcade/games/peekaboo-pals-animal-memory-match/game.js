@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, con
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { NAMES, faceCanvas, backCanvas } from './animals.js';
 
 const NAME = 'Peekaboo Pals: Animal Memory Match';
@@ -177,6 +178,14 @@ loop((dt, t) => {
 });
 
 build(); ui.start();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// one card flips face up to show its animal and then turns back down again (no guess made, no heart spent)
+let demoC = null;
+const DP = demo(n => {
+  if (n === 1) { demoC = cards.filter(c => !c.done && !c.up)[0]; if (!demoC) return false; return flip(demoC); }
+  if (first === demoC && demoC.up && !demoC.done) { demoC.up = false; first = null; flipSound(); }
+}, { ready: () => state === 'play' && level === 1 && !peeking && !lock && (!first || first === demoC) && !matched, wait: 1600, every: 1200, max: 2 });
+
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() {   // a kid with a great memory: uses only cards it has actually seen face up

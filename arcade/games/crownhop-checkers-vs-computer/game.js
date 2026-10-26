@@ -2,6 +2,7 @@
 // Captures are forced, multi-jumps are finished hop by hop, men reaching the far row are crowned kings.
 // The CPU thinks in a Web Worker so the board never freezes. Undo on Easy.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { duel, DIFFS, rrect, ease, soft, tone, chime, buzz } from './duel.js';
 import { initial, moves, apply, think, search, dark } from './engine.js';
 
@@ -36,6 +37,13 @@ const P = duel({
     if (m) { sel = m.path[0]; partial = [sel]; hop(m.path[1]); }
   },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first game, until the first real
+// touch, your opening move is shown: a good piece is picked (its dots light up) and then it steps forward; the CPU replies
+let demoM = null;
+demo(n => {
+  if (n === 1) { demoM = search(bd, 1, { depth: 4, ms: 40 }); if (!demoM || demoM.path.length !== 2) return false; sel = demoM.path[0]; partial = [sel]; soft.click(); return; }
+  if (partial && partial[0] === demoM.path[0] && partial.length === 1) hop(demoM.path[1]);
+}, { ready: () => P.state === 'play' && P.turn === 0 && !P.busy && !anim && !last && !P.D.isDaily && !P.S.get('wins', 0), wait: 2000, every: 1200, max: 2 });
 const disc = (c) => `<i style="display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-1px;background:radial-gradient(circle at 35% 30%,${c.a},${c.b})"></i>`;
 
 const cell = (x, y) => { const c = Math.floor((x - geo.x) / geo.s), r = Math.floor((y - geo.y) / geo.s); return c < 0 || r < 0 || c > 7 || r > 7 ? -1 : r * 8 + c; };

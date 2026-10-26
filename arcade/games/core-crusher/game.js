@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, rng, lerp, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const SEG = 12, SEGA = Math.PI * 2 / SEG, GAP = 0.3, THICK = 0.25, R_OUT = 2.0, R_IN = 0.42, BALL_R = 0.3, BALL_D = 1.3;
 const GRAV = 0.0125, BOUNCE = 0.165, SMASH = 0.11;
@@ -183,6 +184,10 @@ input({ onDown: () => { if (state === 'play') hold = true; }, onUp: () => { hold
 addEventListener('keydown', e => { if (e.code === 'Space' && state === 'play') hold = true; });
 addEventListener('keyup', e => { if (e.code === 'Space') hold = false; });
 ui.onTap(which => { WB.start(); if (which !== 'start') buildLevel(); state = 'play'; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the ball presses down through the next safe ring or two three times (the bot's own timing, never onto a black slice)
+demo(() => { if (top + 8 >= total) return false; window.__game.bot(); if (hold && (botTarget < 0 || botTarget > top + 2)) botTarget = top + 2; },
+  { ready: () => state === 'play' && level === 1 && !hold && !fire, wait: 1500, every: 1300, max: 3 });
 
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {

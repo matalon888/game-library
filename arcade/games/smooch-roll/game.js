@@ -2,6 +2,7 @@
 import { createUI, input, loop, sfx, tone, buzz, store, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { StrokeBuilder, makeInk, INK_R, BALL_R } from './physics.js';
 import { makeLevel, buildWorld, outOfWorld, WW, WH } from './levels.js';
 
@@ -98,6 +99,18 @@ input({
   onMove: (dx, dy, e) => { if (drawing && !botOn) { const p = toWorld(e.clientX, e.clientY); addPoint(p.x, p.y); } },
   onUp: () => { if (!botOn) endStroke(); },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the pen traces most of the dotted line in ink and then lifts it away again (never dropped, so nothing rolls and nothing is won)
+const DS = demo(() => {
+  const sol = L.solution, end = Math.max(2, Math.floor(sol.length * 0.7)), t0 = performance.now(); let i = 1;
+  beginStroke(sol[0].x, sol[0].y); if (!drawing) return false; const mine = sb; firstDraw = true;   // the player's first tap still gets the dotted-line help
+  const cancel = () => { if (sb === mine) { drawing = false; sb = null; pen = null; } firstDraw = true; ui.progress(inkLeft() / inkB); setStars(starCount()); if (level <= 2) ui.sub('Tap the dotted line so they meet!'); };
+  const go = () => { if (sb !== mine || state !== 'play') return;
+    if (DS.touched) return;
+    const want = Math.min(end, 1 + Math.floor((performance.now() - t0) / 1100 * end)); for (; i <= want && i < sol.length; i++) addPoint(sol[i].x, sol[i].y);
+    if (i <= end) return requestAnimationFrame(go); setTimeout(() => { if (!DS.touched) cancel(); }, 450); };
+  requestAnimationFrame(go);
+}, { ready: () => state === 'play' && level === 1 && !running && !drawing && firstDraw && !inks.length && !botOn, wait: 1800, max: 1 });
 document.getElementById('retry').addEventListener('pointerdown', (e) => {
   e.stopPropagation(); if (state !== 'play') return; sfx.tap(); loadLevel();
 });

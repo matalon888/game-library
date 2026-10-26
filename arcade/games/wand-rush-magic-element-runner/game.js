@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Wand Rush: Magic Element Runner';
 const S = store('wandrush');
@@ -201,9 +202,16 @@ ui.onTap(w => {
   state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden');
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the runner steers itself into the right element gate and around goons it can't break (the bot's own steering);
+// afterwards lane, element and score go back to how they were
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed, wait: 300, ms: 4000 });
+let demoKeep = null;
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {
   const step = dt / 60;
+  if (DM.on) { if (!demoKeep) demoKeep = { tx, elem, score }; window.__game.bot(); }
+  else if (demoKeep) { if (state === 'play') { tx = demoKeep.tx; setElem(demoKeep.elem); score = demoKeep.score; ui.score(score); } demoKeep = null; }   // then back as it was: an idle player gets no free run
   if (state === 'play') {
     pz -= speed * step;
     const prevX = px; px = lerp(px, tx, Math.min(1, 0.35 * dt));

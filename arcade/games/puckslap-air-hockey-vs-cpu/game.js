@@ -4,6 +4,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, arcadeCards, startCard, winCardText, canvas2d, particles, shaker, rr } from './arc.js';
 
 const NAME = 'Puckslap: Air Hockey vs CPU';
@@ -69,6 +70,14 @@ function reset() {
   mine = cpu = 0; recorded = false; P.clear();
   me.x = me.tx = TW / 2; me.y = me.ty = TH - 70; bot.x = bot.tx = TW / 2; bot.y = bot.ty = 70; bot.phase = 'home';
   serve(Math.random() < 0.5);
+}
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first match, until the first real
+// touch, your mallet plays a short rally by itself (the CPU's own fair brain); any goal in that rally is taken back off the board
+const DM = demo(null, { ready: () => state === 'play' && !D.seed && mine + cpu === 0 && !recorded, wait: 1200, ms: 4500 });
+let demoScore = null;
+function demoRally() {
+  if (DM.on) { if (!demoScore) demoScore = [mine, cpu]; ctl.botUntil = clock + 0.1; }
+  else if (demoScore) { mine = demoScore[0]; cpu = demoScore[1]; demoScore = null; }
 }
 ui.onTap(w => { reset(); state = 'play'; t0 = performance.now(); B.start(); tone(660, 0.1, 'triangle', 0.1, 1.4); });
 
@@ -204,6 +213,7 @@ function frame(t) {
     bot.max = p.speed * fk;
     hist.push({ t: clock, x: puck.x, y: puck.y, vx: puck.vx, vy: puck.vy }); while (hist.length > 2 && hist[1].t < clock - p.react / fk) hist.shift();
     brain(bot, true, p, cpuR, hist[0] || puck);
+    demoRally();
     me.max = clock < ctl.botUntil ? 1600 : 3200;
     if (clock < ctl.botUntil) { botM.x = me.x; botM.y = me.y; brain(botM, false, botP, botR, puck); me.tx = botM.tx; me.ty = botM.ty; }
     clampM(me, false); clampM(bot, true);

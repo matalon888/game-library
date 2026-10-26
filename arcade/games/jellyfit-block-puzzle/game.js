@@ -1,6 +1,7 @@
 // Jellyfit — original 8×8 block puzzle. Drag the three offered jelly shapes onto the board; full rows and columns blast away.
 // Keep clearing every few moves to grow a combo. The run ends when none of the offered shapes fits anywhere.
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { createUI, store, buzz, tone, loop } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
@@ -322,6 +323,17 @@ ui.onTap((which) => {
   newRun(); state = 'play';
 });
 ui.start();
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in a fresh run, until the first real touch,
+// the bot's best piece lifts out of the tray, glides over the board and drops into place, twice
+demo(() => {
+  const m = bestMove(); if (!m) return false; const p = tray[m.s], k = L.cell * 0.98;
+  const x0 = L.trayX + (m.s + 0.5) * L.slotW, y0 = L.trayY, x1 = L.bx + m.c0 * L.cell + p.w * k / 2, y1 = L.by + m.r0 * L.cell + p.h * k + L.cell * 1.1;
+  const d = drag = { slot: m.s, x: x0, y: y0, t0: performance.now() }, t0 = performance.now();
+  const go = () => { if (drag !== d) return; const a = Math.min(1, (performance.now() - t0) / 650), e = a * a * (3 - 2 * a);
+    d.x = x0 + (x1 - x0) * e; d.y = y0 + (y1 - y0) * e; if (a < 1) return requestAnimationFrame(go); drag = null; if (state === 'play') place(m.s, m.r0, m.c0); };
+  requestAnimationFrame(go);
+}, { ready: () => state === 'play' && !overT && !drag && !D.isDaily && score < 40, wait: 2000, every: 1500, max: 2 });
 
 // ---------------------------------------------------------------- test hook: the bot plays a greedy placement each call
 function evalBoard(b) {

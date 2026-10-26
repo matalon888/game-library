@@ -6,6 +6,7 @@ import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { THEMES } from './themes.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'seekaloo', label: 'Puzzles solved', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Seekaloo: Word Search Puzzle';
@@ -35,8 +36,7 @@ const SCENES = {
   city: { sky: ['#ffd0c2', '#ffe6d6', '#fff4e8'], layers: ['#c7b8e0', '#a796cf', '#8b7cc0', '#6f63a8'], sun: '#fff6e8', city: true },
   blossom: { sky: ['#ffd6e7', '#ffeaf2', '#fff7ea'], layers: ['#c9e7a8', '#a8d88f', '#f7b5cd', '#8cc879'], sun: '#ffffff', blossom: true },
 };
-// art wave 2: the painted background (index.html, tinted with this game's colours) replaces the drawn landscape
-const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;display:none'; document.body.prepend(bg);
+const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0'; document.body.prepend(bg);
 function paint(sc, seed) {
   const dpr = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight, r = rngf(seed * 977 + 3);
   bg.width = W * dpr; bg.height = H * dpr; const g = bg.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -288,6 +288,16 @@ function win() {
   D.won(shown);
   ui.win(D.isDaily ? '' : level - 1, `${lv.theme.name} · ${lv.words.length} words · ${shown.toLocaleString()} pts`);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// a finger-less swipe runs letter by letter along the shortest hidden word and circles it (its points are taken back)
+demo(() => {
+  const p = lv.words.filter(q => !q.found).sort((a, b) => a.w.length - b.w.length)[0]; if (!p || lv.words.filter(q => !q.found).length <= 3) return false;
+  const n = p.w.length - 1, s0 = score, d0 = dailyScore; begin(p.x0, p.y0); const mine = sel;
+  for (let i = 1; i <= n + 1; i++) setTimeout(() => { if (sel !== mine || state !== 'play') return;
+    if (i <= n) return setEnd(p.x0 + p.dx * i + 0.5, p.y0 + p.dy * i + 0.5);
+    release(); score = s0; dailyScore = d0; S.set('score', score); hud(); }, i * 130);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !sel && lv, wait: 2000, max: 1 });
+
 ui.onTap((which) => {
   B.start();
   if (which === 'start') { state = 'play'; return; }

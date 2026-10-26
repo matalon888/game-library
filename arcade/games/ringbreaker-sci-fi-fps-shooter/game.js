@@ -5,6 +5,7 @@ import { createUI, store, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { createMaterials, createSpace, RAMP, outlineMat } from './world.js';
 import { MISSIONS, HOLDOUT, buildLevel } from './levels.js';
 import { createFX } from './fx.js';
@@ -676,6 +677,16 @@ function botThink() {
   bot.mx = mx; bot.mz = mz; bot.sprint = !tgt && !!goal;
   if (W.ammo[W.cur] === 0) reload();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on mission 1, until the first real touch,
+// the marine walks toward the objective, turns to the nearest robot and fires (the QA bot's own brain); health, grenades, clock and score are rewound
+const DM = demo(null, { ready: () => state === 'play' && intro <= 0 && mode === 'campaign' && mission === MISSIONS[0] && !player.dead && !D.isDaily, wait: 1200, ms: 3000 });
+let demoKeep = null, demoTk = 0;
+function demoPlay(dt) {
+  if (DM.on) { if (!demoKeep) demoKeep = { hp: player.hp, sh: player.shield, score, nades: W.nades, runT }; demoTk -= dt; if (demoTk <= 0) { demoTk = 0.12; botThink(); } }
+  else if (demoKeep) { botOn = false; botT = 0; bot.fire = false; bot.mx = bot.mz = 0;
+    if (!player.dead) { player.hp = Math.max(player.hp, demoKeep.hp); player.shield = Math.max(player.shield, demoKeep.sh); hudVitals(); }
+    W.nades = Math.max(W.nades, demoKeep.nades); runT = demoKeep.runT; hudAmmo(); score = demoKeep.score; $('score').textContent = score.toLocaleString('en-US'); demoKeep = null; }
+}
 function botApply(dt) {
   if (!botOn) return; botT -= dt; if (botT <= 0) { botOn = false; bot.fire = false; bot.mx = bot.mz = 0; return; }
   if (bot.yaw != null && state === 'play' && intro <= 0) { let dy = bot.yaw - player.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); player.yaw += dy * Math.min(1, dt * 9); player.pitch += (bot.pitch - player.pitch) * Math.min(1, dt * 7); }
@@ -727,6 +738,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; tAll += dt;
   if (state === 'play' && intro <= 0 && !player.dead) runT += dt;
   combo.t -= dt;
+  demoPlay(dt);
   botApply(dt);
   if (state === 'play' && intro <= 0) { updatePlayer(dt); updateWeapons(dt); updateNades(dt); updatePickups(dt, tAll); updateObjective(dt); enemies.update(dt); }
   else if (state === 'play' && player.dead) { deadT += dt; enemies.update(dt); }

@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { canvasTex } from './geo.js';
 
 const NAME = 'Hex Hand: Telekinesis Brawl';
@@ -235,6 +236,17 @@ function tapThrow(o) {
   const T = 0.45, v = q.pos.clone().setY(q.big ? 1.2 : 0.4).sub(o.pos).divideScalar(T); v.y += 0.5 * GRAV * T; return v;
 }
 ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the glove's beam lifts a crate (or the nearest imp) and hurls it at the imp closest to you, once
+let demoO = null;
+demo(n => {
+  if (n === 1) {
+    const mine = o => o.alive && o.active && o.stage === si && !o.thrown && !o.boss;
+    demoO = objs.find(o => mine(o) && o.kind === 'crate' && o.pos.y < 0.1) || objs.filter(o => mine(o) && o.kind === 'imp' && !o.ko && o.pos.y < 0.05).sort((a, b) => b.pos.z - a.pos.z)[0];
+    if (!demoO || !grab(demoO)) return false; return;
+  }
+  if (held === demoO) release(true, tapThrow(demoO));
+}, { ready: () => state === 'play' && sub === 'fight' && level === 1 && si === 0 && (!held || held === demoO), wait: 1800, every: 700, max: 2 });
 
 // ---------------------------------------------------------------- simulation
 function updateObj(o, h) {

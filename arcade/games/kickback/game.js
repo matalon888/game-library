@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng,
 import { particles } from './fx.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'kickback', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const stage = createStage({ fov: 30, shadows: true, shadowSize: 11 });
@@ -182,6 +183,18 @@ function shoot() {
   shake = Math.max(shake, 0.08);
 }
 input({ onDown: () => { if (state === 'play') shoot(); } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the pistol kicks twice (blank shots: the recoil flips it, no bullet flies), then it glides back to its start spot and hovers again (no fall, no loss)
+let demoHome = null;
+const DK = demo(n => {
+  if (n === 1) demoHome = { x: player.x, y: player.y };
+  if (n < 3) { const k = bullets.length; shoot(); for (const b of bullets.slice(k)) { b.dead = true; b.m.visible = false; } return; }   // recoil only: the demo's shots never hit anything
+  const from = { x: player.x, y: player.y, a: player.a }, t0 = performance.now(); player.live = false; player.vx = player.vy = player.w = 0;
+  for (const b of bullets) if (b.enemy) b.dead = true;
+  const glide = () => { if (DK.touched || state !== 'play' || !player.alive) return; const k = Math.min(1, (performance.now() - t0) / 500), e = k * k * (3 - 2 * k);
+    player.x = lerp(from.x, demoHome.x, e); player.y = lerp(from.y, demoHome.y, e); player.a = lerp(from.a, Math.round(from.a / (Math.PI * 2)) * Math.PI * 2, e); if (k < 1) requestAnimationFrame(glide); else player.a = 0; };
+  glide();
+}, { ready: () => state === 'play' && level === 1 && player.alive && (!player.live || demoHome), wait: 1800, every: 650, max: 3 });
 ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; buildLevel(); }
   else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }
@@ -213,7 +226,7 @@ function hitEnemy(e, b) {
   shatter(e.g, e.kind === 'gold' ? '#ffc21a' : '#f2443a', at, new THREE.Vector3(b.vx, b.vy, 0).normalize());
   sfx.smash(); buzz([20, 20, 30]); hitStop = 0.08; shake = Math.max(shake, 0.3);
   addScore(10 * combo);
-  ui.pop(combo >= 2 ? `DOUBLE HIT!`.replace('DOUBLE', ['', '', 'DOUBLE', 'TRIPLE', 'MULTI', 'MEGA'][Math.min(5, combo)]) : ['BANG!', 'NICE SHOT!', 'BOOM!', 'GOT HIM!'][Math.floor(Math.random() * 4)], combo >= 2 ? '#ffd23f' : '#ffffff', 34 + combo * 3, 22);
+  ui.pop(combo >= 2 ? `DOUBLE KILL!`.replace('DOUBLE', ['', '', 'DOUBLE', 'TRIPLE', 'MULTI', 'MEGA'][Math.min(5, combo)]) : ['BANG!', 'NICE SHOT!', 'BOOM!', 'GOT HIM!'][Math.floor(Math.random() * 4)], combo >= 2 ? '#ffd23f' : '#ffffff', 34 + combo * 3, 22);
   ui.progress(killed / total);
   if (killed === total) { slowT = 1.3; focus = at.clone(); ui.flash(0.4); }
 }

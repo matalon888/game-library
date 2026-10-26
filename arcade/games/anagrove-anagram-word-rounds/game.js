@@ -5,6 +5,7 @@ import { createUI, store, buzz, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { WORDS } from './words.js';
 import { SAFE } from './safe.js';
@@ -291,6 +292,15 @@ ui.onTap((which) => {
   if (D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play'; lastT = performance.now();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on round 1, until the first real touch,
+// one short word is spelled tile by tile and fills its slot (its points and the clock time are given back)
+const DA = demo(() => {
+  const w = R.words.filter(q => !found.has(q)).sort((a, b) => a.length - b.length)[0]; if (!w) return false;
+  const used = new Set(), plan = [...w].map(ch => { const i = R.letters.findIndex((c, k) => c === ch && !used.has(k)); used.add(i); return i; });
+  const p0 = points, r0 = roundPts, t0 = timeLeft; pick = []; paintTray();
+  plan.forEach((i, k) => setTimeout(() => { if (state === 'play' && !tray.className && !DA.touched) tap(i); }, k * 380));
+  setTimeout(() => { if (state !== 'play' || pick.length !== plan.length || DA.touched) return; enter(); points = p0; roundPts = r0; S.set('points', points); timeLeft = Math.max(timeLeft, t0); hud(); }, plan.length * 380 + 150);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !found.size && !pick.length && !tray.className, wait: 2000, max: 1 });
 build();
 
 // ---------------------------------------------------------------- test hook: the bot taps one letter every ~0.36 s like a

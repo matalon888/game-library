@@ -4,6 +4,7 @@ import { createUI, store, buzz, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp } from './calm.js';
 
 const NAME = 'Tonetrail: Color Sequence Memory Game';
@@ -87,6 +88,10 @@ function fail(i) {
   ui.lose(score ? `Sequence ${score}` : 'Oops!', score >= best && score ? 'New best! The glowing singer was next.' : `Best ${best} · the glowing singer was next`);
 }
 ui.onTap(() => newRun());
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first run, until the first real
+// touch, the one-note opening sequence is answered by pressing the singer that just sang, and round 2 starts playing
+demo(() => { tap(seq[0]); },
+  { ready: () => state === 'play' && phase === 'input' && seq.length === 1 && pos === 0 && runs === 1 && !D.seed, wait: 1800, max: 1 });
 
 // ---------------------------------------------------------------- layout + input
 let dpr = 1, W = 0, H = 0, geo = { s: 300, cx: 0, cy: 0 };

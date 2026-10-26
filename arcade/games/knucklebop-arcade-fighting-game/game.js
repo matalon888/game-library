@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, loop, store, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { FIGHTERS, moveSet, buildModel, animate } from './fighters.js';
 import { ARENAS, buildArena } from './arena.js';
 import { music } from './music.js';
@@ -613,6 +614,15 @@ $('sGo').onclick = goFight;
 
 ui.onTap(w => { audioWake(); if (w === 'start') openSelect(); else startFight(); });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the very first fight, until the first
+// real touch, your fighter moves, punches and blocks on its own (the QA bot's brain); both health bars are rewound afterwards
+const DM = demo(null, { ready: () => state === 'play' && phase === 'fight' && !botOn && rung === 0 && lap === 0 && roundNo === 1 && !D.isDaily, wait: 1200, ms: 4000 });
+let demoHp = null;
+function demoFight() {
+  if (DM.on && P1 && P2) { if (!demoHp) demoHp = [P1.hp, P2.hp, P1.meter, P2.meter]; return true; }
+  if (demoHp) { if (P1 && P2 && phase === 'fight') { [P1.hp, P2.hp, P1.meter, P2.meter] = [Math.max(P1.hp, demoHp[0]), Math.max(P2.hp, demoHp[1]), demoHp[2], demoHp[3]]; } demoHp = null; }
+  return false;
+}
 // ---------------------------------------------------------------- main tick (60 Hz fixed)
 function tick() {
   frame++;
@@ -622,7 +632,7 @@ function tick() {
   if (hitstop > 0) { hitstop--; return; }
   // inputs
   if (phase === 'fight') {
-    if (botOn) think(P1, P2, BOTP);
+    if (botOn || demoFight()) think(P1, P2, BOTP);
     else { const i = P1.in; i.l = H.l || K.l; i.r = H.r || K.r; i.u = H.u || K.u; i.d = H.d || K.d; i.blk = H.blk || K.blk; }
     think(P2, P1, cpuP);
     const c = numpad(P1); if (!P1.dirs.length || P1.dirs[P1.dirs.length - 1].c !== c) { P1.dirs.push({ c, f: frame }); if (P1.dirs.length > 12) P1.dirs.shift(); }

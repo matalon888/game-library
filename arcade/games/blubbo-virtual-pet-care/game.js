@@ -4,6 +4,7 @@ import { createUI, store, buzz, note, tone, sfx } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { fx2d, startCard, cardTheme, arp, chime, soft } from './calm.js';
 import { drawPet, COLORS, HATS, GLASSES, FOODS, drawFood, drawSoap, shade, INK } from './pet.js';
 
@@ -362,6 +363,11 @@ function frame() {
 }
 ui.onTap(w => { state = 'play'; mode = 'home'; MG = null; });
 frame(); ui.start();
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on a new pet, until the first real touch,
+// Blubbo munches the free apple and then gets tickled twice (it squishes, giggles and throws hearts): touching the pet does things
+demo(n => { const f = FOODS.find(f => !f.price); if (n === 1 && P.room === 0 && f && P.hunger < 90) feed(f); else tickle(); },
+  { ready: () => state === 'play' && mode === 'home' && P.lvl === 1 && !P.asleep, wait: 1800, every: 1000, max: 3 });
 
 // ---------------------------------------------------------------- test hook
 let botGame = 1;

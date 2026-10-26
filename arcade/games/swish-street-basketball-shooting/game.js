@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import * as worldBoard from './kit/board.js';             // `board` is the backboard mesh here
+import { demo } from './kit/demo.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
@@ -378,6 +379,20 @@ input({
   onDown: () => { if (state === 'play' && phase === 'aim' && hero.position.distanceTo(heroTargetP) < 0.15) { charging = true; m = 0; mDir = 1; tone(220, 0.08, 'sine', 0.08, 1.4); } },
   onUp: () => { if (state === 'play' && charging) shoot(); },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// one practice shot: the meter charges, releases in the green and the ball flies at the hoop; that ball and its points are given back
+const DW = demo(() => {
+  if (phase !== 'aim' || hero.position.distanceTo(heroTargetP) >= 0.15) return false;
+  const keep = { ballsLeft, made, score, streak, fire }; charging = true; m = 0; mDir = 1; tone(220, 0.08, 'sine', 0.08, 1.4);
+  setTimeout(() => { if (charging && !DW.touched) { m = zoneC; mDir = 1; shoot(); } }, Math.max(150, zoneC / (mSpeed / 1000)));
+  const id = setInterval(() => {
+    if (state !== 'play') return clearInterval(id);
+    if (phase === 'fly' || charging) return;
+    clearInterval(id); const i = ballsTotal - keep.ballsLeft; rack.children[i]?.classList.remove('used', 'made');
+    ({ ballsLeft, made, score, streak, fire } = keep); levelDone = false; ui.score(score); ui.progress(made / target);
+  }, 100);
+}, { ready: () => state === 'play' && level === 1 && phase === 'aim' && !charging && !botPending && ballsLeft === ballsTotal && !D.seed, wait: 1800, max: 1 });
+
 ui.onTap((which) => {
   if (which === 'win' || which === 'lose' || which === 'start') { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); }
 });

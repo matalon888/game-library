@@ -7,6 +7,7 @@ import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 import { buildWorld, LAY } from './world.js';
 import { S as SND, music, setMuted, unlock } from './audio.js';
@@ -903,6 +904,12 @@ function act(g) {
   if (g.st) return tapStation(g.st);
   return false;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on day 1, until the first real touch,
+// the farmer walks over and plants wheat in three empty fields, one after another (seeds are free; the day clock is given back)
+demo(() => {
+  const p = plots.find(q => q.open && q.state === 'empty'); if (!p || !plant(p, cropsOpen()[0] || 'wheat')) return false;
+  dayT = Math.max(0, dayT - 1.2);
+}, { ready: () => state === 'play' && !D.seed && day && day.L === 1 && POP.hidden && $('sheet').hidden, wait: 2000, every: 1200, max: 3 });
 const hintEl = document.createElement('div'); hintEl.id = 'hint'; hintEl.innerHTML = '<i>👆</i><b></b>'; hintEl.style.display = 'none'; document.body.appendChild(hintEl);
 let idleT = 0;
 addEventListener('pointerdown', () => { idleT = 0; hintEl.style.display = 'none'; }, true);

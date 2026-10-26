@@ -3,6 +3,7 @@
 // Most boxes when the grid is full wins. Normal and Hard never hand you a free third side while a safe line is left;
 // Hard also plays the "leave the last two" trick to keep control of long chains.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { store } from './kit/hc.js';
 import { duel, rngf, rrect, ease, SVG, buzz, tone, note, soft, chime } from './duel.js';
 
@@ -123,6 +124,11 @@ const T = duel({
 });
 
 const count = (s) => owner.filter(o => o === s).length;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first game, until the first real
+// touch, one safe line is drawn for you (one that gives the computer no box) and the computer answers with its line
+demo(() => { play(0, cpuPick(2, 0)); },
+  { ready: () => T.state === 'play' && turn === 0 && !busy && moveCount === 0 && !store('boxbound').get('games', 0), wait: 2200, max: 1 });
+
 function head() {
   T.header([{ name: 'You', init: 'Y', color: YOU, score: count(0) }, { name: 'CPU', init: 'C', color: CPU, score: count(1) }], T.state === 'play' ? turn : -1);
   T.score(count(0));

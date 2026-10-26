@@ -7,6 +7,7 @@ import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { World } from './physics.js';
 import { snd } from './audio.js';
 import { ITEMS, BY_ID, CHAPTERS, chapterOf } from './items.js';
@@ -718,6 +719,17 @@ function bot() {
   const ids = [...new Set(pile.map(o => o.id))].sort((a, b) => ((Lv.goals[b] > 0) - (Lv.goals[a] > 0)) || (exposure(best(b)) - exposure(best(a))));
   const o = best(ids[0]); if (o) take(o);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// three matching trinkets (a non-goal kind if there is one) fly from the heap into the tray and merge; the clock gets the time back
+let demoId = null;
+demo(() => {
+  const pile = Lv.objs.filter(o => o.state === 'pile'), by = {};
+  for (const o of pile) by[o.id] = (by[o.id] || 0) + 1;
+  if (!demoId) demoId = Object.keys(by).filter(id => by[id] >= 3).sort((a, b) => (Lv.goals[a] > 0) - (Lv.goals[b] > 0) || by[b] - by[a])[0];
+  const o = demoId && pile.filter(o => o.id === demoId).sort((a, b) => exposure(b) - exposure(a))[0];
+  if (!o || !take(o)) return false; Lv.left += 1.3;
+}, { ready: () => state === 'play' && !loadingLevel && Lv.n === 1 && !Lv.daily && Lv.intro <= 0.6 && Lv.goalTotal - Lv.matched > 3, wait: 2000, every: 1100, max: 3 });
+
 window.__game = {
   get state() { return state; }, get level() { return Lv.daily ? 'daily' : save.level; }, get score() { return totalStars(); },
   get points() { return Lv.points; }, get tray() { return Lv.tray.map(o => o.id); }, get left() { return Lv.left; },

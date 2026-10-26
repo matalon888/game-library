@@ -5,6 +5,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, BASE_CSS, stage2d, rr, sprite, blit, fx as mkfx, hud as mkhud, keys, touchy, dressStart, paused } from './neo.js';
 
 const NAME = 'Bricklash: Brick Breaker';
@@ -159,6 +160,7 @@ function update(dt) {
   if (clearT >= 0) { clearT += dt; if (clearT > 1.6) startLevel(level + 1); return; }
   for (const k in timers) timers[k] = Math.max(0, timers[k] - dt);
   pad.tw = timers.wide > 0 ? 104 : 66; pad.w += (pad.tw - pad.w) * Math.min(1, dt * 10);
+  demoPaddle();
   if (pad.kv) pad.x += pad.kv * 560 * dt;
   if (botT !== null) { const d = botT - pad.x, m = 620 * dt; pad.x += Math.max(-m, Math.min(m, d)); }
   pad.x = Math.max(pad.w / 2, Math.min(FW - pad.w / 2, pad.x));
@@ -192,6 +194,17 @@ keys({
 });
 function cardGo() { for (const k of ['start', 'lose']) { const c = ui.els[k]; if (!c.classList.contains('hc-hidden')) { c.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); return; } } }
 ui.onTap(() => { reset(); state = 'play'; B.start(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the ball launches and the paddle slides under it on its own (the bot's aim, no misses), breaking the first bricks
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && lives === 3 && !D.seed && clearT < 0, wait: 1200, ms: 4500 });
+let demoWas = false;
+function demoPaddle() {
+  if (DM.on) {
+    demoWas = true; if (balls.some(b => b.stuck)) return launch();
+    const live = balls.filter(b => !b.stuck); if (!live.length) return;
+    const b = live.reduce((a, c) => (c.vy > 0 && (a.vy <= 0 || c.y > a.y) ? c : a), live[0]); botT = landX(b);
+  } else if (demoWas) { demoWas = false; if (!DM.touched) botT = null; }
+}
 
 // ---------------------------------------------------------------- layout + drawing
 const L = { k: 1, ox: 0, oy: 0 };

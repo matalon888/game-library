@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, buzz, tone, note, sfx, burst
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Slimeplow: Car Smash Driving';
 const S = store('slimeplow');
@@ -408,6 +409,14 @@ function endRun(reached, why) {
     ui.lose(why, `${dist} m${dist > prevBest && prevBest ? ' · NEW BEST!' : ''} · +${earned} 🔩 parts`);
   }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first real
+// touch, the truck drives off by itself (the game's own driving bot: gas, boost on flats) and plows the first slime; fuel and boost are given back
+const DM = demo(null, { ready: () => phase === 'drive' && stageN === 1 && runs === 1 && !D.isDaily, wait: 1200, ms: 3500 });
+let demoFuel = null;
+function demoDrive() {
+  if (DM.on && phase === 'drive') { if (demoFuel === null) demoFuel = [fuel, boostCharge]; window.__game.bot(); }
+  else if (demoFuel !== null) { if (phase === 'drive') { fuel = Math.max(fuel, demoFuel[0]); boostCharge = Math.max(boostCharge, demoFuel[1]); } demoFuel = null; botC.gas = botC.brake = botC.boost = false; refreshCtl(); }
+}
 ui.onTap(w => {
   ensureAudio();
   if (w === 'start') { if (runs === 0) startRun(); else openGarage(); return; }
@@ -621,6 +630,7 @@ loop((dt, t) => {
   slowmoT = Math.max(0, slowmoT - dts); timeScale = lerp(timeScale, slowmoT > 0 ? 0.35 : 1, 0.2);
   const simDt = dts * timeScale;
   let info = { contacts: 2, roof: false };
+  demoDrive();
   if (phase === 'drive' || phase === 'over') {
     const SUB = 4; for (let i = 0; i < SUB; i++) info = physStep(simDt / SUB);
     if (phase === 'drive') collide();

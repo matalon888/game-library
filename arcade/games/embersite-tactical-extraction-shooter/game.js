@@ -5,6 +5,7 @@ import { createUI, store } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { createWorld, LZS, SPAWNS, BASE, RELAY, PYLONS, DAM_X, DAM_Z, CREST, BOUND, mulberry, riverX } from './world.js';
 import { gunRifle, gunCarbine, gunSMG, crate, charge, powerCell, heli, RARITY } from './models.js';
 import { createFX } from './fx.js';
@@ -446,7 +447,7 @@ function botThink(dt) {
     P.yaw += clamp(dy, -dt * 5, dt * 5); P.pitch += clamp(dp, -dt * 4, dt * 4);
     const err = Math.hypot(dy, dp); wantAds = d > 25; wantFire = err < (w.key === 'rifle' ? .012 : .03) && (w.key !== 'rifle' || G.ads > .9);
     if (d < 14) my = -1; mx = botStrafe * .6; if (Math.random() < dt * .4) botStrafe *= -1;
-    if (W.nades.frag > 0 && d > 14 && d < 32 && enemies.list.filter(e => e.alive && e.p.distanceTo(botTarget.p) < 7).length >= 2 && Math.random() < dt * .5) throwNade('frag');
+    if (!demoKeep && W.nades.frag > 0 && d > 14 && d < 32 && enemies.list.filter(e => e.alive && e.p.distanceTo(botTarget.p) < 7).length >= 2 && Math.random() < dt * .5) throwNade('frag');
   } else {
     let goal = null;
     if (run.exfil) goal = run.heli.root.position; else { const o = objs.find(o => !o.done && o.type === 'hold'); if (o) goal = o.p; else { const k = objs.find(o => o.type === 'kill' && !o.done); if (k) goal = k.e.p; } }
@@ -461,13 +462,27 @@ function botThink(dt) {
   return { mx, my, wantFire, wantAds };
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first contract, until the first real
+// touch, the operator heads for the objective and turns to track what it sees (the game's own bot, holding fire so no alarm is raised);
+// health, ammo, grenades, weapon, clock and score are rewound
+const DM = demo(null, { ready: () => G.state === 'play' && G.phase === 'active' && run && run.idx === 0 && !C0.daily && !S.get('unlocked', 0), wait: 1200, ms: 3500 });
+let demoKeep = null;
+function demoOp() {
+  if (DM.on) { if (!demoKeep) demoKeep = { cur: W.cur, hp: P.hp, armor: P.armor, score: run.score, time: run.time, nades: { ...W.nades }, st: JSON.parse(JSON.stringify(W.st)) }; G.botT = G.time; return; }
+  if (!demoKeep) return; const k = demoKeep; demoKeep = null; G.botT = -9;
+  if (G.state !== 'play' || !P.alive) return;
+  P.hp = Math.max(P.hp, k.hp); P.armor = Math.max(P.armor, k.armor); run.score = k.score; run.time = Math.max(run.time, k.time); W.nades = k.nades;
+  for (const key in k.st) if (W.st[key]) { W.st[key].ammo = Math.max(W.st[key].ammo, k.st[key].ammo); W.st[key].reserve = Math.max(W.st[key].reserve, k.st[key].reserve); }
+  if (W.cur !== k.cur) switchWeapon(k.cur); hud.vitals(P.hp, P.armor); hudWeapon();
+}
 // ------------------------------------------------------------------ player update
 let lastStepD = 0;
 function updatePlayer(dt) {
+  demoOp();
   const botOn = G.time - G.botT < .6;
   let mx = inp.mx + ((keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0)), my = inp.my + ((keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0));
   let wantFire = inp.fire, wantAds = inp.ads;
-  if (botOn && G.phase === 'active') { const b = botThink(dt); mx = b.mx; my = b.my; wantFire = b.wantFire; wantAds = b.wantAds; }
+  if (botOn && G.phase === 'active') { const b = botThink(dt); mx = b.mx; my = b.my; wantFire = b.wantFire && !demoKeep; wantAds = b.wantAds; }
   // look
   const zoom = G.binoc ? 7 : lerp(1, W.st[W.cur].zoom, G.ads), sens = (TOUCH ? .0042 : .0023) / Math.pow(zoom, .85);
   P.yaw -= inp.lookX * sens; P.pitch = clamp(P.pitch - inp.lookY * sens, -1.45, 1.45); inp.lookX = inp.lookY = 0;

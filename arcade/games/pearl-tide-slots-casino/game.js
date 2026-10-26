@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, loop, glossy, mat, rounded, confetti, burst, tone, note, buzz, store, lerp, clamp } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import * as M from './math.js';
 import { drawSymbol, smear, logoCanvas, markerCanvas, vignetteCanvas, glowCanvas, raysCanvas, frameCanvas } from './art.js';
 
@@ -373,6 +374,7 @@ function next() {
   end();
 }
 function end() {
+  if (demoChips !== null) { chips = shown = demoChips; demoChips = null; }   // the demo spin's bet and winnings are taken back
   phase = 'idle'; hud();
   if (chips >= target) return levelWon();
   if (chips < BETS[0]) return levelLost();
@@ -441,6 +443,12 @@ const hitRate = M.HIT_COMBOS / M.ALL_COMBOS;
 bar.querySelector('.pt-odds').addEventListener('pointerdown', e => { e.stopPropagation(); oddsPanel(); });
 
 // ---------------------------------------------------------------- flow
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the reels spin once on their own (a normal fair draw) and show what lands; that spin's bet and any win are given back
+let demoChips = null;
+demo(() => { demoChips = chips; spin(); if (phase !== 'spin') demoChips = null; },
+  { ready: () => state === 'play' && level === 1 && !D.seed && phase === 'idle' && !overlay && fs.total === 0 && chips === levelStart, wait: 2200, max: 1 });
+
 ui.onTap(which => {
   B.start();
   if (which === 'start') { state = 'play'; winEl.innerHTML = `Reach <b style="font-size:26px">${fmt(target)}</b> chips`; tone(660, 0.08, 'triangle', 0.12, 1.3); previewLines(); }

@@ -6,6 +6,7 @@ import { money } from './kit/money.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { flow } from './kit/flow.js';
+import { demo } from './kit/demo.js';
 import { A, $, h, eat, theme, icon, toast, sheet, sheetOpen, toggleRow, snd, music, saved, dayKey, prettyDay, streakNow, streakWin, freezes, albumSheet, shareText, pluck } from './sb.js';
 
 const NAME = 'Botanical Brush';
@@ -625,6 +626,15 @@ goHome();
 
 // ---------------------------------------------------------------- test hooks
 let botTick = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first page, until the first real
+// touch, the brush picks a strong colour and paints the three biggest open areas, so the page shows what a tap does
+demo(() => {
+  const lum = c => String(cur.P.pal[c]).split(',').reduce((a, v, i) => a + v * [0.3, 0.59, 0.11][i], 0);
+  const open = cur.P.R.filter(q => q && !cur.filled.has(q.id)), dark = open.filter(q => lum(q.c) < 170);
+  const r = (dark.length ? dark : open).sort((p, q) => (q.b - q.a) - (p.b - p.a))[0]; if (!r) return false;
+  if (cur.sel !== r.c) selectColour(r.c); fill(r, r.x, r.y);
+}, { ready: () => state === 'play' && cur && !cur.isDaily && st.journey === 1 && !sheetOpen() && !anims.length && cur.filled.size < cur.P.n - 12, wait: 2000, every: 1200, max: 3 });
+
 window.__game = {
   get state() { return state; }, get level() { return st.journey; }, get view() { return { ...view, L, zoomAnim: !!zoomAnim }; },
   get score() { return st.stats.solved * 1000 + (cur ? cur.filled.size : 0); },

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Plunge Peak: Cliff Diving';
 const S = store('plungepeak');
@@ -299,6 +300,16 @@ input({
   onDown: () => { if (state !== 'play') return; hold = true; if (phase === 'stand') leap(); },
   onUp: () => { hold = false; },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the diver does one practice dive (the bot's hold-and-release flip) and it is not counted: still dive 1 of 3, score unchanged
+demo(() => {
+  const s0 = score; window.__game.bot();
+  const id = setInterval(() => {
+    if (state !== 'play') return clearInterval(id);
+    if (phase === 'air') window.__game.bot();
+    else if (phase !== 'stand') { clearInterval(id); dive = 0; score = s0; ui.score(score); ui.progress(0); }
+  }, 30);
+}, { ready: () => state === 'play' && level === 1 && !D.seed && phase === 'stand' && dive === 0, wait: 1800, max: 1 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); camSnap = true; });
 
 // ---------------------------------------------------------------- loop

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, tone, sfx, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const KEY = 'noodle', NAME = 'Noodle Rumble: Snake Battle Arena';
 const S = store(KEY);
@@ -380,8 +381,14 @@ ui.onTap((which) => { B.start();
 });
 
 // ---------------------------------------------------------------- loop
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// your noodle steers itself to the nearest orbs and away from bigger snakes (the game's own bot brain); the length it gains is taken back after and it turns back to its old heading
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed && player && player.alive, wait: 600, ms: 3500 });
+let demoTk = 0, demoLen = 0, demoAng = 0;
 loop((dt, t) => {
   clock = t;
+  if (DM.on) { if (!demoLen) { demoLen = player.len; demoAng = player.tAng; } if ((demoTk -= dt) <= 0) { demoTk = 6; window.__game.bot(); } }
+  else if (demoLen) { if (state === 'play' && player.alive) { player.len = Math.min(player.len, demoLen); player.tAng = demoAng; ui.score(Math.round(player.len)); ui.progress(player.len / boss.len); } demoLen = 0; }   // the demo's growth is taken back
   if (state === 'play') {
     for (const s of snakes) {
       if (!s.alive) continue;

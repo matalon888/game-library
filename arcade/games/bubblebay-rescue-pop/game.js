@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { loader, piece } from './assets.js';
 import { ISLANDS, buildIsland, buildSea, critterHerd, ISLAND_R } from './bay.js';
 import { makeLevel, CRITTERS, COLORS, isHard, rng, LAUNCH_Y } from './levels.js';
@@ -570,6 +571,13 @@ dblBtn.addEventListener('click', async e => {
   if (await M.rewarded('double', { what: `${lastCoins * 2} coins instead of ${lastCoins}` })) { M.add(lastCoins, 'double'); lastCoins *= 2; winCoins.querySelector('span').textContent = '+' + lastCoins; snd.coin(); dblBtn.classList.add('bb-hidden'); }
   else dblBtn.disabled = false;
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the cannon sweeps its aim line onto the best match and shoots once (the bot's own shot, the shot is given back)
+const DB = demo(() => {
+  if (SH.crittersLeft < curLevel.nCrit) return false;
+  let k = 0; const id = setInterval(() => { if (DB.touched) return clearInterval(id); const s = SH.G.shots; SH.bot(); if (SH.G.shots < s) { SH.G.shots++; hooks.shots(SH.G.shots); clearInterval(id); } if (++k > 8) clearInterval(id); }, 260);
+}, { ready: () => mode === 'level' && state === 'play' && !dailyMode && curLevel?.n === 1 && SH.state === 'play' && !SH.busy && !(outPop && outPop.isConnected), wait: 2500, every: 2600, max: 1 });
 
 ui.onTap(async which => {
   snd.unlock();

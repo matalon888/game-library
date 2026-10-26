@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, loop, burst, confetti, sfx, tone, note, b
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'shade-shop', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const ST = store('shadeshop');
 const F = flow('shadeshop');
@@ -302,6 +303,14 @@ loop((dt, t) => {
 });
 
 layout(); buildLevel();
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// a drop of a recipe paint falls into the pot and swirls in, then the pot is emptied again so the puzzle stays untouched
+demo(n => {
+  if (n === 2) return resetPot();
+  const need = [0, 1, 2, 3, 4].find(i => counts[i] < recipe[i]); const btn = need !== undefined && [...$('paints').children].find(b => +b.dataset.i === need);
+  if (!btn) return false; addDrop(need, btn);
+}, { ready: () => state === 'play' && phase === 'mix' && level === 1 && !drops.length, wait: 1800, every: 1600, max: 2, ms: 8000 });
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },

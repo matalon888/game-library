@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Snip Studio: Hair Salon Makeover';
 const $ = (id) => document.getElementById(id);
@@ -356,6 +357,11 @@ function finish() {
     ui.lose('NOT THE LOOK!', `${pct}% match · need ${Math.round(L.thr * 100)}%`);
   }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// a few spots of hair are rubbed and foam up (the bot's own rubbing), stopping well before the wash is done
+demo(() => { if (washFrac() > 0.45) return false; window.__game.bot(); },
+  { ready: () => state === 'play' && phase === 'wash' && level === 1 && !D.isDaily, wait: 1800, every: 700, max: 4 });
+
 ui.onTap((which) => {
   B.start();
   if (which === 'start') { state = 'play'; beginWash(); sfx.tap(); }

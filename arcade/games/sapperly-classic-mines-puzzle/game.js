@@ -2,6 +2,7 @@
 // Tap to dig, long-press (or Flag mode) to plant a flag, tap a number whose flags are all placed to dig around it.
 // The first dig is always safe and opens an area. Beginner / Intermediate / Expert, a daily board, hints, world board.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, SVG } from './puzzle.js';
 
 const DIFFS = [
@@ -82,6 +83,10 @@ const P = shell({
   },
 });
 let botN = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first board, until the first real
+// touch, the always-safe first dig is made in the middle so the field opens up and shows its numbers
+demo(() => { act((H >> 1) * W + (W >> 1)); },
+  { ready: () => P.state === 'play' && first && P.level === 1 && !P.D.isDaily && !flagMode, wait: 2000, max: 1 });
 
 function nb(c) { const x = c % W, y = (c / W) | 0, out = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < W && Y < H) out.push(Y * W + X); } return out; }
 function countAdj() { for (let c = 0; c < W * H; c++) adj[c] = nb(c).reduce((a, n) => a + mine[n], 0); }

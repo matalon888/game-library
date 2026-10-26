@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, buzz, sfx, tone, note, burst
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Pilepick: Triple Sort 3D';
 const S = store('pilepick');
@@ -224,6 +225,15 @@ build(); ui.start();
 
 // ---------------------------------------------------------------- test hook
 const visible = it => { const h = hitAt(...toScreen(it.p)); return h === it; };
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// three matching toys hop from the pile onto the shelf one by one and pop as a triple (the clock gets the time back)
+let demoK = null;
+demo(() => {
+  const vis = items.filter(visible), by = {}; for (const i of vis) by[i.k] = (by[i.k] || 0) + 1;
+  if (demoK === null) { const k = Object.keys(by).find(k => by[k] >= 3); if (k === undefined) return false; demoK = +k; }
+  const it = vis.find(i => i.k === demoK); if (!it) return false; pick(it); timeLeft += 1.3;
+}, { ready: () => state === 'play' && level === 1 && !D.seed && cleared + 6 < total && shelf.filter(s => !s.dying).length < 4, wait: 2000, every: 1100, max: 3 });
+
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() {

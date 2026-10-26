@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confet
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import * as kitBoard from './kit/board.js';   // `board` is a local name here
+import { demo } from './kit/demo.js';
 const B = kitBoard.board({ game: 'comb-stack', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Comb Stack: Hex Tile Stacking';
@@ -284,6 +285,15 @@ function bot() {
 }
 
 // ---------------------------------------------------------------- loop
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the bot's chosen stack lifts off the tray, glides over the board and lands next to its colour, twice
+demo(() => {
+  const pick = (() => { const p0 = place; let got = null; place = (o, c) => { got = [o, c]; }; try { bot(); } finally { place = p0; } return got; })();
+  if (!pick) return false; const [o, c] = pick, d = drag = { o, at: o.home.clone(), target: c, x0: 0, y0: 0, moved: true }, a = o.home.clone(), b = new THREE.Vector3(c.p.x, 0.45, c.p.z), t0 = performance.now();
+  const go = () => { if (drag !== d) return; const k = Math.min(1, (performance.now() - t0) / 700), e = k * k * (3 - 2 * k);
+    d.at.lerpVectors(a, b, e); d.at.y = 0.45 + Math.sin(k * Math.PI) * 0.6; if (k < 1) return requestAnimationFrame(go); drag = null; if (state === 'play') place(o, c); };
+  requestAnimationFrame(go);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !busy && !drag && !sel && cleared < goal - 12, wait: 2000, every: 1800, max: 2 });
 ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } buildLevel(); state = 'play'; });
 buildLevel(); ui.start();
 const UP = new THREE.Vector3(0, 1, 0);

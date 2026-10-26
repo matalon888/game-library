@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Hoopwing: Winged Basketball Hoops';
 const S = store('hoopwing');
@@ -181,6 +182,10 @@ function die(why) {
 }
 
 input({ onDown: () => flap() });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first run, until the first real touch,
+// the ball flaps itself through the next hoops (the bot's own timing); those demo hoops give no points, the score goes back to 0
+const DM = demo(null, { ready: () => state === 'play' && stageN === 1 && !D.isDaily, wait: 0, ms: 4000 });
+let demoWas = false;
 ui.onTap(w => { if (w === 'lose' || w === 'win') reset(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); v.y = FLAP * 0.8; });
 
 // ---------------------------------------------------------------- physics
@@ -214,6 +219,7 @@ function physics(dt) {
 // ---------------------------------------------------------------- loop
 loop((dt, t) => {
   clock = t; const step = dt / 60;
+  if (DM.on) { window.__game.bot(); demoWas = true; } else if (demoWas) { demoWas = false; score = 0; ui.score(0); }
   if (state === 'play') {
     speed = clamp((5 + Math.min(stageN - 1, 8) * 0.35) * F.k(score), 4.2, 9);
     for (let i = 0; i < 3; i++) physics(step / 3);

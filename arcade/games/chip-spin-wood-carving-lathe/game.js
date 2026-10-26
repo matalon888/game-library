@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, loop, tone, note, buzz, confetti, store, 
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Chip Spin: Wood Carving Lathe';
 const S = store('chipspin');
@@ -265,6 +266,10 @@ const up = (e) => {
   down = false;
 };
 addEventListener('pointerup', up); addEventListener('pointercancel', up);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the chisel sweeps in from the left end and carves a quarter of the blank down to (never past) the target shape
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed && phase === 'carve' && !down, wait: 1500, ms: 3200 });
+let demoX = null;
 ui.onTap((which) => { audioOn(); B.start(); if (which === 'start' && state === 'ready') { state = 'play'; return; } build(); state = 'play'; });
 
 // ---------------------------------------------------------------- loop
@@ -272,6 +277,7 @@ let hissV = 0, rebuildT = 0;
 loop((dt, t) => {
   spin += (phase === 'done' ? 0.06 : 0.32) * dt; if (wood) { wood.rotation.y = spin; ghost.rotation.y = spin; }
   // carve along the tool's path since last frame
+  if (DM.on && phase === 'carve') { if (demoX === null) { demoX = -LEN / 2 + 0.05; prev = null; } demoX = Math.min(demoX + 0.008 * dt, -LEN / 4); cx = demoX; cd = safeDepth(cx); }
   if (state === 'play' && phase === 'carve') {
     if (plunge) { cx = Math.min(plunge.x1, cx + 0.012 * dt); const d = Math.max(plunge.d, safeDepth(cx)); cd = Math.max(d, cd - 0.08 * dt); if (cx >= plunge.x1) plunge = null; }
     const p = prev || [cx, cd], steps = Math.max(1, Math.ceil(Math.abs(cx - p[0]) / 0.02 + Math.abs(cd - p[1]) / 0.02));

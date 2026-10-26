@@ -12,6 +12,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { buildDorm, radialTex } from './dorm.js';
 import { snd } from './audio.js';
 import { FRIENDS, FRIEND_IDS, CH, CHAIN_NAME, NAMES, GENS, REACT, ROOMS, TASK_TOTAL, roomOf, STORY, NAME_OF } from './story.js';
@@ -806,6 +807,13 @@ function bot() {
   const anyPair = findPair(); if (anyPair && full) { merge(anyPair[0], anyPair[1]); return; }
   if (full) { const it = ents.find(e => e.kind === 'item' && !e.locked && !e.fly); if (it) sell(it); }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// a generator pops out an item and then two matching items merge (free energy on level 1; the demo's taps are not counted)
+demo(n => {
+  const pair = findPair(); if (pair && n > 1) { merge(pair[0], pair[1]); return; }
+  const g = ents.find(e => e.kind === 'gen'); if (!g || !genTap(g)) return false; taps--;
+}, { ready: () => state === 'play' && level && level.n === 1 && !level.daily && level.free && !storyOpen && !document.querySelector('.sheet'), wait: 2000, every: 1300, max: 3 });
+
 renderer.info.autoReset = false;
 const PERF = { calls: 0, tris: 0 };
 window.__dbg = { PERF, renderer, camera, scene, MD, IM, W, S, MON, get ents() { return ents; }, get level() { return level; }, startLevel, restoreNext, openAlbum, energySheet, checkStory };

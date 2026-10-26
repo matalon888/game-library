@@ -5,6 +5,7 @@ const buzz = p => { try { if (navigator.userActivation && !navigator.userActivat
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { PARKS, buildPark } from './park.js';
 import { buildSkater, DECKS, OUTFITS } from './skater.js';
 import { initAudio, setMuted, isMuted, snd, setRoll } from './audio.js';
@@ -134,6 +135,7 @@ function paintGoals() {
   goalsEl.innerHTML = goals.map(g => `<div class="${g.done ? 'ok' : ''}"><i>${g.done ? '✓' : ''}</i>${g.text}<small>${g.done ? '' : g.sec ? g.have.toFixed(1) + '/' + g.need : Math.floor(g.have) + '/' + g.need}</small></div>`).join('');
 }
 function event(ev, e) {
+  if (DM.on || demoKeep || demoTail) return;   // demo tricks (first seconds) never earn career medals or goals
   for (const c of CAREER) if (c.ev === ev && !prog.done.includes(c.id) && c.test(e)) {
     prog.done.push(c.id); saveProg(); snd.chime(); confetti(scene, sk.p.clone().add(new V3(0, 1.5, 0)), 40);
     const n = prog.done.length, deck = DECKS.find(d => d.need === n), outfit = [0, 3, 7].indexOf(n);
@@ -161,6 +163,7 @@ function addItem(name, pts) {
 }
 function bank() {
   if (!combo.items.length) return;
+  if (DM.on || demoTail) { combo = { items: [], pts: 0 }; return; }   // the demo's own tricks bank nothing
   const count = combo.items.length, total = combo.pts * count;
   score += total; snd.bank(count);
   if (count >= 2 || total >= 500) ui.pop(`+${fmt(total)}`, count >= 4 ? '#ffd23f' : '#ffffff', count >= 4 ? 42 : 34, 22);
@@ -582,9 +585,19 @@ function bot() {
   inp.bot = out;
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first session, until the first real
+// touch, the skater pushes off and rides a line by itself (the QA bot's own riding); clock, score and combo are given back after and it earns no goals or medals
+const DM = demo(null, { ready: () => state === 'play' && !prog.done.length && !prog.sessions && !D.isDaily, wait: 1200, ms: 4500 });
+let demoKeep = null, demoT = 0, demoTail = false;
+function demoRide() {
+  if (DM.on) { if (!demoKeep) demoKeep = { score, tLeft }; if (clock - demoT > 0.12) { demoT = clock; bot(); } }
+  else if (demoKeep) { if (state === 'play') { score = demoKeep.score; tLeft = Math.max(tLeft, demoKeep.tLeft); combo = { items: [], pts: 0 }; } demoKeep = null; demoTail = true; inp.bot = null; }
+  else if (demoTail && sk.mode === 'ground' && !combo.items.length) demoTail = false;
+}
 // ---------------------------------------------------------------- main loop
 loop((dtf, t) => {
   const dt = Math.min(0.05, dtf / 60); clock = t;
+  demoRide();
   readInput();
   if (state === 'play') {
     physics(dt);

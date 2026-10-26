@@ -3,9 +3,9 @@ import { money } from './kit/money.js';
 import { board } from './kit/board.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
+import { demo } from './kit/demo.js';
 import { OBJ, ROOMS, ROOM_IDS } from './data.js';
 import { CHAPTERS, STORY_SCENES, DECOR, BLOOMS, VISITS, DAILY_LINES, STAMPS } from './story.js';
-import { SCENES } from './scenes.js';
 
 const SLUG = 'larkspur-manor', NAME = 'Larkspur Manor: Hidden Objects';
 const Q = new URLSearchParams(location.search);
@@ -35,11 +35,7 @@ const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const IMG = {};
 const img = src => IMG[src] || (IMG[src] = new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }));
 const objSrc = id => `assets/obj/ho-${id}.webp`;
-const roomSrc = (id, o) => SCENES[id] ? sceneSrc(id) : `assets/rooms/room-${id}${o === 'W' ? '-wide' : ''}.webp`;
-// painted scenes (scenes.js): the objects are in the painting; their list icons are crops of it, their names are the scene's
-const sceneSrc = id => `assets/scenes/${id}.webp`;
-const iconOf = id => (L && L.icons && L.icons[id]) || objSrc(id);
-const nameOf = id => (L && L.names && L.names[id]) || (OBJ[id] ? OBJ[id][0] : id);
+const roomSrc = (id, o) => `assets/rooms/room-${id}${o === 'W' ? '-wide' : ''}.webp`;
 let toastT;
 function toast(t, ms = 2600) { const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), ms); }
 
@@ -148,23 +144,6 @@ function placeAll(Lv) {
   }
   return { ids, P: placed.P, W: placed.W };
 }
-// a painted scene: Lv.count objects out of the painting (fresh ones first), the story clue first; a clue the painting doesn't
-// hold is a cut-out on one of the scene's surfaces. Boxes become scene pixels, padded a little for fingers.
-function placePainted(Lv) {
-  const sc = SCENES[Lv.room], R = rng(Lv.seed), W = 896, H = 1200, pad = 0.012;
-  const last = (S.lastIds || {})[Lv.room] || [];
-  const sh = shuffle(Object.keys(sc.objs).filter(id => id !== Lv.clue), R);
-  const pool = [...sh.filter(id => !last.includes(id)), ...sh.filter(id => last.includes(id))];
-  const list = [], names = {};
-  if (Lv.clue && !sc.objs[Lv.clue]) { const c = tryPlace(Lv.clue, sc.surf, [], R, Lv); if (c) list.push(c); }
-  for (const id of (Lv.clue && sc.objs[Lv.clue] ? [Lv.clue, ...pool] : pool)) {
-    if (list.length >= Lv.count) break;
-    const [name, bs] = sc.objs[id]; names[id] = name;
-    const boxes = bs.map(b => ({ x0: (b[0] - pad) * W, y0: (b[1] - pad) * H, x1: (b[2] + pad) * W, y1: (b[3] + pad) * H })), b = boxes[0];
-    list.push({ id, painted: true, boxes, box: b, x: (b.x0 + b.x1) / 2, y: b.y1, w: b.x1 - b.x0, h: b.y1 - b.y0, found: false });
-  }
-  return { ids: list.map(o => o.id), P: list, W: list, names };
-}
 function tryPlace(id, surfs, others, R, Lv) {
   const [, cm, sw, sh] = OBJ[id];
   const fit = surfs.filter(s => s[5] >= cm);
@@ -221,11 +200,6 @@ function buildComp() {
   x.drawImage(roomImg, 0, 0);
   const light = ROOMS[L.room].light;
   for (const o of [...objs()].sort((a, b) => a.y - b.y)) {
-    if (o.painted) {   // in the painting already: a found one gets a soft gold ring
-      if (o.found) { x.save(); x.strokeStyle = 'rgba(224,186,92,.9)'; x.lineWidth = 5; x.shadowColor = 'rgba(255,236,170,.9)'; x.shadowBlur = 12;
-        x.beginPath(); x.ellipse(o.x, (o.box.y0 + o.box.y1) / 2, o.w * 0.6, o.h * 0.6, 0, 0, 7); x.stroke(); x.restore(); }
-      continue;
-    }
     if (o.found || o.flying) continue;
     const im = objImgs[o.id]; if (!im) continue;
     const t = tinted(im, o.id, light);
@@ -382,11 +356,8 @@ function tapAt(sx, sy) {
   let best = null, bd = Infinity;
   for (const o of objs()) {
     if (o.found) continue;
-    for (const b of o.boxes || [o.box]) {   // inside several boxes: the smallest one (a necklace in the jewellery box)
-      const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1), d = Math.hypot(dx, dy);
-      const key = d > 0 ? 1e9 + d : (b.x1 - b.x0) * (b.y1 - b.y0);
-      if (d <= tol && key < bd) { bd = key; best = o; }
-    }
+    const b = o.box, dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1), d = Math.hypot(dx, dy);
+    if (d <= tol && d < bd) { bd = d; best = o; }
   }
   if (best) return found(best);
   const now = performance.now();
@@ -401,7 +372,7 @@ function found(o) {
   for (const k of ['P', 'W']) { const q = L[k].find(x => x.id === o.id); if (q) q.found = true; }
   L.left = L.left.filter(id => id !== o.id);
   L.marks.push(L.usedHintOn === o.id ? 'h' : L.missSince ? 'm' : 'g'); L.missSince = 0;
-  if (OBJ[o.id]) S.curios[o.id] = 1;
+  S.curios[o.id] = 1;
   compDirty = true; if (lens && lens.o.id === o.id) lens = null;
   sparkle(o.x, o.y - o.h / 2, Math.max(o.w, o.h) * 0.6);
   sfx.find(n); try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
@@ -413,7 +384,7 @@ function found(o) {
 function flyToList(o) {
   const it = document.querySelector(`.it[data-id="${o.id}"]`); if (!it) return;
   const r = cv.getBoundingClientRect(), a = toScreen(o.x, o.y - o.h / 2), w = o.w * cam.s, h = o.h * cam.s;
-  const im = document.createElement('img'); im.className = 'fly'; im.src = iconOf(o.id);
+  const im = document.createElement('img'); im.className = 'fly'; im.src = objSrc(o.id);
   im.style.left = (r.left + a.x - w / 2) + 'px'; im.style.top = (r.top + a.y - h / 2) + 'px'; im.style.width = w + 'px'; im.style.height = h + 'px';
   document.body.appendChild(im);
   const t = it.getBoundingClientRect(), tx = t.left + 24 - (r.left + a.x), ty = t.top + t.height / 2 - (r.top + a.y), sc = 40 / Math.max(w, h, 1);
@@ -451,39 +422,31 @@ async function loadRoom() {
   const o = view.o, im = await img(roomSrc(L.room, o));
   if (view.o !== o) return;
   roomImg = im; comp = null; compDirty = true; fitCam(true); dirty = true;
-  if (L.painted && im && !L.icons) {   // list icons: the painting cropped around each object (square, a little air around it)
-    L.icons = {};
-    for (const q of L.P) if (q.painted) {
-      const b = q.box, side = Math.max(b.x1 - b.x0, b.y1 - b.y0) * 1.1, cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2, c = document.createElement('canvas'); c.width = c.height = 128;
-      c.getContext('2d').drawImage(im, cx - side / 2, cy - side / 2, side, side, 0, 0, 128, 128); L.icons[q.id] = c.toDataURL('image/jpeg', 0.85);
-    }
-  }
   $('#loading').classList.add('off');
 }
 async function startLevel(kind = 'story') {
   mode = kind;
   const n = kind === 'story' ? S.lvl : S.lvl;
-  const info = levelInfo(n, kind), painted = !!SCENES[info.room];
-  if (painted && info.mode === 'shadows') info.mode = 'words';   // a crop of a painting has no clean silhouette
-  const pl = painted ? placePainted(info) : placeAll(info);
-  L = { ...info, painted, names: pl.names || null, icons: null, ids: pl.ids, P: pl.P, W: pl.W, left: [...pl.ids], misses: 0, marks: [], hints: 0, usedHintOn: null, missSince: 0, done: false };
+  const info = levelInfo(n, kind);
+  const pl = placeAll(info);
+  L = { ...info, ids: pl.ids, P: pl.P, W: pl.W, left: [...pl.ids], misses: 0, marks: [], hints: 0, usedHintOn: null, missSince: 0, done: false };
   L.count = L.ids.length;
   S.lastIds = { ...(S.lastIds || {}), [L.room]: L.ids }; save();
   $('#roomName').textContent = ROOMS[L.room].name; $('#roomSub').textContent = L.sub;
   $('#panel').className = 'paper mode-' + L.mode;
-  updateHintBadge();
+  buildList(); updateHintBadge();
   roomImg = null; resize();
-  await Promise.all(L.P.filter(o => !o.painted).map(o => img(objSrc(o.id)).then(i => { objImgs[o.id] = i; })));
-  await loadRoom(); buildList(); resize();   // the list's height sets the scene's (the icons come from the painting, so it fills in last)
+  await Promise.all(L.ids.map(id => img(objSrc(id)).then(i => { objImgs[id] = i; })));
+  await loadRoom();
   document.body.classList.add('playing'); hideHub();
   showIntro();
 }
 function buildList() {
   const el = $('#list'); el.innerHTML = '';
-  const order = [...L.ids].sort((a, b) => (a === L.clue ? -1 : b === L.clue ? 1 : nameOf(a).localeCompare(nameOf(b))));
+  const order = [...L.ids].sort((a, b) => (a === L.clue ? -1 : b === L.clue ? 1 : OBJ[a][0].localeCompare(OBJ[b][0])));
   for (const id of order) {
     const d = document.createElement('div'); d.className = 'it' + (id === L.clue ? ' clue' : ''); d.dataset.id = id;
-    d.innerHTML = `<img src="${iconOf(id)}" alt=""><span>${L.mode === 'shadows' ? '' : nameOf(id)}</span>`;
+    d.innerHTML = `<img src="${objSrc(id)}" alt=""><span>${L.mode === 'shadows' ? '' : OBJ[id][0]}</span>`;
     if (L.mode === 'shadows') d.setAttribute('aria-label', 'Find this shape');
     el.appendChild(d);
   }
@@ -497,10 +460,9 @@ function updateList() {
 }
 function showIntro() {
   state = 'ready';
-  const clue = L.clue ? `<img class="clueimg" src="${iconOf(L.clue)}" alt=""><h3>Look for the ${nameOf(L.clue).toLowerCase()}: it is part of the story</h3>` : '';
-  const iris = L.kind === 'story' && L.n === 1 ? `<div class="lovers"><figure><img src="assets/scenes/iris.webp" alt=""><figcaption>Iris, 1974</figcaption></figure></div>` : '';
+  const clue = L.clue ? `<img class="clueimg" src="${objSrc(L.clue)}" alt=""><h3>Look for the ${OBJ[L.clue][0].toLowerCase()}: it is part of the story</h3>` : '';
   const how = L.mode === 'shadows' ? '<p><i>A trickier room: the list shows only shapes.</i></p>' : L.n <= 2 && L.kind === 'story' ? '<p><i>Tap each object on the list when you spot it. There is no timer.</i></p>' : '';
-  card(`<div class="ribbon ${L.kind === 'daily' ? 'navy' : ''}">${L.title}</div><h3>${L.sub}</h3><p>${L.intro}</p>${iris}${clue}${how}
+  card(`<div class="ribbon ${L.kind === 'daily' ? 'navy' : ''}">${L.title}</div><h3>${L.sub}</h3><p>${L.intro}</p>${clue}${how}
     <button class="btn" data-primary data-go>Begin</button><button class="btn ivory" data-home>Back to the manor</button>`, {
     go: () => { closeCard(); beginPlay(); }, home: () => { closeCard(); goHub(); } });
 }
@@ -528,7 +490,7 @@ async function win() {
   sfx.win(); petals();
   const st = [1, 2, 3].map(i => `<img src="assets/ui/${i <= stars ? 'star-full' : 'star-empty'}.webp" alt="">`).join('');
   const sc = L.ch && L.clue ? L.ch.scenes.find(s => s.clue === L.clue) : null;
-  const story = sc ? `<img class="clueimg" src="${iconOf(L.clue)}" alt=""><p>${sc.found}</p>` : `<p>${L.misses <= 3 ? 'Beautifully done. Not a thing out of place.' : 'All found. The room looks lovely again.'}</p>`;
+  const story = sc ? `<img class="clueimg" src="${objSrc(L.clue)}" alt=""><p>${sc.found}</p>` : `<p>${L.misses <= 3 ? 'Beautifully done. Not a thing out of place.' : 'All found. The room looks lovely again.'}</p>`;
   const share = L.kind === 'daily' ? `<button class="btn sage" data-share><img src="assets/ui/i-share.webp" alt="">Share today's result</button>` : '';
   const dbl = !M.hasPass() ? `<button class="btn ivory" data-dbl><img src="assets/ui/i-play.webp" alt="">Double coins (short video)</button>` : '';
   let coinsShown = coins;
@@ -554,7 +516,7 @@ async function next() {
 function chapterEnd(ci) {
   const ch = CHAPTERS[ci]; state = 'ready';
   card(`<div class="ribbon sage">Chapter ${ci + 1} complete</div><h2>${ch.title}</h2><img class="div" src="assets/ui/divider.webp" alt="">
-    <p><i>${ch.end}</i></p><div class="lovers"><figure><img src="assets/scenes/iris.webp" alt=""><figcaption>Iris</figcaption></figure>${ci >= 1 ? '<figure><img src="assets/scenes/thomas.webp" alt=""><figcaption>Thomas</figcaption></figure>' : ''}</div><button class="btn" data-primary data-go>Back to the manor</button>`, { go: () => { closeCard(); goHub(); } });
+    <p><i>${ch.end}</i></p><img src="assets/ui/wax-seal.webp" alt="" style="width:76px"><button class="btn" data-primary data-go>Back to the manor</button>`, { go: () => { closeCard(); goHub(); } });
 }
 function lose() {
   if (state !== 'play') return;
@@ -626,7 +588,7 @@ $('#sh').addEventListener('click', e => { if (e.target.id === 'sh') closeSheet()
 addEventListener('keydown', e => { if (e.key === 'Escape' && $('#sh').classList.contains('on')) closeSheet(); });
 
 function albumSheet() {
-  const n = stampCount(), all = Object.keys(OBJ), got = all.filter(id => S.curios[id]).length;
+  const n = stampCount(), got = Object.keys(S.curios).length, all = Object.keys(OBJ);
   sheet(`<div class="ribbon navy">Iris's Album</div><h3>${n} of ${STAMPS.length} stamps · one for each story scene, then one every two visits</h3>
     <div class="grid">${STAMPS.map((s, i) => `<img class="${i < n ? '' : 'lock'}" src="assets/stamps/stamp-${s}.webp" alt="${i < n ? s : 'Locked stamp'}">`).join('')}</div>
     <img class="div" src="assets/ui/divider.webp" alt=""><h2>Curio cabinet</h2><h3>${got} of ${all.length} curios found</h3>
@@ -645,9 +607,7 @@ function gardenSheet() {
     return `<div class="shop-row ${own ? 'done' : ''}"><img src="assets/plants/${b.id}-bloom.webp" alt=""><div><b>${b.name}</b><small>${own ? 'In bloom' : 'Plant along the lawn'}</small></div>
       <button class="btn ivory" data-b="${b.id}" ${own ? 'disabled' : ''}>${own ? '✓' : `<img src="assets/ui/coin.webp" alt="" style="width:26px;height:26px">${b.cost}`}</button></div>`;
   }).join('');
-  const gp = Math.round(100 * S.decor.length / DECOR.length);   // the walled garden painting: after as far as the garden is restored
-  const gview = `<div class="gpair" aria-label="The walled garden, ${gp}% restored"><img src="assets/scenes/garden-before.webp" alt=""><img class="aft" src="assets/scenes/garden-after.webp" alt="" style="--p:${gp}%"><span>${gp}% restored</span></div>`;
-  sheet(`<div class="ribbon sage">Restore the Garden</div>${gview}<h3>You have ★ ${a} to spend. Every scene earns up to three.</h3>${rows}
+  sheet(`<div class="ribbon sage">Restore the Garden</div><h3>You have ★ ${a} to spend. Every scene earns up to three.</h3>${rows}
     <img class="div" src="assets/ui/divider.webp" alt=""><h2>Flower borders</h2><h3>Planted with coins</h3>${brows}`, c => {
     c.querySelectorAll('[data-d]').forEach(b => b.onclick = () => restore(b.dataset.d));
     c.querySelectorAll('[data-b]').forEach(b => b.onclick = () => plant(b.dataset.b));
@@ -779,13 +739,16 @@ if (D.isDaily && S.dly.done !== dayNo()) startLevel('daily'); else goHub();
 img(roomSrc(levelInfo(S.lvl, 'story').room, innerWidth / innerHeight < 1.05 ? 'P' : 'W'));
 
 // ---------------------------------------------------------------- test hooks
-// QA (painted scenes): the screen point of the next unfound object's box centre, after bringing it on screen
-window.__lm = {
-  next() { if (state !== 'play' || !L || L.done) return null; const o = objs().find(x => !x.found); if (!o) return null;
-    camT.x = view.w / 2 - o.x * camT.s; camT.y = view.h / 2 - (o.box.y0 + o.box.y1) / 2 * camT.s; clampCam(camT); Object.assign(cam, camT); dirty = true;
-    const q = toScreen(o.x, (o.box.y0 + o.box.y1) / 2), r = cv.getBoundingClientRect(); return { id: o.id, x: r.left + q.x, y: r.top + q.y }; },
-  isFound: id => !!(L && !L.left.includes(id)),
-};
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first room, until the first real
+// touch, the magnifier glides onto one object from the list for free (no hint spent) and then it is tapped and flies to the list
+let demoO = null;
+demo(n => {
+  if (n === 1) { demoO = objs().find(o => !o.found && o.id === L.left[0]); if (!demoO || L.left.length <= 3) return false;
+    const { s: s0 } = fitScale(); camT.s = Math.max(camT.s, s0 * 1.5); camT.x = view.w / 2 - demoO.x * camT.s; camT.y = view.h / 2 - (demoO.y - demoO.h / 2) * camT.s; clampCam(camT);
+    lens = { o: demoO, t0: performance.now() + 250 }; sfx.page(); return; }
+  if (demoO && !demoO.found) found(demoO);
+}, { ready: () => state === 'play' && mode === 'story' && S.lvl === 1 && L && !L.done && roomImg && !$('#ov').classList.contains('on'), wait: 2000, every: 2200, max: 2 });
+
 window.__game = {
   get state() { return state; },
   get level() { return S.lvl; },

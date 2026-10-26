@@ -7,6 +7,7 @@ import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, sparks, skyDome, starField, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'color-groove', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'neon', 'ode', 'starlight', 'cancan', 'saints', 'mountain', 'minuet', 'turkish', 'elise', 'canon'];
@@ -152,6 +153,9 @@ input({
   onTap: (e) => { if (state !== 'play') return; let i = 0; LANES.forEach((x, k) => { if (Math.abs(x - tOff) < Math.abs(LANES[i] - tOff)) i = k; }); tOff = LANES[clamp(i + (e.clientX < innerWidth / 2 ? -1 : 1), 0, LANES.length - 1)]; },   // tap a side = one lane that way
 });
 ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the ball steers itself lane to lane onto the balls of its own colour (the bot's line), so the first notes play and the rule shows
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 300, ms: 4500 });
 
 function passRow(row, now) {
   row.done = true;
@@ -188,6 +192,7 @@ function win() {
 // ---------------------------------------------------------------- frame
 loop((dt) => {
   clock += dt / 60; fx.update(dt);
+  if (DM.on) window.__game.bot();
   const now = state === 'ready' ? -1.2 : player.time();
   off = lerp(off, tOff, 1 - Math.pow(0.55, dt));
   if (state === 'play' || state === 'won') bz = -Math.max(-1.6, now) * VZ;

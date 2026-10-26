@@ -6,6 +6,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { SUITS, tableCSS, cardEl, tableDOM, shakeEl, homeEl, cascade } from './cards.js';
 import { SU, RK, canStack, dealCards, clonePos, capacity, runStart, legal, apply, safeAuto, moves as genMoves, solve } from './rules.js';
@@ -291,6 +292,13 @@ ui.onTap((which) => {
   build(); state = 'play';
 });
 layout(); build();
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first deal, until the first real
+// touch, three moves from the solver's winning line play out; the clock stays at 0:00 until the player moves
+demo(() => {
+  if (!plan || plan.idx >= plan.path.length) { const r = solve(clonePos(P), 6000); plan = r.ok ? { path: r.path, idx: 0 } : null; }
+  const m = plan && plan.path[plan.idx]; if (!m || !exec(m)) return false; t0 = 0; elapsed = 0;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !finishing && !autoBusy && !dragS && !dealing && nMoves < 3, wait: 2000, every: 1300, max: 3 });
 
 // ---------------------------------------------------------------- test hook: the bot follows the solver's line
 let lastBot = 0; const botOn = () => performance.now() - lastBot < 1500;

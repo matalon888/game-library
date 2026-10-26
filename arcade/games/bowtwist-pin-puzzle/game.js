@@ -9,6 +9,7 @@ import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { snd } from './audio.js';
 import * as G from './logic.js';
 import { PIN as SCREW, JELLY, initMaterials, initGeometry, makeScrew, makePlate, makeHoles, makeBox, wallTex, quiltTex, floorTex, blobTex, starTex, MAT } from './art.js';
@@ -849,6 +850,15 @@ function frame(now) {
 }
 
 // ------------------------------------------------------------------ bot (for check.cjs) + hooks
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the best bow-pin lifts, glows toward its colour box and flies in, twice (only box moves, never a spare hole)
+demo(() => {
+  const m = G.bestMove(S); if (!m || !m.box || vis.screws.filter(v => v.st === 'seat').length <= 4) return false;
+  const v = vis.screws[m.s.i]; if (v.st !== 'seat') return false;
+  sel = v; liftVisual(v, true); showTargets(v);
+  setTimeout(() => { if (state === 'play' && sel === v) commit(v, { box: m.box }); }, 650);
+}, { ready: () => state === 'play' && Lv && Lv.n === 1 && !Lv.daily && !Lv.drill && !sel && !anims.length, wait: 2200, every: 1700, max: 2 });
+
 function bot() {
   if (state === 'ready') { $('#home').classList.add('hide'); startFromHome(); return; }
   if (state !== 'play' || !S) return;

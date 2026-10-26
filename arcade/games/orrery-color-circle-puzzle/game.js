@@ -6,6 +6,7 @@ import { createUI, store, buzz, loop, rng, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as scoreboard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Orrery: Color Circle Puzzle';
@@ -300,6 +301,15 @@ ui.onTap((which) => {
   if (which === 'win' && D.isDaily) { const u = new URL(location.href); u.search = ''; location.href = u.href; return; }
   build(); state = 'play';
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the ring the solver would turn spins one step (clicking into place) and then back again: no move spent, nothing cleared
+let demoS = null;
+demo(n => {
+  if (n === 1) { demoS = greedyStep(rings); if (!demoS) return false; }
+  rings[demoS.ring].off += n === 1 ? demoS.dir : -demoS.dir; rings[demoS.ring].flash = 1; soft.wood(); buzz(4); demoS.out = n === 1;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !drag && firstMove, wait: 2000, every: 1300, max: 2 });
+addEventListener('pointerdown', () => { if (demoS && demoS.out) { rings[demoS.ring].off -= demoS.dir; demoS.out = false; } }, true);   // a touch mid-demo puts the ring back
 
 build();
 

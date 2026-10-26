@@ -2,6 +2,7 @@
 // and cats never touch, not even at the corners. Tap once for ✕, twice for a cat; drag to cross out many cells.
 // Puzzles are generated (seeded) and only kept when our step-by-step logic solver can finish them without guessing.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp } from './puzzle.js';
 import { generate, solve, step, groupsOf, blocks, UNK, NO, CAT } from './napgen.js';
 
@@ -61,6 +62,15 @@ const P = shell({
     const c = sol.findIndex((v, i) => v === CAT && st[i] !== CAT); if (c >= 0) { P.push(); set(c, CAT); }
   },
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first real touch,
+// one empty cell shows what taps do: ✕, then a cat, then empty again (a cell with no cat in the answer, so nothing is given away)
+let demoC = -1;
+demo(n => {
+  if (n === 1) { const free = st.map((v, i) => v === UNK && sol[i] !== CAT ? i : -1).filter(i => i >= 0); demoC = free[(free.length / 2) | 0] ?? -1; }
+  if (demoC < 0 || (n > 1 && st[demoC] !== (n === 2 ? NO : CAT))) return false;
+  set(demoC, n === 1 ? NO : n === 2 ? CAT : UNK);
+}, { ready: () => P.state === 'play' && P.level === 1 && !P.D.isDaily && !drag && !wonAt, wait: 2000, every: 1100, max: 3 });
 
 function cellAt(x, y) { const cx = Math.floor((x - geo.x) / geo.s), cy = Math.floor((y - geo.y) / geo.s); return cx < 0 || cy < 0 || cx >= N || cy >= N ? -1 : cy * N + cx; }
 function flagHint(c) { hintCell = c; hintAt = performance.now(); }

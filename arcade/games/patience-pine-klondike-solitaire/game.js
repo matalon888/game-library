@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { SU, RK, RED, canStack, dealCards, solve, moves as genMoves, reach } from './solver.js';
 
@@ -432,6 +433,11 @@ function replay() {   // same deal again
 layout(); build();
 
 // ---------------------------------------------------------------- test hook: the bot follows a solver line from the current position
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first deal, until the first real
+// touch, three moves from the solver's own winning line play out (cards glide over); the clock stays at 0:00 until the player moves
+demo(() => { window.__game.bot(); t0 = 0; elapsed = 0; },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && !auto && !dragS && nMoves < 3, wait: 2000, every: 1300, max: 3 });
+
 window.__game = {
   get state() { return state === 'finishing' ? 'play' : state; }, get level() { return level; }, get score() { return score; },
   bot() {

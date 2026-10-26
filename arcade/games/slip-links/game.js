@@ -2,6 +2,7 @@
 import { THREE, createStage, createUI, input, loop, mat, rounded, sfx, tone, buzz, burst, confetti, store, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const ST = store('sliplinks');
 const F = flow('sliplinks');
@@ -331,6 +332,13 @@ function pick(cx, cy) {
 }
 function screenOf(v) { P.copy(v).project(camera); return [(P.x + 1) / 2 * innerWidth, (1 - P.y) / 2 * innerHeight]; }
 input({ onTap: e => { if (state !== 'play') return; const ch = pick(e.clientX, e.clientY); if (ch) attempt(ch); else sfx.tap(); } });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// a chain lying on top slips free and flies off (twice when the board is big enough), so the screen shows which chains a tap frees
+demo(n => {
+  const f = live().filter(free); if (!f.length || live().length < (n === 1 ? 3 : 6)) return false;
+  slip(f[Math.floor(f.length / 2)]);
+}, { ready: () => state === 'play' && level === 1 && !strikes, wait: 1800, every: 1500, max: 2 });
 
 ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; sfx.tap(); }

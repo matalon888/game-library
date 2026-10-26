@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, tone, burst, le
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { audio, synth, createPlayer } from './_music/conductor.js';
 import { SONG, arrange } from './_music/songs.js';
 import { glowSprite, glowTex, skyDome, starField, sparks as sparkPool } from './_music/fx.js';
@@ -345,8 +346,13 @@ setInterval(pump, 25);
 
 // ---------------------------------------------------------------- loop
 let clock = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first song, until the first real
+// touch, the prism hops every spike and pit on the beat by itself (the bot's own timing); the demo's score is taken back after
+const DM = demo(null, { ready: () => state === 'play' && alive && curSec === 0 && !D.seed, wait: 0, ms: 4500 });
+let demoWas = false;
 loop((dt) => {
   const sec = dt / 60; clock += sec;
+  if (DM.on) { demoWas = true; window.__game.bot(); } else if (demoWas) { demoWas = false; if (alive) { score = 0; newBest = false; ui.score(0); } }
   if (state === 'play' && alive) {
     const target = performance.now() / 1000 - perf0;
     let t = songT; const total = Math.min(0.1, target - t);
