@@ -19,11 +19,11 @@
  "total": 339,
  "poster": "https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26",
  "game_of_the_day": {
-  "name": "Core Crusher",
-  "category": "Arcade",
-  "pitch": "Hold to smash a ball down a spinning tower of colored rings, dodging black slices, with a fire-streak power-up for risky dives.",
-  "image": "https://agentpark.co/arcade/covers/core-crusher.webp",
-  "play_url": "https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=gotd"
+  "name": "Smooch Roll",
+  "category": "Puzzle",
+  "pitch": "Sketch ink lines that become physical objects so a blue and a pink ball roll into each other, with simple, readable physics puzzles.",
+  "image": "https://agentpark.co/arcade/covers/smooch-roll.webp",
+  "play_url": "https://agentpark.co/arcade/play.html?g=smooch-roll&ref=daily&pos=gotd"
  },
  "games": [
   {
@@ -162,90 +162,90 @@
  "categories": {
   "Puzzle": [
    {
-    "name": "Jelly Blocks: Block Puzzle",
+    "name": "Chirpbelt: Conveyor Color Shooter",
     "new": false,
-    "pitch": "Drag squishy jelly blocks with tiny faces onto the board, clear rows and columns for combos, and decorate a kawaii dorm with your stars.",
-    "image": "https://agentpark.co/arcade/covers/jelly-blocks-block-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=jelly-blocks-block-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Send colourful chicks round a conveyor belt to peck a pixel picture clean, one matching colour at a time.",
+    "image": "https://agentpark.co/arcade/covers/chirpbelt-conveyor-color-shooter.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=chirpbelt-conveyor-color-shooter&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Boba Trio: Triple Match 3D",
+    "name": "Clumpop: Cube Crush Puzzle",
     "new": false,
-    "pitch": "Tap kawaii boba, mochi, strawberries and plushies from a squishy 3D heap, match three alike in your tray and clear the cushion before time runs out.",
-    "image": "https://agentpark.co/arcade/covers/boba-trio-triple-match-3d.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=boba-trio-triple-match-3d&ref=daily&pos=list-Puzzle"
+    "pitch": "Tap clumps of matching cubes to pop them, build rockets, bombs and prism orbs, and hit every goal before your moves run out.",
+    "image": "https://agentpark.co/arcade/covers/clumpop-cube-crush-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=clumpop-cube-crush-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Bowtwist: Pin Puzzle",
+    "name": "Nookfind: Seek and Find Scenes",
     "new": false,
-    "pitch": "Pop cute bow-pins out of squishy jelly plates, fill the colour gift boxes, collect kawaii stickers and decorate Momo's dorm room.",
-    "image": "https://agentpark.co/arcade/covers/bowtwist-pin-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=bowtwist-pin-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Find every item on your list in cozy scenes drawn in code, from a sunny den to a lakeside camp.",
+    "image": "https://agentpark.co/arcade/covers/nookfind-seek-and-find-scenes.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=nookfind-seek-and-find-scenes&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Sprinkle Sort: Cute Sort Puzzle",
+    "name": "Slidegate: Sliding Shapes Puzzle",
     "new": false,
-    "pitch": "Pour sprinkles, boba and jelly between cute cups with faces until each holds one topping, then decorate a kawaii café. Every level is solvable.",
-    "image": "https://agentpark.co/arcade/covers/sprinkle-sort-cute-sort-puzzle.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=sprinkle-sort-cute-sort-puzzle&ref=daily&pos=list-Puzzle"
+    "pitch": "Drag chunky coloured shapes around the board and out through the gate of their own colour before time runs out.",
+    "image": "https://agentpark.co/arcade/covers/slidegate-sliding-shapes-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=slidegate-sliding-shapes-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Mochi Match: Match 3 & Dorm Decor",
+    "name": "Pilepick: Triple Sort 3D",
     "new": false,
-    "pitch": "Swap squishy kawaii sweets, make rockets and rainbow balls, pop gift boxes and jelly ice, and spend your stars decorating a pastel dorm room and café.",
-    "image": "https://agentpark.co/arcade/covers/mochi-match-match-3-dorm-decor.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=mochi-match-match-3-dorm-decor&ref=daily&pos=list-Puzzle"
+    "pitch": "Tap toys in a messy 3D pile to send them to your shelf, clear three alike, and empty the pile before the timer ends.",
+    "image": "https://agentpark.co/arcade/covers/pilepick-triple-sort-3d.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=pilepick-triple-sort-3d&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Bubble Buns: Bubble Shooter Pop",
+    "name": "Grumble Drop: Tower Topple Game",
     "new": false,
-    "pitch": "Aim, bounce and pop squishy jelly bubbles with tiny faces to free baby bunnies, then decorate their cozy burrow.",
-    "image": "https://agentpark.co/arcade/covers/bubble-buns-bubble-shooter-pop.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=bubble-buns-bubble-shooter-pop&ref=daily&pos=list-Puzzle"
+    "pitch": "Tap wooden and glass blocks out of little island towers so the grumpy trolls tumble into the sea, but keep Pip the sprout dry.",
+    "image": "https://agentpark.co/arcade/covers/grumble-drop-tower-topple-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=grumble-drop-tower-topple-game&ref=daily&pos=list-Puzzle"
    }
   ],
   "Arcade": [
    {
-    "name": "Cubeburrow: Block Building Sandbox",
+    "name": "Burrowbop: Whack a Critter Game",
     "new": false,
-    "pitch": "Dig, chop, craft and build on a first-person block island, and finish today's three build goals before night falls.",
-    "image": "https://agentpark.co/arcade/covers/cubeburrow-block-building-sandbox.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=cubeburrow-block-building-sandbox&ref=daily&pos=list-Arcade"
+    "pitch": "Bop the grubbles popping out of a 3D garden in 45-second rounds, but leave the bunnies alone.",
+    "image": "https://agentpark.co/arcade/covers/burrowbop-whack-a-critter-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=burrowbop-whack-a-critter-game&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Hero Lab: Build Your AGENTPARK Hero",
+    "name": "Bricklash: Brick Breaker",
     "new": false,
-    "pitch": "Build your hero: 28 characters, hats, wings, gear and colours. Save it and take it into the games.",
-    "image": "https://agentpark.co/arcade/covers/hero-lab-build-your-agentpark-hero.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=hero-lab-build-your-agentpark-hero&ref=daily&pos=list-Arcade"
+    "pitch": "Bounce the ball off your paddle, smash glowing bricks and catch multi-ball, laser and wide-paddle capsules.",
+    "image": "https://agentpark.co/arcade/covers/bricklash-brick-breaker.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bricklash-brick-breaker&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Raincoil",
+    "name": "Slinko: Classic Snake Game",
     "new": false,
-    "pitch": "Steer a living coil through colored rain, match three or more colors to burst them, and survive a three-minute storm.",
-    "image": "https://agentpark.co/arcade/covers/pbl64k-raincoil-game.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=pbl64k-raincoil-game&ref=daily&pos=list-Arcade"
+    "pitch": "Swipe to turn, eat berries, grow longer and don't bite your own tail as the speed climbs.",
+    "image": "https://agentpark.co/arcade/covers/slinko-classic-snake-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=slinko-classic-snake-game&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Thumb Duel: Party Duels for Two",
+    "name": "Nibbit: Maze Chase Arcade",
     "new": false,
-    "pitch": "Two players, one phone: rocket race, tug of war, sumo ring, quick draw and air hockey, first to 5 wins, or play solo against the CPU.",
-    "image": "https://agentpark.co/arcade/covers/thumb-duel-party-duels-for-two.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=thumb-duel-party-duels-for-two&ref=daily&pos=list-Arcade"
+    "pitch": "Steer Nib through a neon maze, eat every crumb and grab glow pellets to turn the tables on four sneaky critters.",
+    "image": "https://agentpark.co/arcade/covers/nibbit-maze-chase-arcade.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=nibbit-maze-chase-arcade&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Zip Vault: Neon Maze Dash",
+    "name": "Zapline: Alien Wave Shooter",
     "new": false,
-    "pitch": "Swipe to slide a little robot wall to wall through twisting neon mazes, grabbing dots and stars while dodging spikes and rising goo.",
-    "image": "https://agentpark.co/arcade/covers/zip-vault-neon-maze-dash.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=zip-vault-neon-maze-dash&ref=daily&pos=list-Arcade"
+    "pitch": "Drag your auto-firing ship, blast rows of descending aliens, hide behind shields and tag the bonus saucer.",
+    "image": "https://agentpark.co/arcade/covers/zapline-alien-wave-shooter.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=zapline-alien-wave-shooter&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Snake Pro",
+    "name": "Rubble Rift: Space Rock Shooter",
     "new": false,
-    "pitch": "A clean take on classic Snake with three speed modes, power-ups and 15 badges to chase, playable by swipe or on-screen D-pad.",
-    "image": "https://agentpark.co/arcade/covers/ramazancetinkaya-snake-game.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ramazancetinkaya-snake-game&ref=daily&pos=list-Arcade"
+    "pitch": "Steer a little pod ship, blast drifting space rocks into smaller pieces and survive endless waves.",
+    "image": "https://agentpark.co/arcade/covers/rubble-rift-space-rock-shooter.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=rubble-rift-space-rock-shooter&ref=daily&pos=list-Arcade"
    }
   ],
   "Action": [
@@ -705,9 +705,15 @@
    }
   ]
  },
+ "challenge": {
+  "n": 12,
+  "slug": "color-groove",
+  "name": "Color Groove",
+  "play_url": "https://agentpark.co/arcade/play.html?g=color-groove&ch=12&ref=daily&pos=challenge"
+ },
  "peek": {
-  "name": "Putt Isles",
-  "play_url": "https://agentpark.co/arcade/play.html?g=putt-isles&ref=daily&pos=peek"
+  "name": "Core Crusher",
+  "play_url": "https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=peek"
  },
  "ai_only": [
   {
@@ -723,5 +729,5 @@
    "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly"
   }
  ],
- "daily_message": "🌅 Your games for Monday, 26 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26)\n\n🏆 Today's game: [Core Crusher ▶](https://agentpark.co/arcade/play.html?g=core-crusher&ref=daily&pos=gotd)\n🆕 New: [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new) · [Shelfie](https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 339 games →](https://agentpark.co)"
+ "daily_message": "🌅 Your games for Monday, 26 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26)\n\n🏆 Today's game: [Smooch Roll ▶](https://agentpark.co/arcade/play.html?g=smooch-roll&ref=daily&pos=gotd)\n🆕 New: [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new) · [Shelfie](https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 339 games →](https://agentpark.co)"
 }
