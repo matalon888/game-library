@@ -420,6 +420,16 @@ function finish() {
     ui.lose('SO CLOSE!', `${pct}% match · need ${Math.round(thr * 100)}%`);
   }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, if nobody has touched the
+// screen 2.5 s into the round, the shirt folds by itself, so the screen moves and the next step (squirt the dye) is shown
+{ let touched = false, seenPlay = 0;
+  addEventListener('pointerdown', e => { if (e.isTrusted) touched = true; }, { capture: true });
+  const demo = setInterval(() => {
+    if (touched || level > 1) return clearInterval(demo);
+    if (state !== 'play' || phase !== 'fold' || !L || L.folds !== 1) return;
+    if (!seenPlay) seenPlay = performance.now();
+    else if (performance.now() - seenPlay > 2500) { clearInterval(demo); chooseFold(L.fold); }
+  }, 250); }
 ui.onTap((which) => { WB.start();
   if (which === 'start') { state = 'play'; show('ask', true); show('folds', true); sfx.tap(); }
   else if (which === 'win') { level++; ST.set('level', level); state = 'play'; buildLevel(); }

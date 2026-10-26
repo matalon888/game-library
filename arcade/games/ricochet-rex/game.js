@@ -678,8 +678,16 @@ ui.els.start.addEventListener('pointerdown', (e) => {
 const dummy = new THREE.Object3D();
 let camX = 0, camY = camBaseY;
 function settled() { return !pending.length && W.bodies.every(b => b.hanging || (b.ground && Math.abs(b.vx) < 0.15)); }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s, before touching): on level 1, until the
+// first real touch, the sight line sweeps around and settles on the goon, so the screen shows what a tap does
+let demo = true;
+addEventListener('pointerdown', e => { if (e.isTrusted) demo = false; }, { capture: true });
 loop((dt60, tt) => {
   const rdt = Math.min(dt60 / 60, 1 / 20), t = performance.now() / 1000;
+  if (demo && level === 1 && state === 'play' && !bullet && !aiming && W.enemies[0] && W.enemies[0].alive) {
+    const e = W.enemies[0], ga = Math.atan2(e.y + 1 - (W.agent.y + 1.34), e.x - W.agent.x);
+    aimA = ga + Math.sin(t * 2.2) * 0.7 * Math.max(0, Math.cos(Math.min(Math.PI / 2, (t % 4) * 0.5)));
+  } else if (level > 1) demo = false;
   if (slowT > 0) { slowT -= rdt; if (slowT <= 0 && state === 'play') win(); }
   timeScale = lerp(timeScale, slowT > 0 ? 0.2 : 1, 1 - Math.pow(0.0005, rdt));
   const dt = rdt * timeScale;

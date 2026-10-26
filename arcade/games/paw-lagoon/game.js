@@ -695,6 +695,19 @@ input({
   },
 });
 ui.onTap(w => { if (w === 'win') level++; genLevel(); state = 'play'; B.start(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, if nobody has touched the
+// board 2.5 s into the round, one match makes itself (a free move, the counter is given back) so the board moves and cascades
+{ let touched = false, seenPlay = 0;
+  addEventListener('pointerdown', e => { if (e.isTrusted) touched = true; }, { capture: true });
+  const demo = setInterval(() => {
+    if (touched || level > 1) return clearInterval(demo);
+    if (state !== 'play' || busy) return;
+    if (!seenPlay) { seenPlay = performance.now(); return; }
+    if (performance.now() - seenPlay < 2500) return;
+    clearInterval(demo);
+    const m = findMove(false); if (!m || !m.b) return;
+    moves++; trySwap(m.a, m.b);
+  }, 250); }
 
 // ---------------------------------------------------------------- layout + camera
 let frameRect = null, camD = 30, boardPx = 380, boardCy = 400, TILT = 0.2;
