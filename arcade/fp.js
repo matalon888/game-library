@@ -24,7 +24,12 @@
   // fling") and hand are never seen; a third of swirl-tee runs (29/84 since Oct 24) ended with 0-1 taps. B: the first round
   // of each game in a visit shows that line with a bobbing hand at the bottom while the player hasn't touched it yet.
   const HOWTO = APX.on('fp-shell-howto-hand');
-  if (!RETRY && !WINGO && !BEST && !JUICE && !HOWTO) return;
+  // fp-shell-level-bar (2026-10-26): 92 of 130 new players' first sessions had one game, and nothing grows across rounds or
+  // games: each round ends on its own. B: a player level (kept on the device) whose bar fills with every finished round, in
+  // any game, flashes at the top after each round ("Lv 1 ▰▰▱ 2/3") and levels up loudly at 3, 6, 10, 15… rounds: a next goal
+  // that spans the whole visit, and a level waiting when they come back.
+  const LVL = APX.on('fp-shell-level-bar');
+  if (!RETRY && !WINGO && !BEST && !JUICE && !HOWTO && !LVL) return;
 
   const ss = (k, v) => { try { if (v === undefined) return +sessionStorage.getItem('ap.fp.' + k) || 0; sessionStorage.setItem('ap.fp.' + k, String(v)); } catch (e) { return 0; } };
   const css = document.createElement('style');
@@ -44,6 +49,12 @@
     .fp-howto.in{opacity:1;transform:translate(-50%,0)}.fp-howto i{font-style:normal;font-size:52px;line-height:1;animation:fpBob 1.1s ease-in-out infinite;filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}
     .fp-howto b{font:800 19px/1.2 'Space Grotesk',system-ui,sans-serif;color:#fff;background:rgba(18,22,58,.84);border:2px solid rgba(255,255,255,.4);border-radius:18px;padding:10px 16px}
     @keyframes fpBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(14px) scale(.9)}}
+    .fp-lvl{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 58px);transform:translate(-50%,-14px);z-index:31;pointer-events:none;display:flex;align-items:center;gap:9px;
+    font:800 16px/1 'Space Grotesk',system-ui,sans-serif;color:#fff;background:rgba(18,22,58,.86);border:2px solid rgba(255,255,255,.4);border-radius:999px;padding:7px 14px 7px 9px;
+    white-space:nowrap;opacity:0;transition:opacity .2s,transform .25s cubic-bezier(.2,1.6,.4,1)}.fp-lvl.in{opacity:1;transform:translate(-50%,0)}
+    .fp-lvl em{font-style:normal;background:#FFC93C;color:#1E1B33;border-radius:999px;padding:5px 9px}.fp-lvl s{text-decoration:none;display:block;width:96px;height:12px;border-radius:9px;background:rgba(255,255,255,.2);overflow:hidden}
+    .fp-lvl s i{display:block;height:100%;background:linear-gradient(90deg,#7CF29A,#FFE45C);border-radius:9px;transition:width .6s cubic-bezier(.2,1,.4,1) .25s}
+    .fp-lvl.up{background:#FFC93C;color:#1E1B33;border-color:#fff;font-size:20px;padding:10px 18px}
     .fp-star{position:fixed;z-index:29;pointer-events:none;font-size:30px;left:50%;top:42%;transition:transform 1s cubic-bezier(.15,.8,.3,1),opacity 1s ease-in}`;
   document.head.appendChild(css);
   const toast = (big, small, ms = 900) => {
@@ -147,6 +158,35 @@
         shows++; showT = setTimeout(() => { hide(); t0 = Date.now(); }, 5000);
       }
     }, 150);
+  }
+
+  // the level-bar test: every finished round (won or lost, any game) adds one to a device-wide count; levels at 3, 6, 10, 15, +6
+  if (LVL) {
+    const ls = v => { try { if (v === undefined) return +localStorage.getItem('ap.fp.xp') || 0; localStorage.setItem('ap.fp.xp', String(v)); } catch (e) { return 0; } };
+    const steps = [0, 3, 6, 10, 15];
+    const at = l => l < steps.length ? steps[l] : 15 + (l - 4) * 6;   // rounds needed to reach level l+1
+    const level = n => { let l = 0; while (n >= at(l + 1)) l++; return l; };
+    let el = null, hideT = 0, pst = null, pdoc = null;
+    const show = (n, up) => {
+      const l = level(n), lo = at(l), hi = at(l + 1), was = up ? 0 : (n - 1 - lo) / (hi - lo), now = (n - lo) / (hi - lo);
+      if (!el) { el = document.createElement('div'); el.className = 'fp-lvl'; document.body.appendChild(el); }
+      el.classList.toggle('up', !!up);
+      el.innerHTML = up ? `⭐ LEVEL ${l + 1}!` : `<em>Lv ${l + 1}</em><s><i style="width:${Math.max(0, was) * 100}%"></i></s>${n - lo}/${hi - lo}`;
+      requestAnimationFrame(() => { if (!el) return; el.classList.add('in'); const b = el.querySelector('s i'); if (b) requestAnimationFrame(() => { b.style.width = now * 100 + '%'; }); });
+      clearTimeout(hideT); hideT = setTimeout(() => { if (el) el.classList.remove('in'); }, up ? 2200 : 1800);
+    };
+    setInterval(() => {
+      const f = document.querySelector('.stage iframe'); if (!f) return;
+      let d, g; try { d = f.contentDocument; g = f.contentWindow.__game; } catch (e) { return; }
+      if (!g) return;
+      if (d !== pdoc) { pdoc = d; pst = null; }
+      const st = g.state; if (st === pst) return;
+      const prev = pst; pst = st;
+      if (prev !== 'play' || (st !== 'won' && st !== 'lost')) return;
+      const n = ls() + 1; ls(n);
+      if (level(n) > level(n - 1)) { show(n, true); burst(); try { navigator.vibrate && navigator.vibrate([20, 40, 20]); } catch (e) {} }
+      else show(n, false);
+    }, 120);
   }
 
   if (!RETRY && !WINGO) return;
