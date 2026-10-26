@@ -20,7 +20,11 @@
   // a point scored is only a HUD digit changing. B: every score jump pops a big "+N" over the game (and a short buzz on
   // Android), so each early success feels loud. Games whose score ticks up on its own (distance counters) are left alone.
   const JUICE = APX.on('fp-shell-score-juice');
-  if (!RETRY && !WINGO && !BEST && !JUICE) return;
+  // fp-shell-howto-hand (2026-10-26): the shell taps past every game's start card, so its how-to line ("Tap a raccoon to
+  // fling") and hand are never seen; a third of swirl-tee runs (29/84 since Oct 24) ended with 0-1 taps. B: the first round
+  // of each game in a visit shows that line with a bobbing hand at the bottom while the player hasn't touched it yet.
+  const HOWTO = APX.on('fp-shell-howto-hand');
+  if (!RETRY && !WINGO && !BEST && !JUICE && !HOWTO) return;
 
   const ss = (k, v) => { try { if (v === undefined) return +sessionStorage.getItem('ap.fp.' + k) || 0; sessionStorage.setItem('ap.fp.' + k, String(v)); } catch (e) { return 0; } };
   const css = document.createElement('style');
@@ -35,6 +39,11 @@
     .fp-plus{position:fixed;z-index:29;pointer-events:none;top:30%;font:800 44px/1 'Space Grotesk',system-ui,sans-serif;color:#FFE45C;
     -webkit-text-stroke:2px #1E1B33;text-shadow:0 4px 0 rgba(0,0,0,.3);transform:translate(-50%,0) scale(.5);opacity:0;transition:transform .7s cubic-bezier(.2,1.4,.4,1),opacity .7s}
     .fp-plus.in{opacity:1;transform:translate(-50%,-50px) scale(1)}.fp-plus.out{opacity:0;transform:translate(-50%,-110px) scale(1)}
+    .fp-howto{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 13%);transform:translate(-50%,20px);z-index:30;pointer-events:none;
+    display:flex;flex-direction:column;align-items:center;gap:6px;max-width:86vw;text-align:center;opacity:0;transition:opacity .25s,transform .25s}
+    .fp-howto.in{opacity:1;transform:translate(-50%,0)}.fp-howto i{font-style:normal;font-size:52px;line-height:1;animation:fpBob 1.1s ease-in-out infinite;filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}
+    .fp-howto b{font:800 19px/1.2 'Space Grotesk',system-ui,sans-serif;color:#fff;background:rgba(18,22,58,.84);border:2px solid rgba(255,255,255,.4);border-radius:18px;padding:10px 16px}
+    @keyframes fpBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(14px) scale(.9)}}
     .fp-star{position:fixed;z-index:29;pointer-events:none;font-size:30px;left:50%;top:42%;transition:transform 1s cubic-bezier(.15,.8,.3,1),opacity 1s ease-in}`;
   document.head.appendChild(css);
   const toast = (big, small, ms = 900) => {
@@ -104,6 +113,40 @@
       }
       if (BEST && target > 0 && !beaten && sc > target) { beaten = true; chipShow(`NEW BEST! ${sc.toLocaleString()}`, 'beat', 2000); }
     }, 100);
+  }
+
+  // the how-to test: the game's own start-card line + hand, until the first real touch in that game
+  if (HOWTO) {
+    let doc = null, key = '', touched = false, t0 = 0, shows = 0, showT = 0, el = null;
+    const seen = k => { try { const a = JSON.parse(sessionStorage.getItem('ap.fp.howto') || '[]'); if (a.includes(k)) return true; a.push(k); sessionStorage.setItem('ap.fp.howto', JSON.stringify(a.slice(-40))); } catch (e) {} return false; };
+    const hide = () => { clearTimeout(showT); if (el) { const e = el; el = null; e.classList.remove('in'); setTimeout(() => e.remove(), 300); } };
+    setInterval(() => {
+      const f = document.querySelector('.stage iframe'); if (!f) return hide();
+      let d, g; try { d = f.contentDocument; g = f.contentWindow.__game; } catch (e) { return; }
+      if (!d) return;
+      if (d !== doc) {   // a new game page in the frame
+        hide(); doc = d; key = ''; touched = false; t0 = 0; shows = 0;
+        try { d.addEventListener('pointerdown', ev => { if (ev.isTrusted) { touched = true; hide(); } }, { capture: true }); } catch (e) {}
+      }
+      if (touched || !g || shows >= 3) return;
+      if (g.state !== 'play') { hide(); return; }
+      if (!key) {   // first 'play' in this page: once per game per visit
+        const h = d.querySelector('.hc-card .hint'); if (!h) { touched = true; return; }
+        const c = h.cloneNode(true); c.querySelectorAll('.hand').forEach(x => x.remove());
+        const txt = (c.textContent || '').trim(), hand = (h.querySelector('.hand') || {}).textContent || '👆';
+        key = f.contentWindow.location.pathname;
+        if (!txt || seen(key)) { touched = true; return; }
+        key = JSON.stringify([hand, txt]); t0 = Date.now(); return;
+      }
+      // after 1.5 s without a touch (then again every 4 s idle), 5 s each, at most 3 times
+      if (!el && Date.now() - t0 > (shows ? 4000 : 1500)) {
+        const [hand, txt] = JSON.parse(key);
+        el = document.createElement('div'); el.className = 'fp-howto';
+        el.innerHTML = '<i></i><b></b>'; el.firstChild.textContent = hand; el.lastChild.textContent = txt;
+        document.body.appendChild(el); requestAnimationFrame(() => el && el.classList.add('in'));
+        shows++; showT = setTimeout(() => { hide(); t0 = Date.now(); }, 5000);
+      }
+    }, 150);
   }
 
   if (!RETRY && !WINGO) return;
