@@ -273,6 +273,14 @@ async function renderIcons() {
   env.dispose(); pm.dispose(); r2.dispose(); r2.forceContextLoss();
   for (const [k, id] of [['crate', 'm12'], ['ice', 'm11'], ['rocket', 'm09'], ['bomb', 'm07'], ['rainbow', 'm08'], ['prop', 'm10']]) ICON[k] = TH(id);
 }
+// every shader is compiled behind the loading screen: the hidden board, gems, effects and furniture otherwise all compiled
+// at once on the first level, a 3-6 s freeze on iPhones (diag 2026-10-26: ~40% of runs). One frame with everything shown.
+function warmUp() {
+  const hid = [], fc = [];
+  scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; } });
+  try { C.render(0); } catch (e) {}
+  hid.forEach(o => { o.visible = false; }); fc.forEach(o => { o.frustumCulled = true; });
+}
 async function boot() {
   let n = 0; const total = 16; const tick = () => { n++; loadBar.style.width = Math.min(100, n / total * 100) + '%'; };
   const ids = ['m01', 'm02', 'm03', 'm04', 'm05', 'm06', 'm09', 'm07', 'm10', 'm08', 'm12', 'm11'];
@@ -287,10 +295,15 @@ async function boot() {
   const hp = loadHost().then(h => { tick(); return h; });
   await enterRoom(st.room, true); tick();
   host = await hp; placeHostInRoom(); tick();
+  warmUp();
   loadEl.style.opacity = 0; setTimeout(() => loadEl.remove(), 600);
   mode = 'title'; state = 'ready'; setMode('title'); placeHostInRoom();
   host.play('wave', true);
-  for (const k of Object.keys(ROOMS)) if (+k !== st.room) setTimeout(() => ensureRoom(+k), 4000 + k * 1500);
+  // the other rooms are built one at a time and only while no level is being played: building one mid-level froze iPhones
+  // for 3-6 s (diag 2026-10-26, ~40% of runs). Unbuilt rooms are built on demand when entered.
+  const prebuild = () => { const k = ROOMS.findIndex((_, i) => !rooms[i]); if (k < 0) return;
+    if (state === 'play') return setTimeout(prebuild, 4000); ensureRoom(k).then(() => setTimeout(prebuild, 2500)); };
+  setTimeout(prebuild, 4000);
   if (D.seed && !Q.has('demo')) setTimeout(() => { if (mode === 'title') { ui.hideStart(); goHome(); openDaily(); } }, 600);
 }
 
