@@ -12,13 +12,29 @@
   // after a win by switching game (first game median 35 s). B: the first 5 wins of a visit get a burst of stars and roll
   // into the next level by themselves, so the moment after a win is momentum, not a pause next to "Next game".
   const WINGO = APX.on('fp-shell-win-autonext');
-  if (!RETRY && !WINGO) return;
+  // fp-shell-best-chip (2026-10-26): 92 of 130 new players' first sessions had one game and nothing on screen says what to
+  // beat. B: from the second round of a game, a small "🏆 beat N" chip (their best in that game) sits at the top while they
+  // play, and flips to a gold "NEW BEST!" the moment they pass it: the next goal is always on screen.
+  const BEST = APX.on('fp-shell-best-chip');
+  // fp-shell-score-juice (2026-10-26): first games are short (half of the first games ended in under 10 s with 0-1 taps) and
+  // a point scored is only a HUD digit changing. B: every score jump pops a big "+N" over the game (and a short buzz on
+  // Android), so each early success feels loud. Games whose score ticks up on its own (distance counters) are left alone.
+  const JUICE = APX.on('fp-shell-score-juice');
+  if (!RETRY && !WINGO && !BEST && !JUICE) return;
 
   const ss = (k, v) => { try { if (v === undefined) return +sessionStorage.getItem('ap.fp.' + k) || 0; sessionStorage.setItem('ap.fp.' + k, String(v)); } catch (e) { return 0; } };
   const css = document.createElement('style');
   css.textContent = `.fp-toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);z-index:30;pointer-events:none;text-align:center;
     font:800 40px/1.05 'Space Grotesk',system-ui,sans-serif;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.25),0 0 24px rgba(0,0,0,.35);opacity:0;transition:transform .22s cubic-bezier(.2,1.6,.4,1),opacity .18s}
     .fp-toast.in{opacity:1;transform:translate(-50%,-50%) scale(1)}.fp-toast small{display:block;font-size:20px;font-weight:700;margin-top:8px;opacity:.95}
+    .fp-chip{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 112px);transform:translateX(-50%);z-index:28;pointer-events:none;
+    font:800 15px/1 'Space Grotesk',system-ui,sans-serif;color:#fff;background:rgba(18,22,58,.72);border:2px solid rgba(255,255,255,.35);border-radius:999px;padding:7px 13px;
+    white-space:nowrap;opacity:0;transition:opacity .2s}.fp-chip.in{opacity:1}
+    .fp-chip.beat{background:#FFC93C;color:#1E1B33;border-color:#fff;animation:fpPop .5s cubic-bezier(.2,1.6,.4,1)}
+    @keyframes fpPop{0%{transform:translateX(-50%) scale(.6)}100%{transform:translateX(-50%) scale(1)}}
+    .fp-plus{position:fixed;z-index:29;pointer-events:none;top:30%;font:800 44px/1 'Space Grotesk',system-ui,sans-serif;color:#FFE45C;
+    -webkit-text-stroke:2px #1E1B33;text-shadow:0 4px 0 rgba(0,0,0,.3);transform:translate(-50%,0) scale(.5);opacity:0;transition:transform .7s cubic-bezier(.2,1.4,.4,1),opacity .7s}
+    .fp-plus.in{opacity:1;transform:translate(-50%,-50px) scale(1)}.fp-plus.out{opacity:0;transform:translate(-50%,-110px) scale(1)}
     .fp-star{position:fixed;z-index:29;pointer-events:none;font-size:30px;left:50%;top:42%;transition:transform 1s cubic-bezier(.15,.8,.3,1),opacity 1s ease-in}`;
   document.head.appendChild(css);
   const toast = (big, small, ms = 900) => {
@@ -46,6 +62,51 @@
     }, 60);
   };
 
+  // the best-chip and score-juice tests: a quicker look at the score while a round is on
+  if (BEST || JUICE) {
+    const slug = new URLSearchParams(location.search).get('g') || '';
+    const lsBest = v => { try { if (v === undefined) return +localStorage.getItem('ap.fp.best.' + slug) || 0; localStorage.setItem('ap.fp.best.' + slug, String(v)); } catch (e) { return 0; } };
+    let chip = null, target = 0, beaten = false, pst = null, psc = 0, ticks = 0, moves = 0, owed = 0, lastPop = 0;
+    // a flash, not a fixture: it sits where games keep their own HUD, so it shows for a moment and goes
+    let chipT = 0;
+    const chipShow = (html, cls, ms) => {
+      if (!chip) { chip = document.createElement('div'); chip.className = 'fp-chip'; document.body.appendChild(chip); }
+      chip.innerHTML = html; chip.classList.toggle('beat', cls === 'beat'); requestAnimationFrame(() => chip && chip.classList.add('in'));
+      clearTimeout(chipT); chipT = setTimeout(() => chipHide(), ms);
+    };
+    const chipHide = () => { if (chip) chip.classList.remove('in'); };
+    const pop = n => {
+      const t = document.createElement('div'); t.className = 'fp-plus'; t.textContent = '+' + n.toLocaleString();
+      t.style.left = (50 + (Math.random() * 30 - 15)) + '%';
+      document.body.appendChild(t); requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('in')));
+      setTimeout(() => t.classList.add('out'), 450); setTimeout(() => t.remove(), 1200);
+      try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+    };
+    setInterval(() => {
+      const f = document.querySelector('.stage iframe'); if (!f) return;
+      let g; try { g = f.contentWindow.__game; } catch (e) { return; }
+      if (!g) return;
+      const st = g.state, sc = typeof g.score === 'number' && isFinite(g.score) ? Math.round(g.score) : 0;
+      if (st !== pst) {
+        if ((pst === 'play') && (st === 'lost' || st === 'won')) { if (sc > lsBest()) lsBest(sc); }
+        if (st === 'play') { target = lsBest(); beaten = false; psc = sc; owed = 0; if (BEST && target > 0) chipShow(`🏆 beat ${target.toLocaleString()}`, '', 2500); }
+        else chipHide();
+        pst = st;
+      }
+      if (st !== 'play') return;
+      const d = sc - psc; psc = sc;
+      if (JUICE) {
+        ticks++; if (d !== 0) moves++;
+        // a score that moves on most ticks is a counter, not a success: no pops for that game
+        const counter = ticks >= 20 && moves / ticks > 0.4;
+        if (d > 0 && !counter) owed += d;
+        if (owed > 0 && Date.now() - lastPop > 300) { pop(owed); owed = 0; lastPop = Date.now(); }
+      }
+      if (BEST && target > 0 && !beaten && sc > target) { beaten = true; chipShow(`NEW BEST! ${sc.toLocaleString()}`, 'beat', 2000); }
+    }, 100);
+  }
+
+  if (!RETRY && !WINGO) return;
   let last = null, best = 0;
   setInterval(() => {
     const f = document.querySelector('.stage iframe'); if (!f) return;
