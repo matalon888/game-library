@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng,
 import { createBloom, neonMat } from './bloom.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'time-knives', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const stage = createStage({ fov: 46, shadows: false, clear: '#04040c' });
@@ -256,6 +257,14 @@ input({
   },
   onUp() { release(); },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// a short line of knives is drawn across the nearest walker in slow motion and thrown once
+demo(() => {
+  const e = enemies.filter(e => e.alive).sort((a, b) => b.z - a.z)[0]; if (!e || killed + 4 > total) return false;
+  const [a, b] = enemyAxis(e), [x, y] = toScreen(a.clone().lerp(b, 0.55));
+  const mine = stroke = { count: 0, t0: performance.now(), lx: x, ly: y - 70, acc: SPACING }; meter.style.opacity = countEl.style.opacity = 1; tone(320, 0.35, 'sine', 0.08, 0.45);
+  for (let i = 0; i <= 5; i++) setTimeout(() => { if (stroke !== mine || state !== 'play') return; addKnife(x, y - 70 + i * 28, 0, 1); if (i === 5) setTimeout(() => stroke === mine && release(), 160); }, i * 70);
+}, { ready: () => state === 'play' && level === 1 && !cine && !stroke && !knives.some(k => k.flying) && enemies.some(e => e.alive), wait: 1800, max: 1 });
 ui.onTap(w => { B.start();
   if (w === 'start') { state = 'play'; buildLevel(); }
   else if (w === 'win') { level++; save.set('level', level); state = 'play'; buildLevel(); }

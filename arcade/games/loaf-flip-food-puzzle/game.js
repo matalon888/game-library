@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as scoreboard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Loaf Flip: Food Puzzle';
 const S = store('loafflip');
@@ -271,7 +272,7 @@ function stackAt(cx, cy) {
   return null;
 }
 input({
-  onDown: (e) => { if (state !== 'play') return; picked = stackAt(e.clientX, e.clientY); if (picked) { picked.lift = 1; tone(600, 0.03, 'sine', 0.05, 1.1); } },
+  onDown: (e) => { if (state !== 'play') return; demoUndo(); picked = stackAt(e.clientX, e.clientY); if (picked) { picked.lift = 1; tone(600, 0.03, 'sine', 0.05, 1.1); } },
   onSwipe: (dir) => {
     if (state !== 'play' || !picked) return;
     const [dx, dz] = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[dir]; if (sel) sel.lift = 0; sel = null; flip(picked, dx, dz); picked = null;
@@ -286,6 +287,14 @@ input({
   onUp: () => { if (picked && picked !== sel) picked.lift = 0; picked = null; },
 });
 ui.onTap((w) => { B.start(); if (w !== 'start') build(); state = 'play'; ui.hideStart(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the first stack of the plan flips over onto its neighbour, then the board is laid out fresh again (the move is put back)
+let demoDirty = false;
+function demoUndo() { if (!demoDirty) return; demoDirty = false; if (anim) scene.remove(anim.pivot); build(); }
+demo(n => {
+  if (n === 1) { const p = plan && plan[0], s = p && stacks.get(kk(p[0], p[1])); if (!s || !flip(s, p[2] - p[0], p[3] - p[1])) return false; demoDirty = true; }
+  else { demoUndo(); return false; }
+}, { ready: () => state === 'play' && level === 1 && !anim && !sel && !picked && stacks.size > 2 || demoDirty && !anim, wait: 1800, every: 1700, max: 2 });
 
 // ---------------------------------------------------------------- loop
 const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;

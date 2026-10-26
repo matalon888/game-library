@@ -10,6 +10,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { World } from './physics.js';
 import { snd } from './audio.js';
 import { ITEMS, BY_ID, PAGES, CHAPTERS, ROOMS, chapterOf } from './items.js';
@@ -349,6 +350,14 @@ R.domElement.addEventListener('pointerdown', e => {
   if (state !== 'play' || mode !== 'play' || paused()) return;
   const o = pickAt(e.clientX, e.clientY); if (o) { document.querySelector('.tut')?.remove(); take(o); }
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch, the
+// top treat flies into the tray and then a second one alike joins it, so a tap and "3 alike" are shown; the third is the player's
+let demoId = null;
+demo(n => {
+  const pile = Lv.objs.filter(o => o.state === 'pile' && (n === 1 || o.id === demoId)).sort((a, b) => b.pos.y - a.pos.y);
+  if (!pile.length || (n === 1 && Lv.tray.length)) return false; demoId = pile[0].id; return take(pile[0]);
+}, { ready: () => state === 'play' && mode === 'play' && Lv.n === 1 && !Lv.daily && !loadingLevel && Lv.intro <= 0.5 && !paused() && !merges.length, wait: 1700, every: 1300, max: 2 });
 
 // ------------------------------------------------------------------ tray logic
 function trayCounts() { const c = {}; for (const o of Lv.tray) c[o.id] = (c[o.id] || 0) + 1; return c; }
@@ -965,6 +974,8 @@ window.__game = {
   get state() { return state; }, get level() { return Lv.daily ? 'daily' : save.level; }, get score() { return totalStars(); },
   get mode() { return mode; }, get points() { return Lv.points; }, get tray() { return Lv.tray.map(o => o.id); }, get left() { return Lv.left; },
   forceFill() { const seen = new Set(); for (const o of Lv.objs) if (o.state === 'pile' && !seen.has(o.id) && Lv.tray.length < TRAY) { seen.add(o.id); take(o); } },
+  // the shell's autostart: from the café home go straight into the next level (so the first seconds can play themselves)
+  autostart() { if (mode !== 'home' || state !== 'ready' || loadingLevel || document.querySelector('.sh-wrap') || M.lives().n <= 0) return false; $('#playBtn').click(); },
   bot, start: startLevel, use: useBooster, money: M, revive, home: showHome, album: openAlbum, save, girl,
   get perf() { const r = { ...perfS, fps: fpsN / Math.max(0.001, fpsAcc) }; fpsN = 0; fpsAcc = 0; return r; },
 };

@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { PICS, PACKS, byId, dayNum, addDays, fromNum, setNo, dailyPic } from './pics.js';
 import { popUp, stopPop, warm } from './voxel.js';
 import { snd } from './audio.js';
@@ -386,7 +387,17 @@ addEventListener('pagehide', () => saveFill(true));
 setTimeout(() => { try { warm(); } catch (e) {} }, 1200);   // load Mallow + the voxel renderer before the first finish
 
 // ---------------------------------------------------------------- test hooks + bot (paints ~2 cells a beat, like a quick finger)
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first picture, until the first
+// touch, a short stroke of the selected colour paints itself in (4 matching pixels, one by one), so "paint the number" is shown
+demo(() => {
+  if (need.reduce((a, b) => a + b, 0) < 16) return false;
+  const k = sel, c0 = cur, cells = []; for (let i = 0; i < c0.pic.px.length && cells.length < 4; i++) { const c = c0.pic.px[i]; if (c !== '.' && c.charCodeAt(0) - 97 === k && c0.fill[i] !== '1') cells.push(i); }
+  if (!cells.length) return false;
+  cells.forEach((i, j) => setTimeout(() => { if (cur === c0 && state === 'play') { fillCell(i, k, true); saveFill(); } }, j * 110));
+}, { ready: () => view === 'play' && state === 'play' && cur && !cur.isDaily && finished() === 0 && !ov, wait: 1800, every: 1400, max: 3 });
 window.__game = {
+  // the shell's autostart: a brand-new player goes straight into the first picture of the pack (so the first seconds play themselves)
+  autostart() { if (view !== 'home' || ov) return false; if (finished() > 0) return; const p = PICS.find(q => q.pack === pack && unlocked(q.pack) && !st.done[q.id]); if (p) open(p.id); },
   get state() { return state; },
   get level() { return finished(); },
   get score() { return finished(); },

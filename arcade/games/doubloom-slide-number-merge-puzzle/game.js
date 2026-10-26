@@ -5,6 +5,7 @@ import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Doubloom: Slide Number Merge Puzzle', KEY = 'doubloom', SLIDE = 110;
@@ -168,6 +169,13 @@ ui.onTap((which) => {
   if (which === 'start') { if (!tiles.length) newGame(); state = 'play'; B.start(); t0 = performance.now(); return; }
   newGame(); state = 'play';
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): at the start of a run, until the
+// first touch, the board slides itself three times (the bot's greedy pick), so tiles visibly glide and merge
+demo(() => {
+  const vals = grid.map(t => t ? t.v : 0); let bestD = null, bv = -1e9;
+  for (const d of ['up', 'left', 'right', 'down']) { const r = slideValues(vals, d); if (!r.moved) continue; const sc = evalBoard(r.out) + r.gained * 0.02 - (d === 'down' ? 4 : 0); if (sc > bv) { bv = sc; bestD = d; } }
+  if (!bestD) return false; move(bestD);
+}, { ready: () => state === 'play' && moves < 3, wait: 1800, every: 1000, max: 3 });
 
 // ---------------------------------------------------------------- input
 let sw = null;

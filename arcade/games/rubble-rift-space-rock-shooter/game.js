@@ -5,6 +5,7 @@ import { createUI, store, buzz, sfx, tone, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, arcadeCards, startCard, canvas2d, particles, shaker, keys, rr } from './arc.js';
 
 const NAME = 'Rubble Rift: Space Rock Shooter';
@@ -76,6 +77,7 @@ function reset() {
 }
 
 function addScore(n, x, y) {
+  if (DM.on) return;   // the self-playing demo scores nothing
   score += n; ui.score(score);
   floats.push({ x, y, t: 0.8, s: '+' + n });
   if (score >= nextLife) { nextLife += 10000; lives = Math.min(lives + 1, 6); ui.pop('EXTRA SHIP!', '#7ef0c8', 34, 26); sfx.coin(); }
@@ -127,6 +129,9 @@ const up = e => { if (ctl.stick && ctl.stick.id === e.pointerId) ctl.stick = nul
 addEventListener('pointerup', up); addEventListener('pointercancel', up);
 
 ui.onTap(w => { if (w !== 'start') reset(); state = 'play'; t0 = performance.now(); B.start(); ctl.stick = ctl.fire = null; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in wave 1, until the first touch,
+// the ship turns on the spot to lead the nearest rock and blasts it (shield kept up meanwhile, never the last rocks of the wave)
+const DM = demo(null, { ready: () => state === 'play' && wave === 1 && ship.alive && !ctl.stick && !ctl.fire, wait: 1500, ms: 3500 });
 
 function fire() {
   if (!ship.alive || shots.length >= 8) return;
@@ -157,6 +162,12 @@ function update(dt) {
   }
   if (ctl.fire) firing = true;
   if (clock < ctl.botUntil) { head = ctl.botHead; firing = firing || ctl.botFire; thrust = Math.max(thrust, ctl.botThrust ? 1 : 0); }
+  if (DM.on && ship.alive && rocks.length && massLeft() > 12) {
+    let tgt = null, td = 1e9;
+    for (const k of rocks) { const dx = wrapD(k.x - ship.x, W), dy = wrapD(k.y - ship.y, H), d = Math.hypot(dx, dy); if (d < td) { td = d; tgt = { k, dx, dy, d }; } }
+    const tt = tgt.d / (600 * U); head = Math.atan2(tgt.dy + (tgt.k.vy - ship.vy) * tt, tgt.dx + (tgt.k.vx - ship.vx) * tt);
+    firing = Math.abs(angDiff(head, ship.a)) < 0.2; ship.inv = Math.max(ship.inv, 0.4);
+  }
   if (ship.alive) {
     if (head != null) { const d = angDiff(head, ship.a); ship.a += Math.sign(d) * Math.min(Math.abs(d), 10 * dt); }
     ship.a += turn * 5 * dt;

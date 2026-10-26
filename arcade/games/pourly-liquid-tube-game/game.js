@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { CAP, top, run, done, legal, pourN, solve, deal } from './levels.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'pourly', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.5 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Pourly: Liquid Tube Game';
@@ -280,6 +281,13 @@ function bot() {
 
 // ---------------------------------------------------------------- loop
 ui.onTap((which) => { B.start(); if (which === 'start') { state = 'play'; return; } build(); state = 'play'; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the solver lifts a tube and pours it into the right one, twice (never the last pours, so it never clears the level)
+let demoPlan = null;
+demo(n => {
+  if (n % 2) { demoPlan = solve(T, 30000); if (!demoPlan || demoPlan.length < 4) return false; tap(demoPlan[0][0]); }
+  else { if (selected !== demoPlan[0][0]) return false; tap(demoPlan[0][1]); }
+}, { ready: () => state === 'play' && level === 1 && !anims.length && !tubes.some(t => t.busy), wait: 1800, every: 900, max: 4, ms: 15000 });
 build(); ui.start();
 addEventListener('resize', () => layout(false));
 let time = 0;

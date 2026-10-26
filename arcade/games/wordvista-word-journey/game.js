@@ -7,6 +7,7 @@ import { snd } from './audio.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -345,6 +346,15 @@ function tutorial() {
   toast('Swipe the letters to make words', 2600);
 }
 function hideTut() { if (tutEl) { tutEl.remove(); tutEl = null; } }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch, the
+// letters of the tutorial's word light up one by one along a swipe line, then let go without sending it (the word stays the player's)
+const DW = demo(() => {
+  const w = P.words.filter(x => !x.found).sort((a, b) => a.w.length - b.w.length)[0]; if (!w) return false;
+  const used = new Set(), idx = []; for (const ch of w.w.toUpperCase()) { const i = P.letters.findIndex((c, j) => c === ch && !used.has(j)); if (i < 0) return false; used.add(i); idx.push(i); }
+  const P0 = P, live = () => P === P0 && state === 'play' && !dragging && !DW.touched;
+  sel = []; idx.forEach((i, k) => setTimeout(() => { if (live()) addSel(i); }, k * 260));
+  setTimeout(() => { if (P !== P0 || state !== 'play' || dragging) return; wl.forEach(e => e.classList.remove('sel')); lineEl.setAttribute('points', ''); sel = []; drawPreview(); }, idx.length * 260 + 500);
+}, { ready: () => state === 'play' && P && !P.isDaily && S.level === 1 && !dragging && !sel.length, wait: 2000, every: 2800, max: 2 });
 
 // ------------------------------------------------------------ win
 let wonAt = 0;

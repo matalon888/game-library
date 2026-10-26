@@ -4,6 +4,7 @@ import { createUI, store, sfx, tone, note, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { CARDS, REL, EN, ACTS } from './data.js';
 import { heroSVG, foeSVG } from './art.js';
 
@@ -578,6 +579,15 @@ function botCombat() {
   const rest = hand.find(o => !o.k.f.d); if (rest) return playCard(rest.i, low);
   endTurn();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on a fresh climb, until the first touch,
+// the hero walks into the first fight and throws two attack cards at the foe (never a killing blow, never ends the turn)
+demo(n => {
+  if (n === 1) { if (scr !== 'map' || run.cur != null) return false; const ns = avail().sort((a, b) => Math.abs(a.c - 3) - Math.abs(b.c - 3)); enterNode(ns[0]); return; }
+  if (scr !== 'combat' || !C || !C.pTurn) return false;
+  const foe = alive()[0]; if (!foe) return false;
+  const o = C.hand.map((c, i) => ({ i, k: cd(c) })).find(o => o.k.t === 'A' && o.k.cost <= P.en && !o.k.f.all && o.k.f.d != null && dmgCalc(P, foe, o.k.f.d) * (o.k.f.x || 1) < foe.hp + foe.blk - 4);
+  if (!o) return false; playCard(o.i, foe);
+}, { ready: () => state === 'play' && run && run.act === 1 && run.score === 0 && !busy && !document.querySelector('.ov') && (scr === 'map' ? run.cur == null : scr === 'combat' && C && C.pTurn && C.turn === 1), wait: 1800, every: 1500, max: 3 });
 window.__game = {
   get state() { return state; }, get level() { return run ? run.act : 1; }, get score() { return run ? run.score : 0; },
   bot() { if (state !== 'play' || busy) return; if (botFn) botFn(); },

@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, burst, confetti, tone, note, buzz, 
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { bake, vcMat } from './merge.js';
 
 const NAME = 'Lanternhold: Build by Day, Defend by Night';
@@ -715,6 +716,14 @@ ui.onTap(w => {
   else if (w === 'win') { if (perkPending) { state = 'play'; phase = 'day'; openPerks(); } else enterDay(); }
   else if (w === 'lose') { hallMesh.visible = true; newRun(D.seed); beatenShown = false; hero.x = 0; hero.z = 3.2; B.start(); enterDay(); }
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on day 1 of a fresh run, until the
+// first touch, the hero rides to a plot on tonight's road and an archer tower pops up there (its gold is given back)
+let demoPlot = null;
+demo(n => {
+  if (n === 1) { const ar = nightRoads(run.night); demoPlot = W.plots.find(p => !p.b && p.kind === 'any' && ar.includes(p.road) && p.r < 7); if (!demoPlot) return false; hero.mx = demoPlot.x * 0.8; hero.mz = demoPlot.z * 0.8; return; }
+  const cost = BT.archer.cost[0]; if (!build(demoPlot, 'archer')) return false; run.gold += cost; bumpGold(); saveRun(); return false;
+}, { ready: () => state === 'play' && phase === 'day' && run && run.night === 1 && !buildings.length && sheet.hidden, wait: 1800, every: 1600, max: 2 });
 
 // ================================================================ test hooks + bot
 function botDay() {

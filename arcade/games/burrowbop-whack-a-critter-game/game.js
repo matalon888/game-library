@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, buzz, tone, note, burst, con
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Burrowbop: Whack a Critter Game';
 const S = store('burrowbop');
@@ -235,6 +236,13 @@ function endRound() {
   comboEl.textContent = '';
 }
 ui.onTap(() => startRound());
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first round, until the first
+// touch, the mallet bops three popped-up critters (never a bunny); the points, combo and clock time are handed back
+const demoPick = () => holes.find(h => h.c && !h.c.gone && h.c.kind !== 'bunny' && h.c.rise > 0.55 && h.c.t > 0.3);
+demo(() => {
+  const h = demoPick(); if (!h) return;
+  const s0 = score; bop(h); score = s0; combo = 0; hits = Math.max(0, hits - 1); time = 0; ui.score(score); showCombo();
+}, { ready: () => state === 'play' && rounds === 1 && !!demoPick(), wait: 400, every: 500, max: 3, ms: 15000 });
 
 // ---------------------------------------------------------------- input
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.5), hit = new THREE.Vector3();

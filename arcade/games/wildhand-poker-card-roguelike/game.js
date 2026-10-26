@@ -4,6 +4,7 @@ import { createUI, store, buzz, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft } from './calm.js';
 
 const NAME = 'Wildhand: Poker Card Roguelike';
@@ -431,6 +432,14 @@ ui.onTap(w => {
   else if (w === 'win') openShop();
   else if (w === 'lose') newRun();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first blind, until the first
+// touch, the best poker hand in the deal lifts card by card so its name and chips show, then the cards drop back (no hand spent)
+let demoPick = null;
+demo(n => {
+  if (!demoPick) { const b = bestPlay(); if (!b || b.t < 1) return false; hand.forEach(c => c.sel = false); demoPick = b.cards; }
+  if (n <= demoPick.length) { toggle(demoPick[n - 1]); return; }
+  hand.forEach(c => c.sel = false); place(); preview(); return false;
+}, { ready: () => state === 'play' && phase === 'blind' && blindNo === 1 && !busy && hands === 4 + 0 && roundScore === 0 && hand.length > 0, wait: 1800, every: 650, max: 7 });
 ui.start();
 hud(); drawCharms(); E('bplay').disabled = E('bdisc').disabled = true;
 

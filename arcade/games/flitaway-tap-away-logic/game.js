@@ -6,6 +6,7 @@ import { createUI, store, sfx, note, tone, buzz, input, rng, clamp } from './kit
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Flitaway: Tap Away Logic';
 const S = store('flitaway');
@@ -263,6 +264,13 @@ ui.onTap(w => {
   if (w === 'win' || w === 'lose') buildLevel();
   state = 'play'; t0 = performance.now(); B.start(); score = w === 'lose' ? score : score; hud();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// two arrows with a clear way out fly off the board by themselves (points handed back, never the last arrows)
+demo(() => {
+  if (arrows.filter(q => q.st === 'idle').length < 4) return false;
+  const a = arrows.find(q => q.st === 'idle' && freeAhead(q).n === Infinity); if (!a) return false;
+  const s0 = score; fire(a); score = s0; hud();
+}, { ready: () => state === 'play' && (D.isDaily ? dLevel : level) === 1, wait: 1800, every: 1300, max: 2, ms: 15000 });
 
 resize(); buildLevel(); ui.start(); requestAnimationFrame(frame);
 

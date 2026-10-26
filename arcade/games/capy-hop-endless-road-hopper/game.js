@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, tone, sfx, burs
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Capy Hop: Endless Road Hopper';
 const S = store('capyhop');
@@ -271,6 +272,13 @@ input({
 });
 addEventListener('keydown', e => { const k = { ArrowUp: [0, 1], KeyW: [0, 1], Space: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0], ArrowDown: [0, -1], KeyS: [0, -1] }[e.code]; if (k) tryHop(...k); });
 ui.onTap(which => { B.start(); if (which !== 'start') reset(); state = 'play'; ui.els.sc.classList.remove('hc-hidden'); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first touch,
+// the capybara hops forward twice and sidesteps once, only across the safe starting grass, so the hop is shown without risk
+demo(n => {
+  const [dx, dz] = n < 3 ? [0, 1] : [hx > 0 ? -1 : 1, 0], row = rowAt(hr + dz);
+  if (!row || row.type !== 'grass' || !canStep(dx, dz)) return false;
+  tryHop(dx, dz);
+}, { ready: () => state === 'play' && !hop && !recorded && hr < 3, wait: 1200, every: 700, max: 3 });
 
 // ---------------------------------------------------------------- loop
 const camOff = new THREE.Vector3(4.6, 17.5, 12.2);

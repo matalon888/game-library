@@ -6,6 +6,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 
 const NAME = 'Spotwise: Domino Logic Puzzle';
@@ -363,6 +364,21 @@ function evaluate() {
     else ui.pop('Not quite…', INK, 22, 11.5);
   }
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch, a
+// domino slides from the tray onto a free spot that breaks no rule and is not its answer, rests there, then slides back home
+demo(() => {
+  const d = doms.find(x => x.cell < 0), w = d && P.sol[d.src]; if (!d) return false;
+  let spot = null;
+  for (let c = 0; c < P.cells.length && !spot; c++) for (let o = 0; o < 4 && !spot; o++) {
+    if (!fits(d, c, o) || (w && c === w.a && o === w.o)) continue;
+    const c0 = d.cell, o0 = d.o; d.cell = c; d.o = o; const v = vals(); d.cell = c0; d.o = o0;
+    if (!P.regions.some(R => R.rule.t !== 'any' && regionState(R, v) === 'bad')) spot = [c, o];
+  }
+  if (!spot) return false;
+  setO(d, spot[1]); d.cell = spot[0]; afterMove(d, true);
+  setTimeout(() => { if (d.cell === spot[0] && !drag && state === 'play') toTray(d); }, 1100);
+}, { ready: () => state === 'play' && level === 1 && !busy && !drag && !sel && doms.length > 1 && doms.every(x => x.cell < 0), wait: 1800, every: 2200, max: 2 });
 
 // ---------------------------------------------------------------- level flow
 function build() {

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
@@ -231,7 +232,7 @@ function enemyThrow(e) {
   if (e.ring) { scene.remove(e.ring); e.ring.material.dispose(); e.ring = null; }
 }
 function hitPlayer(b) {
-  if (inv > 0 || state !== 'play') return;
+  if (inv > 0 || state !== 'play' || DM.on) return;
   hearts--; inv = 1.3; updateHearts(); shake = 0.45; ui.flash(0.5);
   document.body.animate([{ filter: 'saturate(2) hue-rotate(-20deg)' }, { filter: 'none' }], { duration: 300 });
   tone(140, 0.25, 'square', 0.14, 0.5); buzz([40, 30, 60]); ui.pop('OUCH!', '#ff3355', 40, 40);
@@ -295,6 +296,9 @@ input({
   },
 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// your bean runs to the ball, grabs it ("GOT IT!") and sidesteps rival throws (the test bot, minus the throw); no hit costs a heart
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !touch, wait: 1200, ms: 3500 });
 
 // ---------------------------------------------------------------- loop
 const _v = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
@@ -308,6 +312,7 @@ loop((rawDt, t) => {
 
   if (state === 'play' || state === 'won') {
     // ---- player
+    if (DM.on && state === 'play') botMove(true);
     if (touch || performance.now() < botUntil) goal = null;
     const gv = goal && new THREE.Vector2(goal.x - player.position.x, goal.y - player.position.z); if (gv && gv.length() < 0.3) goal = null; else if (gv) gv.multiplyScalar(Math.min(1, gv.length()) / gv.length());
     const c = performance.now() < botUntil ? botCtrl : goal ? gv : ctrl;
@@ -433,7 +438,9 @@ useHero();
 
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
-  bot() {
+  bot() { botMove(false); },
+};
+function botMove(noThrow) {
     if (state !== 'play') return;
     const p = player.position;
     let mv = null;
@@ -447,12 +454,11 @@ window.__game = {
     }
     // dodge the telegraph ring before the throw
     if (!mv) for (const e of enemies) if (e.alive && e.wind > 0 && e.wind < 0.35 && e.aim && Math.hypot(e.aim.x - p.x, e.aim.z - p.z) < 1.0) { let side = p.x > e.aim.x ? 1 : -1; if (Math.abs(p.x + side * 1.5) > AW - 0.6) side = -side; mv = new THREE.Vector2(side, 0); }
-    if (!mv && held) { throwBall(); mv = new THREE.Vector2(0, 0); }
+    if (!mv && held && !noThrow) { throwBall(); mv = new THREE.Vector2(0, 0); }
     if (!mv) {
       let tb = null, d = 1e9; for (const b of balls) if (b.st === 'loose' && b.pos.z > 0.3) { const dd = Math.hypot(b.pos.x - p.x, b.pos.z - p.z); if (dd < d) { d = dd; tb = b; } }
       if (tb) mv = new THREE.Vector2(tb.pos.x - p.x, tb.pos.z - p.z).normalize();
       else mv = new THREE.Vector2(-p.x * 0.3, (3.5 - p.z) * 0.3);
     }
     botCtrl.copy(mv); botUntil = performance.now() + 220;
-  },
-};
+}

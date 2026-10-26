@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, burst
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Spin Bakes: Cake Decorating Game';
 const $ = (id) => document.getElementById(id);
@@ -292,13 +293,18 @@ input({
   onMove: (dx, dy, e) => { if (holding && phase === 'top') shakerX = clamp((e.clientX / innerWidth - 0.5) * 3.2, -R, R); },
   onUp: () => { holding = false; },
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the bag picks the ordered colour and pipes about half of the first ring while the cake spins, then waits for the player
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && phase === 'pipe' && band === 0 && !holding, wait: 1500, ms: 3000 });
 
 // ------------------------------------------------------------------ loop
 const camPos = V(0, 4.4, 9.2), camLook = V(0, 1.25, 0), cp = V(), cl = V();
 let frame = 0;
 loop((dt, t) => {
   frame += dt; phT += dt / 60;
-  const act = (holding || botHold) && state === 'play';
+  const demoHold = DM.on && phase === 'pipe' && band === 0 && bandFill(0) < 0.5 && L.opts.includes(L.bands[0]);
+  if (demoHold && sel !== L.bands[0]) selectIcing(L.bands[0]);
+  const act = (holding || botHold || demoHold) && state === 'play';
   const want = phase === 'reveal' ? 3.2 : act ? (phase === 'top' ? 2.2 : L.omega) : 0.35;
   omegaNow += (want - omegaNow) * 0.12 * dt; rot += omegaNow * dt / 60; spin.rotation.y = rot;
   if (act && phase === 'pipe' && sel >= 0) pipeStep(dt);

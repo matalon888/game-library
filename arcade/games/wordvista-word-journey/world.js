@@ -3,7 +3,6 @@
 import * as THREE from './kit/three.module.min.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { cine } from './kit/cine.js';
-import { artSky } from './artsky.js';
 
 const BASE = new URL('./', import.meta.url).href;
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -49,7 +48,6 @@ export function createWorld() {
         gl_FragColor = vec4(c, 1.0); }`,
   }));
   sky.renderOrder = -1; scene.add(sky);
-  artSky(THREE, scene, '#cfeaff', 0.3, () => { sky.visible = false; });   // art wave 2: the painted sky replaces the gradient dome once loaded
 
   // ---------------------------------------------------------- light
   const hemi = new THREE.HemisphereLight('#fff6ea', '#b9a6dc', 1.05); scene.add(hemi);

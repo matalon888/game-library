@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, store, confetti, buzz, rng } from '
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { flow } from './kit/flow.js';
+import { demo } from './kit/demo.js';
 import * as C from './casino.js';
 
 const NAME = "River Night: Texas Hold'em";
@@ -428,6 +429,12 @@ ui.onTap(which => {
   else if (which === 'lose') { setupTable(tableN); state = 'play'; runTable(); }
 });
 setupTable(tableN); ui.start();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): at the first table, until the first touch,
+// when it's your turn and it costs nothing, your seat plays by itself: a free check, or a fold of a weak hand with no chips in
+let freeMemo = { w: null, a: null };
+const freeMove = () => { const p = players[0]; if (!p || !waiting) return null; if (curBet - p.bet === 0) return { a: 'check' };
+  if (freeMemo.w !== waiting) freeMemo = { w: waiting, a: p.total === 0 && decideAI(p).a === 'fold' ? { a: 'fold' } : null }; return freeMemo.a; };
+demo(() => { const a = freeMove(); if (a) choose(a); }, { ready: () => state === 'play' && tableN === 1 && !!freeMove(), wait: 1600, every: 1300, max: 2, ms: 12000 });
 
 let tPrev = performance.now();
 loop(() => { const now = performance.now(); C.updateTweens(Math.min(0.05, (now - tPrev) / 1000)); tPrev = now; placeSeats(); });

@@ -5,6 +5,7 @@ import { createUI, store, buzz, note, tone, sfx } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { fx2d, startCard, cardTheme, arp, chime, soft } from './calm.js';
 import { CHAINS, KINDS, itemBitmap, VILLAGERS, drawVillager, drawProp, PROP_KEYS } from './art.js';
 
@@ -304,6 +305,15 @@ ui.onTap(w => {
 buildArea(false);
 frame();
 ui.start();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first area, until the first
+// touch, a generator pops out two items (the energy is given back), then two matching spare items merge into the next tier
+demo(n => {
+  if (n <= 2) { let gp = null; each((it, r, c) => { if (!gp && it.gen) gp = [r, c]; }); if (!gp || !tapGen(gp[0], gp[1])) return false; energy++; save(); return; }
+  const groups = new Map();
+  each((it, r, c) => { if (it.gen || it.tier >= 3) return; const k = it.kind + it.tier; (groups.get(k) || groups.set(k, []).get(k)).push([it, r, c]); });
+  for (const [, arr] of groups) { const { kind, tier } = arr[0][0]; if (arr.length - neededCount(kind, tier) < 2) continue; const [a, ar, ac] = arr[0], [, br, bc] = arr[1]; merge(a, ar, ac, br, bc); return false; }
+  return false;
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !drag && delivered === 0, wait: 1800, every: 1100, max: 3 });
 
 // ---------------------------------------------------------------- test hook: one sensible move per call
 window.__game = {

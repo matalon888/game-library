@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey, fmtTime } from './calm.js';
 import { SUITS, tableCSS, cardEl, tableDOM, shakeEl, homeEl, cascade } from './cards.js';
 import { makeDeal, runStart, canDrop, canDeal, fullRun, bestMoves, hashOf, search, posKey } from './rules.js';
@@ -313,6 +314,17 @@ ui.onTap((which) => {
   build(); state = 'play';
 });
 layout(); build();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first deal, until the first
+// touch, a good move glides a card onto the next rank down and then glides it back, so the deal is left exactly as it was
+let demoMarks = [];
+demo(n => {
+  if (n === 2) { if (hist.length !== 1) return false; undo(); demoMarks.forEach(f => f()); nMoves = 0; t0 = 0; elapsed = 0; render(); T.stat('t', fmtTime(0)); return false; }
+  const ms = bestMoves(cols, SU, RK).filter(x => !wouldRepeat(x)), m = ms.find(x => x.k !== cols[x.i].d) || ms[0]; if (!m || hist.length) return false;
+  const s0 = score; if (!exec(m.i, m.k, m.j)) return false;
+  const h = hashOf(cols), pk = posKey(cols, stock.length);   // forget the demo position, so hints still offer this move
+  demoMarks = [() => seen.delete(h), () => avoid.delete(pk)];
+  score = s0; nMoves = 0; t0 = 0; elapsed = 0; render(); T.stat('t', fmtTime(0));
+}, { ready: () => state === 'play' && level === 1 && !finishing && !dealing && !dragS && done.length === 0, wait: 1800, every: 1500, max: 2, ms: 15000 });
 
 // ---------------------------------------------------------------- test hook: the bot plays the greedy line a careful player would
 let lastBot = 0; const botOn = () => performance.now() - lastBot < 1500;

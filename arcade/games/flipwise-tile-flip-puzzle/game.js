@@ -2,6 +2,7 @@
 // (a plus at first; later crosses, rings, knight jumps and bars). Boards are generated (seeded) from a solved board and
 // only kept when the press matrix is invertible, so each puzzle has exactly one set of tiles to press: that is the par.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, note } from './puzzle.js';
 import { generate, affected, solution, PATTERNS } from './flipgen.js';
 
@@ -47,6 +48,13 @@ function prog() { const up = st.filter(v => !v).length; P.progress(up / (N * N))
 
 function press(c) {
   P.push(); moves++;
+  flipAt(c);
+  if (hintTile === c) hintTile = -1;
+  soft.wood(); buzz(8);
+  prog();
+  if (st.every(v => !v) && P.state === 'play') win();
+}
+function flipAt(c) {   // flip a tile's pattern with its ripple (no move counted)
   const now = performance.now(), cx = c % N, cy = (c / N) | 0;
   pressAt.set(c, now);
   for (const a of affected(N, pats[c], c)) {
@@ -55,11 +63,13 @@ function press(c) {
     st[a] ^= 1;
     setTimeout(() => tone(st[a] ? 330 : 660 + d * 80, 0.06, 'triangle', 0.08, st[a] ? 0.8 : 1.2), d * 55 + 120);
   }
-  if (hintTile === c) hintTile = -1;
-  soft.wood(); buzz(8);
-  prog();
-  if (st.every(v => !v) && P.state === 'play') win();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the middle tile is pressed and its pattern ripples over, then it is pressed back (no move counted, never solves the board)
+demo(() => {
+  const c = (N * N) >> 1, n0 = N; flipAt(c); soft.wood(); prog();
+  setTimeout(() => { if (P.state === 'play' && N === n0) { flipAt(c); prog(); } }, 1000);   // flips commute: this undoes the demo whatever was pressed meanwhile
+}, { ready: () => P.state === 'play' && P.level === 1 && moves === 0 && !flips.size && st.some(v => v), wait: 1800, every: 2400, max: 2 });
 function win() {
   wonAt = performance.now() + 380;
   const star = moves <= par;

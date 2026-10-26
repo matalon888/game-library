@@ -10,6 +10,7 @@ import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { heroBar, selectedHero, loadHero as loadMyHero, onHeroesChange } from './kit/heroes.js';
 import * as A from './sound.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Stormchase: Endless Rail Runner';
 const LW = 2.6, LX = [-LW, 0, LW], TIER = 400, GRAV = 36, JUMPV = 12, SHOE_JUMPV = 16.5, SLIDE_T = 0.72, ROOF = 3.1, VT = 11;
@@ -368,19 +369,20 @@ function gameOver(how, kind) {
 }
 function thunder() { A.hiss(1.4, 400, 60, 0.4, 'lowpass'); A.osc(55, 1.0, 'sine', 0.25, 0.6); setTimeout(() => A.hiss(0.8, 300, 80, 0.25, 'lowpass'), 180); }
 function crash(how) {
-  if (invT > 0) return true;
+  if (invT > 0 || DM.on) return true;
   if (pw.board > 0) { pw.board = 0; invT = 1.6; shake = 0.7; ui.flash(0.4); ui.pop('BOARD SMASHED!', '#7ff0ff', 32, 30); buzz([20, 20, 30]); A.hiss(0.4, 2500, 400, 0.22); A.osc(300, 0.2, 'square', 0.1, 0.5);
     sparkle(x, y + 0.4, Z(s), '#7ff0ff', 18, 6); return true; }
   gameOver(how, 'crash'); return false;
 }
 function stumble() {
+  if (DM.on) return;
   shake = Math.max(shake, 0.6); buzz([25, 20, 25]); ui.flash(0.3); thunder(); A.osc(180, 0.15, 'square', 0.1, 0.5);
   if (stumbleT > 0) { gameOver('The storm caught you!', 'caught'); return; }
   stumbleT = 6; ui.pop('WHOA!', '#ff4f5e', 38, 30); strike(x + 1.8, 9, Z(s) - 3);
 }
 function startRun() {
   if (state === 'play') return;
-  B.start(); reset(); state = 'play'; t0run = performance.now(); A.ac(); startSong(); ui.els.sc.classList.remove('hc-hidden');
+  B.start(); reset(); state = 'play'; runN++; t0run = performance.now(); A.ac(); startSong(); ui.els.sc.classList.remove('hc-hidden');
   play('run', 0.25); started = true; showPick();
 }
 
@@ -410,6 +412,10 @@ input({ onMove: (dx, dy, e, st) => {
 }, onTap: (e) => { if (state !== 'play') return; const yy = e.clientY / innerHeight; act(yy < 0.36 ? 'up' : yy > 0.8 ? 'down' : e.clientX < innerWidth / 2 ? 'left' : 'right'); } });
 addEventListener('keydown', e => { const k = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', a: 'left', d: 'right', w: 'up', s: 'down', ' ': 'up' }[e.key]; if (k) { e.preventDefault(); if (state === 'play') act(k); } });
 ui.onTap(() => { if (state === 'loading') { pendingStart = true; return; } startRun(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first touch,
+// the runner dodges by itself for a few seconds (the game's own bot: switch tracks, jump, roll) and can't be caught meanwhile
+let runN = 0;
+const DM = demo(null, { ready: () => state === 'play' && runN === 1, wait: 700, ms: 4200 });
 let pendingStart = false;
 
 // character picker on the start card
@@ -625,7 +631,7 @@ let lastFrame = performance.now(), fpsAvg = 60;
 loop((d, t) => {
   const dt = Math.min(0.05, d / 60);
   fpsAvg = lerp(fpsAvg, 1 / Math.max(1e-3, dt), 0.05);
-  if (state === 'play') update(dt);
+  if (state === 'play') { if (DM.on) window.__game.bot(); update(dt); }
   else if (state === 'lost') { deadT += dt; if (y > groundH) { vy -= GRAV * dt; y = Math.max(groundH, y + vy * dt); } s += speed * dt * Math.max(0, 0.25 - deadT) ; }
   else if (state === 'ready' && K) { if ((tick++ & 31) === 0) generate(); if (hero && hero.cur === hero.acts.idle && Math.random() < dt * 0.15) { play('cheer', 0.3); setTimeout(() => state === 'ready' && play('idle', 0.4), 2400); } }
   draw(t, dt);

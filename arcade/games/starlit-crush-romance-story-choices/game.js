@@ -11,6 +11,7 @@ import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { CAST, LIS, ALBUM, STICKERS, OUTFITS, BOOK, SCRIPT, QUOTES, QUIZ_HINTS, parse } from './story.js';
 import { loadProps, buildSets, PROP_IDS } from './sets.js';
 import { initCast, makeActor, setEmo, setFade, tickActor, emote, play, dress } from './cast.js';
@@ -416,6 +417,10 @@ function advance() {
   line = null; next();
 }
 $('tapzone').addEventListener('pointerdown', e => { e.stopPropagation(); unlock(); if (phase === 'play' && RUN) advance(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in chapter 1, until the first touch,
+// a finished line steps on to the next one by itself twice (never past a choice), so "tap to read on" is shown
+demo(() => advance(), { ready: () => phase === 'play' && RUN && RUN.n === 1 && !RUN.replay && !RUN.busy && line && line.done && !letterOn
+  && $('choices').classList.contains('hidden') && $('sheet').classList.contains('hidden') && $('namebox').classList.contains('hidden'), wait: 2000, every: 2600, max: 2 });
 addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && phase === 'play' && RUN && $('namebox').classList.contains('hidden')) { e.preventDefault(); advance(); } });
 
 // ------------------------------------------------------------------------------------------------- name + letter

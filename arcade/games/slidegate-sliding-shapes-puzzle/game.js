@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, buzz, sfx, tone, note, burst
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { generate, SIDES, inside, at, canMove, stamp, exitGate, pathOut } from './gen.js';
 
 const NAME = 'Slidegate: Sliding Shapes Puzzle';
@@ -221,6 +222,15 @@ function follow(b, tx, ty) {
 }
 
 ui.onTap(w => { if (w === 'win' || w === 'lose') build(); state = 'play'; lvStart = performance.now(); B.start(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// one block that has a clear road slides cell by cell to its matching gate and out (never the last block)
+let demoPlan = null;
+demo(() => {
+  if (!demoPlan) { for (const b of blocks) { if (b.out) continue; const p = pathOut(bd, b.k); if (p) { p.path.shift(); demoPlan = { b, path: p.path, side: p.side }; b.sq = 1; return; } } return false; }
+  const nx = demoPlan.path.shift();
+  if (nx) return step(demoPlan.b, nx[0] - demoPlan.b.k.x, nx[1] - demoPlan.b.k.y) ? true : false;
+  const [sx, sy] = SIDES[demoPlan.side]; step(demoPlan.b, sx, sy); return false;
+}, { ready: () => state === 'play' && level === 1 && !drag && (demoPlan || cleared + 2 <= total), wait: 1800, every: 380, max: 14 });
 
 // ---------------------------------------------------------------- loop
 const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3(1, 1, 1);

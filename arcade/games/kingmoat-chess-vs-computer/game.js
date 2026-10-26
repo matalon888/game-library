@@ -2,6 +2,7 @@
 // en passant, promotion (you choose the piece), check, checkmate, stalemate, 50-move rule, threefold repetition,
 // insufficient material. The CPU thinks in a Web Worker so the board never freezes. Undo on Easy.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { duel, DIFFS, rrect, ease, soft, tone, chime, buzz } from './duel.js';
 import { Pos, think, search, PAWN, QUEEN, KING, fileOf, rankOf, sq } from './engine.js';
 import { drawPiece, pieceSvg } from './pieces.js';
@@ -42,6 +43,13 @@ const P = duel({
   },
   debug: () => ({ fen: pos.fen(), geo }),
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in your first game, until the first
+// touch, the king's pawn lights up with its dots and steps to e4 (the classic opening); the computer then answers as usual
+demo(n => {
+  const f = sq(4, 1), t = sq(4, 3); if (!legal.some(m => m.f === f && m.t === t)) return false;
+  if (n === 1) { sel = f; soft.click(); return; }
+  if (sel !== f) return false; playerMove(f, t); return false;
+}, { ready: () => P.state === 'play' && P.turn === 0 && pos.full === 1 && !anim && !promo && !P.busy && window.__game && window.__game.level === 1, wait: 1800, every: 1200, max: 2, ms: 15000 });
 const matOf = (arr) => arr.reduce((a, t) => a + VAL[t], 0);
 function afterSet() { legal = pos.legal(); sel = -1; }
 

@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'swingaroo', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.4 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Swingaroo: Rope Swing Stunt Game';
@@ -218,6 +219,10 @@ ui.onTap(w => {
   else if (w === 'lose') build();
   state = 'play'; ui.els.sc.classList.remove('hc-hidden');
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the roo fires its rope at the first ring and swings there (it never lets go, so it can't fall); a real tap takes over
+demo(() => { if (!grounded || grounded !== rects[0] || !target()) return false; press(); holding = false; return false; },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && !grip && grounded === rects[0], wait: 1500, max: 1 });
 
 // ---------------------------------------------------------------- physics
 function collide() {

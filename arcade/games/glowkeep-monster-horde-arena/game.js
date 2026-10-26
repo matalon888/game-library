@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, buzz, tone, note, confetti, 
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 
@@ -238,6 +239,9 @@ addEventListener('pointerup', e => { const s = stick; endStick(); if (!s || s.fa
   if (tapRay.ray.intersectPlane(tapPlane, tapHit)) tapGo = { x: tapHit.x, z: tapHit.z, until: performance.now() + 1500 }; }); addEventListener('pointercancel', endStick);
 const keys = {}; addEventListener('keydown', e => keys[e.key] = true); addEventListener('keyup', e => keys[e.key] = false);
 ui.onTap(() => { B.start(); buildRun(); state = 'play'; });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the keeper walks by itself (the test bot: slip round the gloomlings, scoop up gems), so the arena shows that you move
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !picks && !stick, wait: 1200, ms: 4000 });
 
 // ---------------------------------------------------------------- simulation
 const grid = new Map();
@@ -250,6 +254,7 @@ function step(dt) {
   if (stick) { mx = stick.x; mz = stick.y; }
   else if (tapGo) { const dx = tapGo.x - hx, dz = tapGo.z - hz, l = Math.hypot(dx, dz); if (l < 0.25 || performance.now() > tapGo.until) tapGo = null; else { mx = dx / l; mz = dz / l; } }
   else { mx = (keys.ArrowRight || keys.d ? 1 : 0) - (keys.ArrowLeft || keys.a ? 1 : 0); mz = (keys.ArrowDown || keys.s ? 1 : 0) - (keys.ArrowUp || keys.w ? 1 : 0); }
+  if (DM.on && !picks) window.__game.bot();
   if (!stick && botVec && performance.now() < botUntil) { mx = botVec[0]; mz = botVec[1]; }
   const ml = Math.hypot(mx, mz); moving = ml > 0.15;
   if (moving) { const k = Math.min(1, ml) / ml; hx += mx * k * P.speed * dt; hz += mz * k * P.speed * dt; faceA = Math.atan2(mx, mz); walk += dt * 0.3; }

@@ -3,6 +3,7 @@ import * as THREE from './three.module.min.js';
 import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = board({ game: 'twist-drop', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const $ = (id) => document.getElementById(id);
 const SEG = 12, SEGA = Math.PI * 2 / SEG, GAP = 3.2, R_OUT = 2.25, R_IN = 0.55, THICK = 0.36, BALL_R = 0.3, BALL_D = 1.45;
@@ -213,11 +214,38 @@ function win() {
   setTimeout(() => $('win').classList.remove('hidden'), 650);
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the title lifts, and the tower twists by itself while the ball rises so it drops through two gaps onto safe slices
+const DM = demo(null, { ready: () => (state === 'play' || state === 'ready') && level === 1 && passed < 2 && dragX === null, wait: 1500, ms: 4500 });
+let demoRot = null;
+function sliceAt(ring, rot) {
+  tmp.set(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), -(rot + ring.group.rotation.y));
+  let a = Math.atan2(-tmp.z, tmp.x); if (a < 0) a += Math.PI * 2; return ring.kinds[Math.floor(a / SEGA) % SEG];
+}
+function demoTarget() {
+  const i = rings.findIndex(r => !r.done && r.y < by), r = rings[i];
+  if (!r || r.finish) return null;
+  let best = null, bd = 1e9; const cur = tower.rotation.y;
+  for (let k = 0; k < 96; k++) {
+    const rot = cur + k * Math.PI * 2 / 96, ok = [-0.3, 0, 0.3].every(o => { if (sliceAt(r, rot + o * SEGA) !== 'gap') return false;
+      for (let j = i + 1; j < rings.length && !rings[j].finish; j++) { const kd = sliceAt(rings[j], rot + o * SEGA); if (kd !== 'gap') return kd === 'safe'; } return false; });
+    if (!ok) continue; let d = ((rot - cur) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI;
+    if (Math.abs(d) < Math.abs(bd)) { bd = d; best = cur + d; }
+  }
+  return best;
+}
+
 // ---------- main loop
 let last = performance.now();
 function frame(t) {
   const dt = Math.min(2.2, (t - last) / 16.67); last = t;
   if (dragX === null && state === 'play') { tower.rotation.y += twistV; twistV *= 0.86; }   // a little flick momentum
+  if (DM.on && state === 'ready') { state = 'play'; WB.start(); $('start').classList.add('hidden'); }   // nobody tapped the title: start the bouncing
+  if (DM.on && state === 'play' && passed < 2) {
+    if (vy > JUMP * 0.85 && demoRot === null) demoRot = demoTarget();
+    if (vy > 0 && demoRot !== null) { const d = demoRot - tower.rotation.y; tower.rotation.y += Math.sign(d) * Math.min(Math.abs(d), 0.45 * dt); twistV = 0; }
+    if (vy <= 0) demoRot = null;
+  }
   if (state === 'play') {
     const prev = by;
     vy = Math.max(MAXFALL, vy + GRAV * dt); by += vy * dt * 1.0;

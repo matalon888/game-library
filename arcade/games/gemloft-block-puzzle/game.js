@@ -7,6 +7,7 @@ import { cine } from './kit/cine.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { loader, piece } from './assets.js';
 import { LOFTS, buildLoft } from './loft.js';
 import { N, GEMS, emptyGrid, cloneGrid, fits, anyFit, wouldClear, place, bestMove, makeDealer, makeLevel, classicDealerOpts, points } from './blocks.js';
@@ -634,6 +635,29 @@ addEventListener('pointerup', () => {
   if (d.snap && state === 'play' && doPlace(d.i, d.snap[0], d.snap[1])) { s.ts = TRAY_S; s.tz = 0; s.x = s.tx; s.y = s.ty; s.s = TRAY_S; s.z = 0; return; }
   s.ts = TRAY_S; s.tz = 0; snd.drop();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// a tray piece lifts and glides onto the board twice (free: the piece count is given back), so the drag is shown
+demo(() => {
+  // never collect more than one of the level's gems for the player: if the bot's pick would, take its gem-blind pick instead
+  const left = game.goals.reduce((a, q) => a + q.left, 0), gems = m => m ? place(cloneGrid(game.grid), game.tray[m.i], m.x, m.y).cleared.filter(c => c.gem >= 0).length : 0;
+  let m = bestMove(game.grid, game.tray, { gemWant: Object.fromEntries(game.goals.map(q => [q.type, q.left])) });
+  if (m && left - gems(m) < 3) {   // a line clear without too many gems if there is one, else a quiet placement
+    m = null; let quiet = null;
+    game.tray.forEach((p, i) => { if (p) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (fits(game.grid, p.shape, x, y)) {
+      const c = { i, x, y }, r = place(cloneGrid(game.grid), p, x, y), k = r.cleared.filter(c => c.gem >= 0).length;
+      if (left - k < 3) continue; if (r.lines && !m) m = c; if (!r.lines && !quiet) quiet = c; } });
+    m = m || quiet;
+  }
+  if (!m || left - gems(m) < 3) return false;
+  const s = game.slots[m.i], p = game.tray[m.i], [cx, cy] = cellPos(m.x + (p.shape.w - 1) / 2, m.y + (p.shape.h - 1) / 2), y1 = cy - dragOff, x0 = s.tx, y0 = TRAY_Y - dragOff;
+  s.ts = 1; s.tz = 1.2; const d = game.drag = { i: m.i, x: x0, y: y0, snap: null }, g = game, t0 = performance.now();
+  const glide = setInterval(() => {
+    if (game !== g || game.drag !== d) return clearInterval(glide);
+    const k = Math.min(1, (performance.now() - t0) / 650), e = k * k * (3 - 2 * k); d.x = x0 + (cx - x0) * e; d.y = y0 + (y1 - y0) * e;
+    if (k < 1) return; clearInterval(glide);
+    setTimeout(() => { if (game !== g || game.drag !== d) return; game.drag = null; s.ts = TRAY_S; s.tz = 0; if (doPlace(m.i, m.x, m.y)) { g.placed--; refreshSub(); } s.x = s.tx = SLOT_X[m.i]; s.y = s.ty = TRAY_Y; s.s = TRAY_S; s.z = 0; }, 200);
+  }, 16);
+}, { ready: () => mode === 'play' && state === 'play' && !busy && game && game.kind === 'adv' && st.level === 1 && !game.drag, wait: 1800, every: 1600, max: 2 });
 
 // ---------------------------------------------------------------- camera
 const camCur = { pos: new V3(8, 9, 18), tgt: new V3(0, 1.5, 0), off: 0 };
@@ -774,7 +798,9 @@ function titleShow() {
 // ---------------------------------------------------------------- test hooks
 let botBusy = false, botNext = 0;
 window.__game = {
-  autostart() { if (mode !== 'title' || !view) return false; ui.els.start.dispatchEvent(new Event('pointerdown')); setTimeout(() => startGame(D.seed ? 'daily' : 'adv'), 350); },
+  autostart() { if (!view) return false;
+    if (mode === 'home' && state === 'ready' && !roomBusy && !game) { startGame(D.seed ? 'daily' : 'adv'); return; }   // the shell tapped the start card first: go on into the level
+    if (mode !== 'title') return false; ui.els.start.dispatchEvent(new Event('pointerdown')); setTimeout(() => startGame(D.seed ? 'daily' : 'adv'), 350); },
   get state() { return state === 'ending' ? 'play' : state; }, get level() { return st.level; }, get score() { return game && game.kind === 'classic' ? game.score : st.earned; },
   get stars() { return st.stars; }, get perf() { return perf; }, get room() { return st.room; }, get coins() { return M ? M.coins() : 0; }, get stickers() { return st.stickers.length; },
   get tasksDone() { return Object.values(st.done).reduce((a, l) => a + l.length, 0); }, get mode() { return mode; }, get game() { return game; },

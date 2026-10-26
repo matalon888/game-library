@@ -2,6 +2,7 @@
 // Six pits and a store each. Pick up a pit and sow its pebbles one by one counter-clockwise; finish in your store to go
 // again, finish in an empty pit of yours to capture the pit across. Most pebbles in your store wins.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { duel, rngf, rrect, ease, SVG, buzz, tone, note, soft, chime } from './duel.js';
 
 const NAME = 'Pebblepit: Mancala vs Computer';
@@ -85,6 +86,15 @@ const T = duel({
   debug: () => ({ counts: counts.slice(), turn, busy }),
 });
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first game, until the first
+// touch, your best opening pit lights up and sows itself around the board (one move; it doesn't count as you having played)
+let demoing = false, demoPit = -1;
+demo(n => {
+  if (n === 1) { demoPit = choose(counts, 0, 5, 0, Math.random); if (demoPit < 0) return false; sel = demoPit; preview = play(counts, 0, demoPit); soft.click(); return; }
+  if (sel !== demoPit) return false;
+  demoing = true; sowFrom(demoPit); demoing = false; return false;
+}, { ready: () => T.state === 'play' && T.wins === 0 && turn === 0 && !busy && moveCount === 0, wait: 1800, every: 1100, max: 2 });
+
 function head() {
   T.header([{ name: 'You', init: 'Y', color: YOU, score: counts[6] }, { name: 'CPU', init: 'C', color: CPU, score: counts[13] }], T.state === 'play' ? turn : -1);
   T.score(counts[6]);
@@ -147,7 +157,7 @@ function sowFrom(i) {
   if (busy || T.state !== 'play' || counts[i] === 0) return;
   const side = turn, res = play(counts, side, i);
   busy = true; sel = -1; preview = null; lastMove = i; moveCount++;
-  if (side === 0) T.moved();
+  if (side === 0 && !demoing) T.moved();
   T.refreshButtons();
   const hand = inPit(i).sort((a, b) => a.slot - b.slot); counts[i] = 0;
   const P = geo.pit[i];

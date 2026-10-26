@@ -5,6 +5,7 @@ import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Lurkfield: Monster Minesweeper RPG';
@@ -255,6 +256,14 @@ ui.onTap((which) => {
 build();
 
 // ---------------------------------------------------------------- test hook: a careful player who peeks at nothing it couldn't deduce… mostly
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch, a
+// fog tile beside the open ground is opened (one its numbers prove empty if there is one; never a monster or an item), twice
+demo(() => {
+  const front = new Set(); cells.forEach((c, i) => { if (c.open) nbrs(i).forEach(j => { if (!cells[j].open) front.add(j); }); });
+  const bound = (j) => Math.min(99, ...nbrs(j).filter(q => cells[q].open && cells[q].k !== 'boss').map(q => cells[q].n - nbrs(q).reduce((a, z) => a + (cells[z].open && (cells[z].k === 'mon' || cells[z].k === 'boss') ? cells[z].lv : 0), 0)));
+  const ok = [...front].filter(j => cells[j].k === 'empty').sort((a, b) => bound(a) - bound(b)), j = ok[0]; if (j === undefined) return false;
+  step(j);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !tagMode, wait: 1800, every: 1500, max: 2 });
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   get dbg() { return { hp, maxHp, xp, need: need(), plvl, gained, totalXp, left: cells.filter(c => c.k === 'mon' && !c.dead).map(c => c.lv).join(''), hidden: cells.filter(c => !c.open).length }; },

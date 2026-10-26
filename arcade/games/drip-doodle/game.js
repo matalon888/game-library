@@ -3,6 +3,7 @@
 import { createUI, input, loop, sfx, tone, buzz, store, clamp, lerp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { Water } from './physics.js';
 import { W, H, GLASS, makeLevel, staticSegs, inGlass, glassPts, blockPoly, insideBlocks, pipeBox, emit } from './levels.js';
 
@@ -84,9 +85,20 @@ function endStroke() {
   cur = null; pencil = null;
   if (!tapOpen && strokes.some(st => st.length >= 2) && state === 'play') { tapOpen = true; tapT = 0; sfx.tap(); tone(300, 0.18, 'sine', 0.1, 1.6); buzz(10); }
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the pencil draws the first half of the ramp from under the tap, holds it a moment, then wipes it (the tap never opens)
+let demoInk = false;
+demo(n => {
+  const sol = L.solution;
+  if (n === 1) { beginStroke(...sol[0]); demoInk = true; }
+  else if (n <= 6) addPoint(...sol[n - 1]);
+  else if (n === 7) pencil = null;
+  else if (n === 12) { startLevel(); demoInk = false; return false; }
+}, { ready: () => state === 'play' && level === 1 && !tapOpen && (demoInk || !strokes.length), wait: 1600, every: 220, max: 12 });
 const restartBtn = { x: 34, y: 38, r: 22 };
 input({
   onDown(e) {
+    if (demoInk) { demoInk = false; startLevel(); }
     if (Math.hypot(e.clientX - restartBtn.x, e.clientY - restartBtn.y) < restartBtn.r + 6) { if (state === 'play') { sfx.tap(); startLevel(); } return; }
     if (state !== 'play') return;
     beginStroke(...toWorld(e.clientX, e.clientY));

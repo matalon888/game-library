@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { canvasTex } from './geo.js';
 
 const NAME = 'Comet Tee: Golf Long Drive';
@@ -280,6 +281,7 @@ function swing() {
   burst(scene, ball.position.clone(), ['#ffffff', '#ffd23f', '#3ddc84'], 14, { speed: 0.6, up: 0.4, size: 3, gravity: 0.03 });
 }
 function shotDone(evt) {
+  if (demoShot) { demoShot = false; sub = 'done'; doneT = 0; ui.score('0 yd'); ui.progress(0); ui.pop(`${goal - Math.max(0, Math.round(b.x))} yd short`, '#fff', 32, 30); return; }   // demo ball: given back
   sub = 'done'; doneT = 0;
   const d = Math.max(0, Math.round(b.x));
   ui.score(d + ' yd');
@@ -301,6 +303,10 @@ function shotDone(evt) {
 }
 
 input({ onDown: () => { if (state === 'play') swing(); } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the club swings once on an off-green arrow: a short drive lands well short of the goal, and that ball is handed back
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && ballsLeft === 3 && sub === 'aim', wait: 1800, ms: 3000 });
+let demoUsed = false, demoShot = false;
 ui.onTap(() => { B.start(); build(); state = 'play'; ui.hideStart(); });
 
 // ---------------------------------------------------------------- loop
@@ -313,6 +319,8 @@ loop((dt, now) => {
   if (state === 'play' && sub === 'aim') {
     np += ndir * needleSpeed * h; if (np > 1) { np = 1; ndir = -1; } else if (np < 0) { np = 0; ndir = 1; }
     needle.rotation.z = lerp(A0, A1, np);
+    if (DM.on && !demoUsed && ndir > 0 && np < 0.5) { const ang = lerp(A0, A1, np), q = clamp(1 - Math.abs(ang - AC) / ((A1 - A0) / 2), 0, 1);
+      if (q > 0.4 && q < 0.65 && simulate(ang, q * 0.95).dist < goal * 0.8) { demoUsed = demoShot = true; swing(); } }
     club.rotation.z = lerp(club.rotation.z, -1.5 + Math.sin(t * 3) * 0.08, 0.1 * dt);   // waggle at the top of the backswing
   }
   if (sub === 'swing') {

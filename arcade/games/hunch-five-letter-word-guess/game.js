@@ -5,6 +5,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { WORDS } from './words.js';
+import { demo } from './kit/demo.js';
 import * as kitBoard from './kit/board.js';   // `board` is a local name here
 const B = kitBoard.board({ game: 'hunch', label: 'Points', limits: { maxRun: 140, maxPerSec: 10 }, mode: 'sum' });   // world board (RULES.md part C)
 
@@ -230,6 +231,10 @@ ui.onTap((which) => {
   build(); state = 'play';
 });
 build();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first word, until the first touch,
+// a starter word types itself into the first row letter by letter and then erases itself (never submitted, so no clue given)
+demo(n => { if (n <= 5) press('crane'[n - 1]); else if (n > 7) press('back'); },
+  { ready: () => state === 'play' && row === 0 && !busy && (D.isDaily || level === 1), wait: 1500, every: 420, max: 12, ms: 15000 });
 
 // ---------------------------------------------------------------- test hook: the bot plays a consistent guess, one key per call
 let botWord = null;

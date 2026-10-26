@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, con
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Boop Board: Bubble Popper Fidget Game';
 const S = store('boopboard');
@@ -288,6 +289,14 @@ loop((dt, t) => {
 });
 
 build(); ui.start(); ui.score(0);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// a finger-like swipe pops a short row of neighbouring bubbles (the test bot's chain), scoring nothing, then it's yours
+let demoLast = null;
+demo(() => {
+  const left = bubbles.filter(b => b.up); if (left.length < 6) return false;
+  let pick = left[0], bd = 1e9; if (demoLast) for (const b of left) { const d = Math.hypot(b.x - demoLast.x, b.z - demoLast.z); if (d < bd) { bd = d; pick = b; } }
+  const sc = score; demoLast = pick; lookAt.set(pick.x, TOP, pick.z); popBubble(pick); score = sc; ui.score(score);
+}, { ready: () => state === 'play' && level === 1 && !down, wait: 1500, every: 260, max: 3 });
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() {   // pop like a kid swiping: the closest standing bubble to the last one

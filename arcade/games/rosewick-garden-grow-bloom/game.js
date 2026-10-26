@@ -6,7 +6,8 @@ import { note, tone, buzz } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
-import { SPECIES, SP, STAGES, VILLAGERS, VIL, DECOR, DEC, STAMPS, PLOT_COST , FLOWER_ART, STAGE_ART } from './data.js';
+import { demo } from './kit/demo.js';
+import { SPECIES, SP, STAGES, VILLAGERS, VIL, DECOR, DEC, STAMPS, PLOT_COST } from './data.js';
 
 const $ = s => document.querySelector(s);
 const Q = new URLSearchParams(location.search);
@@ -55,12 +56,6 @@ const load = (k, src) => new Promise(r => { const i = new Image(); i.onload = ()
 const wide = () => innerWidth / innerHeight > 1.05;
 const bgSrc = (name) => `assets/bg/${name}${wide() ? '-wide' : ''}${(devicePixelRatio || 1) < 2 && !wide() ? '-s' : ''}.webp`;
 const plantSrc = (sp, st) => `assets/plants/${sp}-${st}.webp`;
-// art wave 1: a flower's painted icon (UI only; the beds keep the cut-outs), a villager's face, the walled garden pair
-const iconSrc = sp => FLOWER_ART.has(sp) ? `assets/art/flower-${sp}.webp` : plantSrc(sp, 'bloom');
-const faceSrc = V => V.img ? `assets/art/vil-${V.img}.webp` : `assets/stamps/stamp-${V.stamp}.webp`;
-// the bouquet on the delivery card: sunny (sunflower, daisy, tulip), romance (rose, peony, sweet pea, poppy), or enchanted
-const bouquetOf = o => { const sc = { sunny: 0, romance: 0, enchanted: 0 }; for (const [sp, n] of Object.entries(o.need)) sc[['sunflower', 'daisy', 'tulip', 'dahlia'].includes(sp) ? 'sunny' : ['rose', 'peony', 'sweet-pea', 'poppy'].includes(sp) ? 'romance' : 'enchanted'] += n;
-  const k = o.vil === 'bride' ? 'romance' : Object.entries(sc).sort((a, b) => b[1] - a[1])[0][0]; return `assets/art/bouquet-${k}.webp`; };
 async function loadAll() {
   const jobs = [load('bg', bgSrc('rosewick')), load('coin', 'assets/kit/coin.webp'), load('can', 'assets/decor/watering-can.webp'), load('lock', 'assets/icons/lock.webp'), load('trug', 'assets/items/trug.webp'), load('paper', 'assets/kit/paper.webp')];
   for (const s of SPECIES) for (const st of STAGES) jobs.push(load(s.id + '-' + st, plantSrc(s.id, st)));
@@ -118,7 +113,7 @@ const anim = {};
 const awayBlooms = advance(away);
 
 // ------------------------------------------------------------------ orders
-const VORDER = ['hedgehog', 'baker', 'robin', 'postman', 'fox', 'owl', 'bride', 'squirrel', 'cat', 'boy', 'swan', 'kingfisher', 'bluetit'];
+const VORDER = ['hedgehog', 'robin', 'fox', 'owl', 'squirrel', 'cat', 'swan', 'kingfisher', 'bluetit'];
 const metVillagers = () => VORDER.slice(0, Math.min(VORDER.length, 3 + Math.floor(S.lvl / 1.5)));
 const FIRST = [{ daisy: 2 }, { daisy: 1, tulip: 1 }, { tulip: 2 }, { sunflower: 1, daisy: 2 }, { daisy: 2, tulip: 2 }];
 function genOrder(k) {
@@ -492,7 +487,7 @@ function harvest(i) {
   S.basket[sp] = (S.basket[sp] || 0) + n;
   Object.assign(pl, { sp: null, p: 0, w: 0 });
   puff(pos.x, pos.y, 'petal', 14); puff(pos.x, pos.y, 'spark', 6);
-  for (let k = 0; k < Math.min(n, 3); k++) setTimeout(() => flyImg(iconSrc(sp), pos, $('#basket'), 46), k * 90);
+  for (let k = 0; k < Math.min(n, 3); k++) setTimeout(() => flyImg(`assets/plants/${sp}-bloom.webp`, pos, $('#basket'), 46), k * 90);
   floatText(`+${n} ${SP[sp].name}`, pos.x, pos.y - 30);
   snd.harvest(); buzz(12); save();
   setTimeout(refreshBoard, 600);
@@ -520,8 +515,7 @@ document.body.appendChild(pop);
 function hidePop() { pop.style.display = 'none'; pop.dataset.i = ''; }
 function growPop(i) {
   const pl = S.plots[i], left = timeLeft(pl), cost = Math.max(1, Math.ceil(left / 12)), pos = plotScreen(i);
-  pop.innerHTML = `<div><b>${SP[pl.sp].name}</b> · ${STAGES[stageOf(pl)] === 'young' ? 'growing' : STAGES[stageOf(pl)]}</div><div style="margin:2px 0 6px">Blooms in <b data-left>${fmtT(left)}</b></div>
-    <div class="stg">${[...STAGE_ART.map(n => `assets/art/stage-${n}.webp`), iconSrc(pl.sp)].map((src, k) => `<img class="${k === stageOf(pl) ? 'on' : k < stageOf(pl) ? 'past' : ''}" src="${src}" alt="">`).join('<i>›</i>')}</div>`;
+  pop.innerHTML = `<div><b>${SP[pl.sp].name}</b> · ${STAGES[stageOf(pl)] === 'young' ? 'growing' : STAGES[stageOf(pl)]}</div><div style="margin:2px 0 6px">Blooms in <b data-left>${fmtT(left)}</b></div>`;
   const b = mkBtn(`Bloom now · <img src="assets/kit/coin.webp" alt="" style="width:24px;height:24px">${cost}`, 'sage', () => {
     if (!M.spend(cost, 'bloom-now')) { hidePop(); toast('Not enough coins.'); return; }
     pl.p = SP[pl.sp].grow; anim[i] = { t: performance.now(), kind: 'grow' }; if (!S.album[pl.sp]) albumNew(pl.sp);
@@ -547,15 +541,6 @@ function setDesign(on) {
   design = on; const chip = $('#plantchip');
   if (on) { setPlanting(null); chip.querySelector('img').src = 'assets/icons/pencil.webp'; chip.querySelector('span').textContent = 'Tap a circle to decorate'; chip.classList.remove('off'); }
   else chip.classList.add('off');
-  wallCard(on);
-}
-// the walled garden (art wave 1): while decorating, the painted garden turns from bare to designed as the decoration spots fill
-function wallCard(on) {
-  let el = $('#wallg');
-  if (!on) { if (el) el.remove(); return; }
-  const placed = Object.values(S.slots || {}).filter(Boolean).length, n = Math.max(1, (L.slots || []).length || 6), p = Math.round(100 * Math.min(1, placed / n));
-  if (!el) { el = document.createElement('div'); el.id = 'wallg'; document.body.append(el); }
-  el.innerHTML = `<img src="assets/art/garden-before.webp" alt=""><img class="aft" src="assets/art/garden-after.webp" alt="" style="--p:${p}%"><span>Walled garden · ${p}%</span>`;
 }
 
 // ------------------------------------------------------------------ sheets
@@ -581,7 +566,7 @@ function seedSheet(i) {
     for (const s of SPECIES) {
       const have = S.unlocked.includes(s.id), canUnlock = !have && S.lvl >= s.lvl;
       const d = document.createElement('div'); d.className = 'pk' + (have ? '' : ' locked');
-      d.innerHTML = `${have && need[s.id] ? '<span class="need">Wanted</span>' : ''}<img src="${iconSrc(s.id)}" alt=""><b>${s.name}</b>` +
+      d.innerHTML = `${have && need[s.id] ? '<span class="need">Wanted</span>' : ''}<img src="${plantSrc(s.id, 'bloom')}" alt=""><b>${s.name}</b>` +
         (have ? `<div class="meta"><span>⏱ ${fmtGrow(s.grow)}</span><span><img src="assets/kit/coin.webp" alt="">${s.seed}</span></div>`
           : canUnlock ? `<div class="cta">Unlock · ${s.unlock}</div>` : `<div class="meta">Garden level ${s.lvl}</div>`);
       d.addEventListener('click', () => {
@@ -605,10 +590,10 @@ function decorSheet(si) {
       const el = document.createElement('div'); el.className = 'pk' + (here ? ' sel' : '');
       el.innerHTML = `<img src="assets/decor/${d.id}.webp" alt=""><b>${d.name}</b>` + (here ? '<div class="cta dim">Remove</div>' : own ? `<div class="cta">${elsewhere ? 'Move here' : 'Place'}</div>` : `<div class="meta"><img src="assets/kit/coin.webp" alt="">${d.cost}</div>`);
       el.addEventListener('click', () => {
-        if (here) { delete S.slots[si]; save(); closeSheet(); wallCard(design); return; }
+        if (here) { delete S.slots[si]; save(); closeSheet(); return; }
         if (!own) { if (!M.spend(d.cost, 'decor')) { toast(`${d.name} costs ${d.cost} coins.`); closeSheet(); setTimeout(() => M.shop(), 300); return; } S.owned.push(d.id); }
         for (const k of Object.keys(S.slots)) if (S.slots[k] === d.id) delete S.slots[k];
-        S.slots[si] = d.id; save(); closeSheet(); wallCard(design); const sl = L.slots[si]; puff(sl.x, sl.y - sl.size * 0.4, 'spark', 12); puff(sl.x, sl.y - sl.size * 0.3, 'petal', 8); snd.deliver();
+        S.slots[si] = d.id; save(); closeSheet(); const sl = L.slots[si]; puff(sl.x, sl.y - sl.size * 0.4, 'spark', 12); puff(sl.x, sl.y - sl.size * 0.3, 'petal', 8); snd.deliver();
         toast(`${d.name} placed. Charm ${charm()}`);
       });
       g.append(el);
@@ -619,13 +604,13 @@ function decorSheet(si) {
 const charm = () => S.owned.reduce((a, id) => a + (DEC[id] ? DEC[id].charm : 0), 0);
 
 function albumSheet(tab = 'seeds') {
-  openSheet('Garden album', tab === 'seeds' ? `${Object.keys(S.album).length} of ${SPECIES.length} flowers bloomed` : `${S.stamps.length} of ${VORDER.length + STAMPS.length} keepsake stamps`, body => {
+  openSheet('Garden album', tab === 'seeds' ? `${Object.keys(S.album).length} of ${SPECIES.length} flowers bloomed` : `${S.stamps.length} of 24 keepsake stamps`, body => {
     const tabs = document.createElement('div'); tabs.className = 'tabs';
     for (const [k, t] of [['seeds', 'Seed album'], ['stamps', 'Stamps']]) { const b = document.createElement('button'); b.textContent = t; b.setAttribute('aria-pressed', k === tab); b.onclick = () => albumSheet(k); tabs.append(b); }
     body.append(tabs);
     if (tab === 'seeds') {
       const g = document.createElement('div'); g.className = 'alb';
-      for (const s of SPECIES) { const got = S.album[s.id]; const d = document.createElement('div'); d.className = 'pg' + (got ? '' : ' no'); d.innerHTML = `<img src="${iconSrc(s.id)}" alt=""><b>${got ? s.name : '?'}</b>${got ? `<span style="font-size:16px;color:#4a4f66;margin-top:3px">${s.note}</span>` : `<span>Bloom one to fill this page</span>`}`; g.append(d); }
+      for (const s of SPECIES) { const got = S.album[s.id]; const d = document.createElement('div'); d.className = 'pg' + (got ? '' : ' no'); d.innerHTML = `<img src="${plantSrc(s.id, 'bloom')}" alt=""><b>${got ? s.name : '?'}</b>${got ? `<span style="font-size:16px;color:#4a4f66;margin-top:3px">${s.note}</span>` : `<span>Bloom one to fill this page</span>`}`; g.append(d); }
       body.append(g);
     } else {
       const g = document.createElement('div'); g.className = 'stamps';
@@ -662,7 +647,7 @@ function basketSheet() {
     const g = document.createElement('div'); g.className = 'grid';
     const ids = SPECIES.filter(s => S.basket[s.id]);
     if (!ids.length) { const p = document.createElement('p'); p.className = 'sub'; p.textContent = 'Empty for now. Tap a flower in bloom to cut it.'; body.append(p); }
-    for (const s of ids) { const d = document.createElement('div'); d.className = 'pk'; d.innerHTML = `<img src="${iconSrc(s.id)}" alt=""><b>${s.name} × ${S.basket[s.id]}</b>${need[s.id] ? `<div class="meta">${need[s.id]} more wanted</div>` : ''}`; g.append(d); }
+    for (const s of ids) { const d = document.createElement('div'); d.className = 'pk'; d.innerHTML = `<img src="${plantSrc(s.id, 'bloom')}" alt=""><b>${s.name} × ${S.basket[s.id]}</b>${need[s.id] ? `<div class="meta">${need[s.id]} more wanted</div>` : ''}`; g.append(d); }
     body.append(g);
     body.append(document.createElement('hr'));
     const ready = now() - S.trugAt > 300e3;
@@ -761,8 +746,8 @@ function refreshBoard() {
     const ready = canDeliver(o), V = VIL[o.vil];
     const c = document.createElement('div'); c.className = 'ord' + (ready ? ' ready' : '') + (fresh && !old.includes(String(o.k)) ? ' enter' : '');
     c.innerHTML = (o.daily ? '<span class="tag gold">★ Daily</span>' : o.grand ? '<span class="tag">Grand bouquet</span>' : '') +
-      `<img class="who${V.img ? ' face' : ''}" src="${faceSrc(V)}" alt="${V.name}"><div class="needs">` +
-      Object.entries(o.need).map(([s, n]) => { const h = S.basket[s] || 0; return `<div class="nd${h >= n ? ' ok' : ''}"><img src="${iconSrc(s)}" alt="${SP[s].name}">${Math.min(h, n)}/${n}</div>`; }).join('') +
+      `<img class="who" src="assets/stamps/stamp-${V.stamp}.webp" alt="${V.name}"><div class="needs">` +
+      Object.entries(o.need).map(([s, n]) => { const h = S.basket[s] || 0; return `<div class="nd${h >= n ? ' ok' : ''}"><img src="${plantSrc(s, 'bloom')}" alt="${SP[s].name}">${Math.min(h, n)}/${n}</div>`; }).join('') +
       `</div><div class="rw"><img src="assets/kit/coin.webp" alt="">${bonus(o.coins)}</div><div class="go">Deliver</div>`;
     c.addEventListener('click', e => { e.stopPropagation(); if (state !== 'play') return; if (canDeliver(o)) deliver(o); else orderSheet(o); });
     b.append(c);
@@ -830,10 +815,10 @@ function showDelivery(o, V, coins, lvlUp, newStamps, streakNote) {
   const unlockNow = lvlUp && SPECIES.filter(s => s.lvl === lvlUp);
   cardEl = document.createElement('div'); cardEl.className = 'card';
   cardEl.innerHTML = `<div class="frame">
-    ${V.img ? `<img class="vface" src="${faceSrc(V)}" alt="">` : `<img src="assets/stamps/stamp-${V.stamp}.webp" alt="" style="width:92px;height:76px;object-fit:contain;margin-top:-62px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))">`}
+    <img src="assets/stamps/stamp-${V.stamp}.webp" alt="" style="width:92px;height:76px;object-fit:contain;margin-top:-62px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))">
     <h1>${o.daily ? 'Today\'s bouquet!' : 'Bouquet delivered'}</h1>
     <p class="q">“${say}” <span style="font-style:normal;color:#4a4f66">— ${V.name}</span></p>
-    <img class="big bq" src="${bouquetOf(o)}" alt="">
+    <img class="big" src="assets/items/vase-bouquet.webp" alt="">
     <div class="gain"><span><img src="assets/kit/coin.webp" alt=""> <b data-c>+${coins}</b></span><span style="color:var(--sage)">+${o.xp} <small style="font-size:16px">garden pts</small></span></div>
     ${lvlUp ? `<p><b>Garden level ${lvlUp}!</b>${unlockNow && unlockNow.length ? ` ${unlockNow.map(s => s.name).join(', ')} seeds can now be unlocked in the seed tray.` : ''}</p>` : ''}
     ${newStamps.length ? `<p style="display:flex;align-items:center;gap:8px;justify-content:center">${newStamps.map(s => `<img src="assets/stamps/stamp-${VIL[s] ? VIL[s].stamp : s}.webp" alt="" style="width:54px;height:46px;object-fit:contain">`).join('')}<span>New stamp${newStamps.length > 1 ? 's' : ''} for your album</span></p>` : ''}
@@ -951,7 +936,16 @@ function bot() {
   if (S.plots.some(p => p.sp && !bloomed(p)) && showerReady()) return shower();
   if (ei >= 0 && M.coins() > 40) return plant(ei, S.unlocked[0]);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in a level-1 garden, until the first
+// touch, the watering can tips over a thirsty bed (or a ripe bloom is picked into the basket), so a tap on a bed is shown
+demo(() => {
+  const wi = S.plots.findIndex(p => p.open && p.sp && thirsty(p)); if (wi >= 0) return water(wi);
+  const bi = S.plots.findIndex(p => p.open && p.sp && bloomed(p)); if (bi >= 0) return harvest(bi);
+  return false;
+}, { ready: () => state === 'play' && S.lvl === 1 && !sheetOpen && !visitEl && !cardEl && !design, wait: 1800, every: 1600, max: 2 });
 window.__game = {
   get state() { return state; }, get level() { return S.lvl; }, get score() { return S.delivered; }, bot,
-  S, M, shown, deliver, harvest, water, plant, layout, genOrderT: genOrder, tapPlotT: i => tapPlot(i),
+  // the shell's autostart: step past the welcome card into the garden (so the first seconds can play themselves)
+  autostart() { const c = document.getElementById('start'); if (!c || state !== 'ready') return false; c.dispatchEvent(new PointerEvent('pointerdown')); },
+  S, M, shown, deliver, harvest, water, plant, layout,
 };

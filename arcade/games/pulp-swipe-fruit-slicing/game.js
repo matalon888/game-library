@@ -3,7 +3,8 @@
 import { THREE, createStage, createUI, input, loop, store, mat, glossy, burst, confetti, sfx, tone, buzz, lerp, clamp, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
-import * as world from './kit/board.js';           // `board` is taken here
+import * as world from './kit/board.js';
+import { demo } from './kit/demo.js';           // `board` is taken here
 
 const NAME = 'Pulp Swipe: Fruit Slicing';
 const S = store('pulpswipe');
@@ -204,7 +205,7 @@ function boom(t) {
   lose('BOOM!', `${sliced} / ${goal} fruit · bombs end the round`);
 }
 function miss(t) {
-  if (t.kind === 'bomb' || state !== 'play') return;
+  if (t.kind === 'bomb' || state !== 'play' || DM.on) return;
   misses++; drawLives(); tone(180, 0.15, 'sine', 0.1, 0.6); buzz(30);
   const s = toScreen(_w.set(t.x, -6, 0)); ui.pop('✕', '#ff3d3d', 40, 86);
   if (misses >= 3) lose('DROPPED!', `${sliced} / ${goal} fruit · catch them before they fall`);
@@ -241,6 +242,10 @@ input({
     pts.push({ x: x - 32, y: y + 24, t: now - 30 }, { x, y, t: now - 15 }, { x: x + 32, y: y - 24, t: now }); sliceSeg(x - 32, y + 24, x + 32, y - 24); tone(1500, 0.04, 'sine', 0.02, 0.5); },
 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.els.sc.classList.remove('hc-hidden'); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch, the
+// blade slashes a few fruit near the top of their arc (the bot's own bomb-safe swipe, 3 at most) and dropped fruit cost no life
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 900, ms: 4200 });
+let demoCut = 0;
 function drawTrail() {
   const now = performance.now(), k = cv.width / innerWidth;
   pts = pts.filter(p => now - p.t < 140);
@@ -262,6 +267,7 @@ loop((rawDt, t) => {
   if (state === 'play') {
     waveT -= dt;
     if (waveT <= 0 && things.filter(x => x.live).length < maxPer + 1) { wave(); waveT = waveGap * (0.8 + R() * 0.5); }
+    if (DM.on && sliced < 3 && t - demoCut > 0.55 && things.some(o => o.live && o.delay <= 0 && o.kind !== 'bomb' && o.vy < 1.2 && o.y > -4)) { demoCut = t; window.__game.bot(); }
   }
   if (swipeT > 0) { swipeT -= dt; if (swipeT <= 0) endSwipe(); }
   const sdt = dt * (state === 'lost' ? 0.25 : 1);

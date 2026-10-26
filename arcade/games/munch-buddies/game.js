@@ -7,6 +7,7 @@ import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, sparks, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'munch-buddies', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'ode', 'saints', 'minuet', 'cancan', 'canon', 'neon', 'elise', 'starlight', 'mountain', 'turkish'];
@@ -222,6 +223,9 @@ function endHold(it, now) {
   if (p > 0.85) { score += 3; ui.score(score); ui.pop('DELICIOUS!', '#ff5d8f', 30, 30); hearts3d(new THREE.Vector3(LANE_X[it.lane], MOUTH_Y + 0.4, 1.2), 2); synth.chime(88, player.at(now), 0.1); }
 }
 ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the kittens munch the first few snacks right on the beat by themselves (never a bomb), then wait for your taps
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && eaten < 4, wait: 400, ms: 6000 });
 
 // ---------------------------------------------------------------- frame
 let clock = 0, lastBeat = -1, pulse = 0;
@@ -229,6 +233,7 @@ loop((dt) => {
   clock += dt / 60; fx.update(dt);
   const now = state === 'ready' ? previewT : player.time();
   if (state === 'play') {
+    if (DM.on && eaten < 4) for (const it of items) { if (it.t - now > 0.5) break; if (it.kind === 'food' && it.state === 'wait') it.bot = true; }
     for (const it of items) {
       if (it.state === 'wait' && it.bot && now >= it.t - 0.01) { munch(it.lane, now, 'bot'); if (it.long) it.botHold = true; }
       if (it.state === 'held') {

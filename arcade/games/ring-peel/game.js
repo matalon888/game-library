@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, note, buzz, store, rng, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const stage = createStage({ fov: 34, shadows: true, shadowSize: 9 });
 const { scene, camera, sun, hemi } = stage;
@@ -270,6 +271,14 @@ ui.onTap(which => { WB.start();
   if (which === 'start') { state = 'play'; }
   else { buildLevel(); state = 'play'; }
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the cannon fires a few balls through the gaps in the spinning guard (the bot's own safety check) and peels a few rings
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && stageIdx === 0 && !holding, wait: 1500, ms: 3500 });
+function clearShot() {
+  const tA = (cannonZ - 0.75 - (towerZ + OR + 0.45)) / BALL_SPEED, tB = (cannonZ - 0.75 - (towerZ + OR - 0.45)) / BALL_SPEED;
+  for (let f = 0; f <= 0.24; f += 0.02) for (let t = tA; t <= tB; t += 0.01) if (blocked(gt + f + t, 0.12)) return false;
+  return true;
+}
 
 // ------------------------------------------------------------------ loop
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
@@ -280,6 +289,7 @@ loop((d) => {
   // fire stream
   fireT -= dt;
   if (holding && state === 'play' && fireT <= 0) { fire(); fireT = FIRE_DT; }
+  if (DM.on && !holding && state === 'play' && fireT <= 0 && removed + 6 < rings.length && clearShot()) { fire(); fireT = FIRE_DT * 4; }
   comboT -= dt; if (comboT <= 0) combo = 0;
 
   // travel to next platform

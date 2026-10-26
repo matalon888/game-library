@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, note, buzz, mat, glossy, rounded, store, lerp, clamp, rng, palette, applyPalette } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const ST = store('squishgate');
 const F = flow('squishgate');
@@ -159,6 +160,9 @@ ui.onTap(which => { WB.start();
   else if (which === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
   else { buildLevel(); state = 'play'; }
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the jelly squishes itself tall or flat to slip through the first gate (the bot's own target shape), then lets go
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && !finishing && !gates.some(g => g.done), wait: 600, ms: 5000 });
 
 // ---------------------------------------------------------------- game events
 function passGate(g) {
@@ -245,6 +249,8 @@ function placeJelly(t) {
 }
 let tPrev = 0;
 loop((dt, t) => {
+  if (DM.on && state === 'play' && !finishing) { const g = gates.find(g => !g.done && g.z < z + 0.5);
+    if (g && g.z > z - 14) { const want = g.type === 'hole' ? sOf(g.ht) : g.type === 'bar' ? sOf(g.hh * 0.86) : sOf(A / (g.hw * 0.86)); s = clamp(s + clamp(want - s, -0.035 * dt, 0.035 * dt), 0, 1); } }
   // spring the visible shape toward the target (overshoot = jiggle)
   sDisp = s; const hT = hOf(s), wT = A / hT;
   hV += (hT - hD) * 0.16 * dt; hV *= Math.pow(0.78, dt); hD += hV * dt;

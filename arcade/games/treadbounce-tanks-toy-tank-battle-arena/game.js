@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, loop, rounded, tone, note, sfx, buzz, sto
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { part, merge, vmat, canvasTex, G, hudCSS, H, btn, banner, controls, Pool, healthBars, floaters, shaker, music } from './lib.js';
 
 const NAME = 'Treadbounce Tanks: Toy Tank Battle Arena';
@@ -566,6 +567,18 @@ ui.onTap(w => {
   next(w); state = 'play'; showHud(true); song.intensity = 0.4; say(isEndless() ? `WAVE ${wave}` : `ARENA ${level}`, level % 10 === 0 && !isEndless() ? '👑 TITAN TANK!' : `${tanks.length - 1} enemy tank${tanks.length > 2 ? 's' : ''}`, 1300);
 });
 setupRun(); showHud(false); ui.start();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in arena 1, until the first touch,
+// your tank rolls a little and fires bank shots off the walls (only angles that hit no tank, so nothing is won or lost)
+demo(n => {
+  if (!player.alive) return false;
+  const foe = tanks.filter(t => !t.me && t.alive).sort((a, b) => a.p.distanceTo(player.p) - b.p.distanceTo(player.p))[0]; if (!foe) return false;
+  const toFoe = Math.atan2(foe.p.x - player.p.x, foe.p.z - player.p.z);
+  let ang = null;
+  for (let k = 9; k < 36 && ang === null; k++) for (const sg of [1, -1]) { const a = toFoe + sg * k * 0.09; if (trace(player.p.x, player.p.z, a, 2, 90, player).tank === null) { ang = a; break; } }
+  if (ang === null) return false;
+  const side = n % 2 ? 0.7 : -0.7; ctl.drive({ mx: side * Math.cos(toFoe), my: side * Math.sin(toFoe) }); setTimeout(() => { if (!ctl.touch) { ctl.mx = 0; ctl.my = 0; } }, 420);
+  player.aim = ang; player.cd = 0; fire(player, ang);
+}, { ready: () => state === 'play' && !isEndless() && level === 1 && player && player.alive, wait: 1600, every: 1300, max: 3 });
 
 // ---------------------------------------------------------------- test hooks + bot
 window.__game = {

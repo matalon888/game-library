@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, store, sfx, tone, buzz, lerp, clamp
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { TRACKS, W, WALL, SW, RAMP_LEN, RAMP_H, buildTrack, buildMeshes } from './tracks.js';
 import { DRIVERS, kartGeo, wheelGeo, WHEELS } from './karts.js';
 import { bake, vcMat } from './merge.js';
@@ -265,8 +266,11 @@ addEventListener('pointerup', endTouch); addEventListener('pointercancel', endTo
 $('item').addEventListener('pointerdown', e => { e.stopPropagation(); A.audioInit(); itemReq = true; });
 function pressGo() { if (raceT < 0 && raceT > -0.45 && !player.rocket) { player.rocket = true; } else if (raceT < -0.45 && raceT > -3.4) earlyPress++; }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first race of a cup, until the
+// first touch, the CPU driver steers your kart through the first bends after GO, then hands the wheel back
+const DM = demo(null, { ready: () => state === 'play' && cup && cup.race === 0 && raceT > 0.2 && !touching && !player.finished, wait: 300, ms: 4200 });
 function playerInput(dt) {
-  if (bot || player.finished) return aiInput(player, dt, bot ? 0.97 : 0.8);
+  if (bot || player.finished || DM.on) return aiInput(player, dt, bot ? 0.97 : 0.8);
   let steer, drift;
   if (keyMode && !touching) {
     const tgt = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);

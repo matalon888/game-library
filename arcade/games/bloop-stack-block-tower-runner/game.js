@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Bloop Stack: Block Tower Runner';
 const S = store('bloopstack');
@@ -147,6 +148,7 @@ function build() {
 }
 
 function addScore(v) {
+  if (DM.on) return;   // demo moves score nothing
   score += v * (fever > 0 ? 2 : 1); ui.score(score);
   if (!beatenShown && D.beaten(score)) { beatenShown = true; ui.pop('BEATEN!', '#fff', 40, 30); confetti(scene, hero.position.clone().add(new THREE.Vector3(0, 2, 0)), 50); }
 }
@@ -199,6 +201,9 @@ function win() {
 }
 
 input({ onDown: () => { if (state === 'play') tap(); } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
+// the blob taps out just enough jelly blocks to step over the first walls (the test bot), then the run is the player's
+const DM = demo(null, { ready: () => state === 'play' && level === 1, wait: 600, ms: 3200 });
 ui.onTap(w => {
   if (w === 'win') { level++; S.set('level', level); build(); }
   else if (w === 'lose') build();
@@ -210,6 +215,7 @@ loop((dt, t) => {
   clock = t;
   const step = dt / 60;
   if (state === 'play') {
+    if (DM.on) window.__game.bot();
     if (fever > 0) { fever -= step; if (fever <= 0) { hero.skin.emissive.set('#000000'); } }
     x += speed * (fever > 0 ? 1.12 : 1) * step;
     const front = x + 0.45, wall = gAt(front);

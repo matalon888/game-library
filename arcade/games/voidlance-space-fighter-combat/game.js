@@ -4,6 +4,7 @@ import { createUI, store, buzz, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { bakeSky, makeSkyBodies, Asteroids, Dust } from './world.js';
 import * as MD from './models.js';
 import { Particles, Bolts, Debris, Blasts, glowTex } from './fx.js';
@@ -416,10 +417,14 @@ function hurt(d, from) {
 
 // ---------------------------------------------------------------- player flight + weapons
 const MUZ = [new V3(-0.62, -0.42, -3), new V3(0.62, -0.42, -3)];
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in mission 1, until the first touch,
+// the test pilot flies your fighter for a few seconds, swinging the nose onto the nearest contact and firing until one drone pops (no missiles)
+const DM = demo(null, { ready: () => state === 'play' && mode === 'campaign' && mIdx === 0 && P.alive && endT < 0 && !PAD.st.used, wait: 2200, ms: 4500 });
 function updatePlayer(dt) {
   if (!P.alive) { P.pos.addScaledVector(P.vel, dt); P.vel.multiplyScalar(1 - dt * 0.5); q1.setFromEuler(e1.set(dt * 0.8, dt * 0.3, dt * 2.4)); P.q.multiply(q1); return; }
   let pitch = 0, yaw = 0, roll = 0, fireOn = false, boostOn = false, msl = 0, thr = 0;
   if (botOn > 0) { const bi = botInput(dt); pitch = bi.pitch; yaw = bi.yaw; fireOn = bi.fire; boostOn = bi.boost; msl = bi.msl; }
+  else if (DM.on) { const bi = botInput(dt); pitch = bi.pitch; yaw = bi.yaw; fireOn = bi.fire && kills === 0; }
   else if (TOUCH && PAD.st.used) {
     const ex = v => Math.sign(v) * Math.pow(Math.abs(v), 1.4);
     yaw = ex(PAD.st.sx); pitch = -ex(PAD.st.sy); fireOn = PAD.st.fire; boostOn = PAD.st.boost; msl = PAD.st.msl; PAD.st.msl = 0;

@@ -4,6 +4,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, BASE_CSS, stage2d, rr, sprite, blit, fx as mkfx, hud as mkhud, pad as mkpad, keys, touchy, dressStart, paused } from './neo.js';
 
 const NAME = 'Quadrop: Falling Blocks Puzzle';
@@ -138,6 +139,17 @@ function gameOver() {
 }
 function startRun() { reset(); state = 'play'; B.start(); }
 ui.onTap(() => startRun());
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): at the start of a run, until the
+// first touch, the first two pieces turn, slide to a good spot and slam down by themselves (their drop points are handed back)
+let demoPlan = null;
+demo(() => {
+  if (pieceN > 2) return false;
+  if (!demoPlan || demoPlan.n !== pieceN) { const o = options(cur.t); if (!o.length) return false; demoPlan = o[0]; demoPlan.n = pieceN; demoPlan.acts = 0; }
+  if (++demoPlan.acts > 10) return false;
+  if (cur.r !== demoPlan.r) { if (!rotate(1)) demoPlan.acts += 3; }
+  else if (cur.x !== demoPlan.x) { if (!move(cur.x < demoPlan.x ? 1 : -1)) demoPlan.acts += 4; }
+  else { const s0 = score; hardDrop(); score = s0; H.score(score); }
+}, { ready: () => state === 'play' && cur && !clearing && lines === 0 && pieceN <= 2 && !paused(), wait: 1200, every: 260, max: 24, ms: 15000 });
 
 // ---------------------------------------------------------------- controls: touch buttons, gestures, keyboard
 const P = mkpad([
