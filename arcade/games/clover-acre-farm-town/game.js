@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, loop, burst, confetti, sfx, tone, note, buzz, store, lerp, clamp, rng } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { M, mesh, rbox, plotMesh, lockedPlotMesh, cropMesh, chickenMesh, cowMesh, fenceMesh, houseMesh, barnMesh, truckMesh, crateMesh, treesMesh, flowersMesh } from './models.js';
 
 const NAME = 'Clover Acre: Farm Town';
@@ -223,6 +224,12 @@ function harvest(i) {
   floatText(P.x, 0.8, P.z, `+${c.y} ${ITEMS[p.kind].icon}`); flyTo(P.x, 0.6, P.z, ITEMS[p.kind].icon, barnEl);
   note(72 + (i % 5) * 2, 0.2, 0.1); buzz(8); hud(); save();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in season 1, until the first real touch,
+// a ripe field harvests itself or an empty field gets planted (twice at most, nothing bought), so the farm shows what a tap does
+demo(() => {
+  const now = T(), ripe = G.owned.find(p => G.plots[p] && now >= G.plots[p].ready); if (ripe != null) return void harvest(ripe);
+  const empty = G.owned.find(p => !G.plots[p]), crop = Object.keys(CROPS).find(k => CROPS[k].s <= G.season); if (empty == null || !crop) return false; plant(empty, crop);
+}, { ready: () => state === 'play' && G.season === 1 && !D.isDaily && !sheet, wait: 1800, every: 1300, max: 2 });
 function showCrop(i) { const P = PLOT[i], p = G.plots[i]; if (P.crop) { P.g.remove(P.crop); P.crop = null; } if (!p) return; P.crop = cropMesh(p.kind); P.crop.position.y = 0.18; P.cropKind = p.kind; P.g.add(P.crop); }
 function tapPlot(i) {
   const P = PLOT[i];

@@ -5,6 +5,7 @@ import { createUI, store, buzz, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft } from './calm.js';
 
 const NAME = 'Rungrush: Ladders and Slides Board Game';
@@ -73,6 +74,9 @@ function tapRoll() {
   if (state !== 'play' || phase !== 'await' || players[turn].cpu) return;
   doRoll();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in your first race, until the first real
+// touch, your die rolls itself once and your racer hops up the board, so a whole turn shows (the CPUs then roll as usual)
+demo(() => { tapRoll(); }, { ready: () => state === 'play' && phase === 'await' && turn === 0 && races <= 1 && !D.isDaily && !anim, wait: 1800, max: 1 });
 function doRoll() {
   phase = 'rolling'; die.rolling = 1; die.at = performance.now(); die.v = roll();
   const p = players[turn];

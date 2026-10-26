@@ -8,6 +8,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, BASE_CSS, ICON, stage2d, rr, sprite, blit, fx as mkfx, hud as mkhud, keys, swiper, touchy, dressStart, paused } from './neo.js';
 
 const NAME = 'Nibbit: Maze Chase Arcade';
@@ -348,9 +349,16 @@ S.fit();
 }
 
 let last = performance.now();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// Nibbit steers itself down the corridors munching dots (the game's own dodge bot) for a few seconds; points and any life go back
+const DN = demo(null, { ready: () => state === 'play' && level === 1 && !D.isDaily && lives === 3 && readyT <= 0 && clearT < 0 && !dying, wait: 1200, ms: 3500 });
+let demoPts = 0;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dOn = DN.on, s0 = score, l0 = lives;
+  if (dOn) window.__game.bot();
   if (!paused()) update(dt);
+  if (dOn) { demoPts += score - s0; if (lives < l0) lives = l0; } else if (demoPts) { score -= demoPts; demoPts = 0; H.score(score); }
   FX.update(dt); H.stats([['BEST', Math.max(best, score).toLocaleString('en-US')]]); draw(now / 1000);
   requestAnimationFrame(frame);
 }

@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Bolt Out: Ball Drop Puzzle';
 const S = store('boltout');
@@ -272,6 +273,15 @@ function pull(p) {
   // a kick so piles start moving at once
   for (const b of balls) if (b.alive && Math.abs(b.y - p.y) < 0.5) b.vy -= 0.5;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the hinted bolt pulls itself if more bolts remain after it; if it is the only move, it slides half out and back in (nothing drops)
+demo(() => {
+  const p = pins[sol[0]]; if (!p || p.pulled) return false;
+  if (sol.length >= 2) { pull(p); settleT = 0; return; }
+  const t0 = performance.now(), x0 = p.g.position.x; tone(300, 0.08, 'triangle', 0.1, 1.6);
+  const tick = () => { const k = Math.min(1, (performance.now() - t0) / 900); if (p.pulled || state !== 'play') return; p.g.position.x = x0 + p.side * Math.sin(k * Math.PI) * 0.9; if (k < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}, { ready: () => state === 'play' && level === 1 && !D.seed && settleT > 0.35 && !convQ.length && !pins.some(q => q.pulled), wait: 1800, max: 1 });
 function lose(t, line) {
   if (state !== 'play') return; state = 'lost';
   if (!recorded) { recorded = true; F.level(false, goodTotal ? inCup / goodTotal : 0); }

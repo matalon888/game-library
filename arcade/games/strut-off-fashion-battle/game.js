@@ -13,6 +13,7 @@ import { TAGS, COLOURS, FINISHES, ITEMS, SLOTS, ACC, THEMES, RULES, VENUES, RIVA
 import { initDress, loadProps, createModel, proto, itemThumb, tickDress, withTimeout } from './dress.js';
 import { buildStage, RUN_Y, RUN_Z0, POSE_Z, ATL } from './stage.js';
 import { S as SND, music, setMuted, unlock } from './audio.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Strut Off: Fashion Battle', KEY = 'strut-off';
 const Q = new URLSearchParams(location.search);
@@ -319,6 +320,13 @@ function renderItems() {
   fillThumbs(row);
   for (const c of row.querySelectorAll('.card')) c.addEventListener('click', e => { e.stopPropagation(); unlock(); pick(slot, c.dataset.id || null, c); });
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in show 1's atelier, until the first real
+// touch, the model tries on a colour and then a piece from the next tab, so the dressing room shows what a tap on a card does
+demo((n) => {
+  const sl = SLOTS[n - 1]; if (!sl) return false;
+  const b = bestFor(sl.key, ch, hasPiece, me.sigTags), x = b.best[0] || listFor(sl.key).find(hasPiece); if (!x) return false;
+  tab = sl.key; renderTabs(); renderItems(); pick(sl.key, x.id);
+}, { ready: () => phase === 'dress' && !D.seed && P.level === 1 && !!me && !!ch, wait: 1800, every: 1500, max: 2 });
 async function pick(slot, id, el) {
   if (phase !== 'dress') return false;
   const x = id ? (slot === 'colour' ? colourById(id) : slot === 'finish' ? finishById(id) : itemById(id)) : null;

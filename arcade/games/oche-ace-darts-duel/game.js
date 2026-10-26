@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, burst, confetti
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const V3 = THREE.Vector3;
 const S = createStage({ fov: 44, shadowSize: 4 });
@@ -267,8 +268,14 @@ ui.onTap(which => {
 
 // ---------------------------------------------------------------- loop
 const tmp = new V3();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in round 1 of level 1, until the first real
+// touch, the hand lifts the dart and the aim drifts onto treble 20 with the sway, then lowers without throwing (no dart spent)
+const DN = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed && phase === 'you' && round === 1 && dartsLeft === 3 && !!held && (!aiming || demoAim), wait: 1500, ms: 3000 });
+let demoAim = false;
 loop((dt, t) => {
   const dts = dt / 60;
+  if (DN.on) { if (!aiming) { aiming = true; demoAim = true; aim.set(0, -0.6); } if (demoAim) aim.lerp(T20, 0.03); }
+  else if (demoAim) { demoAim = false; if (!DN.touched) { aiming = false; aim.set(0, 0.45); } }
   if (state === 'play') {
     if (phase === 'you') {
       if (dartsLeft === 0 && !flying.some(f => f.who === 'you')) { waitT -= dts; if (waitT <= 0) startAiTurn(); }

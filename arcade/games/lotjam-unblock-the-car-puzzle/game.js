@@ -2,6 +2,7 @@
 // Levels come from a BFS-graded pack (makepack.mjs): difficulty = the shortest solution in moves ("par").
 // Hints and the test bot use a breadth-first solver on the current lot, so they always play an optimal next move.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp, SVG } from './puzzle.js';
 import { N, EXIT_ROW, cellsOf, occupancy, range, solve } from './lotgen.js';
 import { PACK } from './pack.js';
@@ -104,6 +105,16 @@ function hud() {
   // progress: how close the red car is to the exit lane being clear, measured by the solver's distance
   P && P.progress && P.progress(wonAt ? 1 : Math.min(0.95, moves / Math.max(1, par)) * 0.9);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on lot 1, until the first real touch,
+// a car that has room slides along its lane and then glides back (no move counted, no hint given), so the lot shows the drag
+let demoCar = null;
+demo((n) => {
+  if (n === 2) { if (!demoCar) return false; pos[demoCar.i] = demoCar.p0; tone(260, 0.06, 'triangle', 0.08, 0.75); return; }
+  const occ = occupancy(V, pos);
+  for (let i = 1; i < V.length; i++) { const [lo, hi] = range(V, pos, i, occ); if (hi > lo) { const p = pos[i] < hi ? hi : lo; demoCar = { i, p0: pos[i] }; pos[i] = p; tone(240 + V[i].len * 20, 0.07, 'triangle', 0.1, 0.75); buzz(8); return; } }
+  return false;
+}, { ready: () => P.state === 'play' && P.level === 1 && !P.D.isDaily && !wonAt && !drag && moves === 0, wait: 1800, every: 2200, max: 2 });
+
 function doMove(i, p, fromHint, isBot) {
   if (pos[i] === p) return;
   const dist = Math.abs(p - pos[i]); pos[i] = p; moves++;

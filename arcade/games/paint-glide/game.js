@@ -2,6 +2,7 @@
 // every tile it crosses gets painted. Paint the whole maze to clear the level.
 import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, burst, confetti, rng, lerp, clamp, rounded } from './kit/hc.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = worldBoard({ game: 'paint-glide', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.6 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const THEMES = [
@@ -250,6 +251,12 @@ function plan() {
   }
   return null;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the ball rolls twice toward unpainted tiles (never the roll that finishes the maze), so the paint trail shows what a swipe does
+demo(() => {
+  const d = plan(); if (!d) return false; const cells = roll(L, bc, bw, d)[2], fresh = new Set(cells.filter(i => painted[i] < -1)).size;
+  if (paintedN + fresh >= total) return false; go(d);
+}, { ready: () => state === 'play' && level === 1 && !moving, wait: 1800, every: 1300, max: 2 });
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return paintedN; },
   bot() { if (state !== 'play' || moving) return; const d = plan(); if (d) go(d); },

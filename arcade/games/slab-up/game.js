@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, input, buzz, note, tone, burst, confetti, lerp, clamp } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const H = 0.36, W0 = 3, RANGE = 4.6, TIER = 20, PERFECT = 0.09;
 const S = store('slabup');
@@ -131,6 +132,13 @@ function lose() {
 }
 
 input({ onDown: () => { if (state === 'play') drop(); } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first run, until the first real
+// touch, two slabs drop themselves right on the tower (timed like the bot, with no error), so the tower grows and shows the tap
+let demoDrops = 0;
+demo(() => {
+  if (demoDrops >= 2) return false; if (!cur || botPending) return;
+  const tms = -pos / (dir * speed * 60 / 1000); if (tms > 0 && tms < 150) { demoDrops++; botPending = true; setTimeout(() => { botPending = false; drop(); }, tms); }
+}, { ready: () => state === 'play' && score < 2, wait: 1500, every: 60, max: 150, ms: 5000 });
 ui.onTap(() => { WB.start(); reset(); state = 'play'; ui.hideStart(); ui.els.sc.classList.remove('hc-hidden'); });
 
 // ---------------------------------------------------------------- loop

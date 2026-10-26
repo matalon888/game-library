@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, input, loop, mat, glossy, rounded, burst,
 import { part, merge, canvasTex } from './geo.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'cover-clash', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const S = createStage({ fov: 50, shadowSize: 18 });
@@ -200,6 +201,10 @@ function startLevel() {
 }
 ui.onTap(w => { B.start(); if (w === 'win') level++; startLevel(); state = 'play'; });
 input({ onDown: () => { holding = true; }, onUp: () => { holding = false; } });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the soldier pops out and fires while it's safe and ducks when a laser locks (the game's own bot) for about a second
+const DN = demo(null, { ready: () => state === 'play' && level === 1 && hp === maxHP && !winPending, wait: 1200, ms: 1300 });
+let demoHeld = false;
 addEventListener('pointercancel', () => holding = false);
 addEventListener('keydown', e => { if (e.code === 'Space') holding = true; });
 addEventListener('keyup', e => { if (e.code === 'Space') holding = false; });
@@ -232,7 +237,7 @@ function shoot() {
     tracer(tmp.clone(), aimAt.clone());
     const dmg = head ? 2 : 1; e.hp -= dmg; e.flash = 1;
     burst(scene, aimAt.clone(), ['#ffd166', '#ff8c42', '#ffffff'], 8, { speed: 0.07, up: 0.05, size: 0.45, life: 0.6 });
-    ui.pop(head ? 'BULLSEYE!' : '-' + dmg * 10, head ? '#ffd166' : '#ffffff', head ? 34 : 24, 30 + Math.random() * 6);
+    ui.pop(head ? 'HEADSHOT!' : '-' + dmg * 10, head ? '#ffd166' : '#ffffff', head ? 34 : 24, 30 + Math.random() * 6);
     if (e.hp <= 0) kill(e, aimAt);
   } else {
     // bullet hits their cover: splinters
@@ -248,7 +253,7 @@ function kill(e, at) {
   e.rag = { v: dir.multiplyScalar(3.2).setY(2.6), w: -6 - Math.random() * 2, rot: 0, y0: e.g.position.y, bounced: false, spinY: (Math.random() - 0.5) * 3 };
   sfx.smash(); buzz([20, 20, 30]); burst(scene, at.clone(), ['#ffd166', '#ff5d5d', '#ffffff'], 18, { speed: 0.12, up: 0.1, size: 0.6 });
   const last = killed === totalEnemies;
-  if (last) { slow = 0.14; slowT = 1.5; killCam = e; ui.pop('FINAL HIT!', '#ffd166', 44, 28); winPending = true; }
+  if (last) { slow = 0.14; slowT = 1.5; killCam = e; ui.pop('FINAL KILL!', '#ffd166', 44, 28); winPending = true; }
   else ui.pop(['ELIMINATED!', 'DOWN!', 'NICE SHOT!'][Math.floor(Math.random() * 3)], '#ffffff', 34, 24);
   if (!last && enemies.every(x => x.dead)) setTimeout(() => { if (state === 'play') { wave++; spawnWave(); } }, 1200);
 }
@@ -266,6 +271,7 @@ loop((dtRaw, t) => {
   const real = dtRaw / 60;
   if (slowT > 0) { slowT -= real; if (slowT <= 0) { slow = 1; if (winPending && state === 'play') { F.level(true); if (state === 'play') B.submit(1); state = 'won'; save.set('level', level + 1); sfx.win(); buzz([20, 40, 20]); confetti(scene, player.position.clone().add(new THREE.Vector3(0, 2.5, -3)), 70); ui.win(level, `All ${totalEnemies} enemies down · ${hp}/${maxHP} armour left`); } } }
   const sec = real * slow;
+  if (DN.on) { window.__game.bot(); demoHeld = true; } else if (demoHeld) { demoHeld = false; botHold = false; }
   const wantUp = state === 'play' && (holding || botHold) && !winPending;
   up = clamp(up + (wantUp ? 8 : -9) * sec, 0, 1);
   // player pose: crouched behind the wall -> standing aiming

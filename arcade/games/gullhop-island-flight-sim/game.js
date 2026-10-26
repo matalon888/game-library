@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, loop, store, mat, rounded, burst, confett
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { bake, vcMat } from './bake.js';
 
 const NAME = 'Gullhop: Island Flight Sim';
@@ -926,10 +927,13 @@ function botThink(I) {
 // ---------------------------------------------------------------- main loop
 const sideV = new THREE.Vector3();
 let warnT = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on mission 1, until the first real touch,
+// the gull's own autopilot banks the plane toward the next objective for about two seconds, then hands the stick back
+const DN = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed && !PL.dead, wait: 1200, ms: 2200 });
 loop((dt) => {
   const s = Math.min(dt, 2.5) / 60;
   keyInput(s);
-  const auto = state === 'ready' || performance.now() < botUntil;
+  const auto = state === 'ready' || performance.now() < botUntil || DN.on;
   let I = hum;
   if (auto) { botThink(bot); I = bot; }
   if (state === 'ready' || state === 'play') {

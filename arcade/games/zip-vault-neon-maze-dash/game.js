@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, tone, note, bur
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const W = 11, SPD = 0.62;
 const S = store('zipvault');
@@ -298,6 +299,12 @@ function plan() {
   let first = null; while (prev.get(k)) { const [pk, d] = prev.get(k); first = d; k = pk; }
   return first;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// Zip dashes twice along the route up (never into the beacon), munching dots; the goo stays asleep until the player's own first swipe
+demo(() => {
+  const d = plan(); if (!d) return false; const [tx, ty] = slideEnd(gx, gy, d); if (tx === exit[0] && ty === exit[1]) return false;
+  dash(d); gooOn = false;
+}, { ready: () => state === 'play' && level === 1 && !D.seed && !moving && !gooOn, wait: 1800, every: 1300, max: 2 });
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() { if (state !== 'play' || moving) return; const d = plan(); if (d) dash(d); },

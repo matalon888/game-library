@@ -3,6 +3,7 @@
 import { THREE, createStage, createUI, store, loop, buzz, note, tone, burst, confetti, lerp, clamp, rng, palette, applyPalette, mat, glossy, rounded } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Sudsy Lane: Kids Car Wash Game';
 const S = store('sudsylane');
@@ -342,6 +343,14 @@ loop((dt, t) => {
   else hand.style.display = 'none';
   sun.position.set(4, 10, 8);
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first car, until the first real touch,
+// the sponge scrubs a couple of mud patches into foam with the game's own helper, so the car shows what rubbing does; the rest is yours
+demo((n) => {
+  const hide = () => setTimeout(() => { if (!down) cursor.style.display = 'none'; }, 300);
+  if (stepTargets().length <= 2) { hide(); return false; } window.__game.bot(); if (n === 8) hide();
+},
+  { ready: () => state === 'play' && level === 1 && !D.seed && enter <= 0 && stepI === 0 && !down, wait: 1500, every: 350, max: 8 });
 
 build(); ui.start();
 window.__game = {

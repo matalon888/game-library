@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Lantern Pairs: Mahjong Solitaire';
@@ -194,14 +195,11 @@ function fit() {
   cv.width = W * dpr; cv.height = H * dpr;
   makeSprites(th); cv.width = W * dpr; cv.height = H * dpr; paintBg();
 }
-// art wave 2: the painted backdrop (assets/bg-art.webp); paintBg redraws once it has loaded
-const ART = new Image(); ART.onload = () => { if (typeof th !== 'undefined' && th) paintBg(); }; ART.src = 'assets/bg-art.webp';
 let bgCanvas = null;
 function paintBg() {
   const W = innerWidth, H = innerHeight; bgCanvas = document.createElement('canvas'); bgCanvas.width = W * dpr; bgCanvas.height = H * dpr;
   const c = bgCanvas.getContext('2d'); c.scale(dpr, dpr);
   const gr = c.createRadialGradient(W / 2, H * 0.42, 20, W / 2, H * 0.5, H * 0.75); th.bg.forEach((col, i) => gr.addColorStop(i / 2, col)); c.fillStyle = gr; c.fillRect(0, 0, W, H);
-  if (ART.complete && ART.naturalWidth) { const k = Math.max(W / ART.naturalWidth, H / ART.naturalHeight), w = ART.naturalWidth * k, h = ART.naturalHeight * k; c.drawImage(ART, (W - w) / 2, (H - h) / 2, w, h); c.globalAlpha = 0.5; c.fillStyle = gr; c.fillRect(0, 0, W, H); c.globalAlpha = 1; }   // art wave 2: the painting, washed with this theme
   // bamboo silhouettes at the edges
   const r = rngf(level * 17 + 3); c.globalAlpha = 0.22; c.fillStyle = th.leaf; c.strokeStyle = th.leaf;
   for (const side of [0, 1]) for (let k = 0; k < 3; k++) {
@@ -266,6 +264,15 @@ function tap(t) {
   if (sel.face !== t.face) { sel = t; soft.wood(); return; }
   match(sel, t);
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the solver's next free pair is tapped for you, one lantern then the other, and lifts away (points given back); the rest is yours
+let demoPair = null;
+demo((n) => {
+  if (n === 1) { while (plan.length && !(tiles[plan[0][0]].alive && tiles[plan[0][1]].alive)) plan.shift();
+    demoPair = plan.length && isFree(tiles[plan[0][0]]) && isFree(tiles[plan[0][1]]) ? [tiles[plan[0][0]], tiles[plan[0][1]]] : availablePairs()[0];
+    if (!demoPair || liveSet().length <= 4) return false; sel = null; tap(demoPair[0]); return; }
+  if (sel !== demoPair[0]) return false; const s0 = score; tap(demoPair[1]); score = s0; hud();
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !tiles.some(t => t.drop > 0.2), wait: 1800, every: 800, max: 2 });
 function match(a, b) {
   const [ax, ay] = screenPos(a), [bx, by] = screenPos(b), mx = (ax + bx) / 2, my = (ay + by) / 2 - 10, now = performance.now();
   a.alive = b.alive = false; sel = null; hintPair = null; moves++;

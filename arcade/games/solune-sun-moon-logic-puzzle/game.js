@@ -2,6 +2,7 @@
 // line, '=' joins two alike cells and '×' two different ones. Puzzles are generated (seeded) and kept only when our
 // step-by-step logic solver finishes them without guessing (so the answer is unique).
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { shell, rngf, rrect, ease, buzz, tone, soft, chime, arp } from './puzzle.js';
 import { generate, step, lineCells, ek, SUN, MOON } from './solgen.js';
 
@@ -45,6 +46,13 @@ const P = shell({
     const s = step(N, st, edges, 2, LC); if (s) { P.push(); put(s.c, s.v); }
   },
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first real touch,
+// two forced cells fill themselves (a sun or moon pops in where the rules leave no choice), never the last few, so a tap's effect shows
+demo(() => {
+  if (st.filter(v => !v).length <= 4) return false;
+  const s = step(N, st, edges, 2, LC); if (!s) return false; P.push(); put(s.c, s.v); flag(s.c);
+}, { ready: () => P.state === 'play' && P.level === 1 && !P.D.isDaily && !wonAt, wait: 1800, every: 1500, max: 2 });
 
 function cellAt(x, y) { const cx = Math.floor((x - geo.x) / geo.s), cy = Math.floor((y - geo.y) / geo.s); return cx < 0 || cy < 0 || cx >= N || cy >= N ? -1 : cy * N + cx; }
 const center = (c) => [geo.x + (c % N + 0.5) * geo.s, geo.y + (((c / N) | 0) + 0.5) * geo.s];

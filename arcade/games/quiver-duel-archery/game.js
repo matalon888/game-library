@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, input, loop, store, mat, glossy, rounded,
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Quiver Duel: Archery';
 const S = store('quiverduel');
@@ -250,6 +251,10 @@ input({
   onUp: (e, st) => release(Math.hypot(e.clientX - st.x, e.clientY - st.y) < 12),
 });
 ui.onTap(() => { buildLevel(); state = 'play'; B.start(); ui.pop('YOUR SHOT', theme.ui, 32, 30); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the archer draws the bow and the crosshair drifts onto the wind-corrected bullseye, then eases off without shooting (no arrow spent)
+let demoDraw = false;
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && turn === 'you' && (phase === 'idle' || demoDraw), wait: 1800, ms: 3200 });
 
 // ---------------------------------------------------------------- rival archer (aims with honest noise and imperfect wind reading)
 let rivalPlan = null;
@@ -271,6 +276,10 @@ loop((rawDt, t) => {
   const dt = rawDt / 60;
   let slow = 1;
   if (state === 'play') {
+    if (DM.on && turn === 'you') {
+      if (phase === 'idle' && !demoDraw) { startDraw(); demoDraw = true; }
+      if (demoDraw && drawing) { const T = (0.8 + dist) / V, drift = 0.5 * wind * windK * T * T; aim.x = lerp(aim.x, -drift + Math.sin(t * 1.3) * 0.25, 0.04); aim.y = lerp(aim.y, Math.cos(t * 1.1) * 0.2, 0.04); }
+    } else if (demoDraw) { demoDraw = false; if (!DM.touched && drawing) { drawing = false; drawT = 0; phase = 'idle'; you.bow.setDraw(0); aim.x = aim.y = 0; } }
     if (turn === 'you' && drawing) { drawT += dt; you.bow.setDraw(Math.min(1, drawT * 3)); }
     if (turn === 'rival' && (phase === 'idle' || phase === 'aim')) { phaseT += dt; if (phaseT > 0.3) rivalThink(dt, t); }
     if (phase === 'flight' && arrow) {

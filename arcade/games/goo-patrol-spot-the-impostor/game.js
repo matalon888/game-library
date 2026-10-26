@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Goo Patrol: Spot the Impostor';
 const S = store('goopatrol');
@@ -270,8 +271,16 @@ ui.onTap(w => { B.start();
 
 // ---------------------------------------------------------------- loop
 const tmpV = new THREE.Vector3();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the scanner lens glides between two plain humans (their bones show), then lifts without zapping; the goo is never passed and the battery comes back
+const DN = demo(null, { ready: () => state === 'play' && level === 1 && !D.seed && (!holding || !!demoLens), wait: 1500, ms: 2600 });
+let demoLens = null;
 loop((dt, t) => {
   const step = dt / 60;
+  if (DN.on) {
+    if (!demoLens) { const hs = crowd.filter(c => !c.goo && c.state === 'idle'); if (hs.length >= 2) demoLens = { a: hs[0], b: hs[1], bat: battery, t0: t }; }
+    if (demoLens) { const k = Math.min(1, (t - demoLens.t0) / 2), [ax, ay] = screenOf(demoLens.a, 1.2), [bx, by] = screenOf(demoLens.b, 1.2); holding = true; lensX = lerp(ax, bx, k); lensY = lerp(ay, by, k); }
+  } else if (demoLens) { if (!DN.touched) holding = false; battery = demoLens.bat; setBat(); demoLens = null; }
   // scanner battery
   const scanning = holding && state === 'play';
   if (scanning) { battery = Math.max(0, battery - step / batteryMax); setBat(); if (Math.random() < 0.15 && battery > 0) tone(1800 + Math.random() * 400, 0.02, 'sine', 0.02, 1); }

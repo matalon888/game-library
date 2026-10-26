@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confet
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import * as kitBoard from './kit/board.js';   // `board` is a local name here
+import { demo } from './kit/demo.js';
 const B = kitBoard.board({ game: 'rollhome', label: 'Wins', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const V3 = THREE.Vector3, Q = THREE.Quaternion;
@@ -322,6 +323,11 @@ ui.onTap((which) => {
   state = 'play'; setTimeout(startTurn, 250);
 });
 build();
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in game 1, until the first real touch,
+// your die rolls itself once and the best token hops forward, so the board shows a whole turn (the rivals then play as usual)
+demo(() => { if (phase === 'roll') doRoll(); else if (phase === 'pick') moveToken(chooseFor(0, true)); },
+  { ready: () => state === 'play' && level === 1 && !D.isDaily && turn === 0 && (phase === 'roll' || phase === 'pick') && !tokens.some(t => t.anim), wait: 1800, every: 1200, max: 2 });
 
 // ---------------------------------------------------------------- loop
 const ease = (x) => 1 - Math.pow(1 - x, 3);

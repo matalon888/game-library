@@ -3,6 +3,7 @@ import { THREE, createStage, createUI, loop, rounded, tone, note, sfx, buzz, sto
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { part, merge, vmat, canvasTex, G, hudCSS, H, btn, banner, feed, vignette, controls, Pool, healthBars, floaters, minimap, shaker, music, robot } from './lib.js';
 
 const NAME = 'Stormdrop Isle: Battle Royale Island Shooter';
@@ -612,9 +613,16 @@ function drawMini() {
 
 // ---------------------------------------------------------------- main loop
 let tt = 0, camH = 60;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in your first match, until the first real
+// touch, your robot drops from the sky barge over the nearest town and glides toward it with the game's own bot, then it's yours
+const DN = demo(null, { ready: () => state === 'play' && P.matches === 0 && !D.isDaily && player.alive, wait: 600, ms: 5000 });
 loop((dt) => {
   const s = dt / 60; tt += s;
   ctl.poll();
+  if (DN.on) {
+    if (player.phase === 'barge') { if (bargeT > 1.5) { const t = towns.reduce((b, q) => Math.hypot(q.x - barge.position.x, q.z - barge.position.z) < Math.hypot(b.x - barge.position.x, b.z - barge.position.z) ? q : b, towns[0]); jump(player); player.land = new THREE.Vector3(t.x, 0, t.z); } }
+    else window.__game.bot();
+  }
   if (state === 'play') {
     matchT += s;
     if (barge.visible) {

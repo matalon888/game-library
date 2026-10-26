@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, loop, mat, glossy, rounded, burst, confetti, sfx, tone, buzz, store, palette, applyPalette } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Shimmer: Scratch Cards';
 const V3 = THREE.Vector3;
@@ -388,6 +389,18 @@ function newLevel() {
   ui.levels(level); ui.sub(D.seed ? `Daily · goal ${tgt} chips` : `Goal: ${tgt} chips`); ui.score(stack); ui.progress(stack / tgt);
   phase = 'shop'; cur = null; refreshShop();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): before the first card is bought, until the
+// first real touch, the coin scratches a zigzag stripe off the sample card in the window, then the foil heals (no card bought, no chips spent)
+let demoLast = null, demoCoin = 0;
+demo((n) => {
+  if (n === 24) { setTimeout(() => { if (phase === 'shop' && !hadCard) { showIdleCard(CARDS[0]); coinTarget.copy(COIN_REST); } }, 700); return; }
+  const k = (n - 1) / 22, x = W * (0.22 + 0.56 * k), y = H * (0.42 + 0.12 * Math.sin(k * Math.PI * 5));
+  FX.globalCompositeOperation = 'destination-out';
+  const dab = (a, b) => FX.drawImage(brush, a - BR, b - BR);   // paint only: the sample card has no coverage to count
+  if (!demoLast) dab(x, y); else for (let j = 1; j <= 4; j++) dab(demoLast.x + (x - demoLast.x) * j / 4, demoLast.y + (y - demoLast.y) * j / 4);
+  FX.globalCompositeOperation = 'source-over'; demoLast = { x, y }; foilDirty = true;
+  demoCoin = performance.now(); coinTarget.set((x / W - 0.5) * CW, (0.5 - y / H) * CH, 0.2); if (n % 3 === 1) scratchSound();
+}, { ready: () => state === 'play' && phase === 'shop' && !hadCard && !D.seed, wait: 1800, every: 70, max: 24, ms: 4000 });
 function showIdleCard(c) { drawArt(AX, c, null); drawFoil(FX, c); artTex.needsUpdate = true; foilTex.needsUpdate = true; foilMat.opacity = 1; sheenMat.opacity = 0.55; }
 
 function buy(i) {
@@ -496,7 +509,7 @@ loop((dt, t) => {
   card.position.set(px + (Math.random() - 0.5) * 0.08 * shake, py + Math.sin(t * 1.3) * 0.03 + (Math.random() - 0.5) * 0.08 * shake, 0);
   card.rotation.set(-0.08 + swayY * 0.06 + Math.sin(t * 0.9) * 0.015, ry + swayX * 0.12 + Math.sin(t * 0.7) * 0.03 + Math.sin(cardSpin * Math.PI * 2) * 0.12 * cardSpin, rz);
   // coin: glides to the scratch point, leans while working, rests in the corner otherwise
-  const working = phase === 'scratch';
+  const working = phase === 'scratch' || (phase === 'shop' && performance.now() - demoCoin < 250);
   if (!working) coinTarget.copy(COIN_REST).setY(COIN_REST.y + Math.sin(t * 3) * 0.06);
   coin.position.lerp(coinTarget, Math.min(1, (working ? 0.45 : 0.12) * dt));
   coin.visible = phase !== 'enter' && phase !== 'reveal' && state === 'play' || state === 'ready';

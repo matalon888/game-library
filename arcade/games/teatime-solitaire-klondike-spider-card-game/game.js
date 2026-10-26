@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import * as KL from './klondike.js';
 import * as SP from './spider.js';
 import { snd } from './sound.js';
@@ -787,6 +788,10 @@ state = 'ready';
 bar.style.visibility = 'hidden'; hdr.style.visibility = 'hidden';
 
 // ---------------------------------------------------------------- test hook: the bot follows a solver line at a human pace
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on deal 1, until the first real touch,
+// the game's own solver plays three moves (a card slides to a column or home, or the deck draws), so the table shows the move
+demo(() => { window.__game.bot(); lastBot = -1e9; },
+  { ready: () => state === 'play' && P.level === 1 && G && !G.daily && !finishing && !finishable && !openSheet && !drag && !busy, wait: 1800, every: 1500, max: 3 });
 let botT = 0; const botSeen = new Map();
 window.__game = {
   get state() { return state === 'finale' ? 'play' : state === 'ready' ? 'ready' : state; }, get level() { return P.level; }, get score() { return P.stars; },

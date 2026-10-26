@@ -7,6 +7,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { piece, loadHost } from './assets.js';
 import { buildMachine, bigBall } from './machine.js';
 import { ROOMS, ROUNDS_PER_ROOM, STAMP_NAMES, CALLS, LETTER, ballColor, SHAPES, levelDef, DAILY, POWERS, POWER_DAUBS, MAX_BINGOS, CARD_COST, PAY } from './data.js';
@@ -495,6 +496,11 @@ function tapCell(ci, i) {
   if (!Rd.called.has(card.nums[i])) { const c = card.cells[i]; c.classList.remove('nope'); void c.offsetWidth; c.classList.add('nope'); snd.nope(); return; }
   daub(ci, i, 'call');
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in round 1, until the first real touch,
+// a called number on the card daubs itself up to three times (never a prize cell), so the card shows what a tap does
+const demoCell = () => { if (!Rd) return null; for (let ci = 0; ci < Rd.cards.length; ci++) { const c = Rd.cards[ci]; for (let i = 0; i < 25; i++) if (!c.daub[i] && !c.prizes[i] && c.nums[i] && Rd.called.has(c.nums[i])) return [ci, i]; } return null; };
+demo(() => { const m = demoCell(); if (!m) return false; tapCell(m[0], m[1]); },
+  { ready: () => mode === 'play' && state === 'play' && st.level === 1 && !dailyMode && Rd && !Rd.over && !Rd.pick && !busy && !!demoCell(), wait: 1500, every: 1400, max: 3 });
 function daub(ci, i, how) {
   const card = Rd.cards[ci], cell = card.cells[i];
   card.daub[i] = true; cell.classList.add('on'); cell.classList.remove('miss'); if (how === 'magic') cell.classList.add('magic');

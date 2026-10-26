@@ -6,6 +6,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { tableCSS } from './cards.js';
 import { trickTable } from './trick.js';
@@ -230,6 +231,14 @@ function tapCard(id) {
   }
   T.turn(-1); playCard(0, id);
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first hand of game 1, until the
+// first real touch, two good cards to pass lift themselves (the third pick and the Pass are yours), or a forced 2♣ lead plays itself
+let demoSel = null;
+demo(() => {
+  if (phase === 'pass') { demoSel = demoSel || cpuPass(0, 1); const c = demoSel.find(x => !passSel.has(x)); if (c == null || passSel.size >= 2) return false; tapCard(c); return; }
+  const L = legal(0); if (L.length !== 1) return false; tapCard(L[0]);
+}, { ready: () => state === 'play' && level === 1 && handNo === 0 && !D.isDaily && !busy && !T.sheetOpen && (phase === 'pass' || (phase === 'play' && turnSeat() === 0 && trickNo === 0 && trick.length < 4)), wait: 1800, every: 1100, max: 2 });
 
 // ---------------------------------------------------------------- computer players (they see only their own hand + the table)
 function cpuPass(s, lvl = diff) {

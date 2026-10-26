@@ -2,6 +2,7 @@
 // Tap a column: your disc falls and bounces into place behind the frame. Four in a row across, down or diagonally wins;
 // the winning line lights up. A full board is a draw. CPU thinks in a Web Worker. Undo on Easy.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { duel, DIFFS, rrect, ease, soft, tone, chime, buzz } from './duel.js';
 import { empty, dropRow, winAt, legalCols, think, search, COLS, ROWS } from './engine.js';
 
@@ -38,6 +39,10 @@ const P = duel({
 
 const colAt = (x) => { const c = Math.floor((x - geo.x) / geo.s); return c < 0 || c >= COLS ? -1 : c; };
 const center = (i) => [geo.x + ((i % COLS) + 0.5) * geo.s, geo.y + (Math.floor(i / COLS) + 0.5) * geo.s];
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in your first game, until the first real
+// touch, your opening disc drops into the middle column by itself and the CPU answers, so the board shows what a tap on a column does
+demo(() => { tryDrop(3); }, { ready: () => P.state === 'play' && P.turn === 0 && !P.busy && !P.D.isDaily && window.__game?.level === 1 && bd.every(v => v === 0), wait: 1800, max: 1 });
 
 function tryDrop(c) {
   const r = dropRow(bd, c); if (r < 0) { soft.err(); P.ui.pop('Column full', '#fff', 22, P.popY()); return; }

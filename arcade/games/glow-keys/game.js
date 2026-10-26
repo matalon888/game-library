@@ -6,6 +6,7 @@ import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, glowTex, sparks, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'glow-keys', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'ode', 'minuet', 'saints', 'canon', 'elise', 'cancan', 'neon', 'mountain', 'starlight', 'turkish'];
@@ -232,9 +233,13 @@ ui.onTap(which => { B.start();
 
 // ---------------------------------------------------------------- frame
 let lastBeat = -1, pulse = 0, clock = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on song 1, until the first real touch,
+// the first few tiles are played right on the glow line by the game's own bot, so the melody starts and shows the tap
+const DN = demo(null, { ready: () => state === 'play' && level === 1, wait: 300, ms: 3200 });
 loop((dt) => {
   clock += dt / 60;
   layout(); fx.update(dt);
+  if (DN.on) window.__game.bot();
   let now = state === 'ready' ? previewT : player.time();
   if (state === 'play' && now > -lookahead) {
     for (const t of tiles) {

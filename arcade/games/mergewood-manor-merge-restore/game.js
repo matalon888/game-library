@@ -11,6 +11,7 @@ import { board } from './kit/board.js';
 import { loadHero } from './kit/heroes.js';
 import { buildWorld, radialTex } from './garden.js';
 import { snd } from './audio.js';
+import { demo } from './kit/demo.js';
 
 const $ = s => document.getElementById(s);
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -580,6 +581,15 @@ function findPair(pred = () => true) {
   for (const id in by) { const l = by[id], free = l.filter(e => !e.locked); if (free.length && l.length >= 2) return [free[0], l.find(e => e !== free[0])]; }
   return null;
 }
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the generator pops out two items (charge and tap count given back), then the matching pair merges, so the board shows both moves
+demo((n) => {
+  const h = { ...hint }, pair = findPair();
+  if (n === 3) { if (!pair) return false; merge(pair[0], pair[1]); }
+  else { const g = ents.find(e => e.kind === 'gen' && gens[e.id].charge >= 1); if (!g || !genTap(g)) return false; gens[g.id].charge += 1; taps--; }
+  Object.assign(hint, h); updateHud();
+}, { ready: () => state === 'play' && level && level.n === 1 && !level.daily && !drag && !ents.some(e => e.fly), wait: 1800, every: 1100, max: 3 });
 
 // ------------------------------------------------------------ bot (real moves: deliver, merge, open, sell, tap generators, restore)
 let botT = 0;

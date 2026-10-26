@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, burst, confetti
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { GLTFLoader } from './kit/addons/loaders/GLTFLoader.js';
 import { heroBar, selectedHero, loadHero, onHeroesChange } from './kit/heroes.js';
 import * as A from './sound.js';
@@ -503,8 +504,12 @@ function draw(t, sec) {
   stage.followLight(_p.set(px, 0, z - 8));
 }
 
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first real
+// touch, the prospector dodges and hops on his own (the game's own runner bot) for a few seconds, then the swipes are yours
+const DN = demo(null, { ready: () => state === 'play' && tier === 1 && !D.seed, wait: 400, ms: 4500 });
 loop((dt, t) => {
   const sec = dt / 60; clock += sec;
+  if (DN.on) window.__game.bot();
   if (state === 'play') update(sec);
   draw(t, sec);
 });

@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { SAFE } from './safe.js';
 import { WORDS } from './words.js';
@@ -191,6 +192,13 @@ addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey || state !== 'play') return;
   if (e.key === 'Enter') enter(); else if (e.key === 'Backspace') del(); else if (e.key === ' ') shuffle(); else if (/^[a-zA-Z]$/.test(e.key)) type(e.key.toLowerCase());
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on flower 1, until the first real touch,
+// the centre petal and one outer petal tap themselves and the letters are then wiped (no word is entered or given away)
+demo((n) => {
+  if (n === 3) { while (cur) del(); return; }
+  const i = n === 1 ? 'c' : String(Math.floor(Math.random() * 6)), g = document.querySelector(`[data-i="${i}"]`);
+  type(i === 'c' ? P.center : P.outer[+i]); if (g) { g.classList.add('press'); setTimeout(() => g.classList.remove('press'), 160); }
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !!P && !found.length, wait: 1800, every: 900, max: 3 });
 function bad(msg) { entry.classList.remove('bad'); void entry.offsetWidth; paintEntry('bad'); say(msg); soft.err(); buzz(20); setTimeout(() => { cur = ''; paintEntry(); }, 450); }
 const PRAISE = { 4: 'Good!', 5: 'Nice!', 6: 'Great!', 7: 'Lovely!' };
 function enter() {

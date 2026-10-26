@@ -4,6 +4,7 @@ import { createUI, store, buzz, tone, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft } from './calm.js';
 import { engine, STEP, STEPS } from './music.js';
 
@@ -37,8 +38,6 @@ const SECRETS = [
 const ADJ = ['Midnight', 'Bubble', 'Velvet', 'Cosmic', 'Sleepy', 'Neon', 'Puddle', 'Marsh', 'Pocket', 'Honey', 'Tin', 'Moss'];
 const NOUN = ['Bounce', 'Shuffle', 'Parade', 'Lullaby', 'Strut', 'Jam', 'Waltz', 'Hop', 'Groove', 'Shimmy', 'Ripple', 'Sway'];
 let R = Math.random;
-// art wave 2: the painted stage backdrop (assets/bg-art.webp), drawn under the beams, washed with the night colours
-const ART = new Image(); ART.src = 'assets/bg-art.webp';
 function makeTarget(level) {
   let s = ((D.seed || S.get('seed', 0) || 1) * 31 + level * 977) % 2147483647 || 1; R = () => (s = (s * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 5; i++) R();
@@ -135,6 +134,12 @@ function place(id, i) {
   note(60 + SND[id].k % 12 + 12, 0.2, 0.06); buzz(10);
   refresh(); check();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on combo 1, until the first real touch,
+// up to two of the combo's already-shown sounds hop onto buds (never the hidden ones, never the whole combo), so the line-up comes alive
+demo(() => {
+  const id = target.s.slice(0, target.shown).find(x => !slots.includes(x)); if (!id || target.s.filter(x => !slots.includes(x)).length <= 1) return false;
+  place(id, slots.findIndex(x => !x));
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !!target && !winPending && slots.some(x => !x), wait: 1800, every: 1300, max: 2 });
 function unplace(i) { if (!slots[i] || state !== 'play') return; slots[i] = null; soft.swish(); buzz(6); refresh(); }
 function refresh() { for (const id in SND) SND[id].el.classList.toggle('used', slots.includes(id)); drawGoal(); }
 function check() {
@@ -250,7 +255,6 @@ function render(now) {
   show = Math.max(0, show - 0.003);
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2a1a63'); bg.addColorStop(0.6, '#1b1240'); bg.addColorStop(1, '#120c2c'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  if (ART.complete && ART.naturalWidth) { const k = Math.max(W / ART.naturalWidth, H / ART.naturalHeight), w = ART.naturalWidth * k, h = ART.naturalHeight * k; g.drawImage(ART, (W - w) / 2, (H - h) / 2, w, h); g.globalAlpha = 0.5; g.fillStyle = bg; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
   // light beams (stronger during a combo show)
   const active = slots.filter(Boolean).length;
   for (let i = 0; i < 5; i++) {

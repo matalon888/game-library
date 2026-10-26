@@ -13,6 +13,7 @@ import { CAP, top, done, canPour, pour, won, clone, stuck, solve, makeLevel } fr
 import { createView, KIND, CUP_H, SPX, ROWY } from './view.js';
 import { snd } from './audio.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 
 addEventListener('unhandledrejection', e => console.error('unhandled: ' + (e.reason?.stack || e.reason)));
 const NAME = 'Sprinkle Sort: Cute Sort Puzzle', PI = Math.PI, V3 = THREE.Vector3, Q = new URLSearchParams(location.search);
@@ -492,6 +493,12 @@ function showHint() {
   if (!sol || !sol.length) { say('Hmm… try Undo or an extra cup!', 2200); return; }
   g.hint = sol[0]; g.hintT = 4; snd.sparkle();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the solver picks a cup and pours its topping onto the match twice (never the last pours), so the board shows the move
+demo(() => {
+  const g = game, sol = solve(g.J, 30000); if (!sol || sol.length <= 3) return false;
+  const [a, b] = sol[0]; g.sel = -1; tapCup(a); setTimeout(() => { if (game === g && g.sel === a && state === 'play') tapCup(b); }, 450);
+}, { ready: () => mode === 'play' && state === 'play' && game && game.kind === 'adv' && st.level === 1 && !busy && !game.pour && !roomBusy, wait: 2200, every: 1800, max: 2 });
 async function tapCup(i) {
   const g = game; if (!g || state !== 'play' || busy || g.pour) return;
   const J = g.J; g.hintT = 0;

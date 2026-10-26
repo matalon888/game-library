@@ -9,6 +9,7 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
 import { money } from './kit/money.js';
+import { demo } from './kit/demo.js';
 import { buildWorld, toppingMesh, jelly, ROOM, PLATE_X } from './world.js';
 import { DISH, TOP, STN, REST, LEVELS_PER, FRIENDS, STICKERS, PAGE_GIFT, DECOR_POS, levelConfig } from './data.js';
 import { S as SND, music, setMuted, unlock, adPaused } from './audio.js';
@@ -899,6 +900,10 @@ function suggest() {
   for (const p of plates) if (p.dish && !plateNeed(p).length) return { p, toss: true };
   return null;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on day 1, until the first real touch,
+// the hinted station starts cooking twice (the dish is the player's to serve; no customer is served for them), so the counter moves
+demo(() => { const g = suggest(); if (!g || !g.s || g.s.slots.some(q => q.state === 'ready')) return; act(g); },
+  { ready: () => state === 'play' && !paused && !D.seed && day && day.gl === 1 && $('sheet').hidden, wait: 1500, every: 1400, max: 2 });
 const hintEl = document.createElement('div'); hintEl.id = 'hint'; hintEl.innerHTML = '<i>👆</i><b></b>'; hintEl.style.display = 'none'; document.body.appendChild(hintEl);
 let idleT = 0;
 addEventListener('pointerdown', () => { idleT = 0; hintEl.style.display = 'none'; }, true);

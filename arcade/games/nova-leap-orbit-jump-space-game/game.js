@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, store, loop, input, buzz, sfx, tone, note
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'nova-leap', label: 'Points', limits: { maxRun: 1000, maxPerSec: 8 } });   // world board (RULES.md part C)
 
 const NAME = 'Nova Leap: Orbit Jump Space Game';
@@ -233,6 +234,10 @@ loop((dt, t) => {
 reset(); ui.start(); ui.els.sc.classList.add('hc-hidden');
 
 // ---------------------------------------------------------------- bot: wait for the moment the tangent line runs through the next planet
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in stage 1, until the first real touch,
+// the astronaut lets go of its orbit at the right moment twice (the game's own aim bot waits for the line-up) and lands on the next planet
+let demoJumps = 0;
+demo(() => { if (demoJumps >= 2) return false; window.__game.bot(); if (pending) demoJumps++; }, { ready: () => state === 'play' && stageN === 1 && !!cur && !pending && caught < 3, wait: 1600, every: 300, max: 30, ms: 6500 });
 function nextTarget() { let b = null; for (const pl of planets) if (pl.y > (cur ? cur.y : p.y) + 0.5 && (!b || pl.y < b.y)) b = pl; return b; }
 window.__game = {
   get state() { return state; }, get level() { return stageN; }, get score() { return score; },

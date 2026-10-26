@@ -5,6 +5,7 @@ import { createUI, store, buzz } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { buildMech, droneGeo, buildTurret, buildCore, buildBoss, mechMat, GB, addOutline } from './models.js';
 import { buildCity, MAP0, MAP1 } from './world.js';
 import { createFX } from './fx.js';
@@ -662,8 +663,16 @@ function updateCamera(dt, t) {
 const BOT = { mx: 0, mz: 0, fire: false, until: -1 };
 let last = performance.now(), fpsA = 60, perfT = 0, pr = renderer.getPixelRatio();
 const sunOff = SUN_DIR.clone().multiplyScalar(140);
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in mission 1, until the first real touch,
+// the mech strafes forward, turns to the nearest drone and fires its blaster (no rockets or laser) for a couple of seconds, then it's yours
+const DN = demo(null, { ready: () => G.state === 'play' && G.mode === 'campaign' && G.mission === 1 && P.alive, wait: 1200, ms: 2500 });
 function frame(now) {
   requestAnimationFrame(frame); CALLS = renderer.info.render.calls; renderer.info.reset();
+  if (DN.on) {
+    let tg = null, bd = 1e9; for (const e of enemies) { if (e.drop > 0) continue; const d = e.pos.distanceTo(P.pos); if (d < bd) { bd = d; tg = e; } }
+    if (tg) { const v = tg.center.clone().sub(camera.position); P.yaw += angDiff(P.yaw, Math.atan2(v.x, v.z)) * 0.08; P.pitch = clamp(lerp(P.pitch, Math.atan2(v.y, Math.hypot(v.x, v.z)) + 0.02, 0.08), -0.42, 0.8); }
+    Object.assign(BOT, { mx: Math.sin(G.t * 1.5) * 0.4, mz: 0.5, fire: !!tg && bd < 90, until: G.t + 0.35 });
+  }
   const rdt = Math.min(0.05, (now - last) / 1000); last = now; fpsA = lerp(fpsA, 1 / Math.max(rdt, 0.001), 0.05);
   G.slow = lerp(G.slow, 1, rdt * 1.5); const dt = rdt * (G.state === 'play' ? 1 : G.slow); G.t += dt;
   const t = G.t;

@@ -4,6 +4,7 @@ import { createUI, store, buzz, sfx, tone, note, rng } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, arcadeCards, startCard, canvas2d, particles, shaker, keys, lerpc } from './arc.js';
 
 const NAME = 'Dune Scoot: Desert Runner';
@@ -57,6 +58,9 @@ let obs = [], nextGap = 600;
 const hero = { y: 0, vy: 0, ground: true, hold: false, holdT: 0, duck: false, duckT: 0, squash: 0, run: 0, dead: false, blink: 0, jumpT: 9 };
 const ptr = { down: false, x: 0, y: 0, swiped: false, id: null };
 const bot = { until: 0, holdUntil: 0, duckUntil: 0 };
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first run, until the first real
+// touch, the scooter hops (or ducks) the first obstacles by itself with the game's own bot (never a late reaction), then it's yours
+const DN = demo(null, { ready: () => state === 'play' && !hero.dead && score < DAY && !D.isDaily, wait: 500, ms: 4500 });
 
 function reset() {
   rr0 = rng(D.seed || (Date.now() % 100000) + 5);
@@ -139,6 +143,7 @@ function update(dt) {
   }
   // hero
   hero.run += dt * (6 + speed / 60);
+  if (DN.on) { for (const o of obs) o.botLate = false; bot.until = clock + 0.05; }
   if (clock < bot.until) botThink();
   const held = hero.hold || clock < bot.holdUntil;
   if (!hero.ground) {

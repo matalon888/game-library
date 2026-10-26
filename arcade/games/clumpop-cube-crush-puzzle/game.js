@@ -4,6 +4,7 @@ import { createUI, store, sfx, note, tone, buzz, loop } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const NAME = 'Clumpop: Cube Crush Puzzle';
 const S = store('clumpop');
@@ -246,6 +247,10 @@ function tap(r, c) {
   if (movePop >= 14) ui.pop('AMAZING!', '#fff36b', 40, 40); else if (movePop >= 9) ui.pop('GREAT!', '#fff', 36, 40);
   afterMove();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the best cube group pops itself twice (each move given back, never near the goal), so the board shows what a tap on a clump does
+demo(() => { if (goalFrac() > 0.4) return false; const m0 = moves; moves++; window.__game.bot(); if (moves > m0) moves = m0; },
+  { ready: () => state === 'play' && level === 1 && !D.seed && grid.every((row, r) => row.every(p => !p || Math.abs(p.y - r) < 0.05)), wait: 1800, every: 1500, max: 2 });
 function gravity() {
   for (let c = 0; c < COLS; c++) {
     let w = ROWS - 1;

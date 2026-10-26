@@ -4,6 +4,7 @@
 import { THREE, createStage, createUI, loop, store, confetti, buzz } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import * as C from './casino.js';
 
 const NAME = 'Ivory Ball: European Roulette';
@@ -183,6 +184,14 @@ function placeBet(b, v, silent = false) {
   redrawStack(e, true); hud(); C.csfx.chip(1); buzz(6);
   return true;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): at table 1, until the first real touch,
+// the smallest chip drops onto RED and lifts back off a second later (refunded, never spun), so the felt shows where bets go
+demo(() => {
+  const pick = betFromPoint(X0 + CW_E / 2, ZN + 5 * ROW), v = chipVals()[0]; if (!pick || !placeBet(pick, v, true)) return false;
+  const u = undo[undo.length - 1];
+  setTimeout(() => { const e = bets.get(pick.key); if (phase !== 'bet' || !e || e.amount < v) return; e.amount -= v; chips += v; const i = undo.indexOf(u); if (i >= 0) undo.splice(i, 1);
+    if (e.amount <= 0) { if (e.stack) scene.remove(e.stack); bets.delete(pick.key); } else redrawStack(e); hud(); C.csfx.chip(1); }, 1100);
+}, { ready: () => state === 'play' && phase === 'bet' && tableN === 1 && totalBet() === 0, wait: 1800, every: 1800, max: 1 });
 function redrawStack(e, drop = false) {
   if (e.stack) scene.remove(e.stack);
   if (e.amount <= 0) { bets.delete(e.key); e.stack = null; return; }

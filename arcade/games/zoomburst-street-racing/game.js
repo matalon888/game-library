@@ -5,6 +5,7 @@ import { createUI, store, buzz, confetti, updateParticles, rng } from './kit/hc.
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { TRACKS, THEMES, Track, W, buildWorld, skyEnv, sunDir, toon, outlineMat, fin } from './world.js';
 import { MODELS, TRAFFIC, PAINTS, FINISHES, RIMS, LIVERIES, makeCar, WheelPool } from './cars.js';
 import { Puffs, Sparks, Skids, SpeedLines, radialBlur } from './fx.js';
@@ -292,8 +293,11 @@ for (const [id, k] of [['bl', 'l'], ['br', 'r'], ['bd', 'd'], ['bn', 'n']]) {
   el.addEventListener('pointerdown', on(true)); el.addEventListener('pointerup', on(false)); el.addEventListener('pointercancel', on(false)); el.addEventListener('pointerleave', on(false));
 }
 addEventListener('deviceorientation', e => { if (save.steer !== 'tilt' || e.gamma == null) return; const g = (screen.orientation && Math.abs(screen.orientation.angle) === 90) ? e.beta * Math.sign(screen.orientation.angle) : e.gamma; if (tilt0 === null) tilt0 = g; tiltSteer = clamp((g - tilt0) / 20, -1, 1); });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first career race, until the first
+// real touch, the car takes the racing line with the rivals' own driver AI for a few seconds after GO, then the wheel is yours
+const DN = demo(null, { ready: () => state === 'play' && phase === 'race' && spec && spec.mode === 'career' && save.event === 0, wait: 300, ms: 4000 });
 function playerInput(c) {
-  if (performance.now() < botUntil) { ai(c, c.in); return; }
+  if (performance.now() < botUntil || DN.on) { ai(c, c.in); return; }
   const kl = keys.has('ArrowLeft') || keys.has('KeyA') || touch.l, kr = keys.has('ArrowRight') || keys.has('KeyD') || touch.r;
   let steer = (kr ? 1 : 0) - (kl ? 1 : 0); if (save.steer === 'tilt' && isTouch) steer = Math.abs(tiltSteer) > 0.06 ? tiltSteer : 0;
   c.in.steer += (steer - c.in.steer) * 0.35;

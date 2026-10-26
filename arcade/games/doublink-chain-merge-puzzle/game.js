@@ -4,6 +4,7 @@ import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, arp, soft, todayKey } from './calm.js';
 
 const NAME = 'Doublink: Chain Merge Puzzle';
@@ -293,6 +294,15 @@ function bestChain(limit = 30000) {
   for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) rec([[c, r]]);
   return best;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// a short chain links itself tile by tile and merges (twice, never the goal tile, points given back), so the board shows the swipe
+demo(() => {
+  const ch = (bestChain(4000) || []).slice(0, 3); if (ch.length < 2 || resultE(ch) >= targetE) return false;
+  const cur = []; chain = cur;
+  ch.forEach((p, i) => setTimeout(() => { if (chain !== cur || state !== 'play' || dragging) return; cur.push(p); linkSound(i); at(p).sc = 1.15;
+    if (i === ch.length - 1) setTimeout(() => { if (chain !== cur || state !== 'play' || dragging) return; chain = []; const s0 = score, b0 = best; merge(ch); score = s0; if (best !== b0) { best = b0; S.set('best', b0); } refresh(); }, 280); }, i * 260));
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !dragging && !chain.length, wait: 1800, every: 2000, max: 2 });
+
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() {

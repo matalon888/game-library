@@ -7,6 +7,7 @@ import { money } from './kit/money.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { A, $, wait, dayNum, ymd, rng, store, injectCSS, prefs, background, sheet, sheetOpen, toast, word, fx, fxMount, flyTo, bump, buzz, audio, streak, share, album, settingsSheet, preload, reduced } from './sb.js';
 import { CAP, KINDS, JAM, top, done, run, canPour, useful, pour, won, clone, moves, stuck, solve, makeLevel } from './logic.js';
 import { LARDER, larderScene } from './larder.js';
@@ -242,6 +243,15 @@ addEventListener('pointerup', e => {
   const t = document.elementFromPoint(e.clientX, e.clientY), el = t && t.closest && t.closest('.ps-jar');
   if (el && +el.dataset.j !== from && sel === from) tapJar(+el.dataset.j);   // drag-and-drop pour
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the solver lifts a jar's top fruit and pours it onto its match twice (never the last pours), so the shelf shows the move
+let demoPlan = null;
+demo(() => {
+  if (!demoPlan) demoPlan = solve(game.jars, 40000) || [];
+  if (demoPlan.length < 3) return false;
+  const [a, b] = demoPlan.shift(); if (!canPour(game.jars, a, b)) return false;
+  if (sel >= 0) { sel = -1; markSel(); } tapJar(a); setTimeout(() => { if (sel === a && state === 'play') tapJar(b); }, 550);
+}, { ready: () => mode === 'play' && state === 'play' && game && game.kind === 'level' && game.n === 1 && !busy && !card && !sheetOpen(), wait: 1800, every: 1600, max: 2 });
 function tapJar(j) {
   if (busy || state !== 'play') return; clearHint();
   const g = game, jar = g.jars[j];

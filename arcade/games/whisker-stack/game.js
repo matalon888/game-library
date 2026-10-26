@@ -6,6 +6,7 @@ import { makeCat } from './cat.js';
 import { ICONS, iconCanvas } from './icons.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 
 const S = createStage({ fov: 34, shadowSize: 9 });
 const { scene, camera, sun, hemi, renderer } = S;
@@ -277,6 +278,10 @@ loop((dt, T) => {
 
 // ---------------------------------------------------------------- boot + test hooks
 genLevel(); ui.start();
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the game's own bot sends three free tiles to the tray (aiming for a matching trio that clears), so the stack shows the tap
+demo(() => { if (tiles.filter(t => t.st === 'board').length <= 6 || active().length >= SLOTS - 2) return false; window.__game.bot(); },
+  { ready: () => state === 'play' && level === 1, wait: 1800, every: 900, max: 3 });
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   bot() {

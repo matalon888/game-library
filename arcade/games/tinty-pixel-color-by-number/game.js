@@ -3,6 +3,7 @@
 import { createUI, store, buzz, note, tone } from './kit/hc.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { PICTURES, raster } from './pictures.js';
 // No flow.js: colouring has no fail state and no skill element (FLOW_BRIEF rule 4) — every picture can always be finished.
@@ -197,6 +198,14 @@ function frame() {
   if (botPos && state === 'play') { g.fillStyle = 'rgba(255,93,143,.25)'; g.beginPath(); g.arc(botPos[0], botPos[1], 22, 0, 7); g.fill(); }
 }
 build(); requestAnimationFrame(frame);
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on picture 1, until the first real touch,
+// a few squares of the chosen number fill in one after another three times (points given back, never a whole colour), like a finger stroke
+demo(() => {
+  if (left[sel] <= 6) return false;
+  const ks = []; for (let k = 0; k < pic.cells.length && ks.length < 4; k++) if (!filled[k] && pic.cells[k] === sel) ks.push(k);
+  ks.forEach((k, i) => setTimeout(() => { if (state === 'play' && left[sel] > 2 && paint(k, false)) total--; }, i * 90));
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !!pic, wait: 1800, every: 1100, max: 3 });
 
 // ---------------------------------------------------------------- test hook: picks a colour and drags across its squares
 window.__game = {

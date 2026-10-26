@@ -4,6 +4,7 @@ import { THREE, createStage, createUI, loop, confetti, sfx, tone, note, buzz, st
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { vcMat } from './merge.js';
 import { unitGeo, towerGeo, bushGeo, treeGeo, cardArt, UNIT_KEYS } from './models.js';
 
@@ -269,6 +270,12 @@ function deploy(team, idx, x, z) {
   if (team === 1) paintHand();
   return true;
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in your first match, until the first real
+// touch, one troop card from your hand drops onto your side of a lane (its Sap is given back), so the arena shows a deploy
+demo(() => {
+  const i = hands[1].hand.findIndex(c => CARDS[c].kind === 'troop' && CARDS[c].cost <= sap[1]); if (i < 0) return false;
+  const s0 = sap[1], lane = Math.random() < 0.5 ? -1 : 1; if (deploy(1, i, lane * BR, RIV + 2.2)) { sap[1] = s0; paintHand(); }
+}, { ready: () => state === 'play' && wins === 0 && !D.isDaily && selected < 0 && !dragging, wait: 1800, max: 1 });
 function canDeploy(team, type, x, z) {
   const d = CARDS[type];
   if (Math.abs(x) > AX - 0.15 || Math.abs(z) > AZ - 0.2) return false;

@@ -3,6 +3,7 @@
 // empty). Go out first and score every pip left in the other hands; a blocked hand goes to the lightest hand.
 // First to 50 points wins the match. Computer players only know their own tiles, the table, and who drew or passed.
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { store } from './kit/hc.js';
 import { duel, rngf, fair, shuffle, rrect, ease, SVG, buzz, tone, note, soft, chime } from './duel.js';
 
@@ -53,6 +54,11 @@ const T = duel({
   botSpeed: 0.05,
   debug: () => ({ NP, hands: hands.map(h => h.length), bone: bone.length, line: line.length, scores: scores.slice(), turn, busy }),
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first hand of your first match,
+// until the first real touch, one of your matching tiles slides onto the line for you, so the table shows what a tap on a tile does
+demo(() => { const opts = options(0); if (!opts.length) return false; const o = choose(0, opts, 1); play(0, o.t, o.side); },
+  { ready: () => T.state === 'play' && !T.D.isDaily && T.wins === 0 && handNo <= 1 && turn === 0 && !busy && !ended && !T.busy && options(0).length > 0, wait: 2000, max: 1 });
 
 // ---------------------------------------------------------------- deal + rules
 function deal() {

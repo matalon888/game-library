@@ -7,6 +7,7 @@ import { daily } from './kit/daily.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { PUZZLES } from './puzzles.js';
 import * as kitBoard from './kit/board.js';   // `board` is a local name here
+import { demo } from './kit/demo.js';
 const LB = kitBoard.board({ game: 'bunchwise', label: 'Puzzles solved', limits: { maxRun: 2, maxPerSec: 0.2 }, mode: 'sum' });   // world board (RULES.md part C)
 
 const NAME = 'Bunchwise: Word Groups Puzzle';
@@ -133,6 +134,15 @@ btns.addEventListener('pointerdown', (e) => {
   if (a === 'clear') { for (const w of picked) tiles[w].classList.remove('on'); picked.clear(); soft.click(); hud(); }
   if (a === 'submit') submit();
 });
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on puzzle 1, until the first real touch,
+// two random words light up as if tapped and then let go (no guess is sent, nothing is given away), so the grid shows it is tappable
+const demoPick = [];
+demo((n) => {
+  if (n === 3) { for (const w of demoPick) if (picked.has(w)) toggle(w); return; }
+  const free = order.filter(w => tiles[w] && !picked.has(w) && !solved.some(g => g.words.includes(w))); if (!free.length) return false;
+  const w = free[Math.floor(Math.random() * free.length)]; demoPick.push(w); toggle(w);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !busy && !solved.length, wait: 1800, every: 900, max: 3 });
+
 function submit() {
   if (picked.size !== 4 || busy) return;
   const sel = [...picked], key = sel.slice().sort().join('|');

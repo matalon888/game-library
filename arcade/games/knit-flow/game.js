@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, burst, conf
 import { YARN, PICTURES, patternPicture } from './pictures.js';
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const WB = worldBoard({ game: 'knit-flow', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.25 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 const rbox = (w, h, d, r) => rounded(w - 1.8 * r, h - 1.8 * r, d, r);
 
@@ -292,6 +293,10 @@ input({
     if (b) launch(b);
   },
 });
+
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// the game's own bot sends the best spool round the belt twice, so the picture visibly unravels and shows what a tap does
+demo(() => { bot(); }, { ready: () => state === 'play' && level === 1 && !pending.length && onBelt() === 0 && bobbins.filter((b) => b.state === 'rack').length >= 3, wait: 1800, every: 1500, max: 2 });
 
 // ---------------------------------------------------------------- bot (same greedy as the verifier, allows a couple of spools riding at once)
 function bot() {

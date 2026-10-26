@@ -5,6 +5,7 @@ import { THREE, createStage, createUI, loop, glossy, mat, rounded, burst, confet
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board } from './kit/board.js';
+import { demo } from './kit/demo.js';
 const B = board({ game: 'grainfall', label: 'Points', limits: { maxRun: 200000, maxPerSec: 400 } });   // world board (RULES.md part C)
 
 const NAME = 'Grainfall: Falling Grain Game';
@@ -227,6 +228,14 @@ function rotate() {
   for (const kick of [0, -C, C, -2 * C, 2 * C]) { const nx = clamp(piece.x + kick, 0, GW - pw(t)); if (fits(t, nx, piece.y)) { piece.r = nr; piece.x = nx; sfx.tap(); pieceSquash = 1; return; } }
 }
 let pieceSquash = 0;
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): in the first run, until the first real
+// touch, the falling piece turns once and then shifts two steps sideways (what a tap on it and beside it do); the drop stays yours
+let demoDir = 0;
+demo((n) => {
+  if (n === 1) return void rotate();
+  if (!demoDir) demoDir = piece.x + pw(piece) / 2 > GW / 2 ? -C : C;
+  const nx = clamp(piece.x + demoDir, 0, GW - pw(piece)); if (nx !== piece.x && fits(piece, nx, piece.y)) { piece.x = nx; tone(demoDir < 0 ? 520 : 580, 0.04, 'sine', 0.08, 1); pieceSquash = 0.5; }
+}, { ready: () => state === 'play' && !!piece && !fast && !clearCells && score === 0 && !D.isDaily, wait: 1200, every: 700, max: 3 });
 
 // ---------------------------------------------------------------- run lifecycle
 function reset() {

@@ -5,6 +5,7 @@ import { createUI, store, buzz, note } from './kit/hc.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as scoreboard } from './kit/board.js';
+import { demo } from './kit/demo.js';
 import { css, cardTheme, startCard, fx2d, chime, arp, soft, todayKey } from './calm.js';
 import { WORDS } from './words.js';
 import { THEMES } from './themes.js';
@@ -36,8 +37,7 @@ const SCENES = [
   { sky: ['#283058', '#414276', '#77659a'], sun: '#fdf3d8', mts: ['#5a588c', '#444478', '#313260', '#1f2148'], mist: '#8a82b6', acc: '#e0a64a', lake: true, night: true },
   { sky: ['#f3f9e2', '#dcefbf', '#b9db9e'], sun: '#ffffff', mts: ['#bddca0', '#93c47e', '#6a9f5f', '#43734c'], mist: '#f3fae8', acc: '#4f8a3e', pines: true },
 ];
-// art wave 2: the painted background (index.html, tinted with this game's colours) replaces the drawn landscape
-const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;display:none'; document.body.prepend(bg);
+const bg = document.createElement('canvas'); bg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0'; document.body.prepend(bg);
 function rngf(seed) { let s = (seed >>> 0) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
 function paint(sc, seed) {
   const dpr = Math.min(devicePixelRatio || 1, 2), W = innerWidth, H = innerHeight, r = rngf(seed * 977 + 3);
@@ -316,6 +316,16 @@ function place(t, c, viaHint = false) {
   }, 260);
   layout();
 }
+// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
+// one tray tile glides into its square (never one that finishes a word; points given back), so the grid shows where tiles go
+demo(() => {
+  const open = (k) => !lv.cells.get(k).filled;
+  const c = [...lv.cells.values()].find(o => !o.filled && lv.words.filter(w => w.keys.includes(o.x + ',' + o.y)).every(w => w.keys.filter(open).length >= 2));
+  const t = c && tiles.find(o => o.ch === c.ch && !o.placing); if (!t) return false;
+  const s0 = score, d0 = dailyScore; if (sel === t) sel = null; t.el.classList.remove('sel'); place(t, c);
+  setTimeout(() => { score = s0; dailyScore = d0; S.set('score', score); hud(); }, 400);
+}, { ready: () => state === 'play' && level === 1 && !D.isDaily && !drag && !busy && !!lv, wait: 1800, max: 1 });
+
 function checkWords() {
   let newly = 0;
   for (const w of lv.words) {
