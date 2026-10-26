@@ -16,7 +16,7 @@
   "Makeover": "https://agentpark.co/arcade/?cat=Makeover",
   "Retro": "https://agentpark.co/arcade/?cat=Retro"
  },
- "total": 339,
+ "total": 340,
  "poster": "https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26",
  "game_of_the_day": {
   "name": "Bumpy Buggy",
@@ -27,6 +27,17 @@
  },
  "games": [
   {
+   "name": "Another Dungeon Game",
+   "category": "Action",
+   "blurb": "Explore randomly generated dungeon floors, find the key, fight monsters and bosses with sword and bow, and buy upgrades at market floors.",
+   "pitch": "Explore randomly generated dungeon floors, find the key, fight monsters and bosses with sword and bow, and buy upgrades at market floors.",
+   "score": null,
+   "added": "2026-10-26",
+   "desktop_only": false,
+   "image": "https://agentpark.co/arcade/covers/martinsuii-another-dungeon-game.webp",
+   "play_url": "https://agentpark.co/arcade/play.html?g=martinsuii-another-dungeon-game&ref=daily&pos=1"
+  },
+  {
    "name": "Morning Set: Daily Puzzles",
    "category": "Word & Math",
    "blurb": "Three fresh puzzles every morning (a five-letter word, an egg logic grid and a number target) in a sunny breakfast nook, with streaks and a share grid.",
@@ -35,7 +46,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/morning-set-daily-puzzles.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=1"
+   "play_url": "https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=2"
   },
   {
    "name": "Shelfie: Goods Sort",
@@ -46,7 +57,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/shelfie-goods-sort.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=2"
+   "play_url": "https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=3"
   },
   {
    "name": "Gemloft: Block Puzzle",
@@ -57,7 +68,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/gemloft-block-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=gemloft-block-puzzle&ref=daily&pos=3"
+   "play_url": "https://agentpark.co/arcade/play.html?g=gemloft-block-puzzle&ref=daily&pos=4"
   },
   {
    "name": "Bubblebay: Rescue Pop",
@@ -68,7 +79,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/bubblebay-rescue-pop.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=bubblebay-rescue-pop&ref=daily&pos=4"
+   "play_url": "https://agentpark.co/arcade/play.html?g=bubblebay-rescue-pop&ref=daily&pos=5"
   },
   {
    "name": "Twistwood: Screw Puzzle",
@@ -79,7 +90,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/twistwood-screw-puzzle.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=twistwood-screw-puzzle&ref=daily&pos=5"
+   "play_url": "https://agentpark.co/arcade/play.html?g=twistwood-screw-puzzle&ref=daily&pos=6"
   },
   {
    "name": "Lantern Bay: Story Choices",
@@ -90,7 +101,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/lantern-bay-story-choices.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=lantern-bay-story-choices&ref=daily&pos=6"
+   "play_url": "https://agentpark.co/arcade/play.html?g=lantern-bay-story-choices&ref=daily&pos=7"
   },
   {
    "name": "Rosewick Garden: Grow & Bloom",
@@ -101,7 +112,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/rosewick-garden-grow-bloom.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=rosewick-garden-grow-bloom&ref=daily&pos=7"
+   "play_url": "https://agentpark.co/arcade/play.html?g=rosewick-garden-grow-bloom&ref=daily&pos=8"
   },
   {
    "name": "Larkspur Manor: Hidden Objects",
@@ -112,7 +123,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/larkspur-manor-hidden-objects.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=larkspur-manor-hidden-objects&ref=daily&pos=8"
+   "play_url": "https://agentpark.co/arcade/play.html?g=larkspur-manor-hidden-objects&ref=daily&pos=9"
   },
   {
    "name": "Teatime Solitaire: Klondike & Spider Card Game",
@@ -123,7 +134,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/teatime-solitaire-klondike-spider-card-game.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=teatime-solitaire-klondike-spider-card-game&ref=daily&pos=9"
+   "play_url": "https://agentpark.co/arcade/play.html?g=teatime-solitaire-klondike-spider-card-game&ref=daily&pos=10"
   },
   {
    "name": "Robin's Rescue: Bubble Shooter Garden",
@@ -134,7 +145,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/robin-s-rescue-bubble-shooter-garden.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=robin-s-rescue-bubble-shooter-garden&ref=daily&pos=10"
+   "play_url": "https://agentpark.co/arcade/play.html?g=robin-s-rescue-bubble-shooter-garden&ref=daily&pos=11"
   },
   {
    "name": "Peony Mahjong: Relaxing Tile Solitaire",
@@ -145,18 +156,7 @@
    "added": "2026-10-24",
    "desktop_only": false,
    "image": "https://agentpark.co/arcade/covers/peony-mahjong-relaxing-tile-solitaire.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=peony-mahjong-relaxing-tile-solitaire&ref=daily&pos=11"
-  },
-  {
-   "name": "Petal Jigsaw: Painted Jigsaw Puzzles",
-   "category": "Puzzle",
-   "blurb": "Relaxing jigsaws of hand-painted English gardens and teatime scenes: 36 to 196 real knobbed pieces, untimed, with a daily puzzle and a stamp album.",
-   "pitch": "Relaxing jigsaws of hand-painted English gardens and teatime scenes: 36 to 196 real knobbed pieces, untimed, with a daily puzzle and a stamp album.",
-   "score": null,
-   "added": "2026-10-24",
-   "desktop_only": false,
-   "image": "https://agentpark.co/arcade/covers/petal-jigsaw-painted-jigsaw-puzzles.webp",
-   "play_url": "https://agentpark.co/arcade/play.html?g=petal-jigsaw-painted-jigsaw-puzzles&ref=daily&pos=12"
+   "play_url": "https://agentpark.co/arcade/play.html?g=peony-mahjong-relaxing-tile-solitaire&ref=daily&pos=12"
   }
  ],
  "categories": {
@@ -250,6 +250,13 @@
   ],
   "Action": [
    {
+    "name": "Another Dungeon Game",
+    "new": true,
+    "pitch": "Explore randomly generated dungeon floors, find the key, fight monsters and bosses with sword and bow, and buy upgrades at market floors.",
+    "image": "https://agentpark.co/arcade/covers/martinsuii-another-dungeon-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=martinsuii-another-dungeon-game&ref=daily&pos=list-Action"
+   },
+   {
     "name": "Space Game",
     "new": false,
     "pitch": "Blast through endless waves of enemies, swap and upgrade four weapons, and survive multi-phase bullet-hell boss fights.",
@@ -283,13 +290,6 @@
     "pitch": "Grab imps and barrels with a telekinetic glove, then fling them into other imps, explosions or the sea across short island stages.",
     "image": "https://agentpark.co/arcade/covers/hex-hand-telekinesis-brawl.webp",
     "play_url": "https://agentpark.co/arcade/play.html?g=hex-hand-telekinesis-brawl&ref=daily&pos=list-Action"
-   },
-   {
-    "name": "Fletch: Arrow Dungeon Roguelite",
-    "new": false,
-    "pitch": "Drag to dodge, stop to auto-fire arrows at the nearest monster, then clear each room and choose one of three skills.",
-    "image": "https://agentpark.co/arcade/covers/fletch-arrow-dungeon-roguelite.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=fletch-arrow-dungeon-roguelite&ref=daily&pos=list-Action"
    }
   ],
   "Strategy": [
@@ -729,5 +729,5 @@
    "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly"
   }
  ],
- "daily_message": "🌅 Your games for Monday, 26 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26)\n\n🏆 Today's game: [Bumpy Buggy ▶](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd)\n🆕 New: [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new) · [Shelfie](https://agentpark.co/arcade/play.html?g=shelfie-goods-sort&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 339 games →](https://agentpark.co)"
+ "daily_message": "🌅 Your games for Monday, 26 October:\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-10-26)\n\n🏆 Today's game: [Bumpy Buggy ▶](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=gotd)\n🆕 New: [Another Dungeon Game](https://agentpark.co/arcade/play.html?g=martinsuii-another-dungeon-game&ref=daily&pos=new) · [Morning Set](https://agentpark.co/arcade/play.html?g=morning-set-daily-puzzles&ref=daily&pos=new)\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 340 games →](https://agentpark.co)"
 }

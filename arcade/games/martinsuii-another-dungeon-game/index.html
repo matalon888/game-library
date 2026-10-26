@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="/arcade/guard.js" data-ap-guard></script>
+<script src="/arcade/save.js" defer data-ap-save></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Another Dungeon Game</title>
+    <link rel="icon" type="image/png" href="assets/icons/sword.png">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="game-layout">
+    <div class="sidebar">
+        <div style="color:#f44"><span id="label-hp">HP</span><br><b id="hp" style="font-size:24px">200</b><span style="font-size:12px; opacity:0.6">/200</span></div>
+        <div style="color:#0af"><span id="label-floor">FLOOR</span> <b id="floor">1</b></div>
+        <div style="font-size:11px; color:#aaa;"><span id="label-atk">ATK:</span> +<span id="atk-bonus">0</span> | <span id="label-def">DEF:</span> <span id="def-bonus">0</span></div>
+        <hr style="width:100%; border:1px solid #444">
+        <div class="hot-slot"><img src="assets/icons/sword.png" id="img-sword" style="display:none"></div>
+        <div class="hot-slot">
+            <div class="durability-bg"><div id="dur-bar" class="durability-fill"></div></div>
+            <img src="assets/icons/shield.png" id="img-shield" style="display:none">
+        </div>
+    </div>
+
+    <div id="stage-container">
+        <div id="stage">
+            <canvas id="ctx" width="600" height="400"></canvas>
+            
+            <div id="boss-ui">
+                <div id="boss-label">The boss of the dungeons</div>
+                <div id="boss-bar-bg"><div id="boss-bar-fill"></div></div>
+            </div>
+
+            <div id="cheater-skull" style="display:none; position:absolute; top:5px; right:10px; font-size:28px; pointer-events:none; text-shadow:2px 2px #000;">💀</div>
+
+            <div class="overlay-layer">
+                <div id="ui-menu" class="ui-panel">
+                    <h1 style="color:#0f0; margin-bottom: 5px;">ANOTHER DUNGEON GAME</h1>
+                    <p style="color:#ccc; font-style: italic; margin-bottom: 20px;">Just another dungeon game</p>
+                    <button id="start-btn">START ADVENTURE</button>
+                    <button id="best-btn" style="margin-top:10px;">BEST STATS</button>
+                </div>
+
+                <!-- DEATH SCREEN -->
+                <div id="ui-death" class="ui-panel" style="display:none;">
+                    <h2 style="color:#f44; letter-spacing: 4px; margin-bottom: 4px;">YOU DIED</h2>
+                    <p style="color:#666; font-size: 11px; margin-top: 0; margin-bottom: 20px;">The dungeon claims another soul.</p>
+                    <div style="border: 1px solid #333; padding: 14px 20px; margin-bottom: 20px; background: #111;">
+                        <div class="stat-row"><span class="stat-label">FLOOR REACHED</span><span class="stat-value" id="death-floor">—</span></div>
+                        <div class="stat-row"><span class="stat-label">GOLD COLLECTED</span><span class="stat-value" id="death-gold">—</span></div>
+                        <div class="stat-row"><span class="stat-label">SCRAP FOUND</span><span class="stat-value" id="death-scrap">—</span></div>
+                        <div class="stat-row"><span class="stat-label">ENEMIES SLAIN</span><span class="stat-value" id="death-kills">—</span></div>
+                        <div class="stat-row"><span class="stat-label">ATK BONUS</span><span class="stat-value" id="death-atk">—</span></div>
+                        <div class="stat-row"><span class="stat-label">DEF BONUS</span><span class="stat-value" id="death-def">—</span></div>
+                    </div>
+                    <button id="retry-btn">TRY AGAIN</button>
+                </div>
+
+                <!-- BEST STATS -->
+                <div id="ui-best" class="ui-panel" style="display:none;">
+                    <h2 style="color:#fb0; letter-spacing: 4px; margin-bottom: 4px;">BEST RUN</h2>
+                    <p style="color:#666; font-size: 11px; margin-top: 0; margin-bottom: 20px;">Your greatest achievement.</p>
+                    <div id="cheater-banner" style="display:none; color:#f44; font-weight:bold; letter-spacing:3px; margin-bottom:14px; font-size:14px;">I'M A CHEATER</div>
+                    <div style="border: 1px solid #333; padding: 14px 20px; margin-bottom: 20px; background: #111;">
+                        <div class="stat-row"><span class="stat-label">FLOOR REACHED</span><span class="stat-value" id="best-floor">—</span></div>
+                        <div class="stat-row"><span class="stat-label">GOLD COLLECTED</span><span class="stat-value" id="best-gold">—</span></div>
+                        <div class="stat-row"><span class="stat-label">SCRAP FOUND</span><span class="stat-value" id="best-scrap">—</span></div>
+                        <div class="stat-row"><span class="stat-label">ENEMIES SLAIN</span><span class="stat-value" id="best-kills">—</span></div>
+                        <div class="stat-row"><span class="stat-label">ATK BONUS</span><span class="stat-value" id="best-atk">—</span></div>
+                        <div class="stat-row"><span class="stat-label">DEF BONUS</span><span class="stat-value" id="best-def">—</span></div>
+                    </div>
+                    <button id="back-btn">BACK</button>
+                </div>
+
+                <!-- BOSS DIALOG -->
+                <div id="menu-dialog" class="ui-panel" style="display:none;">
+                    <div id="dialog-portrait">👁</div>
+                    <div id="dialog-name">???</div>
+                    <div id="dialog-box"><span id="dialog-text"></span><span id="dialog-cursor">▮</span></div>
+                    <button id="dialog-continue" onclick="dialogNext()">CONTINUE ›</button>
+                </div>
+
+                <div id="menu-forge" class="ui-panel" style="display:none;"><h2 id="forge-title" style="color:#888;">THE FORGE</h2><div class="shop-grid"><button id="btn-shield" onclick="buyShield()">SHIELD (2 SCRAP)</button><button id="btn-arrows" onclick="buyArrows()">5 ARROWS (30G)</button><button id="btn-leave-forge" onclick="closeMenus()">LEAVE</button></div></div>
+                <div id="menu-seller" class="ui-panel" style="display:none;"><h2 id="seller-title" style="color:#0af;">ARTIFACT SELLER</h2><div class="shop-grid"><button id="btn-atk" onclick="buyArtifact('atk')">POWER STONE (300G)</button><button id="btn-def" onclick="buyArtifact('def')">IRON CHARM (300G)</button><button id="btn-leave-seller" onclick="closeMenus()">LEAVE</button></div></div>
+                <div id="menu-witch" class="ui-panel" style="display:none;"><h2 id="witch-title" style="color:#a0f;">THE WITCH</h2><div class="shop-grid"><button id="btn-heal" onclick="buyHeal()">POTION (40G)</button><button id="btn-leave-witch" onclick="closeMenus()">LEAVE</button></div></div>
+                <div id="menu-buyer" class="ui-panel" style="display:none;"><h2 id="buyer-title" style="color:#fb0;">SCRAP BUYER</h2><div class="shop-grid"><button id="btn-sell" onclick="sellScrap()">SELL SCRAP (+25G)</button><button id="btn-leave-buyer" onclick="closeMenus()">LEAVE</button></div></div>
+            </div>
+        </div>
+        <div class="info-bar">
+            <div class="info-item" style="color:#aaa;"><span id="label-scrap">SCRAP:</span> <b id="bar-scrap">0</b></div>
+            <div class="info-item" style="color:#fb0;"><span id="label-gold">GOLD:</span> <b id="bar-gold">0</b></div>
+            <div class="info-item"><span id="label-key">KEY:</span> <b id="bar-key" style="color:#f44;">MISSING</b></div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="hot-slot">
+            <img src="assets/icons/bow.png" id="img-bow" style="display:none">
+            <span id="arrow-count" style="position:absolute; bottom:2px; right:2px; font-size:12px;">0</span>
+        </div>
+        <div class="hot-slot">
+            <img src="assets/icons/heal.png" id="img-heal" style="display:none">
+            <span id="heal-count" style="position:absolute; bottom:2px; right:2px; font-size:12px;">0</span>
+        </div>
+    </div>
+</div>
+
+<div id="mobile-controls">
+    <div id="dpad">
+        <button class="dpad-btn dpad-up" data-dir="up">▲</button>
+        <button class="dpad-btn dpad-left" data-dir="left">◄</button>
+        <button class="dpad-btn dpad-right" data-dir="right">►</button>
+        <button class="dpad-btn dpad-down" data-dir="down">▼</button>
+    </div>
+    <div id="aim-joystick">
+        <div id="aim-thumb"></div>
+    </div>
+    <div id="action-btns">
+        <button class="action-btn" id="btn-touch-bow">🏹</button>
+        <button class="action-btn" id="btn-touch-sword">⚔</button>
+        <button class="action-btn" id="btn-touch-heal">🧪</button>
+    </div>
+</div>
+
+<div id="footer-ui">
+    <a href="https://github.com/martinsuii/another-dungeon-game" target="_blank">
+        <img src="assets/icons/github.png" class="github-icon" alt="GitHub">
+    </a>
+    
+    <select id="lang-select">
+        <option value="en">English</option>
+        <option value="cz">Čeština</option>
+    </select>
+
+    <div id="info-trigger">?
+        <div id="controls-tooltip">
+            <b style="color:#0af">CONTROLS:</b><br><br>
+            <span class="desktop-controls">
+                <b>WASD</b> - Move<br>
+                <b>SPACE</b> - Sword<br>
+                <b>MOUSE / F</b> - Shoot Bow<br>
+                <b>E KEY</b> - Potion
+            </span>
+            <span class="mobile-controls-hint" style="display:none;">
+                <b>D-PAD</b> - Move (hold)<br>
+                <b>⚔</b> - Sword<br>
+                <b>🏹</b> - Shoot Bow<br>
+                <b>🧪</b> - Potion
+            </span>
+        </div>
+    </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>

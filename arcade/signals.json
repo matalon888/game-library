@@ -1,4 +1,11 @@
 {
+ "martinsuii-another-dungeon-game": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/martinsuii/another-dungeon-game"
+  }
+ },
  "pranshuparmar-downhill-mayhem": {
   "github": {
    "forks": 3,
@@ -715,7 +722,7 @@
  "rohitg00-k8sgames": {
   "github": {
    "forks": 195,
-   "stars": 1425,
+   "stars": 1428,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -818,7 +825,7 @@
  },
  "mike007jd-voxel-musou": {
   "github": {
-   "forks": 51,
+   "forks": 52,
    "stars": 158,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
@@ -826,7 +833,7 @@
  "mkthingshq-mkgame-sudoku": {
   "github": {
    "forks": 5,
-   "stars": 23,
+   "stars": 24,
    "url": "https://github.com/MkThingsHQ/mkgame-sudoku"
   }
  },
@@ -1099,7 +1106,7 @@
  "oil-oil-wolfcha": {
   "github": {
    "forks": 66,
-   "stars": 739,
+   "stars": 740,
    "url": "https://github.com/oil-oil/wolfcha"
   }
  },
@@ -1113,14 +1120,14 @@
  "mrzh7-scam-with-your-friends-web": {
   "github": {
    "forks": 23,
-   "stars": 244,
+   "stars": 245,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
    "forks": 9,
-   "stars": 10,
+   "stars": 13,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1603,8 +1610,8 @@
  },
  "rockbenben-thousand-lives": {
   "github": {
-   "forks": 2,
-   "stars": 9,
+   "forks": 3,
+   "stars": 10,
    "url": "https://github.com/rockbenben/thousand-lives"
   }
  },
@@ -2767,7 +2774,7 @@
  },
  "stackloomdev-silent-meridian": {
   "github": {
-   "forks": 3,
+   "forks": 4,
    "stars": 2,
    "url": "https://github.com/stackloomdev/silent-meridian"
   }
@@ -3078,7 +3085,7 @@
  "pshenok-server-survival": {
   "github": {
    "forks": 715,
-   "stars": 6469,
+   "stars": 6470,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
@@ -3124,7 +3131,7 @@
  "bkcore-hexgl": {
   "github": {
    "forks": 893,
-   "stars": 1745,
+   "stars": 1746,
    "url": "https://github.com/BKcore/HexGL"
   },
   "hn": {

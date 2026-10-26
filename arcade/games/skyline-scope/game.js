@@ -348,7 +348,7 @@ function fire() {
     const lastOne = people.filter(p => p.kind === 'target' && p.alive).length === 1;
     if (lastOne) { startCam(h, o, d); return; }
     kill(h.p, d, h.head); killed++; setHud(); sfx.smash(); buzz([20, 30, 40]);
-    ui.pop(h.head ? 'HEADSHOT!' : 'TARGET DOWN!', h.head ? '#ffd166' : '#ffffff', h.head ? 42 : 36, 27);
+    ui.pop(h.head ? 'BULLSEYE!' : 'TARGET DOWN!', h.head ? '#ffd166' : '#ffffff', h.head ? 42 : 36, 27);
     ts = 0.25; setTimeout(() => ts = 1, 450); panic(h.point, 40);
   } else if (h.type === 'person') {
     kill(h.p, d, h.head); sfx.fail(); buzz([60, 40, 60]); panic(h.point, 40);
@@ -446,7 +446,7 @@ loop((dtRaw, t) => {
       if (u >= 1) {
         cam.hit = true; cam.t2 = 0; ts = 0.3; bullet.visible = trail.visible = false;
         kill(cam.p, cam.d, cam.head); killed++; setHud(); sfx.smash(); buzz([30, 30, 60]); shake = 1; ui.flash(0.5);
-        ui.pop(cam.head ? 'HEADSHOT!' : 'MISSION COMPLETE!', '#ffd166', cam.head ? 52 : 38, 22);
+        ui.pop(cam.head ? 'BULLSEYE!' : 'MISSION COMPLETE!', '#ffd166', cam.head ? 52 : 38, 22);
         panic(cam.to, 40);
         cam.orbit = Math.atan2(-cam.d.x, -cam.d.z);
       }

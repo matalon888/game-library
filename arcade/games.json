@@ -1,5 +1,40 @@
 [
  {
+  "slug": "martinsuii-another-dungeon-game",
+  "name": "Another Dungeon Game",
+  "blurb": "Explore randomly generated dungeon floors, find the key, fight monsters and bosses with sword and bow, and buy upgrades at market floors.",
+  "category": "Action",
+  "author": "Martin Mikéska",
+  "credit": "Copyright (c) 2026 Martin Mikéska",
+  "licence": "MIT",
+  "source": "https://github.com/martinsuii/another-dungeon-game",
+  "entry": "index.html",
+  "external": null,
+  "orientation": "portrait",
+  "controls": null,
+  "fit": null,
+  "added": "2026-10-26",
+  "stars": 2,
+  "flag": "Fixed-size canvas; bow aiming is easiest with a mouse",
+  "review": null,
+  "tags": [
+   "Shooters"
+  ],
+  "made": "2026-03-24",
+  "platform": null,
+  "public": {
+   "github": {
+    "forks": 0,
+    "stars": 2,
+    "url": "https://github.com/martinsuii/another-dungeon-game"
+   }
+  },
+  "cover": "covers/martinsuii-another-dungeon-game.webp",
+  "thumb": "covers/martinsuii-another-dungeon-game.webp",
+  "icon": "art/martinsuii-another-dungeon-game.webp",
+  "clip": null
+ },
+ {
   "slug": "morning-set-daily-puzzles",
   "name": "Morning Set: Daily Puzzles",
   "blurb": "Three fresh puzzles every morning (a five-letter word, an egg logic grid and a number target) in a sunny breakfast nook, with streaks and a share grid.",
@@ -11417,7 +11452,7 @@
   "public": {
    "github": {
     "forks": 715,
-    "stars": 6469,
+    "stars": 6470,
     "url": "https://github.com/pshenok/server-survival"
    }
   },

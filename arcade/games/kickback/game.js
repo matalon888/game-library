@@ -226,7 +226,7 @@ function hitEnemy(e, b) {
   shatter(e.g, e.kind === 'gold' ? '#ffc21a' : '#f2443a', at, new THREE.Vector3(b.vx, b.vy, 0).normalize());
   sfx.smash(); buzz([20, 20, 30]); hitStop = 0.08; shake = Math.max(shake, 0.3);
   addScore(10 * combo);
-  ui.pop(combo >= 2 ? `DOUBLE KILL!`.replace('DOUBLE', ['', '', 'DOUBLE', 'TRIPLE', 'MULTI', 'MEGA'][Math.min(5, combo)]) : ['BANG!', 'NICE SHOT!', 'BOOM!', 'GOT HIM!'][Math.floor(Math.random() * 4)], combo >= 2 ? '#ffd23f' : '#ffffff', 34 + combo * 3, 22);
+  ui.pop(combo >= 2 ? `DOUBLE HIT!`.replace('DOUBLE', ['', '', 'DOUBLE', 'TRIPLE', 'MULTI', 'MEGA'][Math.min(5, combo)]) : ['BANG!', 'NICE SHOT!', 'BOOM!', 'GOT HIM!'][Math.floor(Math.random() * 4)], combo >= 2 ? '#ffd23f' : '#ffffff', 34 + combo * 3, 22);
   ui.progress(killed / total);
   if (killed === total) { slowT = 1.3; focus = at.clone(); ui.flash(0.4); }
 }

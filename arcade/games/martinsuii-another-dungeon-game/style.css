@@ -1,0 +1,90 @@
+        body { background: #1a1a1a; color: #eee; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        
+        #game-layout { display: flex; align-items: flex-start; gap: 20px; position: relative; }
+        .sidebar { background: #252525; padding: 15px; border: 2px solid #444; width: 160px; height: 400px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+        #stage-container { display: flex; flex-direction: column; gap: 10px; }
+        #stage { position: relative; width: 600px; height: 400px; cursor: crosshair; }
+        canvas { border: 4px solid #444; background: #000; image-rendering: pixelated; display: block; }
+        
+        .info-bar { background: #222; border: 2px solid #444; height: 40px; display: flex; align-items: center; justify-content: space-around; font-weight: bold; font-size: 14px; }
+        
+        /* Boss UI Overlay and also I the creator use arch btw */
+        #boss-ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; display: none; pointer-events: none; }
+        #boss-bar-bg { width: 100%; height: 12px; background: #300; border: 2px solid #f00; margin-top: 5px; }
+        #boss-bar-fill { width: 100%; height: 100%; background: #f00; transition: width 0.1s; }
+        #boss-label { color: #f00; font-weight: bold; text-transform: uppercase; font-size: 12px; text-shadow: 2px 2px #000; }
+
+        .overlay-layer { position: absolute; top: 0; left: 0; width: 600px; height: 400px; display: flex; align-items: center; justify-content: center; z-index: 100; pointer-events: none; }
+        .ui-panel { background: rgba(0,0,0,0.95); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 4px solid #444; pointer-events: auto; text-align: center; padding: 20px; box-sizing: border-box; }
+        
+        .hot-slot { width: 60px; height: 60px; background: #111; border: 2px solid #444; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
+        .hot-slot img { width: 40px; height: 40px; image-rendering: pixelated; }
+        .durability-bg { position: absolute; top: -8px; width: 100%; height: 5px; background: #444; border: 1px solid #000; }
+        .durability-fill { height: 100%; background: #0af; width: 0%; transition: width 0.2s; }
+        
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        button { background: #444; color: white; border: 1px solid #666; padding: 8px; cursor: pointer; font-family: inherit; }
+        button:hover { background: #555; border-color: #0f0; }
+
+        #footer-ui { width: 810px; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .github-icon { width: 32px; height: 32px; image-rendering: pixelated; transition: opacity 0.2s; }
+        .github-icon:hover { opacity: 0.7; }
+
+        #info-trigger { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #888; display: flex; align-items: center; justify-content: center; cursor: help; position: relative; font-weight: bold; color: #888; }
+        #info-trigger:hover { border-color: #0af; color: #0af; }
+        #controls-tooltip { position: absolute; bottom: 40px; left: -85px; width: 200px; background: rgba(0,0,0,0.95); border: 2px solid #0af; padding: 10px; color: #fff; font-size: 11px; text-align: left; visibility: hidden; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 200; }
+        #info-trigger:hover #controls-tooltip { visibility: visible; opacity: 1; }
+
+        #lang-select { background: #252525; color: #eee; border: 1px solid #444; padding: 4px 6px; font-family: inherit; font-size: 11px; cursor: pointer; }
+        #lang-select:hover { border-color: #0af; }
+
+        /* Death screen stat row */
+        .stat-row { display: flex; justify-content: space-between; width: 260px; padding: 5px 0; border-bottom: 1px solid #333; font-size: 13px; }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { color: #888; }
+        .stat-value { color: #eee; font-weight: bold; }
+
+        /* Boss dialog */
+        #menu-dialog { border-color: #911; }
+        #dialog-portrait { width: 60px; height: 60px; background: #911; border: 3px solid #f44; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        #dialog-name { color: #f44; font-size: 13px; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; }
+        #dialog-box { border: 1px solid #500; background: #110000; padding: 14px 18px; width: 340px; min-height: 60px; margin-bottom: 16px; text-align: left; font-size: 12px; color: #ddd; line-height: 1.7; position: relative; }
+        #dialog-cursor { display: inline-block; animation: blink 0.8s step-end infinite; color: #f44; margin-left: 4px; }
+        @keyframes blink { 50% { opacity: 0; } }
+        #dialog-continue { background: #300; border-color: #911; color: #f44; }
+        #dialog-continue:hover { background: #500; border-color: #f44; }
+
+        /* Mobile touch controls */
+        #mobile-controls { display: none; width: 100%; justify-content: center; align-items: center; padding: clamp(6px, 2vw, 14px) clamp(6px, 2vw, 16px); box-sizing: border-box; gap: clamp(4px, 1.5vw, 12px); flex-wrap: wrap; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+        #dpad { display: grid; grid-template-areas: ". up ." "left . right" ". down ."; gap: clamp(1px, 0.5vw, 4px); flex-shrink: 0; }
+        .dpad-up { grid-area: up; }
+        .dpad-left { grid-area: left; }
+        .dpad-right { grid-area: right; }
+        .dpad-down { grid-area: down; }
+        .dpad-btn { width: clamp(34px, 10vw, 48px); height: clamp(34px, 10vw, 48px); background: #2a2a2a; border: 2px solid #555; color: #aaa; font-size: clamp(12px, 4vw, 18px); display: flex; align-items: center; justify-content: center; border-radius: 8px; touch-action: manipulation; cursor: pointer; }
+        .dpad-btn:active, .dpad-btn.pressed { background: #0af; border-color: #0ff; color: #fff; }
+        #action-btns { display: flex; gap: clamp(3px, 1.5vw, 10px); flex-shrink: 0; }
+        .action-btn { width: clamp(36px, 11vw, 52px); height: clamp(36px, 11vw, 52px); border-radius: 50%; background: #2a2a2a; border: 2px solid #555; font-size: clamp(14px, 5vw, 22px); display: flex; align-items: center; justify-content: center; touch-action: manipulation; cursor: pointer; }
+        .action-btn:active, .action-btn.pressed { transform: scale(0.9); }
+        #btn-touch-sword:active, #btn-touch-sword.pressed { background: #600; border-color: #f44; }
+        #btn-touch-bow:active, #btn-touch-bow.pressed { background: #4a2a0a; border-color: #d80; }
+        #btn-touch-heal:active, #btn-touch-heal.pressed { background: #306; border-color: #a0f; }
+        #aim-joystick { width: clamp(48px, 14vw, 68px); height: clamp(48px, 14vw, 68px); border-radius: 50%; background: rgba(42,42,42,0.9); border: 2px solid #555; position: relative; touch-action: none; flex-shrink: 0; }
+        #aim-thumb { width: clamp(18px, 5vw, 26px); height: clamp(18px, 5vw, 26px); border-radius: 50%; background: #8b4513; border: 2px solid #d80; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+
+        @media (pointer: coarse) and (max-width: 900px) {
+            body { overflow: auto; height: auto; min-height: 100vh; min-height: 100dvh; overscroll-behavior: contain; }
+            #game-layout { flex-direction: column; align-items: center; gap: 8px; }
+            .sidebar { width: 100%; max-width: 600px; height: auto; flex-direction: row; flex-wrap: wrap; padding: 8px; gap: 8px; font-size: 12px; }
+            .sidebar hr { display: none; }
+            .sidebar > div { flex: 1; min-width: 60px; text-align: center; }
+            .hot-slot { width: 40px; height: 40px; }
+            .hot-slot img { width: 28px; height: 28px; }
+            #footer-ui { width: 100%; max-width: 600px; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 8px; box-sizing: border-box; }
+            #mobile-controls { display: flex; }
+            #stage { width: 100%; max-width: 600px; height: auto; aspect-ratio: 3/2; }
+            #stage canvas { width: 100%; height: 100%; }
+            .overlay-layer { width: 100%; height: 100%; }
+            .desktop-controls { display: none; }
+            .mobile-controls-hint { display: inline !important; }
+        }

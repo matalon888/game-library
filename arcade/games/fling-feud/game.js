@@ -223,7 +223,7 @@ function onHit(p, kind) {
   const at = new THREE.Vector3(p.x, p.y, 0.3), sp = at.clone().project(camera);
   starPop(at, head ? 16 : 9); confetti(scene, at, head ? 40 : 18);
   dmgText('-' + dmg, (sp.x + 1) / 2 * innerWidth, (1 - sp.y) / 2 * innerHeight - 30, head ? '#ffd23f' : '#ffffff', head ? 46 : 36);
-  if (head) { ui.pop('HEADSHOT!', '#ffd23f', 44, 24); sfx.smash(); } else { tone(150, 0.15, 'square', 0.1, 0.5); tone(90, 0.2, 'sine', 0.12, 0.6); }
+  if (head) { ui.pop('BULLSEYE!', '#ffd23f', 44, 24); sfx.smash(); } else { tone(150, 0.15, 'square', 0.1, 0.5); tone(90, 0.2, 'sine', 0.12, 0.6); }
   tone(880, 0.08, 'triangle', 0.1, 1.5); buzz(head ? [30, 30, 50] : 25); shake = head ? 0.9 : 0.5; ui.flash(head ? 0.35 : 0.18);
   if (tg === foe) hits++;
   if (tg.hp <= 0) { tg.ko = 0.001; slow = 0.25; slowT = 1.3; tg.stars = starRing(tg); ui.pop('K.O.!', '#ff3d7f', 64, 34); }
