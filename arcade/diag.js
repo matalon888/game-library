@@ -104,7 +104,7 @@
     let last = 0;
     const tick = t => {
       if (game !== r) return;
-      if (last && !w.document.hidden && !document.hidden) { const d = t - last; r.frames++; r.visMs += d; if (d > 50) r.slow++; if (d > 2000) r.freezes.push(Math.round(d)); }
+      if (last && !w.document.hidden && !document.hidden) { const d = t - last; r.frames++; r.visMs += d; if (d > 50) r.slow++; if (d > 2000 && d < 30000) r.freezes.push(Math.round(d)); }   // 30 s+ = the phone was away (iOS in-app browsers don't always report hidden), not a freeze
       last = w.document.hidden || document.hidden ? 0 : t; w.requestAnimationFrame(tick);
     };
     w.requestAnimationFrame(tick);
