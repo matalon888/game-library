@@ -705,6 +705,12 @@
    }
   ]
  },
+ "challenge": {
+  "n": 13,
+  "slug": "stretch-dash",
+  "name": "Stretch Dash",
+  "play_url": "https://agentpark.co/arcade/play.html?g=stretch-dash&ch=13&ref=daily&pos=challenge"
+ },
  "peek": {
   "name": "Horde Blast",
   "play_url": "https://agentpark.co/arcade/play.html?g=horde-blast&ref=daily&pos=peek"
