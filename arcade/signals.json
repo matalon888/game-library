@@ -707,7 +707,7 @@
  },
  "starknightt-operation-ironhold": {
   "github": {
-   "forks": 30,
+   "forks": 31,
    "stars": 104,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
@@ -722,7 +722,7 @@
  "rohitg00-k8sgames": {
   "github": {
    "forks": 195,
-   "stars": 1428,
+   "stars": 1429,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -1126,7 +1126,7 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 9,
+   "forks": 10,
    "stars": 13,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
@@ -1610,7 +1610,7 @@
  },
  "rockbenben-thousand-lives": {
   "github": {
-   "forks": 3,
+   "forks": 2,
    "stars": 10,
    "url": "https://github.com/rockbenben/thousand-lives"
   }
@@ -1793,7 +1793,7 @@
  "btsouth-typearchy": {
   "github": {
    "forks": 0,
-   "stars": 5,
+   "stars": 6,
    "url": "https://github.com/btsouth/typearchy"
   }
  },
@@ -2976,7 +2976,13 @@
    "url": "https://github.com/alexeygrigorev/cinderwake"
   }
  },
- "maharajahu-spline-rush": {},
+ "maharajahu-spline-rush": {
+  "github": {
+   "forks": 1,
+   "stars": 0,
+   "url": "https://github.com/Maharajahu/Spline-Rush"
+  }
+ },
  "antoniomarreti-party-games": {
   "github": {
    "forks": 1,
@@ -3085,7 +3091,7 @@
  "pshenok-server-survival": {
   "github": {
    "forks": 715,
-   "stars": 6470,
+   "stars": 6468,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
