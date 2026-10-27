@@ -199,8 +199,12 @@
   // ---------------------------------------------------------------- the player
   let G = null, all = [], chN = 0, best = null, ended = false, shared = false, wonOnce = false;
   const played = () => ss.get('played', []);
+  // fp-shell-ask-kind (B, fp.js): the kind a new player picked on the first screen comes up next, in its order
+  const kindNext = seen => { let k = null; try { k = JSON.parse(localStorage.getItem('ap.fp.kind') || 'null'); } catch (e) {}
+    return Array.isArray(k) ? k.map(s => all.find(x => x.slug === s)).find(x => x && !seen.has(x.slug)) || null : null; };
   function pickNext() {
     const seen = new Set(played().concat(G ? [G.slug] : []));
+    { const kn = kindNext(seen); if (kn) return kn; }
     // her style (taste.js): auto-next stays in the look she likes, favourite kinds first
     if (window.ApTaste && ApTaste.active() && all.length) { const t = ApTaste.feed(all, { phone: matchMedia('(pointer: coarse)').matches, seen: [...seen] }).find(x => !seen.has(x.slug)); if (t) return t; }
     const phone = matchMedia('(pointer: coarse)').matches;
@@ -235,6 +239,7 @@
   // puzzle or a racer, not another shooter). Someone who liked this one taps Play again instead.
   function feedNext(skip = []) {
     const seen = new Set(played().concat(G ? [G.slug] : [], skip));
+    { const kn = kindNext(seen); if (kn) return kn; }
     const cats = new Set([G && G.category].concat(skip.map(s => (all.find(x => x.slug === s) || {}).category)));
     const fresh = feed().map(s => all.find(x => x.slug === s)).filter(g => g && !seen.has(g.slug));
     if (window.ApTaste && ApTaste.active()) return fresh[0] || pickNext();   // her style: the same look, not a different category

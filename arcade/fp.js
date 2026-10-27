@@ -1,6 +1,57 @@
 // First-play A/B tests in the player (play.html), run by the first-play agent (~/agentpark-firstplay, BRIEF.md). Each block is
 // one live test in the lab (arcade-api xplab.js): APX.on('<name>') true = arm B. It watches the game frame's window.__game
 // (our kit games: state 'play' / 'won' / 'lost', score) from outside, so no game file changes. Remove a block when its test ends.
+// fp-shell-ask-kind (2026-10-27, Daniel: "guessing what the user wants to play is a lottery"): a new player's first game is
+// the one their link named, and 65% of runs end by jumping to another game. B: before the first game, one wordless question:
+// 4 moving tiles (a demo clip each), one per kind (aim / race / puzzle / cozy, the best-holding first games of Oct 20-27
+// lead each kind; the linked game leads its own). A tap IS the start: that game opens at once, and the kind is kept
+// (localStorage ap.fp.kind) so Next / the round card / auto-next stay in it (grow.js kindNext). The linked game loads and
+// runs behind the question, so who becomes a player is the same in both arms.
+(function () {
+  const q = new URLSearchParams(location.search), slug = q.get('g');
+  if (!window.APX || q.get('embed') === 'chat' || !slug || q.get('from') === 'kind' || !APX.on('fp-shell-ask-kind')) return;
+  const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  let pc = {}; try { pc = JSON.parse(ls('arcade.pc') || '{}') || {}; } catch (e) {}
+  if (ls('ap.fp.kind') || Object.keys(pc).some(k => k !== slug) || (pc[slug] || 0) > 1) return;   // only a brand-new player
+  try { if (sessionStorage.getItem('ap.fp.asked')) return; sessionStorage.setItem('ap.fp.asked', '1'); } catch (e) {}
+  if (window.ApTaste && ApTaste.active && ApTaste.active()) return;   // taste.js already picks her games (another session's test)
+  const KINDS = [
+    ['🎯', ['ricochet-rex', 'fort-fling', 'flip-agent', 'horde-blast', 'fling-feud', 'smash-dummy', 'squad-surge']],
+    ['🏁', ['marble-dash', 'tube-rush', 'stretch-dash', 'tiptoe-tower', 'bumpy-buggy', 'chilly-chute', 'turf-rush']],
+    ['🧩', ['untwine', 'bolt-twist', 'slip-links', 'shelf-snap', 'ring-peel', 'latte-jam', 'snip-snack']],
+    ['🌸', ['swirl-tee', 'paw-lagoon', 'dress-diva', 'whisker-stack', 'knit-flow', 'munch-buddies']],
+  ].map(([e, l]) => [e, l.includes(slug) ? [slug].concat(l.filter(x => x !== slug)) : l]);
+  const css = document.createElement('style');
+  css.textContent = `.fp-ask{position:fixed;inset:0;z-index:60;background:#15171B;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;
+    padding:calc(env(safe-area-inset-top) + 8px) 8px calc(env(safe-area-inset-bottom) + 8px);opacity:0;transition:opacity .2s}.fp-ask.in{opacity:1}
+    .fp-ask button{position:relative;border:0;padding:0;border-radius:22px;overflow:hidden;background:#222 center/cover no-repeat;cursor:pointer;
+    box-shadow:0 0 0 3px rgba(255,255,255,.18) inset;animation:fpIn .45s cubic-bezier(.2,1.5,.4,1) both;-webkit-tap-highlight-color:transparent}
+    .fp-ask button:nth-child(2){animation-delay:.06s}.fp-ask button:nth-child(3){animation-delay:.12s}.fp-ask button:nth-child(4){animation-delay:.18s}
+    .fp-ask video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .fp-ask b{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:46px;line-height:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
+    .fp-ask button:active{transform:scale(.96)}.fp-ask button.go{box-shadow:0 0 0 5px #FFC93C inset}
+    @keyframes fpIn{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}`;
+  document.head.appendChild(css);
+  const o = document.createElement('div'); o.className = 'fp-ask';
+  KINDS.forEach(([e, l], i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Play ' + l[0].replace(/-/g, ' '));
+    b.style.backgroundImage = `url('covers/${l[0]}.webp')`;
+    b.innerHTML = `<video muted playsinline loop autoplay preload="none" poster="covers/${l[0]}.webp"></video><b>${e}</b>`;
+    b.onclick = () => {
+      if (o.dataset.done) return; o.dataset.done = '1'; b.classList.add('go');
+      try { localStorage.setItem('ap.fp.kind', JSON.stringify(l)); } catch (x) {}
+      try { window.ArcadeDiag && ArcadeDiag.note('ui', { what: 'fp_kind', kind: i, slug: l[0] }); } catch (x) {}
+      if (l[0] === slug) { setTimeout(() => { o.style.opacity = '0'; setTimeout(() => o.remove(), 200); }, 150); return; }
+      try { sessionStorage.setItem('ap.auto', l[0]); } catch (x) {}
+      setTimeout(() => location.replace(`play.html?g=${encodeURIComponent(l[0])}&from=kind`), 150);
+    };
+    o.appendChild(b);
+  });
+  const show = () => { document.body.appendChild(o); requestAnimationFrame(() => o.classList.add('in'));
+    // the clips start a beat later, so the game behind gets the first bytes
+    setTimeout(() => o.querySelectorAll('video').forEach((v, i) => { v.src = `clips/${KINDS[i][1][0]}.mp4`; v.play && v.play().catch(() => {}); }), 500); };
+  if (document.body) show(); else addEventListener('DOMContentLoaded', show);
+})();
 (function () {
   if (!window.APX || new URLSearchParams(location.search).get('embed') === 'chat') return;
   // fp-shell-instant-retry (2026-10-26): a lost round shows the kit's "OOPS! Tap to retry" and 1.2 s later the shell's
