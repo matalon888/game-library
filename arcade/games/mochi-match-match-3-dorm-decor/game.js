@@ -7,7 +7,6 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
-import { demo } from './kit/demo.js';
 import { RoomEnvironment } from './kit/addons/environments/RoomEnvironment.js';
 import { loader, piece } from './assets.js';
 import { ROOMS, buildRoom, roomStars } from './dorm.js';
@@ -278,9 +277,12 @@ async function renderIcons() {
 // at once on the first level, a 3-6 s freeze on iPhones (diag 2026-10-26: ~40% of runs). One frame with everything shown.
 function warmUp() {
   const hid = [], fc = [];
-  scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; } });
+  // empty instanced meshes (the whole board before level 1) are skipped by three's draw call, so iPhones still built their GPU
+  // pipelines mid-level (diag 10-27: 3-5 s freezes after this warm-up went live): draw one instance of each here
+  const empty = [];
+  scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; } if (o.isInstancedMesh && o.count === 0) { empty.push(o); o.count = 1; } });
   try { C.render(0); } catch (e) {}
-  hid.forEach(o => { o.visible = false; }); fc.forEach(o => { o.frustumCulled = true; });
+  hid.forEach(o => { o.visible = false; }); fc.forEach(o => { o.frustumCulled = true; }); empty.forEach(o => { o.count = 0; });
 }
 async function boot() {
   let n = 0; const total = 16; const tick = () => { n++; loadBar.style.width = Math.min(100, n / total * 100) + '%'; };
@@ -694,11 +696,6 @@ addEventListener('pointermove', e => {
   else if (drag) yawT = Math.max(-0.5, Math.min(0.5, drag.yaw - (e.clientX - drag.x) / innerWidth * 1.4));
 });
 addEventListener('pointerup', () => { if (mode === 'match') M3.input.up(); drag = null; });
-
-// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, if nobody has touched the
-// board 2.5 s in, one match makes itself (a free move, the counter is given back) so the hearts swap, pop and cascade
-demo(() => { if (M3.goals.some(g => g.left <= 6)) return false; M3.addMoves(1); M3.bot(); return false; },
-  { ready: () => mode === 'match' && state === 'play' && !paused && !popEl && !overlay && !dailyMode && curLevel?.n === 1 && M3 && !M3.busy && !M3.over && M3.moves === M3.movesStart, wait: 2500, max: 1 });
 
 // ---------------------------------------------------------------- frame
 function resize() { R.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); C.resize(innerWidth, innerHeight); layoutBoard(); hostMatchPose(); if (mode !== 'match') placeHostInRoom(); }

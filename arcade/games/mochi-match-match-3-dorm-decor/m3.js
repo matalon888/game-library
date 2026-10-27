@@ -30,13 +30,13 @@ export function createMatch3({ group, P, snd, hooks, sim = false }) {
   const IC = P.colors.map(p => mkI(p.geo, clipM(p.mat)));
   const IB = { rh: null, rv: mkI(P.rocket.geo, clipM(P.rocket.mat), 40), bomb: mkI(P.bomb.geo, clipM(P.bomb.mat), 40), prop: mkI(P.prop.geo, clipM(P.prop.mat), 40), disco: mkI(P.disco.geo, clipM(P.disco.mat), 20) };
   IB.rh = IB.rv;
-  const ICr = mkI(P.crate.geo, P.crate.mat.clone(), 80);
+  const ICr = mkI(P.crate.geo, P.crate.mat.clone(), 80); ICr.setColorAt(0, col.set('#ffffff'));   // colour buffer from the start (see IT)
   const iceMat = P.ice.mat.clone(); iceMat.transparent = true; iceMat.opacity = 0.45; iceMat.depthWrite = false; iceMat.roughness = 0.08; iceMat.metalness = 0.05;
   const II = mkI(P.ice.geo, iceMat, 80); II.renderOrder = 2;
   // tiles + frame
   // glossy jelly board: cushion tiles (pink / lilac checker), a candy-lilac frame and a pearly white rim
   const tileGeo = new RoundedBoxGeometry(0.95, 0.95, 0.16, 3, 0.11), tileMat = new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.18, sheen: 0.6, sheenColor: new THREE.Color('#ffd6f0') });
-  const IT = mkI(tileGeo, tileMat, 100); IT.receiveShadow = true;
+  const IT = mkI(tileGeo, tileMat, 100); IT.receiveShadow = true; IT.setColorAt(0, col.set('#ffffff'));   // colour buffer now, not on the first level: it changes the shader, which then compiled mid-game
   const frameGeo = new RoundedBoxGeometry(1.26, 1.26, 0.22, 3, 0.14), frameMat = new THREE.MeshPhysicalMaterial({ color: '#fff2fa', roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.1 });
   const IF = mkI(frameGeo, frameMat, 100);
   const rimMat = new THREE.MeshPhysicalMaterial({ color: '#ff7cc0', roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.08, sheen: 1, sheenColor: new THREE.Color('#ffd6ee') });
@@ -44,7 +44,7 @@ export function createMatch3({ group, P, snd, hooks, sim = false }) {
   const IBk = mkI(new THREE.PlaneGeometry(1.04, 1.04), new THREE.MeshStandardMaterial({ color: '#fbe6f6', roughness: 0.6 }), 100);   // cheap backing that fills the gaps between tiles
   // blob shadows
   const shTex = typeof document === 'undefined' ? null : (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(60,30,60,.45)'); g.addColorStop(1, 'rgba(60,30,60,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
-  const IS = mkI(new THREE.PlaneGeometry(0.9, 0.9), new THREE.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false }), MAXP);
+  const IS = mkI(new THREE.PlaneGeometry(0.9, 0.9), new THREE.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false, clippingPlanes: [clip] }), MAXP);   // clipped from the start: adding the plane in update() recompiled it on level 1
   // particles
   const PMAX = 900, parts = [];
   const pGeo = new THREE.OctahedronGeometry(0.09, 0);
@@ -57,6 +57,8 @@ export function createMatch3({ group, P, snd, hooks, sim = false }) {
   const flyers = [];
   const flyMesh = (p) => { const m = new THREE.Mesh(p.geo, p.mat); m.scale.setScalar(PIECE); root.add(m); return m; };
   const flyPool = { r: [], p: [] };
+  // one of each flyer exists (hidden) from the start, so the loading screen's warm-up compiles it, not the first rocket mid-level
+  flyPool.r.push(flyMesh(P.rocket)); flyPool.p.push(flyMesh(P.prop)); flyPool.r[0].visible = flyPool.p[0].visible = false;
   function getFly(kind) { const pool = flyPool[kind]; let m = pool.find(m => !m.visible); if (!m) { m = flyMesh(kind === 'r' ? P.rocket : P.prop); pool.push(m); } m.visible = true; return m; }
 
   function spark(x, y, color, n = 10, { speed = 3, up = 0, size = 1, life = 0.6, z = 0.6, grav = 6 } = {}) {
