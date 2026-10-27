@@ -199,7 +199,7 @@
   // ---------------------------------------------------------------- the player
   let G = null, all = [], chN = 0, best = null, ended = false, shared = false, wonOnce = false;
   const played = () => ss.get('played', []);
-  // fp-shell-ask-kind (B, fp.js): the kind a new player picked on the first screen comes up next, in its order
+  // fp-shell-ask-two (B, fp.js): the kind a new player picked on the first screen comes up next, in its order
   const kindNext = seen => { let k = null; try { k = JSON.parse(localStorage.getItem('ap.fp.kind') || 'null'); } catch (e) {}
     return Array.isArray(k) ? k.map(s => all.find(x => x.slug === s)).find(x => x && !seen.has(x.slug)) || null : null; };
   function pickNext() {

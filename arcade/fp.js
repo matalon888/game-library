@@ -1,63 +1,77 @@
 // First-play A/B tests in the player (play.html), run by the first-play agent (~/agentpark-firstplay, BRIEF.md). Each block is
 // one live test in the lab (arcade-api xplab.js): APX.on('<name>') true = arm B. It watches the game frame's window.__game
 // (our kit games: state 'play' / 'won' / 'lost', score) from outside, so no game file changes. Remove a block when its test ends.
-// fp-shell-ask-kind (2026-10-27, Daniel: "guessing what the user wants to play is a lottery"): a new player's first game is
-// the one their link named, and 65% of runs end by jumping to another game. B: before the first game, one wordless question:
-// 4 moving tiles (a demo clip each), one per kind (aim / race / puzzle / cozy, the best-holding first games of Oct 20-27
-// lead each kind; the linked game leads its own). A tap IS the start: that game opens at once, and the kind is kept
-// (localStorage ap.fp.kind) so Next / the round card / auto-next stay in it (grow.js kindNext). The linked game loads and
-// runs behind the question, so who becomes a player is the same in both arms.
+// fp-shell-ask-two (2026-10-27, Daniel: "guessing what the user wants to play is a lottery ... two questions: category, show a
+// few examples, and then a few games from each category"). Replaces fp-shell-ask-kind (one screen of 4 games, ended at ~0
+// players). B, before a new player's first game: (1) 4 big category cards, each a word + emoji over 4 example covers;
+// (2) the 4 games of the tapped category, moving clips; a tap starts that game. The category is kept (localStorage
+// ap.fp.kind, its games in order) so Next / the round card / auto-next stay in it (grow.js kindNext). Women (ap.aud = f, a
+// women's ad set) get women's categories. The linked game loads and runs behind, so who becomes a player is the same in
+// both arms.
 (function () {
   const q = new URLSearchParams(location.search), slug = q.get('g');
-  if (!window.APX || q.get('embed') === 'chat' || !slug || q.get('from') === 'kind' || !APX.on('fp-shell-ask-kind')) return;
+  if (!window.APX || q.get('embed') === 'chat' || !slug || q.get('from') === 'kind' || !APX.on('fp-shell-ask-two')) return;
   const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   let pc = {}; try { pc = JSON.parse(ls('arcade.pc') || '{}') || {}; } catch (e) {}
   if (ls('ap.fp.kind') || Object.keys(pc).some(k => k !== slug) || (pc[slug] || 0) > 1) return;   // only a brand-new player
   try { if (sessionStorage.getItem('ap.fp.asked')) return; sessionStorage.setItem('ap.fp.asked', '1'); } catch (e) {}
   if (window.ApTaste && ApTaste.active && ApTaste.active()) return;   // taste.js already picks her games (another session's test)
-  // women (ap.aud = f: a women's ad set; Daniel 2026-10-27 "we need a woman game") get 4 women's kinds, the games women held
-  // longest Oct 24-27 first: puzzle (Jelly Blocks 210 s), match (Garden Gather 230 s), cooking (Dumpling Dash), makeover
-  const her = (() => { try { return localStorage.getItem('ap.aud') === 'f'; } catch (e) { return false; } })();
-  const KINDS = (her ? [
-    ['🧩', ['jelly-blocks-block-puzzle', 'gemloft-block-puzzle', 'peony-mahjong-relaxing-tile-solitaire', 'shelfie-goods-sort', 'sprinkle-sort-cute-sort-puzzle']],
-    ['🍬', ['garden-gather-match-3-garden', 'mochi-match-match-3-dorm-decor', 'boba-trio-triple-match-3d', 'paw-lagoon']],
-    ['🍰', ['dumpling-dash-kawaii-cooking-rush', 'sugarloaf-cafe-cooking-rush', 'spin-bakes-cake-decorating-game', 'pocket-pom-cozy-pet-cafe']],
-    ['💅', ['snip-studio-hair-salon-makeover', 'tip-top-nail-salon-makeover', 'glowfit-runway-dress-up-fashion-battle', 'dress-diva', 'swirl-tee']],
+  // first in each list = the game that group held longest Oct 24-27
+  const CATS = (ls('ap.aud') === 'f' ? [
+    ['🧩', 'Puzzles', ['jelly-blocks-block-puzzle', 'peony-mahjong-relaxing-tile-solitaire', 'gemloft-block-puzzle', 'shelfie-goods-sort', 'sprinkle-sort-cute-sort-puzzle']],
+    ['🍬', 'Match 3', ['garden-gather-match-3-garden', 'mochi-match-match-3-dorm-decor', 'boba-trio-triple-match-3d', 'paw-lagoon']],
+    ['🍰', 'Cooking', ['dumpling-dash-kawaii-cooking-rush', 'sugarloaf-cafe-cooking-rush', 'spin-bakes-cake-decorating-game', 'pocket-pom-cozy-pet-cafe']],
+    ['💅', 'Makeover', ['snip-studio-hair-salon-makeover', 'tip-top-nail-salon-makeover', 'glowfit-runway-dress-up-fashion-battle', 'swirl-tee', 'dress-diva']],
   ] : [
-    ['🎯', ['ricochet-rex', 'fort-fling', 'flip-agent', 'horde-blast', 'fling-feud', 'smash-dummy', 'squad-surge']],
-    ['🏁', ['marble-dash', 'tube-rush', 'stretch-dash', 'tiptoe-tower', 'bumpy-buggy', 'chilly-chute', 'turf-rush']],
-    ['🧩', ['untwine', 'bolt-twist', 'slip-links', 'shelf-snap', 'ring-peel', 'latte-jam', 'snip-snack']],
-    ['🌸', ['mochi-match-match-3-dorm-decor', 'swirl-tee', 'paw-lagoon', 'whisker-stack', 'knit-flow', 'munch-buddies']],
-  ]).map(([e, l]) => [e, l.includes(slug) ? [slug].concat(l.filter(x => x !== slug)) : l]);
+    ['🎯', 'Aim', ['ricochet-rex', 'fort-fling', 'flip-agent', 'horde-blast', 'fling-feud', 'smash-dummy', 'squad-surge']],
+    ['🏁', 'Race', ['marble-dash', 'tube-rush', 'stretch-dash', 'tiptoe-tower', 'bumpy-buggy', 'chilly-chute', 'turf-rush']],
+    ['🧩', 'Puzzles', ['untwine', 'bolt-twist', 'slip-links', 'shelf-snap', 'ring-peel', 'latte-jam', 'snip-snack']],
+    ['🌸', 'Cozy', ['mochi-match-match-3-dorm-decor', 'swirl-tee', 'paw-lagoon', 'whisker-stack', 'knit-flow', 'munch-buddies']],
+  ]).map(([e, w, l]) => [e, w, l.includes(slug) ? [slug].concat(l.filter(x => x !== slug)) : l]);
   const css = document.createElement('style');
   css.textContent = `.fp-ask{position:fixed;inset:0;z-index:60;background:#15171B;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;
     padding:calc(env(safe-area-inset-top) + 8px) 8px calc(env(safe-area-inset-bottom) + 8px);opacity:0;transition:opacity .2s}.fp-ask.in{opacity:1}
-    .fp-ask button{position:relative;border:0;padding:0;border-radius:22px;overflow:hidden;background:#222 center/cover no-repeat;cursor:pointer;
+    .fp-ask button{position:relative;border:0;padding:0;border-radius:22px;overflow:hidden;background:#222 center/cover no-repeat;cursor:pointer;color:#fff;
     box-shadow:0 0 0 3px rgba(255,255,255,.18) inset;animation:fpIn .45s cubic-bezier(.2,1.5,.4,1) both;-webkit-tap-highlight-color:transparent}
     .fp-ask button:nth-child(2){animation-delay:.06s}.fp-ask button:nth-child(3){animation-delay:.12s}.fp-ask button:nth-child(4){animation-delay:.18s}
     .fp-ask video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-    .fp-ask b{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-size:46px;line-height:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
+    .fp-ask .mo{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px}
+    .fp-ask .mo i{background:#222 center/cover no-repeat}
+    .fp-ask .lb{position:absolute;left:8px;right:8px;bottom:10px;display:grid;justify-items:center;gap:2px;padding:10px 4px 8px;border-radius:16px;
+      background:rgba(10,10,16,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+    .fp-ask .lb b{font-size:40px;line-height:1}.fp-ask .lb span{font:800 22px/1.1 "Bricolage Grotesque","DM Sans",system-ui,sans-serif}
+    .fp-ask .bk{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;z-index:61;font-size:26px;
+      background:#15171B;box-shadow:0 0 0 3px rgba(255,255,255,.25) inset;animation:none}
     .fp-ask button:active{transform:scale(.96)}.fp-ask button.go{box-shadow:0 0 0 5px #FFC93C inset}
     @keyframes fpIn{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}`;
   document.head.appendChild(css);
   const o = document.createElement('div'); o.className = 'fp-ask';
-  KINDS.forEach(([e, l], i) => {
-    const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Play ' + l[0].replace(/-/g, ' '));
-    b.style.backgroundImage = `url('covers/${l[0]}.webp')`;
-    b.innerHTML = `<video muted playsinline loop autoplay preload="none" poster="covers/${l[0]}.webp"></video><b>${e}</b>`;
-    b.onclick = () => {
-      if (o.dataset.done) return; o.dataset.done = '1'; b.classList.add('go');
-      try { localStorage.setItem('ap.fp.kind', JSON.stringify(l)); } catch (x) {}
-      try { window.ArcadeDiag && ArcadeDiag.note('ui', { what: 'fp_kind', kind: i, slug: l[0] }); } catch (x) {}
-      if (l[0] === slug) { setTimeout(() => { o.style.opacity = '0'; setTimeout(() => o.remove(), 200); }, 150); return; }
-      try { sessionStorage.setItem('ap.auto', l[0]); } catch (x) {}
-      setTimeout(() => location.replace(`play.html?g=${encodeURIComponent(l[0])}&from=kind`), 150);
-    };
-    o.appendChild(b);
-  });
-  const show = () => { document.body.appendChild(o); requestAnimationFrame(() => o.classList.add('in'));
-    // the clips start a beat later, so the game behind gets the first bytes
-    setTimeout(() => o.querySelectorAll('video').forEach((v, i) => { v.src = `clips/${KINDS[i][1][0]}.mp4`; v.play && v.play().catch(() => {}); }), 500); };
+  const note = d => { try { window.ArcadeDiag && ArcadeDiag.note('ui', d); } catch (x) {} };
+  let done = false;
+  const btn = (html, bg, label, fn) => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', label);
+    if (bg) b.style.backgroundImage = `url('covers/${bg}.webp')`; b.innerHTML = html; b.onclick = () => fn(b); o.appendChild(b); return b; };
+  // question 1: which kind of game
+  const cats = () => {
+    o.innerHTML = '';
+    CATS.forEach(([e, w, l], i) => btn(`<div class="mo">${l.slice(0, 4).map(g => `<i style="background-image:url('covers/${g}.webp')"></i>`).join('')}</div>` +
+      `<div class="lb"><b>${e}</b><span>${w}</span></div>`, null, w, () => { note({ what: 'fp_cat', kind: i }); games(i); }));
+  };
+  // question 2: which game of that kind (moving clips)
+  const games = i => {
+    const [, w, l] = CATS[i]; o.innerHTML = '';
+    l.slice(0, 4).forEach(g => btn(`<video muted playsinline loop autoplay preload="none" poster="covers/${g}.webp"></video>`, g, 'Play ' + g.replace(/-/g, ' '), b => {
+      if (done) return; done = true; b.classList.add('go');
+      try { localStorage.setItem('ap.fp.kind', JSON.stringify([g].concat(l.filter(x => x !== g)))); } catch (x) {}
+      note({ what: 'fp_kind', kind: i, slug: g });
+      if (g === slug) { setTimeout(() => { o.style.opacity = '0'; setTimeout(() => o.remove(), 200); }, 150); return; }
+      try { sessionStorage.setItem('ap.auto', g); } catch (x) {}
+      setTimeout(() => location.replace(`play.html?g=${encodeURIComponent(g)}&from=kind`), 150);
+    }));
+    const bk = btn('↩', null, 'Back', cats); bk.className = 'bk';
+    o.querySelectorAll('video').forEach((v, j) => { v.src = `clips/${l[j]}.mp4`; v.play && v.play().catch(() => {}); });
+  };
+  cats();
+  const show = () => { document.body.appendChild(o); requestAnimationFrame(() => o.classList.add('in')); };
   if (document.body) show(); else addEventListener('DOMContentLoaded', show);
 })();
 (function () {
