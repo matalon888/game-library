@@ -15,12 +15,20 @@
   if (ls('ap.fp.kind') || Object.keys(pc).some(k => k !== slug) || (pc[slug] || 0) > 1) return;   // only a brand-new player
   try { if (sessionStorage.getItem('ap.fp.asked')) return; sessionStorage.setItem('ap.fp.asked', '1'); } catch (e) {}
   if (window.ApTaste && ApTaste.active && ApTaste.active()) return;   // taste.js already picks her games (another session's test)
-  const KINDS = [
+  // women (ap.aud = f: a women's ad set; Daniel 2026-10-27 "we need a woman game") get 4 women's kinds, the games women held
+  // longest Oct 24-27 first: puzzle (Jelly Blocks 210 s), match (Garden Gather 230 s), cooking (Dumpling Dash), makeover
+  const her = (() => { try { return localStorage.getItem('ap.aud') === 'f'; } catch (e) { return false; } })();
+  const KINDS = (her ? [
+    ['🧩', ['jelly-blocks-block-puzzle', 'gemloft-block-puzzle', 'peony-mahjong-relaxing-tile-solitaire', 'shelfie-goods-sort', 'sprinkle-sort-cute-sort-puzzle']],
+    ['🍬', ['garden-gather-match-3-garden', 'mochi-match-match-3-dorm-decor', 'boba-trio-triple-match-3d', 'paw-lagoon']],
+    ['🍰', ['dumpling-dash-kawaii-cooking-rush', 'sugarloaf-cafe-cooking-rush', 'spin-bakes-cake-decorating-game', 'pocket-pom-cozy-pet-cafe']],
+    ['💅', ['snip-studio-hair-salon-makeover', 'tip-top-nail-salon-makeover', 'glowfit-runway-dress-up-fashion-battle', 'dress-diva', 'swirl-tee']],
+  ] : [
     ['🎯', ['ricochet-rex', 'fort-fling', 'flip-agent', 'horde-blast', 'fling-feud', 'smash-dummy', 'squad-surge']],
     ['🏁', ['marble-dash', 'tube-rush', 'stretch-dash', 'tiptoe-tower', 'bumpy-buggy', 'chilly-chute', 'turf-rush']],
     ['🧩', ['untwine', 'bolt-twist', 'slip-links', 'shelf-snap', 'ring-peel', 'latte-jam', 'snip-snack']],
-    ['🌸', ['swirl-tee', 'paw-lagoon', 'dress-diva', 'whisker-stack', 'knit-flow', 'munch-buddies']],
-  ].map(([e, l]) => [e, l.includes(slug) ? [slug].concat(l.filter(x => x !== slug)) : l]);
+    ['🌸', ['mochi-match-match-3-dorm-decor', 'swirl-tee', 'paw-lagoon', 'whisker-stack', 'knit-flow', 'munch-buddies']],
+  ]).map(([e, l]) => [e, l.includes(slug) ? [slug].concat(l.filter(x => x !== slug)) : l]);
   const css = document.createElement('style');
   css.textContent = `.fp-ask{position:fixed;inset:0;z-index:60;background:#15171B;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px;
     padding:calc(env(safe-area-inset-top) + 8px) 8px calc(env(safe-area-inset-bottom) + 8px);opacity:0;transition:opacity .2s}.fp-ask.in{opacity:1}

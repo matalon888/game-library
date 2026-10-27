@@ -5,6 +5,7 @@
 <!-- Ezoic (Daniel, 2026-10-20): rewarded videos for our games, third source after Google (ads/singular-config.js). Game pages only,
      never inside ChatGPT / Claude (embed=chat) or Kids games; privacy scripts load before the header script, in order. -->
 <script>(function () {
+  return;   // OFF (Daniel, 2026-10-27: its full-screen privacy card covered every European visitor's first game; ads aren't live).
   var q = new URLSearchParams(location.search); if (q.get('embed') === 'chat' || (window.RIFFCADE || {}).EZOIC_OFF) return;
   window.ezstandalone = window.ezstandalone || {}; ezstandalone.cmd = ezstandalone.cmd || [];
   var go = function () { if (go.done) return; go.done = 1;
