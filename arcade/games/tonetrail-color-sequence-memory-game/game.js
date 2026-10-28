@@ -50,7 +50,7 @@ function sing(i, dur = 0.42, vol = 0.2) {
 function newRun() {
   timers.forEach(clearTimeout); timers = [];
   runs++; score = 0; seq = []; recorded = false; sad = 0;
-  r = D.seed ? rng(D.seed * 7 + 3) : rng((Date.now() ^ runs * 7919) % 2147483646 + 1);
+  r = D.seed ? rng(D.seed * 7 + 3) : rng(((Date.now() ^ runs * 7919) >>> 0) % 2147483646 + 1);
   state = 'play'; t0 = performance.now(); B.start();
   ui.levels(1); ui.progress(0); ui.sub('');
   later(nextRound, 650);

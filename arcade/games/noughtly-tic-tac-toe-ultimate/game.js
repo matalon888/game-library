@@ -76,7 +76,7 @@ let marks = new Map(), subAnim = new Map(), t0 = 0, recorded = false, r = Math.r
 
 function newGame() {
   curMode = mode; curDiff = diff; games++; S.set('games', games);
-  const seed = D.seed ? D.seed * 13 + games : (Date.now() ^ (games * 7919));
+  const seed = D.seed ? D.seed * 13 + games : (Date.now() ^ (games * 7919)) >>> 0;   // >>> 0: a negative seed (Date.now() ^ x goes negative 10-28 → 11-21) made rng() negative
   r = rng(seed);
   starter = 3 - starter; turn = starter;
   classic = new Array(9).fill(0); U = uNew(); U.turn = turn;

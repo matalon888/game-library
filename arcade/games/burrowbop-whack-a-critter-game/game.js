@@ -160,7 +160,7 @@ let malletT = 1, malletPos = new THREE.Vector3();
 let state = 'ready', score = 0, time = 0, combo = 0, bestCombo = 0, spawnT = 0, r = Math.random, recorded = false, beatenShown = false, grown = false, hits = 0, misses = 0, camD = 0;
 function startRound() {
   rounds++; S.set('rounds', rounds);
-  r = D.seed ? rng(D.seed * 3 + 1) : rng((Date.now() ^ rounds * 7919) % 2147483646 + 1);
+  r = D.seed ? rng(D.seed * 3 + 1) : rng(((Date.now() ^ rounds * 7919) >>> 0) % 2147483646 + 1);
   score = 0; time = 0; combo = 0; bestCombo = 0; spawnT = 0.6; recorded = false; grown = false; hits = 0; misses = 0;
   buildHoles(3, true); ui.score(0); ui.levels(rounds); ui.progress(1); showCombo();
   state = 'play'; B.start();
