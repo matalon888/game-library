@@ -806,8 +806,19 @@ loop((dt, T) => {
   renderer.autoClear = true;
 });
 
+// every shader is built at boot: three skips the draw call of an instanced mesh with count 0 (crates until level 2, ice until
+// level 3, beams until the first rocket), so phones built those pipelines mid-level (diag 10-23..28: 2-6 s freezes, half at
+// level 3). One frame with everything shown and one instance of each; the beam colour buffer exists from the start.
+beamMesh.setColorAt(0, new THREE.Color('#ffffff'));
+function warmUp() {
+  const hid = [], empty = [];
+  for (const s of [scene, ov, ovP]) s.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.isInstancedMesh && o.count === 0) { empty.push(o); o.count = 1; } });
+  try { renderer.render(scene, camera); renderer.render(ov, ocam); renderer.render(ovP, ocam); } catch (e) {}
+  hid.forEach(o => { o.visible = false; }); empty.forEach(o => { o.count = 0; });
+}
+
 // ---------------------------------------------------------------- boot + test hooks
-genLevel(); renderMap(); ui.start();
+genLevel(); renderMap(); warmUp(); ui.start();
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; }, get progress() { return [goalSum(), goals.reduce((a, g) => a + g.n, 0), moves]; },
