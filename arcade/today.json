@@ -705,6 +705,12 @@
    }
   ]
  },
+ "challenge": {
+  "n": 14,
+  "slug": "backyard-plop-bean-bag-toss",
+  "name": "Backyard Plop",
+  "play_url": "https://agentpark.co/arcade/play.html?g=backyard-plop-bean-bag-toss&ch=14&ref=daily&pos=challenge"
+ },
  "peek": {
   "name": "Ring Peel",
   "play_url": "https://agentpark.co/arcade/play.html?g=ring-peel&ref=daily&pos=peek"
