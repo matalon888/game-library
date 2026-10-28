@@ -17,7 +17,16 @@
   try { if (sessionStorage.getItem('ap.fp.asked')) return; sessionStorage.setItem('ap.fp.asked', '1'); } catch (e) {}
   if (window.ApTaste && ApTaste.active && ApTaste.active()) return;   // taste.js already picks her games (another session's test)
   // first in each list = the game that group held longest Oct 24-27
-  const CATS = (ls('ap.aud') === 'f' ? [
+  // women's ads (ap.aud = f) see women's categories, men's ads (m) men's, anyone else a mix (Daniel 2026-10-28: "women see the
+  // women's category and men see the men's category")
+  const MEN = [
+    ['🔫', 'Shooting', ['horde-blast', 'squad-surge', 'swarm-streets', 'cover-clash', 'core-crusher']],
+    ['🏁', 'Race', ['marble-dash', 'tube-rush', 'bumpy-buggy', 'stretch-dash', 'chilly-chute', 'turf-rush']],
+    ['🎯', 'Aim', ['ricochet-rex', 'fort-fling', 'smash-dummy', 'fling-feud', 'flip-agent']],
+    ['🧩', 'Puzzles', ['untwine', 'bolt-twist', 'slip-links', 'dust-descent', 'shelf-snap', 'ring-peel']],
+  ];
+  const aud = ls('ap.aud');
+  const CATS = (aud === 'm' ? MEN : aud === 'f' ? [
     ['🧩', 'Puzzles', ['jelly-blocks-block-puzzle', 'peony-mahjong-relaxing-tile-solitaire', 'gemloft-block-puzzle', 'shelfie-goods-sort', 'sprinkle-sort-cute-sort-puzzle']],
     ['🍬', 'Match 3', ['garden-gather-match-3-garden', 'mochi-match-match-3-dorm-decor', 'boba-trio-triple-match-3d', 'paw-lagoon']],
     ['🍰', 'Cooking', ['dumpling-dash-kawaii-cooking-rush', 'sugarloaf-cafe-cooking-rush', 'spin-bakes-cake-decorating-game', 'pocket-pom-cozy-pet-cafe']],
