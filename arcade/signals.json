@@ -16,7 +16,7 @@
  "ebinezer-cloud-torqueverse-3d": {
   "github": {
    "forks": 0,
-   "stars": 1,
+   "stars": 2,
    "url": "https://github.com/Ebinezer-cloud/TorqueVerse-3D"
   }
  },
@@ -57,8 +57,8 @@
  },
  "bangtutorial-aether-clash": {
   "github": {
-   "forks": 8,
-   "stars": 16,
+   "forks": 10,
+   "stars": 17,
    "url": "https://github.com/bangtutorial/aether-clash"
   }
  },
@@ -707,22 +707,22 @@
  },
  "starknightt-operation-ironhold": {
   "github": {
-   "forks": 31,
-   "stars": 104,
+   "forks": 32,
+   "stars": 105,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
  },
  "haan-lightbot": {
   "github": {
-   "forks": 56,
+   "forks": 57,
    "stars": 72,
    "url": "https://github.com/haan/Lightbot"
   }
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 195,
-   "stars": 1429,
+   "forks": 194,
+   "stars": 1431,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -825,8 +825,8 @@
  },
  "mike007jd-voxel-musou": {
   "github": {
-   "forks": 52,
-   "stars": 158,
+   "forks": 53,
+   "stars": 161,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
  },
@@ -839,7 +839,7 @@
  },
  "mkthingshq-mkgame-blocks": {
   "github": {
-   "forks": 7,
+   "forks": 8,
    "stars": 15,
    "url": "https://github.com/MkThingsHQ/mkgame-blocks"
   }
@@ -1105,8 +1105,8 @@
  },
  "oil-oil-wolfcha": {
   "github": {
-   "forks": 66,
-   "stars": 740,
+   "forks": 67,
+   "stars": 742,
    "url": "https://github.com/oil-oil/wolfcha"
   }
  },
@@ -1126,8 +1126,8 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 10,
-   "stars": 13,
+   "forks": 11,
+   "stars": 15,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1140,7 +1140,7 @@
  },
  "tanuu5-nova-lancer": {
   "github": {
-   "forks": 2,
+   "forks": 3,
    "stars": 11,
    "url": "https://github.com/tanuu5/nova-lancer"
   }
@@ -1184,7 +1184,7 @@
  "karinnielsen-strike-first": {
   "github": {
    "forks": 0,
-   "stars": 1,
+   "stars": 2,
    "url": "https://github.com/karinnielsen/strike-first"
   }
  },
@@ -1811,13 +1811,7 @@
    "url": "https://github.com/diaow2331-ops/dungeon-echo"
   }
  },
- "wiverhome-empires": {
-  "github": {
-   "forks": 0,
-   "stars": 0,
-   "url": "https://github.com/WiverHome/empires"
-  }
- },
+ "wiverhome-empires": {},
  "jordyusa-star-shooter": {
   "github": {
    "forks": 0,
@@ -2873,8 +2867,8 @@
  },
  "krasimirkralev-harvest-hollow": {
   "github": {
-   "forks": 0,
-   "stars": 2,
+   "forks": 1,
+   "stars": 4,
    "url": "https://github.com/KrasimirKralev/harvest-hollow"
   }
  },
@@ -3091,14 +3085,14 @@
  "pshenok-server-survival": {
   "github": {
    "forks": 715,
-   "stars": 6468,
+   "stars": 6473,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
  "ramazancetinkaya-snake-game": {
   "github": {
    "forks": 73,
-   "stars": 160,
+   "stars": 161,
    "url": "https://github.com/ramazancetinkaya/snake-game"
   }
  },
@@ -3136,8 +3130,8 @@
  },
  "bkcore-hexgl": {
   "github": {
-   "forks": 893,
-   "stars": 1746,
+   "forks": 892,
+   "stars": 1747,
    "url": "https://github.com/BKcore/HexGL"
   },
   "hn": {
@@ -3262,7 +3256,7 @@
  "lostruins-koboldai-lite": {
   "github": {
    "forks": 103,
-   "stars": 203,
+   "stars": 204,
    "url": "https://github.com/LostRuins/lite.koboldai.net"
   }
  },
