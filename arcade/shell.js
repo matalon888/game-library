@@ -326,7 +326,10 @@
     if (g.original && !/for-your-ai-agents$|^twist-drop$/.test(g.slug)) frame.addEventListener('load', () => setTimeout(() => {
       let w; try { w = frame.contentWindow; if (w.__game || document.hidden) return; } catch (e) { return; }
       try { if (w.document.querySelector('.hc-prog, .hc-card')) return; } catch (e) {}   // the kit's UI is up: the game did run
-      try { window.ArcadeDiag && ArcadeDiag.note('doa', { slug: g.slug, healed: !healed }); } catch (e) {}
+      // gl: can this frame make a WebGL context right now? false = the phone's 3D is off (2026-10-28: an Android lost its WebGL
+      // context and every 3D game failed for ~2 min, then worked again), not a bug in the game
+      let gl = null; try { const c = w.document.createElement('canvas').getContext('webgl'); gl = !!c; c && c.getExtension('WEBGL_lose_context')?.loseContext(); } catch (e) { gl = false; }
+      try { window.ArcadeDiag && ArcadeDiag.note('doa', { slug: g.slug, healed: !healed, gl }); } catch (e) {}
       if (!healed) { healed = true; frame.src = gameUrl; }
     }, 8000));
     frame.addEventListener('load', () => {
