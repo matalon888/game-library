@@ -165,6 +165,53 @@
     if (finished) { ev('missions_all'); setTimeout(() => toast(`🎁 All 3 missions done! ${sl ? secretName(sl) + ' is unlocked for today: tap 🎁 to play' : 'Secret game unlocked for today'}`, 7000), 600); }
   }
 
+  // ---------------------------------------------------------------- a reason for tomorrow, in the first visit (2026-10-29)
+  // Daniel: "how do other games make the user stay?" → "do 1 2 3". 75% of next-day visits come from the AI's 8am message
+  // and only 1-7% of new players play again the next day: nothing in a visit says there is a tomorrow. Three lab tests
+  // (arcade-api xplab.js, metric 'd1': judged on played-next-day), each on for half the players, in different places:
+  //   fp-shell-saved-tomorrow  the round card says their level is saved and waits for them tomorrow
+  //   fp-shell-streak-day      a "🔥 Day N" pill from the first finished round of the day, "Day N+1 tomorrow" after it
+  //   fp-shell-ai-tomorrow     once a visit, after the first round over: "Tomorrow 8am <their AI> brings your next game"
+  const XO = n => { try { return !!(window.APX && APX.on(n)); } catch (e) { return false; } };
+  // their styles here, not in grow.css: Cloudflare keeps .css 4 h and grow.css has no ?v=
+  { const st = document.createElement('style'); st.textContent = `.g-saved{margin:-2px 0 4px;font:700 15px/1.3 system-ui,sans-serif;color:#7CF29A}
+    .g-day{position:fixed;top:calc(env(safe-area-inset-top,0px) + 58px);left:10px;z-index:30;border-radius:999px;padding:6px 11px;background:rgba(10,10,20,.72);
+    color:#fff;font:800 13px/1 system-ui,sans-serif;backdrop-filter:blur(6px);pointer-events:none;transition:transform .25s cubic-bezier(.2,1.6,.4,1),background .25s,opacity .25s}
+    .g-day small{font-size:12px;font-weight:700;opacity:.9}.g-day.pop{transform:scale(1.25);transform-origin:left top;background:#FF7A2E}.g-day.off{opacity:0}
+    .g-tmrw .g-gift{font-size:64px;line-height:1;margin:6px 0 2px;animation:gGift 1.2s ease-in-out infinite}
+    @keyframes gGift{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(6deg)}}`; document.head.appendChild(st); }
+  const RT = { saved: XO('fp-shell-saved-tomorrow'), streak: XO('fp-shell-streak-day'), ai: XO('fp-shell-ai-tomorrow') };
+  const AIS = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', grok: 'Grok' };
+  const myAi = () => { const k = RH && RH.hasDaily ? Object.keys(AIS).find(a => RH.hasDaily(a)) : null; return k ? AIS[k] : null; };
+  function stPill(n, done) {
+    let b = $('gDay');
+    if (!b) { b = document.createElement('div'); b.id = 'gDay'; b.className = 'g-day'; b.setAttribute('role', 'status'); document.body.appendChild(b); }
+    b.innerHTML = `🔥 Day ${n}${done ? ` <small>· Day ${n + 1} tomorrow</small>` : ''}`;
+    b.classList.toggle('pop', !!done); if (done) setTimeout(() => b.classList.remove('pop'), 4000);
+  }
+  let rtLast = '';
+  function rtTrack(st) {
+    if (!RT.streak || kids) { rtLast = st; return; }
+    if (!$('gDay')) { const s = streak(); if (s) stPill(s, false); }
+    if (rtLast === 'play' && (st === 'won' || st === 'lost')) {
+      const first = (ls.get('streak', null) || {}).last !== today(), n = streakDone();
+      if (first) { stPill(n, true); ev('day_pill'); } else stPill(n, false);
+    }
+    const b = $('gDay'); if (b) b.classList.toggle('off', st === 'play');   // never over the game's own HUD while a round is on
+    rtLast = st;
+  }
+  const aiDue = () => RT.ai && !kids && !ss.get('aiTomorrow', false) && !!myAi();
+  function aiCard() {
+    return new Promise(done => {
+      ss.set('aiTomorrow', true); ev('ai_tomorrow_shown');
+      const lv = window.ApSave && ApSave.level && G ? ApSave.level(G.slug) : 0;
+      const o = card('g-tmrw', `<div class="eyebrow">Tomorrow · 8am</div><div class="g-gift">🎁</div>
+        <h2>${esc(myAi())} brings your next game</h2><p>${lv > 1 ? `Level ${lv} is saved.` : 'Your game is saved.'}</p>
+        <button class="btn big" id="gTmrw">See you tomorrow 👋</button>`);
+      $('gTmrw').onclick = () => { ev('ai_tomorrow_ok'); o.remove(); done(); };
+    });
+  }
+
   // ---------------------------------------------------------------- home: today's challenge at the top
   function home(gs) {
     // the park home (park.js) has a full-width #cont slot under the header with "Back to the park" for everyone: the Continue
@@ -327,7 +374,7 @@
       let st, sc; try { st = s.state; sc = s.score; } catch (e) { return; }
       if (typeof sc === 'number' && isFinite(sc)) best = Math.max(best ?? 0, Math.round(sc));
       if ((st === 'lost' || st === 'won') && st !== lastSt && typeof sc === 'number' && isFinite(sc) && sc > 0) compare(Math.round(sc), st);
-      msTrack(st, s);
+      msTrack(st, s); rtTrack(st);
       lastSt = st;
       if (st === 'lost' && !ended) { ended = true; roundsLost++; (RC.gaNow || ga)('round_end', { game_id: G.slug, outcome: 'lost', score: typeof sc === 'number' && isFinite(sc) ? Math.round(sc) : undefined, round_n: roundsLost, player_tier: tierNow }); setTimeout(() => { try { if (frame.contentWindow.__game.state === 'lost') gameOver(); else ended = false; } catch (e) { ended = false; } }, 1200); }
       else if (st !== 'lost' && ended && !$('gNext') && !$('gShare') && !$('gRound')) ended = false; // they retried
@@ -365,6 +412,7 @@
     if (chN && !shared) return shareCard(false);
     if (pushDue()) await pushCard();
     else if (ss.get('games', 0) >= 2 && subDue()) await subscribe(all, false);
+    else if (aiDue()) await aiCard();
     if (C.AUTO_NEXT || rewardedDue()) nextCard('ended'); else roundCard();
   }
 
@@ -469,6 +517,7 @@
     for (let i = picks.length; i < 3; i++) { const g = feedNext(picks.map(x => x.slug)); if (g && !picks.includes(g)) picks.push(g); }
     const lv = window.ApSave && ApSave.level ? ApSave.level(G.slug) : 0;
     const o = card('g-round', `<div class="eyebrow">Round over</div><h2>One more go?</h2>
+      ${RT.saved ? `<p class="g-saved">💾 ${lv > 1 ? `Level ${lv} saved` : 'Saved'} · see you tomorrow</p>` : ''}
       ${FOCUS && (best || lv > 1) ? `<p class="g-best">${lv > 1 ? `Level ${lv}` : ''}${lv > 1 && best ? ' · ' : ''}${best ? `Best ${best.toLocaleString()}` : ''}</p>` : ''}
       <button class="btn big" id="gAgain">↻ Play again</button>
       ${FOCUS && picks.length ? '<button type="button" class="g-other" id="gOther">Other games ▸</button>' : ''}
