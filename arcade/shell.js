@@ -542,8 +542,10 @@
       const START = /^\s*(▶\s*)?(tap|click|touch)( anywhere)? to (start|play|begin)|^\s*(▶\s*)?(play|start|start game|play now|let'?s go|fight!?)(\s+(level|day|round|run)\s*\d+)?\s*(▶)?\s*$|^\s*(▶\s*)?(level|day|stage)\s*\d+\s*(▶)?\s*$/i;   // a home screen whose only button is "Level 1" (Twistwood, Oct 26)
       const titleButton = d => {   // a visible, big "Play / Tap to start" control on the game's own title screen
         // real buttons first, then text blocks: a HUD label "Level 1" sat before Twistwood's "Level 1" button (Oct 26)
-        for (const e of [...d.querySelectorAll('button, [role=button], .btn, a'), ...d.querySelectorAll('div, h2, p')]) {
+        const btns = new Set(d.querySelectorAll('button, [role=button], .btn, a'));
+        for (const e of [...btns, ...d.querySelectorAll('div, h2, p')]) {
           const t = (e.innerText || '').trim(); if (!t || t.length > 24 || !START.test(t)) continue;
+          if (!btns.has(e) && /^\s*(▶\s*)?(level|day|stage)\s*\d+\s*(▶)?\s*$/i.test(t)) continue;   // a bare "Level 1" only counts on a real button: Mergewood's HUD label ate all 3 tries while it loaded (Oct 29)
           const r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 24 || r.bottom < 0 || r.top > d.defaultView.innerHeight) continue;
           const cs = d.defaultView.getComputedStyle(e); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
           return e;

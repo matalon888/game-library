@@ -9,10 +9,10 @@ import { board as worldBoard } from './kit/board.js';
 import { RoomEnvironment } from './kit/addons/environments/RoomEnvironment.js';
 import { loader, piece } from './assets.js';
 import { ROOMS, buildRoom } from './rooms.js';
+import { createPaint, spotIcon, pics } from './paint.js';
 import { makeLevel } from './levels.js';
 import { createMatch3 } from './m3.js';
 import { snd } from './audio.js';
-import { demo } from './kit/demo.js';
 
 addEventListener('unhandledrejection', e => console.error('unhandled: ' + (e.reason?.stack || e.reason)));
 const NAME = 'Bloomhaus: Match & Decorate', PI = Math.PI, V3 = THREE.Vector3;
@@ -63,6 +63,22 @@ const el = { roomTop: hud.querySelector('#bh-room-top'), roomBot: hud.querySelec
 el.mute.textContent = snd.muted ? '🔇' : '🔊';
 el.mute.onclick = () => { el.mute.textContent = snd.toggle() ? '🔇' : '🔊'; };
 
+// the painted rooms (paint.js): a framed painting replaces the 3D dollhouse outside the match board, Granny speaks with her portrait
+const PT = createPaint();
+const paintOn = () => !!roomOf().paint && mode !== 'match';
+let paintShown = null;
+function layoutPaint() {
+  if (!roomOf().paint) return;
+  const ttl = mode === 'title', top = ttl ? innerHeight * 0.3 : (el.roomTop.getBoundingClientRect().bottom || 60) + 14, bot = ttl ? innerHeight * 0.22 : (el.roomBot.offsetHeight || 230) + 30;
+  PT.layout(top, bot);
+}
+function syncPaint() { const on = paintOn(), k = on ? mode : 'off'; if (k !== paintShown) { paintShown = k; PT.show(on); if (on) layoutPaint(); } }
+function sparkles(x, y, n = 10) {
+  for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, d = 30 + Math.random() * 60, s = $(`<i class="bh-spark">✨</i>`);
+    s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.setProperty('--dx', Math.cos(a) * d + 'px'); s.style.setProperty('--dy', Math.sin(a) * d - 20 + 'px');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 900); }
+}
+
 // ---------------------------------------------------------------- state
 let mode = 'title', state = 'ready', P = null, M3 = null, host = null, rooms = {}, roomBusy = false, popEl = null, dailyMode = !!D.seed, curLevel = null, runT0 = 0, shownStars = st.stars, recorded = false, lastStars = 0;
 const ICON = {};
@@ -105,9 +121,14 @@ const marker = new THREE.Group();
 // ---------------------------------------------------------------- background + atmosphere (shabby → beautiful)
 const atm = { cur: 0, target: 0, room: '' };
 const BG = { living: ['#ffd6e4', '#fff0d9'], bedroom: ['#f6d4f2', '#ffe9f1'], garden: ['#a9dcff', '#fff4d8'], dining: ['#d4efe0', '#fff3dc'] };
-let bgKey = '';
+let bgKey = '', paintStamp = 0;
 function mixHex(a, b, k) { return '#' + new THREE.Color(a).lerp(new THREE.Color(b), k).getHexString(); }
 function paintBg(p, matchDim) {
+  if (roomOf().paint) {   // the room's painting, soft, behind the match board (and around the frame)
+    const key = 'paint' + st.room + doneList().length + matchDim + paintStamp; if (key === bgKey) return;
+    if (PT.paintBg(bgCanvas, bgCanvas.getContext('2d'))) { bgKey = key; bgTex.needsUpdate = true; }
+    return;
+  }
   const pal = BG[roomOf().id] || BG.living, top = mixHex('#c9c4cc', pal[0], p), bot = mixHex('#e4dccf', pal[1], p);
   const key = top + bot + matchDim; if (key === bgKey) return; bgKey = key;
   const x = bgCanvas.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, top); g.addColorStop(1, bot); x.fillStyle = g; x.fillRect(0, 0, 128, 256);
@@ -175,11 +196,14 @@ async function loadHost() {
 }
 let bubbleEl = null, bubbleT = 0;
 function say(text, ms = 2600) {
-  if (!host) return; bubbleEl?.remove(); bubbleEl = $(`<div class="bh-bubble">${text}</div>`); document.body.appendChild(bubbleEl); bubbleT = ms / 1000;
+  if (!host) return; bubbleEl?.remove(); bubbleEl = $(`<div class="bh-bubble"><img class="bh-granny" src="./assets/paint/granny.webp" alt="Granny Gloss"><span>${text}</span></div>`); document.body.appendChild(bubbleEl); bubbleT = ms / 1000;
 }
 const headPos = new V3();
 function placeBubble() {
   if (!bubbleEl) return;
+  // a painted room: Granny's bubble docks at the bottom-left corner of the painting
+  const dock = paintOn(); bubbleEl.classList.toggle('dock', dock);
+  if (dock) { const r = PT.rect(); bubbleEl.style.left = (r.left + 8) + 'px'; bubbleEl.style.top = (r.bottom - 12) + 'px'; return; }
   host.g.getWorldPosition(headPos); const sc = new V3(); host.g.getWorldScale(sc); headPos.y += host.h * sc.y * 1.05;
   headPos.project(cam); const x = (headPos.x + 1) / 2 * innerWidth, y = (1 - headPos.y) / 2 * innerHeight;
   bubbleEl.style.left = Math.max(100, Math.min(innerWidth - 100, x)) + 'px'; bubbleEl.style.top = Math.max(70, y) + 'px';
@@ -226,6 +250,8 @@ async function boot() {
 
 // ---------------------------------------------------------------- rooms
 async function ensureRoom(i) {
+  // a painted room needs no 3D build (and none of its furniture models load)
+  if (!rooms[i] && ROOMS[i].paint) rooms[i] = Promise.resolve({ def: ROOMS[i], group: Object.assign(new THREE.Group(), { visible: false }), items: {}, apply: {}, painted: true });
   if (!rooms[i]) rooms[i] = buildRoom(ROOMS[i]).then(Rm => { Rm.group.visible = false; scene.add(Rm.group); for (const id of (st.done[ROOMS[i].id] || [])) applyTask(Rm, ROOMS[i].tasks.find(t => t.id === id), true); return Rm; });
   return rooms[i];
 }
@@ -234,12 +260,15 @@ async function enterRoom(i, first = false) {
   const Rm = await ensureRoom(i);
   if (curRoom) curRoom.group.visible = false;
   curRoom = Rm; Rm.group.visible = true;
+  if (Rm.def.paint) { await PT.set(Rm.def, doneList(Rm.def), !nextTasks(Rm.def).length); paintStamp++; bgKey = ''; layoutPaint();
+    const nx = ROOMS[ROOMS.indexOf(Rm.def) + 1]; if (nx && nx.paint) setTimeout(() => pics(nx.paint.img), 8000); }   // the next room's paintings, quietly
   if (!first) { camCur.pos.add(new V3(6, 8, 8)); }
   placeHostInRoom(); refreshRoomHUD(); atm.target = roomProgress(); if (first) atm.cur = atm.target;
   fill.intensity = 0;
 }
 function placeHostInRoom() {
   if (!host || !curRoom) return;
+  host.g.visible = !roomOf().paint;   // a painted room: Granny is in her speech bubbles, not in the 3D room
   const h = roomOf().host; curRoom.group.add(host.g); host.g.position.set(h[0], h[1], h[2]); host.g.rotation.set(0, 0.5 + h[3], 0); host.g.scale.setScalar(2.75 / host.h);
 }
 function applyTask(Rm, t, instant) {
@@ -285,17 +314,24 @@ async function buy(t) {
   if (roomBusy || st.stars < t.cost || mode !== 'room') { if (st.stars < t.cost && mode === 'room') { say('Play a level to earn ⭐ stars!'); snd.bad(); } return; }
   roomBusy = true; st.stars -= t.cost; shownStars = st.stars; const def = roomOf();
   st.done[def.id] = [...doneList(def), t.id]; save(); refreshRoomHUD(); buzz(15);
+  if (def.paint) {   // the painting: the "after" opens up at this task's spots
+    marker.visible = false; snd.whoosh(); const [sx, sy] = PT.spotXY(t.id);
+    const rv = PT.reveal(t.id); setTimeout(() => { sparkles(sx, sy, 12); snd.place(); }, 350); await rv; paintStamp++;
+    atm.target = roomProgress();
+  } else {
   focus = taskPos(curRoom, t); marker.visible = false;
   await anim(0.45, k => { focusT = easeIO(k); });
   await animateTask(curRoom, t);
   atm.target = roomProgress();
+  }
   host.play('cheer', true); say(['Gorgeous!', 'I love it!', 'So cozy!', 'Perfect spot!', 'Look at that!', 'Dreamy!'][(Math.random() * 6) | 0]);
   await wait(500);
-  await anim(0.6, k => { focusT = 1 - easeIO(k); }); focus = null;
+  if (!def.paint) { await anim(0.6, k => { focusT = 1 - easeIO(k); }); focus = null; }
   if (!nextTasks(def).length) await roomComplete(def);
   roomBusy = false; refreshRoomHUD();
 }
 async function roomComplete(def) {
+  if (def.paint) { const r = PT.rect(); PT.revealAll().then(() => { paintStamp++; }); for (let i = 0; i < 5; i++) setTimeout(() => sparkles(r.left + Math.random() * r.width, r.top + Math.random() * r.height, 8), i * 220); }
   snd.win(); host.play('cheer', true);
   for (let i = 0; i < 4; i++) { WP.burst(new V3((Math.random() - 0.5) * def.W, def.H + 1.5, (Math.random() - 0.5) * def.D), CONF, 40, { speed: 3, up: 1, size: 1.6, life: 2, grav: 3, spread: 2 }); await wait(160); }
   for (const k of ['rocket', 'bomb', 'disco']) st.boosts[k] = (st.boosts[k] || 0) + 1;
@@ -311,7 +347,7 @@ async function goNextRoom() {
 }
 
 // ---------------------------------------------------------------- room HUD
-function taskIcon(t) { return t.item ? `<img src="./assets/thumbs/${t.item}.webp" alt="">` : t.icon; }
+function taskIcon(t) { const P = roomOf().paint; if (P) return spotIcon(P, t.id); return t.item ? `<img src="./assets/thumbs/${t.item}.webp" alt="">` : t.icon; }
 function refreshRoomHUD() {
   const def = roomOf(), list = nextTasks(def), p = roomProgress(def);
   el.roomName.textContent = `${def.name} · ${Math.round(p * 100)}%`; el.prog.style.width = p * 100 + '%';
@@ -328,8 +364,9 @@ function refreshRoomHUD() {
   const lv = dailyMode ? null : makeLevel(st.level, 1);
   el.play.className = 'bh-btn bh-green bh-play' + (lv?.hard ? ' hard' : '');
   el.play.innerHTML = dailyMode ? 'Daily Level<small>same puzzle for everyone today</small>' : `Level ${st.level}${lv.hard ? '<small>HARD LEVEL</small>' : ''}`;
-  const nt = list[0]; marker.visible = !!nt && mode === 'room' && st.stars >= nt.cost;
-  if (nt && curRoom) marker.position.copy(taskPos(curRoom, nt));
+  const nt = list[0]; marker.visible = !!nt && mode === 'room' && st.stars >= nt.cost && !def.paint;
+  if (nt && curRoom && !def.paint) marker.position.copy(taskPos(curRoom, nt));
+  if (def.paint && mode !== 'match') requestAnimationFrame(layoutPaint);   // the task panel's height moves the frame
 }
 el.play.onclick = () => { snd.tap(); openPop(); };
 
@@ -366,7 +403,7 @@ function startLevel() {
   el.roomTop.classList.add('bh-hidden'); el.roomBot.classList.add('bh-hidden'); el.mute.classList.add('bh-hidden');
   el.mhud.classList.remove('bh-hidden'); el.quit.classList.remove('bh-hidden');
   M3.start(curLevel, rng(curLevel.seed), pre); buildGoalsHUD(); layoutBoard(); boardG.visible = true;
-  if (host) { cam.add(host.g); hostMatchPose(); host.play("idle"); }
+  if (host) { cam.add(host.g); host.g.visible = true; hostMatchPose(); host.play("idle"); }
   runT0 = performance.now(); B.start(); snd.music(true); snd.whoosh();
   if (curLevel.n <= 2 && !dailyMode) setTimeout(() => say(curLevel.n === 1 ? 'Swipe gems to match 3 in a row!' : 'Match 4 for a rocket, a square for a propeller!', 3200), 900);
 }
@@ -448,13 +485,9 @@ addEventListener('pointermove', e => {
   else if (drag) yawT = Math.max(-0.45, Math.min(0.45, drag.yaw - (e.clientX - drag.x) / innerWidth * 1.4));
 });
 addEventListener('pointerup', () => { if (mode === 'match') M3.input.up(); drag = null; });
-// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
-// first real touch, one plain three-in-a-row the goals don't count swaps itself (a free move, the counter is given back)
-demo(() => { M3.demo(); return false; },
-  { ready: () => mode === 'match' && state === 'play' && !dailyMode && curLevel && curLevel.n === 1 && M3 && !M3.busy && !M3.over && M3.moves === curLevel.moves, wait: 2200 });
 
 // ---------------------------------------------------------------- frame
-function resize() { R.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); C.resize(innerWidth, innerHeight); layoutBoard(); hostMatchPose(); if (mode !== 'match') placeHostInRoom(); }
+function resize() { layoutPaint(); R.setSize(innerWidth, innerHeight); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); C.resize(innerWidth, innerHeight); layoutBoard(); hostMatchPose(); if (mode !== 'match') placeHostInRoom(); }
 addEventListener('resize', () => { resize(); if (mode === 'match') { layoutBoard(); hostMatchPose(); } });
 let T = 0;
 loop((d) => {
@@ -478,7 +511,7 @@ loop((d) => {
   C.grade.uniforms.uSat.value = inMatch ? 1.22 : 0.85 + 0.35 * p;
   dimPlane.material.opacity += ((inMatch ? 0.45 : 0) - dimPlane.material.opacity) * Math.min(1, dt * 5);
   dimPlane.visible = dimPlane.material.opacity > 0.01;
-  paintBg(p, inMatch);
+  paintBg(p, inMatch); syncPaint();
   const fireOn = curRoom && curRoom.def.id === 'living' && doneList().includes('fire'); fill.intensity += ((fireOn ? 6 : 0) - fill.intensity) * dt * 2; if (fireOn) fill.intensity *= 0.97 + Math.random() * 0.06;
   // marker
   if (marker.visible) { bob += dt; marker.children[0].position.y = 0.6 + Math.sin(bob * 4) * 0.12; marker.children[1].position.y = 1.05 + Math.sin(bob * 4) * 0.12; const rg = marker.getObjectByName('ring'); rg.scale.setScalar(1 + (bob * 1.2 % 1) * 0.6); rg.material.opacity = 0.8 * (1 - bob * 1.2 % 1); }
@@ -501,7 +534,7 @@ R.info.autoReset = false;
 let botBusy = false;
 window.__game = {
   // arcade auto-start: skip the title and the room, straight into the next level (false while still loading)
-  autostart() { if (mode !== 'title' || !P) return false; ui.els.start.dispatchEvent(new Event('pointerdown')); setTimeout(startLevel, 350); },
+  autostart() { if (!P || (mode !== 'title' && mode !== 'room')) return false; if (mode === 'title') ui.els.start.dispatchEvent(new Event('pointerdown')); setTimeout(startLevel, 350); },   // from the title or the room (the shell may have tapped past the title already)
   get state() { return state; }, get level() { return st.level; }, get score() { return st.earned; },
   get stars() { return st.stars; }, get dbg() { return M3 && M3.dbg; }, get perf() { return perf; }, get room() { return st.room; }, get tasksDone() { return Object.values(st.done).reduce((a, l) => a + l.length, 0); },
   bot() {
