@@ -4,6 +4,14 @@ import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, rng,
 import { flow } from './kit/flow.js';
 import { adapter } from './kit/adapt.js';
 import { board as worldBoard } from './kit/board.js';
+import { ab } from './kit/xp.js';
+import { LEVELS, WORLDS, SUITS } from './levels.js';
+
+// deep v2 (studio, 2026-10-29): 36 hand-made rooms in 3 worlds, stars per room, a room map and suits unlocked by stars.
+// Half the arcade players get it (lab test deep-ricochet-rex); the rest play v1 (the endless generated rooms) unchanged.
+// READY stays false until v2 is finished and checked: until then no player ever sees it (?deep=1 is for QA only).
+const READY = true;
+const DEEP = (READY && ab('deep-ricochet-rex')) || /[?&]deep=1(&|$)/.test(location.search);
 
 // ------------------------------------------------------------------ stage: orthographic side view
 const stage = createStage({ shadows: true, shadowSize: 15 });
@@ -60,7 +68,10 @@ const AD = adapter(); let shotAt = 0, lastCheck = false, fullSight = false, sigh
 // round): a player whose earlier shots all hit is down to the last bullet with goons left → the sight shows the whole
 // ricochet path and gently sticks (±0.05 rad) to angles that really hit. The shot itself is the player's own.
 const sightLen = (base) => base * (2 - AD.k());
-let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), best = save.get('best', 0), score = 0, state = 'ready';
+// v2 progress lives under its own key, so a player's v1 level and v2 rooms never mix
+const DS = store('ricochetrex2');
+let unlocked = DS.get('unlocked', 1), starsBy = DS.get('stars', {});
+let level = +new URLSearchParams(location.search).get('level') || (DEEP ? unlocked : save.get('level', 1)), best = save.get('best', 0), score = 0, state = 'ready';
 
 // ------------------------------------------------------------------ themes
 const THEMES = [
@@ -140,6 +151,10 @@ const PROPG = {
   puff: new THREE.SphereGeometry(1, 14, 10),
 };
 PROPG.ropeLine.translate(0, 0.5, 0);
+PROPG.unit = new THREE.BoxGeometry(1, 1, 1); PROPG.plate = new THREE.BoxGeometry(0.5, 0.42, 0.12); PROPG.bolt = new THREE.SphereGeometry(0.11, 8, 6);
+const HELM = mat('#8d97ab', { roughness: 0.3, metalness: 0.55 });
+const GLASS = new THREE.MeshStandardMaterial({ color: '#8fd3ff', emissive: '#2f86c4', emissiveIntensity: 0.35, transparent: true, opacity: 0.62, roughness: 0.08, metalness: 0.1, depthWrite: false });
+const STEEL = mat('#e3e9f1', { roughness: 0.22, metalness: 0.6 });
 const tntTex = (() => {
   const c = document.createElement('canvas'); c.width = 128; c.height = 64; const x = c.getContext('2d');
   x.fillStyle = '#fff4d6'; x.fillRect(0, 10, 128, 44); x.fillStyle = '#2a1a12'; x.font = 'bold 38px system-ui, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('TNT', 64, 34);
@@ -166,24 +181,42 @@ function rayBox(px, py, dx, dy, x0, y0, x1, y1, inside = false) {
   if (tmin < 1e-7) return inside ? { t: 0, nx, ny } : null;
   return { t: tmin, nx, ny };
 }
-/** trace a bullet through the world: returns polyline + ordered events (kill / cut / push / boom / hostage) */
+/** ray vs mirror segment {x1,y1,x2,y2}: distance along the ray or null */
+function raySeg(px, py, dx, dy, m) {
+  const ex = m.x2 - m.x1, ey = m.y2 - m.y1, den = dx * ey - dy * ex;
+  if (Math.abs(den) < 1e-9) return null;
+  const qx = m.x1 - px, qy = m.y1 - py, t = (qx * ey - qy * ex) / den, u = (qx * dy - qy * dx) / den;
+  return t > 1e-6 && u >= 0 && u <= 1 ? t : null;
+}
+/** trace a bullet through the world: returns polyline + ordered events (kill / cut / push / boom / hostage / glass).
+ *  v2 rooms add glass panes (stop the bullet and shatter), steel mirrors (angled bounce) and armoured goons (a bullet that
+ *  passes through one twice, after a bounce, counts two hits). v1 worlds have none of these, so v1 traces are unchanged. */
 function trace(w, ox, oy, a, maxB = 6, maxLen = 64) {
   let px = ox, py = oy, dx = Math.cos(a), dy = Math.sin(a), len = 0, b = 0;
-  const pts = [[px, py]], ev = [], seen = new Set();
+  const pts = [[px, py]], ev = [], seen = new Map(), glass = w.glass || [], mirrors = w.mirrors || [];
   for (;;) {
-    let tS = maxLen - len, nx = 0, ny = 0, hitBody = null, stop = null;
+    let tS = maxLen - len, nx = 0, ny = 0, hitBody = null, stop = null, mir = null;
     for (const s of w.statics) { const h = rayBox(px, py, dx, dy, s.x0, s.y0, s.x1, s.y1); if (h && h.t < tS) { tS = h.t; nx = h.nx; ny = h.ny; hitBody = null; } }
     for (const o of w.bodies) { const h = rayBox(px, py, dx, dy, o.x - o.w / 2, o.y - o.h / 2, o.x + o.w / 2, o.y + o.h / 2); if (h && h.t < tS) { tS = h.t; nx = h.nx; ny = h.ny; hitBody = o; } }
     for (const o of w.barrels) if (o.alive) { const h = rayBox(px, py, dx, dy, o.x - o.w / 2, o.y - o.h / 2, o.x + o.w / 2, o.y + o.h / 2); if (h && h.t < tS) { tS = h.t; stop = { type: 'boom', ref: o }; hitBody = null; } }
     for (const o of w.hostages) if (o.alive) { const h = rayBox(px, py, dx, dy, o.x - ER.hw, o.y, o.x + ER.hw, o.y + ER.h, true); if (h && h.t < tS) { tS = h.t; stop = { type: 'hostage', ref: o }; hitBody = null; } }
-    if (stop && stop.type === 'boom') { /* barrel nearer than walls */ }
-    for (const e of w.enemies) if (e.alive && !seen.has(e)) { const h = rayBox(px, py, dx, dy, e.x - ER.hw, e.y, e.x + ER.hw, e.y + ER.h, true); if (h && h.t <= tS) { seen.add(e); ev.push({ d: len + h.t, type: 'kill', ref: e, b }); } }
+    for (const o of glass) if (o.alive) { const h = rayBox(px, py, dx, dy, o.x0, o.y0, o.x1, o.y1); if (h && h.t < tS) { tS = h.t; stop = { type: 'glass', ref: o }; hitBody = null; } }
+    for (const m of mirrors) { const t = raySeg(px, py, dx, dy, m); if (t !== null && t < tS) { tS = t; mir = m; stop = null; hitBody = null; nx = 0; ny = 0; } }
+    for (const e of w.enemies) if (e.alive && seen.get(e) !== b && !(seen.has(e) && !(e.hp > 1))) { const h = rayBox(px, py, dx, dy, e.x - ER.hw, e.y, e.x + ER.hw, e.y + ER.h, true); if (h && h.t <= tS) { seen.set(e, b); ev.push({ d: len + h.t, type: 'kill', ref: e, b }); } }
     if (Math.abs(dx) > 1e-6) for (const o of w.bodies) if (o.hanging && !seen.has(o)) {
-      const t = (o.x - px) / dx; if (t > 0 && t < tS) { const y = py + dy * t; if (y > o.y + o.h / 2 && y < o.ropeTop) { seen.add(o); ev.push({ d: len + t, type: 'cut', ref: o, b }); } }
+      const t = (o.x - px) / dx; if (t > 0 && t < tS) { const y = py + dy * t; if (y > o.y + o.h / 2 && y < o.ropeTop) { seen.set(o, b); ev.push({ d: len + t, type: 'cut', ref: o, b }); } }
     }
     px += dx * tS; py += dy * tS; len += tS; pts.push([px, py]);
     if (stop) { ev.push({ d: len, type: stop.type, ref: stop.ref, b }); break; }
-    if (len >= maxLen - 1e-6 || (nx === 0 && ny === 0)) break;
+    if (len >= maxLen - 1e-6) break;
+    if (mir) {
+      if (b >= maxB) break;
+      const ex = mir.x2 - mir.x1, ey = mir.y2 - mir.y1, L = Math.hypot(ex, ey), mx = -ey / L, my = ex / L, dot = dx * mx + dy * my;
+      dx -= 2 * dot * mx; dy -= 2 * dot * my; px += dx * 1e-4; py += dy * 1e-4; b++;
+      ev.push({ d: len, type: 'mirror', ref: mir, b });
+      continue;
+    }
+    if (nx === 0 && ny === 0) break;
     if (hitBody) ev.push({ d: len, type: 'push', ref: hitBody, b, dx, dy });
     if (b >= maxB) break;
     if (nx) dx = -dx; else dy = -dy;
@@ -197,26 +230,33 @@ function landY(w, o) {   // where a cut weight lands
   for (const s of w.statics) if (s.x1 > o.x - o.w / 2 && s.x0 < o.x + o.w / 2 && s.y1 <= o.y - o.h / 2 + 1e-3) y = Math.max(y, s.y1);
   return y;
 }
-/** what one shot would achieve (static assumption): enemy -> bounces, hostage flag */
+/** what one shot would achieve (static assumption): enemy -> bounces, hostage flag; for the v2 solver also the glass it
+ *  breaks, the TNT it sets off, the ropes it cuts and the hits on armoured goons that survive */
 function evalShot(w, ox, oy, a) {
-  const T = trace(w, ox, oy, a), kills = new Map(); let hostage = false;
+  const T = trace(w, ox, oy, a), kills = new Map(), hits = new Map(), glass = new Set(), booms = new Set(), cuts = new Set(); let hostage = false;
   const boom = (o, depth) => {
+    booms.add(o);
     for (const e of w.enemies) if (e.alive && Math.hypot(e.x - o.x, e.y + 1 - o.y) < BOOM_R && !kills.has(e)) kills.set(e, 9);
     for (const h of w.hostages) if (h.alive && Math.hypot(h.x - o.x, h.y + 1 - o.y) < BOOM_R) hostage = true;
-    if (depth < 2) for (const o2 of w.barrels) if (o2 !== o && o2.alive && Math.hypot(o2.x - o.x, o2.y - o.y) < BOOM_R) boom(o2, depth + 1);
+    for (const g of w.glass || []) if (g.alive && boxDist(g, o.x, o.y) < BOOM_R) glass.add(g);
+    if (depth < 2) for (const o2 of w.barrels) if (o2 !== o && o2.alive && !booms.has(o2) && Math.hypot(o2.x - o.x, o2.y - o.y) < BOOM_R) boom(o2, depth + 1);
   };
   for (const e of T.ev) {
-    if (e.type === 'kill' && !kills.has(e.ref)) kills.set(e.ref, e.b);
+    if (e.type === 'kill' && !kills.has(e.ref)) { const n = (hits.get(e.ref) || 0) + 1; hits.set(e.ref, n); if (n >= (e.ref.hp || 1)) kills.set(e.ref, e.b); }
     else if (e.type === 'hostage') hostage = true;
+    else if (e.type === 'glass') glass.add(e.ref);
     else if (e.type === 'boom') boom(e.ref, 0);
     else if (e.type === 'cut') {
+      cuts.add(e.ref);
       const ly = landY(w, e.ref);
       for (const en of w.enemies) if (en.alive && Math.abs(en.x - e.ref.x) < e.ref.w / 2 + ER.hw && en.y < e.ref.y && en.y > ly - 0.05 && !kills.has(en)) kills.set(en, 9);
       for (const h of w.hostages) if (h.alive && Math.abs(h.x - e.ref.x) < e.ref.w / 2 + ER.hw && h.y < e.ref.y && h.y > ly - 0.05) hostage = true;
     }
   }
-  return { kills, hostage };
+  for (const e of kills.keys()) hits.delete(e);
+  return { kills, hostage, hits, glass, booms, cuts };
 }
+const boxDist = (g, x, y) => Math.hypot(x - clamp(x, g.x0, g.x1), y - clamp(y, g.y0, g.y1));
 const shoulder = (w, a) => ({ x: w.agent.x + (Math.cos(a) >= 0 ? 0.35 : -0.35), y: w.agent.y + 1.34 });
 /** sample every angle; robust kill set = what the angle and both neighbours agree on (no pixel-perfect solutions) */
 function sweep(w, N) {
@@ -238,6 +278,61 @@ function greedy(w, sw, shots) {
     if (!best) break; plan.push(best); for (const e of best.kills.keys()) alive.delete(e);
   }
   return { plan, left: alive.size };
+}
+
+// ------------------------------------------------------------------ v2 room solver (QA + the test bot): fewest bullets to clear
+// a room, searching shot by shot over every distinct robust outcome (an outcome the angle and both neighbours agree on).
+// Static model: falling weights crush what is under them, TNT chains, glass breaks; shoved crates are ignored (a bonus).
+function cloneWorld(w) {
+  const m = new Map(), c = (o) => { const k = { ...o }; m.set(o, k); return k; };
+  return { w: { statics: w.statics, agent: w.agent, mirrors: w.mirrors || [], enemies: w.enemies.map(c), hostages: w.hostages.map(c), bodies: w.bodies.map(c),
+    barrels: w.barrels.map(c), glass: (w.glass || []).map(c) }, m };
+}
+function outcomes(w, N) {
+  const raw = [];
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2, s = shoulder(w, a), r = evalShot(w, s.x, s.y, a);
+    const id = (o, l) => l.indexOf(o);
+    r.sig = r.hostage ? 'H' : [[...r.kills.keys()].map(e => 'k' + id(e, w.enemies)), [...r.hits.keys()].map(e => 'h' + id(e, w.enemies)), [...r.glass].map(g => 'g' + id(g, w.glass)),
+      [...r.booms].map(o => 'b' + id(o, w.barrels)), [...r.cuts].map(o => 'c' + id(o, w.bodies))].map(l => l.sort().join()).join('|');
+    r.a = a; raw.push(r);
+  }
+  const best = new Map();   // sig -> centre angle of its longest robust run
+  let i0 = 0; while (i0 < N && raw[i0].sig === raw[(i0 + N - 1) % N].sig) i0++;
+  if (i0 === N) i0 = 0;
+  for (let k = 0; k < N;) {
+    const i = (i0 + k) % N, sig = raw[i].sig; let n = 1; while (k + n < N && raw[(i0 + k + n) % N].sig === sig) n++;
+    if (sig !== 'H' && sig !== '||||' && n >= 3 && (!best.has(sig) || best.get(sig).n < n)) best.set(sig, { n, r: raw[(i0 + k + Math.floor(n / 2)) % N] });
+    k += n;
+  }
+  return [...best.values()].map(v => v.r);
+}
+function applyShot(w, r) {
+  const { w: w2, m } = cloneWorld(w);
+  for (const e of r.kills.keys()) m.get(e).alive = false;
+  for (const [e, n] of r.hits) m.get(e).hp -= n;
+  for (const g of r.glass) m.get(g).alive = false;
+  for (const o of r.booms) m.get(o).alive = false;
+  for (const o of r.cuts) { const k = m.get(o); k.hanging = false; k.y = landY(w, o) + k.h / 2; }
+  return w2;
+}
+/** fewest shots (≤ max) that clear the room, or Infinity; plan = the angles */
+function solveRoom(w, max = 3, N = 720) {
+  const left = (x) => x.enemies.filter(e => e.alive).length;
+  const go = (x, d) => {
+    if (!left(x)) return { n: 0, plan: [] };
+    if (!d) return { n: Infinity, plan: [] };
+    const os = outcomes(x, N).sort((p, q) => q.kills.size - p.kills.size);
+    let best = { n: Infinity, plan: [] };
+    for (const r of os) {
+      if (!r.kills.size && !r.glass.size && !r.hits.size && !r.cuts.size) continue;
+      const sub = go(applyShot(x, r), d - 1);
+      if (sub.n + 1 < best.n) { best = { n: sub.n + 1, plan: [r.a, ...sub.plan] }; if (best.n === 1) break; }
+    }
+    return best;
+  };
+  for (let d = 1; d <= max; d++) { const r = go(w, d); if (r.n <= d) return r; }
+  return { n: Infinity, plan: [] };
 }
 
 // ------------------------------------------------------------------ procedural level layouts (seeded, validated)
@@ -309,14 +404,40 @@ function layout(lv, n, r) {
 }
 function simWorld(L) {
   return { statics: L.statics, agent: L.agent, enemies: L.enemies.map(e => ({ ...e, alive: true })), hostages: L.hostages.map(e => ({ ...e, alive: true })),
-    bodies: L.bodies.map(b => ({ ...b })), barrels: L.barrels.map(b => ({ ...b, alive: true })) };
+    bodies: L.bodies.map(b => ({ ...b })), barrels: L.barrels.map(b => ({ ...b, alive: true })),
+    glass: (L.glass || []).map(g => ({ ...g, alive: true })), mirrors: L.mirrors || [] };
+}
+/** v2: a hand-made room from levels.js (room coordinates: x −4.6…4.6, y 0 = floor) → the same world format the generator makes */
+function roomLevel(D) {
+  const Y = IN.y0, S = [{ x0: -40, y0: -30, x1: 40, y1: IN.y0, floor: true }, { x0: -5.4, y0: IN.y1, x1: 5.4, y1: 19.5 }, { x0: -5.4, y0: IN.y0, x1: IN.x0, y1: IN.y1 }, { x0: IN.x1, y0: IN.y0, x1: 5.4, y1: IN.y1 }];
+  for (const [x0, y0, x1, y1] of D.s || []) S.push({ x0, y0: y0 + Y, x1, y1: y1 + Y });
+  const P = (l) => (l || []).map(([x, y]) => ({ x, y: y + Y }));
+  const enemies = [...P(D.g), ...P(D.G).map(e => ({ ...e, hp: 2 }))];
+  const bodies = [...P(D.c).map(p => ({ kind: 'crate', x: p.x, y: p.y + 0.45, w: 0.9, h: 0.9 })),
+    ...P(D.w).map(p => ({ kind: 'weight', x: p.x, y: p.y + 0.4, w: 1.0, h: 0.8, hanging: true, ropeTop: IN.y1 }))];
+  return { statics: S, agent: { x: D.a[0], y: D.a[1] + Y }, enemies, hostages: P(D.h), bodies, barrels: P(D.t).map(p => ({ x: p.x, y: p.y + 0.45, w: 0.8, h: 0.9 })),
+    glass: (D.gl || []).map(([x0, y0, x1, y1]) => ({ x0, y0: y0 + Y, x1, y1: y1 + Y })),
+    mirrors: (D.m || []).map(([x1, y1, x2, y2]) => ({ x1, y1: y1 + Y, x2, y2: y2 + Y })), tpl: 0, surf: [], room: D };
 }
 /** level 1 = the hook: one goon on the floor in a clear line, nothing else, laser pre-aimed at him */
 function firstLevel() {
   const S = [{ x0: -40, y0: -30, x1: 40, y1: IN.y0, floor: true }, { x0: -5.4, y0: IN.y1, x1: 5.4, y1: 19.5 }, { x0: -5.4, y0: IN.y0, x1: IN.x0, y1: IN.y1 }, { x0: IN.x1, y0: IN.y0, x1: 5.4, y1: IN.y1 }];
   return { statics: S, agent: { x: -3.5, y: IN.y0 }, enemies: [{ x: 2.2, y: IN.y0 }], hostages: [], bodies: [], barrels: [], tpl: 0, surf: [] };
 }
-function genLevel(lv) { return lv <= 1 ? firstLevel() : genRoom(lv - 1); }   // level 2 = the old level 1, and so on
+function genLevel(lv) {
+  if (DEEP) return lv <= LEVELS.length ? roomLevel(LEVELS[lv - 1]) : deepRoom(lv);
+  return lv <= 1 ? firstLevel() : genRoom(lv - 1);   // level 2 = the old level 1, and so on
+}
+// v2 past the last hand-made room: the v1 generator at its level-10+ size (same flow/tuner multiplier as v1), plus one
+// armoured goon in half the rooms (world 3's element)
+function deepRoom(lv) {
+  const L = genRoom(10 + Math.floor((lv - LEVELS.length) / 4)), r = rng(lv * 7919 + 3);
+  if (r() < 0.5 && L.enemies.length > 2) {
+    const e = L.enemies[Math.floor(r() * L.enemies.length)]; e.hp = 2;
+    const w = simWorld(L); if (greedy(w, sweep(w, 720), 3).left) delete e.hp;   // still clearable with 3 bullets, or no armour
+  }
+  return L;
+}
 function genRoom(lv) {
   // steeper (2026-10-25, "too easy"): a goon every 2 levels (was 3), ricochets needed from level 3 and 2+ bullets from level 5
   const base = 2 + Math.floor(lv / 2), n = Math.max(2, Math.min(7, clamp(Math.round(base * fkL), Math.ceil(base * 0.75), Math.floor(base * 1.25))));   // never more than ±25 % goons
@@ -408,7 +529,7 @@ function detach(o) {
   const i = p.children.indexOf(o); if (i >= 0) p.children.splice(i, 1);
   o.parent = null; o.dispatchEvent({ type: 'removed' });
 }
-const SHARED = new Set([...Object.values(PG), ...Object.values(PROPG), FLASHG, FLASHM, TNTPLANE, tntLabel]);
+const SHARED = new Set([...Object.values(PG), ...Object.values(PROPG), FLASHG, FLASHM, TNTPLANE, tntLabel, HELM, GLASS, STEEL]);
 function disposeGroup(g) {
   const keepSet = new Set([...SHARED, ...Object.values(MC), ...SC.values(), ...FRAMEG.values()]);
   g.traverse(o => {
@@ -439,7 +560,7 @@ const idle = (fn, ms = 750) => setTimeout(() => (window.requestIdleCallback ? re
 function buildLevel() {
   if (levelGroup) { detach(levelGroup); disposeGroup(levelGroup); }
   levelGroup = new THREE.Group(); scene.add(levelGroup);
-  theme = THEMES[(level - 1) % THEMES.length];
+  theme = DEEP ? deepTheme(level) : THEMES[(level - 1) % THEMES.length];
   const bs = document.body.style; bs.setProperty('--bg1', theme.bg[0]); bs.setProperty('--bg2', theme.bg[1]); bs.setProperty('--ui', theme.ui); bs.background = theme.bg[1];
   scenery(theme, levelGroup);
   fkL = AD.k(F.k()); lvl = prep && prep.lv === level && prep.fk === fkL ? prep.L : genLevel(level); prep = null; AD.round(); lastCheck = false; fullSight = false; sightAngles = null;
@@ -450,8 +571,24 @@ function buildLevel() {
     const fill = new THREE.Mesh(blockGeo(w - 0.02, h - 0.02, 1.5, 0.07, si < 4), M(theme.fill)); fill.position.set(cx, cy, -0.3); fill.receiveShadow = true; fill.castShadow = !s.floor;
     levelGroup.add(rim, fill);
   });
+  if (DEEP) { const su = SUITS[suit()] || SUITS[0]; STYLES.agent.body = su.body; STYLES.agent.legs = su.legs; }
   agent = person('agent', levelGroup); agent.g.position.set(W.agent.x, W.agent.y, 0);
-  for (const e of W.enemies) { e.p = person(theme.foe, levelGroup); e.p.g.position.set(e.x, e.y, 0); e.ph = Math.random() * 6; }
+  for (const e of W.enemies) {
+    e.p = person(theme.foe, levelGroup); e.p.g.position.set(e.x, e.y, 0); e.ph = Math.random() * 6;
+    if (e.hp > 1) {   // armoured goon: steel helmet + chest plate, a little bigger; the first hit knocks the helmet off
+      const hm = new THREE.Mesh(PG.cap, HELM); hm.scale.set(1.18, 1.25, 1.18); hm.position.set(0, 1.76, 0); hm.castShadow = true; e.p.root.add(hm); e.helm = hm;
+      const pl = new THREE.Mesh(PROPG.plate, HELM); pl.position.set(0, 1.12, 0.22); e.p.root.add(pl); e.plate = pl;
+      e.p.g.scale.setScalar(1.12);
+    }
+  }
+  for (const g of W.glass) {
+    const m = new THREE.Mesh(PROPG.unit, GLASS); m.scale.set(g.x1 - g.x0, g.y1 - g.y0, 0.9); m.position.set((g.x0 + g.x1) / 2, (g.y0 + g.y1) / 2, 0); levelGroup.add(m); g.m = m;
+  }
+  for (const mr of W.mirrors) {
+    const L = Math.hypot(mr.x2 - mr.x1, mr.y2 - mr.y1), m = new THREE.Mesh(PROPG.unit, STEEL);
+    m.scale.set(L, 0.16, 1.0); m.position.set((mr.x1 + mr.x2) / 2, (mr.y1 + mr.y2) / 2, 0); m.rotation.z = Math.atan2(mr.y2 - mr.y1, mr.x2 - mr.x1); m.castShadow = true; levelGroup.add(m);
+    for (const [x, y] of [[mr.x1, mr.y1], [mr.x2, mr.y2]]) { const b = new THREE.Mesh(PROPG.bolt, M('#59606e')); b.position.set(x, y, 0.3); levelGroup.add(b); }
+  }
   for (const e of W.hostages) { e.p = person('hostage', levelGroup); e.p.g.position.set(e.x, e.y, 0); e.ph = Math.random() * 6; e.hostage = true; }
   for (const o of W.bodies) {
     o.vx = 0; o.vy = 0; o.rot = 0; o.av = 0; o.ground = true;
@@ -477,9 +614,125 @@ function buildLevel() {
   const near = W.enemies.slice().sort((a, b) => Math.hypot(a.x - W.agent.x, a.y - W.agent.y) - Math.hypot(b.x - W.agent.x, b.y - W.agent.y))[0];
   aimA = near ? Math.atan2(near.y + 1 - W.agent.y - 1.34, near.x - W.agent.x) : 0.3;
   ui.levels(level); ui.progress(0); ui.score(score); ammo();
+  if (DEEP && level > 1) setTimeout(() => { if (state === 'play' && !bullet && bullets === 3) ui.pop(hardOf(level) ? 'HARD ROOM!' : `ROOM ${level <= LEVELS.length ? level : ''}`, hardOf(level) ? '#ff6a5c' : '#ffffff', 34, 40); }, 350);
 }
 function ammo(pulse = -1) {
   ammoEl.innerHTML = [0, 1, 2].map(i => `<i class="${i >= bullets ? 'spent' : ''} ${i === pulse ? 'pulse' : ''}"></i>`).join('');
+  deepHud();
+}
+
+// ------------------------------------------------------------------ v2 meta: stars per room, the room map, suits
+function deepTheme(lv) {
+  const w = WORLDS[Math.floor((lv - 1) / 12)], name = w ? w.theme : ['dojo', 'forest', 'desert', 'city'][(lv - LEVELS.length - 1) % 4];
+  return THEMES.find(t => t.name === name) || THEMES[0];
+}
+const suit = () => DS.get('suit', 0);
+const parOf = (lv) => lv <= LEVELS.length ? LEVELS[lv - 1].par || 1 : 2;
+const hardOf = (lv) => lv <= LEVELS.length && !!LEVELS[lv - 1].hard;
+const starsFor = (used, par) => used <= par ? 3 : used === par + 1 ? 2 : 1;
+const totalStars = () => Object.values(starsBy).reduce((a, b) => a + b, 0);
+const nextSuit = () => SUITS.find(su => su.stars > totalStars());
+const worldOf = (lv) => Math.min(WORLDS.length, Math.ceil(lv / 12));
+const roomName = (lv) => lv <= LEVELS.length ? LEVELS[lv - 1].n : 'Bonus room';
+let mapEl = null, metaEl = null, mapBtn = null, hardEl = null;
+if (DEEP) {
+  const st = document.createElement('style');
+  st.textContent = `.rr-meta{position:fixed;top:calc(142px + env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:5;pointer-events:none;font-weight:800;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.rr-meta .st{font-size:22px;letter-spacing:2px}.rr-meta .st i{font-style:normal;color:#ffd23f}.rr-meta .st i.off{color:rgba(255,255,255,.35)}
+.hc-card:not(.hc-hidden)~.rr-meta{opacity:0}
+.rr-meta .nm{font-size:14px;opacity:.85;font-weight:700;letter-spacing:.5px}
+.rr-hardb{display:inline-block;background:#e8453c;border-radius:10px;padding:0 8px;margin-left:6px;font-size:12px;vertical-align:2px}
+.rr-hard{position:fixed;inset:0;pointer-events:none;z-index:3;box-shadow:inset 0 0 0 6px rgba(232,69,60,.85),inset 0 0 40px rgba(232,69,60,.5)}
+.rr-mapbtn{position:fixed;top:calc(12px + env(safe-area-inset-top));right:10px;width:46px;height:46px;border-radius:50%;border:0;z-index:7;font-size:22px;background:rgba(0,0,0,.28);color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.2);cursor:pointer}
+.rr-map{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow-y:auto;background:linear-gradient(180deg,var(--m1),var(--m2))}
+.rr-map h2{margin:6px 0 0;font-size:30px;line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.25)}
+.rr-map .tot{font-size:18px;font-weight:800;opacity:.95;margin:4px 0 8px}
+.rr-tabs{display:flex;gap:8px;margin:4px 0 10px}.rr-tabs button{font:inherit;font-weight:800;font-size:15px;border:0;border-radius:18px;padding:6px 14px;background:rgba(0,0,0,.22);color:#fff;cursor:pointer}
+.rr-tabs button.on{background:#fff;color:#333}.rr-tabs button.lock{opacity:.45}
+.rr-grid{display:grid;grid-template-columns:repeat(4,64px);gap:14px 16px;justify-content:center;margin:6px 0 10px}
+.rr-node{position:relative;width:64px;height:64px;border-radius:50%;border:0;font:inherit;font-weight:800;font-size:24px;color:#fff;background:var(--ui,#ff8a1f);box-shadow:0 5px 0 rgba(0,0,0,.25);cursor:pointer}
+.rr-node.hard{background:#e8453c;box-shadow:0 5px 0 #8f241e,0 0 0 3px #ffd23f}
+.rr-node.lock{background:rgba(0,0,0,.25);box-shadow:none;color:rgba(255,255,255,.5);cursor:default}
+.rr-node.next{animation:rrn 1s ease-in-out infinite}
+@keyframes rrn{50%{transform:scale(1.12)}}
+.rr-node b{position:absolute;left:0;right:0;bottom:-17px;font-size:13px;letter-spacing:1px;color:#ffd23f;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.rr-node b i{font-style:normal}.rr-node b i.off{color:rgba(255,255,255,.35)}
+.rr-suits{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:360px;margin:14px 0 6px}
+.rr-suit{width:58px;border:0;background:none;font:inherit;color:#fff;font-weight:800;font-size:12px;cursor:pointer;padding:0}
+.rr-suit span{display:block;width:46px;height:46px;margin:0 auto 2px;border-radius:14px;box-shadow:0 4px 0 rgba(0,0,0,.25);border:3px solid transparent}
+.rr-suit.on span{border-color:#fff}.rr-suit.lock{opacity:.5;cursor:default}
+.rr-go{margin-top:12px}
+.rr-wstars{font-size:46px;letter-spacing:6px;line-height:1;margin:2px 0}.rr-wstars i{font-style:normal;color:rgba(255,255,255,.3);display:inline-block;transform:scale(.4);transition:transform .25s cubic-bezier(.3,1.8,.5,1),color .1s}
+.rr-wstars i.on{color:#ffd23f;transform:scale(1)}.rr-wstars i.dim{transform:scale(.8)}
+.rr-row{display:flex;gap:10px;justify-content:center;margin-top:6px}
+.rr-small{font-size:18px;padding:10px 18px;background:rgba(0,0,0,.28)}
+.rr-unl{font-size:17px!important;opacity:.95}`;
+  document.head.appendChild(st);
+  metaEl = Object.assign(document.createElement('div'), { className: 'rr-meta' }); document.body.appendChild(metaEl);
+  hardEl = Object.assign(document.createElement('div'), { className: 'rr-hard hc-hidden' }); document.body.appendChild(hardEl);
+  mapBtn = Object.assign(document.createElement('button'), { className: 'rr-mapbtn', textContent: '🗺️', type: 'button', ariaLabel: 'Rooms' });
+  mapBtn.addEventListener('pointerdown', e => e.stopPropagation());
+  mapBtn.addEventListener('click', () => { if (!bullet && slowT <= 0) openMap(); });
+  document.body.appendChild(mapBtn);
+}
+const starRow = (n, max = 3) => Array.from({ length: max }, (_, i) => `<i class="${i < n ? '' : 'off'}">★</i>`).join('');
+function deepHud() {
+  if (!DEEP) return;
+  const used = 3 - bullets, can = killed >= total ? null : starsFor(used + 1, parOf(level));
+  metaEl.innerHTML = `<div class="st">${starRow(can === null ? 0 : can)}</div><div class="nm">${level <= LEVELS.length ? level + ' · ' : ''}${roomName(level)}${hardOf(level) ? '<span class="rr-hardb">HARD</span>' : ''}</div>`;
+  if (can === null) metaEl.querySelector('.st').style.visibility = 'hidden';
+  hardEl.classList.toggle('hc-hidden', !hardOf(level));
+}
+let mapWorld = 1;
+function openMap(w = worldOf(Math.min(unlocked, LEVELS.length))) {
+  if (!DEEP) return;
+  mapWorld = w; state = state === 'play' || state === 'ready' ? 'map' : state === 'won' || state === 'lost' ? 'map' : state;
+  for (const c of [ui.els.start, ui.els.win, ui.els.lose]) c.classList.add('hc-hidden');
+  if (!mapEl) { mapEl = document.createElement('div'); mapEl.className = 'rr-map'; mapEl.addEventListener('pointerdown', e => e.stopPropagation()); document.body.appendChild(mapEl); }
+  const W0 = WORLDS[w - 1], th = THEMES.find(t => t.name === W0.theme);
+  mapEl.style.setProperty('--m1', th.bg[0]); mapEl.style.setProperty('--m2', th.bg[1]); mapEl.style.setProperty('--ui', th.ui);
+  const first = (w - 1) * 12 + 1, ns = nextSuit();
+  let h = `<h2>${W0.name}</h2><div class="tot">★ ${totalStars()} / ${LEVELS.length * 3}</div><div class="rr-tabs">`;
+  WORLDS.forEach((x, i) => { const open = unlocked >= i * 12 + 1; h += `<button data-w="${i + 1}" class="${i + 1 === w ? 'on' : ''} ${open ? '' : 'lock'}">${open ? '' : '🔒 '}${i + 1}</button>`; });
+  h += `</div><div class="rr-grid">`;
+  for (let lv = first; lv < first + 12; lv++) {
+    const open = lv <= unlocked, n = starsBy[lv] || 0;
+    h += `<button class="rr-node ${hardOf(lv) ? 'hard' : ''} ${open ? '' : 'lock'} ${lv === unlocked ? 'next' : ''}" data-l="${open ? lv : ''}">${open ? lv : '🔒'}${open && n ? `<b>${starRow(n)}</b>` : ''}</button>`;
+  }
+  h += `</div>`;
+  if (unlocked > LEVELS.length && w === WORLDS.length) h += `<button class="hc-btn rr-go" data-l="${unlocked}">Bonus rooms ▶ ${unlocked}</button>`;
+  h += `<div class="tot" style="margin-top:14px">Suits${ns ? ` · ★ ${ns.stars - totalStars()} more for the next` : ''}</div><div class="rr-suits">`;
+  SUITS.forEach((su, i) => { const open = totalStars() >= su.stars; h += `<button class="rr-suit ${open ? '' : 'lock'} ${suit() === i ? 'on' : ''}" data-s="${open ? i : ''}"><span style="background:linear-gradient(180deg,${su.body} 0 62%,${su.legs} 62%)"></span>${open ? su.name : '★' + su.stars}</button>`; });
+  h += `</div><button class="hc-btn rr-go" data-l="${Math.min(unlocked, w * 12 < unlocked ? w * 12 : unlocked)}">PLAY ▶</button>`;
+  mapEl.innerHTML = h; mapEl.classList.remove('hc-hidden');
+  mapEl.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { const x = +b.dataset.w; if (unlocked >= (x - 1) * 12 + 1) { sfx.tap(); openMap(x); } });
+  mapEl.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { const lv = +b.dataset.l; if (lv) { sfx.tap(); playRoom(lv); } });
+  mapEl.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { if (b.dataset.s === '') return; DS.set('suit', +b.dataset.s); tone(900, 0.08, 'triangle', 0.1, 1.3); openMap(mapWorld); });
+}
+function playRoom(lv) {
+  level = lv; if (mapEl) mapEl.classList.add('hc-hidden');
+  WB.start(); buildLevel(); state = 'play';
+}
+// win card: stars pop in one by one, the next suit's distance, and Next / Replay / Rooms
+function deepWin(used) {
+  const lv = level, par = parOf(lv), n = starsFor(used, par), prev = starsBy[lv] || 0, before = totalStars();
+  if (n > prev) { starsBy[lv] = n; DS.set('stars', starsBy); }
+  if (lv + 1 > unlocked) { unlocked = lv + 1; DS.set('unlocked', unlocked); }
+  const got = SUITS.filter(su => su.stars > before && su.stars <= totalStars()), ns = nextSuit();
+  const card = ui.els.win;
+  card.querySelector('p').firstChild.textContent = lv <= LEVELS.length ? 'ROOM ' : 'BONUS ROOM ';
+  let sx = card.querySelector('.rr-wstars'); if (!sx) { sx = document.createElement('div'); sx.className = 'rr-wstars'; card.querySelector('h1').after(sx); }
+  sx.innerHTML = '<i>★</i><i>★</i><i>★</i>';
+  [0, 1, 2].forEach(i => setTimeout(() => { const el = sx.children[i]; if (!el) return; if (i < n) { el.classList.add('on'); tone(660 + i * 220, 0.14, 'triangle', 0.12, 1.2); buzz(12); } else el.classList.add('dim'); }, 900 + i * 260));
+  let un = card.querySelector('.rr-unl'); if (!un) { un = document.createElement('p'); un.className = 'rr-unl'; card.querySelector('[data-x]').after(un); }
+  un.textContent = got.length ? `New suit: ${got[got.length - 1].name}!` : ns ? `★ ${ns.stars - totalStars()} more → ${ns.name} suit` : '';
+  if (got.length) DS.set('suit', SUITS.indexOf(got[got.length - 1]));
+  const hint = card.querySelector('.hint');
+  hint.innerHTML = `<span class="hc-btn rr-next">${lv + 1 <= LEVELS.length ? 'ROOM ' + (lv + 1) : 'NEXT'} ▶</span><div class="rr-row"><button class="hc-btn rr-small" data-r>↺</button><button class="hc-btn rr-small" data-m>🗺️</button></div>`;
+  hint.style.animation = 'none';
+  const btn = (sel, fn) => { const b = hint.querySelector(sel); b.addEventListener('pointerdown', e => e.stopPropagation()); b.addEventListener('click', e => { e.stopPropagation(); card.classList.add('hc-hidden'); fn(); }); };
+  btn('[data-r]', () => playRoom(lv)); btn('[data-m]', () => openMap(worldOf(Math.min(lv + 1, LEVELS.length))));
+  return n;
 }
 
 // ------------------------------------------------------------------ actions
@@ -502,6 +755,13 @@ const V = (x, y, z = 0.4) => new THREE.Vector3(x, y, z);
 function addScore(n) { score += n; ui.score(score); if (score > best) { best = score; save.set('best', best); } }
 function killEnemy(e, dx, dy, cause, b = 0) {
   if (!e.alive) return;
+  if (e.hp > 1 && cause === 'shot') {   // armoured: the first hit knocks the helmet off (a bounce back through him finishes it)
+    e.hp--;
+    if (e.helm) { const hp = new THREE.Vector3(); e.helm.getWorldPosition(hp); e.helm.visible = false; if (e.plate) e.plate.visible = false; burst(scene, V(hp.x, hp.y, 0.7), ['#c9d1de', '#8d97ab', '#ffffff'], 12, { speed: 0.12, up: 0.1, size: 0.7, gravity: 0.004 }); }
+    tone(2200, 0.08, 'square', 0.08, 0.5); tone(1500, 0.12, 'triangle', 0.08, 0.6); buzz(15); shake = Math.max(shake, 0.15);
+    ui.pop('CLANG!', '#d6e2f5', 32, 27); e.p.g.scale.setScalar(1.05);
+    return;
+  }
   e.alive = false; e.rag = true; e.cx = e.x; e.cy = e.y + 0.95; e.rot = 0; e.flail = 1;
   const k = cause === 'boom' ? 9 : cause === 'crush' ? 1 : 6;
   e.vx = dx * k + (cause === 'crush' ? (Math.random() - 0.5) * 2 : 0); e.vy = cause === 'crush' ? -1 : 4.5 + Math.max(0, dy) * 3 + (cause === 'boom' ? 3 : 0);
@@ -528,6 +788,14 @@ function cutRope(o) {
   burst(scene, V(o.x, o.y + 0.9, 0.5), '#c99a5a', 8, { speed: 0.06, size: 0.5 });
   tone(1400, 0.07, 'triangle', 0.08, 0.5); ui.pop('SNAP!', '#ffe9a8', 30, 33);
 }
+function shatter(g) {
+  if (!g.alive) return;
+  g.alive = false; g.m.visible = false;
+  const cx = (g.x0 + g.x1) / 2, cy = (g.y0 + g.y1) / 2;
+  burst(scene, V(cx, cy, 0.6), ['#e6f7ff', '#bfe6ff', '#ffffff'], 18 + Math.round((g.y1 - g.y0 + g.x1 - g.x0) * 4), { speed: 0.13, up: 0.05, size: 0.55, gravity: 0.006 });
+  tone(2600, 0.06, 'square', 0.06, 0.3); tone(1900, 0.14, 'triangle', 0.08, 0.4); tone(3400, 0.1, 'sine', 0.05, 0.5); buzz(20); shake = Math.max(shake, 0.2);
+  ui.pop('SMASH!', '#dff4ff', 30, 33);
+}
 const PUFFM = [];   // explosion-puff materials, reused (an explosion made and disposed 9 new ones)
 function explode(o) {
   if (!o.alive) return;
@@ -546,12 +814,18 @@ function explode(o) {
   for (const e of [...W.enemies, ...W.hostages]) if (e.rag) { const dx = e.cx - o.x, dy = e.cy - o.y, d = Math.hypot(dx, dy); if (d < BOOM_R * 1.4) { e.vx += dx / d * 5; e.vy += 4; } }
   for (const b of W.bodies) { const dx = b.x - o.x, dy = b.y - o.y, d = Math.hypot(dx, dy); if (d < BOOM_R * 1.3) { if (b.hanging) cutRope(b); b.vx += dx / (d || 1) * 7; b.vy += 6; b.av = (Math.random() - 0.5) * 10; b.ground = false; } }
   for (const b of W.barrels) if (b.alive && Math.hypot(b.x - o.x, b.y - o.y) < BOOM_R) pending.push({ o: b, t: 0.13 });
+  for (const g of W.glass) if (g.alive && boxDist(g, o.x, o.y) < BOOM_R) shatter(g);
 }
 function lose(t, line) {
   if (state !== 'play') return;
   state = 'lost'; F.level(false, killed / Math.max(1, total)); slowT = 0; timeScale = 1; AD.bad(2);
   sfx.fail(); buzz([60, 40, 80]); shake = Math.max(shake, 0.4);
   ui.lose(t, line); idle(prepNext);
+  if (DEEP) {   // a small Rooms button on the retry card (the card itself still retries on any tap)
+    const c = ui.els.lose; let b = c.querySelector('[data-m]');
+    if (!b) { b = document.createElement('button'); b.className = 'hc-btn rr-small'; b.dataset.m = 1; b.textContent = '🗺️'; b.style.marginTop = '10px'; c.querySelector('[data-x]').after(b);
+      b.addEventListener('pointerdown', e => e.stopPropagation()); b.addEventListener('click', e => { e.stopPropagation(); c.classList.add('hc-hidden'); openMap(worldOf(Math.min(level, LEVELS.length))); }); }
+  }
 }
 function win() {
   if (state !== 'play') return;
@@ -561,7 +835,12 @@ function win() {
   [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'triangle', 0.12, 1), i * 90));
   confetti(scene, V(-3, 14, 1), 50); confetti(scene, V(3, 14, 1), 50);
   burst(scene, V(W.agent.x, W.agent.y + 2.2, 0.8), ['#ffd23f', '#ffffff'], 16, { speed: 0.12, up: 0.12, size: 0.8, shape: 'sphere' });
-  ui.pop(bullets >= 2 ? 'ONE SHOT!' : 'CLEARED!', '#ffd23f', 50, 30);
+  ui.pop(bullets >= 2 ? 'ONE SHOT!' : DEEP && 3 - bullets <= parOf(level) ? 'PERFECT!' : 'CLEARED!', '#ffd23f', 50, 30);
+  if (DEEP) {
+    deepWin(3 - bullets); level++; deepHud();
+    ui.win(level - 1, bullets ? `+${bonus} for ${bullets} spare bullet${bullets > 1 ? 's' : ''}` : `${score} pts`);
+    idle(prepNext); return;
+  }
   level++; save.set('level', level);
   ui.win(level - 1, bullets ? `+${bonus} for ${bullets} spare bullet${bullets > 1 ? 's' : ''}` : `${score} pts`);
   ui.els.win.querySelector('.hint').innerHTML = `<span class="hc-btn rr-next">LEVEL ${level} ▶</span>`;
@@ -577,6 +856,7 @@ function solidsFor(skip) {        // statics + other bodies + live barrels, reus
   for (const s of W.statics) SOL.push(s);
   for (const b of W.bodies) if (b !== skip) SOL.push(boxOf(b, BPOOL[k] || (BPOOL[k] = {}))), k++;
   for (const b of W.barrels) if (b.alive) SOL.push(boxOf(b, BPOOL[k] || (BPOOL[k] = {}))), k++;
+  for (const g of W.glass) if (g.alive) SOL.push(g);
   return SOL;
 }
 function stepBody(o, dt) {
@@ -701,6 +981,8 @@ loop((dt60, tt) => {
       else if (ev.type === 'hostage') hostageHit(ev.ref, p.dx);
       else if (ev.type === 'boom') explode(ev.ref);
       else if (ev.type === 'cut') cutRope(ev.ref);
+      else if (ev.type === 'glass') shatter(ev.ref);
+      else if (ev.type === 'mirror') { tone(2400, 0.1, 'sine', 0.07, 0.8); ui.flash(0.12); }
       else if (ev.type === 'push') { const o = ev.ref; if (!o.hanging) { o.vx += ev.dx * 5.5; o.vy += 2.5 + Math.max(0, ev.dy) * 2; o.av = -ev.dx * 6; o.ground = false; } tone(700, 0.06, 'square', 0.06, 0.6); burst(scene, V(p.x, p.y, 0.6), '#c98a4a', 6, { speed: 0.06, size: 0.5 }); }
     }
     const p = posAt(B, B.s);
@@ -832,6 +1114,7 @@ let gpuReady = false; const KEEP = [];
     const fx = new THREE.Group(); groups.push(fx);
     const m = (geo, mt, cast) => { const x = new THREE.Mesh(geo, mt); x.castShadow = !!cast; fx.add(x); return x; };
     m(PROPG.crate, M('#dc8c3c'), true); m(PROPG.tnt, M('#e3392f'), true); m(TNTPLANE, tntLabel);
+    if (DEEP) { m(PROPG.unit, GLASS); m(PROPG.unit, STEEL, true); m(PG.cap, HELM, true); m(PROPG.bolt, M('#59606e')); }
     m(PROPG.puff, new THREE.MeshBasicMaterial({ color: '#ff9a3c', transparent: true, depthWrite: false }));
     m(PROPG.puff, new THREE.MeshStandardMaterial({ color: '#ffd23f', transparent: true, roughness: 0.4 }));   // burst()/confetti() particles
     m(PROPG.puff, new THREE.MeshStandardMaterial({ color: '#ffd23f', roughness: 0.4 }));
@@ -872,6 +1155,13 @@ function bestAngle() {
 window.__game = {
   get state() { return state; }, get level() { return level; }, get score() { return score; },
   get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
+  get deep() { return DEEP; }, get stars() { return DEEP ? { by: starsBy, total: totalStars(), unlocked } : null; },
+  // QA: fewest bullets for room n (fresh world), and jump straight into a room
+  solve(n = level, max = 3) { const r = solveRoom(simWorld(genLevel(n)), max); return { n: r.n, plan: r.plan.map(a => +a.toFixed(4)) }; },
+  go(n) { if (mapEl) mapEl.classList.add('hc-hidden'); for (const c of [ui.els.start, ui.els.win, ui.els.lose]) c.classList.add('hc-hidden'); level = n; buildLevel(); state = 'play'; },
+  map() { openMap(); },
+  // QA: per goon of room n, can any single robust first shot kill (k) or hit (h) it; glass panes any shot breaks
+  reach(n = level) { const w = simWorld(genLevel(n)), os = outcomes(w, 720); return { goons: w.enemies.map(e => os.some(r => r.kills.has(e)) ? 'k' : os.some(r => r.hits.has(e)) ? 'h' : '-').join(''), glass: w.glass.map(g => os.some(r => r.glass.has(g)) ? 'g' : '-').join('') }; },
   sim: { goons: () => W.enemies.filter(e => e.alive).map(e => [e.x, e.y + 1]), shoulder: (a) => shoulder(W, a), screen: (x, y) => toScreen(x, y), get ready() { return !bullet && slowT <= 0 && bullets > 0 && settled(); },
     sightHits(a) { const s = shoulder(W, a), T = fullSight ? trace(W, s.x, s.y, a, 6, 40) : trace(W, s.x, s.y, a, 2, sightLen(17)); return T.ev.some(e => e.type === 'kill' && e.d <= T.len); } },
   get gfx() { const i = renderer.info; return { programs: (i.programs || []).length, geometries: i.memory.geometries, textures: i.memory.textures, calls: i.render.calls, dpr: renderer.getPixelRatio() }; },
@@ -880,7 +1170,9 @@ window.__game = {
     const ev = (type, x, y) => dispatchEvent(new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, bubbles: true }));
     if (botDown) { ev('pointerup', botDown[0], botDown[1]); botDown = null; return; }
     if (bullet || slowT > 0 || bullets <= 0 || !settled() || shake > 0.05) return;
-    const a = bestAngle(), s = shoulder(W, a);
+    let a = null; if (DEEP) { const r = solveRoom(W, Math.max(1, bullets)); if (r.plan.length) a = r.plan[0]; }
+    if (a === null) a = bestAngle();
+    const s = shoulder(W, a);
     for (const R of [3.4, 2.6, 1.9, 1.3, 0.8]) {
       const [x, y] = toScreen(s.x + Math.cos(a) * R, s.y + Math.sin(a) * R);
       if (x > 4 && x < innerWidth - 4 && y > 4 && y < innerHeight - 4) { ev('pointerdown', x, y); ev('pointermove', x, y); botDown = [x, y]; return; }
