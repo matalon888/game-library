@@ -1817,7 +1817,7 @@
   "public": {
    "github": {
     "forks": 103,
-    "stars": 204,
+    "stars": 205,
     "url": "https://github.com/LostRuins/lite.koboldai.net"
    }
   },
@@ -11451,8 +11451,8 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 714,
-    "stars": 6473,
+    "forks": 713,
+    "stars": 6472,
     "url": "https://github.com/pshenok/server-survival"
    }
   },
@@ -11991,7 +11991,7 @@
   "platform": "phone",
   "public": {
    "github": {
-    "forks": 3,
+    "forks": 4,
     "stars": 11,
     "url": "https://github.com/tanuu5/nova-lancer"
    }

@@ -272,13 +272,7 @@
    "url": "https://github.com/muhashi/geodle"
   }
  },
- "srefsland-nyt-connections-clone": {
-  "github": {
-   "forks": 22,
-   "stars": 13,
-   "url": "https://github.com/srefsland/nyt-connections-clone"
-  }
- },
+ "srefsland-nyt-connections-clone": {},
  "green-cr0w-the-door": {
   "github": {
    "forks": 0,
@@ -728,7 +722,7 @@
  "rohitg00-k8sgames": {
   "github": {
    "forks": 194,
-   "stars": 1433,
+   "stars": 1434,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -1132,8 +1126,8 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 13,
-   "stars": 16,
+   "forks": 14,
+   "stars": 17,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1146,7 +1140,7 @@
  },
  "tanuu5-nova-lancer": {
   "github": {
-   "forks": 3,
+   "forks": 4,
    "stars": 11,
    "url": "https://github.com/tanuu5/nova-lancer"
   }
@@ -1224,7 +1218,7 @@
  },
  "playpip-pip-web": {
   "github": {
-   "forks": 10,
+   "forks": 11,
    "stars": 18,
    "url": "https://github.com/playpip/pip-web"
   }
@@ -2002,7 +1996,7 @@
  },
  "jmthecoder-colordice": {
   "github": {
-   "forks": 0,
+   "forks": 1,
    "stars": 0,
    "url": "https://github.com/JMTheCoder/colordice"
   }
@@ -3090,8 +3084,8 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 714,
-   "stars": 6473,
+   "forks": 713,
+   "stars": 6472,
    "url": "https://github.com/pshenok/server-survival"
   }
  },
@@ -3262,7 +3256,7 @@
  "lostruins-koboldai-lite": {
   "github": {
    "forks": 103,
-   "stars": 204,
+   "stars": 205,
    "url": "https://github.com/LostRuins/lite.koboldai.net"
   }
  },
