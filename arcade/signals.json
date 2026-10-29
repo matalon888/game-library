@@ -683,7 +683,13 @@
    "url": "https://github.com/rakeshid03/arrowpathpuzzle"
   }
  },
- "ljy969-deal-or-no-deal": {},
+ "ljy969-deal-or-no-deal": {
+  "github": {
+   "forks": 3,
+   "stars": 9,
+   "url": "https://github.com/ljy969/DEAL-OR-NO-DEAL"
+  }
+ },
  "ucfx-minimax-game-ai": {
   "github": {
    "forks": 67,
@@ -722,7 +728,7 @@
  "rohitg00-k8sgames": {
   "github": {
    "forks": 194,
-   "stars": 1431,
+   "stars": 1433,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -826,7 +832,7 @@
  "mike007jd-voxel-musou": {
   "github": {
    "forks": 53,
-   "stars": 161,
+   "stars": 163,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
  },
@@ -861,7 +867,7 @@
  "nicechunk-game": {
   "github": {
    "forks": 2,
-   "stars": 308,
+   "stars": 307,
    "url": "https://github.com/nicechunk/game"
   }
  },
@@ -1106,7 +1112,7 @@
  "oil-oil-wolfcha": {
   "github": {
    "forks": 67,
-   "stars": 742,
+   "stars": 743,
    "url": "https://github.com/oil-oil/wolfcha"
   }
  },
@@ -1126,8 +1132,8 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 11,
-   "stars": 15,
+   "forks": 13,
+   "stars": 16,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1625,7 +1631,7 @@
  "viral-doshi-catan": {
   "github": {
    "forks": 10,
-   "stars": 13,
+   "stars": 14,
    "url": "https://github.com/Viral-Doshi/catan"
   }
  },
@@ -2944,7 +2950,7 @@
  },
  "j3vb-sanctuarys-end": {
   "github": {
-   "forks": 0,
+   "forks": 2,
    "stars": 2,
    "url": "https://github.com/J3vb/Sanctuarys_End"
   }
@@ -3084,7 +3090,7 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 715,
+   "forks": 714,
    "stars": 6473,
    "url": "https://github.com/pshenok/server-survival"
   }
@@ -3131,7 +3137,7 @@
  "bkcore-hexgl": {
   "github": {
    "forks": 892,
-   "stars": 1747,
+   "stars": 1748,
    "url": "https://github.com/BKcore/HexGL"
   },
   "hn": {

@@ -11451,7 +11451,7 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 715,
+    "forks": 714,
     "stars": 6473,
     "url": "https://github.com/pshenok/server-survival"
    }
@@ -12028,7 +12028,13 @@
   "tags": [],
   "made": "2026-08-19",
   "platform": "phone",
-  "public": null,
+  "public": {
+   "github": {
+    "forks": 3,
+    "stars": 9,
+    "url": "https://github.com/ljy969/DEAL-OR-NO-DEAL"
+   }
+  },
   "cover": "covers/ljy969-deal-or-no-deal.webp",
   "thumb": "covers/ljy969-deal-or-no-deal.webp",
   "icon": "art/ljy969-deal-or-no-deal.webp",

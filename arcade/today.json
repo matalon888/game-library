@@ -705,6 +705,12 @@
    }
   ]
  },
+ "challenge": {
+  "n": 15,
+  "slug": "boltpack-jetpack-runner",
+  "name": "Boltpack",
+  "play_url": "https://agentpark.co/arcade/play.html?g=boltpack-jetpack-runner&ch=15&ref=daily&pos=challenge"
+ },
  "peek": {
   "name": "Viral Den",
   "play_url": "https://agentpark.co/arcade/play.html?g=viral-den&ref=daily&pos=peek"
