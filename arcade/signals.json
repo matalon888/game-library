@@ -58,7 +58,7 @@
  "bangtutorial-aether-clash": {
   "github": {
    "forks": 10,
-   "stars": 17,
+   "stars": 18,
    "url": "https://github.com/bangtutorial/aether-clash"
   }
  },
@@ -727,8 +727,8 @@
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 194,
-   "stars": 1434,
+   "forks": 195,
+   "stars": 1435,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -832,7 +832,7 @@
  "mike007jd-voxel-musou": {
   "github": {
    "forks": 54,
-   "stars": 163,
+   "stars": 165,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
  },
@@ -979,7 +979,7 @@
  "iacbi-matah": {
   "github": {
    "forks": 0,
-   "stars": 0,
+   "stars": 1,
    "url": "https://github.com/IACBI/matah"
   }
  },
@@ -1056,7 +1056,7 @@
  "gmh-code-pk2": {
   "github": {
    "forks": 3,
-   "stars": 34,
+   "stars": 35,
    "url": "https://github.com/GMH-Code/PK2"
   }
  },
@@ -1126,13 +1126,13 @@
  "mrzh7-scam-with-your-friends-web": {
   "github": {
    "forks": 23,
-   "stars": 246,
+   "stars": 247,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 15,
+   "forks": 17,
    "stars": 20,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
@@ -1953,7 +1953,7 @@
  },
  "sigmafier-ellaz-games": {
   "github": {
-   "forks": 1,
+   "forks": 2,
    "stars": 1,
    "url": "https://github.com/Sigmafier/ellaz-games"
   }
@@ -3090,7 +3090,7 @@
  },
  "pshenok-server-survival": {
   "github": {
-   "forks": 713,
+   "forks": 714,
    "stars": 6472,
    "url": "https://github.com/pshenok/server-survival"
   }
@@ -3137,7 +3137,7 @@
  "bkcore-hexgl": {
   "github": {
    "forks": 892,
-   "stars": 1748,
+   "stars": 1749,
    "url": "https://github.com/BKcore/HexGL"
   },
   "hn": {
@@ -3245,27 +3245,9 @@
    "url": "https://github.com/llm-chess-arena/llm-chess-arena"
   }
  },
- "songhaifan-frankie-poker": {
-  "github": {
-   "forks": 5,
-   "stars": 14,
-   "url": "https://github.com/SonghaiFan/frankie-poker"
-  }
- },
- "oyekamal-ai-overlord": {
-  "github": {
-   "forks": 0,
-   "stars": 2,
-   "url": "https://github.com/oyekamal/offline-llm-chat"
-  }
- },
- "lostruins-koboldai-lite": {
-  "github": {
-   "forks": 103,
-   "stars": 205,
-   "url": "https://github.com/LostRuins/lite.koboldai.net"
-  }
- },
+ "songhaifan-frankie-poker": {},
+ "oyekamal-ai-overlord": {},
+ "lostruins-koboldai-lite": {},
  "twist-drop": {},
  "tube-rush": {},
  "sky-evolve": {},

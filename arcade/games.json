@@ -1730,13 +1730,7 @@
   },
   "made": "2025-12-21",
   "platform": "desktop",
-  "public": {
-   "github": {
-    "forks": 5,
-    "stars": 14,
-    "url": "https://github.com/SonghaiFan/frankie-poker"
-   }
-  },
+  "public": null,
   "cover": "covers/songhaifan-frankie-poker.webp",
   "thumb": "covers/songhaifan-frankie-poker.webp",
   "icon": "art/songhaifan-frankie-poker.webp",
@@ -1773,13 +1767,7 @@
   },
   "made": "2026-07-13",
   "platform": "desktop",
-  "public": {
-   "github": {
-    "forks": 0,
-    "stars": 2,
-    "url": "https://github.com/oyekamal/offline-llm-chat"
-   }
-  },
+  "public": null,
   "cover": "covers/oyekamal-ai-overlord.webp",
   "thumb": "covers/oyekamal-ai-overlord.webp",
   "icon": "art/oyekamal-ai-overlord.webp",
@@ -1814,13 +1802,7 @@
   },
   "made": "2022-12-24",
   "platform": "desktop",
-  "public": {
-   "github": {
-    "forks": 103,
-    "stars": 205,
-    "url": "https://github.com/LostRuins/lite.koboldai.net"
-   }
-  },
+  "public": null,
   "cover": "covers/lostruins-koboldai-lite.webp",
   "thumb": "covers/lostruins-koboldai-lite.webp",
   "icon": "art/lostruins-koboldai-lite.webp",
@@ -11451,7 +11433,7 @@
   "platform": "desktop",
   "public": {
    "github": {
-    "forks": 713,
+    "forks": 714,
     "stars": 6472,
     "url": "https://github.com/pshenok/server-survival"
    }
