@@ -492,11 +492,17 @@
   // half the tabs get one game to stick with: no "Next game" strip for the first 90 s and a round-over
   // card that is "Play again" with their best, other games behind a small link. ap.ab = focus / feed (diag sessions.ab).
   // The strip comes back after 90 s of the game either way.
-  const FOCUS = (() => { let v; try { v = sessionStorage.getItem('ap.ab'); if (v !== 'focus' && v !== 'feed') { v = Math.random() < 0.5 ? 'focus' : 'feed'; sessionStorage.setItem('ap.ab', v); } } catch (e) { v = 'feed'; } return v === 'focus'; })();
+  // fp-shell-focus-first (2026-10-30, lab test): new players Oct 24-30 in the focus tabs played 174 s vs 150 s (60 s+ 60% vs
+  // 51%, ~200 each), and 188 of 245 new players since Oct 27 played one game and left mid-round. B: every tab is a focus tab,
+  // and the first game of the tab gets no "Next game" strip at all (not even after 90 s), so the first game is the one to
+  // stick with. ap.ab keeps its own coin, so diag's focus/feed label stays random.
+  const FFIRST = XO('fp-shell-focus-first');
+  const FOCUS = (() => { let v; try { v = sessionStorage.getItem('ap.ab'); if (v !== 'focus' && v !== 'feed') { v = Math.random() < 0.5 ? 'focus' : 'feed'; sessionStorage.setItem('ap.ab', v); } } catch (e) { v = 'feed'; } return v === 'focus'; })() || FFIRST;
   let railLater = 0;
   function rail(now) {
     const p = document.querySelector('.player');
     if (!p || $('gRail') || kids) return;
+    if (FFIRST && !played().some(s => !G || s !== G.slug)) return;   // B: the tab's first game, no strip
     if (FOCUS && !now) { clearTimeout(railLater); railLater = setTimeout(() => rail(true), 90000); return; }
     const nx = feedNext(); if (!nx) return;
     const r = document.createElement('div'); r.id = 'gRail'; r.className = 'g-rail';
