@@ -272,7 +272,13 @@
    "url": "https://github.com/muhashi/geodle"
   }
  },
- "srefsland-nyt-connections-clone": {},
+ "srefsland-nyt-connections-clone": {
+  "github": {
+   "forks": 22,
+   "stars": 13,
+   "url": "https://github.com/srefsland/nyt-connections-clone"
+  }
+ },
  "green-cr0w-the-door": {
   "github": {
    "forks": 0,
@@ -708,7 +714,7 @@
  "starknightt-operation-ironhold": {
   "github": {
    "forks": 32,
-   "stars": 105,
+   "stars": 106,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
  },
@@ -825,7 +831,7 @@
  },
  "mike007jd-voxel-musou": {
   "github": {
-   "forks": 53,
+   "forks": 54,
    "stars": 163,
    "url": "https://github.com/mike007jd/voxel-musou"
   }
@@ -889,7 +895,7 @@
  "offerpk-ball-sort-puzzle": {
   "github": {
    "forks": 0,
-   "stars": 0,
+   "stars": 1,
    "url": "https://github.com/OfferPk/ball-sort-puzzle"
   }
  },
@@ -1120,14 +1126,14 @@
  "mrzh7-scam-with-your-friends-web": {
   "github": {
    "forks": 23,
-   "stars": 245,
+   "stars": 246,
    "url": "https://github.com/mrzh7/scam-with-your-friends-web"
   }
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 14,
-   "stars": 17,
+   "forks": 15,
+   "stars": 20,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -1219,7 +1225,7 @@
  "playpip-pip-web": {
   "github": {
    "forks": 11,
-   "stars": 18,
+   "stars": 19,
    "url": "https://github.com/playpip/pip-web"
   }
  },
@@ -1247,7 +1253,7 @@
  "devinjones521-last-stand": {
   "github": {
    "forks": 0,
-   "stars": 0,
+   "stars": 1,
    "url": "https://github.com/devinjones521/last-stand"
   }
  },
