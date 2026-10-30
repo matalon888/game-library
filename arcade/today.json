@@ -705,6 +705,12 @@
    }
   ]
  },
+ "challenge": {
+  "n": 16,
+  "slug": "core-crusher",
+  "name": "Core Crusher",
+  "play_url": "https://agentpark.co/arcade/play.html?g=core-crusher&ch=16&ref=daily&pos=challenge"
+ },
  "peek": {
   "name": "Ring Peel",
   "play_url": "https://agentpark.co/arcade/play.html?g=ring-peel&ref=daily&pos=peek"
