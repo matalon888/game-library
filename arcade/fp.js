@@ -10,7 +10,7 @@
 // both arms.
 (function () {
   const q = new URLSearchParams(location.search), slug = q.get('g');
-  if (!window.APX || q.get('embed') === 'chat' || !slug || q.get('from') === 'kind' || !APX.on('fp-shell-ask-two')) return;
+  if (!window.APX || q.get('embed') === 'chat' || !slug || q.get('from') === 'kind' || true) return;   // ended 2026-10-30: losing (-35%, P 0.03), the questions cost time before the first game
   const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   let pc = {}; try { pc = JSON.parse(ls('arcade.pc') || '{}') || {}; } catch (e) {}
   if (ls('ap.fp.kind') || Object.keys(pc).some(k => k !== slug) || (pc[slug] || 0) > 1) return;   // only a brand-new player
