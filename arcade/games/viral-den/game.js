@@ -4,6 +4,13 @@ import { flow } from './kit/flow.js';
 import { adapter } from './kit/adapt.js';
 import { demo } from './kit/demo.js';
 import { part, merge, canvasTex } from './geo.js';
+import { ab } from './kit/xp.js';
+import { deep } from './deep.js';
+// deep v2 (studio, 2026-10-29): tap ON THE BEAT, 30 hand-made videos in 3 worlds, stars, a channel map, the den makeover
+// (deep.js, levels.js, chart.js). READY stays false until v2 is finished and passed the fun gate: until then no player
+// ever sees it (?deep=1 is for QA only).
+const READY = true;
+const DEEP = (READY && ab('deep-viral-den')) || /[?&]deep=1(&|$)/.test(location.search);
 
 import { board as worldBoard } from './kit/board.js';
 const WB = worldBoard({ game: 'viral-den', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.15 }, mode: 'sum' });
@@ -296,6 +303,37 @@ function emote(e, from, n = 1) {
 
 // ---------------------------------------------------------------- apply tiers (visual), with pop-in animation
 const pops = [];
+// each world is its own set: the wall, floor, trim and light change by themselves as the videos go on (deep only)
+const THEMES = [{ wall: '#ffffff', k: 0, floor: '#ffffff', trim: '#ffffff' }, { wall: '#d98c5f', k: 0.55, floor: '#8a6a58', trim: '#ffd9b0', glow: '#ffe0c0' }, { wall: '#3b2c7a', k: 0.7, floor: '#6c7fb0', trim: '#c9a7ff', glow: '#d6c2ff' }];
+let baseH = 1, baseS = 1, kick = 0;
+// v2 stage props: each world adds its own things video by video (not a repaint), and a crowd fills in as the combo climbs
+const stage = new THREE.Group(); room.add(stage);
+const glowMats = [], props = [], crowd = []; let crowdN = 0, crowdBeat = 0;
+const gm = c => { const m = new THREE.MeshBasicMaterial({ color: c }); glowMats.push(m); return m; };
+const addP = (o, world, min) => { o.userData = { world, min }; o.visible = false; stage.add(o); props.push(o); return o; };
+if (DEEP) {
+  const bz = -R + 0.1;
+  for (let i = 0; i < 9; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), gm('#ffd166')); b.position.set(-3 + i * 0.75, WH - 0.45 - Math.sin(i / 8 * Math.PI) * 0.35, bz); addP(b, 0, 3); }
+  const rec = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.06, 6, 20), gm('#ff2d55')); rec.position.set(-1.9, 2.4, bz); addP(rec, 0, 7);
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.17, 8, 6), gm('#ff2d55')); dot.position.copy(rec.position); addP(dot, 0, 7);
+  const bean = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 8), mat('#ff5d8f')); bean.scale.set(1, 0.6, 1); bean.position.set(1.9, 0.33, -2.5); addP(bean, 0, 5);
+  [[-2.4, '#3a86ff', 11], [-1.3, '#ffc83d', 13], [-0.2, '#ff5d8f', 15]].forEach(([x, c, m]) => { const f = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.05, 0.06), mat('#2b2140')); f.position.set(x, 2.2, bz); const p = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.87, 0.07), mat(c)); p.position.z = 0.02; f.add(p); addP(f, 1, m); });
+  const spk = new THREE.Group(); [0.45, 1.25].forEach((y, i) => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.7), mat('#1f1a2e')); b.position.y = y; const c = new THREE.Mesh(new THREE.CircleGeometry(0.27, 14), mat('#5b4a7a')); c.position.set(0, 0, 0.36); b.add(c); spk.add(b); }); spk.position.set(2.2, 0, -2.8); addP(spk, 1, 12);
+  const tube = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 2.6, 4, 8), gm('#00e5ff')); tube.rotation.z = Math.PI / 2; tube.position.set(0.6, 2.95, bz); addP(tube, 1, 17);
+  [-1, 1].forEach(s => { const cone = new THREE.Mesh(new THREE.ConeGeometry(1.1, 3.6, 16, 1, true), new THREE.MeshBasicMaterial({ color: '#c9a7ff', transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide })); cone.position.set(s * 1.8, WH - 1.8, -1.6); cone.rotation.z = s * 0.25; addP(cone, 2, 21); });
+  const cur = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.2, 0.12), mat('#6a2c91')); cur.position.set(-0.2, 1.7, bz + 0.02); addP(cur, 2, 23);
+  const disco = new THREE.Mesh(new THREE.IcosahedronGeometry(0.4, 1), new THREE.MeshStandardMaterial({ color: '#ffffff', metalness: 0.9, roughness: 0.15, flatShading: true })); disco.position.set(0, WH - 0.7, -1); addP(disco, 2, 25); disco.userData.spin = true;
+  const strip = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.05, 0.12), gm('#ff4dd2')); strip.position.set(0, 0.04, -R + 0.45); addP(strip, 2, 27);
+  const cols = ['#2b2140', '#3a2b5c', '#241a38'];
+  for (let i = 0; i < 12; i++) { const gr = new THREE.Group(), c = cols[i % 3]; const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.4, 4, 8), mat(c)); body.position.y = 0.45; const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), mat(c)); head.position.y = 1.0; gr.add(body, head); gr.position.set(-2.7 + (i % 6) * 1.05 + (i >= 6 ? 0.5 : 0), 0, -2.9 + (i >= 6 ? 0.65 : 0)); gr.visible = false; gr.userData.i = i; stage.add(gr); crowd.push(gr); }
+}
+function setStage() {
+  if (!DEEP) return;
+  const w = Math.min(2, Math.floor((level - 1) / 10)), lv = Math.min(30, level);
+  props.forEach(p => { const v = p.userData.world === w && lv >= p.userData.min; if (v && !p.visible && !pops.some(q => q.g === p)) { p.scale.setScalar(0.01); pops.push({ g: p, t: 0 }); } p.visible = v; });
+}
+function stageFx(combo, viral) { crowdN = w1Crowd(combo, viral); }
+const w1Crowd = (c, v) => level <= 10 ? 0 : v ? 12 : c >= 24 ? 10 : c >= 16 ? 7 : c >= 8 ? 4 : 0;
 function applyTiers(animCat = -1) {
   for (let c = 0; c < 4; c++) {
     const show = Math.min(tiers[c], MAXT);
@@ -311,6 +349,9 @@ function applyTiers(animCat = -1) {
   wallMat.color.set(rt === 0 ? '#b9b4ae' : rt === 2 ? new THREE.Color(P.bg[0]).lerp(new THREE.Color('#ffffff'), 0.25) : wallCols[rt]);
   hemi.intensity = [0.75, 0.95, 1.1, 1.2, 1.15][lt]; sun.intensity = [1.15, 1.45, 1.65, 1.8, 1.7][lt];
   hemi.color.set(lt >= 4 ? '#ffe6fb' : '#ffffff');
+  if (DEEP) { const th = THEMES[Math.min(2, Math.floor((level - 1) / 10))]; wallMat.color.lerp(new THREE.Color(th.wall), th.k); floorMat.color.set(th.floor); trimMat.color.set(th.trim); if (th.glow) hemi.color.set(th.glow); }
+  setStage();
+  baseH = hemi.intensity; baseS = sun.intensity;
   phones.visible = gt >= 1; shades.visible = gt >= 4; chain.visible = gt >= 4;
   hoodie.color.set(['#8d99ae', '#7b5cff', '#ff5d8f', '#3a86ff', '#111827'][gt]);
   pocket.material.color.copy(hoodie.color).multiplyScalar(0.85); hood.material.color.copy(hoodie.color).multiplyScalar(0.85);
@@ -353,10 +394,10 @@ function buy(i) {
   emote('✨', at, 3);
   refreshHUD();
 }
-input({ onDown: () => film() });
+if (!DEEP) input({ onDown: () => film() });
 // the first seconds play themselves (Oct 26: under-1-minute players left within 10 s of a still screen): on level 1, until the
 // first real touch, Kai films a quick burst of six clips by himself, so the +follower pops and the HYPE bar show what a tap does
-demo(() => film(), { ready: () => state === 'play' && level === 1 && gained < 60, wait: 1800, every: 300, max: 6 });
+if (!DEEP) demo(() => film(), { ready: () => state === 'play' && level === 1 && gained < 60, wait: 1800, every: 300, max: 6 });
 
 // ---------------------------------------------------------------- level flow
 function startLevel() {
@@ -383,7 +424,7 @@ function lose() {
   ui.lose('TREND OVER', `${Math.round(gained / goalOf(level) * 100)}% of the goal · upgrade your gear!`);
   refreshHUD();
 }
-ui.onTap(w => { WB.start();
+if (!DEEP) ui.onTap(w => { WB.start();
   if (w === 'start') { state = 'play'; startLevel(); }
   else if (w === 'win') { level++; state = 'play'; startLevel(); }
   else if (w === 'lose') { state = 'play'; startLevel(); }
@@ -424,9 +465,12 @@ loop((dt, t) => {
     if (gained >= goalOf(level)) win();
     else if (timeLeft <= 0) lose();
   } else { timeEl.textContent = '⏱ ' + Math.max(0, Math.ceil(timeLeft)); }
-  hypeEl.style.visibility = state === 'play' ? 'visible' : 'hidden';
-  hypeEl.querySelector('i').style.width = (hype * 100) + '%';
-  hypeEl.querySelector('.x').textContent = 'x' + hypeMult();
+  if (DV) { DV.tick(sec); hypeEl.style.visibility = DV.state === 'play' ? 'visible' : 'hidden'; }
+  else {
+    hypeEl.style.visibility = state === 'play' ? 'visible' : 'hidden';
+    hypeEl.querySelector('i').style.width = (hype * 100) + '%';
+    hypeEl.querySelector('.x').textContent = 'x' + hypeMult();
+  }
   screenAcc += sec; if (screenAcc > 0.4) { screenAcc = 0; drawScreen(total * 7.3); }
   // Kai animation
   poseT = Math.min(1, poseT + sec * 2.6); squash = Math.max(0, squash - sec * 5);
@@ -447,13 +491,35 @@ loop((dt, t) => {
   ledMats.forEach((m, i) => m.color.setHSL(((t * 0.15 + i * 0.22) % 1), 0.9, 0.62));
   for (let i = pops.length - 1; i >= 0; i--) { const p = pops[i]; p.t = Math.min(1, p.t + sec * 2.2); const x = p.t - 1, s = 1 + 2.70158 * x * x * x + 1.70158 * x * x; p.g.scale.setScalar(Math.max(0.01, s)); if (p.t >= 1) pops.splice(i, 1); }
   for (const q of sprites) { if (q.life <= 0) continue; q.life -= sec * 0.8; q.s.position.add(q.v); q.s.material.opacity = Math.min(1, q.life * 2); q.s.scale.setScalar(Math.min(0.8, 0.8 * (1 - q.life) * 5)); if (q.life <= 0) q.s.visible = false; }
-  room.rotation.y = Math.sin(t * 0.3) * 0.02;
+  kick = Math.max(0, kick - sec * 2.2);
+  room.rotation.y = Math.sin(t * 0.3) * 0.02 + (kick ? (Math.random() - 0.5) * 0.03 * kick : 0); room.position.y = kick * 0.07 * Math.abs(Math.sin(t * 40));
+  hemi.intensity = baseH + kick * 0.5; sun.intensity = baseS + kick * 0.7;
+  if (DEEP) {
+    glowMats.forEach((m, i) => m.color.setHSL((t * 0.2 + i * 0.07) % 1, 0.9, 0.5 + Math.min(0.2, kick * 0.2)));
+    props.forEach(p => { if (p.userData.spin && p.visible) p.rotation.y += sec * 1.4; });
+    crowd.forEach((c, i) => { const on = i < crowdN; if (on && !c.visible) { c.visible = true; c.scale.setScalar(0.01); } if (c.visible) { c.scale.y += ((on ? 1 : 0.01) - c.scale.y) * Math.min(1, sec * 8); c.scale.x = c.scale.z = c.scale.y; if (!on && c.scale.y < 0.05) c.visible = false; c.position.y = on ? Math.abs(Math.sin(t * 5 + i)) * 0.12 * (0.4 + kick) : 0; } });
+  }
 });
 
-frame(); applyTiers(); refreshHUD(); startLevel(); state = 'ready'; ui.start();
+// v2: the beat game drives Kai, the room and the HUD through these
+function hitPose(m, p = -1) { pose = p >= 0 ? p : Math.floor(Math.random() * 4); poseT = 0; squash = 1; camFlash = 1; lastTapT = performance.now(); }
+function buyFx(i) {
+  const g = tierGroups[i][Math.min(tiers[i], MAXT)];
+  const at = g ? new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3()) : kai.position.clone().setY(1.5);
+  if (!isFinite(at.x)) at.copy(kai.position).setY(1.5);
+  burst(scene, at, ['#ffd166', '#ff5d8f', '#7b5cff', '#ffffff'], 26, { speed: 0.09, up: 0.1, size: 0.6 });
+  sfx.coin(); setTimeout(() => sfx.pick(5), 90); buzz(18); ui.pop(`${CATS[i].name.toUpperCase()} UP!`, '#ffffff', 36, 30); emote('✨', at, 3);
+}
+let DV = null;
+if (DEEP) {
+  frame();
+  DV = deep({ kick: a => { kick = Math.max(kick, a); }, ui, WB, F, emote, hit: hitPose, applyTiers, buyFx, setTiers: t => { tiers = t; }, setLevel: n => { level = n; }, setTotal: v => { total = v; },
+    palette: n => PALETTES[(n - 1) % PALETTES.length], stageFx, kai, scene, renderer, hypeEl, cashEl, fmt, CATS, MAXT });
+  ui.start();
+} else { frame(); applyTiers(); refreshHUD(); startLevel(); state = 'ready'; ui.start(); }
 
 // ---------------------------------------------------------------- test hooks
-window.__game = {
+window.__game = DEEP ? DV : {
   get state() { return state; }, get level() { return level; }, get score() { return Math.floor(total); },
   get adapt() { return { level: +AD.level.toFixed(2), rescues: AD.rescues }; },
   bot() {
