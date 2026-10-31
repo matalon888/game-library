@@ -1,0 +1,77 @@
+// Liftoff Lab v2: 30 hand-made missions in 3 worlds. See sim.js for the row tokens. Each has a purpose line (what it teaches/tests).
+export const WORLDS = [
+  { id: 'sky', name: 'Sky Run', blurb: 'Home Orbit to the Moon', sky: ['#3f8df5', '#ffd9a6'], stars: 0.0, chip: '#5fd17a' },
+  { id: 'rocks', name: 'Rock Belt', blurb: 'Rust Rock and the ringed planet', sky: ['#1d1f5a', '#c4585a'], stars: 0.7, chip: '#ff9a4a' },
+  { id: 'deep', name: 'Deep Dark', blurb: 'Frostbite to the Far Dark', sky: ['#04041a', '#5a2fb0'], stars: 1, chip: '#8f5bff' },
+];
+
+const M = (name, world, purpose, o, rows) => ({ name, world, purpose, rows, ...o });
+
+export const MISSIONS = [
+  // ---------------- World 1: Sky Run
+  M('First Light', 0, 'Steer through the big rings. Nothing can hurt you.', { gw: 5.2, par: 0 },
+    ['g0', 'g1.5', 'g-1.5', 'g1', 'g-1', 'g2', 'g0', 'g-2', 'g0']),
+  M('Crosswind', 0, 'A gust pushes you sideways: lean into it.', { gw: 4.6 },
+    ['g0', 'g-1.5', '~1.6 g-1', '~1.6 g0.5', '~-1.8 g1.5', '~-1.8 g0', 'g-1', 'g1.5', 'c0 g1.5', 'g0']),
+  M('Pebble Patch', 0, 'First rocks. Hit one and you lose a hull pip; three and you are out.', { gw: 4.4 },
+    ['g0', 'g-1.5', 'r2.5 g-1', 'g1', 'r-3 g1.5', 'g0', 'r0', 'g-2 r2.5', 'c-2 g-2', 'g1', 'r-1.5 r3 g0.5', 'g0']),
+  M('Fuel Stop', 0, 'Boost: tap to burn a charge and smash straight through debris. Cans refill you.', { gw: 4.4 },
+    ['g0', 'd0 g0', 'c1', 'g1.5', 'd-1.5 d1.5', 'c0', 'g-1.5', 'd0 d-2.5 d2.5', 'g0', 'c0', 'd1 d-1', 'g0']),
+  M('Slalom School', 0, 'Big swings left and right: plan your next ring while you pass this one.', { gw: 4.2 },
+    ['g-2.5', 'g2.5', 'g-2.5', 'g2.5', 'r0 g-2.5', 'g2.5', 'c0 g0', 'g-2.5', 'g2.5', 'g0', 'r-2 g2.5', 'g-2.5', 'g0']),
+  M('Cloud Canyon', 0, 'Rocks make walls with gaps: thread them while the wind leans on you.', { gw: 3.0 },
+    ['g0', 'r-3.5 r3.5 g0', '~2.6 r0 g-2.6', 'r0 r2.5 g-3', 'r-2 r-4 g2.6', '~-2.6 r0 g2.6', 'r0 r2.5 g-2.8', 'c-1', 'r-1.5 r1.5 g0', 'r0 r3 g-2.8', 'r0 g2.6 r-3', 'g0']),
+  M('Max-Q', 0, 'HARD: the rocket shakes hardest here. Narrow rings, strong gusts, faster climb.', { gw: 3.2, sp: 1.12, hard: 1 },
+    ['g0', '~2 g-1', '~-2 g1.5', '~2 g-1.5', 'r0 g-3', '~-2 g1.5', 'c0 r-3 g1.5', '~2 g-1', 'r2.5 g-1.5', '~-2 g1', 'd0', 'r-3 r3 g0', 'g0']),
+  M('Easy Orbit', 0, 'Breather: grab the three satellites and relax.', { gw: 4.8 },
+    ['g0', 's-2.5 g-1', 'g0.5', 's2.5 g1.5', 'g0', 'c0', 's0 g0', 'g-1.5', 'g1', 'g0']),
+  M('Debris Alley', 0, 'Smash lanes of debris with boost, save one charge for the end.', { gw: 4.0, par: 1 },
+    ['g0', 'd-1 d1 g0', 'c2', 'd-2 d0 d2', 'g-1.5', 'd1.5 d-1.5', 'c0', 'd-3 d0 d3 g1.5', 'g0', 'c-1.5', 'd0 d2.5 d-2.5', 'g0.5', 'g-1']),
+  M('Moon Run', 0, 'Final of Sky Run: wind, rocks, cans and tight rings in one climb to the Moon.', { gw: 3.6, sp: 1.05 },
+    ['g0', 'r3 g-0.5', '~1.5 g-1.5', 'g1', 'r-3 r3 g0', 'c0', '~-1.5 r2.5 g-1.5', 'g1.5', 'd-1 d1', 'r-2.5 g2', 'c-2 g-1.5', 'r0 g-3', '~1.5 g0', 'r2 r-2', 'g0']),
+  // ---------------- World 2: Rock Belt
+  M('Belt Gate', 1, 'Sweepers! Rocks that swing side to side: time your pass.', { gw: 3.8 },
+    ['g0', 'm0', 'g1', 'm-2 g2', 'g-1.5', 'm2', 'c0 g0', 'm0 g0', 'm-1.5', 'g1.5', 'g0']),
+  M('Snapshot', 1, 'Fly close to satellites to log them, then back to the rings.', { gw: 3.8 },
+    ['g0', 's-3 g0', 'm1.5', 's3 g-1', 'r0 g-3', 'm-1.5', 's0 g1.5', 'c-2', 'm3.5 g-1.5', 'r-3 s2.5', 'g0']),
+  M('Rubble Run', 1, 'Dense debris: boost is the answer, but fuel is short.', { gw: 3.6 },
+    ['g0', 'd-1 d1 d3', 'c0', 'd-3 d-1 d1', 'g2', 'd-2 d0 d2', 'c1.5 d-3', 'd-1.5 d1.5 d3.5', 'g-2', 'd-3 d0 d3', 'c0', 'd-2 d2', 'g0']),
+  M('Tight Lane', 1, 'Two walls of rocks leave a thin lane that snakes left and right.', { gw: 3.2 },
+    ['g0', 'r-3.5 r3.5 g0', 'r-4 r2 g-1.5', 'r-4 r1 g-2', 'r-3 r2.5 g-0.5', 'c0 r3 r-4', 'r-2 r4 g1', 'r-1 r4 g2', 'r-1 r3.5 g1.5', 'r-3 r3 g0']),
+  M('Pendulum', 1, 'Sweepers in pairs with rings in the gaps. Count the beat.', { gw: 3.6, hard: 0 },
+    ['g0', 'm-2.5 m2.5', 'g0 m-3.5', 'm0 g-2', 'c1', 'm-2 m2 g0', 'm3 g-2', 'g2 m-3', 'c0 m0', 'm-2.5 m2.5 g0', 'g0']),
+  M('Halo Gate', 1, 'HARD: rings that sit between a sweeper and a rock, on a faster climb.', { gw: 3.0, sp: 1.12, hard: 1 },
+    ['g0', 'm-2 g2', 'r-3 g2', 'm2 g-2', 'r3 g-2', 'c0 m0', 'm-3 g1.5', 'r-1 r3.5 g-2', 'm2 g-1.5', 'c-2 r3 g0.5', 'm-2.5 r3 g-1', 'g0']),
+  M('Comet Tail', 1, 'Breather: a long curl of rings with wind and a few cans.', { gw: 3.4 },
+    ['g0', '~2.6 g2', '~2.6 r0 g3.2', '~2.6 g-2', 'c1.5', '~-2.6 r0 g2.6', '~-2.6 g-2.4', '~-2.6 r0 g3', 'c-2.5', 'r0 g-2.8', 'r0 g2.2', 'g0']),
+  M('Ring Rider', 1, 'Perfect line: every ring dead centre earns a bigger combo.', { gw: 3.4 },
+    ['g0', 'g-2', 'g2', 'g-2.5', 'm1 g1.5', 'g-1.5', 'r-3 g2.5', 'c0', 'g-3', 'g3', 'r0 g-2', 'm-2 g1.5', 'g0']),
+  M('Rust Rock', 1, 'Mix it all: sweepers, debris, wind and a satellite at the end.', { gw: 3.4, sp: 1.06 },
+    ['g0', '~1.6 m0', 'd-1 d1 g0', 'c0 r3 g-1.5', 'm2 g-2', '~-1.6 r-3 g1.5', 'd2.5 d-2.5 g0', 'c1', 'm-1.5 r3 g1', 'r-3 m2.5', 's0 g0', 'g-1.5']),
+  M('Belt Boss', 1, 'HARD: a long gauntlet of the whole belt. Plan your boosts.', { gw: 3.0, sp: 1.14, hard: 1, par: 1 },
+    ['g0', 'm-2 m2 g0', 'd-1 d1 d3 g-2', 'c0', 'r-3 r3 g0', 'm-2 g2', '~-1.8 m2 g-1.5', 'd-3 d-1 d1 g2', 'c1.5', '~1.8 r-2.5 g1', 'm0 g-3', 'r3 r-3 g0', 'c0', 'm2 m-2 g0', 'g-2', 'g0']),
+  // ---------------- World 3: Deep Dark
+  M('Frostbite', 2, 'Gravity wells pull you in. Keep out of the swirl.', { gw: 3.8 },
+    ['g0', 'w-3 g0', 'g-1.5', 'w3 g0.5', 'w-2.5 g1.5', 'c0 g0', 'w0 g-3', 'g2 w-2', 'w2.5 g-2', 'g0']),
+  M('Flare Field', 2, 'Solar flares sweep half the lane on a beat: wait for the dark side.', { gw: 3.8, fper: 2.4 },
+    ['g0', 'fL g1.5', 'fR g-2', 'fL g2', 'c0 fR g-2.5', 'fL g2', 'fR g-1.5', 'fL g2', 'g0', 'fR g-2', 'g0']),
+  M('Slingshot', 2, 'Use a well\'s pull to swing across to the next ring.', { gw: 3.6 },
+    ['g0', 'w-2 g0.5', 'w2 g-1', 'g2.5 w-1', 'w1.5 g-2.5', 'c0 w-3 g1', 'w0 g-3', 'w3 g0', 'g1.5 w-2', 'g0']),
+  M('Dark Gate', 2, 'HARD: wells and flares in the same row. Read both before you commit.', { gw: 3.2, sp: 1.1, hard: 1 },
+    ['g0', 'w-3 fR g-1.5', 'w3 fL g1.5', 'fL w-2.5 g2.5', 'c0 fR w2 g-2', 'w0 g-3 fR', 'fL w-3 g2', 'c-1.5 w2.5 fR g-1', 'g0']),
+  M('Aurora', 2, 'Breather: gentle wells make a river of light to follow.', { gw: 4.4 },
+    ['g0', 'g1.5 w-3', 'g2.5', 'w3.5 g1.5', 'g0', 'c-1.5 w3.5', 'g-1.5', 'g-2.5 w3', 'g-1', 'g0']),
+  M('Cold Snap', 2, 'Flares plus sweepers: flares push you to one side, sweepers punish waiting.', { gw: 3.4, fper: 2.2 },
+    ['g0', 'fL m2.5 g2', 'fR m-2.5 g-2', 'c0 fL g2', 'm0 fR g-2.5', 'fL m3 g1.5', 'fR g-2', 'fL m-3 g2', 'c1', 'fR m2.5 g-2', 'g0']),
+  M('Big Marble', 2, 'Everything so far, in one trip to the gas giant.', { gw: 3.2, sp: 1.08, fper: 2.2 },
+    ['g0', 'w-3 m2.5 g0', '~1.6 fL g2', 'd-2 d0 d2 fR g-2', 'c0 w3 g-1', '~-1.6 m-2 g1.5', 'fL w-3 g2', 'r-3 r3 g0', 'c1.5 fR g-2', 'w0 g-3', 'm2 w-3 g1.5', 'fL g2', 'g0']),
+  M('Needle', 2, 'HARD: the narrowest rings in the game. Smooth hands, not big swings.', { gw: 2.6, sp: 1.12, hard: 1 },
+    ['g0', 'g0.5', 'g-0.5', 'w-3 g1', 'w3 g-1', 'c0 g0', 'fL g1.5', 'fR g-1.5', 'm0 g0', 'r3 r-3 g0', 'c0', 'g1', 'g-1', 'g0']),
+  M('Edge of the Map', 2, 'Long and calm-ish: a final practice before the boss. Nothing new.', { gw: 3.6, sp: 1.04 },
+    ['g0', 'fL w-3 g2', 'fR m2 g-2', 'c0 w3 g-1', '~1.6 r-3 g1', '~-1.6 d0 d2 g-1', 'fL g2', 'c-1.5 fR m2 g-2', 'w-3 r3 g0', 'g0']),
+  M('The Far Dark', 2, 'BOSS: three phases (wells, then flares, then everything). Stay calm.', { gw: 3.0, sp: 1.14, fper: 2.2, hard: 1, par: 1 },
+    ['g0', 'w-3 g0.5', 'w3 g-1', 'w-3 g1.5', 'c0 w3 g-1.5', 'g0', 'fL g2', 'fR g-2', 'fL g2', 'c0 fR g-2', 'g0', 'w-3 fL m2.5 g2', 'w3 fR g-2', 'd-2 d0 d2 w-3', 'c1 fL g2', 'm-2 m2 fR g-2', 'w0 g-3 fR', 'g0']),
+];
+export const LAUNCH_NAMES = MISSIONS.map(m => m.name);
+
+MISSIONS.forEach((m, i) => { m.idx = i; });
