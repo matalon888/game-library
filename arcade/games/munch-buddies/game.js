@@ -2,12 +2,17 @@
 // Tap the left/right half as a snack reaches a kitten's mouth to munch it (and play the melody note). Hold for long treats.
 // Never munch a bomb.
 import { THREE, createStage, createUI, store, loop, buzz, rng, clamp, lerp, rounded, mat } from './kit/hc.js';
-import { levelPlan, arrange, hits } from './_music/songs.js';
+import { levelPlan, arrange, hits, SONG } from './_music/songs.js';
 import { createPlayer, synth } from './_music/conductor.js';
 import { glowSprite, sparks, ease } from './_music/fx.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 import { demo } from './kit/demo.js';
+import { ab } from './kit/xp.js';
+import { defFor, LEVELS, WORLDS, worldOf } from './levels.js';
+import { meta, openMap, closeMap, mapButton, dailyDef, STICKERS } from './deep.js';
+const READY = true;   // v2 passed the fun gate (Verdict: TEST)
+const DEEP = (READY && ab('deep-munch-buddies')) || (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) && /[?&]deep=1/.test(location.search));
 const B = board({ game: 'munch-buddies', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.1 }, mode: 'sum' });   // world board: levels cleared today (RULES.md C)
 
 const ORDER = ['twinkle', 'ode', 'saints', 'minuet', 'cancan', 'canon', 'neon', 'elise', 'starlight', 'mountain', 'turkish'];
@@ -21,7 +26,8 @@ const THEMES = [
 const LANE_X = [-1.42, 1.42], MOUTH_Y = -1.6, TOP_Y = 6.4;
 
 const S = store('munch');
-let level = S.get('level', 1), best = S.get('best', 0);
+let level = DEEP ? Math.min(meta.cur, meta.frontier()) : S.get('level', 1), best = S.get('best', 0);
+let maxC = 0, def = null, isDaily = false, perfects = 0, missed = 0, fever = false, golds = 0;
 const F = flow('munch');
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 6 });
 const { scene, camera, sun } = stage;
@@ -99,6 +105,8 @@ const SNACKS = [
 const SNACK_PROTOS = SNACKS.map(f => { const g = f(); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g; });
 const bombProto = (() => { const g = new THREE.Group(); const b = new THREE.Mesh(new THREE.SphereGeometry(0.38, 20, 14), mat('#2b2b3a', { roughness: 0.25, metalness: 0.3 })); const c = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.14, 10), mat('#55556a')); c.position.y = 0.4;
   const f = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.3, 6), mat('#c8a26b')); f.position.set(0.06, 0.58, 0); f.rotation.z = -0.4; const sk = mat('#ff4d4d', { emissive: '#ff2020', emissiveIntensity: 0.5 }); const x1 = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.07, 0.05), sk); x1.position.z = 0.37; x1.rotation.z = 0.785; const x2 = x1.clone(); x2.rotation.z = -0.785; g.add(b, c, f, x1, x2); return g; })();
+const goldProto = (() => { const g = new THREE.Group(); const m = mat('#ffcf33', { roughness: 0.2, metalness: 0.5, emissive: '#ff9d00', emissiveIntensity: 0.55 });
+  const b = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4, 0), m); g.add(b); const h = glowSprite('#ffe27a', 1.5, 'soft', 0.9); g.add(h); return g; })();
 const stickMat = mat('#f2c27b'), choco = mat('#7b4a32');
 
 // ---------------------------------------------------------------- level
@@ -106,29 +114,33 @@ let state = 'ready', track, items = [], theme, score = 0, combo = 0, hearts = 3,
 const itemGroup = new THREE.Group(); scene.add(itemGroup);
 function buildLevel() {
   itemGroup.clear(); fx.clear();
-  const plan = levelPlan(level, ORDER);
-  track = arrange(plan.song, { bars: plan.bars, tempo: plan.tempo, ramp: 0.06, density: 0.7 });
-  const fk = F.k(); lookahead = clamp((1.7 - (level - 1) * 0.05) / fk, 1.0, 1.85); speed = (TOP_Y - MOUTH_Y) / lookahead;
-  const hs = hits(track, clamp((0.3 - level * 0.006) / fk, 0.2, 0.33)), r = rng(level * 1777 + 9);
+  let plan;
+  if (DEEP) { def = isDaily ? dailyDef() : defFor(level); const song = SONG[def.song], barSec = song.meter * 60 / (song.bpm * def.tempo); plan = { song, bars: Math.max(4, Math.round(def.len / barSec / 4) * 4), tempo: def.tempo }; }
+  else plan = levelPlan(level, ORDER);
+  track = arrange(plan.song, { bars: plan.bars, tempo: plan.tempo, ramp: DEEP ? def.ramp : 0.06, density: 0.7 });
+  const fk = F.k(); lookahead = clamp(((DEEP ? 1.7 - Math.min(14, (isDaily ? 12 : level) - 1) * 0.05 : 1.7 - (level - 1) * 0.05)) / fk, 1.0, 1.85); speed = (TOP_Y - MOUTH_Y) / lookahead;
+  const hs = hits(track, clamp(((DEEP ? def.gap : 0.3 - level * 0.006)) / fk, 0.2, 0.4)), r = rng(DEEP ? (isDaily ? def.seed : level * 1777 + 9) : level * 1777 + 9);
   const gaps = hs.map(h => h.dur).sort((a, b) => a - b), median = gaps[Math.floor(gaps.length / 2)] || 0.5;
   items = []; let lane = 0, run = 0;
   hs.forEach((h, i) => {
     // duet feel: alternate kittens in short phrases
     if (run >= 1 + Math.floor(r() * 3) || (i > 0 && h.midi < hs[i - 1].midi - 4)) { lane = 1 - lane; run = 0; } run++;
-    const long = h.notes.length === 1 && h.noteDur >= Math.max(0.6, median * 1.8) && h.dur >= h.noteDur * 0.9;
+    const long = (!DEEP || def.long) && h.notes.length === 1 && h.noteDur >= Math.max(0.6, median * 1.8) && h.dur >= h.noteDur * 0.9;
     items.push({ kind: 'food', t: h.t, lane, notes: h.notes, noteDur: h.noteDur, long, len: long ? Math.min(h.dur, h.noteDur) * 0.9 : 0, snack: Math.floor(r() * SNACKS.length), state: 'wait' });
   });
   // bombs on the other lane where nothing is due there (they teach "don't tap")
-  const bombP = clamp((0.06 + level * 0.03) * fk, 0.05, 0.36);
+  const bombP = DEEP ? clamp(def.bomb * fk, 0, 0.36) : clamp((0.06 + level * 0.03) * fk, 0.05, 0.36);
   for (const f of items.slice()) {
     if (f.kind !== 'food' || f.t < 1.2 || r() > bombP) continue;
     const other = 1 - f.lane, clear = !items.some(o => o.lane === other && Math.abs(o.t - f.t) < 0.45 || (o.long && o.lane === other && f.t > o.t - 0.3 && f.t < o.t + o.len + 0.3));
     if (clear) items.push({ kind: 'bomb', t: f.t, lane: other, state: 'wait' });
   }
+  if (DEEP) deepExtras(r);
   items.sort((a, b) => a.t - b.t);
   for (const it of items) {
     const g = new THREE.Group();
     if (it.kind === 'bomb') g.add(bombProto.clone());
+    else if (it.gold) { const s = goldProto.clone(); g.add(s); g.snack = s; }
     else {
       const s = SNACK_PROTOS[it.snack].clone(); g.add(s); g.snack = s;
       if (it.long) {   // long treat: a chocolate-dipped stick trailing above the snack
@@ -139,25 +151,44 @@ function buildLevel() {
     g.position.set(LANE_X[it.lane], 99, 0.3); itemGroup.add(g); it.g = g;
   }
   foodCount = items.filter(i => i.kind === 'food').length;
-  theme = THEMES[(level - 1) % THEMES.length];
+  theme = THEMES[DEEP ? (isDaily ? 4 : worldOf(level) * 1 + (level % 2)) % THEMES.length : (level - 1) % THEMES.length];
   wallMat.uniforms.a.value.set(theme.wall[0]); wallMat.uniforms.b.value.set(theme.wall[1]); dripMat.color.set(theme.drip); shelfMat.color.set(theme.shelf); dotMat.color.set(theme.drip); floor.material.color.set(theme.wall[0]);
   document.body.style.setProperty('--ui', theme.ui); document.body.style.background = `linear-gradient(180deg,${theme.wall[0]},${theme.wall[1]})`;
-  score = 0; combo = 0; hearts = 3; eaten = 0; kits.forEach(k => { k.sad = 0; k.dizzy = 0; k.open = 0; k.rotation.set(0, 0, 0); k.visible = true; });
-  ui.levels(level); ui.progress(0); ui.score(0); ui.sub(best ? `BEST ${best}` : ''); ui.pill('❤❤❤');
+  score = 0; combo = 0; hearts = DEEP ? def.hearts : 3; eaten = 0; perfects = 0; missed = 0; fever = false; golds = 0; maxC = 0; kits.forEach(k => { k.sad = 0; k.dizzy = 0; k.open = 0; k.rotation.set(0, 0, 0); k.visible = true; });
+  ui.levels(level); ui.progress(0); ui.score(0); ui.sub(DEEP ? deepSub() : best ? `BEST ${best}` : ''); ui.pill(DEEP ? '❤'.repeat(hearts) : '❤❤❤');
+  if (DEEP) { wallMat.uniforms.a.value.set(theme.wall[0]); mapBtn && (mapBtn.style.display = ''); }
   songLine.textContent = `♪ ${plan.song.title} — ${plan.song.composer}`;
   previewT = -lookahead * 0.6;
 }
-function begin() { state = 'play'; player.start(track, { melody: false, lead: lookahead + 0.4, accVol: 0.75, drumVol: 0.7 }); }
+function deepSub() { const w = WORLDS[worldOf(level)]; const tag = isDaily ? '🎵 DAILY DUET' : `${w.icon} ${w.name} · ${level}`; const hint = [def.boss ? '👑' : '', def.long ? '✋hold' : '', def.twin ? '👆👆' : '', def.gold ? '⭐' : '', def.trap ? '⚠' : '', def.fog ? '🌫' : '', def.ramp >= 0.15 ? '⏩' : ''].filter(Boolean).join(' '); return tag + (hint ? '  ' + hint : ''); }
+function deepExtras(r) {
+  const free = (lane, t, pad = 0.5) => !items.some(o => o.lane === lane && (Math.abs(o.t - t) < pad || (o.long && t > o.t - 0.3 && t < o.t + o.len + 0.3)));
+  if (def.twin) for (const f of items.slice()) {
+    if (f.kind !== 'food' || f.long || f.t < 2 || r() > def.twin) continue;
+    const o = 1 - f.lane; if (!free(o, f.t, 0.5)) continue;
+    items.push({ kind: 'food', t: f.t, lane: o, notes: [{ midi: f.notes[0].midi - 5, dt: 0, dur: 0.3 }], noteDur: 0.3, long: false, len: 0, snack: (f.snack + 2) % SNACKS.length, state: 'wait', twin: true });
+  }
+  if (def.trap) for (const f of items.slice()) {
+    if (f.kind !== 'food' || f.t < 2.5 || r() > def.trap) continue;
+    const t = f.t - 0.38; if (free(f.lane, t, 0.55) && !items.some(o => o.kind === 'bomb' && Math.abs(o.t - t) < 0.6)) items.push({ kind: 'bomb', t, lane: f.lane, state: 'wait', trap: true });
+  }
+  const pool = items.filter(i => i.kind === 'food' && !i.long && !i.twin && i.t > 3);
+  for (let k = 0; k < def.gold && pool.length; k++) {
+    const target = pool.length * (0.25 + 0.65 * (k + 0.5) / def.gold); const g = pool[Math.floor(target)]; if (g) g.gold = true;
+  }
+}
+function begin() { state = 'play'; mapBtn && (mapBtn.style.display = 'none'); player.start(track, { melody: false, lead: lookahead + 0.4, accVol: 0.75, drumVol: 0.7 }); }
 
 // ---------------------------------------------------------------- munching
 function munch(lane, now, who = 'tap') {
   if (state !== 'play') return;
+  const EW = DEEP && !isDaily && level <= 4 ? 0.3 : 0.24;
   const k = kits[lane]; k.open = 1; k.bounce = 1;
   let food = null, bomb = null;
   for (const it of items) {
     if (it.lane !== lane || it.state !== 'wait') continue;
-    if (it.t - now > 0.25) break;
-    if (it.kind === 'food' && Math.abs(it.t - now) < 0.24) { food = it; break; }
+    if (it.t - now > EW + 0.01) break;
+    if (it.kind === 'food' && Math.abs(it.t - now) < EW) { food = it; break; }
     if (it.kind === 'bomb' && Math.abs(it.t - now) < 0.14) bomb = it;
   }
   if (food) return eat(food, now);
@@ -166,7 +197,7 @@ function munch(lane, now, who = 'tap') {
 }
 function eat(it, now) {
   const dt = now - it.t, perfect = Math.abs(dt) < 0.075, k = kits[it.lane];
-  it.state = it.long ? 'held' : 'eaten'; it.eatAt = now; eaten++; combo++; score += perfect ? 2 : 1;
+  it.state = it.long ? 'held' : 'eaten'; it.eatAt = now; eaten++; combo++; score += ((perfect ? 2 : 1) + (it.gold ? 4 : 0)) * (fever ? 2 : 1); if (perfect) perfects++;
   it.notes.forEach((n, i) => synth.piano(n.midi, player.at(i ? Math.max(now + 0.03, it.t + n.dt) : now), Math.max(0.3, it.long ? it.noteDur : n.dur), i ? 0.2 : 0.25));
   k.open = 1; k.bounce = 1; k.sad = 0;
   const p = new THREE.Vector3(LANE_X[it.lane], MOUTH_Y + 0.2, 1.2);
@@ -174,6 +205,15 @@ function eat(it, now) {
   hearts3d(p, perfect ? 3 : 1);
   ui.pop(perfect ? (combo >= 4 ? `PERFECT ×${combo}` : 'PERFECT') : ['YUM!', 'NOM!', 'TASTY!'][combo % 3], perfect ? '#ff5d8f' : '#ff9f1c', perfect ? 32 : 28, 30);
   buzz(perfect ? 12 : 6); progress();
+  if (DEEP) deepEat(it, perfect, p);
+}
+function deepEat(it, perfect, p) {
+  maxC = Math.max(maxC, combo);
+  if (!perfect && !it.long) { const d = player.time() - it.t; ui.pop(d < 0 ? '⬆ EARLY' : 'LATE ⬇', d < 0 ? '#3d8bff' : '#ff7a00', 36, 22); }
+  if (combo % 12 === 0 && hearts < def.hearts) { hearts++; ui.pill('❤'.repeat(hearts) + '♡'.repeat(Math.max(0, def.hearts - hearts))); ui.pop('+❤', '#ff5d8f', 30, 22); }
+  if (it.gold) { golds++; ui.pop('GOLDEN! +5', '#ffb300', 40, 24); fx.emit(p, ['#ffd84a', '#fff3a0', '#ffffff'], 28, { speed: 0.16, up: 0.12, size: 0.5 }); ui.flash(0.35); synth.chime(91, player.at(player.time()), 0.12); buzz([15, 20, 15]); }
+  if (!fever && combo === 8) { fever = true; ui.pop('FEVER! ×2', '#ff5d8f', 46, 22); ui.flash(0.5); for (let i = 0; i < 3; i++) fx.emit(new THREE.Vector3((i - 1) * 1.6, 1.2, 1), ['#ff8fae', '#ffd84a', '#8fd3ff'], 18, { speed: 0.15, up: 0.12, size: 0.5 }); [76, 79, 83, 88].forEach((m, i) => synth.chime(m, player.at(player.time()) + i * 0.06, 0.1)); ui.pill('FEVER ×2'); }
+  else if (combo === 16 || combo === 24 || combo === 40) { ui.pop(combo === 16 ? 'ON FIRE!' : combo === 24 ? 'UNSTOPPABLE!' : 'LEGEND!', '#ff7a00', 44, 22); ui.flash(0.4); for (let i = 0; i < 4; i++) fx.emit(new THREE.Vector3((i - 1.5) * 1.2, 1.5, 1), ['#ff8fae', '#ffd84a', '#8fd3ff', '#ffffff'], 20, { speed: 0.16, up: 0.12, size: 0.5 }); }
 }
 const floatHearts = [];
 const heartTex = noteTex('❤');
@@ -189,8 +229,8 @@ function boom(it) {
 }
 const flashes = [];
 function missFood(it) {
-  it.state = 'missed'; combo = 0; hearts--; const k = kits[it.lane]; k.sad = 1;
-  ui.pill('❤'.repeat(Math.max(0, hearts)) + '♡'.repeat(3 - Math.max(0, hearts))); buzz(30);
+  it.state = 'missed'; combo = 0; hearts--; missed++; if (fever) { fever = false; ui.pill('❤'.repeat(Math.max(0, hearts))); } const k = kits[it.lane]; k.sad = 1;
+  ui.pill(DEEP ? '❤'.repeat(Math.max(0, hearts)) + '♡'.repeat(Math.max(0, def.hearts - Math.max(0, hearts))) : '❤'.repeat(Math.max(0, hearts)) + '♡'.repeat(3 - Math.max(0, hearts))); buzz(30);
   synth.piano(it.notes[0].midi - 1, player.at(player.time()), 0.2, 0.08);
   ui.pop('MISS', '#a08a9a', 26, 30);
   if (hearts <= 0) lose('SO HUNGRY!');
@@ -198,6 +238,7 @@ function missFood(it) {
 function lose(title) {
   if (state !== 'play') return;
   state = 'lost'; F.level(false, eaten / Math.max(1, foodCount)); player.stop(0.4); synth.fail(); best = Math.max(best, score); S.set('best', best);
+  if (DEEP) { fever = false; const left = foodCount - eaten; ui.lose(title, (left <= Math.max(3, foodCount * 0.12) ? `SO CLOSE! ${left} snack${left === 1 ? '' : 's'} to go` : `${Math.round(eaten / Math.max(1, foodCount) * 100)}% · ${score} pts`) + (title === 'BOOM!' ? ' · skip the 💣' : '')); mapBtn && (mapBtn.style.display = ''); return; }
   ui.lose(title, `${Math.round(eaten / Math.max(1, foodCount) * 100)}% · ${score} pts`);
 }
 function win() {
@@ -206,9 +247,30 @@ function win() {
   for (let i = 0; i < 4; i++) fx.emit(new THREE.Vector3((i - 1.5) * 1.2, 1.5, 1), ['#ff8fae', '#ffd84a', '#8fd3ff', '#ffffff'], 16, { speed: 0.14, up: 0.1, size: 0.5 });
   hearts3d(new THREE.Vector3(LANE_X[0], 0, 1.2), 3); hearts3d(new THREE.Vector3(LANE_X[1], 0, 1.2), 3);
   [72, 76, 79, 84].forEach((m, i) => synth.chime(m, player.at(player.time()) + i * 0.09, 0.13));
-  ui.flash(0.4); buzz([20, 40, 30]); ui.win(level, `${score} pts · ${'❤'.repeat(hearts)}`);
+  ui.flash(0.4); buzz([20, 40, 30]);
+  if (DEEP) { deepWin(); return; }
+  ui.win(level, `${score} pts · ${'❤'.repeat(hearts)}`);
   level++; S.set('level', level);
 }
+
+function deepWin() {
+  fever = false; const rate = perfects / Math.max(1, foodCount), stars = 1 + (missed <= 1 ? 1 : 0) + (missed === 0 && rate >= def.par ? 1 : 0);
+  let res; if (isDaily) { meta.clearDaily(stars); res = { stars, gained: 0, box: null }; } else res = meta.clear(level, stars);
+  const was = level; const w = ui.els.win;
+  const need = Math.max(0, Math.ceil((def.par + 0.15) * foodCount) - perfects), nextHint = rank0 => rank0 === 'S' ? 'MAX RANK' : stars < 3 ? 'no misses for ⭐⭐⭐' : `${need} more PERFECT for S`;
+  const rank = stars === 3 && rate >= def.par + 0.15 ? 'S' : stars === 3 ? 'A' : stars === 2 ? 'B' : 'C';
+  ui.win(isDaily ? 'DAILY' : was, `RANK ${rank} · best combo ${maxC}\n${nextHint(rank)}\n${score} pts · ${Math.round(rate * 100)}% perfect${golds ? ' · ⭐' + golds : ''}\n${res.box != null ? '🎁 NEW STICKER ' + STICKERS[res.box] : meta.toNextBox() + ' ⭐ to 🎁'}\n${meta.tomorrow()}`);
+  w.querySelector('p').firstChild.textContent = isDaily ? '' : 'LEVEL '; w.querySelector('h1').innerHTML = [0, 1, 2].map(i => `<span style="${i < stars ? '' : 'filter:grayscale(1);opacity:.25'}">⭐</span>`).join('');
+  if (!isDaily) level = was + 1; mapBtn && (mapBtn.style.display = '');
+  if (res.box != null) setTimeout(() => { ui.flash(0.5); synth.chime(96, player.at(player.time()), 0.2); }, 900);
+}
+function pickLevel(n) {
+  closeMap(); for (const c of [ui.els.start, ui.els.win, ui.els.lose]) c.classList.add('hc-hidden');
+  if (state === 'play') player.stop(0.1);
+  if (n === 'daily') isDaily = true; else { isDaily = false; level = n; }
+  B.start(); buildLevel(); begin();
+}
+const mapBtn = DEEP ? mapButton(() => { if (state !== 'play') openMap(pickLevel); }) : null;
 
 // ---------------------------------------------------------------- input: tap/hold a half
 const holds = new Map();
@@ -223,9 +285,10 @@ function endHold(it, now) {
   if (p > 0.85) { score += 3; ui.score(score); ui.pop('DELICIOUS!', '#ff5d8f', 30, 30); hearts3d(new THREE.Vector3(LANE_X[it.lane], MOUTH_Y + 0.4, 1.2), 2); synth.chime(88, player.at(now), 0.1); }
 }
 ui.onTap(which => { B.start(); if (which !== 'start') buildLevel(); begin(); });
+if (DEEP) ui.els.win.style.whiteSpace = ui.els.lose.style.whiteSpace = 'pre-line';
 // the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
 // the kittens munch the first few snacks right on the beat by themselves (never a bomb), then wait for your taps
-const DM = demo(null, { ready: () => state === 'play' && level === 1 && eaten < 4, wait: 400, ms: 6000 });
+const DM = demo(null, { ready: () => state === 'play' && level === 1 && eaten < 4, wait: DEEP ? 3000 : 400, ms: 6000 });
 
 // ---------------------------------------------------------------- frame
 let clock = 0, lastBeat = -1, pulse = 0;
@@ -247,7 +310,7 @@ loop((dt) => {
     if (state === 'play' && last && now > last.t + (last.len || 0) + 0.5 && !items.some(i => i.state === 'held')) win();
     const b = track.beats.findLastIndex(b => b.t <= now); if (b !== lastBeat && b >= 0) { lastBeat = b; pulse = track.beats[b].down ? 1 : 0.5; kits.forEach(k => k.bounce = Math.max(k.bounce, 0.25)); }
   }
-  pulse *= Math.pow(0.9, dt); wallMat.uniforms.pulse.value = pulse;
+  pulse *= Math.pow(0.9, dt); if (fever) pulse = Math.max(pulse, 0.7 + Math.sin(clock * 12) * 0.2); wallMat.uniforms.pulse.value = pulse;
   // snacks fall; eaten ones shrink into the mouth, missed ones tumble off the shelf
   for (const it of items) {
     const g = it.g; if (!g) continue;
@@ -256,6 +319,7 @@ loop((dt) => {
       if (it.state === 'held') { const p = clamp((now - it.t) / it.len, 0, 1); y = MOUTH_Y - p * g.L; g.snack.visible = false; }
       g.position.y = y; g.visible = y < TOP_Y + 1 && y > -6; g.rotation.y = it.kind === 'bomb' ? Math.sin(clock * 4) * 0.3 : Math.sin(clock * 2.5 + it.t * 3) * 0.6; g.rotation.z = Math.sin(clock * 3 + it.t) * 0.15;
       if (it.state === 'passed') { g.position.y = MOUTH_Y + (it.t - now) * speed; }
+      if (DEEP && def.fog && it.state === 'wait' && y < MOUTH_Y + (level <= 21 ? 1.7 : 2.3)) g.visible = false;
       if (it.long && g.stick) { const top = g.position.y + g.L + 0.3; g.visible = g.position.y < TOP_Y + 1 && top > MOUTH_Y - 0.2; }
     } else if (it.state === 'eaten') {
       const k = clamp((now - it.eatAt) * 7, 0, 1); g.scale.setScalar(Math.max(0.001, 1 - k)); g.position.y = lerp(g.position.y, MOUTH_Y + 0.1, 0.4); if (k >= 1) g.visible = false;
@@ -284,7 +348,7 @@ loop((dt) => {
 // ---------------------------------------------------------------- boot
 buildLevel(); ui.start();
 window.__game = {
-  get state() { return state; }, get level() { return level; }, get score() { return score; },
+  get state() { return state; }, get level() { return level; }, get deep() { return DEEP; }, go(n) { pickLevel(n); }, get stars() { return meta.stars; }, get lost() { return missed; }, get foods() { return foodCount; }, get def() { return def; }, get score() { return score; },
   bot() {   // munch each snack right on its note (holding long treats); never touch bombs
     if (state !== 'play') return; const now = player.time();
     for (const it of items) { if (it.t - now > 0.5) break; if (it.kind === 'food' && it.state === 'wait' && it.t - now < 0.5) it.bot = true; }
