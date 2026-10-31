@@ -292,7 +292,7 @@
   function card(cat) {
     const pick = [...LIGHT.filter(x => x[2] === cat), ...LIGHT.filter(x => x[2] !== cat)].slice(0, 3);
     const css = document.createElement('style');
-    css.textContent = `.fp-slow{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translate(-50%,130%);z-index:32;width:min(92vw,420px);
+    css.textContent = `.fp-slow{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 72px);transform:translate(-50%,160%);z-index:32;width:min(92vw,420px);
       background:rgba(18,22,58,.95);border:2px solid rgba(255,255,255,.35);border-radius:22px;padding:12px 12px 10px;color:#fff;font:700 15px/1.25 'Space Grotesk',system-ui,sans-serif;
       box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.2,1.3,.4,1)}.fp-slow.in{transform:translate(-50%,0)}
       .fp-slow p{margin:0 28px 10px 4px}.fp-slow .x{position:absolute;right:8px;top:6px;background:none;border:0;color:#fff;font-size:22px;padding:4px 8px;opacity:.7}
