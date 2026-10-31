@@ -94,7 +94,7 @@ def pick_cat(c):
     off = (today.toordinal() * PER_CAT) % len(pool) if pool else 0
     return (new + pool[off:] + pool[:off])[:PER_CAT]
 
-data = {"title": "AGENTPARK: new games", "date": today.isoformat(), "more": f"{SITE}/today", "total": len(ok),
+data = {"title": "Your free games today", "date": today.isoformat(), "more": f"{SITE}/today", "total": len(ok),
         "poster": f"{SITE}/arcade/today-poster.jpg?d={today.isoformat()}", "game_of_the_day": {"name": gotd["name"], "category": gotd["category"], "pitch": pitch(gotd), "image": img(gotd), "play_url": play(gotd, "gotd")},
         "games": [{"name": g["name"], "category": g["category"], "blurb": g.get("blurb") or "", "pitch": pitch(g), "score": score(g),
                    "added": g.get("added"), "desktop_only": bool(g.get("desk_only")), "image": img(g), "play_url": play(g, i + 1)}
@@ -145,7 +145,7 @@ def make_poster():
             out[-1] = out[-1].rstrip() + "…"
         return out
     short = lambda n: n.split(":")[0].strip()
-    d.text((M, 34), "AGENTPARK Today", font=F(54, "Black"), fill=INK)
+    d.text((M, 34), "Your free games today", font=F(54, "Black"), fill=INK)
     d.text((M, 100), f"{today:%A}, {today.day} {today:%B}  ·  {len(ok)} free games  ·  play at agentpark.co", font=F(26, "SemiBold"), fill=MUT)
     y = 150; gw, gh = 300, 400
     im.paste(cover(gotd, gw, gh), (M, y))
@@ -232,7 +232,7 @@ for path in ((os.path.join(ROOT, "arcade/today.json"),) if SITE_LAYOUT else (os.
     with open(path, "w") as f:
         json.dump(data, f, indent=1, ensure_ascii=False); f.write("\n")
 gs_ = score(gotd)
-ld = json.dumps({"@context": "https://schema.org", "@type": "ItemList", "name": f"AGENTPARK new games, {date}",
+ld = json.dumps({"@context": "https://schema.org", "@type": "ItemList", "name": f"Your free games, {date}",
                  "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": g["name"], "url": g["play_url"], "image": g["image"]}
                                      for i, g in enumerate(data["games"])]}, ensure_ascii=False).replace("</", "<\\/")
 
@@ -242,9 +242,9 @@ page = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="index,follow">
-<title>AGENTPARK Today: free games for {date}</title>
+<title>🎮 Your free games for {date}</title>
 <meta name="description" content="Game of the day: {e(gotd['name'])}. {len(ok)} free games you play in your browser, by category, new ones every day. No download, no sign-up.">
-<meta property="og:title" content="AGENTPARK Today: {e(gotd['name'])} and {len(ok) - 1} more free games">
+<meta property="og:title" content="🎮 Your free games: {e(gotd['name'])} and {len(ok) - 1} more">
 <meta property="og:description" content="Free games in your browser. No download, no sign-up. New ones every day.">
 <meta property="og:image" content="{e(img(gotd))}">
 <meta name="theme-color" content="#FFF6E6">

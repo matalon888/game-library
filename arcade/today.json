@@ -1,5 +1,5 @@
 {
- "title": "AGENTPARK: new games",
+ "title": "Your free games today",
  "date": "2026-10-31",
  "more": {
   "Puzzle": "https://agentpark.co/arcade/?cat=Puzzle",
@@ -704,6 +704,12 @@
     "play_url": "https://agentpark.co/arcade/play.html?g=dmcinnes-html5-asteroids&ref=daily&pos=list-Retro"
    }
   ]
+ },
+ "challenge": {
+  "n": 17,
+  "slug": "chilly-chute",
+  "name": "Chilly Chute",
+  "play_url": "https://agentpark.co/arcade/play.html?g=chilly-chute&ch=17&ref=daily&pos=challenge"
  },
  "peek": {
   "name": "Horde Blast",
