@@ -262,14 +262,15 @@
 // 28 fps for 6 s, once a visit, a card offers 3 light games ("Smoother on this phone"); a tap opens one. A: nothing.
 (function () {
   const q = new URLSearchParams(location.search);
-  if (!window.APX || q.get('embed') === 'chat' || !APX.on('fp-shell-slow-swap')) return;
+  const demo = q.get('slowdemo') === '1';   // preview link for Daniel's phone: the card right away, in any arm
+  if (!demo && (!window.APX || q.get('embed') === 'chat' || !APX.on('fp-shell-slow-swap'))) return;
   const LIGHT = [['untwine', 'Untwine', 'Puzzle'], ['bolt-twist', 'Bolt Twist', 'Puzzle'], ['girder-go', 'Girder Go', 'Puzzle'],
     ['alibi-grid-daily-logic-puzzle', 'Alibi Grid', 'Puzzle'], ['bumpy-buggy', 'Bumpy Buggy', 'Racing'], ['marble-dash', 'Marble Dash', 'Racing'],
     ['fort-fling', 'Fort Fling', 'Action'], ['fling-feud', 'Fling Feud', 'Action'], ['pose-rush', 'Pose Rush', 'Action'],
     ['bellhop-boss', 'Bellhop Boss', 'Idle'], ['core-crusher', 'Core Crusher', 'Arcade']];
   const slug = q.get('g') || '';
   if (LIGHT.some(x => x[0] === slug)) return;
-  try { if (sessionStorage.getItem('ap.fp.slow')) return; } catch (e) {}
+  try { if (!demo && sessionStorage.getItem('ap.fp.slow')) return; } catch (e) {}
   let frames = 0, t0 = 0, low = 0, done = false;
   const tick = t => {
     if (done) return;
@@ -282,6 +283,7 @@
     } else frames++;
     requestAnimationFrame(tick);
   };
+  if (demo) { done = true; setTimeout(() => card(''), 1500); return; }
   setTimeout(() => requestAnimationFrame(tick), 5000);   // past the load and the first-frame shader compiles
   function show() {
     try { sessionStorage.setItem('ap.fp.slow', '1'); } catch (e) {}
@@ -299,7 +301,7 @@
     document.head.appendChild(css);
     const el = document.createElement('div'); el.className = 'fp-slow';
     el.innerHTML = `<button class="x" aria-label="Close">×</button><p>🐢 Choppy on this phone? These three run smooth:</p><div class="r">`
-      + pick.map(x => `<a href="play.html?g=${x[0]}&from=slow"><img src="covers/${x[0]}.webp" alt="">${x[1]}</a>`).join('') + '</div>';
+      + pick.map(x => `<a href="play.html?g=${x[0]}&from=slow"><img src="art/${x[0]}.webp" alt="">${x[1]}</a>`).join('') + '</div>';
     el.querySelector('.x').onclick = () => el.remove();
     document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('in'));
     setTimeout(() => el.isConnected && el.classList.remove('in'), 15000);
