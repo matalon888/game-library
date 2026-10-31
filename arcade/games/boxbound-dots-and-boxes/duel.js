@@ -155,16 +155,17 @@ export function duel(o) {
       T.state = result === 'win' ? 'won' : 'lost';
       games++; S.set('games', games);
       if (!recorded) { recorded = true; if (!D.isDaily) F.level(result === 'win', result === 'draw' ? 0.5 : frac); }
+      const custom = o.onEnd && o.onEnd(result, { line, margin, frac });
       if (result === 'win') {
         wins++; S.set('wins', wins);
         B && B.submit(diff === 2 ? 2 : 1);                     // world board: wins vs CPU today (Hard counts 2)
         D.won(Math.max(1, margin), 'won by');
         arp([67, 72, 76, 79, 84], 95, 0.12, 0.9); buzz([20, 50, 20]);
         setTimeout(() => fx.confetti(130), 200);
-        ui.win(D.isDaily ? 'daily game' : diffs[diff], line);
+        if (!custom) ui.win(D.isDaily ? 'daily game' : diffs[diff], line);
       } else {
         if (result === 'draw') arp([67, 72, 67], 110, 0.1, 0.6); else { soft.err(); arp([64, 60, 55], 140, 0.09, 0.7); }
-        ui.lose(title || (result === 'draw' ? 'Draw!' : 'CPU wins'), line);
+        if (!custom) ui.lose(title || (result === 'draw' ? 'Draw!' : 'CPU wins'), line);
       }
       T.refreshButtons();
     },
@@ -177,7 +178,7 @@ export function duel(o) {
   function abandon() {
     if (T.state === 'play' && playerMoved && !recorded && !D.isDaily) { recorded = true; F.level(false, o.frac ? o.frac() : 0.3); }
   }
-  T.button('new', 'New', SVG.restart, () => { abandon(); gen++; anims = []; T.state = 'ready'; ui.start(); });
+  T.button('new', 'New', SVG.restart, () => { abandon(); if (o.onNew) { gen++; anims = []; T.state = 'ready'; o.onNew(); return; } gen++; anims = []; T.state = 'ready'; ui.start(); });
   (o.buttons || []).forEach(b => T.button(b.id, b.label, b.svg, b.onPress));
 
   function newGame() {
@@ -190,6 +191,7 @@ export function duel(o) {
     size(); T.refreshButtons();
   }
   ui.onTap(() => newGame());
+  T.newGame = newGame; T.setDiff = (i) => { diff = i; }; T.abandon = abandon;
 
   const loc = (e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   let down = false;
