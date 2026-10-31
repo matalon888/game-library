@@ -255,3 +255,53 @@
     }
   }, 150);
 })();
+
+// fp-shell-slow-swap (2026-10-31, Daniel: "why retention is so bad"): players whose games ran under 40 fps on day 1 came back
+// 3% vs 12% (0 of 40 under 20 fps); on the 80 slow phones since Oct 22, paw-lagoon, gemloft, shelfie, mochi-match and peony ran
+// at a median 12-26 fps while the LIGHT games below held 50-60 on the same phones. B: when the game in the frame runs under
+// 28 fps for 6 s, once a visit, a card offers 3 light games ("Smoother on this phone"); a tap opens one. A: nothing.
+(function () {
+  const q = new URLSearchParams(location.search);
+  if (!window.APX || q.get('embed') === 'chat' || !APX.on('fp-shell-slow-swap')) return;
+  const LIGHT = [['untwine', 'Untwine', 'Puzzle'], ['bolt-twist', 'Bolt Twist', 'Puzzle'], ['girder-go', 'Girder Go', 'Puzzle'],
+    ['alibi-grid-daily-logic-puzzle', 'Alibi Grid', 'Puzzle'], ['bumpy-buggy', 'Bumpy Buggy', 'Racing'], ['marble-dash', 'Marble Dash', 'Racing'],
+    ['fort-fling', 'Fort Fling', 'Action'], ['fling-feud', 'Fling Feud', 'Action'], ['pose-rush', 'Pose Rush', 'Action'],
+    ['bellhop-boss', 'Bellhop Boss', 'Idle'], ['core-crusher', 'Core Crusher', 'Arcade']];
+  const slug = q.get('g') || '';
+  if (LIGHT.some(x => x[0] === slug)) return;
+  try { if (sessionStorage.getItem('ap.fp.slow')) return; } catch (e) {}
+  let frames = 0, t0 = 0, low = 0, done = false;
+  const tick = t => {
+    if (done) return;
+    if (document.hidden) { t0 = 0; frames = 0; }
+    else if (!t0) { t0 = t; frames = 0; }
+    else if (t - t0 >= 2000) {   // a 2 s window: same-origin frames share this page's thread, so its frame rate is the game's
+      const fps = frames * 1000 / (t - t0); t0 = t; frames = 0;
+      low = fps < 28 ? low + 1 : 0;
+      if (low >= 3) { done = true; show(); return; }
+    } else frames++;
+    requestAnimationFrame(tick);
+  };
+  setTimeout(() => requestAnimationFrame(tick), 5000);   // past the load and the first-frame shader compiles
+  function show() {
+    try { sessionStorage.setItem('ap.fp.slow', '1'); } catch (e) {}
+    fetch('games.json').then(r => r.json()).then(gs => card(((gs.find(g => g.slug === slug) || {}).category) || ''), () => card(''));
+  }
+  function card(cat) {
+    const pick = [...LIGHT.filter(x => x[2] === cat), ...LIGHT.filter(x => x[2] !== cat)].slice(0, 3);
+    const css = document.createElement('style');
+    css.textContent = `.fp-slow{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translate(-50%,130%);z-index:32;width:min(92vw,420px);
+      background:rgba(18,22,58,.95);border:2px solid rgba(255,255,255,.35);border-radius:22px;padding:12px 12px 10px;color:#fff;font:700 15px/1.25 'Space Grotesk',system-ui,sans-serif;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.2,1.3,.4,1)}.fp-slow.in{transform:translate(-50%,0)}
+      .fp-slow p{margin:0 28px 10px 4px}.fp-slow .x{position:absolute;right:8px;top:6px;background:none;border:0;color:#fff;font-size:22px;padding:4px 8px;opacity:.7}
+      .fp-slow .r{display:flex;gap:8px}.fp-slow a{flex:1;color:#fff;text-decoration:none;text-align:center;font-size:13px}
+      .fp-slow img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;margin-bottom:5px}`;
+    document.head.appendChild(css);
+    const el = document.createElement('div'); el.className = 'fp-slow';
+    el.innerHTML = `<button class="x" aria-label="Close">×</button><p>🐢 Choppy on this phone? These three run smooth:</p><div class="r">`
+      + pick.map(x => `<a href="play.html?g=${x[0]}&from=slow"><img src="covers/${x[0]}.webp" alt="">${x[1]}</a>`).join('') + '</div>';
+    el.querySelector('.x').onclick = () => el.remove();
+    document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('in'));
+    setTimeout(() => el.isConnected && el.classList.remove('in'), 15000);
+  }
+})();
