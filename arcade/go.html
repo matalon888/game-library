@@ -164,6 +164,9 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     // Meta / everyone: the fast prompt (no website opened in the first reply, the game link comes first); CPAlead: with the check-in
     let base = (cpaClick && C.GO_PROMPT_CPA) || C.GO_PROMPT || C.DAILY_PROMPT || '';
     if (INC === 'secret') base = base.replace('🎮 [Play your first game ▶]({GAME})', '🎁 [Open your secret game ▶]({GAME})');
+    // hour test (Daniel 2026-10-31, "maybe the hour is not good"): half the codes get an 8pm daily task instead of 8am (AI-link
+    // taps peak 9pm ET, low at 6-8am). Arm = parseInt(last 2 chars of the code, 36) % 2, 1 = 8pm; judged on play days 2-7 per code.
+    if (code && parseInt(code.slice(-2), 36) % 2 === 1) base = base.replace(/8am/g, '8pm').replace(/every morning/g, 'every evening');
     const P = (base + INCL.replace('{AI}', ai) + RW).replace('{GAME}', gameUrl).replace(/https:\/\/today\.agentpark\.co(?![?\w])/, m => m + '/?u=' + (code || '')).replace('{START}', startUrl);
     const aiUrl = ai === 'claude' ? 'https://claude.ai/new?q=' + encodeURIComponent(P) : 'https://chatgpt.com/?q=' + encodeURIComponent(P);
     // out of the in-app browser first: on iPhone this page reopens in Safari (x-safari-), where the visitor's tap on the AI link
