@@ -706,15 +706,15 @@
  },
  "nkzw-tech-athena-crisis": {
   "github": {
-   "forks": 161,
-   "stars": 1988,
+   "forks": 162,
+   "stars": 1989,
    "url": "https://github.com/nkzw-tech/athena-crisis"
   }
  },
  "starknightt-operation-ironhold": {
   "github": {
-   "forks": 32,
-   "stars": 106,
+   "forks": 31,
+   "stars": 107,
    "url": "https://github.com/StarKnightt/operation-ironhold"
   }
  },
@@ -727,8 +727,8 @@
  },
  "rohitg00-k8sgames": {
   "github": {
-   "forks": 195,
-   "stars": 1435,
+   "forks": 196,
+   "stars": 1436,
    "url": "https://github.com/rohitg00/k8sgames"
   }
  },
@@ -742,7 +742,7 @@
  "blockly-games-blockly-games": {
   "github": {
    "forks": 634,
-   "stars": 1372,
+   "stars": 1373,
    "url": "https://github.com/blockly-games/blockly-games"
   }
  },
@@ -867,7 +867,7 @@
  "nicechunk-game": {
   "github": {
    "forks": 2,
-   "stars": 307,
+   "stars": 308,
    "url": "https://github.com/nicechunk/game"
   }
  },
@@ -978,7 +978,7 @@
  },
  "iacbi-matah": {
   "github": {
-   "forks": 0,
+   "forks": 1,
    "stars": 1,
    "url": "https://github.com/IACBI/matah"
   }
@@ -1112,7 +1112,7 @@
  "oil-oil-wolfcha": {
   "github": {
    "forks": 67,
-   "stars": 743,
+   "stars": 744,
    "url": "https://github.com/oil-oil/wolfcha"
   }
  },
@@ -1132,8 +1132,8 @@
  },
  "lattymoy-daggerfall-js-source": {
   "github": {
-   "forks": 17,
-   "stars": 20,
+   "forks": 21,
+   "stars": 25,
    "url": "https://github.com/Lattymoy/daggerfall-js-source"
   }
  },
@@ -2142,7 +2142,7 @@
  },
  "lingikaushikreddy-settlement-village": {
   "github": {
-   "forks": 0,
+   "forks": 1,
    "stars": 30,
    "url": "https://github.com/Lingikaushikreddy/Settlement-Village"
   }
@@ -2711,7 +2711,7 @@
  },
  "killian01-claude-of-legends": {
   "github": {
-   "forks": 3,
+   "forks": 4,
    "stars": 4,
    "url": "https://github.com/killian01/claude-of-legends"
   }
@@ -2873,7 +2873,7 @@
  },
  "krasimirkralev-harvest-hollow": {
   "github": {
-   "forks": 1,
+   "forks": 2,
    "stars": 4,
    "url": "https://github.com/KrasimirKralev/harvest-hollow"
   }
@@ -2950,7 +2950,7 @@
  },
  "j3vb-sanctuarys-end": {
   "github": {
-   "forks": 2,
+   "forks": 3,
    "stars": 2,
    "url": "https://github.com/J3vb/Sanctuarys_End"
   }
@@ -3137,7 +3137,7 @@
  "bkcore-hexgl": {
   "github": {
    "forks": 892,
-   "stars": 1749,
+   "stars": 1750,
    "url": "https://github.com/BKcore/HexGL"
   },
   "hn": {
@@ -3245,9 +3245,27 @@
    "url": "https://github.com/llm-chess-arena/llm-chess-arena"
   }
  },
- "songhaifan-frankie-poker": {},
- "oyekamal-ai-overlord": {},
- "lostruins-koboldai-lite": {},
+ "songhaifan-frankie-poker": {
+  "github": {
+   "forks": 5,
+   "stars": 14,
+   "url": "https://github.com/SonghaiFan/frankie-poker"
+  }
+ },
+ "oyekamal-ai-overlord": {
+  "github": {
+   "forks": 0,
+   "stars": 2,
+   "url": "https://github.com/oyekamal/offline-llm-chat"
+  }
+ },
+ "lostruins-koboldai-lite": {
+  "github": {
+   "forks": 103,
+   "stars": 205,
+   "url": "https://github.com/LostRuins/lite.koboldai.net"
+  }
+ },
  "twist-drop": {},
  "tube-rush": {},
  "sky-evolve": {},
