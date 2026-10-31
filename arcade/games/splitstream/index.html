@@ -12,11 +12,14 @@
   .gems{position:fixed;right:12px;top:calc(56px + env(safe-area-inset-top));z-index:6;background:rgba(0,0,0,.18);border-radius:16px;padding:2px 12px;font-weight:800;font-size:18px;pointer-events:none}
   .span{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;pointer-events:none;width:min(240px,62vw);height:10px;border-radius:6px;background:rgba(255,255,255,.45)}
   .span i{position:absolute;top:-6px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.tgt{display:none;position:absolute;top:-14px;width:0;height:0;margin-left:-9px;border-left:9px solid transparent;border-right:9px solid transparent;border-top:12px solid #ffe03b;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
+  .deep .tgt{display:block}.tgt.good{border-top-color:#2ee66b}
+  .deep .hc-card p{white-space:pre-line}
 </style>
 </head>
 <body>
 <div class="gems" id="gems">💎 0</div>
-<div class="span" id="span"><i id="knob"></i></div>
+<div class="span" id="span"><b id="tgt" class="tgt"></b><i id="knob"></i></div>
 <script type="module" src="game.js"></script>
 </body>
 </html>

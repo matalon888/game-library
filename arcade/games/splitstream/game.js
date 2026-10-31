@@ -4,13 +4,22 @@ import { THREE, createStage, createUI, input, loop, burst, confetti, sfx, tone, 
 import { flow } from './kit/flow.js';
 import { board as worldBoard } from './kit/board.js';
 import { demo } from './kit/demo.js';
+import { ab } from './kit/xp.js';
+import { LEVELS, WORLDS, levelAt, generate, buildSegs, at as at2, ok as ok2, need, T } from './levels.js';
+import { createMeta, SKINS, dayNum } from './meta.js';
+// v2 ("deep"): authored tracks, map, stars, skate styles, Daily Run. READY stays false while it is being built.
+const READY = true, QS = new URLSearchParams(location.search);
+const DEEP = (READY && ab('deep-splitstream')) || QS.get('deep') === '1';
 
 const ST = store('splitstream');
 const F = flow('splitstream');
 const WB = worldBoard({ game: 'splitstream', label: 'Levels cleared', limits: { maxRun: 2, maxPerSec: 0.15 }, mode: 'sum' });
-let level = ST.get('level', 1), total = ST.get('gems', 0);
+const ST2 = store('splitstream2');
+let level = DEEP ? (+QS.get('level') || ST2.get('lv', 1)) : ST.get('level', 1), total = DEEP ? ST2.get('gems', 0) : ST.get('gems', 0);
+let dailyMode = false, curL = null, gemTotal = 0, starsNow = 0;
 const { scene, camera, followLight } = createStage({ fov: 58, shadowSize: 12 });
-const ui = createUI({ title: 'SPLIT<br>STREAM', hint: 'Tap right = wider · left = narrower · or drag', hand: '👆', score: false });
+if (DEEP) scene.traverse(o => { if (o.isLight && o.castShadow) o.castShadow = false; }); // perf: v2 has many more meshes; no shadow pass
+const ui = createUI({ title: 'SPLIT<br>STREAM', hint: 'Drag or tap sides to stretch', hand: '👆', score: false });
 const $ = id => document.getElementById(id);
 const SKIES = [
   { bg: ['#ff9a3c', '#ffe08a'], fog: '#ffc76b', city: ['#ffcf5c', '#ffb347', '#ffd98a'], stripe: '#2ee66b', ui: '#ff6a3d' },
@@ -37,7 +46,7 @@ function makeSkater() {
   const legL = M(legGeo, suit, 0, 0, 0), legR = M(legGeo, suit, 0, 0, 0);
   const skate = () => { const s = new THREE.Group(); g.add(s); M(rounded(0.24, 0.3, 0.42, 0.08), boot, 0, 0.27, 0, s); M(new THREE.BoxGeometry(0.2, 0.05, 0.5), mat('#ffffff'), 0, 0.1, 0, s); for (const z of [-0.17, 0.17]) { const w = M(new THREE.CylinderGeometry(0.07, 0.07, 0.2, 12), wheel, 0, 0.06, z, s); w.rotation.z = Math.PI / 2; } return s; };
   const skL = skate(), skR = skate();
-  Object.assign(g, { body, armL, armR, legL, legR, skL, skR, bun });
+  Object.assign(g, { mats: { suit, top, boot }, body, armL, armR, legL, legR, skL, skR, bun });
   return g;
 }
 const sk = makeSkater(); scene.add(sk);
@@ -54,6 +63,11 @@ function makeTrail() {
   return { m, pts: [] };
 }
 const trails = [makeTrail(), makeTrail()];
+function setSkin(i) {
+  const k = SKINS[i] || SKINS[0]; sk.mats.suit.color.set(k.suit); sk.mats.top.color.set(k.top); sk.mats.boot.color.set(k.boot);
+  const c = new THREE.Color();
+  for (const tr of trails) { const col = tr.m.geometry.attributes.color; for (let q = 0; q < TRAIL - 1; q++) for (let l = 0; l < RAIN.length; l++) { c.set(k.rain[l]); for (let v = 0; v < 6; v++) col.setXYZ((q * RAIN.length + l) * 6 + v, c.r, c.g, c.b); } col.needsUpdate = true; }
+}
 function updateTrail(tr, x, y, z) {
   tr.pts.unshift([x, y, z]); if (tr.pts.length > TRAIL) tr.pts.pop();
   const p = tr.m.geometry.attributes.position.array, lanes = RAIN.length, W = 0.3; let o = 0;
@@ -89,20 +103,22 @@ function buildScenery(th) {
 // ---------------------------------------------------------------- track
 let world, segs, gemsArr, gemMesh, blocks = [], state = 'ready', K, R, endZ, th, gems = 0, offT = 0, fall = null, endT = 0, speed = SPEED_0;
 const sm = t => t * t * (3 - 2 * t);
-function at(z) {   // → { c, g, type, seg }
+function at(z) { if (DEEP) return at2(segs, z);   // → { c, g, type, seg }
   for (const s of segs) if (z <= s.z0 && z >= s.z1) { const t = sm((s.z0 - z) / (s.z0 - s.z1)); return { c: lerp(s.c0, s.c1, t), g: lerp(s.g0, s.g1, t), type: s.type, s }; }
   const s = z > segs[0].z0 ? segs[0] : segs[segs.length - 1]; return { c: z > s.z0 ? s.c0 : s.c1, g: z > s.z0 ? s.g0 : s.g1, type: s.type, s };
 }
 function buildLevel() {
   if (world) scene.remove(world);
   world = new THREE.Group(); scene.add(world);
-  R = rng(level * 3301 + 17); th = SKIES[(level - 1) % SKIES.length];
+  R = rng(level * 3301 + 17); curL = DEEP ? (dailyMode ? generate(dayNum() % 100000 * 31 + 7, 14 + Math.min(14, ST2.get('lv', 1))) : levelAt(level)) : null;
+  th = DEEP ? SKIES[curL.w % 3] : SKIES[(level - 1) % SKIES.length];
   document.body.style.setProperty('--bg1', th.bg[0]); document.body.style.setProperty('--bg2', th.bg[1]); document.body.style.setProperty('--ui', th.ui);
   scene.fog = new THREE.Fog(th.fog, 30, 120);
   buildScenery(th);
   segs = []; blocks = []; gems = 0; offT = 0; fall = null; endT = 0;
-  const fk = F.k(); speed = (SPEED_0 + Math.min(4, level * 0.35)) * fk;
+  const fk = F.k(); speed = DEEP ? curL.sp * 0.92 * fk : (SPEED_0 + Math.min(4, level * 0.35)) * fk;
   let z = 8, c = 0, g = 1.6;
+  if (DEEP) { const b = buildSegs(curL); segs = b.segs; endZ = b.endZ; } else {
   const push = (type, len, g1, c1, extra = {}) => { segs.push({ type, z0: z, z1: z - len, g0: g, g1, c0: c, c1, ...extra }); z -= len; g = g1; c = c1; };
   push('twin', 22, 1.6, 0);
   const L = Math.min(440, (150 + level * 22) * fk); const maxG = Math.min(6.2, 3.4 + level * 0.35);
@@ -113,20 +129,20 @@ function buildLevel() {
     else if (r < 0.86) { const b = 1.4 + R() * 1.8, W = 7.2; push('twin', 7, (b + W) / 2 - 0.4, 0); push('deck', 10 + R() * 4, (b + W) / 2 - 0.4, 0, { b, W }); }
     else push('twin', 12, g, nc);
   }
-  push('twin', 10, 1.6, c); endZ = z; push('twin', 30, 1.6, c);
+  push('twin', 10, 1.6, c); endZ = z; push('twin', 30, 1.6, c); }
   // geometry: rails as striped ribbons with a deep pale wall under them (fades into fog)
   const pos = [], col = [], C = new THREE.Color(), C2 = new THREE.Color(), quad = (a, b, cc, d, color, bottom = color) => { C.set(color); C2.set(bottom); const cs = [C, C, C2, C, C2, C2]; [a, b, cc, a, cc, d].forEach((v, i) => { pos.push(...v); col.push(cs[i].r, cs[i].g, cs[i].b); }); };
-  const STEP = 0.6, H = 0.32, DEEP = 9;
+  const STEP = 0.6, H = 0.32, DEPTH = 9;
   for (const side of [-1, 1]) {
     for (let zz = segs[0].z0; zz > segs[segs.length - 1].z1; zz -= STEP) {
       const A = at(zz), B = at(zz - STEP); if (A.type === 'deck' || B.type === 'deck') continue;
       const xa = A.c + side * A.g / 2, xb = B.c + side * B.g / 2, z1 = zz - STEP;
-      const stripe = Math.floor(-zz / 1.2) % 2 ? th.stripe : '#ffffff';
-      quad([xa - RW / 2, 0, zz], [xa + RW / 2, 0, zz], [xb + RW / 2, 0, z1], [xb - RW / 2, 0, z1], '#ffffff');
+      const stripe = A.s.boost ? (Math.floor(-zz / 1.2) % 2 ? '#ffd23f' : '#ff7a1c') : A.s.ice ? (Math.floor(-zz / 1.2) % 2 ? '#7fd8ff' : '#e8f8ff') : Math.floor(-zz / 1.2) % 2 ? th.stripe : '#ffffff', topc = A.s.boost ? '#fff3b0' : A.s.ice ? '#d6f2ff' : '#ffffff';
+      quad([xa - RW / 2, 0, zz], [xa + RW / 2, 0, zz], [xb + RW / 2, 0, z1], [xb - RW / 2, 0, z1], topc);
       for (const e of [-1, 1]) {
         const ea = xa + e * RW / 2, eb = xb + e * RW / 2;
         quad([ea, 0, zz], [eb, 0, z1], [eb, -H, z1], [ea, -H, zz], stripe);
-        quad([ea, -H, zz], [eb, -H, z1], [eb, -DEEP, z1], [ea, -DEEP, zz], '#fffaf2', th.fog);
+        quad([ea, -H, zz], [eb, -H, z1], [eb, -DEPTH, z1], [ea, -DEPTH, zz], '#fffaf2', th.fog);
       }
     }
   }
@@ -143,7 +159,7 @@ function buildLevel() {
   }
   // gems on the rails
   gemsArr = [];
-  for (let zz = -14; zz > endZ + 5; zz -= 7 + R() * 6) {
+  for (let zz = -14; zz > endZ + 5; zz -= DEEP ? (7 + R() * 6) / (curL.gem || 1) : 7 + R() * 6) {
     const A = at(zz); const side = R() < 0.5 ? -1 : 1;
     for (let k = 0; k < 3; k++) { const B = at(zz - k * 1.3); const x = B.type === 'deck' ? side * (B.s.b / 2 + (B.s.W / 2 - B.s.b / 2) / 2) : B.c + side * B.g / 2; gemsArr.push({ x, z: zz - k * 1.3, got: false }); }
   }
@@ -153,11 +169,11 @@ function buildLevel() {
   const arch = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.22, 10, 32, Math.PI), glossy(th.ui)); arch.position.y = 0; fin.add(arch);
   const chk = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 8; const x = c.getContext('2d'); for (let i = 0; i < 16; i++) for (let j = 0; j < 2; j++) { x.fillStyle = (i + j) % 2 ? '#222' : '#fff'; x.fillRect(i * 4, j * 4, 4, 4); } const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace; return t; })();
   const line = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 0.6), new THREE.MeshBasicMaterial({ map: chk })); line.rotation.x = -Math.PI / 2; line.position.y = 0.02; fin.add(line);
-  K = { z: 0, s: 1.6, t: 1.6, c: 0, ph: 0 };
+  gemTotal = gemsArr.length; K = { z: 0, s: 1.6, t: 1.6, c: 0, ph: 0, v: 1 };
   for (const tr of trails) tr.pts = [];
   ui.levels(level); ui.progress(0); hud();
 }
-function hud() { $('gems').textContent = '💎 ' + (total + gems); }
+function hud() { $('gems').textContent = DEEP ? `💎 ${gems}/${gemTotal}` : '💎 ' + (total + gems); }
 
 // ---------------------------------------------------------------- input: horizontal drag stretches the legs
 let dragging = false, botS = null;
@@ -168,26 +184,50 @@ input({
   onUp() { dragging = false; },
   onTap(e) { if (state === 'play' && tapOk) K.t = clamp(K.t + (e.clientX > innerWidth / 2 ? 0.7 : -0.7), MINS, MAXS); },   // tap right half = legs wider, left half = narrower
 });
+const begin = () => { state = 'play'; if (DEEP && curL) { ui.pop(curL.name, '#fff', 30, 22); if (curL.why.startsWith('new:')) setTimeout(() => state === 'play' && ui.pop(curL.why.slice(5).split('.')[0], '#ffe03b', 22, 30), 1100); } };
+const meta = DEEP ? createMeta({ save: ST2, getFrontier: () => ST2.get('lv', 1), onSkin: i => setSkin(i),
+  onPlay: n => { dailyMode = false; level = n; buildLevel(); begin(); }, onDaily: () => { dailyMode = true; buildLevel(); begin(); } }) : null;
+if (DEEP) { document.body.classList.add('deep'); setSkin(ST2.get('skin', 0)); }
 ui.onTap(w => { WB.start();
-  if (w === 'start') { state = 'play'; sfx.tap(); }
-  else if (w === 'win') { level++; ST.set('level', level); buildLevel(); state = 'play'; }
-  else { buildLevel(); state = 'play'; }
+  if (w === 'start') { state = 'play'; sfx.tap(); if (DEEP) begin(); }
+  else if (w === 'win') { if (DEEP) { if (dailyMode) { dailyMode = false; level = ST2.get('lv', 1); } else level = Math.min(level + 1, Math.max(level, ST2.get('lv', 1))); } else { level++; ST.set('level', level); } buildLevel(); state = 'play'; if (DEEP) begin(); }
+  else { buildLevel(); state = 'play'; if (DEEP) begin(); }
 });
 
 // the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
 // the legs stretch and narrow by themselves to fit the track ahead (the game's own bot), then hand the skates back
 const DM = demo(null, { ready: () => level === 1 && state === 'play' && !fall && !dragging, wait: 1200, ms: 4800 });
 let demoBot = false;
-function ok(A, s) {
+function ok(A, s) { if (DEEP) return ok2(A, s);
   if (A.type === 'deck') return s > A.s.b + 0.2 && s < A.s.W - 0.05;
   return Math.abs(s - A.g) < RW + 0.12;
 }
-function lose() { if (state === 'play') F.level(false, clamp(K.z / endZ, 0, 1)); state = 'lost'; sfx.fail(); buzz([50, 30, 80]); ui.lose('WIPEOUT!', `${gems} 💎 this run`); }
+function lose() {
+  const pct = Math.round(clamp(K.z / endZ, 0, 1) * 100);
+  if (state === 'play') F.level(false, clamp(K.z / endZ, 0, 1)); state = 'lost'; sfx.fail(); buzz([50, 30, 80]);
+  if (DEEP) { const left = Math.max(0, Math.round((endZ - K.z) * -1)); ui.lose(pct >= 50 ? `SO CLOSE! ${pct}%` : 'WIPEOUT!', `${pct}% of the way · 💎 ${gems}/${gemTotal}${pct >= 50 ? ' · one more!' : ''}`); }
+  else ui.lose('WIPEOUT!', `${gems} 💎 this run`);
+}
 function win() {
-  if (state === 'play') { F.level(true); WB.submit(1); }
-  state = 'won'; total += gems; ST.set('gems', total); sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
+  let extra = `${gems} 💎 collected`;
+  if (DEEP && state === 'play') {
+    const f = Math.min(1, gems / Math.max(1, gemTotal)); starsNow = f >= 0.92 ? 3 : f >= 0.65 ? 2 : 1;
+    F.level(true); let chest = false, line = '';
+    if (dailyMode) { const first = meta.finishDaily(starsNow); line = first ? `Daily Run ✓ 🔥${meta.streak()}` : 'Daily Run done'; }
+    else {
+      chest = meta.addStars(level, starsNow).chest;
+      if (level >= ST2.get('lv', 1)) { ST2.set('lv', level + 1); WB.submit(1); }
+    }
+    if (chest) { const k = Math.min(SKINS.length - 1, meta.chests()); ST2.set('skin', k); setSkin(k); line = `🎁 New skate style: ${SKINS[k].name}!`; }
+    const need3 = starsNow < 3 ? `${Math.max(1, Math.ceil(gemTotal * (starsNow < 2 ? 0.65 : 0.92)) - gems)} more 💎 for ${starsNow + 1}★` : 'Perfect!';
+    extra = `${'⭐'.repeat(starsNow)}${'⚪'.repeat(3 - starsNow)} · ${gems}/${gemTotal} 💎 · ${need3}${line ? '\n' + line : ''}\nTomorrow: Daily Run${meta.dailyDone() ? '' : ' · play it now'} · 🔥${meta.streak()}`;
+    total += gems; ST2.set('gems', total);
+    if (starsNow === 3) setTimeout(() => ui.pop('PERFECT!', '#ffe03b', 44, 24), 200);
+    else if (starsNow === 2) setTimeout(() => ui.pop('NICE!', '#fff', 34, 24), 200);
+  } else if (state === 'play') { F.level(true); WB.submit(1); }
+  state = 'won'; if (!DEEP) { total += gems; ST.set('gems', total); } sfx.win(); buzz([20, 40, 20]); ui.flash(0.6); ui.progress(1);
   confetti(world, new THREE.Vector3(K.c, 3, K.z - 2), 120); setTimeout(() => confetti(world, new THREE.Vector3(K.c, 3, K.z - 2), 80), 300);
-  ui.win(level, `${gems} 💎 collected`);
+  ui.win(dailyMode ? 'Daily' : level, extra);
 }
 
 // ---------------------------------------------------------------- frame
@@ -197,23 +237,27 @@ loop((dt, t) => {
   if (!K) return;
   const s = dt / 60, play = state === 'play';
   if (play && !fall) {
-    K.z -= speed * s;
+    const A0 = DEEP ? at(K.z) : null;
+    if (DEEP) { const bo = A0.s.boost ? 1.3 : 1; K.v = lerp(K.v, bo, 0.08 * dt); if (bo > 1 && Math.random() < 0.3) burst(world, new THREE.Vector3(K.c + (Math.random() - 0.5) * K.s, 0.3, K.z + 1), ['#ffd23f', '#ff7a1c'], 1, { speed: 0.05, up: 0.04, size: 0.3 }); }
+    K.z -= speed * (DEEP ? K.v : 1) * s;
     if (DM.on && level === 1 && !dragging) { demoBot = true; window.__game.bot(); } else if (demoBot) { demoBot = false; botS = null; }
     if (botS !== null && !dragging) K.t = lerp(K.t, botS, 0.45 * dt);
     const A = at(K.z);
     K.c = lerp(K.c, A.c, 0.35 * dt);
+    const grace = DEEP && !dailyMode && level <= 3 && K.z > -34;   // first seconds of the first levels: skates are pulled to the rails
+    if (grace && !ok(A, K.s)) K.t = lerp(K.t, Math.max(MINS, need(A)), 0.25 * dt);
     if (!ok(A, K.s)) { offT += s; warnT += s; if (warnT > 0.08) { warnT = 0; buzz(10); tone(180, 0.05, 'square', 0.05, 0.8); burst(world, new THREE.Vector3(K.c, 0.1, K.z), ['#ff3b5c', '#ffe03b'], 3, { speed: 0.06, up: 0.05, size: 0.4 }); } }
     else offT = Math.max(0, offT - s * 2);
-    if (offT > 0.16) {
+    if (offT > (grace ? 0.6 : 0.16)) {
       const fl = A.type === 'deck' ? (K.s <= A.s.b + 0.2 ? 'block' : 'edge') : 'rail';
       fall = { vy: 0.05, rz: (K.s > A.g ? 1 : -1) * (Math.random() < 0.5 ? 1 : -1), why: fl }; sfx.smash(); buzz([60, 40, 60]); ui.flash(0.35); ui.pop(fl === 'block' ? 'CRASH!' : 'SLIPPED!', '#ff3b5c', 40, 30);
       setTimeout(lose, 800);
     }
-    for (const gm of gemsArr) if (!gm.got && Math.abs(gm.z - K.z) < 0.6 && (Math.abs(gm.x - (K.c - K.s / 2)) < 0.6 || Math.abs(gm.x - (K.c + K.s / 2)) < 0.6)) { gm.got = true; gems++; combo = t - lastGem < 1.2 ? combo + 1 : 1; lastGem = t; note(72 + (combo % 5) * 2, 0.12, 0.1); buzz(5); burst(world, new THREE.Vector3(gm.x, 0.6, gm.z), ['#ff4fd8', '#ffffff'], 7, { speed: 0.08, up: 0.06, size: 0.5 }); hud(); if (combo % 5 === 0) ui.pop('GEM RUSH x' + combo, '#fff', 30, 30); }
+    for (const gm of gemsArr) if (!gm.got && Math.abs(gm.z - K.z) < 0.6 && (Math.abs(gm.x - (K.c - K.s / 2)) < 0.6 || Math.abs(gm.x - (K.c + K.s / 2)) < 0.6)) { gm.got = true; gems++; if (DEEP && level >= 2 && Math.random() < 0.05) { gems += 4; ui.pop('GOLDEN GEM +5', '#ffe03b', 36, 30); ui.flash(0.3); buzz([20, 30, 20]); burst(world, new THREE.Vector3(gm.x, 0.8, gm.z), ['#ffe03b', '#ffffff'], 14, { speed: 0.12, up: 0.1, size: 0.6 }); } combo = t - lastGem < 1.2 ? combo + 1 : 1; lastGem = t; note(72 + Math.min(combo, 12) + (combo % 5) * 2, 0.12, 0.1); buzz(5); burst(world, new THREE.Vector3(gm.x, 0.6, gm.z), ['#ff4fd8', '#ffffff'], 7, { speed: 0.08, up: 0.06, size: 0.5 }); hud(); if (combo % 5 === 0) { ui.pop(combo >= 20 ? 'UNSTOPPABLE x' + combo : 'GEM RUSH x' + combo, combo >= 20 ? '#ffe03b' : '#fff', combo >= 20 ? 40 : 30, 30); if (DEEP && combo >= 10) { ui.flash(0.25); buzz([15, 20, 15]); } } }
     ui.progress(Math.min(1, K.z / endZ));
     if (K.z < endZ) win();
   }
-  K.s = lerp(K.s, K.t, 0.32 * dt);
+  K.s = lerp(K.s, K.t, (DEEP && at(K.z).s.ice ? 0.1 : 0.32) * dt);
   // pose: hip lowers as legs spread (splits), body leans + arms balance
   const half = K.s / 2, hipY = clamp(1.25 - Math.max(0, K.s - 1.2) * 0.14, 0.5, 1.25);
   sk.position.set(K.c, 0, K.z);
@@ -239,9 +283,10 @@ loop((dt, t) => {
   gemsArr.forEach((g, i) => { M4.compose(V.set(g.x, 0.55 + Math.sin(t * 3 + i) * 0.1, g.z), Q.setFromEuler(E.set(0, t * 2 + i, 0)), S3.setScalar(g.got ? 0 : 1)); gemMesh.setMatrixAt(i, M4); }); gemMesh.instanceMatrix.needsUpdate = true;
   // span meter (bottom): knob shows leg spread, centre target shows what the track needs ahead
   $('knob').style.left = ((K.s - MINS) / (MAXS - MINS) * 100) + '%';
+  if (DEEP) { const B = at(K.z - speed * (at(K.z).s.ice ? 0.7 : 0.4)), nd = need(B); $('tgt').style.left = ((clamp(nd, MINS, MAXS) - MINS) / (MAXS - MINS) * 100) + '%'; const wrong = Math.abs(nd - K.s) >= 0.5; $('tgt').className = 'tgt' + (wrong ? '' : ' good'); $('tgt').style.opacity = dailyMode || level > 10 ? (level > 20 ? (wrong && Math.abs(nd - K.s) > 1.2 ? 0.9 : 0) : (wrong ? 0.9 : 0.3)) : 1; }
   // camera: low chase behind, slight lag sideways
   camX = lerp(camX, K.c, 0.08 * dt);
-  const back = 7 + K.s * 0.3 + (state === 'won' ? 2 : 0);
+  const back = 7 + K.s * 0.3 + (state === 'won' ? 2 : 0) + (DEEP ? (K.v - 1) * 4 : 0);
   camera.position.set(camX + (state === 'won' ? Math.sin(endT * 0.6) * 3 : 0), 3.3 + K.s * 0.14, K.z + back);
   camera.lookAt(camX, 0.4, K.z - 7);
   followLight(V.set(K.c, 0, K.z - 2));
@@ -251,9 +296,10 @@ loop((dt, t) => {
 buildLevel();
 
 window.__game = {
-  get state() { return state; }, get level() { return level; }, get score() { return total + gems; },
+  get state() { return state; }, get deep() { return DEEP; }, get stars() { return starsNow; }, get gemsGot() { return gems; }, get gemsAll() { return gemTotal; }, get z() { return K.z; }, get endZ() { return endZ; }, get level() { return level; }, get score() { return total + gems; },
   bot() {
     if (state !== 'play' || fall) return;
+    if (DEEP) { botS = Math.max(MINS, need(at(K.z - speed * 0.16))); return; }
     // aim for what the track needs a short distance ahead (the spread lags a little)
     const A = at(K.z - speed * 0.16);
     botS = A.type === 'deck' ? (A.s.b + A.s.W) / 2 : clamp(A.g, MINS, MAXS);
