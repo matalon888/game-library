@@ -162,7 +162,7 @@ rwFromMeta && window.RiffReward && RiffReward.offerStatus().then(st => { if (!st
     // {START}: the tiny check-in page the AI opens first, so we know within seconds the message was sent (server.js /start)
     const startUrl = `https://today.agentpark.co/start?u=${code || ''}&g=${GAME}`;
     // Meta / everyone: the fast prompt (no website opened in the first reply, the game link comes first); CPAlead: with the check-in
-    let base = (cpaClick && C.GO_PROMPT_CPA) || C.GO_PROMPT || C.DAILY_PROMPT || '';
+    let base = (cpaClick && C.GO_PROMPT_CPA) || (!cpaClick && C.GO_PROMPT_SHORT && window.APX && APX.on('go-short') && C.GO_PROMPT_SHORT) || C.GO_PROMPT || C.DAILY_PROMPT || '';
     if (INC === 'secret') base = base.replace('🎮 [Play your first game ▶]({GAME})', '🎁 [Open your secret game ▶]({GAME})');
     // hour test (Daniel 2026-10-31: "who plays in the morning … a few evenings … research"): three arms by code,
     // arm = parseInt(last 2 chars of the code, 36) % 3: 0 = 8am (as before), 1 = 8pm (AI-link taps peak 9pm ET), 2 = the hour of

@@ -14,6 +14,8 @@
 //                    today.riffcade.com/?v=<x> so taps, the AI's daily fetch and the visits from its links are credited to it
 //   AI_ONLY          games that only open from an AI's link (the daily message, ?ref=daily-*/go-*): hidden from the park,
 //                    shelves and feeds; play.html shows a lock card otherwise (shell.js). AI_VIP = the 7-day streak game.
+//   GO_PROMPT_SHORT  go-short test (2026-10-31, Daniel: "can we shorten the initial prompt?"): half of the codes (APX 'go-short') get
+//                    this ~40-word prompt instead of GO_PROMPT (~75 words); judged on AI connected + played days 2-7, by code
 //   GO_PROMPT_CPA    the CPAlead version of GO_PROMPT: it keeps the {START} check-in fetch (we pay CPAlead per verified AI run)
 //   GO_PROMPT        the prompt behind the ad's ChatGPT / Claude buttons (go.html): short on purpose (a long message reads like a script): one tiny check-in fetch ({START}, so we see the message was sent without waiting for 8am; the full page made the reply slow), the first game link, then the daily task, which reads today's page every morning
 //   FEED             the swipe-up / round-over feed (grow.js): upright one-thumb games on our kit, the first 9 hand-checked (shown first)
@@ -41,6 +43,7 @@ window.RIFFCADE = {
     "c": "Right now, open https://today.agentpark.co and give me 8 games for a quick break, grouped by category, one line each with the name as a clickable link, plus the page link to see them all with pictures. Then, unless I already have a daily \"Your free games\" (or AGENT PARK) task, make this a daily task every morning at 8am and confirm it is scheduled."
   },
   "GO_PROMPT": "Don't open any website now. Make me a daily 8am task \"🎮 Your free games\": open https://today.agentpark.co and show me its daily message line for line (it's short), each name as a clickable link, greeting me by my first name.\nThen reply with only these lines, the link behind the words (markdown, no bare web address):\n🎮 [Play your first game ▶]({GAME})\n✅ Your free games: set for 8am.\n📌 Pin this chat so your games stay on top.",
+  "GO_PROMPT_SHORT": "Don't open any website now. Make me a daily 8am task \"🎮 Your free games\": open https://today.agentpark.co and show its daily message as written.\nThen reply only:\n🎮 [Play your first game ▶]({GAME})\n✅ Your free games: set for 8am.",
   "GO_PROMPT_CPA": "🎮 Set up my free daily arcade:\n1. Open {START} and give me the first game link it has.\n2. Make a daily 8am task called \"🎮 Your free games\": 6 new free games from https://today.agentpark.co, one line each, the game's name as a clickable link (no bare web addresses).\n3. Tell me to pin this chat so my games stay on top.",
   "AI_ONLY": ["alibi-grid-daily-logic-puzzle", "hunch-five-letter-word-guess", "bunchwise-word-groups-puzzle", "lurkfield-monster-minesweeper-rpg"],
   "AI_VIP": "lurkfield-monster-minesweeper-rpg",
