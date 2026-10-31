@@ -10,7 +10,7 @@ import { LEVELS, WORLDS, SUITS } from './levels.js';
 // deep v2 (studio, 2026-10-29): 36 hand-made rooms in 3 worlds, stars per room, a room map and suits unlocked by stars.
 // Half the arcade players get it (lab test deep-ricochet-rex); the rest play v1 (the endless generated rooms) unchanged.
 // READY stays false until v2 is finished and checked: until then no player ever sees it (?deep=1 is for QA only).
-const READY = true;
+const READY = false;
 const DEEP = (READY && ab('deep-ricochet-rex')) || /[?&]deep=1(&|$)/.test(location.search);
 
 // ------------------------------------------------------------------ stage: orthographic side view
