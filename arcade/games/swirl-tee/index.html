@@ -30,23 +30,65 @@
   #reset{left:calc(50% - 120px);background:#7b5cff}
   #done{left:calc(50% + 68px);background:#22c55e}
   #done.go{animation:dop .9s ease-in-out infinite}
+  #splash{left:calc(50% - 26px);background:#00aaff;font-size:22px} #splash i{position:absolute;right:-8px;top:-8px;background:#ff3d8b;border-radius:10px;font-size:13px;font-style:normal;padding:0 6px;line-height:20px}
+  #splash.arm{animation:dop .6s ease-in-out infinite;box-shadow:0 0 0 5px #ffe066,0 5px 0 rgba(0,0,0,.16)}
   @keyframes dop{50%{transform:scale(1.18)}}
   .banner{position:fixed;left:50%;top:61%;transform:translateX(-50%) scale(0);z-index:8;background:linear-gradient(#ff7eb6,#ff3d8b);border:4px solid #fff;border-radius:20px;padding:2px 26px 6px;font-weight:800;text-align:center;box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .4s cubic-bezier(.3,1.6,.5,1);pointer-events:none;white-space:nowrap}
   .banner.on{transform:translateX(-50%) scale(1)}
   .banner.bad{background:linear-gradient(#a3a3c2,#6d6d8f)}
   .banner .st{font-size:30px;letter-spacing:4px;color:#ffe066;text-shadow:0 3px 0 rgba(0,0,0,.18)}
-  .banner .st i{font-style:normal;color:rgba(255,255,255,.35)}
+  .banner .st i{font-style:normal;opacity:.3;filter:grayscale(1)}
+  .chips{display:flex;gap:6px;justify-content:center;font-size:13px;margin-top:4px}.chips span{background:rgba(255,255,255,.28);border-radius:10px;padding:1px 8px}.chips span.y{background:#fff;color:#e0287a}
   .banner b{display:block;font-size:34px;line-height:1}
+  /* v2 (deep): customer, par timer, new-mechanic chip, the Tee Wall, crate bar */
+  .cust{position:absolute;left:-24px;bottom:-12px;font-size:32px;font-style:normal;filter:drop-shadow(0 3px 0 rgba(0,0,0,.15))}
+  .cust:empty{display:none}
+  .tgt.min canvas,.tgt.min b{display:none} .tgt.min{background:none;box-shadow:none;width:60px;left:calc(50% - 30px);padding:0;top:calc(40px + env(safe-area-inset-top))} .tgt.min .cust{position:static;display:block;font-size:56px;text-align:center}
+  .cust.react{animation:react .6s cubic-bezier(.3,1.8,.5,1)}
+  @keyframes react{0%{transform:scale(.4) rotate(-20deg)}60%{transform:scale(1.5) rotate(8deg)}100%{transform:scale(1.25)}}
+  .tgt.hard{box-shadow:0 0 0 4px #ff3b30,0 5px 0 rgba(0,0,0,.14)} .tgt.hard b{color:#ff3b30}
+  .tgt.free{box-shadow:0 0 0 4px #ffd02e,0 5px 0 rgba(0,0,0,.14)} .tgt.free b{color:#e0a800}
+  .par{position:fixed;left:calc(50% + 56px);top:calc(70px + env(safe-area-inset-top));z-index:6;background:#fff;color:#7b5cff;font-weight:800;font-size:18px;border-radius:14px;padding:0 10px;box-shadow:0 4px 0 rgba(0,0,0,.14);pointer-events:none;transition:opacity .25s}
+  .par{background:linear-gradient(90deg,#ffe9a8 var(--f,100%),#fff var(--f,100%))}
+  .par.late{color:#a3a3c2}
+  .ask.rub{animation:dop .9s ease-in-out infinite}
+  .par.off{opacity:0}
+  .newc{position:fixed;left:50%;top:calc(196px + env(safe-area-inset-top));transform:translateX(-50%) scale(1);z-index:7;background:#fff;color:#ff3d8b;font-weight:800;font-size:20px;border-radius:18px;padding:4px 14px;box-shadow:0 5px 0 rgba(0,0,0,.16);pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:transform .35s cubic-bezier(.3,1.6,.5,1),opacity .3s}
+  .newc.off{transform:translateX(-50%) scale(0);opacity:0}
+  .newc svg{width:34px;height:34px}
+  .dd{display:inline-block;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);vertical-align:-3px}
+  .newc .dd{width:22px;height:22px}
+  .row.many{gap:6px} .row.many .fold{width:82px;height:96px;font-size:13px} .row.many .fold svg{width:46px;height:46px}
+  .wall{position:fixed;left:8px;right:8px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:11;pointer-events:none;max-width:520px;margin:0 auto}
+  body.deep .hc-card .hint{margin-bottom:calc(150px + env(safe-area-inset-bottom))}
+  .wall .wt{font-weight:800;font-size:15px;text-shadow:0 2px 0 rgba(0,0,0,.18)} .wall .wt em{font-style:normal;color:#ffe066}
+  .wall .wr{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;background:rgba(0,0,0,.16);border-radius:14px;padding:5px 4px 2px}
+  .ws{position:relative;aspect-ratio:1/1.25;border-radius:8px;border:2px dashed rgba(255,255,255,.45);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;pointer-events:auto}
+  .ws.open{border:2px solid rgba(255,255,255,.9);background:rgba(255,255,255,.25);cursor:pointer}
+  .ws.hard{border-color:#ff3b30} .ws.bonus{border-color:#ffd02e}
+  .ws.now{animation:dop .9s ease-in-out infinite;background:#fff} .ws.now b{color:#ff3d8b}
+  .ws.fresh{animation:fresh .7s .5s cubic-bezier(.3,1.8,.5,1) both}
+  @keyframes fresh{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1)}}
+  .ws img{width:100%;display:block}
+  .ws b{font-size:12px;line-height:1.9;color:#fff}
+  .ws i{position:absolute;bottom:-3px;left:0;right:0;text-align:center;font-style:normal;font-size:8px;letter-spacing:-1px;color:#ffe066;text-shadow:0 1px 0 rgba(0,0,0,.4)} .ws i u{text-decoration:none;opacity:.3;filter:grayscale(1)}
+  .daily{margin-top:6px;text-align:center;background:#fff;color:#ff3d8b;font-weight:800;font-size:16px;border-radius:14px;padding:4px 10px;box-shadow:0 4px 0 rgba(0,0,0,.16);pointer-events:auto;cursor:pointer} .daily.done{opacity:.6;color:#22a35a;pointer-events:none}
+  .cr{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:6px;font-weight:800;font-size:14px}
+  .cr span{font-size:22px} .cr .cb{width:120px;height:10px;border-radius:6px;background:rgba(255,255,255,.4);overflow:hidden} .cr .cb i{display:block;height:100%;background:#ffe066}
+  .cr.pop span{animation:react .7s 1.4s cubic-bezier(.3,1.8,.5,1) both}
 </style>
 </head>
 <body>
-<div class="tgt" id="tgt"><b>TARGET</b><canvas id="tgtc" width="168" height="168"></canvas></div>
+<div class="tgt" id="tgt"><b>TARGET</b><canvas id="tgtc" width="168" height="168"></canvas><i class="cust" id="cust"></i></div>
+<div class="par off" id="par"></div><div class="par off" id="cln" style="left:50%;transform:translateX(-50%);top:calc(166px + env(safe-area-inset-top));font-size:16px;color:#10a070"></div>
+<div class="newc off" id="newc"></div>
 <div class="ask off" id="ask">Pick the fold!</div>
 <div class="row off" id="folds"></div>
 <div class="row off" id="dyes"></div>
-<button class="ctl off" id="reset" aria-label="wash">↺</button>
-<button class="ctl off" id="done" aria-label="unfold">✓</button>
-<div class="banner" id="banner"><div class="st" id="stars">★★★</div><b id="pct">0%</b></div>
+<button class="ctl off" id="reset" aria-label="wash">🧽</button>
+<button class="ctl off" id="done" aria-label="unfold">✅</button>
+<button class="ctl off" id="splash" aria-label="splash">💦<i id="spn">2</i></button>
+<div class="banner" id="banner"><div class="st" id="stars">⭐⭐⭐</div><b id="pct">0%</b><div class="chips" id="chips"></div></div>
 <script type="module" src="game.js"></script>
 </body>
 </html>
