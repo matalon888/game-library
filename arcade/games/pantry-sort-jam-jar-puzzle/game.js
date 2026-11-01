@@ -7,17 +7,23 @@ import { money } from './kit/money.js';
 import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
-import { demo } from './kit/demo.js';
 import { A, $, wait, dayNum, ymd, rng, store, injectCSS, prefs, background, sheet, sheetOpen, toast, word, fx, fxMount, flyTo, bump, buzz, audio, streak, share, album, settingsSheet, preload, reduced } from './sb.js';
 import { CAP, KINDS, JAM, top, done, run, canPour, useful, pour, won, clone, moves, stuck, solve, makeLevel } from './logic.js';
 import { LARDER, larderScene } from './larder.js';
+import { ab } from './kit/xp.js';
+import { LEVELS, WORLDS, parseLevel, worldOf } from './levels.js';
+import { setLocks, sealLeft, solveShort } from './logic.js';
+// v2 (lab test deep-pantry-sort): 30 hand-made shelves in 3 worlds (wax seals, cloth jars), a shelf map with stars, pour chains,
+// "so close" retries and star chests. READY stays false until the fun critic passes; ?deep=1 forces it for QA.
+const READY = true;
+const DEEP = (READY && ab('deep-pantry-sort')) || /[?&]deep=1(&|$)/.test(location.search);
 
 addEventListener('unhandledrejection', e => console.error('unhandled: ' + (e.reason && (e.reason.stack || e.reason))));
 const SLUG = 'pantry-sort', NAME = 'Pantry Sort', Q = new URLSearchParams(location.search);
 const S = store(SLUG);
 const st = {
   level: S.get('level', 1), stars: S.get('stars', 0), spent: S.get('spent', 0), larder: S.get('larder', []), wins: S.get('wins', 0),
-  boosts: S.get('boosts', { hint: 3, undo: 5, jar: 2 }), dLast: S.get('dLast', 0), dRes: S.get('dRes', null), seenHow: S.get('seenHow', false),
+  boosts: S.get('boosts', { hint: 3, undo: 5, jar: 2 }), dLast: S.get('dLast', 0), dRes: S.get('dRes', null), seenHow: S.get('seenHow', false), best: S.get('best', {}), chests: S.get('chests', 0),
 };
 const save = () => { for (const k of Object.keys(st)) S.set(k, st[k]); };
 const starsLeft = () => st.stars - st.spent;
@@ -77,6 +83,20 @@ injectCSS(`
 .ps-jar.hint::after,.ps-jar.hint2::after{box-shadow:0 0 0 3px #567854,0 0 18px rgba(86,120,84,.85);animation:oihl .8s ease-in-out infinite}
 @keyframes oihl{50%{opacity:.45}}
 .ps-jar.new{animation:psnew .5s cubic-bezier(.2,1.5,.4,1)}@keyframes psnew{from{transform:scale(.3);opacity:0}}
+.ps-map{margin:0 0 10px}.ps-map .hd{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}.ps-map .hd span{font:700 calc(19px*var(--fs))/1.1 var(--disp);color:var(--navy)}.ps-map .hd small{display:block;font:400 calc(13px*var(--fs))/1.3 var(--serif);color:var(--sage)}
+.ps-map .hd button{width:34px;height:34px;border-radius:50%;border:1.5px solid #c6a35a;background:#fffaf0;color:var(--navy);font:700 22px/1 var(--serif);cursor:pointer}.ps-map .hd button:disabled{opacity:.25}
+.ps-map .row{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}.ps-map .nd{padding:3px 0 2px;border-radius:9px;border:1.5px solid #c6a35a;background:#fffaf0;color:var(--navy);cursor:pointer;display:flex;flex-direction:column;align-items:center;font:700 calc(14px*var(--fs))/1.1 var(--serif);min-width:0}
+.ps-map .nd i{font-style:normal;font-size:calc(7px*var(--fs));letter-spacing:-1px;color:#d19a1c;line-height:1.2}.ps-map .nd i u{text-decoration:none;color:#d8ceb8}
+.ps-map .nd.cur{background:#f6dca0;border-color:#b08834;animation:psnode 1.2s ease-in-out infinite}.ps-map .nd.lock{opacity:.4}.ps-map .nd.boss{border-color:var(--rose);border-width:2px}@keyframes psnode{50%{transform:scale(1.12)}}
+.ps-jar .f.cov{filter:brightness(.12) contrast(.9);opacity:.85}
+.ps-jar .cloth{position:absolute;left:3%;right:3%;bottom:4%;border-radius:10px 10px 6px 6px;pointer-events:none;border:1.5px solid rgba(120,40,50,.35);background:conic-gradient(rgba(190,70,90,.62) 25%,rgba(255,252,244,.72) 0 50%,rgba(190,70,90,.62) 0 75%,rgba(255,252,244,.72) 0) 0 0/13px 13px;box-shadow:0 2px 4px rgba(60,30,20,.25)}
+.ps-jar .wax{position:absolute;left:50%;top:44%;width:60%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle at 35% 30%,#e57f7f,#a23b48 60%,#7b2733);box-shadow:0 3px 6px rgba(60,20,20,.45),inset 0 -3px 5px rgba(60,10,20,.35);display:grid;place-items:center;font-size:calc(var(--jw,40px)*.32)}
+.ps-jar .wax b{position:absolute;right:-4px;bottom:-4px;min-width:22px;height:22px;border-radius:11px;background:#fffaf0;color:#7b2733;font:700 15px/22px var(--serif);text-align:center;border:1.5px solid #7b2733}
+.ps-jar.sealed .f{opacity:.55}
+.ps-close{margin:2px 0 6px;font:700 calc(19px*var(--fs))/1.2 var(--serif);color:var(--rose);letter-spacing:.5px}.ps-close.ok{color:var(--sage)}
+.ps-chest{position:relative;margin:6px 0;padding:6px 10px;border-radius:12px;border:1.5px solid #c6a35a;background:rgba(246,220,160,.35);overflow:hidden;font:700 calc(16px*var(--fs))/1.2 var(--serif);color:var(--navy)}.ps-chest i{position:absolute;left:0;top:0;bottom:0;background:rgba(214,180,106,.45)}.ps-chest span{position:relative}
+.ps-chest.open{background:#f6dca0;font-size:calc(21px*var(--fs));animation:psnew .6s cubic-bezier(.2,1.5,.4,1)}
+.sb-btn.gold{background:linear-gradient(180deg,#f6dca0,#d6b46a);color:#4a3510}
 .ps-fly{position:fixed;left:0;top:0;z-index:50;pointer-events:none;filter:drop-shadow(0 8px 8px rgba(40,25,5,.3))}
 .ps-boost{position:absolute;display:flex;gap:14px;justify-content:center}
 .ps-boost label{display:flex;flex-direction:column;align-items:center;font:700 calc(18px*var(--fs))/1.1 var(--serif);color:var(--navy);text-shadow:0 0 6px #fffaf0,0 0 10px #fffaf0,0 0 14px #fffaf0;cursor:pointer}
@@ -105,6 +125,7 @@ const home = $(`<div class="ps-layer sb-hidden">
   <div class="ps-title"><h1>Pantry <i>Sort</i></h1><p>JAM JAR PUZZLE</p><img class="sprig" src="${A('kit/divider')}" alt=""><div data-streak></div></div>
   <div class="ps-menu">
     <div class="ps-card" data-larder role="button" aria-label="Restore Nana's larder"><img data-limg alt=""><div><span data-lname>Nana Rose's Larder</span><small data-lnext></small><div class="bar"><i data-lbar></i></div></div></div>
+    <div class="ps-map" data-map></div>
     <button class="sb-btn navy big play" data-play></button>
     <div class="two"><button class="sb-btn" data-daily><img src="${A('icons/calendar')}" alt=""><span>Daily<small data-dsub></small></span></button><button class="sb-btn" data-album2><img src="${A('icons/album')}" alt=""><span>Album<small data-acount></small></span></button></div>
     <div class="icons"><label><button class="sb-round" data-larder2 aria-label="Larder"><img src="${A('icons/home')}" alt=""></button>Larder</label>
@@ -189,11 +210,14 @@ function renderJars() {
 function paintJar(el, j) {
   const jar = game.jars[j]; el.innerHTML = '';
   if (done(jar)) { const im = document.createElement('img'); im.className = 'jam'; im.src = A('pantry/jar-' + jar[0]); im.alt = JAM[jar[0]]; el.appendChild(im); el.setAttribute('aria-label', JAM[jar[0]]); return; }
-  const rn = run(jar);
-  jar.forEach((k, i) => { const b = fruitBox(j, i), im = document.createElement('img'); im.className = 'f' + (i >= jar.length - rn ? ' up' : ''); im.src = A('pantry/fruit-' + k); im.alt = k;
+  const rn = run(jar), cloth = !!(game.L.cloth && game.L.cloth.has(j)), cov = cloth ? Math.max(0, jar.length - rn) : 0, sl = sealLeft(game.jars, j);
+  el.classList.toggle('sealed', sl > 0);
+  jar.forEach((k, i) => { const b = fruitBox(j, i), im = document.createElement('img'); im.className = 'f' + (i >= jar.length - rn ? ' up' : '') + (i < cov ? ' cov' : ''); im.src = A('pantry/fruit-' + k); im.alt = k;
     Object.assign(im.style, { left: b.left + 'px', bottom: b.bottom + 'px', width: b.w + 'px', rotate: b.rot + 'deg' }); el.appendChild(im); });
+  if (cov) { const c = document.createElement('div'); c.className = 'cloth'; c.style.height = (cov * 17.2 + 9) + '%'; el.appendChild(c); }
   const g = document.createElement('img'); g.className = 'glass'; g.src = A('pantry/jar-empty'); g.alt = ''; el.appendChild(g);
-  el.setAttribute('aria-label', jar.length ? `jar with ${jar.join(', ')}` : 'empty jar');
+  if (sl) { const w = document.createElement('div'); w.className = 'wax'; w.style.fontSize = Math.round(LAY.w * 0.3) + 'px'; w.innerHTML = '<i>🔒</i>' + (sl > 1 ? '<b>' + sl + '</b>' : ''); el.appendChild(w); }
+  el.setAttribute('aria-label', (sl ? 'sealed ' : '') + (cloth ? 'cloth-covered ' : '') + (jar.length ? `jar, top ${top(jar)}` : 'empty jar'));
 }
 function markSel() { jarEls.forEach((e, j) => e.classList.toggle('sel', j === sel)); }
 
@@ -202,25 +226,36 @@ const starsFor = g => g.moves <= g.L.par ? 3 : g.moves <= Math.round(g.L.par * 1
 function paintGoal() {
   const g = game, s3 = g.moves <= g.L.par, s2 = g.moves <= Math.round(g.L.par * 1.35);
   const made = new Set(g.jars.filter(done).map(j => j[0]));
-  goalEl.innerHTML = `<div class="lv">${g.kind === 'daily' ? 'Daily' : 'Level ' + g.n}${g.kind === 'daily' ? '<small>puzzle</small>' : g.L.hard ? '<small>hard · short</small>' : ''}</div>
+  goalEl.innerHTML = `<div class="lv">${g.kind === 'daily' ? 'Daily' : 'Level ' + g.n}${g.kind === 'daily' ? '<small>puzzle</small>' : g.L.authored ? `<small>${g.L.boss ? 'boss' : g.L.hard ? 'hard' : g.L.breather ? 'breather' : 'world ' + (worldOf(g.n) + 1)}</small>` : g.L.hard ? '<small>hard · short</small>' : ''}</div>
     <div class="made" style="--mw:${Math.max(20, Math.min(30, (Math.min(innerWidth - 16, 520) - 210) / g.L.kinds.length))}px">${g.L.kinds.map(k => `<img class="${made.has(k) ? '' : 'off'}" src="${A('pantry/jar-' + k)}" alt="${JAM[k]}">`).join('')}</div>
     <div class="meter"><div class="st"><img src="${A('kit/star-full')}" alt=""><img class="${s2 ? '' : 'off'}" src="${A('kit/star-full')}" alt=""><img class="${s3 ? '' : 'off'}" src="${A('kit/star-full')}" alt=""></div>${g.moves} / ${g.L.par}</div>`;
 }
 function paintBoosts() { boostEl.querySelectorAll('[data-b]').forEach(b => { const k = b.dataset.b, n = st.boosts[k] || 0, badge = b.querySelector('b'); badge.className = n ? '' : 'coin'; badge.textContent = n ? n : PRICE[k]; }); }
 
 // ---------------------------------------------------------------- start
-function startGame(kind) {
+function startGame(kind, replayN = 0) {
   if (sheetOpen()) return;
   audio.unlock(); audio.music(true);
   const fk = kind === 'level' ? F.k() : 1, seed = kind === 'daily' ? (D.seed || ymd()) * 13 + 5 : st.level * 7919 + 29, r = rng(seed);
-  const L = makeLevel(kind === 'daily' ? 14 : st.level, fk, r, { daily: kind === 'daily' });
-  game = { kind, n: kind === 'daily' ? 0 : st.level, L, jars: clone(L.jars), start: clone(L.jars), moves: 0, undos: 0, hist: [], extra: 0, t0: performance.now(), recorded: false, over: false, order: [] };
+  const lvN = kind === 'daily' ? 0 : (DEEP && replayN) ? replayN : st.level;
+  let L;
+  if (DEEP && kind === 'level' && lvN <= LEVELS.length) {
+    L = parseLevel(LEVELS[lvN - 1]); setLocks(L.seals);
+    const sol = solveShort(L.jars, 60000, 4); L.sol = sol.length; L.par = Math.round(sol.length * (L.easy ? 1.35 : 1.12) + (L.easy ? 2 : 1));
+  } else { setLocks(null); L = makeLevel(kind === 'daily' ? 14 : st.level, fk, r, { daily: kind === 'daily' }); }
+  game = { kind, n: lvN, chain: 0, bestChain: 0, lastFin: -9, replay: !!(DEEP && replayN && replayN < st.level), L, jars: clone(L.jars), start: clone(L.jars), moves: 0, undos: 0, hist: [], extra: 0, t0: performance.now(), recorded: false, over: false, order: [] };
   sel = -1; busy = false; mode = 'play'; state = 'play'; bot = { plan: null, at: performance.now() + 1500, phase: 0 };
   if (kind === 'level') M.level(st.level);
   B.start();
   home.classList.add('sb-hidden'); lview.classList.add('sb-hidden'); play.classList.remove('sb-hidden'); LD.el.classList.add('sb-hidden');
   layout(); paintGoal(); paintBoosts(); paintCoins();
   if (!reduced) jarEls.forEach((e, i) => e.animate([{ transform: 'translateY(-40px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: i * 45, easing: 'cubic-bezier(.2,1.3,.4,1)', fill: 'backwards' }));
+  if (L.authored) {
+    const w = worldOf(game.n), first = (game.n - 1) % 10 === 0 && !game.replay;
+    banner(first ? `${WORLDS[w].name}` : `Level ${game.n}`, first ? WORLDS[w].sub : L.why, L.boss ? 'navy' : 'rose');
+    if (L.fresh && !game.replay) tip(L.fresh === 'cloth' ? 'A cloth jar hides what is under its top fruit. Pour the top off to peek.' : L.fresh === 'seal2' ? 'This seal needs two finished jams to melt.' : 'A wax seal holds a jar shut. Make any jam and it melts.', 9000);
+    else if (!first) setTimeout(() => game && game.L === L && state === 'play' && !tipEl && game.moves === 0 && tip(L.why, 6000), 1800);
+  } else
   banner(kind === 'daily' ? 'Daily Puzzle' : `Level ${game.n}`, L.hard ? 'A hard one, but short' : `${L.kinds.length} jams to make`, L.hard ? 'navy' : 'rose');
   if (kind === 'level' && st.level <= 2 && !st.seenHow) tip('Tap a jar to lift its top fruit, then tap a jar with the same fruit on top, or an empty one.', 9000);
 }
@@ -243,24 +278,17 @@ addEventListener('pointerup', e => {
   const t = document.elementFromPoint(e.clientX, e.clientY), el = t && t.closest && t.closest('.ps-jar');
   if (el && +el.dataset.j !== from && sel === from) tapJar(+el.dataset.j);   // drag-and-drop pour
 });
-// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first real touch,
-// the solver lifts a jar's top fruit and pours it onto its match twice (never the last pours), so the shelf shows the move
-let demoPlan = null;
-demo(() => {
-  if (!demoPlan) demoPlan = solve(game.jars, 40000) || [];
-  if (demoPlan.length < 3) return false;
-  const [a, b] = demoPlan.shift(); if (!canPour(game.jars, a, b)) return false;
-  if (sel >= 0) { sel = -1; markSel(); } tapJar(a); setTimeout(() => { if (sel === a && state === 'play') tapJar(b); }, 550);
-}, { ready: () => mode === 'play' && state === 'play' && game && game.kind === 'level' && game.n === 1 && !busy && !card && !sheetOpen(), wait: 1800, every: 1600, max: 2 });
 function tapJar(j) {
   if (busy || state !== 'play') return; clearHint();
   const g = game, jar = g.jars[j];
   if (sel < 0) {
     if (!jar.length || done(jar)) { audio.bad(); nudge(j); return; }
+    if (sealLeft(g.jars, j)) { audio.bad(); nudge(j); toast(sealLeft(g.jars, j) > 1 ? 'Sealed: make two jams to melt it' : 'Sealed: make a jam to melt the wax'); return; }
     sel = j; audio.pick(); audio.pluck(76 + run(jar), { vol: 0.05, dur: 0.5 }); markSel(); return;
   }
   if (sel === j) { sel = -1; markSel(); audio.tap(); return; }
   if (canPour(g.jars, sel, j)) { const a = sel; sel = -1; return doPour(a, j); }
+  if (sealLeft(g.jars, j)) { audio.bad(); nudge(j); toast('That jar is sealed for now'); return; }
   // not allowed: pick the new jar instead if it has fruit, else a gentle shake
   if (jar.length && !done(jar)) { sel = j; audio.pick(); markSel(); }
   else { audio.bad(); nudge(j); toast(jar.length ? 'That jar is finished' : 'Only the same fruit can go on top'); }
@@ -273,6 +301,7 @@ async function doPour(a, b) {
   const n = Math.min(run(g.jars[a]), CAP - g.jars[b].length);
   const srcImgs = [...fromEl.querySelectorAll('.f')].slice(-n).reverse().map(im => ({ src: im.src, r: im.getBoundingClientRect(), rot: parseFloat(im.style.rotate) || 0 }));
   g.hist.push(clone(g.jars)); if (g.hist.length > 60) g.hist.shift();
+  const sealedBefore = g.jars.map((_, i) => sealLeft(g.jars, i) > 0);
   const bLen = g.jars[b].length; pour(g.jars, a, b); g.moves++;
   fromEl.classList.remove('sel'); paintJar(fromEl, a);
   // fly each fruit to its new place in an arc, then reveal
@@ -290,10 +319,30 @@ async function doPour(a, b) {
   audio.pluck(72 + bLen * 2, { vol: 0.07, dur: 0.6 });
   await Promise.all(flights); buzz(8);
   if (finished) await finishJar(b, kind);
+  if (DEEP && g.L.authored) await afterPour(finished, sealedBefore);
   paintGoal(); busy = false;
   if (won(g.jars)) return win();
   if (stuck(g.jars)) return stuckCard();
 }
+// v2: pour chains (a jam within 2 pours of the last one) and melting wax seals
+async function afterPour(finished, sealedBefore) {
+  const g = game;
+  if (finished) {
+    g.chain = (g.order.length > 1 && g.moves - g.lastFin <= 2) ? g.chain + 1 : 1; g.lastFin = g.moves; g.bestChain = Math.max(g.bestChain, g.chain);
+    if (g.chain >= 2) {
+      const w = ['', '', 'CHAIN x2!', 'CHAIN x3!', 'CHAIN x4!'][Math.min(4, g.chain)] || `CHAIN x${g.chain}!`;
+      word(w, innerWidth / 2, innerHeight * 0.3, 40 + g.chain * 6, '#b04a5c'); fx.rain(8 + g.chain * 8); buzz([14, 30, 14, 30, 22]); audio.star(Math.min(2, g.chain - 2)); fxShake(g.chain);
+      await wait(260);
+    }
+  }
+  const melted = []; g.jars.forEach((_, i) => { if (sealedBefore[i] && !sealLeft(g.jars, i)) melted.push(i); });
+  if (melted.length) {
+    audio.chime(); word('Seal melted!', innerWidth / 2, innerHeight * 0.26, 34, '#8e2f3a');
+    for (const i of melted) { paintJar(jarEls[i], i); const r = jarEls[i].getBoundingClientRect(); fx.burst(r.left + r.width / 2, r.top + r.height * 0.4, 16, { kind: 'spark', speed: 4 }); jarEls[i].classList.remove('new'); void jarEls[i].offsetWidth; jarEls[i].classList.add('new'); }
+    await wait(300);
+  }
+}
+const fxShake = n => { if (reduced) return; document.body.animate([{ transform: 'translate(0,0)' }, { transform: `translate(${-2 * n}px,${n}px)` }, { transform: `translate(${2 * n}px,${-n}px)` }, { transform: 'none' }], { duration: 260 }); };
 async function finishJar(b, kind) {
   const g = game, el = jarEls[b], r = el.getBoundingClientRect();
   // the gingham lid drops on, then it's jam
@@ -337,16 +386,29 @@ function showCard(html, onTap) {
 async function win() {
   const g = game; if (g.over) return; g.over = true; state = 'won'; busy = true;
   const ms = performance.now() - g.t0, stars = starsFor(g);
-  if (!g.recorded && g.kind === 'level') { F.level(true); g.recorded = true; }
+  if (!g.recorded && g.kind === 'level') { if (!g.replay) F.level(true); g.recorded = true; }
   audio.win(); fx.rain(40); word(g.kind === 'daily' ? 'All sorted!' : 'Pantry tidy!', innerWidth / 2, innerHeight * 0.4, 50);
   jarEls.forEach((e, i) => e.animate([{ transform: 'none' }, { transform: 'translateY(-12px)' }, { transform: 'none' }], { duration: 420, delay: i * 60 }));
-  const coins = g.kind === 'daily' ? 40 : 10 + stars * 5;
-  st.stars += stars; st.wins++;
+  const deepL = DEEP && g.kind === 'level' && g.L.authored, chainBonus = deepL && g.bestChain >= 2 ? g.bestChain * 3 : 0;
+  const coins = g.kind === 'daily' ? 40 : (deepL && g.replay ? 4 + stars * 2 : 10 + stars * 5) + chainBonus;
+  const prevBest = deepL ? (st.best[g.n] || 0) : 0, gain = deepL ? Math.max(0, stars - prevBest) : stars, par = g.L.par, over = g.moves - par;
+  st.stars += gain; st.wins++;
+  let chest = null;
+  if (deepL) {
+    st.best[g.n] = Math.max(prevBest, stars);
+    const total = Object.values(st.best).reduce((a, b) => a + b, 0), owed = Math.floor(total / 10) - st.chests;
+    if (owed > 0) {
+      st.chests += owed; const roll = Math.random();
+      chest = roll < 0.08 ? { t: 'A golden jar! +250 coins', coins: 250 } : roll < 0.4 ? { t: '+60 coins', coins: 60 } : roll < 0.6 ? { t: '+2 hints', b: 'hint', n: 2 } : roll < 0.8 ? { t: '+3 undos', b: 'undo', n: 3 } : roll < 0.92 ? { t: '+1 extra jar', b: 'jar', n: 1 } : { t: '+90 coins', coins: 90 };
+      if (chest.coins) M.add(chest.coins, 'chest'); else st.boosts[chest.b] = (st.boosts[chest.b] || 0) + chest.n;
+    }
+    g.chestInfo = { chest, to: 10 - (total % 10) };
+  }
   let stamp = null;
   if (g.kind === 'daily') { const sk = STREAK.win(); st.dLast = dayNum(); st.dRes = { stars, moves: g.moves, undos: g.undos, order: g.order.slice(), streak: sk.n, froze: sk.froze }; stamp = ALB.award(); }
-  else { st.level++; if (g.n % 2 === 0 || g.n === 1) stamp = ALB.award(); }
+  else { if (!DEEP || g.n === st.level) st.level++; if (!g.replay && (g.n % 2 === 0 || g.n === 1)) stamp = ALB.award(); }
   save(); M.add(coins, g.kind === 'daily' ? 'daily' : 'win');
-  D.won(stars, 'earned ⭐'); B.submit(stars, { ms });
+  D.won(stars, 'earned ⭐'); if (gain > 0) B.submit(gain, { ms });
   await wait(1200);
   const next = LARDER.find(it => !st.larder.includes(it.id)), canRestore = next && starsLeft() >= next.cost;
   const c = showCard(`<div class="sb-ribbon ${g.kind === 'daily' ? 'navy' : 'rose'}">${g.kind === 'daily' ? 'Daily Puzzle' : 'Level ' + g.n}</div>
@@ -355,15 +417,20 @@ async function win() {
     <div class="jams">${g.order.map((k, i) => `<img style="animation-delay:${0.9 + i * 0.08}s" src="${A('pantry/jar-' + k)}" alt="${JAM[k]}">`).join('')}</div>
     <div class="reward"><img src="${A('kit/coin')}" alt=""><span data-cw>+${coins}</span></div>
     ${stamp ? `<div class="stamp"><img src="${A('stamps/stamp-' + stamp.id)}" alt=""><div style="text-align:left"><b>New stamp!</b><br>${stamp.pageName}${stamp.bonus ? `<br>Page complete: +${stamp.bonus}` : ''}</div></div>` : ''}
+    ${deepL ? `${stars < 3 ? `<p class="ps-close">SO CLOSE: ${over > 0 && over <= 4 ? over + ' pour' + (over > 1 ? 's' : '') + ' too many for 3 stars' : 'solve it in ' + par + ' pours for 3 stars'}</p>` : `<p class="ps-close ok">Perfect shelf!</p>`}
+      ${g.bestChain >= 2 ? `<p style="margin:2px 0">🍓 Best chain x${g.bestChain}: +${chainBonus} coins</p>` : ''}
+      ${chest ? `<div class="ps-chest open">🎁 Chest! ${chest.t}</div>` : `<div class="ps-chest"><i style="width:${(10 - g.chestInfo.to) * 10}%"></i><span>🎁 ${g.chestInfo.to} star${g.chestInfo.to > 1 ? 's' : ''} to the next chest</span></div>`}` : ''}
     ${g.kind === 'daily' ? `<p style="margin:4px 0">🔥 ${st.dRes.streak}-day streak${st.dRes.froze ? ' (your weekly freeze kept it)' : ''}</p>` : ''}
     <div class="stack">
       <button class="sb-btn rose" data-stop data-double><img src="${A('icons/video')}" alt=""><span>Double coins<small>short video · +${coins} more</small></span></button>
       ${g.kind === 'daily' ? `<button class="sb-btn" data-stop data-share><img src="${A('icons/share')}" alt="">Share result</button>` : ''}
+      ${deepL && stars < 3 ? `<button class="sb-btn gold" data-act="again"><img src="${A('icons/shuffle')}" alt="">Try for 3 stars</button>` : ''}
       <button class="sb-btn navy big" data-act="${g.kind === 'level' ? 'next' : 'home'}">${g.kind === 'level' ? 'Next level' : 'Continue'}</button>
       ${canRestore ? `<button class="sb-btn sage" data-act="larder"><img src="${A('kit/star-full')}" alt="">Restore the larder</button>` : `<button class="lnk" data-act="home">Home</button>`}
     </div>`, async act => {
       state = 'ready';
-      if (act === 'next') { await M.breakAd('level-end', { level: g.n }); startGame('level'); }
+      if (act === 'again') startGame('level', g.n);
+      else if (act === 'next') { await M.breakAd('level-end', { level: g.n }); startGame('level'); }
       else if (act === 'larder') { await M.breakAd('level-end', { level: g.n }); leaveToHome(); openLarder(); }
       else { if (g.kind === 'level') await M.breakAd('level-end', { level: g.n }); leaveToHome(); }
     });
@@ -419,7 +486,7 @@ async function stuckCard() {
 // ---------------------------------------------------------------- home + larder
 function leaveToHome() {
   if (card) { card.remove(); card = null; }
-  if (game && !game.recorded && game.kind === 'level' && game.moves > 0 && !game.over) { F.level(false, game.jars.filter(done).length / game.L.kinds.length); game.recorded = true; }
+  if (game && !game.recorded && !game.replay && game.kind === 'level' && game.moves > 0 && !game.over) { F.level(false, game.jars.filter(done).length / game.L.kinds.length); game.recorded = true; }
   game = null; mode = 'title'; state = 'ready'; sel = -1;
   play.classList.add('sb-hidden'); lview.classList.add('sb-hidden'); home.classList.remove('sb-hidden'); LD.el.classList.remove('sb-hidden');
   BG.show('pantry-sort'); layoutHome(); const nx = LARDER.find(it => !st.larder.includes(it.id)); LD.set(st.larder, nx ? nx.id : null); paintHome(); audio.music(true);
@@ -428,6 +495,7 @@ function paintHome() {
   qa('[data-stars]').forEach(e => e.textContent = starsLeft());
   const next = LARDER.find(it => !st.larder.includes(it.id));
   q(home, '[data-play]').innerHTML = `<img src="${A('icons/play')}" alt="">Play · Level ${st.level}`;
+  paintMap();
   q(home, '[data-dsub]').textContent = st.dLast === dayNum() ? 'done ✓' : STREAK.n ? `🔥 ${STREAK.n} days` : 'new today';
   q(home, '[data-acount]').textContent = `${ALB.count} of 24${ALB.fresh ? ' · new' : ''}`;
   q(home, '[data-streak]').innerHTML = STREAK.n > 1 ? `<div class="sb-ribbon" style="display:inline-grid;font-size:calc(19px*var(--fs));height:60px;min-width:230px;margin-top:6px"><span><small>daily streak</small>${STREAK.n} days</span></div>` : '';
@@ -436,6 +504,17 @@ function paintHome() {
   q(home, '[data-limg]').src = A(next ? next.src : 'kit/rosette');
   q(home, '.ps-card').style.borderColor = next && starsLeft() >= next.cost ? '#b08834' : '';
   paintCoins();
+}
+let mapW = -1;
+function paintMap() {
+  const el = q(home, '[data-map]'); if (!DEEP) { el.style.display = 'none'; return; }
+  if (mapW < 0) mapW = Math.min(2, worldOf(Math.min(st.level, LEVELS.length)));
+  const W = WORLDS[mapW], tot = Object.values(st.best).reduce((a, b) => a + b, 0), done = LEVELS.filter(l => (st.best[l.n] || 0) > 0).length;
+  const nodes = LEVELS.slice(mapW * 10, mapW * 10 + 10).map(l => { const b = st.best[l.n] || 0, cur = l.n === st.level, open = l.n <= st.level;
+    return `<button class="nd${cur ? ' cur' : ''}${open ? '' : ' lock'}${l.boss ? ' boss' : ''}" data-n="${l.n}" ${open ? '' : 'disabled'} aria-label="Level ${l.n}${b ? ', ' + b + ' stars' : ''}"><b>${open ? l.n : '·'}</b><i>${open ? '★'.repeat(b) + '<u>' + '★'.repeat(3 - b) + '</u>' : ''}</i></button>`; }).join('');
+  el.innerHTML = `<div class="hd"><button data-mw="-1" ${mapW ? '' : 'disabled'} aria-label="Previous shelf">‹</button><span><b>${W.name}</b><small>${done} of ${LEVELS.length} shelves · ★ ${tot} of ${LEVELS.length * 3}</small></span><button data-mw="1" ${mapW < 2 ? '' : 'disabled'} aria-label="Next shelf">›</button></div><div class="row">${nodes}</div>`;
+  el.querySelectorAll('[data-mw]').forEach(b => b.onclick = () => { audio.tap(); mapW += +b.dataset.mw; paintMap(); layoutHome(); });
+  el.querySelectorAll('[data-n]').forEach(b => b.onclick = () => { audio.tap(); const n = +b.dataset.n; startGame('level', n === st.level ? 0 : n); });
 }
 function openLarder() {
   if (sheetOpen()) return;
@@ -471,6 +550,7 @@ function openLarder() {
 
 // ---------------------------------------------------------------- QA hooks
 window.__game = {
+  go(n) { if (card) { card.remove(); card = null; } state = 'ready'; busy = false; startGame('level', n); }, get best() { return st.best; },
   get state() { return state; }, get level() { return game ? (game.kind === 'level' ? game.n : 1) : st.level; }, get score() { return st.stars; },
   bot() {
     const now = performance.now();

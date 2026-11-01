@@ -6,11 +6,18 @@ export const CAP = 4;
 export const KINDS = ['strawberry', 'blueberry', 'apricot', 'lemon', 'plum', 'lime', 'rhubarb', 'honey'];
 export const JAM = { strawberry: 'Strawberry Jam', blueberry: 'Blueberry Jam', apricot: 'Apricot Jam', lemon: 'Lemon Curd', plum: 'Plum Jam', lime: 'Lime Marmalade', rhubarb: 'Rhubarb Jam', honey: 'Heather Honey' };
 
+// v2 rules: wax-sealed jars. LOCKS maps a jar index to how many finished jars it takes to melt its seal (nothing goes in or out
+// until then). Set per level with setLocks(); jars added later (extra jar) have no seal.
+let LOCKS = new Map();
+export function setLocks(m) { LOCKS = new Map(m || []); }
+
 export const top = j => j.length ? j[j.length - 1] : null;
 export const done = j => j.length === CAP && j.every(k => k === j[0]);
 export function run(j) { if (!j.length) return 0; const t = top(j); let n = 0; for (let i = j.length - 1; i >= 0 && j[i] === t; i--) n++; return n; }
+export const sealLeft = (J, i) => { const n = LOCKS.get(i); return n ? Math.max(0, n - J.filter(done).length) : 0; };
 export function canPour(J, a, b) {
   if (a === b) return false; const A = J[a], Bj = J[b];
+  if (LOCKS.size && (sealLeft(J, a) || sealLeft(J, b))) return false;
   if (!A.length || done(A) || Bj.length >= CAP) return false;
   return !Bj.length || top(Bj) === top(A);
 }
@@ -29,7 +36,7 @@ export const won = J => J.every(j => !j.length || done(j));
 export const clone = J => J.map(j => j.slice());
 export function moves(J) { const out = []; for (let a = 0; a < J.length; a++) for (let b = 0; b < J.length; b++) if (useful(J, a, b)) out.push([a, b]); return out; }
 export const stuck = J => !won(J) && moves(J).length === 0;
-const key = J => J.map(j => j.join(',')).sort().join('|');
+const key = J => LOCKS.size ? J.map(j => j.join(',')).join('|') : J.map(j => j.join(',')).sort().join('|');
 
 /** depth-first solver with a visited set; returns a list of [a,b] moves or null. Good moves first. */
 export function solve(J0, limit = 60000) {
@@ -87,4 +94,21 @@ export function makeLevel(n, fk = 1, rnd, { daily = false } = {}) {
   const J = pick.map(k => [k, k, k]); const rest = pick.slice(); J.push([]); J.push([]);
   rest.forEach((k, i) => J[(i + 1) % pick.length].length < CAP ? J[(i + 1) % pick.length].push(k) : J[J.length - 1].push(k));
   return { n, easy, hard, daily, kinds: pick, jars: J, par: kinds * 3, sol: kinds * 2 };
+}
+
+/** shortest-ish solution: the first solve, then shorter ones by depth-limited search until none is found (used for stars) */
+export function solveShort(J0, limit = 60000, tries = 6) {
+  let best = solve(J0, 400000); if (!best) return null;
+  for (let t = 0; t < tries && best.length > 2; t++) {
+    const bound = best.length - 1, seen = new Map(); let nodes = 0, found = null; const path = [];
+    const dfs = (J, d) => {
+      if (won(J)) { found = path.slice(); return true; }
+      if (d >= bound || ++nodes > limit) return false;
+      const k = key(J); if (seen.has(k) && seen.get(k) <= d) return false; seen.set(k, d);
+      for (const [a, b] of moves(J)) { const T = clone(J); pour(T, a, b); path.push([a, b]); if (dfs(T, d + 1)) return true; path.pop(); }
+      return false;
+    };
+    dfs(clone(J0), 0); if (!found) break; best = found;
+  }
+  return best;
 }
