@@ -4,6 +4,11 @@ import { flow } from './kit/flow.js';
 
 import { board } from './kit/board.js';
 import { demo } from './kit/demo.js';
+import { ab } from './kit/xp.js';
+import { meta, SKINS, openMap, closeMap, mapButton } from './deep.js';
+import { LEVELS, WORLDS, SEG as DSEG, levelRows, dailyRows } from './levels.js';
+const READY = true;
+const DEEP = (READY && ab('deep-twist-drop')) || (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) && /[?&]deep=1/.test(location.search));
 const WB = board({ game: 'twist-drop', label: 'Levels cleared', limits: { maxRun: 1, maxPerSec: 0.4 }, mode: 'sum' });
 const $ = (id) => document.getElementById(id);
 const SEG = 12, SEGA = Math.PI * 2 / SEG, GAP = 3.2, R_OUT = 2.25, R_IN = 0.55, THICK = 0.36, BALL_R = 0.3, BALL_D = 1.45;
@@ -52,6 +57,7 @@ function sliceGeo() {
 const SLICE = sliceGeo();
 const SPLAT = new THREE.CircleGeometry(0.34, 18);
 const SHARD = new THREE.BoxGeometry(0.22, 0.12, 0.22);
+const GEM = new THREE.OctahedronGeometry(0.3), GEMMAT = new THREE.MeshStandardMaterial({ color: '#41e1ff', emissive: '#1aa6d8', emissiveIntensity: 0.9, roughness: 0.1 });
 
 let pal, mats;
 function makeMats(p) {
@@ -61,6 +67,9 @@ function makeMats(p) {
     finish: new THREE.MeshStandardMaterial({ color: '#ffd23f', roughness: 0.3, metalness: 0.35, emissive: '#7a5200', emissiveIntensity: 0.25 }),
     pole: new THREE.MeshStandardMaterial({ color: p.pole, roughness: 0.55, emissive: p.pole, emissiveIntensity: 0.18 }),
     ball: new THREE.MeshStandardMaterial({ color: p.ball, roughness: 0.22, metalness: 0.1, emissive: '#000000' }),
+    crumble: new THREE.MeshStandardMaterial({ color: '#d9f3ff', roughness: 0.15, metalness: 0.1, emissive: '#7fc8ff', emissiveIntensity: 0.25 }),
+    blink: new THREE.MeshStandardMaterial({ color: '#ff3b6b', roughness: 0.3, emissive: '#ff0040', emissiveIntensity: 0.6 }),
+    bump: new THREE.MeshStandardMaterial({ color: '#ff9f1c', roughness: 0.25, emissive: '#ff6a00', emissiveIntensity: 0.55 }),
     splat: new THREE.MeshBasicMaterial({ color: p.ball, transparent: true, opacity: 0.95, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }),
   };
 }
@@ -68,23 +77,28 @@ function makeMats(p) {
 // ---------- world state
 const tower = new THREE.Group(); scene.add(tower);
 const F = flow('twist');
-let pole, rings = [], ball, ballShadowCaster, level = +(localStorage.getItem('twist_level') || 1), best = +(localStorage.getItem('twist_best') || 0);
+let isDaily = false, gemsGot = 0, gemMeshes = [], freeze = 0, def = null, lastStars = 0, lastBox = null;
+let pole, rings = [], ball, ballShadowCaster, level = DEEP ? Math.min(meta.cur, meta.frontier(), 30) : +(localStorage.getItem('twist_level') || 1), best = +(localStorage.getItem('twist_best') || 0);
 let score = 0, combo = 0, fire = false, state = 'ready', vy = 0, by = 0, squash = 0, camY = 0, shards = [], trail = [], passed = 0;
 
 function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
 function buildLevel() {
-  pal = PALETTES[(level - 1) % PALETTES.length];
+  pal = DEEP ? PALETTES[((isDaily ? 1 : WORLDS[Math.min(2, Math.floor((level - 1) / 10))].pal) + (level % 2)) % PALETTES.length] : PALETTES[(level - 1) % PALETTES.length];
+  if (DEEP) pal = { ...pal, ball: SKINS[meta.skin].c };
   mats = makeMats(pal);
   document.body.style.setProperty('--bg1', pal.bg[0]); document.body.style.setProperty('--bg2', pal.bg[1]); document.body.style.setProperty('--ui', pal.ui);
   for (const r of rings) tower.remove(r.group);
   if (pole) tower.remove(pole);
   rings = []; shards.forEach(s => scene.remove(s.m)); shards = [];
-  const r = rng(level * 9973 + 17), count = 10 + Math.min(level * 2, 26), fk = F.k();
+  gemMeshes.forEach(g => scene.remove(g)); gemMeshes = []; gemsGot = 0;
+  if (DEEP) def = isDaily ? dailyRows(new Date().toISOString().slice(0, 10)) : level <= 30 ? levelRows(level) : dailyRows('encore' + level);
+  const r = rng(level * 9973 + 17), count = DEEP ? def.rows.length : 10 + Math.min(level * 2, 26), fk = F.k();
   pole = new THREE.Mesh(new THREE.CylinderGeometry(R_IN + 0.02, R_IN + 0.02, count * GAP + 12, 32), mats.pole);
   pole.position.y = -(count * GAP) / 2 + 2; pole.receiveShadow = true; tower.add(pole);
   for (let i = 0; i <= count; i++) {
     const finish = i === count, kinds = new Array(SEG).fill('safe');
-    if (!finish) {
+    if (DEEP && !finish) { const NAME = { '.': 'safe', _: 'gap', x: 'danger', c: 'crumble', z: 'blink', b: 'bump' }; def.rows[i].k.split('').forEach((c, j) => kinds[j] = NAME[c]); }
+    else if (!finish) {
       const gLen = 1 + Math.floor(r() * (level < 3 ? 3 : 2)), gStart = Math.floor(r() * SEG);
       for (let k = 0; k < gLen; k++) kinds[(gStart + k) % SEG] = 'gap';
       if (i > 0) {
@@ -96,15 +110,24 @@ function buildLevel() {
       }
     }
     const group = new THREE.Group(); group.position.y = -i * GAP; group.rotation.y = r() * Math.PI * 2;
+    const spin = DEEP && !finish ? def.rows[i].spin : 0;
+    const golden = DEEP && !finish && level >= 4 && i > 2 && i % 8 === 5 && kinds.includes('gap');
+    const goldMat = golden ? (mats.gold || (mats.gold = mats.safe.clone())) : null; if (golden) { goldMat.color.set('#ffc300'); if (goldMat.emissive) goldMat.emissive.set('#553c00'); }
     const slices = [];
     kinds.forEach((k, s) => {
       if (k === 'gap') return;
-      const m = new THREE.Mesh(SLICE, finish ? mats.finish : mats[k]);
+      const m = new THREE.Mesh(SLICE, finish ? mats.finish : (golden && k === 'safe') ? goldMat : mats[k]);
       m.rotation.y = s * SEGA; m.castShadow = true; m.receiveShadow = true;
       group.add(m); slices.push({ m, k: finish ? 'finish' : k, s });
     });
     tower.add(group);
-    rings.push({ group, kinds, slices, y: -i * GAP, finish, done: false });
+    const ringObj = { group, kinds, slices, y: -i * GAP, finish, done: false, spin, golden };
+    if (DEEP && !finish && def.gems.has(i)) {   // a gem hangs in the middle of the gap
+      let gs = 0; while (!(kinds[gs] === 'gap' && kinds[(gs + SEG - 1) % SEG] !== 'gap')) gs++; let w = 0; while (kinds[(gs + w) % SEG] === 'gap') w++;
+      const a = (gs + w / 2) * SEGA + SEGA * 0, gem = new THREE.Mesh(GEM, GEMMAT);
+      gem.position.set(Math.cos(a) * BALL_D, 0.9, -Math.sin(a) * BALL_D); group.add(gem); ringObj.gem = gem; gemMeshes.push(gem);
+    }
+    rings.push(ringObj);
   }
   if (!ball) {
     ball = new THREE.Mesh(new THREE.SphereGeometry(BALL_R, 32, 24), mats.ball); ball.castShadow = true; scene.add(ball);
@@ -173,8 +196,9 @@ function shatter(ring, strength = 1) {
   ring.slices = [];
 }
 function burst(color, n = 18) {
+  const bm = new THREE.MeshStandardMaterial({ color, transparent: true, roughness: 0.4 });
   for (let i = 0; i < n; i++) {
-    const m = new THREE.Mesh(SHARD, new THREE.MeshStandardMaterial({ color, transparent: true, roughness: 0.4 }));
+    const m = new THREE.Mesh(SHARD, bm);
     m.position.copy(ball.position);
     const a = Math.random() * 6.28;
     shards.push({ m, v: new THREE.Vector3(Math.cos(a) * 0.08, 0.06 + Math.random() * 0.08, Math.sin(a) * 0.08), spin: 0.3, life: 1 }); scene.add(m);
@@ -194,29 +218,39 @@ addEventListener('pointerup', () => { dragX = null; });
 
 function tapped() {
   if (state === 'ready') { state = 'play'; WB.start(); $('start').classList.add('hidden'); tone(520, 0.06); }
-  else if (state === 'won') { level++; localStorage.setItem('twist_level', level); $('win').classList.add('hidden'); buildLevel(); state = 'play'; WB.start(); }
-  else if (state === 'lost') { score = 0; $('lose').classList.add('hidden'); buildLevel(); state = 'play'; WB.start(); }
+  else if (state === 'won') { if (DEEP) { if (!isDaily) level = Math.min(level + 1, 99); isDaily = false; } else { level++; localStorage.setItem('twist_level', level); } $('win').classList.add('hidden'); buildLevel(); state = 'play'; WB.start(); }
+  else if (state === 'lost' && (DEEP || !$('lose').classList.contains('hidden'))) { score = 0; $('lose').classList.add('hidden'); buildLevel(); state = 'play'; WB.start(); }
 }
 
 function lose() {
   state = 'lost'; F.level(false, passed / (rings.length - 1)); buzz([40, 30, 60]); tone(140, 0.35, 'square', 0.12); burst(pal.ball, 22); ball.visible = false;
   setTimeout(() => {
-    const pct = Math.round(passed / (rings.length - 1) * 100);
-    $('losePct').textContent = `${pct}% completed`;
+    if (state !== 'lost') return;
+    const pct = Math.round(passed / (rings.length - 1) * 100), left = rings.length - 1 - passed;
+    let pb = 0; if (DEEP) { try { const k = 'td_pb' + level; pb = +(localStorage.getItem(k) || 0); if (pct > pb) { localStorage.setItem(k, pct); } } catch (e) {} }
+    $('losePct').textContent = DEEP ? (left <= 3 ? `SO CLOSE! ${left} ring${left === 1 ? '' : 's'} to go` : `${left} rings short · ${pct}%`) + (pb ? `\nbest ${Math.max(pb, pct)}%` : '') + (meta.streak > 0 || meta.dailyDone() ? '\n' + meta.tomorrow() : '') : `${pct}% completed`;
     $('lose').classList.remove('hidden');
-  }, 700);
+  }, DEEP ? 300 : 700);
 }
 function win() {
-  state = 'won'; F.level(true); WB.submit(1); score += 50 * level; best = Math.max(best, score); localStorage.setItem('twist_best', best);
-  $('score').textContent = score; $('winLv').textContent = level; tone(660, 0.12); setTimeout(() => tone(880, 0.18), 120);
+  state = 'won'; F.level(true); WB.submit(1); score += 50 * level;
+  if (DEEP) {
+    const st = 1 + (gemsGot >= 2 ? 1 : 0) + (gemsGot >= 3 ? 1 : 0); lastBox = null;
+    if (isDaily) meta.clearDaily(st); else { const c = meta.clear(level, st); lastBox = c.box; }
+    lastStars = st; const box = lastBox !== null ? `\n🎁 NEW BALL: ${SKINS[lastBox].n}!` : `\n${meta.toNextBox()} ⭐ to a 🎁`;
+    $('winStars').textContent = '★'.repeat(st) + '☆'.repeat(3 - st) + `   💎 ${gemsGot}/3` + (gemsGot < 3 ? '' : '  PERFECT') + box;
+    if (lastBox !== null) { meta.skin = lastBox; meta.save(); }
+    freeze = 6; for (let i = 0; i < st; i++) setTimeout(() => tone(700 + i * 160, 0.14), 250 + i * 160);
+  } best = Math.max(best, score); localStorage.setItem('twist_best', best);
+  $('score').textContent = score; $('winLv').textContent = isDaily ? 'DAILY' : level; tone(660, 0.12); setTimeout(() => tone(880, 0.18), 120);
   buzz([20, 40, 20]); $('flash').style.opacity = 0.7; setTimeout(() => $('flash').style.opacity = 0, 120);
   for (let i = 0; i < 3; i++) setTimeout(() => burst(['#ffd23f', pal.safe, '#ffffff'][i], 26), i * 140);
-  setTimeout(() => $('win').classList.remove('hidden'), 650);
+  setTimeout(() => { if (state === 'won') $('win').classList.remove('hidden'); }, 650);
 }
 
 // the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on level 1, until the first touch,
 // the title lifts, and the tower twists by itself while the ball rises so it drops through two gaps onto safe slices
-const DM = demo(null, { ready: () => (state === 'play' || state === 'ready') && level === 1 && passed < 2 && dragX === null, wait: 1500, ms: 4500 });
+const DM = demo(null, { ready: () => (state === 'play' || state === 'ready') && level === 1 && passed < (DEEP ? 6 : 4) && dragX === null, wait: DEEP ? 900 : 1500, ms: DEEP ? 11000 : 7500 });
 let demoRot = null;
 function sliceAt(ring, rot) {
   tmp.set(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), -(rot + ring.group.rotation.y));
@@ -235,17 +269,33 @@ function demoTarget() {
   return best;
 }
 
+const blinkLit = () => Math.floor(performance.now() / 1000) % 2 === 0;
+// ---------- deep: map / daily
+const mapBtn = DEEP ? mapButton(() => { if (state !== 'play') openMap(pickLevel, (i) => { if (mats) mats.ball.color.set(SKINS[i].c); }); }) : null;
+function pickLevel(n) {
+  isDaily = n === 'daily'; if (!isDaily) level = n;
+  closeMap(); $('win').classList.add('hidden'); $('lose').classList.add('hidden'); $('start').classList.add('hidden');
+  score = 0; buildLevel(); state = 'play'; WB.start(); $('lvA').textContent = isDaily ? '★' : level; $('lvB').textContent = isDaily ? '' : level + 1;
+}
 // ---------- main loop
 let last = performance.now();
 function frame(t) {
   const dt = Math.min(2.2, (t - last) / 16.67); last = t;
   if (dragX === null && state === 'play') { tower.rotation.y += twistV; twistV *= 0.86; }   // a little flick momentum
   if (DM.on && state === 'ready') { state = 'play'; WB.start(); $('start').classList.add('hidden'); }   // nobody tapped the title: start the bouncing
-  if (DM.on && state === 'play' && passed < 2) {
+  if (DM.on && state === 'play' && passed < (DEEP ? 6 : 2)) {
     if (vy > JUMP * 0.85 && demoRot === null) demoRot = demoTarget();
     if (vy > 0 && demoRot !== null) { const d = demoRot - tower.rotation.y; tower.rotation.y += Math.sign(d) * Math.min(Math.abs(d), 0.45 * dt); twistV = 0; }
     if (vy <= 0) demoRot = null;
   }
+  if (DEEP) {
+    for (const r of rings) if (r.spin && !r.done) r.group.rotation.y += r.spin * dt;
+    for (const g of gemMeshes) { g.rotation.y += 0.05 * dt; g.position.y = 0.9 + Math.sin(t / 250 + g.id) * 0.08; }
+    if (mats) { const lit = blinkLit(); mats.blink.emissiveIntensity = lit ? 1.1 : 0.05; mats.blink.color.set(lit ? '#ff3b6b' : '#ffd9e2'); }
+    if (SKINS[meta.skin].rainbow && ball) ball.material.color.setHSL((t / 1500) % 1, 0.9, 0.6);
+    if (mapBtn) { const want = state === 'play' ? 'none' : ''; if (mapBtn.style.display !== want) mapBtn.style.display = want; }
+  }
+  if (freeze > 0) { freeze -= dt; renderer.render(scene, camera); requestAnimationFrame(frame); return; }
   if (state === 'play') {
     const prev = by;
     vy = Math.max(MAXFALL, vy + GRAV * dt); by += vy * dt * 1.0;
@@ -257,8 +307,11 @@ function frame(t) {
         if (kind === 'gap') {                                           // fall through: shatter the ring behind us
           combo++; passed++; const pts = combo * level; score += pts; $('score').textContent = score;
           shatter(ring, 1); tone(300 + combo * 70, 0.07, 'triangle', 0.14);
-          if (combo >= 2) pop('+' + pts, '#fff', 28 + combo * 3, 19);
+          if (ring.gem) { gemsGot++; scene.remove(ring.gem); ring.group.remove(ring.gem); score += 25 * level; $('score').textContent = score; pop('💎 ' + gemsGot + '/3', '#41e1ff', 34, 27); tone(900 + gemsGot * 150, 0.2, 'sine', 0.16); buzz(15); burst('#41e1ff', 16); }
+          if (ring.golden) { score += 100 * level; $('score').textContent = score; pop('GOLDEN RING! +' + 100 * level, '#ffc300', 40, 24); tone(1200, 0.3, 'sine', 0.16); burst('#ffc300', 20); buzz(20); }
+          if (combo >= 2) pop(DEEP && combo >= 5 ? `x${combo}  +${pts}` : '+' + pts, combo >= 5 ? '#ffd23f' : '#fff', Math.min(60, 28 + combo * 3), 19);
           if (combo === 3) setFire(true);
+          if (DEEP && (combo === 8 || combo === 12 || combo === 16)) { pop(combo === 8 ? 'UNSTOPPABLE!' : combo === 12 ? 'LEGEND!' : 'GODLIKE!', '#ffd23f', 54, 14); buzz([15, 30, 15]); $('flash').style.opacity = 0.3; setTimeout(() => $('flash').style.opacity = 0, 90); tone(1000 + combo * 30, 0.25, 'sine', 0.16); }
           continue;
         }
         if (kind === 'finish') { by = top; vy = 0; splat(ring); return win(), requestAnimationFrame(frame); }
@@ -266,10 +319,15 @@ function frame(t) {
           shatter(ring, 1.8); passed++; score += 10 * level; $('score').textContent = score;
           pop(['SMASH!', 'BOOM!', 'WOW!'][Math.floor(Math.random() * 3)], '#ffb703', 42, 19);
           buzz(25); tone(90, 0.2, 'square', 0.15); $('flash').style.opacity = 0.35; setTimeout(() => $('flash').style.opacity = 0, 80);
-          setFire(false); combo = 0; by = top; vy = JUMP * 0.7; squash = 1;
+          setFire(false); combo = 0; by = top; vy = JUMP * 0.7; squash = 1; if (DEEP) freeze = 4;
           continue;
         }
-        if (kind === 'danger') { by = top; return lose(), requestAnimationFrame(frame); }
+        if (kind === 'danger' || (kind === 'blink' && blinkLit())) { by = top; if (DEEP) pop(kind === 'danger' ? 'RED SLICE!' : 'BLINK HIT!', '#ff4d4d', 40, 22); return lose(), requestAnimationFrame(frame); }
+        if (kind === 'crumble') {                                        // bounces once, then the slice breaks into a hole
+          const sl = ring.slices.find(q => q.s === s); if (sl) { ring.group.remove(sl.m); ring.slices.splice(ring.slices.indexOf(sl), 1); ring.kinds[s] = 'gap'; burst('#bfe9ff', 10); }
+          by = top; vy = JUMP; squash = 1; combo = 0; tone(560, 0.09, 'triangle', 0.14); buzz(12); pop('crack!', '#bfe9ff', 22, 24); break;
+        }
+        if (kind === 'bump') { by = top; vy = JUMP * 1.75; squash = 1.4; combo = 0; score += 5; $('score').textContent = score; tone(300, 0.2, 'sine', 0.2); setTimeout(() => tone(620, 0.15, 'sine', 0.15), 60); buzz(20); pop('BOING', '#ff9f1c', 30, 24); break; }
         by = top; vy = JUMP; squash = 1; combo = 0; splat(ring); tone(420, 0.06, 'sine', 0.12); buzz(8);
         break;
       }
@@ -305,7 +363,7 @@ buildLevel();
 requestAnimationFrame(frame);
 
 // test hooks for automated QA
-window.__twist = { get state() { return state; }, get passed() { return passed; }, get score() { return score; }, get level() { return level; },
+window.__twist = { get deep() { return DEEP; }, go(n) { pickLevel(n); }, get gems() { return gemsGot; }, get stars() { return meta.stars; }, get rings() { return rings.length; }, get lastStars() { return lastStars; }, get state() { return state; }, get passed() { return passed; }, get score() { return score; }, get level() { return level; },
   aim() { const r = rings.find(r => !r.done && r.y < by + 0.01 && !r.finish) || rings.find(r => !r.done); if (!r) return; const g = r.kinds.indexOf('gap'); if (g < 0) return;
     // rotate so the gap's centre sits at the ball (+Z): shape angle of +Z is 3π/2
     tower.rotation.y = 3 * Math.PI / 2 - (g + 0.5) * SEGA - r.group.rotation.y; } };
