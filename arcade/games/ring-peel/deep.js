@@ -221,6 +221,7 @@ const ringColor = i => { const k = rings[i].kind; return k === 2 && rings[i].hp 
 const SHN = 420;
 const shardMesh = new THREE.InstancedMesh(rounded(0.62, 0.34, 0.28, 0.06), mat('#ffffff'), SHN);
 shardMesh.castShadow = true; shardMesh.frustumCulled = false; scene.add(shardMesh);
+shardMesh.setColorAt(0, new THREE.Color('#ffffff')); // instanceColor from boot, so the first shatter doesn't build a new shader mid-play
 const shards = []; for (let i = 0; i < SHN; i++) shards.push({ life: 0, p: new THREE.Vector3(), v: new THREE.Vector3(), r: new THREE.Euler(), w: new THREE.Vector3(), s: 1 });
 let shi = 0;
 const _c = new THREE.Color();
