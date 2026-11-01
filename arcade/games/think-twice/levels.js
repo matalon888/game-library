@@ -41,6 +41,8 @@ export const LEVELS = [
     const big = S.obj(`<circle r="560" fill="#ff8a3d" class="ink"/><path d="M0 -560 V560 M-560 0 H560" stroke="${INK}" stroke-width="4" fill="none"/>
       <path d="M-330 -452 Q-120 -300 -230 0 M330 -452 Q120 -300 230 0" stroke="${INK}" stroke-width="4" fill="none"/><ellipse cx="-160" cy="-520" rx="70" ry="14" fill="#ffb27a" opacity=".7"/>`, 180, 905);
     S.big = big; S.interact(big, { tap: () => S.win(180, 300) });
+    const peek = () => { if (!big.parentNode) return; big.to({ y: 855 }, 380, S.easeBack).then(() => big.to({ y: 905 }, 500, S.easeInOut)).then(() => setTimeout(peek, 3500)); };
+    setTimeout(peek, 4500);
     const bs = [['tennis', 26, 76, 150], ['beach', 46, 208, 118], ['basket', 34, 290, 232], ['marble', 13, 128, 262]];
     for (const [k, r, x, y] of bs) { const g = S.obj(shadow(r * .9, 5, r + 12) + ball[k](r), x, y); S.interact(g, { tap: () => S.wrong(x, y) }); g.to({ y: y - 6 }, 900 + r * 10, S.easeInOut); }
   },
@@ -190,11 +192,11 @@ export const LEVELS = [
       <circle cx="0" cy="-8" r="12" fill="#ff5d6c" class="thin"/><path d="M-5 -14 q5 -10 9 2 q4 -6 2 6 q-6 8 -11 -8z" fill="#ffd84d"/>`, 90, 270);
     const candle = S.obj(`<rect x="-20" y="-80" width="40" height="80" rx="6" fill="#fff" class="ink"/><path d="M-20 -62 q10 8 20 0 q10 -6 20 4" fill="none" stroke="#ffd0d6" stroke-width="5"/><path d="M0 -80 V-94" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>
       <g class="fl" opacity="0"><path d="M0 -94 q-14 -16 0 -40 q14 24 0 40z" fill="#ffb300" class="thin"/><path d="M0 -98 q-6 -8 0 -20 q6 12 0 20z" fill="#fff6a8"/></g><ellipse cy="0" rx="34" ry="5" fill="rgba(0,0,0,.08)"/>`, 262, 300);
-    const match = S.obj(`<rect x="-32" y="-3.5" width="62" height="7" rx="3" fill="#f6d39a" class="thin"/><ellipse cx="32" rx="8" ry="6.5" fill="#d7263d" class="thin"/><g class="mf" opacity="0"><path d="M36 -4 q-4 -16 10 -30 q6 18 -4 30z" fill="#ffb300" class="thin"/></g>`, 96, 236, { r: -10 });
+    const match = S.obj(`<rect x="-44" y="-26" width="100" height="52" fill="#000" opacity="0.001"/><rect x="-32" y="-3.5" width="62" height="7" rx="3" fill="#f6d39a" class="thin"/><ellipse cx="32" rx="8" ry="6.5" fill="#d7263d" class="thin"/><g class="mf" opacity="0"><path d="M36 -4 q-4 -16 10 -30 q6 18 -4 30z" fill="#ffb300" class="thin"/></g>`, 96, 236, { r: -10 });
     S.match = match; let lit = false;
     const head = () => ({ x: match._t.x + 32, y: match._t.y });
     S.interact(match, { drag: {
-      move: () => { const h = head(); if (!lit && h.x > 40 && h.x < 140 && h.y > 276 && h.y < 306) { lit = true; match.querySelector('.mf').setAttribute('opacity', 1); tone(1800, .18, 'sawtooth', .05, .3); buzz(20); S.good(h.x, h.y); } },
+      move: () => { const h = head(); if (!lit && h.x > 10 && h.x < 190 && h.y > 250 && h.y < 340) { lit = true; match.querySelector('.mf').setAttribute('opacity', 1); tone(1800, .18, 'sawtooth', .05, .3); buzz(20); S.good(h.x, h.y); } },
       drop: (g) => { g.set({ r: 0 }); const h = head(); if (Math.hypot(h.x - 262, h.y - 194) < 46) { if (!lit) { S.nope('It\'s not lit…', 262, 150); return false; } candle.querySelector('.fl').setAttribute('opacity', 1); g.to({ x: 330, y: 300, r: 30 }, 400); S.win(262, 160); return true; } return true; } } });
     S.tick(() => { const f = candle.querySelector('.fl'); f.setAttribute('transform', `scale(${1 + Math.sin(performance.now() / 90) * .05},1)`); });
   },

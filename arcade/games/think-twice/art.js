@@ -26,7 +26,8 @@ function headParts(mood, flipHair) {
   <path d="${flipHair ? 'M34 -150 Q38 -186 4 -182 Q-6 -196 -16 -184 Q-24 -194 -26 -180 Q-40 -170 -34 -152 Q-20 -164 -4 -160 Q10 -170 34 -150Z' : 'M-34 -150 Q-38 -186 -4 -182 Q6 -196 16 -184 Q24 -194 26 -180 Q40 -170 34 -152 Q20 -164 4 -160 Q-10 -170 -34 -150Z'}" fill="${HAIR}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
   <g class="face">${face(mood)}</g>`;
 }
-export const pipHead = (mood = 'happy', flip = false, s = 1) => `<g transform="scale(${s}) translate(0,140)">${headParts(mood, flip)}</g>`;
+export const hat = { svg: '' };   // deep v2: the hat Pip wears (empty in v1)
+export const pipHead = (mood = 'happy', flip = false, s = 1) => `<g transform="scale(${s}) translate(0,140)">${headParts(mood, flip)}${hat.svg}</g>`;
 export function pip(mood = 'neutral', s = 1, wrap = false, flipHair = false) {
   const body = `<g transform="scale(${s})">
   <ellipse cx="0" cy="2" rx="36" ry="7" fill="rgba(0,0,0,.12)"/>
@@ -38,7 +39,7 @@ export function pip(mood = 'neutral', s = 1, wrap = false, flipHair = false) {
   <path d="M-28 -104 Q-36 -100 -40 -84 L-30 -80 L-28 -50 L28 -50 L30 -80 L40 -84 Q36 -100 28 -104 Q0 -112 -28 -104Z" fill="${TEE}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
   <path d="M-28 -72 L28 -72" stroke="#fff" stroke-width="5" opacity=".6"/>
   <path d="M-10 -106 Q0 -98 10 -106" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>
-  ${headParts(mood, flipHair)}</g>`;
+  ${headParts(mood, flipHair)}${hat.svg}</g>`;
   return wrap ? `<g>${body}</g>` : body;
 }
 pip.face = face;
