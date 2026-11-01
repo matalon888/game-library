@@ -2,7 +2,7 @@
 // generate(n, rand, hard) → { n, sol: [n*n], cages: [{ cells, op, target }], cageOf: [n*n] } with exactly one solution.
 // Each cage's legal fillings are enumerated up front; the solver fills whole cages (fewest options first) against row and
 // column masks and stops at 2 solutions, which is how uniqueness is proven.
-export const OPS = { '+': '+', '-': '−', 'x': '×', '/': '÷', '': '' };
+export const OPS = { '+': '+', '-': '−', 'x': '×', '/': '÷', '': '', '?': '?' };
 
 function latin(n, rand) {
   const perm = (k) => { const a = Array.from({ length: k }, (_, i) => i); for (let i = k - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -17,12 +17,13 @@ function latin(n, rand) {
   }
   return out;
 }
-function partition(n, rand, hard) {
+function partition(n, rand, hard, opts = {}) {
   const cageOf = new Array(n * n).fill(-1), cages = [];
   const order = Array.from({ length: n * n }, (_, i) => i); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
   const nbs = (c) => { const r = (c / n) | 0, k = c % n, o = []; if (r > 0) o.push(c - n); if (r < n - 1) o.push(c + n); if (k > 0) o.push(c - 1); if (k < n - 1) o.push(c + 1); return o; };
   // size weights: harder puzzles get fewer single cells and more 3–4 cell cages
-  const w1 = Math.max(0.02, 0.12 - hard * 0.05), w3 = 0.28 + hard * 0.1, w4 = 0.07 + hard * 0.08, w2 = 1 - w1 - w3 - w4;
+  let w1 = Math.max(0.02, 0.12 - hard * 0.05), w3 = 0.28 + hard * 0.1, w4 = 0.07 + hard * 0.08, w2 = 1 - w1 - w3 - w4;
+  if (opts.w) { [w1, w2, w3, w4] = opts.w; }   // deep v2: authored cage-size mix [singles, pairs, triples, quads]
   for (const s of order) {
     if (cageOf[s] >= 0) continue;
     const x = rand(), want = x < w1 ? 1 : x < w1 + w2 ? 2 : x < w1 + w2 + w3 ? 3 : 4;
@@ -45,9 +46,23 @@ function partition(n, rand, hard) {
   for (const cg of live) for (const c of cg.cells) cageOf[c] = map.get(cg);
   return { cages: live, cageOf };
 }
-function pickOp(cage, sol, rand, n) {
+function pickOp(cage, sol, rand, n, ops) {
   const v = cage.cells.map(c => sol[c]);
   if (v.length === 1) return { op: '', target: v[0] };
+  if (ops) {   // deep v2: only the signs this level teaches
+    const hi = Math.max(...v), lo = Math.min(...v), prod = v.reduce((a, b) => a * b, 1), sum = v.reduce((a, b) => a + b, 0), cand = [];
+    if (v.length === 2) {
+      if (ops.includes('+')) cand.push({ op: '+', target: sum });
+      if (ops.includes('-')) cand.push({ op: '-', target: hi - lo });
+      if (ops.includes('x')) cand.push({ op: 'x', target: prod });
+      if (ops.includes('/') && hi % lo === 0) cand.push({ op: '/', target: hi / lo });
+    } else {
+      if (ops.includes('+')) cand.push({ op: '+', target: sum });
+      if (ops.includes('x') && prod <= (n <= 4 ? 96 : 400)) cand.push({ op: 'x', target: prod });
+    }
+    if (!cand.length) cand.push({ op: '+', target: sum });
+    return cand[Math.floor(rand() * cand.length)];
+  }
   if (v.length === 2) {
     const hi = Math.max(...v), lo = Math.min(...v), x = rand();
     if (hi % lo === 0 && x < 0.45) return { op: '/', target: hi / lo };
@@ -59,6 +74,12 @@ function pickOp(cage, sol, rand, n) {
 }
 function fits(op, target, vals) {
   if (op === '') return vals[0] === target;
+  if (op === '?') {   // hidden sign: any sign that makes the target
+    const sum = vals.reduce((a, b) => a + b, 0), prod = vals.reduce((a, b) => a * b, 1);
+    if (sum === target || prod === target) return true;
+    if (vals.length === 2) { const hi = Math.max(...vals), lo = Math.min(...vals); return hi - lo === target || hi === lo * target; }
+    return false;
+  }
   if (op === '+') return vals.reduce((a, b) => a + b, 0) === target;
   if (op === 'x') return vals.reduce((a, b) => a * b, 1) === target;
   const hi = Math.max(...vals), lo = Math.min(...vals);
@@ -94,12 +115,12 @@ export function countSolutions(n, cages, limit = 2) {
     }
     done[best] = 0;
   })();
-  return { count: nodes > 400000 ? limit : count, sols };
+  return { count: nodes > 400000 ? limit : count, sols, nodes };
 }
-export function generate(n, rand, hard = 0.5) {
+export function generate(n, rand, hard = 0.5, opts = {}) {
   for (let attempt = 0; attempt < 400; attempt++) {
-    const sol = latin(n, rand), { cages, cageOf } = partition(n, rand, hard);
-    for (const c of cages) Object.assign(c, pickOp(c, sol, rand, n));
+    const sol = latin(n, rand), { cages, cageOf } = partition(n, rand, hard, opts);
+    for (const c of cages) Object.assign(c, pickOp(c, sol, rand, n, opts.ops));
     // repair: while two solutions exist, re-pick the operation of a cage where they differ (a few times), else split that cell off
     let ok = false;
     for (let fix = 0; fix < 12; fix++) {
@@ -107,10 +128,24 @@ export function generate(n, rand, hard = 0.5) {
       if (r.count === 1) { ok = true; break; }
       if (r.count === 0) break;
       const [s1, s2] = r.sols, diff = s1.findIndex((v, i) => v !== s2[i]), ci = cageOf[diff], cage = cages[ci];
-      if (fix < 6 && cage.cells.length > 1) Object.assign(cage, pickOp(cage, sol, rand, n));
+      if (fix < 6 && cage.cells.length > 1) Object.assign(cage, pickOp(cage, sol, rand, n, opts.ops));
       else break;
     }
-    if (ok) return { n, sol, cages, cageOf };
+    if (ok) {
+      let nodes = countSolutions(n, cages, 2).nodes, hidden = 0;
+      if (opts.q) {   // deep v2: hide the sign of some cages ("?"), kept only while the puzzle still has one solution
+        const multi = cages.filter(c => c.cells.length > 1), want = Math.round(multi.length * opts.q);
+        for (let i = multi.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [multi[i], multi[j]] = [multi[j], multi[i]]; }
+        for (const c of multi) {
+          if (hidden >= want) break;
+          const was = c.op; c.op = '?';
+          const r = countSolutions(n, cages, 2);
+          if (r.count === 1) { hidden++; nodes = r.nodes; } else c.op = was;
+        }
+        if (opts.minq && hidden < opts.minq) continue;
+      }
+      return { n, sol, cages, cageOf, nodes, hidden };
+    }
   }
   return null;
 }

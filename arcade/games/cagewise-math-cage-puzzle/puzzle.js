@@ -98,6 +98,7 @@ export function shell(o) {
   const P = {
     S, F, D, ui, fx, g, cv, btns, state: 'ready',
     get level() { return level; }, get score() { return score; }, get secs() { return secs; }, get hintsUsed() { return hintsUsed; },
+    setLevel(n) { level = n; },
     get undoCount() { return undo.length; },
     area() { const top = o.top || 112, bot = H - (o.bottom || 104); return { x: 12, y: top, w: W - 24, h: Math.max(120, bot - top), W, H }; },
     push() { undo.push(o.snapshot()); if (undo.length > 400) undo.shift(); },
@@ -112,16 +113,17 @@ export function shell(o) {
       const pts = Math.max(20, Math.round(cells * 4 + Math.max(0, cells * 6 - t * 2) - hintsUsed * 25));
       const bk = 'best_' + (info.sizeKey || 'x'), prev = S.get(bk, 0), newBest = !prev || t < prev;
       if (newBest) S.set(bk, t);
-      if (!recorded) { recorded = true; if (!D.isDaily) { if (!hintsUsed) F.level(true); else F.level(false, Math.max(0, firstHintAt)); } }
+      if (!recorded) { recorded = true; if (!D.isDaily && (!o.fresh || o.fresh())) { if (!hintsUsed) F.level(true); else F.level(false, Math.max(0, firstHintAt)); } }
       score += pts; S.set('score', score);
       if (D.isDaily) { const k = 'daily_' + todayKey(), pd = S.get(k, null); if (!pd || t < pd.t) S.set(k, { t, s: pts }); }
-      else { level++; S.set('level', level); }
+      else if (!o.campaign) { level++; S.set('level', level); }
       o.B && o.B.submit(info.value || 1, { ms: secs * 1000 });   // world board: puzzles solved today (RULES.md)
       D.won(pts, 'scored');
       if (D.beaten(pts)) { setTimeout(() => { ui.pop('BEATEN!', '#fff', 40, 30); fx.confetti(60); }, 300); }
       arp([67, 72, 76, 79, 84], 95, 0.12, 0.9); buzz([20, 50, 20]); setTimeout(() => fx.confetti(), 250);
       ui.progress(1);
       const line = `${fmtTime(t)} · ${newBest ? (prev ? 'new best!' : 'first solve') : 'best ' + fmtTime(prev)} · ${pts} pts${extra ? ' · ' + extra : ''}`;
+      if (o.campaign && !D.isDaily) { setTimeout(() => o.onWin({ t, pts, newBest, prev, hintsUsed }), delay); return; }
       setTimeout(() => ui.win(D.isDaily ? '' : level - 1, line), delay);
     },
     failed(title = 'Oops!', line = '', delay = 600) {
