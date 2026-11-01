@@ -3,7 +3,7 @@
 export const DT = 1 / 120, G = -24, SEG = 0.3, ITER = 26;
 
 export class Sim {
-  constructor() { this.P = []; this.ropes = []; this.candy = null; this.bubble = null; this.inBubble = false; this.cushions = []; this.events = []; this.steps = 0; }
+  constructor() { this.P = []; this.ropes = []; this.candy = null; this.bubble = null; this.inBubble = false; this.cushions = []; this.events = []; this.steps = 0; this.movers = []; }
   particle(x, y, inv, damp = 0.996) { const p = { x, y, ox: x, oy: y, inv, damp }; this.P.push(p); return p; }
   addCandy(x, y) { this.candy = this.particle(x, y, 0.25, 0.9993); this.candy.ang = 0; }
   addRope(px, py) {
@@ -14,9 +14,12 @@ export class Sim {
     const segs = []; for (let i = 0; i < n; i++) segs.push({ a: pts[i], b: pts[i + 1], L, alive: true });
     const r = { pin, pts, segs, id: this.ropes.length, cut: false }; this.ropes.push(r); return r;
   }
+  /** a pin that slides on a rail: centre (cx,cy), amplitude (ax,ay), period in steps, phase 0..1 */
+  mover(pin, cx, cy, ax, ay, per, ph) { this.movers.push({ p: pin, cx, cy, ax, ay, per, ph }); }
   get free() { return this.ropes.every(r => r.cut); }
   step() {
     const dt2 = DT * DT, c = this.candy;
+    for (const m of this.movers) { const k = Math.sin((this.steps / m.per + m.ph) * Math.PI * 2); m.p.x = m.cx + m.ax * k; m.p.y = m.cy + m.ay * k; }
     for (const p of this.P) {
       if (!p.inv) continue;
       let vx = (p.x - p.ox) * p.damp, vy = (p.y - p.oy) * p.damp, ay = G;

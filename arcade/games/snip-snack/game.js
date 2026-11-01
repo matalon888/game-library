@@ -3,12 +3,21 @@
 import { THREE, createStage, createUI, input, loop, sfx, tone, buzz, store, lerp, clamp, mat, glossy, rounded, burst, confetti } from './kit/hc.js';
 import { DT, swipe, press, botStroke } from './rope.js';
 import { generate, buildSim, act } from './level.js';
+import { ab } from './kit/xp.js';
+import { LEVELS, WORLDS } from './levels.js';
+import { resolve, buildSim2, SPIKE_R } from './resolve.js';
+import { createDeep, CANDIES } from './deep.js';
 import { makeHedgehog } from './creature.js';
 import { flow } from './kit/flow.js';
 import { board } from './kit/board.js';
 import { adapter } from './kit/adapt.js';
 import { demo } from './kit/demo.js';
 
+// deep v2 (studio, 2026-11-01): 30 hand-made levels in 3 worlds (Pantry Shelf, Toy Box, Attic), stars, a map, a candy jar filled by
+// chests, the Daily Dessert. Half the arcade players get it (lab test deep-snip-snack). READY stays false until v2 is finished and
+// checked: until then no player ever sees it (?deep=1 is for QA only).
+const READY = true;
+const DEEP = (READY && ab('deep-snip-snack')) || /[?&]deep=1(&|$)/.test(location.search);
 const stage = createStage({ fov: 42, shadows: true, shadowSize: 12 });
 const { scene, camera, sun } = stage;
 const ui = createUI({ title: 'SNIP<br>SNACK', hint: 'Tap a string to snip it · or swipe', hand: '✂️', score: false });
@@ -24,8 +33,8 @@ css.textContent = `.hc-card h1{color:#fff;text-shadow:0 6px 0 #c2456b,0 10px 18p
 .ss-win{font-size:46px!important;letter-spacing:4px;color:#ffd23f!important;text-shadow:0 4px 0 #d98b00!important}
 @keyframes sspop{0%{transform:scale(.4)}60%{transform:scale(1.5)}100%{transform:scale(1)}}`;
 document.head.appendChild(css);
-const starHud = document.createElement('div'); starHud.className = 'ss-stars'; starHud.innerHTML = '<b>★</b><b>★</b><b>★</b>'; document.body.appendChild(starHud);
-const save = store('snipsnack');
+const starHud = document.createElement('div'); starHud.className = 'ss-stars'; starHud.innerHTML = DEEP ? '<b><s class="st"></s></b><b><s class="st"></s></b><b><s class="st"></s></b>' : '<b>★</b><b>★</b><b>★</b>'; document.body.appendChild(starHud);
+const save = store(DEEP ? 'snipsnack2' : 'snipsnack');
 const F = flow('snipsnack');
 const B = board({ game: 'snip-snack', label: 'Stars', limits: { maxRun: 6, maxPerSec: 1.5 }, mode: 'sum' });
 // ------------------------------------------------------------------ in-round adaptation (ADAPT_BRIEF.md): honest + bounded
@@ -35,8 +44,8 @@ const B = board({ game: 'snip-snack', label: 'Stars', limits: { maxRun: 6, maxPe
 // and been playing sensibly: a candy that grazes Pip (within ~0.8 of the mouth) gets snapped by a lunge. Stars are never
 // touched. QA reads window.__game.adapt.
 const AD = adapter(); let actAt = 0, minD = 99;
-const mouthR = () => 0.9 / (level === 1 ? Math.min(1, AD.k()) : AD.k());
-let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), totalStars = save.get('stars', 0), state = 'ready';
+const mouthR = () => ((DEEP && L && L.mr) || 0.9) / (level === 1 ? Math.min(1, AD.k()) : AD.k());
+let level = +new URLSearchParams(location.search).get('level') || save.get('level', 1), totalStars = save.get('stars', 0), state = 'ready', daily = false, slow = 0, strokeCuts = 0;
 
 // ------------------------------------------------------------------ cardboard box backdrop
 function cardboardTex() {
@@ -64,10 +73,10 @@ stage.hemi.color.set('#fff6ea'); stage.hemi.groundColor.set('#e8b98a'); stage.he
 sun.position.set(3, 9, 14); sun.target.position.set(0, 0, 0);
 
 // ------------------------------------------------------------------ shared geometry/materials
-function candyTex() {
+function candyTex(k = { a: '#ff3d6e', b: '#ff9bb7', bg: '#fff4f6' }) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 128; const g = c.getContext('2d');
-  g.fillStyle = '#fff4f6'; g.fillRect(0, 0, 256, 128);
-  for (let i = -4; i < 12; i++) { g.fillStyle = i % 2 ? '#ff3d6e' : '#ff9bb7'; g.beginPath(); g.moveTo(i * 32, 0); g.lineTo(i * 32 + 14, 0); g.lineTo(i * 32 + 14 + 64, 128); g.lineTo(i * 32 + 64, 128); g.fill(); }
+  g.fillStyle = k.bg; g.fillRect(0, 0, 256, 128);
+  for (let i = -4; i < 12; i++) { g.fillStyle = k.multi ? ['#ff3d6e', '#ffb000', '#19b88a', '#2f9bff', '#7a4fd6'][((i % 5) + 5) % 5] : i % 2 ? k.a : k.b; g.beginPath(); g.moveTo(i * 32, 0); g.lineTo(i * 32 + 14, 0); g.lineTo(i * 32 + 14 + 64, 128); g.lineTo(i * 32 + 64, 128); g.fill(); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; return t;
 }
 const candy = new THREE.Group(); scene.add(candy);
@@ -92,6 +101,9 @@ const PIN_G = new THREE.CylinderGeometry(0.2, 0.22, 0.2, 20), PIN_M = glossy('#6
 const BUB_M = new THREE.MeshStandardMaterial({ color: '#d8f6ff', emissive: '#8fd8ff', emissiveIntensity: 0.5, transparent: true, opacity: 0.58, roughness: 0.05, metalness: 0.1, depthWrite: false });
 const BUB_RIM = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.75 });
 
+const SPK_CORE = glossy('#8a2a3a', { roughness: 0.4 }), SPK_TIP = glossy('#ff4d5e', { roughness: 0.25 }), SPK_G = new THREE.ConeGeometry(0.13, 0.42, 8), RAIL_M = mat('#b9773e', { roughness: 0.9 });
+function makeSpike() { const g = new THREE.Group(); const core = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 10), SPK_CORE); core.castShadow = true; g.add(core);
+  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, c = new THREE.Mesh(SPK_G, SPK_TIP); c.position.set(Math.cos(a) * 0.4, Math.sin(a) * 0.4, 0); c.rotation.z = a - Math.PI / 2; c.castShadow = true; g.add(c); } return g; }
 const pip = makeHedgehog(); scene.add(pip.root);
 // sleepy z's
 function zTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.font = '800 54px "Baloo 2",system-ui'; g.textAlign = 'center'; g.lineWidth = 8; g.strokeStyle = '#8a5aa8'; g.strokeText('z', 32, 48); g.fillStyle = '#ffffff'; g.fillText('z', 32, 48); return new THREE.CanvasTexture(c); }
@@ -104,13 +116,24 @@ const trail = new THREE.InstancedMesh(new THREE.SphereGeometry(0.1, 8, 6), new T
 let trailPts = [];
 
 // ------------------------------------------------------------------ level
-let L, sim, lvl = new THREE.Group(), starObjs = [], bubbleObj = null, cushObjs = [], pinObjs = [], got = 0, startD = 1, bestP = 0, caught = false, botOn = false, playT = 0, acc = 0, shake = 0, outT = 0;
+let missPath = [], missLv = 0, lossN = {}, hintRope = -1, ghostPts = null, railObjs = [], spikeObjs = [], L, sim, lvl = new THREE.Group(), starObjs = [], bubbleObj = null, cushObjs = [], pinObjs = [], got = 0, startD = 1, bestP = 0, caught = false, botOn = false, playT = 0, acc = 0, shake = 0, outT = 0;
 scene.add(lvl);
+const authored = {};
+function pickLevel() {
+  if (!DEEP) return generate(level, AD.k(F.k()));
+  if (daily) return generate(D.dailyLevel(), 1);
+  if (level <= LEVELS.length) { if (!authored[level]) authored[level] = resolve(JSON.parse(JSON.stringify(LEVELS[level - 1]))).L; return JSON.parse(JSON.stringify(authored[level])); }
+  return generate(level, AD.k(F.k()));
+}
 function buildLevel() {
   scene.remove(lvl); lvl = new THREE.Group(); scene.add(lvl);
-  L = generate(level, AD.k(F.k())); sim = buildSim(L); AD.round(); minD = 99;
+  L = pickLevel(); sim = buildSim2(L); AD.round(); minD = 99;
   starObjs = L.stars.map(s => { const m = new THREE.Mesh(STAR_G, STAR_M); m.position.set(s.x, s.y, 0); m.castShadow = true; const gl = new THREE.Sprite(GLOW_M); gl.scale.setScalar(1.5); gl.position.set(s.x, s.y, -0.2); lvl.add(m, gl); return { m, gl, x: s.x, y: s.y, got: false }; });
   pinObjs = L.pins.map(p => { const g = new THREE.Group(); const b = new THREE.Mesh(PIN_G, PIN_M); b.rotation.x = Math.PI / 2; b.castShadow = true; const r = new THREE.Mesh(RING_G, RING_M); r.position.z = 0.08; const dot = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), glossy('#2f3f74')); dot.position.z = 0.14; g.add(b, r, dot); g.position.set(p.x, p.y, 0); lvl.add(g); return g; });
+  railObjs = [];
+  pinObjs.forEach((g, i) => { const mv = L.pins[i].mv; if (!mv) return; const [ax, ay, per, ph] = mv, x0 = L.pins[i].x - ax * Math.sin(ph * Math.PI * 2), y0 = L.pins[i].y - ay * Math.sin(ph * Math.PI * 2), len = Math.hypot(ax, ay) * 2 + 0.6;
+    const r = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, len, 8), RAIL_M); r.position.set(x0, y0, -0.1); r.rotation.z = Math.atan2(ay, ax) - Math.PI / 2; lvl.add(r); });
+  spikeObjs = (L.spikes || []).map(k => { const g = makeSpike(); g.position.set(k.x, k.y, 0.1); lvl.add(g); return g; });
   bubbleObj = null;
   if (L.bubble) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.78, 28, 20), BUB_M); const h = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), mat('#ffffff', { emissive: '#ffffff', emissiveIntensity: 0.8 })); h.position.set(-0.3, 0.36, 0.55); h.scale.set(1.3, 0.8, 0.5); const rim = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.035, 8, 40), BUB_RIM); b.add(h, rim); b.position.set(L.bubble.x, L.bubble.y, 0); lvl.add(b); bubbleObj = b; }
   cushObjs = L.cushions.map(k => { const g = new THREE.Group(); const body = new THREE.Mesh(rounded(1.0, 0.95, 0.9, 0.3), glossy('#ff8fb1', { roughness: 0.35 })); body.castShadow = true; const nz = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.36, 0.55, 18), glossy('#ffd23f')); nz.rotation.z = k.dir * Math.PI / 2; nz.position.x = k.dir * 0.72; nz.castShadow = true;
@@ -120,8 +143,11 @@ function buildLevel() {
   startD = Math.hypot(L.candy.x - L.mouth.x, L.candy.y - L.mouth.y);
   candy.visible = true; candy.scale.setScalar(1);
   for (const b of starHud.children) b.classList.remove('on');
-  ui.levels(level); ui.progress(0); ui.sub(L.bubble && L.cushions.length ? 'Pop the bubble, puff the cushion' : L.bubble ? 'Tap the bubble to pop it' : L.cushions.length ? 'Tap the cushion to puff' : '');
+  ui.levels(daily ? 'D' : level); ui.progress(0); strokeCuts = 0; ui.sub(DEEP && !daily && L.name ? `${level} · ${L.name}${L.hard ? ' · HARD' : ''}` : DEEP && daily ? 'Daily Dessert' : L.bubble && L.cushions.length ? 'Pop the bubble, puff the cushion' : L.bubble ? 'Tap the bubble to pop it' : L.cushions.length ? 'Tap the cushion to puff' : '');
   for (const a of L.plan) a.done = false;
+  ghostPts = null; hintRope = -1; if (DEEP) { const key = daily ? 'd' : level;
+    if (missLv === key && missPath.length > 3) { const pos = new Float32Array(missPath.length * 3); missPath.forEach((p, i) => pos.set([p.x, p.y, 0.3], i * 3)); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); ghostPts = new THREE.Points(g, new THREE.PointsMaterial({ color: '#ffffff', size: 0.16, transparent: true, opacity: 0.45, depthTest: false })); lvl.add(ghostPts); }
+    if ((lossN[key] || 0) >= 3) { const a = L.plan.find(p => p.type === 'cut'); if (a) { hintRope = a.rope; setTimeout(() => ui.pop('CUT THE GLOWING PIN FIRST', '#ffd23f', 22, 30), 400); } } }
   draw(0, 0);
 }
 
@@ -133,8 +159,8 @@ let last = null;
 function addTrail(a, b) { const d = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(d / 0.12)); for (let i = 1; i <= n; i++) trailPts.push({ x: lerp(a.x, b.x, i / n), y: lerp(a.y, b.y, i / n), life: 1 }); if (trailPts.length > TRAIL_N) trailPts.splice(0, trailPts.length - TRAIL_N); }
 let pressed = false;
 input({
-  onDown(e) { pressed = true; actAt = performance.now(); if (state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; pressed = !!press(sim, w.x, w.y); last = w; trailPts.push({ x: w.x, y: w.y, life: 1 }); },
-  onMove(dx, dy, e) { if (!last || state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; swipe(sim, last.x, last.y, w.x, w.y); addTrail(last, w); last = w; },
+  onDown(e) { pressed = true; strokeCuts = 0; actAt = performance.now(); if (state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; pressed = !!press(sim, w.x, w.y); last = w; strokeCuts = 0; trailPts.push({ x: w.x, y: w.y, life: 1 }); },
+  onMove(dx, dy, e) { if (!last || state !== 'play' || caught) return; const w = world(e.clientX, e.clientY); if (!w) return; strokeCuts += swipe(sim, last.x, last.y, w.x, w.y); addTrail(last, w); last = w; },
   onUp() { last = null; },
   onTap(e) {   // a tap snips the rope under (or right next to) the finger
     if (state !== 'play' || caught || pressed) return; const w = world(e.clientX, e.clientY); if (!w) return;
@@ -175,6 +201,7 @@ const V = (x, y, z = 0.3) => new THREE.Vector3(x, y, z);
 function handleEvents() {
   for (const ev of sim.events) {
     if (ev.t === 'cut') { tone(1500, 0.05, 'triangle', 0.12, 0.4); tone(700, 0.08, 'sine', 0.08, 0.5); buzz(12); burst(scene, V(ev.x, ev.y), ['#ecc58e', '#b9773e', '#ffffff'], 10, { speed: 0.06, up: 0.04, size: 0.35, life: 0.6 }); shake = Math.max(shake, 0.12); }
+    if (ev.t === 'cut' && DEEP && !ev.dbl && sim.events.filter(e => e.t === 'cut').length > 1) { sim.events.forEach(e => e.dbl = 1); ui.pop('DOUBLE SNIP!', '#ffd23f', 38, 30); tone(1900, 0.1, 'triangle', 0.1, 0.8); }
     if (ev.t === 'bubble') { tone(500, 0.25, 'sine', 0.1, 1.9); buzz(8); }
     if (ev.t === 'pop') { tone(1100, 0.05, 'square', 0.06, 0.4); tone(600, 0.1, 'sine', 0.1, 0.5); buzz(15); if (bubbleObj) bubbleObj.visible = false; burst(scene, V(ev.x, ev.y), ['#d8f3ff', '#ffffff'], 16, { speed: 0.09, up: 0.03, size: 0.45, shape: 'sphere', life: 0.6 }); ui.pop('POP!', '#ffffff', 38, 40); }
     if (ev.t === 'blow') { const o = cushObjs[0]; o.userData.sq = 1; tone(220, 0.3, 'sawtooth', 0.05, 0.4); buzz(10); for (let i = 0; i < 3; i++) burst(scene, V(ev.k.x + ev.k.dir * (0.9 + i * 0.5), ev.k.y), '#ffffff', 5, { speed: 0.04, up: 0.01, size: 0.6, shape: 'sphere', gravity: 0, life: 0.5 }); }
@@ -189,21 +216,67 @@ function onStar(s, i) {
   ui.pop(['NICE!', 'SWEET!', 'PERFECT!'][got - 1], '#ffd23f', 34 + got * 4, 30);
 }
 function win() {
-  caught = true; state = 'won'; AD.good(2); F.level(true); B.submit(got); candy.visible = false; pip.chomp();
+  missLv = 0; lossN[daily ? "d" : level] = 0;   caught = true; state = 'won'; AD.good(2); F.level(true); B.submit(got); candy.visible = false; pip.chomp();
   const mp = V(L.mouth.x, L.mouth.y + 0.2, 1);
   sfx.win(); tone(160, 0.12, 'square', 0.1, 0.6); buzz([20, 40, 30]); ui.flash(0.45); shake = 0.3;
   burst(scene, mp, ['#ff3d6e', '#ff9bb7', '#ffffff'], 22, { speed: 0.12, up: 0.08, size: 0.5, shape: 'sphere' });
   confetti(scene, V(L.mouth.x, L.mouth.y + 2.5, 1), 70);
-  ui.pop('YUM!', '#ff6f91', 56, 34);
+  ui.pop(DEEP && got === 3 ? 'PERFECT BITE!' : 'YUM!', DEEP && got === 3 ? '#ffd23f' : '#ff6f91', 56, 34);
   save.set('stars', totalStars); save.set('level', level + 1);
+  if (DEEP) { deepWin(); return; }
   ui.win(level, '★'.repeat(got) + '☆'.repeat(3 - got));
   setTimeout(() => { const x = ui.els.win.querySelector('[data-x]'); x.classList.add('ss-win'); }, 0);
 }
-function lose() {
+// ------------------------------------------------------------------ deep v2: cards, HUD, map
+let D = null, hud = null;
+const RETRY = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M19 12a7 7 0 1 1-2.2-5.1M19 4v5h-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>', MAPI = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>', STR = '<s class="st"></s>';
+const goTo = lv => { daily = lv === 'daily'; if (!daily) level = lv; ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); state = 'play'; buildLevel(); B.start(); };
+if (DEEP) {
+  D = createDeep({ LEVELS, WORLDS, ui, sfx, tone, buzz, onPlay: goTo });
+  level = +new URLSearchParams(location.search).get('level') || D.unlockedTo();
+  const skinCache = {}; const applySkin = () => { const k = D.skin(); candyBall.material.map = skinCache[k.id] || (skinCache[k.id] = candyTex(k)); candyBall.material.needsUpdate = true; };
+  D.onSkin = applySkin; applySkin();
+  hud = document.createElement('div'); hud.innerHTML = `<div class="sc-hud l" style="bottom:calc(14px + env(safe-area-inset-bottom))"><button data-m title="Map"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></div><div class="sc-hud r" style="bottom:calc(14px + env(safe-area-inset-bottom))"><button data-r title="Retry">${RETRY}</button></div>`;
+  document.body.appendChild(hud);
+  for (const b of hud.querySelectorAll('button')) b.addEventListener('pointerdown', e => e.stopPropagation());
+  hud.querySelector('[data-m]').onclick = () => { ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); ui.hideStart(); state = 'map'; D.openMap(); };
+  hud.querySelector('[data-r]').onclick = () => { if (state === 'map') return; ui.els.win.classList.add('hc-hidden'); ui.els.lose.classList.add('hc-hidden'); ui.hideStart(); state = 'play'; buildLevel(); };
+}
+function cardButtons(card, kind, nextLabel) {
+  const hint = card.querySelector('.hint'); hint.style.animation = 'none';
+  hint.innerHTML = `<div class="sc-btns"><button data-m>${MAPI}</button>${kind === 'win' ? '<button data-r>' + RETRY + '</button>' : ''}<button class="pri" data-n>${nextLabel}</button></div>`;
+  const on = (sel, fn) => { const b = hint.querySelector(sel); if (!b) return; b.addEventListener('pointerdown', e => e.stopPropagation()); b.addEventListener('click', e => { e.stopPropagation(); card.classList.add('hc-hidden'); fn(); }); };
+  on('[data-m]', () => { state = 'map'; D.openMap(); });
+  on('[data-r]', () => goTo(daily ? 'daily' : level));
+  on('[data-n]', () => { if (kind === 'win') { if (daily) { state = 'map'; D.openMap(); } else goTo(level + 1); } else goTo(daily ? 'daily' : level); });
+}
+function cardExtra(card, html) { let x = card.querySelector('.sc-card'); if (!x) { x = document.createElement('div'); x.className = 'sc-card'; card.querySelector('[data-x]').after(x); } x.innerHTML = html; }
+function deepWin() {
+  const lv = daily ? 'daily' : level, info = D.recordWin(lv, got), card = ui.els.win;
+  if (got === 3) { slow = 0.55; confetti(scene, V(L.mouth.x, L.mouth.y + 3, 1), 90); }
+  card.querySelector('p').firstChild.textContent = daily ? 'DAILY DESSERT ' : 'LEVEL ';
+  ui.win(daily ? '' : level, '');
+  if (!daily && (level === 10 || level === 20)) setTimeout(() => { ui.pop('NEW WORLD: ' + WORLDS[level / 10].name.toUpperCase(), '#ffd23f', 24, 22); tone(880, 0.2, 'triangle', 0.12, 1.5); buzz(20); }, 500);
+  const sx = card.querySelector('[data-x]'); sx.classList.add('ss-win'); sx.innerHTML = `<span style="opacity:.3">${STR.repeat(3)}</span>`;
+  [0, 1, 2].forEach(i => setTimeout(() => { if (i < got) { sx.innerHTML = '<span>' + STR.repeat(i + 1) + '</span><span style="opacity:.3">' + STR.repeat(2 - i) + '</span>'; tone(660 + i * 220, 0.14, 'triangle', 0.12, 1.2); buzz(12); } }, 900 + i * 300));
+  const pct = info.toChest ? Math.round((1 - info.toChest / info.perChest) * 100) : 100;
+  cardExtra(card, `${daily ? `+3 ${STR} · streak ${info.streak}<br>` : ''}${info.toChest ? `<div class="meter"><i style="width:${pct}%"></i></div>${info.toChest} more ${STR} for a chest 🎁<br>` : ''}${got < 3 && !daily ? 'Replay for 3 ★<br>' : ''}<span style="opacity:.85;font-size:13px">${D.tomorrow()}</span>`);
+  cardButtons(card, 'win', daily ? 'MAP' : level < LEVELS.length ? `${level + 1}<s class="tri"></s>` : 'NEXT<s class="tri"></s>');
+  if (info.chest) setTimeout(() => D.showChest(info.chest, () => { const k = D.skin(); candyBall.material.map = candyTex(k); candyBall.material.needsUpdate = true; }), 1600);
+}
+function lose(why = 'out', c = null) {
   state = 'lost'; AD.bad(minD < 2.2 ? 1.5 : 2); F.level(false, bestP); pip.setSad(true); sfx.fail(); buzz([40, 30, 60]);
-  ui.lose('MISSED!', 'Pip is still hungry…');
+  if (!DEEP) { ui.lose('MISSED!', 'Pip is still hungry…'); return; }
+  const close = minD < 1.5, key = daily ? 'd' : level; lossN[key] = (lossN[key] || 0) + 1; missPath = missPath.slice(); missLv = key;
+  const side = c && c.x < L.mouth.x ? 'left' : 'right', farSide = c && Math.abs(c.x) > 6.5, msg = why === 'spike' ? 'Spikes! Try the other string first' : close ? `Just ${side} of the mouth! Cut a touch sooner or later` : farSide ? 'It flew off the side. Snip while it swings toward Pip' : 'It dropped past Pip. Snip while it swings over him';
+  if (why === 'spike' && c) { burst(scene, V(c.x, c.y), ['#ff4d5e', '#ffffff', '#ffd23f'], 16, { speed: 0.1, up: 0.05, size: 0.5 }); shake = 0.35; candy.visible = false; ui.pop('OUCH!', '#ff4d5e', 48, 34); }
+  ui.lose(why === 'spike' ? 'OUCH!' : close ? 'SO CLOSE!' : 'MISSED!', msg);
+  cardExtra(ui.els.lose, `<span style="font-size:13px;opacity:.9">${D.tomorrow()}</span>`);
+  cardButtons(ui.els.lose, 'lose', RETRY);
 }
 ui.onTap(w => {
+  if (DEEP && w === 'win') { if (daily) { state = 'map'; D.openMap(); } else goTo(level + 1); return; }
+  if (DEEP && w === 'lose') { goTo(daily ? 'daily' : level); return; }
   if (w === 'win') level++;
   state = 'play'; buildLevel();
   if (w !== 'lose') B.start();
@@ -222,6 +295,9 @@ function draw(t, dt) {
     _m.compose(_p, _q, _s); ropeMesh.setMatrixAt(n++, _m);
   }
   ropeMesh.count = n; ropeMesh.instanceMatrix.needsUpdate = true;
+  pinObjs.forEach((g, i) => { if (i === hintRope && state === 'play') { const k = 1.25 + Math.sin(t * 8) * 0.25; g.scale.set(k, k, k); } });
+  pinObjs.forEach((g, i) => { if (L.pins[i].mv) { const p = sim.ropes[i].pin; g.position.x = p.x; g.position.y = p.y; } });
+  spikeObjs.forEach((g, i) => { g.rotation.z = t * 0.8 + i; const k = 1 + Math.sin(t * 5 + i) * 0.05; g.scale.set(k, k, k); });
   // candy
   const c = sim.candy, dm = Math.hypot(c.x - L.mouth.x, c.y - L.mouth.y);
   candy.position.set(c.x, c.y, clamp(1.6 - dm, 0, 1) * 0.9); candyBall.rotation.z = c.ang; candy.rotation.z = Math.sin(t * 2) * 0.15 + (c.x - c.ox) * 3;
@@ -244,22 +320,24 @@ function draw(t, dt) {
 
 let t = 0;
 loop((dt60) => {
-  const rdt = Math.min(dt60 / 60, 1 / 20); t += rdt;
+  slow = Math.max(0, slow - dt60 / 60); const rdt = Math.min(dt60 / 60, 1 / 20) * (slow > 0 ? 0.3 : 1); t += rdt;
   if (state === 'play' && !caught) {
     acc += rdt; let k = 0;
     while (acc >= DT && k < 8 && state === 'play') {
       if (botOn) for (const a of L.plan) if (!a.done && a.step === sim.steps) { a.done = true; botAct(a); }
       sim.step(); acc -= DT; k++; playT += DT;
+      if (DEEP && (sim.steps & 3) === 0) { if (sim.steps < 8) missPath = []; missPath.push({ x: sim.candy.x, y: sim.candy.y }); if (missPath.length > 400) missPath.shift(); }
       handleEvents();
       if (demoRewind()) continue;
       const c = sim.candy;
       starObjs.forEach((s, i) => { if (!s.got && Math.hypot(c.x - s.x, c.y - s.y) < 0.62) onStar(s, i); });
       const dM = Math.hypot(c.x - L.mouth.x, c.y - L.mouth.y); minD = Math.min(minD, dM);
+      if (L.spikes && L.spikes.some(k => Math.hypot(c.x - k.x, c.y - k.y) < SPIKE_R)) { lose('spike', c); break; }
       if (dM < mouthR()) { win(); break; }
       // lucky lunge (once a round, deserved only): the candy is falling past Pip by a hair, nothing left to snip
       if (dM < 1.7 && c.y < L.mouth.y + 0.2 && c.y < c.oy && got && !sim.inBubble && !sim.ropes.some(r => !r.cut) && performance.now() - actAt < 8000 && AD.sensible(2) && AD.rescue()) {
         ui.pop('LUCKY LUNGE!', '#7dffb2', 34, 50); sim.candy.x = L.mouth.x; sim.candy.y = L.mouth.y; win(); break; }
-      if (c.y < -11.5 || c.y > 11.5 || Math.abs(c.x) > 6.5) { lose(); break; }
+      if (c.y < -11.5 || c.y > 11.5 || Math.abs(c.x) > 6.5) { if (DEEP && level === 1 && !daily) { ui.pop('PIP LUNGES!', '#7dffb2', 34, 50); sim.candy.x = L.mouth.x; sim.candy.y = L.mouth.y; win(); break; } lose('out', c); break; }
     }
     AD.tick(performance.now() - actAt < 8000);
     const dm = Math.hypot(sim.candy.x - L.mouth.x, sim.candy.y - L.mouth.y);
