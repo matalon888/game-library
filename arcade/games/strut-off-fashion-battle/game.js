@@ -26,7 +26,7 @@ const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 const totalStars = () => Object.values(P.stars).reduce((a, b) => a + b, 0);
 
 // ---------------------------------------------------------------- renderer + post
-const LITE = Q.has('lite') || (Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
+const LITE = Q.has('lite') || ((self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5));
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.info.autoReset = false; R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
 const scene = new THREE.Scene();

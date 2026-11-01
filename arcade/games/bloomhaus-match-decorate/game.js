@@ -26,7 +26,7 @@ const easeBack = t => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) +
 const easeIO = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
 // ---------------------------------------------------------------- renderer + post
-const LITE = Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+const LITE = (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.localClippingEnabled = true; R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
 const scene = new THREE.Scene();

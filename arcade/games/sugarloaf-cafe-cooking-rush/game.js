@@ -64,7 +64,7 @@ const CUST_H = { p05: 1.5, p08: 1.68, p07: 1.6, p02: 1.62, p06: 1.7, c08: 1.66, 
 const OWNER_DEFAULT = 'p14';
 
 // ---------------------------------------------------------------- renderer + post
-const LITE = Q.has('lite') || (Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
+const LITE = Q.has('lite') || ((self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5));
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.info.autoReset = false; R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf4dccb);

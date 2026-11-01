@@ -66,7 +66,7 @@ const MODEL_IDS = ['r01', 'r02', 'r03', 'r04', 'r06', 'r07', 'r08', 'r09', 'r11'
   'r05', 'r10', 'r12', 'r13', 'h22', 'h23', 'h26', 'h28', 'h29', 'h30', 'h34', 'h35'];
 
 // ---------------------------------------------------------------- renderer + post
-const LITE = Q.has('lite') || (Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
+const LITE = Q.has('lite') || ((self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5));
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.info.autoReset = false; R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
 const scene = new THREE.Scene();

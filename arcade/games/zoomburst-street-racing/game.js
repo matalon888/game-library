@@ -37,7 +37,7 @@ A.mute(save.mute);
 
 // ---------------------------------------------------------------- renderer, scene, post
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
-const lite = isTouch && Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+const lite = isTouch && (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 renderer.domElement.className = 'hc-canvas'; document.body.prepend(renderer.domElement);
 renderer.setSize(innerWidth, innerHeight, false);

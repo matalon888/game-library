@@ -94,7 +94,7 @@ const glowTex = () => canvasTex(128, 128, (x, w, h) => { const g = x.createRadia
 
 // ---------------------------------------------------------------- the scene
 export function createScene() {
-  const LITE = Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+  const LITE = (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
   const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
   R.setSize(innerWidth, innerHeight); R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
   const scene = new THREE.Scene(); scene.background = new THREE.Color('#f6dcb4');

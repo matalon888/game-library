@@ -27,7 +27,8 @@ const GradeShader = {
 };
 
 export function cine(renderer, scene, camera, o = {}) {
-  const lite = o.lite ?? (Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5) ?? false;
+  const G = self.__apGuard && self.__apGuard.adopt ? self.__apGuard : null;   // arcade/guard.js: the device's graphics tier
+  const lite = o.lite ?? (G ? G.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5) ?? false;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = o.exposure ?? 1;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -55,6 +56,9 @@ export function cine(renderer, scene, camera, o = {}) {
   }
   let smaa = null;
   if (!lite && o.aa !== false) { smaa = new SMAAPass(size.x * renderer.getPixelRatio(), size.y * renderer.getPixelRatio()); composer.addPass(smaa); }
+  // tier ↓ mid-game (guard.js already lowered the renderer's pixel ratio): render targets follow, SMAA off at 1, bloom off at 2
+  const tierFx = n => { composer.setPixelRatio(renderer.getPixelRatio()); if (smaa) smaa.enabled = n < 1; bloom.enabled = n < 2 && (o.bloom ?? 0.6) > 0; };
+  if (G) { G.onTier(tierFx); if (G.tier >= 2) tierFx(G.tier); }
   let t = 0;
   return {
     composer, bloom, grade, lite,

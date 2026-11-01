@@ -82,7 +82,7 @@ const B = board({ game: 'pocket-pom', label: 'Happy customers', mode: 'sum', lim
 addEventListener('ap:ad', e => { const ph = e.detail && e.detail.phase; if (ph === 'start') { music(false); pauseAll(true); } else if (ph === 'end') { pauseAll(false); if (!P.mute) music(true); } });
 
 // ---------------------------------------------------------------- renderer
-const LITE = Q.has('lite') || (Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
+const LITE = Q.has('lite') || ((self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5));
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.domElement.id = 'c'; document.body.prepend(R.domElement); R.info.autoReset = false;
 const scene = new THREE.Scene();

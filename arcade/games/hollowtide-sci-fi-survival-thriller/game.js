@@ -17,7 +17,7 @@ import { S as SND, A as AUD, unlock, spatial } from './audio.js';
 const NAME = 'Hollowtide: Sci-Fi Survival Thriller';
 const Q = new URLSearchParams(location.search);
 const COARSE = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
-const LITE = COARSE && Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+const LITE = COARSE && (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
 
 // ------------------------------------------------------------------ renderer + cinematic stack (bright stylised grade)
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });

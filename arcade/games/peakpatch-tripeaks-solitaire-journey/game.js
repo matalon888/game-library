@@ -28,7 +28,7 @@ const soft = (pr, ms = 8000) => Promise.race([Promise.resolve(pr).catch(e => { c
 const islandOf = n => Math.floor((n - 1) / TP.LEVELS_PER_ISLAND) % TP.ISLANDS;
 
 // ---------------------------------------------------------------- renderer + post
-const LITE = Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+const LITE = (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
 const scene = new THREE.Scene();

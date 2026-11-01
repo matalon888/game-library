@@ -38,7 +38,7 @@ const dayNum = (d = new Date()) => Math.floor(Date.UTC(d.getFullYear(), d.getMon
 const weekOf = n => Math.floor((n + 3) / 7);
 
 // ---------------------------------------------------------------- renderer + post
-const LITE = Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+const LITE = (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.domElement.className = 'hc-canvas'; R.localClippingEnabled = true; document.body.prepend(R.domElement);
 const scene = new THREE.Scene();

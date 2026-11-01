@@ -17,7 +17,7 @@ const V3 = THREE.Vector3, clamp = (v, a, b) => v < a ? a : v > b ? b : v, lerp =
 // ------------------------------------------------------------------ renderer + world
 const Q = new URLSearchParams(location.search);
 const TOUCH = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
-const LITE = Q.has('lite') || (Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
+const LITE = Q.has('lite') || ((self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5));
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 renderer.setSize(innerWidth, innerHeight); renderer.domElement.className = 'hc-canvas'; document.body.prepend(renderer.domElement);
 const scene = new THREE.Scene(); renderer.info.autoReset = false;

@@ -37,7 +37,7 @@ const isoWeek = () => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(
 const TH = id => `assets/thumbs/${id}.webp`;
 
 // ---------------------------------------------------------------- renderer + post
-const LITE = Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+const LITE = (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.localClippingEnabled = true; R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
 const scene = new THREE.Scene();

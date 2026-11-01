@@ -21,7 +21,7 @@ let best = S.get('best', 0);
 const F = flow('stormchase', { par: 900, warmup: 250 });
 
 // ---------------------------------------------------------------- renderer, scene, light, post
-const LITE = Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5;
+const LITE = (self.__apGuard && self.__apGuard.adopt ? self.__apGuard.lite : Math.min(screen.width, screen.height) < 500 && devicePixelRatio > 2.5);
 const R = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 R.setSize(innerWidth, innerHeight); R.domElement.className = 'hc-canvas'; document.body.prepend(R.domElement);
 R.info.autoReset = false;
