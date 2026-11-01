@@ -605,7 +605,9 @@ function win() {
   sfx.win(); buzz([30, 40, 60]); ui.flash(0.5); confetti(scene, new THREE.Vector3(0, 1.5, 0), 90);
   const secs = Math.round((performance.now() - toyT0) / 100) / 10, pb = bests[level], newBest = !pb || secs < pb; if (newBest) { bests[level] = secs; prog.set('best', bests); }
   const chest = played % 3 === 0 ? givePin() : -2;
-  hudText(); showResult({ st, before, newSticker, gained, oldTotal, nowTotal, secs, pb, newBest, chest });
+  const today = new Date().toISOString().slice(0, 10), yday = new Date(Date.now() - 864e5).toISOString().slice(0, 10); let daily = null;
+  if (prog.get('day', '') !== today) { const dstreak = prog.get('day', '') === yday ? prog.get('dstreak', 0) + 1 : 1; prog.set('day', today); prog.set('dstreak', dstreak); daily = { n: dstreak, pin: givePin() }; }
+  hudText(); showResult({ st, before, newSticker, gained, oldTotal, nowTotal, secs, pb, newBest, chest, daily });
 }
 function lose() {
   if (state === 'play') AD.bad(2); if (state === 'play') FL.level(false, screws.length ? screws.filter((s) => s.gone).length / screws.length : 0);
@@ -665,13 +667,14 @@ function nextChips() {
   nextEl.innerHTML = q.length ? `NEXT ${q.map((c) => `<i style="background:${COLORS[c]}"></i>`).join('')}` : '';
   nextEl.classList.toggle('hc-hidden', state !== 'play' || !q.length);
 }
-function showResult({ st, before, newSticker, gained, oldTotal, nowTotal, secs, pb, newBest, chest }) {
+function showResult({ st, before, newSticker, gained, oldTotal, nowTotal, secs, pb, newBest, chest, daily }) {
   const w = WORLDS[worldOf(level)], icon = THEME_ICON[L.theme] || '📦', nextPaint = PAINTS.find((p) => p.at > nowTotal);
   const near = st < 3 ? `${st === 2 ? 'So close!' : 'Cleared!'} Park ${curPar} or fewer for 3 stars (you parked ${parks})` : parks === 0 && curPar === 0 ? 'Perfect: not one bolt parked!' : 'Three stars!';
   const foot = [bestStreak >= 5 ? `🔥 x${bestStreak}` : '', pb && !newBest ? `⏱ ${secs}s · best ${pb}s` : pb ? `⏱ ${secs}s · NEW BEST` : `⏱ ${secs}s`, `📌 ${pins.length}/${PINS.length}${pins.length === PINS.length - 1 ? ' · 1 missing!' : ''}`, `⭐ ${nowTotal}${nextPaint ? ` · paint at ${nextPaint.at}` : ''}`].filter(Boolean).join('  ·  ');
   const bar = `<span style="display:inline-block;width:90px;height:10px;border-radius:5px;background:#ddd;vertical-align:middle"><i style="display:block;height:10px;border-radius:5px;background:#ffb81c;width:${(played % 3) * 33}%"></i></span>`;
   const extra = [
     chest >= 0 ? `<div class="chip" style="font-size:24px;padding:12px 22px;background:#fff3b0">🎁 Chest opened! ${PINS[chest]}</div>` : goldPin >= 0 ? `<div class="chip" style="font-size:22px;padding:10px 20px;background:#fff3b0">✨ Golden bolt! ${PINS[goldPin]}</div>` : chest === -2 ? `<div class="chip">🎁 ${bar} ${played % 3}/3</div>` : '',
+    daily ? `<div class="chip" style="font-size:20px;padding:10px 20px;background:#d9f7ff;white-space:nowrap">☀️ Daily gift ${daily.pin >= 0 ? PINS[daily.pin] : '⭐'} · day ${daily.n} 🔥</div>` : '',
     newSticker ? `<div class="chip">${icon} New sticker: ${THEME_NAME[L.theme] || 'toy'} ${level}</div>` : '',
     ...gained.map((i) => `<div class="chip">🎨 New bolt paint: ${PAINTS[i].name}!</div>`),
     `<div class="chip" style="font-size:14px;opacity:.85">${foot}</div>`,
