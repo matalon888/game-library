@@ -78,3 +78,8 @@ and flash on mirrors, HARD ROOM! intro, red frame on hard rooms, room name under
 - `node qa/rooms.cjs` — the solver's fewest bullets for each room = its par (all 36 match).
 - `node qa/playall.cjs` — the bot plays every room with the real physics, aiming with the solver's plan.
 - Lab: `ab('deep-ricochet-rex')` from kit/xp.js; `?deep=1` forces v2 for QA only.
+
+## Cycle 2026-10-31 (lane 35), after critic 6.0 vs 4.1
+Added in v2 only (DEEP): start hint "Drag to aim · let go to fire"; golden goon (halo, +1000, gold burst) in rooms 4, 11, 18…;
+3+ kills in one bullet = flash, shake and a rising stinger; "SO CLOSE: x.x m off" + pulsing ring on the nearest goon on an out-of-ammo loss when the last bullet passed within 1.8.
+Left: critic re-run at load<24, hint ghost after 3 fails, chest/daily room, bonus room after bosses, star glyph SVG fallback, READY true at 7.0+.

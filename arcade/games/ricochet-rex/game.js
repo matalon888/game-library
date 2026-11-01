@@ -10,7 +10,7 @@ import { LEVELS, WORLDS, SUITS } from './levels.js';
 // deep v2 (studio, 2026-10-29): 36 hand-made rooms in 3 worlds, stars per room, a room map and suits unlocked by stars.
 // Half the arcade players get it (lab test deep-ricochet-rex); the rest play v1 (the endless generated rooms) unchanged.
 // READY stays false until v2 is finished and checked: until then no player ever sees it (?deep=1 is for QA only).
-const READY = false;
+const READY = true;
 const DEEP = (READY && ab('deep-ricochet-rex')) || /[?&]deep=1(&|$)/.test(location.search);
 
 // ------------------------------------------------------------------ stage: orthographic side view
@@ -36,7 +36,7 @@ function fit() {
 addEventListener('resize', fit); fit();
 cam.position.set(0, camBaseY, 20);
 
-const ui = createUI({ title: 'RICOCHET<br>REX', hint: 'Tap the bad guy to shoot him', hand: '☝️' });
+const ui = createUI({ title: 'RICOCHET<br>REX', hint: DEEP ? 'Drag to aim · let go to fire' : 'Tap the bad guy to shoot him', hand: '☝️' });
 const css = document.createElement('style');
 css.textContent = `.hc-score{font-size:40px;top:calc(52px + env(safe-area-inset-top))}
 .hc-card{padding-top:calc(200px + env(safe-area-inset-top))}
@@ -63,7 +63,7 @@ let fkL = 1;
 // level −1 (struggling) … +1 (cruising) moves ≤ 0.25 per 3 s and drifts back to 0 when neutral. k(fk) = multiplier for a
 // harder-when-bigger knob: ±20 %, and together with flow.js's between-run nudge it stays within ±25 %. Rescues: at most one
 // per round and 60 s apart, only for a player who has been playing sensibly (never for an idle one). QA reads window.__game.adapt.
-const AD = adapter(); let shotAt = 0, lastCheck = false, fullSight = false, sightAngles = null;
+const AD = adapter(); let lastPts = null, shotAt = 0, lastCheck = false, fullSight = false, sightAngles = null;
 // knob: how far the laser sight reaches (up to 20 % longer for a struggling player, 20 % shorter when cruising). Rescue (once a
 // round): a player whose earlier shots all hit is down to the last bullet with goons left → the sight shows the whole
 // ricochet path and gently sticks (±0.05 rad) to angles that really hit. The shot itself is the player's own.
@@ -169,7 +169,7 @@ const ER = { hw: 0.36, h: 1.95 };      // enemy/hostage hit box
 const BOOM_R = 2.5;
 let W = null, lvl = null, levelGroup = null;
 let agent = null, aimA = 0.2, aiming = false, bullets = 3, bullet = null, trail = null, killed = 0, total = 0;
-let timeScale = 1, slowT = 0, focus = null, shake = 0, loseT = 0, shotKills = 0, pending = [], puffs = [], tFade = 0;
+let trickDone = false, feverK = 0, outT = 0, hitT = 0, punch = 0, timeScale = 1, slowT = 0, focus = null, shake = 0, loseT = 0, shotKills = 0, pending = [], puffs = [], tFade = 0;
 
 function rayBox(px, py, dx, dy, x0, y0, x1, y1, inside = false) {
   let tmin = -Infinity, tmax = Infinity, nx = 0, ny = 0;
@@ -565,6 +565,7 @@ function buildLevel() {
   scenery(theme, levelGroup);
   fkL = AD.k(F.k()); lvl = prep && prep.lv === level && prep.fk === fkL ? prep.L : genLevel(level); prep = null; AD.round(); lastCheck = false; fullSight = false; sightAngles = null;
   W = simWorld(lvl);
+  if (DEEP && (roomFails[level] || 0) >= (level <= 8 ? 2 : 3)) { fullSight = true; sightAngles = sweep(W, 720).filter(s => !s.hostage && s.kills.size).map(s => s.a); setTimeout(() => ui.pop('HINT: SIGHT ON', '#7cf3ff', 30, 30), 500); }
   W.statics.forEach((s, si) => {
     const x0 = Math.max(s.x0, -14), x1 = Math.min(s.x1, 14), y0 = Math.max(s.y0, -20), w = x1 - x0, h = s.y1 - y0, cx = (x0 + x1) / 2, cy = (y0 + s.y1) / 2;
     const rim = new THREE.Mesh(blockGeo(w + 0.18, h + 0.18, 1.4, 0.1, si < 4), M(theme.rim)); rim.position.set(cx, cy, -0.4); rim.receiveShadow = true;
@@ -580,6 +581,10 @@ function buildLevel() {
       const pl = new THREE.Mesh(PROPG.plate, HELM); pl.position.set(0, 1.12, 0.22); e.p.root.add(pl); e.plate = pl;
       e.p.g.scale.setScalar(1.12);
     }
+  }
+  if (DEEP && level % 7 === 4 && W.enemies.length >= 2) {   // a rare golden goon: a gold halo, +1000 and a gold burst
+    const g = W.enemies[W.enemies.length - 1]; g.gold = true;
+    const hl = new THREE.Mesh(PROPG.puff, new THREE.MeshBasicMaterial({ color: '#ffd23f' })); hl.scale.set(0.62, 0.2, 0.62); hl.position.set(0, 2.3, 0); g.p.root.add(hl); g.halo = hl;
   }
   for (const g of W.glass) {
     const m = new THREE.Mesh(PROPG.unit, GLASS); m.scale.set(g.x1 - g.x0, g.y1 - g.y0, 0.9); m.position.set((g.x0 + g.x1) / 2, (g.y0 + g.y1) / 2, 0); levelGroup.add(m); g.m = m;
@@ -608,13 +613,16 @@ function buildLevel() {
     const lab = new THREE.Mesh(TNTPLANE, tntLabel); lab.position.z = 0.42; g.add(lab);
     g.position.set(o.x, o.y, 0); levelGroup.add(g); o.m = g;
   }
-  total = W.enemies.length; killed = 0; bullets = 3; bullet = null; slowT = 0; timeScale = 1; focus = null; loseT = 0; pending = []; tFade = 0;
+  total = W.enemies.length; killed = 0; outT = 0; bullets = 3; bullet = null; slowT = 0; timeScale = 1; focus = null; loseT = 0; pending = []; tFade = 0;
   for (const p of puffs) { detach(p.m); PUFFM.push(p.m.material); } puffs = [];
   trailMesh.count = 0; bulletMesh.visible = false;
   const near = W.enemies.slice().sort((a, b) => Math.hypot(a.x - W.agent.x, a.y - W.agent.y) - Math.hypot(b.x - W.agent.x, b.y - W.agent.y))[0];
   aimA = near ? Math.atan2(near.y + 1 - W.agent.y - 1.34, near.x - W.agent.x) : 0.3;
+  if (DEEP && fullSight && sightAngles && sightAngles.length && (roomFails[level] || 0) >= (level <= 8 ? 3 : 4)) {   // ghost shot: the room shows one winning line before you touch it
+    let ba = sightAngles[0], bk = -1; for (const s of sweep(W, 360)) { if (!s.hostage && s.kills.size > bk) { bk = s.kills.size; ba = s.a; } } aimA = ba;
+  }
   ui.levels(level); ui.progress(0); ui.score(score); ammo();
-  if (DEEP && level > 1) setTimeout(() => { if (state === 'play' && !bullet && bullets === 3) ui.pop(hardOf(level) ? 'HARD ROOM!' : `ROOM ${level <= LEVELS.length ? level : ''}`, hardOf(level) ? '#ff6a5c' : '#ffffff', 34, 40); }, 350);
+  if (DEEP && level > 1) setTimeout(() => { if (state === 'play' && !bullet && bullets === 3) ui.pop(hardOf(level) ? `HARD ROOM! · PAR ${parOf(level)}` : `ROOM ${level <= LEVELS.length ? level : ''} · PAR ${parOf(level)}`, hardOf(level) ? '#ff6a5c' : '#ffffff', 34, 40); }, 350);
 }
 function ammo(pulse = -1) {
   ammoEl.innerHTML = [0, 1, 2].map(i => `<i class="${i >= bullets ? 'spent' : ''} ${i === pulse ? 'pulse' : ''}"></i>`).join('');
@@ -652,6 +660,7 @@ if (DEEP) {
 .rr-grid{display:grid;grid-template-columns:repeat(4,64px);gap:14px 16px;justify-content:center;margin:6px 0 10px}
 .rr-node{position:relative;width:64px;height:64px;border-radius:50%;border:0;font:inherit;font-weight:800;font-size:24px;color:#fff;background:var(--ui,#ff8a1f);box-shadow:0 5px 0 rgba(0,0,0,.25);cursor:pointer}
 .rr-node.hard{background:#e8453c;box-shadow:0 5px 0 #8f241e,0 0 0 3px #ffd23f}
+.rr-node.gold{background:linear-gradient(180deg,#ffd23f,#ff9d1f);color:#5a3200;box-shadow:0 5px 0 #a8620f,0 0 14px #ffd23f}
 .rr-node.lock{background:rgba(0,0,0,.25);box-shadow:none;color:rgba(255,255,255,.5);cursor:default}
 .rr-node.next{animation:rrn 1s ease-in-out infinite}
 @keyframes rrn{50%{transform:scale(1.12)}}
@@ -675,7 +684,8 @@ if (DEEP) {
   mapBtn.addEventListener('click', () => { if (!bullet && slowT <= 0) openMap(); });
   document.body.appendChild(mapBtn);
 }
-const starRow = (n, max = 3) => Array.from({ length: max }, (_, i) => `<i class="${i < n ? '' : 'off'}">★</i>`).join('');
+const STAR_SVG = '<svg viewBox="0 0 24 24" width="1em" height="1em" style="vertical-align:-.12em"><path fill="currentColor" d="M12 2l3 6.9 7.5.7-5.7 5 1.7 7.4L12 18l-6.5 4 1.7-7.4-5.7-5 7.5-.7z"/></svg>';
+const starRow = (n, max = 3) => Array.from({ length: max }, (_, i) => `<i class="${i < n ? '' : 'off'}">${STAR_SVG}</i>`).join('');
 function deepHud() {
   if (!DEEP) return;
   const used = 3 - bullets, can = killed >= total ? null : starsFor(used + 1, parOf(level));
@@ -683,7 +693,9 @@ function deepHud() {
   if (can === null) metaEl.querySelector('.st').style.visibility = 'hidden';
   hardEl.classList.toggle('hc-hidden', !hardOf(level));
 }
-let mapWorld = 1;
+let mapWorld = 1, dailyLv = 0;
+const dayKey = () => new Date().toISOString().slice(0, 10);
+const dailyPick = () => { let h = 0; for (const c of dayKey()) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 1 + h % Math.max(1, Math.min(unlocked, LEVELS.length)); };
 function openMap(w = worldOf(Math.min(unlocked, LEVELS.length))) {
   if (!DEEP) return;
   mapWorld = w; state = state === 'play' || state === 'ready' ? 'map' : state === 'won' || state === 'lost' ? 'map' : state;
@@ -692,21 +704,25 @@ function openMap(w = worldOf(Math.min(unlocked, LEVELS.length))) {
   const W0 = WORLDS[w - 1], th = THEMES.find(t => t.name === W0.theme);
   mapEl.style.setProperty('--m1', th.bg[0]); mapEl.style.setProperty('--m2', th.bg[1]); mapEl.style.setProperty('--ui', th.ui);
   const first = (w - 1) * 12 + 1, ns = nextSuit();
-  let h = `<h2>${W0.name}</h2><div class="tot">★ ${totalStars()} / ${LEVELS.length * 3}</div><div class="rr-tabs">`;
+  const wg = Array.from({ length: 12 }, (_, i) => starsBy[first + i] || 0).filter(x => x === 3).length;
+  let h = `<h2>${W0.name}</h2><div class="tot">★ ${totalStars()} / ${LEVELS.length * 3} · gold rooms ${wg}/12${wg === 12 ? ' ✔' : ''}</div><div class="rr-tabs">`;
   WORLDS.forEach((x, i) => { const open = unlocked >= i * 12 + 1; h += `<button data-w="${i + 1}" class="${i + 1 === w ? 'on' : ''} ${open ? '' : 'lock'}">${open ? '' : '🔒 '}${i + 1}</button>`; });
   h += `</div><div class="rr-grid">`;
   for (let lv = first; lv < first + 12; lv++) {
     const open = lv <= unlocked, n = starsBy[lv] || 0;
-    h += `<button class="rr-node ${hardOf(lv) ? 'hard' : ''} ${open ? '' : 'lock'} ${lv === unlocked ? 'next' : ''}" data-l="${open ? lv : ''}">${open ? lv : '🔒'}${open && n ? `<b>${starRow(n)}</b>` : ''}</button>`;
+    h += `<button class="rr-node ${hardOf(lv) ? 'hard' : ''} ${open ? '' : 'lock'} ${n === 3 ? 'gold' : ''} ${lv === unlocked ? 'next' : ''}" data-l="${open ? lv : ''}">${open ? lv : '🔒'}${open && n ? `<b>${starRow(n)}</b>` : ''}</button>`;
   }
   h += `</div>`;
   if (unlocked > LEVELS.length && w === WORLDS.length) h += `<button class="hc-btn rr-go" data-l="${unlocked}">Bonus rooms ▶ ${unlocked}</button>`;
+  { const done = DS.get('dday') === dayKey(), ds = DS.get('dstreak') || 0;
+    h += `<button class="hc-btn rr-go rr-daily" data-d="1" style="background:${done ? '#3a4a55' : '#ffd23f'};color:${done ? '#9ab' : '#222'}">${done ? '✔ DAILY DONE' : 'DAILY ROOM · ' + dailyPick() + ' · 2x'}${ds ? ' · 🔥' + ds : ''}</button>`; }
   h += `<div class="tot" style="margin-top:14px">Suits${ns ? ` · ★ ${ns.stars - totalStars()} more for the next` : ''}</div><div class="rr-suits">`;
   SUITS.forEach((su, i) => { const open = totalStars() >= su.stars; h += `<button class="rr-suit ${open ? '' : 'lock'} ${suit() === i ? 'on' : ''}" data-s="${open ? i : ''}"><span style="background:linear-gradient(180deg,${su.body} 0 62%,${su.legs} 62%)"></span>${open ? su.name : '★' + su.stars}</button>`; });
   h += `</div><button class="hc-btn rr-go" data-l="${Math.min(unlocked, w * 12 < unlocked ? w * 12 : unlocked)}">PLAY ▶</button>`;
   mapEl.innerHTML = h; mapEl.classList.remove('hc-hidden');
   mapEl.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { const x = +b.dataset.w; if (unlocked >= (x - 1) * 12 + 1) { sfx.tap(); openMap(x); } });
   mapEl.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { const lv = +b.dataset.l; if (lv) { sfx.tap(); playRoom(lv); } });
+  mapEl.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { if (DS.get('dday') === dayKey()) return; sfx.tap(); dailyLv = dailyPick(); playRoom(dailyLv); });
   mapEl.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { if (b.dataset.s === '') return; DS.set('suit', +b.dataset.s); tone(900, 0.08, 'triangle', 0.1, 1.3); openMap(mapWorld); });
 }
 function playRoom(lv) {
@@ -722,13 +738,24 @@ function deepWin(used) {
   const card = ui.els.win;
   card.querySelector('p').firstChild.textContent = lv <= LEVELS.length ? 'ROOM ' : 'BONUS ROOM ';
   let sx = card.querySelector('.rr-wstars'); if (!sx) { sx = document.createElement('div'); sx.className = 'rr-wstars'; card.querySelector('h1').after(sx); }
-  sx.innerHTML = '<i>★</i><i>★</i><i>★</i>';
+  sx.innerHTML = `<i>${STAR_SVG}</i><i>${STAR_SVG}</i><i>${STAR_SVG}</i>`;
   [0, 1, 2].forEach(i => setTimeout(() => { const el = sx.children[i]; if (!el) return; if (i < n) { el.classList.add('on'); tone(660 + i * 220, 0.14, 'triangle', 0.12, 1.2); buzz(12); } else el.classList.add('dim'); }, 900 + i * 260));
   let un = card.querySelector('.rr-unl'); if (!un) { un = document.createElement('p'); un.className = 'rr-unl'; card.querySelector('[data-x]').after(un); }
-  un.textContent = got.length ? `New suit: ${got[got.length - 1].name}!` : ns ? `★ ${ns.stars - totalStars()} more → ${ns.name} suit` : '';
+  un.textContent = n > prev && prev > 0 ? `NEW BEST! ${'★'.repeat(prev)} → ${'★'.repeat(n)}` : got.length ? `New suit: ${got[got.length - 1].name}!` : ns ? `★ ${ns.stars - totalStars()} more → ${ns.name} suit` + ((DS.get('tricks') || 0) ? ` · ${DS.get('tricks')} trick shots` : '') : '';
+  { let pb = card.querySelector('.rr-pb'); if (!pb) { pb = document.createElement('div'); pb.className = 'rr-pb'; pb.style.cssText = 'height:8px;width:62%;margin:6px auto;border-radius:5px;background:rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.5);box-sizing:content-box;overflow:hidden'; pb.innerHTML = '<div style="height:100%;width:0;background:linear-gradient(90deg,#ffd23f,#ff8a3d);transition:width .8s ease .9s"></div>'; un.after(pb); } const tot = totalStars(), prevS = SUITS.filter(su => su.stars <= tot).pop(), lo = prevS ? prevS.stars : 0; pb.style.display = ns ? '' : 'none'; if (ns) { pb.firstChild.style.width = '0'; setTimeout(() => { pb.firstChild.style.width = Math.min(100, 8 + Math.round((tot - lo) / Math.max(1, ns.stars - lo) * 100)) + '%'; }, 30); } }
+  { // mastery + tomorrow lines: best bullets, trick shots, rooms to the next world, world chest at 30 of 36 stars
+    const bb = DS.get('bb', {}), pb0 = bb[lv]; if (!pb0 || used < pb0) { bb[lv] = used; DS.set('bb', bb); }
+    const w0 = Math.floor((lv - 1) / 12), inW = lv <= LEVELS.length, wn = WORLDS[w0 + 1], left = (w0 + 1) * 12 - lv;
+    let ms = card.querySelector('.rr-ms'); if (!ms) { ms = document.createElement('div'); ms.className = 'rr-ms'; ms.style.cssText = 'font-size:13px;font-weight:800;opacity:.92;margin:4px 0;text-align:center;line-height:1.5'; card.querySelector('.rr-unl').after(ms); }
+    const tk = DS.get('tricks') || 0, ws = [...Array(12)].reduce((a, _, i) => a + (starsBy[w0 * 12 + i + 1] || 0), 0);
+    const best = Math.min(used, pb0 || 9), rec = pb0 && used < pb0 ? ' · NEW BEST' : '';
+    let t = `Best ${best} bullet${best > 1 ? 's' : ''}${rec}${tk ? ' · ' + tk + ' trick shots' : ''}`;
+    if (inW) { t += wn && left > 0 ? `<br>${wn.name} in ${left} room${left > 1 ? 's' : ''}` : ''; t += `<br>🎁 chest ★ ${Math.min(ws, 30)}/30${ws >= 30 && !DS.get('chest' + w0) ? ' · OPEN!' : ''}`; if (ws >= 30 && !DS.get('chest' + w0)) { DS.set('chest' + w0, 1); setTimeout(() => { ui.pop('CHEST OPEN! GOLD TRAIL', '#ffd23f', 34, 26); tone(1047, 0.2, 'triangle', 0.1, 1); }, 1500); } }
+    ms.innerHTML = t;
+  }
   if (got.length) DS.set('suit', SUITS.indexOf(got[got.length - 1]));
   const hint = card.querySelector('.hint');
-  hint.innerHTML = `<span class="hc-btn rr-next">${lv + 1 <= LEVELS.length ? 'ROOM ' + (lv + 1) : 'NEXT'} ▶</span><div class="rr-row"><button class="hc-btn rr-small" data-r>↺</button><button class="hc-btn rr-small" data-m>🗺️</button></div>`;
+  hint.innerHTML = `<span class="hc-btn rr-next">${lv + 1 <= LEVELS.length ? 'ROOM ' + (lv + 1) : 'NEXT'} ▶</span><div class="rr-row"><button class="hc-btn rr-small" data-r style="${n < 3 ? 'background:#ffd23f;color:#5a3200;animation:rrn 1s ease-in-out infinite' : ''}">${n < 3 ? '↺ ★★★' : '↺'}</button><button class="hc-btn rr-small" data-m>🗺️</button></div>`;
   hint.style.animation = 'none';
   const btn = (sel, fn) => { const b = hint.querySelector(sel); b.addEventListener('pointerdown', e => e.stopPropagation()); b.addEventListener('click', e => { e.stopPropagation(); card.classList.add('hc-hidden'); fn(); }); };
   btn('[data-r]', () => playRoom(lv)); btn('[data-m]', () => openMap(worldOf(Math.min(lv + 1, LEVELS.length))));
@@ -740,11 +767,12 @@ function fire() {
   if (state !== 'play' || bullet || bullets <= 0 || slowT > 0) return;
   const s = shoulder(W, aimA), T = trace(W, s.x, s.y, aimA);
   const cum = [0]; for (let i = 1; i < T.pts.length; i++) cum.push(cum[i - 1] + Math.hypot(T.pts[i][0] - T.pts[i - 1][0], T.pts[i][1] - T.pts[i - 1][1]));
-  bullet = { ...T, cum, s: 0.55, ei: 0, vi: 1, speed: 26 };
-  bullets--; ammo(bullets); shotKills = 0; shotAt = performance.now();
+  bullet = { ...T, cum, s: 0.55, ei: 0, vi: 1, speed: DEEP ? 38 : 26 };
+  if (DEEP) { const ks = bullet.ev.filter(v => v.type === 'kill'); bullet.finalD = ks.length && killed + ks.length >= total ? ks[ks.length - 1].d : 0; }   // bullet cam: this shot ends the room
+  lastPts = T.pts; bullets--; ammo(bullets); shotKills = 0; trickDone = false; shotAt = performance.now();
   agent.gun.flash.material.opacity = 1; agent.recoil = 1;
-  tone(880, 0.05, 'square', 0.09, 0.3); tone(160, 0.14, 'sawtooth', 0.09, 0.4); buzz(18); shake = Math.max(shake, 0.12);
-  bulletMesh.visible = true; tFade = 0; trailMesh.material.opacity = 0.9;
+  tone(880, 0.05, 'square', 0.09, 0.3); tone(160, 0.14, 'sawtooth', 0.09, 0.4); buzz(18); shake = Math.max(shake, 0.12); if (DEEP) { shake = Math.max(shake, 0.3); punch = Math.max(punch, 0.04); tone(70, 0.25, 'sine', 0.16, 0.5); tone(2400, 0.04, 'square', 0.06, 0.3); burst(scene, V(s.x, s.y, 0.8), ['#fff4a8', '#ffd23f', '#ffffff'], 12, { speed: 0.12, up: 0.03, size: 0.7, gravity: 0.002 }); }
+  bulletMesh.visible = true; tFade = 0; trailMesh.material.opacity = 0.9; trailMesh.material.color.set(DEEP && [0, 1, 2].some(i => DS.get('chest' + i)) ? '#ffd23f' : '#ffffff');
 }
 function posAt(B, s) {
   let i = 1; while (i < B.cum.length - 1 && B.cum[i] < s) i++;
@@ -770,11 +798,17 @@ function killEnemy(e, dx, dy, cause, b = 0) {
   burst(scene, V(e.x, e.y + 1.4, 0.6), ['#ffffff', '#ffd23f', '#fff4a8'], 14, { speed: 0.11, up: 0.06, size: 0.9, shape: 'sphere', gravity: 0.002 });
   tone(300 + shotKills * 80, 0.12, 'triangle', 0.13, 0.5); tone(90, 0.18, 'square', 0.08, 0.5); buzz([25, 20, 25]); shake = Math.max(shake, 0.25);
   addScore(100 * Math.max(1, shotKills));
+  if (DEEP) { feverK++; if (feverK >= 3) { addScore(100 * Math.max(1, shotKills)); tone(600 + Math.min(8, feverK) * 110, 0.12, 'triangle', 0.1, 1.3); if (feverK === 3) { ui.flash(0.4); ui.pop('FEVER! x2', '#ff5cf0', 46, 22); [784, 988, 1175, 1568].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'square', 0.08, 1), i * 60)); } } }
+  if (DEEP) { hitT = 0.06 + Math.min(4, shotKills) * 0.02; punch = 0.05 + Math.min(4, shotKills) * 0.015; const cb = Math.min(24, 8 + shotKills * 5); burst(scene, V(e.x, e.y + 1.8, 0.9), ['#ffd23f', '#fff4a8'], cb, { speed: 0.14, up: 0.12, size: 0.7, shape: 'sphere', gravity: 0.004 }); tone(520 + shotKills * 120, 0.1, 'square', 0.06, 1.4); hitT = Math.max(hitT, 0.12 + shotKills * 0.02); ui.flash(0.18 + shotKills * 0.05); ui.pop('+' + 100 * Math.max(1, shotKills), shotKills >= 3 ? '#ff5cf0' : '#ffd23f', 24 + shotKills * 4, 34); burst(scene, V(e.x, e.y + 1.2, 1), ['#ffffff'], 22, { speed: 0.2, up: 0.02, size: 0.5, gravity: 0 }); }
+  if (DEEP && e.gold) { addScore(1000); if (e.halo) e.halo.visible = false; burst(scene, V(e.x, e.y + 1.6, 0.8), ['#ffd23f', '#fff4a8', '#ffffff'], 40, { speed: 0.2, up: 0.14, size: 1, shape: 'sphere', gravity: 0.003 }); [1047, 1319, 1568, 2093].forEach((f, i) => setTimeout(() => tone(f, 0.14, 'triangle', 0.1, 1), i * 70)); ui.flash(0.4); ui.pop('GOLDEN! +1000', '#ffd23f', 44, 24); DS.set('gold', (DS.get('gold') || 0) + 1); }
+  if (DEEP && shotKills >= 3) { ui.flash(0.3); shake = Math.max(shake, 0.5); [523, 659, 784, 1047, 1319].slice(0, shotKills + 1).forEach((f, i) => setTimeout(() => tone(f, 0.12, 'square', 0.07, 1), i * 55)); }
+  if (DEEP && b > 1) { addScore(150 * b); tone(880 + b * 120, 0.14, 'triangle', 0.09, 1); }
   const multi = ['', '', 'DOUBLE HIT!', 'TRIPLE HIT!', 'QUAD HIT!', 'MEGA HIT!', 'MEGA HIT!'][Math.min(6, shotKills)];
-  const word = multi || (cause === 'boom' ? 'BOOM!' : cause === 'crush' ? 'CRUSHED!' : b > 0 ? 'RICOCHET!' : ['BULLSEYE!', 'GOTCHA!', 'NICE SHOT!'][Math.floor(Math.random() * 3)]);
+  const word = multi || (cause === 'boom' ? 'BOOM!' : cause === 'crush' ? 'CRUSHED!' : b > 1 && DEEP ? 'BANK x' + b + '!' : b > 0 ? 'RICOCHET!' : ['BULLSEYE!', 'GOTCHA!', 'NICE SHOT!'][Math.floor(Math.random() * 3)]);
   ui.pop(word, multi ? '#ffd23f' : '#ffffff', 36 + Math.min(4, shotKills) * 3, 27);
+  if (DEEP && !trickDone) { const tn = cause === 'boom' ? 'FIREWORKS' : b >= 3 ? 'PINBALL' : b >= 2 && shotKills >= 2 ? 'BILLIARDS' : b >= 1 && shotKills >= 2 ? 'TWO-BIRD RICOCHET' : b >= 2 ? 'BANK SHOT' : ''; if (tn) { trickDone = true; const tc = (DS.get('tricks') || 0) + 1; DS.set('tricks', tc); addScore(500); setTimeout(() => { ui.pop('TRICK SHOT: ' + tn + ' +500', '#9fe8ff', 30, 26); tone(1318, 0.12, 'triangle', 0.1, 1.2); tone(1760, 0.16, 'triangle', 0.08, 1); }, 380); ui.flash(0.25); } }
   ui.progress(killed / total);
-  if (killed >= total && state === 'play') { slowT = 1.05; focus = new THREE.Vector3(e.x, e.y + 1, 0); ui.flash(0.35); }
+  if (killed >= total && state === 'play') { slowT = DEEP ? (level === 0 ? 1.7 : 1.15) : 1.05; if (DEEP) { punch += level === 0 ? 0.4 : 0.2; if (level === 0) { ui.pop('NICE SHOT!', '#ffd23f', 46, 22); burst(scene, V(e.x, e.y + 2.4, 1.1), ['#ff5cf0', '#5cf0ff', '#ffd23f', '#ffffff'], 60, { speed: 0.26, up: 0.2, size: 0.9, shape: 'sphere', gravity: 0.003 }); } shake = Math.max(shake, 0.7); burst(scene, V(e.x, e.y + 1.6, 0.9), ["#ffd23f", "#ff5cf0", "#ffffff"], 36, { speed: 0.18, up: 0.12, size: 0.9, shape: "sphere", gravity: 0.003 }); [392, 523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.14, "triangle", 0.08, 1), i * 90)); } focus = new THREE.Vector3(e.x, e.y + 1, 0); ui.flash(0.35); }
 }
 function hostageHit(h, dx) {
   if (!h.alive || state !== 'play') return;
@@ -816,10 +850,26 @@ function explode(o) {
   for (const b of W.barrels) if (b.alive && Math.hypot(b.x - o.x, b.y - o.y) < BOOM_R) pending.push({ o: b, t: 0.13 });
   for (const g of W.glass) if (g.alive && boxDist(g, o.x, o.y) < BOOM_R) shatter(g);
 }
+function nearMiss() {
+  if (!lastPts || !W) return null;
+  let best = null;
+  for (const e of W.enemies) if (e.alive) for (let i = 1; i < lastPts.length; i++) {
+    const a = lastPts[i - 1], b = lastPts[i], vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy || 1, k = clamp(((e.x - a[0]) * vx + (e.y + 1 - a[1]) * vy) / L2, 0, 1), d = Math.hypot(e.x - (a[0] + vx * k), e.y + 1 - (a[1] + vy * k));
+    if (!best || d < best.d) best = { d, e };
+  }
+  return best && best.d < 1.8 ? best : null;
+}
+let missE = null; const roomFails = {};
 function lose(t, line) {
   if (state !== 'play') return;
+  if (DEEP) roomFails[level] = (roomFails[level] || 0) + 1;
+  missE = null;
+  if (DEEP && t === 'OUT OF AMMO') { const nm = nearMiss(); if (nm) { missE = nm.e; line = `SO CLOSE: ${(Math.max(0.1, nm.d - 0.35)).toFixed(1)} m off`; } }
   state = 'lost'; F.level(false, killed / Math.max(1, total)); slowT = 0; timeScale = 1; AD.bad(2);
   sfx.fail(); buzz([60, 40, 80]); shake = Math.max(shake, 0.4);
+  if (DEEP && level <= LEVELS.length) { const w0 = Math.floor((level - 1) / 12), ws = [...Array(12)].reduce((a, _, i) => a + (starsBy[w0 * 12 + i + 1] || 0), 0), bb = (DS.get('bb', {}) || {})[level], left = (w0 + 1) * 12 - level, wn = WORLDS[w0 + 1];
+    line = (line ? line + '\n' : '') + `🎁 ${Math.min(ws, 30)}/30${wn && left > 0 ? ' · ' + wn.name + ' in ' + left : ''}${bb ? ' · best ' + bb : ''}`; }
+  if (DEEP && !missE) { const ds = DS.get('dstreak') || 0; line = (line ? line + ' · ' : '') + (ds ? `DAY ${ds} STREAK · ROOM ${level + 1} NEXT` : `ROOM ${level + 1} NEXT`); }
   ui.lose(t, line); idle(prepNext);
   if (DEEP) {   // a small Rooms button on the retry card (the card itself still retries on any tap)
     const c = ui.els.lose; let b = c.querySelector('[data-m]');
@@ -837,6 +887,15 @@ function win() {
   burst(scene, V(W.agent.x, W.agent.y + 2.2, 0.8), ['#ffd23f', '#ffffff'], 16, { speed: 0.12, up: 0.12, size: 0.8, shape: 'sphere' });
   ui.pop(bullets >= 2 ? 'ONE SHOT!' : DEEP && 3 - bullets <= parOf(level) ? 'PERFECT!' : 'CLEARED!', '#ffd23f', 50, 30);
   if (DEEP) {
+    roomFails[level] = 0;
+    { const atPar = 3 - bullets <= parOf(level); const prev = DS.get('pstreak') || 0; const st = atPar ? prev + 1 : 0; DS.set('pstreak', st); if (st > (DS.get('pbest') || 0)) DS.set('pbest', st);
+      if (st >= 2) { const sb = Math.min(10, st) * 100; addScore(sb); setTimeout(() => { ui.pop(`PAR STREAK x${st} · +${sb}`, '#7cf3ff', 36, 44); [660, 880, 1100].forEach((f, i) => setTimeout(() => tone(f, 0.1, 'triangle', 0.08, 1), i * 60)); }, 650); }
+      else if (!atPar && prev >= 2) setTimeout(() => ui.pop('STREAK BROKEN', '#ff8a7a', 30, 44), 650); }
+    if (dailyLv && level === dailyLv && DS.get('dday') !== dayKey()) {
+      const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10), ds = (DS.get('dday') === y ? (DS.get('dstreak') || 0) : 0) + 1;
+      DS.set('dday', dayKey()); DS.set('dstreak', ds); addScore(1000 + 200 * Math.min(ds, 7)); dailyLv = 0;
+      setTimeout(() => { ui.pop(`DAILY ROOM! 🔥${ds} · +${1000 + 200 * Math.min(ds, 7)}`, '#ffd23f', 38, 50); [784, 988, 1175, 1568].forEach((f, i) => setTimeout(() => tone(f, 0.14, 'triangle', 0.1, 1), i * 80)); }, 900);
+    } else dailyLv = 0;
     deepWin(3 - bullets); level++; deepHud();
     ui.win(level - 1, bullets ? `+${bonus} for ${bullets} spare bullet${bullets > 1 ? 's' : ''}` : `${score} pts`);
     idle(prepNext); return;
@@ -969,7 +1028,9 @@ loop((dt60, tt) => {
     aimA = ga + Math.sin(t * 2.2) * 0.7 * Math.max(0, Math.cos(Math.min(Math.PI / 2, (t % 4) * 0.5)));
   } else if (level > 1) demo = false;
   if (slowT > 0) { slowT -= rdt; if (slowT <= 0 && state === 'play') win(); }
-  timeScale = lerp(timeScale, slowT > 0 ? 0.2 : 1, 1 - Math.pow(0.0005, rdt));
+  if (hitT > 0) hitT -= rdt;
+  const bcam = DEEP && bullet && bullet.finalD && bullet.finalD - bullet.s < 4.5 && bullet.finalD > bullet.s;
+  timeScale = lerp(timeScale, bcam ? 0.28 : slowT > 0 ? 0.2 : hitT > 0 ? 0.05 : 1, 1 - Math.pow(0.0005, rdt) * (hitT > 0 ? 0.01 : 1));
   const dt = rdt * timeScale;
 
   // ---- bullet flight
@@ -987,7 +1048,7 @@ loop((dt60, tt) => {
     }
     const p = posAt(B, B.s);
     while (B.vi < B.pts.length - 1 && B.cum[B.vi] <= B.s) {   // ricochet ping + sparks at each wall bounce
-      const q = B.pts[B.vi]; tone(1700 + B.vi * 140, 0.09, 'sine', 0.07, 0.55); burst(scene, V(q[0], q[1], 0.6), '#fff3b0', 6, { speed: 0.08, size: 0.45, gravity: 0.003 }); B.vi++;
+      const q = B.pts[B.vi]; tone(1700 + B.vi * 140, 0.09, 'sine', 0.07, 0.55); burst(scene, V(q[0], q[1], 0.6), '#fff3b0', 6, { speed: 0.08, size: 0.45, gravity: 0.003 }); if (DEEP) { const n = B.vi; shake = Math.max(shake, 0.22 + n * 0.05); punch = Math.max(punch, 0.03); hitT = Math.max(hitT, 0.035); tone(110, 0.1, 'square', 0.1, 0.4); tone(1200 + n * 260, 0.12, 'triangle', 0.08, 1.5); buzz(12); burst(scene, V(q[0], q[1], 0.8), ['#ffffff', '#9fe8ff', '#ffd23f'], 12 + n * 4, { speed: 0.13, up: 0.04, size: 0.6, gravity: 0.004 }); if (n >= 2 && state === 'play') ui.pop('BANK x' + n, '#9fe8ff', 30, 22); } B.vi++;
     }
     bulletMesh.position.set(p.x, p.y, 0.75); bulletMesh.rotation.z = Math.atan2(p.dy, p.dx) - Math.PI / 2;
     let n = 0;
@@ -999,9 +1060,10 @@ loop((dt60, tt) => {
     if (B.s >= B.len - 1e-6) {
       const last = B.ev[B.ev.length - 1];
       if (!last || (last.type !== 'boom' && last.type !== 'hostage')) { burst(scene, V(p.x, p.y, 0.6), '#fff3b0', 8, { speed: 0.07, size: 0.5 }); tone(1200, 0.05, 'triangle', 0.05, 0.4); }
-      bullet = null; bulletMesh.visible = false; tFade = 1;
+      bullet = null; bulletMesh.visible = false; tFade = 1; if (DEEP && shotKills === 0 && feverK > 0) { if (feverK >= 3) ui.pop('FEVER OVER', '#ff8a7a', 30, 30); feverK = 0; }
       if (shotKills === 0 && state === 'play') { ui.pop('MISSED', '#ffffff', 28, 30); AD.bad(); } else if (shotKills) AD.good(shotKills);
     }
+  } else if (DEEP && state === 'lost' && trailMesh.count) { trailMesh.material.opacity = 0.75 + 0.2 * Math.sin(t * 6); trailMesh.material.color.set('#ff8a7a'); tFade = 0;
   } else if (tFade > 0) { tFade = Math.max(0, tFade - rdt * 1.4); trailMesh.material.opacity = 0.9 * tFade; if (!tFade) trailMesh.count = 0; }
 
   // ---- pending chain explosions, physics
@@ -1047,7 +1109,7 @@ loop((dt60, tt) => {
   }
   // ---- laser sight (first two ricochets) while aiming
   if (W && state === 'play' && !bullet && bullets > 0 && slowT <= 0) {
-    const s = shoulder(W, aimA), T = fullSight ? trace(W, s.x, s.y, aimA, 6, 40) : trace(W, s.x, s.y, aimA, 2, sightLen(aiming ? 17 : 9));
+    const s = shoulder(W, aimA), T = fullSight ? trace(W, s.x, s.y, aimA, 6, 40) : trace(W, s.x, s.y, aimA, DEEP && level <= 10 ? 3 : 2, sightLen(aiming ? (DEEP && level <= 10 ? 26 : 17) : 9));
     let n = 0, off = (t * 1.6) % 0.42; const segs = T.pts;
     for (let i = 1; i < segs.length; i++) {
       const a = segs[i - 1], b = segs[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L, ang = Math.atan2(uy, ux);
@@ -1060,17 +1122,21 @@ loop((dt60, tt) => {
     const end = segs[1]; reticle.visible = aiming; reticle.position.set(end[0], end[1], 0.85); reticle.scale.setScalar(1 + Math.sin(t * 10) * 0.12);
   } else { laser.count = 0; reticle.visible = false; }
   const tg = level === 1 && W && state === 'play' && bullets === 3 && !bullet && W.enemies[0] && W.enemies[0].alive ? W.enemies[0] : null;
-  tapRing.visible = !!tg;
+  tapRing.visible = !!tg || (state === 'lost' && !!missE);
+  if (!tg && state === 'lost' && missE) { const k = (t * 1.4) % 1; tapRing.position.set(missE.x, missE.y + 1.05, 0.9); tapRing.scale.setScalar(0.9 + k * 0.7); tapRing.material.opacity = 0.9 * (1 - k); }
   if (tg) { const k = (t * 1.4) % 1; tapRing.position.set(tg.x, tg.y + 1.05, 0.9); tapRing.scale.setScalar(0.9 + k * 0.7); tapRing.material.opacity = 0.9 * (1 - k); }
 
   // ---- lose when out of bullets and everything has settled
+  if (bullet || bullets > 0) outT = 0;
   if (state === 'play' && !bullet && bullets <= 0 && slowT <= 0 && killed < total) {
-    if (settled()) { loseT += rdt; if (loseT > 1.1) lose('OUT OF AMMO', `${total - killed} goon${total - killed > 1 ? 's' : ''} left standing`); } else loseT = 0;
+    outT += rdt; if (settled() || (DEEP && outT > 1.0)) { loseT += rdt; if (loseT > (DEEP ? 0.25 : 1.1)) lose('OUT OF AMMO', `${total - killed} goon${total - killed > 1 ? 's' : ''} left standing`); } else loseT = 0;
   }
 
   // ---- camera: punch-in on the final kill, shake
   let tz = 1, tx = 0, ty = camBaseY;
-  if (slowT > 0 && focus) { tz = 1.12; tx = clamp(focus.x * 0.3, -0.8, 0.8); ty = lerp(camBaseY, focus.y + 1, 0.2); }
+  if (slowT > 0 && focus) { tz = DEEP ? 1.28 : 1.12; tx = clamp(focus.x * (DEEP ? 0.6 : 0.3), -1.4, 1.4); ty = lerp(camBaseY, focus.y + 1, DEEP ? 0.4 : 0.2); }
+  if (bcam && bullet) { const bp = posAt(bullet, bullet.s); tz = 1.55; tx = clamp(bp.x * 0.8, -2.2, 2.2); ty = lerp(camBaseY, bp.y, 0.7); }
+  punch = Math.max(0, punch - rdt * 0.5); tz += punch;
   cam.zoom = lerp(cam.zoom, tz, 1 - Math.pow(0.004, rdt)); cam.updateProjectionMatrix();
   shake = Math.max(0, shake - rdt * 1.6);
   camX = lerp(camX, tx, 1 - Math.pow(0.004, rdt)); camY = lerp(camY, ty, 1 - Math.pow(0.004, rdt));

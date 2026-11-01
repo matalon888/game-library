@@ -21,7 +21,7 @@ export const WORLDS = [
 // suits: unlocked by total stars, worn by the agent (cosmetic only)
 export const SUITS = [
   { name: 'Navy', stars: 0, body: '#2f55b5', legs: '#22397a' },
-  { name: 'Crimson', stars: 6, body: '#c4352f', legs: '#7a1f1c' },
+  { name: 'Crimson', stars: 3, body: '#c4352f', legs: '#7a1f1c' },
   { name: 'Forest', stars: 15, body: '#2f8f4e', legs: '#1d5a31' },
   { name: 'Royal', stars: 27, body: '#6a3fc1', legs: '#3f2577' },
   { name: 'Desert', stars: 40, body: '#d9a441', legs: '#8a6420' },
@@ -35,9 +35,9 @@ export const LEVELS = [
   // 1 introduce: one goon, clear line, the sight is already on him (can't fail)
   { n: 'First Contact', par: 1, a: [-3.5, 0], g: [[2.2, 0]] },
   // 2 tiny decision: two goons in one line, one bullet gets both
-  { n: 'Lined Up', par: 1, a: [-3.5, 0], g: [[0.4, 0], [3.0, 0]] },
+  { n: 'Lined Up', par: 1, a: [-3.5, 0], g: [[0.4, 0], [3.0, 0]], t: [[1.7, 0]] },
   // 3 first room you can lose: the pillar hides him, bank off the ceiling or the wall
-  { n: 'Over the Top', par: 1, a: [-3.5, 0], g: [[2.9, 0]], s: [pillar(0.3, 0.8, 6)] },
+  { n: 'Over the Top', par: 1, a: [-3.5, 0], g: [[2.9, 0]], s: [pillar(0.3, 0.8, 6)], h: [[-1.3, 0]] },
   // 4 practise: three heights, pick the order
   { n: 'Upstairs', par: 2, a: [-3.5, 0], g: [[3.0, 5.5], [-3.0, 10], [3.2, 0]], s: [ledge(1.4, R, 5.5), ledge(-R, -1.2, 10)] },
   // 5 introduce crates: shove the crate off the ledge onto the goon behind the stump
