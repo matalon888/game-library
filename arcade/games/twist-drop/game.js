@@ -79,7 +79,7 @@ const tower = new THREE.Group(); scene.add(tower);
 const F = flow('twist');
 let isDaily = false, gemsGot = 0, gemMeshes = [], freeze = 0, def = null, lastStars = 0, lastBox = null;
 let pole, rings = [], ball, ballShadowCaster, level = DEEP ? Math.min(meta.cur, meta.frontier(), 30) : +(localStorage.getItem('twist_level') || 1), best = +(localStorage.getItem('twist_best') || 0);
-let score = 0, combo = 0, fire = false, state = 'ready', vy = 0, by = 0, squash = 0, camY = 0, shards = [], trail = [], passed = 0;
+let kick = 0, score = 0, combo = 0, fire = false, state = 'ready', vy = 0, by = 0, squash = 0, camY = 0, shards = [], trail = [], passed = 0;
 
 function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
 function buildLevel() {
@@ -229,6 +229,7 @@ function lose() {
     const pct = Math.round(passed / (rings.length - 1) * 100), left = rings.length - 1 - passed;
     let pb = 0; if (DEEP) { try { const k = 'td_pb' + level; pb = +(localStorage.getItem(k) || 0); if (pct > pb) { localStorage.setItem(k, pct); } } catch (e) {} }
     $('losePct').textContent = DEEP ? (left <= 3 ? `SO CLOSE! ${left} ring${left === 1 ? '' : 's'} to go` : `${left} rings short · ${pct}%`) + (pb ? `\nbest ${Math.max(pb, pct)}%` : '') + (meta.streak > 0 || meta.dailyDone() ? '\n' + meta.tomorrow() : '') : `${pct}% completed`;
+    if (lastPop) lastPop.remove();
     $('lose').classList.remove('hidden');
   }, DEEP ? 300 : 700);
 }
@@ -310,6 +311,7 @@ function frame(t) {
           if (ring.gem) { gemsGot++; scene.remove(ring.gem); ring.group.remove(ring.gem); score += 25 * level; $('score').textContent = score; pop('💎 ' + gemsGot + '/3', '#41e1ff', 34, 27); tone(900 + gemsGot * 150, 0.2, 'sine', 0.16); buzz(15); burst('#41e1ff', 16); }
           if (ring.golden) { score += 100 * level; $('score').textContent = score; pop('GOLDEN RING! +' + 100 * level, '#ffc300', 40, 24); tone(1200, 0.3, 'sine', 0.16); burst('#ffc300', 20); buzz(20); }
           if (combo >= 2) pop(DEEP && combo >= 5 ? `x${combo}  +${pts}` : '+' + pts, combo >= 5 ? '#ffd23f' : '#fff', Math.min(60, 28 + combo * 3), 19);
+          if (DEEP && combo >= 3) kick = Math.min(0.55, 0.2 + combo * 0.03);
           if (combo === 3) setFire(true);
           if (DEEP && (combo === 8 || combo === 12 || combo === 16)) { pop(combo === 8 ? 'UNSTOPPABLE!' : combo === 12 ? 'LEGEND!' : 'GODLIKE!', '#ffd23f', 54, 14); buzz([15, 30, 15]); $('flash').style.opacity = 0.3; setTimeout(() => $('flash').style.opacity = 0, 90); tone(1000 + combo * 30, 0.25, 'sine', 0.16); }
           continue;
@@ -354,7 +356,7 @@ function frame(t) {
   // camera follows the ball down only (never back up), slightly from above
   camY = Math.min(camY, by);
   const cy = camY + 0.15 * (by - camY);
-  camera.position.set(0, cy + 6.2, 13.2); camera.lookAt(0, cy - 2.2, 0);
+  kick *= 0.85; camera.position.set(0, cy + 6.2 + kick, 13.2 - kick * 1.5); camera.lookAt(0, cy - 2.2, 0);
   sun.position.set(2.5, cy + 8, 5); sun.target.position.set(0, cy - 2, 0);
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
