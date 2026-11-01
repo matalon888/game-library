@@ -99,10 +99,10 @@ const CLASH = [['Palindromes', 'Another word backwards'], ['Braid styles', 'Thin
   ['Hidden animals', 'Baby animals'], ['Hidden drinks', 'Café drinks'], ['Hidden colours', 'Pastel paint names'],
   ['Things that are pink', 'Pastel paint names'], ['Bakery case', '___cake'], ['Sleepover must-haves', '___ party']];
 const TIER = { 1: 'butter', 2: 'mint', 3: 'sky', 4: 'berry' };
-export function vibeFor(n) {
-  const r = rng('vibe' + n), hard = isHard(n), gentle = isGentle(n);
-  const tiers = hard ? [2, 3, 4, 4] : gentle ? [1, 1, 2, 3] : [1, 2, 3, 4];
-  const no = setNo(n);
+export function vibeFor(n, o) {    // o = Puzzle Book options { tiers, no, seed }
+  const r = rng('vibe' + (o ? o.seed : n)), hard = o ? false : isHard(n), gentle = o ? false : isGentle(n);
+  const tiers = o ? o.tiers : hard ? [2, 3, 4, 4] : gentle ? [1, 1, 2, 3] : [1, 2, 3, 4];
+  const no = o ? o.no : setNo(n);
   for (let attempt = 0; attempt < 60; attempt++) {
     const chosen = [];
     for (let i = 0; i < 4; i++) {
@@ -123,7 +123,8 @@ export function vibeFor(n) {
     if (!ok) continue;
     // colours by difficulty order (two tier-4 groups on Hard day: sky gets the easier one)
     const col = hard ? ['mint', 'sky', 'lilac', 'berry'] : gentle ? ['butter', 'mint', 'sky', 'lilac'] : ['butter', 'mint', 'sky', 'berry'];
-    groups.forEach((g, i) => g.color = col[i]);
+    if (o) { const used = new Set(); groups.forEach((g, i) => { const c = ({ 1: 'butter', 2: 'mint', 3: 'sky', 4: 'berry' })[g.tier]; g.color = used.has(c) ? ['lilac', 'butter', 'mint', 'sky'].find(x => !used.has(x)) : c; used.add(g.color); }); }
+    else groups.forEach((g, i) => g.color = col[i]);
     const tiles = shuffle(groups.flatMap((g, gi) => g.words.map(w => ({ w, g: gi }))), r);
     return { groups, tiles, mistakes: 4 };
   }
@@ -171,14 +172,15 @@ export const SCRAMBLE = [
   RB('PAJAMAS', ['🛌'], 'Comfy fit'), RB('SUNSET', ['🌇'], 'Golden hour'), RB('BUBBLES', ['🫧'], 'Pop pop pop'),
 ];
 const VOWELS = 'AEIOU', DECOY = 'AEIOUSTRLNMPBCDGHKY';
-export function decodeFor(n) {
-  const r = rng('decode' + n), no = setNo(n), rebus = no % 3 !== 0 || isHard(n);   // 2 of 3 days are rebus days
+export function decodeFor(n, o) {    // o = Puzzle Book options { rebus, idx, extra, seed, minLen, maxLen }
+  const r = rng('decode' + (o ? o.seed : n)), no = o ? o.idx : setNo(n), rebus = o ? o.rebus : no % 3 !== 0 || isHard(n);   // 2 of 3 days are rebus days
   const bank = rebus ? REBUS : SCRAMBLE;
   const order = shuffle(bank, rng(rebus ? 'rbank' : 'sbank'));
-  const it = order[(no * 7) % order.length];
+  const pool = o ? order.filter(b => b.a.length >= (o.minLen || 0) && b.a.length <= (o.maxLen || 99)) : order;
+  const it = pool[(no * 7) % pool.length];
   const letters = [...it.a];
   if (rebus) {               // rebus: the answer's letters plus a few decoys
-    const extra = isHard(n) ? 4 : isGentle(n) ? 1 : 3;
+    const extra = o ? o.extra : isHard(n) ? 4 : isGentle(n) ? 1 : 3;
     for (let i = 0; i < extra; i++) letters.push(i % 2 ? pick(VOWELS, r) : pick(DECOY, r));
   }
   let bankL = shuffle(letters, r);
@@ -209,8 +211,8 @@ function clueTest(c, s) {
     case 'either': return has(c.cat, c.p, c.i) || has(c.cat, c.p, c.i2);
   }
 }
-export function gridFor(n) {
-  const r = rng('grid' + n), hard = isHard(n), N = hard || weekday(n) === 4 || weekday(n) === 5 ? 4 : 3;
+export function gridFor(n, o) {    // o = Puzzle Book options { N, hard, seed, maxClues, isMax }
+  const r = rng('grid' + (o ? o.seed : n)), hard = o ? !!o.hard : isHard(n), N = o ? o.N : hard || weekday(n) === 4 || weekday(n) === 5 ? 4 : 3;
   const people = shuffle(FRIENDS, r).slice(0, N);
   const [ca, cb] = shuffle(CATS, r).slice(0, 2);
   const A = shuffle(ca.items, r).slice(0, N), B = shuffle(cb.items, r).slice(0, N);
@@ -232,8 +234,9 @@ export function gridFor(n) {
   for (let tries = 0; tries < 40 && !best; tries++) {
     const pool = shuffle(cands, r).sort((x, y) => weight(y) * r() - weight(x) * r());
     let left = all, clues = [], isN = 0;
+    if (o && o.gifts) for (const c of shuffle(cands.filter(x => x.t === 'is'), r).slice(0, o.gifts)) { left = left.filter(q => clueTest(c, q)); clues.push(c); isN++; }   // gifted clues first (Puzzle Book)
     for (const c of pool) {
-      if (c.t === 'is' && isN >= (hard ? 0 : 1)) continue;
+      if (c.t === 'is' && isN >= (hard ? 0 : o && o.isMax != null ? Math.max(o.isMax, o.gifts || 0) : 1)) continue;
       const nl = left.filter(s => clueTest(c, s));
       if (nl.length === left.length) continue;
       clues.push(c); left = nl; if (c.t === 'is') isN++;
@@ -242,10 +245,11 @@ export function gridFor(n) {
     if (left.length !== 1) continue;
     // drop clues that aren't needed (keeps it short and tidy)
     for (let k = clues.length - 1; k >= 0; k--) {
+      if (o && o.gifts && clues[k].t === 'is') continue;
       const rest = clues.filter((_, j) => j !== k);
       if (all.filter(s => rest.every(c => clueTest(c, s))).length === 1) clues = rest;
     }
-    if (clues.length <= (N === 3 ? 5 : 7)) best = clues;
+    if (clues.length <= (o && o.maxClues ? o.maxClues : N === 3 ? 5 : 7)) best = clues;
   }
   if (!best) throw new Error('no grid');
   return { N, people, cats: [ca, cb], items: [A, B], sol, clues: shuffle(best, r), hearts: 3 };

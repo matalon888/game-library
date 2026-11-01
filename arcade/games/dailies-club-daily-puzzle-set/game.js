@@ -7,10 +7,14 @@ import { flow } from './kit/flow.js';
 import { daily } from './kit/daily.js';
 import { board as worldBoard } from './kit/board.js';
 import { money } from './kit/money.js';
-import { demo } from './kit/demo.js';
 import { createScene, DECOR } from './scene.js';
 import { snd } from './audio.js';
 import * as P from './puzzles.js';
+import * as BK from './book.js';
+import { ab } from './kit/xp.js';
+// READY stays false until the Puzzle Book (v2) is finished and checked: until then no player sees it (?deep=1 is for QA only).
+const READY = true;
+const DEEP = (READY && ab('deep-dailies-club')) || /[?&]deep=1(&|$)/.test(location.search);
 
 addEventListener('unhandledrejection', e => console.error('unhandled: ' + (e.reason?.stack || e.reason)));
 const NAME = 'Dailies Club: Daily Puzzle Set';
@@ -29,24 +33,24 @@ const sg = (k, d) => { try { return S.get(k, d); } catch (e) { return d; } };
 const st = {
   days: sg('days', {}), streak: sg('streak', { n: 0, best: 0, last: 0, freeWeek: -1, extra: 0, frozen: [], broken: null, rescued: 0 }),
   stars: sg('stars', 0), earned: sg('earned', 0), decor: sg('decor', []), album: sg('album', {}), solved: sg('solved', 0), sets: sg('sets', 0),
-  unlocked: sg('unlocked', []), pages: sg('pages', []), seenDecor: sg('seenDecor', 0),
+  book: sg('book', { best: {}, chain: 0, chests: 0, bestChain: 0 }), unlocked: sg('unlocked', []), pages: sg('pages', []), seenDecor: sg('seenDecor', 0),
 };
 const save = (...ks) => { for (const k of (ks.length ? ks : Object.keys(st))) try { S.set(k, st[k]); } catch (e) {} };
-{ const keys = Object.keys(st.days).map(Number).sort((a, b) => b - a); for (const k of keys.slice(60)) delete st.days[k]; }
+{ const keys = Object.keys(st.days).map(Number).filter(k => k < BK.BOOKBASE).sort((a, b) => b - a); for (const k of keys.slice(60)) delete st.days[k]; }
 const rec = n => st.days[n] || (st.days[n] = {
   v: { found: [], guesses: [], mist: 0, done: 0, won: 0, hints: 0, hinted: [] },
   d: { slots: [], mist: 0, done: 0, won: 0, hints: 0, given: [] },
   g: { cells: {}, mist: 0, done: 0, won: 0, hints: 0, used: [] },
   stars: { v: 0, d: 0, g: 0 }, complete: 0, coins: 0,
 });
-const sets = {}; const setOf = n => sets[n] || (sets[n] = P.setFor(n));
+const sets = {}; const setOf = n => sets[n] || (sets[n] = BK.isBook(n) ? BK.pageSet(BK.pageOf(n)) : P.setFor(n));
 const KINDS = ['v', 'd', 'g'];
 const META = {
   v: { name: 'Vibe Check', rule: 'Find the 4 hidden groups of 4', icon: 'vibe' },
   d: { name: 'Decode', rule: 'Spell the emoji word', icon: 'dec' },
   g: { name: 'Mini Grid', rule: 'Who has what? Use the clues', icon: 'grid' },
 };
-const newbie = () => st.sets < 5;           // first 5 sets: hints are free (near-certain wins)
+const newbie = () => st.sets < 5 || (BK.isBook(day) && BK.pageOf(day) < 10);           // first 5 sets: hints are free (near-certain wins)
 const HINT_COST = 15;
 
 // stickers: 4 album pages of 12, one sticker per solved puzzle (holo for 3 stars)
@@ -183,7 +187,7 @@ function overlay(kindName, html, { onBackdrop = null } = {}) {
   ov.addEventListener('click', e => { if (e.target.closest('button')) return; if (onBackdrop) onBackdrop(e); });
   return ov;
 }
-function goHome() { closeOv(); kind = null; state = 'ready'; setView('home'); paintHome(); SC.reactTo('idle'); setTimeout(greet, 400); }
+function goHome() { bookChipOff(); const wasBook = BK.isBook(day); if (wasBook) day = TODAY; closeOv(); kind = null; state = 'ready'; setView('home'); paintHome(); SC.reactTo('idle'); setTimeout(greet, 400); if (wasBook && DEEP) setTimeout(bookMap, 60); }
 
 // Lulu's speech bubble on the home screen
 let sayT = 0;
@@ -232,7 +236,13 @@ function paintHome() {
     <div class="sub">${sub}</div>
     ${KINDS.map((k, i) => { const q = r[k]; return `<button class="pz ${q.done ? 'done' : ''}" data-k="${k}">${iconHtml(k)}<div class="nm"><b>${META[k].name}</b><span>${desc[k]}</span></div>${q.done ? `<div class="stars">${stars3(r.stars[k])}</div>` : `<span class="btn ${i === KINDS.findIndex(x => !r[x].done) ? 'pink' : 'soft'} go">Play</span>`}</button>`; }).join('')}
     <div class="nav"><button data-nav="archive"><img src="${thumb('r04')}" alt="">Archive</button><button data-nav="album"><img src="${thumb('t09')}" alt="">Album${albumNew() ? '<i class="dot"></i>' : ''}</button><button data-nav="club"><img src="${thumb('h02')}" alt="">Club${clubCanBuy() ? '<i class="dot"></i>' : ''}</button><button data-nav="shop"><img src="${thumb('x01')}" alt="">Shop</button></div>`;
-  sheet.querySelectorAll('.pz').forEach(b => b.onclick = () => { snd.tap(); const k = b.dataset.k; if (rec(day)[k].done) reviewCard(k); else start(k); });
+  if (DEEP && day === TODAY) {
+    const nx = bookNext(), tot = bookStars();
+    const row = $(`<button class="pz bookrow" data-book><div class="icon" style="background:linear-gradient(180deg,#ffe27a,#ffb347);font-size:30px;display:grid;place-items:center">📖</div><div class="nm"><b>Puzzle Book</b><span>${nx < BK.BOOK_N ? `Page ${nx + 1} · ${BK.WORLDS[BK.worldOf(nx)].name}` : 'All 30 pages done'} · ⭐${tot}/90</span></div><span class="btn lilac" style="padding:9px 16px;font-size:16px">Play</span></button>`);
+    row.onclick = () => { snd.tap(); if (!bookStars() && nx === 0) bookGo(0); else bookMap(); };
+    sheet.querySelector('.nav').before(row);
+  }
+  sheet.querySelectorAll('.pz:not(.bookrow)').forEach(b => b.onclick = () => { snd.tap(); const k = b.dataset.k; if (rec(day)[k].done) reviewCard(k); else start(k); });
   sheet.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => { snd.pop(); ({ archive: archiveCard, album: albumCard, club: clubCard, shop: () => M.shop() })[b.dataset.nav](); });
   if (day !== TODAY) { const back = $(`<button class="btn soft" style="width:100%;margin:2px 0 8px;padding:9px">← Back to today</button>`); back.onclick = () => { day = TODAY; paintHome(); greet(); }; sheet.querySelector('.sub').after(back); }
   SC.setCards(KINDS.map(k => r[k].done));
@@ -242,14 +252,33 @@ const albumNew = () => !!sg('albumNew', 0);
 const clubCanBuy = () => DECOR.some(d => !st.decor.includes(d.id) && d.cost <= st.stars);
 
 // ---------------------------------------------------------------- puzzle start
+let timeLine = '';
+// ---- Puzzle Book twists: par clock on every page, RUSH pages (tight par, double speed bonus), GOLD pages (double coins + holo sticker)
+const flavorOf = i => BK.PAGES[i].boss ? 'boss' : i % 10 === 4 ? 'rush' : i % 10 === 7 ? 'gold' : '';
+const parOf = i => { const k = BK.PAGES[i].k; const base = k === 'v' ? 50 : k === 'd' ? 28 : 70; const f = flavorOf(i); return Math.round(base * (1 + BK.worldOf(i) * 0.15) * (f === 'rush' ? 0.6 : 1)); };
+let fastBonus = 0, goldPage = false, chipT = 0, chipEl = null;
+function bookChipOff() { document.body.classList.remove('rush', 'gold'); clearInterval(chipT); if (chipEl) chipEl.style.display = 'none'; }
+function bookChip(i) {
+  if (!chipEl) { chipEl = document.createElement('div'); chipEl.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 54px);right:10px;z-index:30;padding:4px 10px;border-radius:14px;font:800 13px var(--round);background:#fff;color:#5b3a8c;box-shadow:0 3px 0 #dccaf5;pointer-events:none'; document.body.appendChild(chipEl); }
+  const par = parOf(i), f = flavorOf(i); document.body.classList.toggle('rush', f === 'rush'); document.body.classList.toggle('gold', f === 'gold'); clearInterval(chipT); chipEl.style.display = '';
+  const tick = () => { if (state !== 'play') return; const t = (performance.now() - t0) / 1000, left = par - t, ok = left > 0;
+    chipEl.textContent = (f === 'rush' ? '⚡ RUSH ' : f === 'gold' ? '✨ GOLD ' : '⚡ ') + (ok ? Math.ceil(left) + 's' : Math.floor(t) + 's');
+    chipEl.style.background = ok ? (left < 8 ? '#ffe3a0' : f === 'gold' ? '#fff0a8' : '#fff') : '#eee'; chipEl.style.color = ok ? '#5b3a8c' : '#999'; };
+  tick(); chipT = setInterval(tick, 250);
+  if (f === 'rush') setTimeout(() => { if (state === 'play') bubble('⚡ RUSH PAGE: beat the clock for bonus coins!'); }, 2600);
+  if (f === 'gold') setTimeout(() => { if (state === 'play') bubble('✨ GOLD PAGE: double coins + a holo sticker!'); }, 2600);
+}
+
 let V = null, Dd = null, Gg = null;     // live puzzle state
 function start(k) {
   closeOv(); kind = k; state = 'play'; t0 = performance.now(); busy = false; setView('play');
   const s = setOf(day);
-  el.ttl.textContent = META[k].name; el.ttlSub.textContent = `${day === TODAY ? 'Today' : fmt(day)} · #${s.no}${s.hard ? ' · Hard' : ''}`;
+  el.ttl.textContent = META[k].name; el.ttlSub.textContent = BK.isBook(day) ? `Puzzle Book · page ${s.no}${s.hard ? ' · BOSS' : ''}` : `${day === TODAY ? 'Today' : fmt(day)} · #${s.no}${s.hard ? ' · Hard' : ''}`;
   M.level(st.solved + 1);
   bubble(pickOf(BUB.start[k], s.no + (k === 'd' && s.d.kind === 'scramble' ? 2 : 0)));
   if (k === 'd' && s.d.kind === 'rebus') bubble('Emoji math! What word do they make? 🔮');
+  if (BK.isBook(day)) { const pg = BK.PAGES[BK.pageOf(day)]; setTimeout(() => { if (state === 'play') bubble(pg.boss ? '👑 BOSS PAGE! Make it count' : (flavorOf(BK.pageOf(day)) === 'rush' ? '⚡ RUSH PAGE: beat the clock!' : flavorOf(BK.pageOf(day)) === 'gold' ? '✨ GOLD PAGE: double coins!' : pg.purpose.replace(/^intro /, 'New: ').replace(/^(.)/, c => c.toUpperCase()))); }, 1400); if (pg.boss) snd.win(); }
+  if (BK.isBook(day)) bookChip(BK.pageOf(day)); else bookChipOff();
   SC.reactTo('idle');
   ({ v: vibeStart, d: decStart, g: gridStart })[k]();
 }
@@ -289,18 +318,11 @@ function paintVibe(anim = false) {
   stage.querySelector('[data-sub]').disabled = V.sel.length !== 4;
   stage.querySelector('[data-hint]').disabled = r.found.length >= 3;
 }
-// the first seconds play themselves (Oct 26: under-1-minute players left within 10 s): on the first Vibe Check, until the
-// first touch, two tiles from different groups light up as picked and let go again, so a tap's effect shows and no group is given away
-let demoPick = null;
-demo(n => {
-  if (n === 1) { const o = V.order.filter(i => !V.sel.includes(i)); const a = o[Math.floor(o.length / 3)], b = o.find(i => V.s.tiles[i].g !== V.s.tiles[a].g && i !== o[0]); if (a == null || b == null) return false; demoPick = [a, b]; }
-  const i = demoPick[(n - 1) % 2]; vibeTap(i); if (n >= 4) return false;
-}, { ready: () => view === 'play' && kind === 'v' && state === 'play' && !ov && !busy && st.solved === 0 && (demoPick || !V.sel.length), wait: 1800, every: 700, max: 4 });
 function vibeTap(i, b) {
   if (state !== 'play' || busy) return;
   const k = V.sel.indexOf(i);
   if (k >= 0) { V.sel.splice(k, 1); snd.untap(); }
-  else if (V.sel.length < 4) { V.sel.push(i); snd.tap(V.sel.length); }
+  else if (V.sel.length < 4) { V.sel.push(i); snd.tap(V.sel.length); if (b) { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 5 + V.sel.length * 3, { speed: 2 + V.sel.length, up: 2, size: 0.7 }); navigator.vibrate && navigator.vibrate(8); } }
   else return;
   paintVibe();
 }
@@ -318,7 +340,7 @@ async function vibeSubmit() {
   if (top === 4) {
     const gi = gs[0]; r.found.push(gi); V.order = V.order.filter(i => s.tiles[i].g !== gi); V.sel = [];
     snd.good(r.found.length); SC.reactTo('happy'); bubble(rnd(BUB.good));
-    const rc = stage.querySelector('.solved').getBoundingClientRect(); burst(innerWidth / 2, rc.bottom + 30, 26, { speed: 6 });
+    const rc = stage.querySelector('.solved').getBoundingClientRect(); const cl = r.mist === 0 ? r.found.length : 0; burst(innerWidth / 2, rc.bottom + 30, 22 + r.found.length * 10, { speed: 6 + r.found.length }); if (cl >= 2) { bubble(cl >= 3 ? '🔥 FLAWLESS RUN!' : '✨ ' + cl + ' clean in a row'); snd.good(cl * 3); }
     save('days'); paintVibe(true);
     if (r.found.length === 4) { busy = false; return finish(true); }
   } else {
@@ -503,17 +525,27 @@ async function finish(won) {
   const r = rec(day), q = r[kind], ms = performance.now() - t0;
   q.done = 1; q.won = won ? 1 : 0;
   const stars = won ? starsFor(kind) : 0; r.stars[kind] = stars;
-  const coins = won ? 5 + stars * 5 : 2;
-  st.solved += won ? 1 : 0; st.stars += stars; st.earned += stars;
+  const book = BK.isBook(day) ? BK.pageOf(day) : -1;
+  let coins = won ? 5 + stars * 5 : 2, gain = stars, first = false, chain = 0, chest = false;
+  if (book >= 0) {                                         // Puzzle Book: only a better result pays stars again
+    const B0 = st.book, old = B0.best[book] || 0; B0.time = B0.time || {}; const secs = Math.round(ms / 1000), oldT = B0.time[book]; if (won && (!oldT || secs < oldT)) { B0.time[book] = secs; } timeLine = won ? `⏱ ${secs}s${oldT && secs < oldT ? ` · new best (was ${oldT}s)` : oldT ? ` · best ${Math.min(oldT, secs)}s` : ''}` : ''; first = !old; gain = Math.max(0, stars - old);
+    if (won) { B0.best[book] = Math.max(old, stars); B0.chain = stars === 3 ? B0.chain + 1 : 0; B0.bestChain = Math.max(B0.bestChain, B0.chain); chain = B0.chain; if (BK.PAGES[book].boss) coins += 15; if (chain >= 2) coins += Math.min(30, chain * 3); if (!gain && !first) coins = 3; }
+    else B0.chain = 0;
+    bookChipOff(); fastBonus = 0; goldPage = false;
+    if (won) { const par = parOf(book), f = flavorOf(book); if (secs <= par) { fastBonus = f === 'rush' ? 20 : 8; coins += fastBonus; } if (f === 'gold') { coins *= 2; goldPage = true; } }
+    chest = won && bookStars() >= (B0.chests + 1) * BOOK_CHEST;
+  }
+  st.solved += won ? 1 : 0; st.stars += gain; st.earned += gain;
   F.level(won, won ? 1 : 0.5);
   if (day === TODAY && stars) B.submit(stars, { ms });
-  const sticker = won ? giveSticker(stars === 3) : null;
+  const sticker = won && (book < 0 || first || gain > 0) ? giveSticker(stars === 3 || goldPage) : null;
   M.add(coins, 'solve'); r.coins += coins;
   save();
   state = won ? 'won' : 'lost';
-  lastResult = { kind, stars, coins, sticker };
-  if (won) { snd.win(); SC.reactTo('cheer'); rain(70); burst(innerWidth / 2, innerHeight * 0.4, 40); }
+  lastResult = { fast: fastBonus, gold: goldPage, par: book >= 0 ? parOf(book) : 0, kind, stars, coins, sticker, book, first, gain, chain, chest };
+  if (won) { snd.win(); SC.reactTo('cheer'); rain(stars === 3 ? 110 : 60); burst(innerWidth / 2, innerHeight * 0.4, 40); }
   await wait(won ? 650 : 200);
+  if (book >= 0) return bookResult();
   resultCard();
 }
 async function fail() {
@@ -555,7 +587,7 @@ function resultCard() {
     <p>${META[k].name} · ${stars ? `${stars} star${stars > 1 ? 's' : ''}` : 'answer revealed'}${sticker ? ` · ${sticker.isNew ? 'new' : ''}${sticker.holo ? ' holo' : ''} sticker!` : ''}</p>
     <div class="reward"><span class="pill" data-coinsrc><span class="coin"></span>+${coins}</span>${stk}</div>
     ${sticker && sticker.page ? `<p>📒 You finished the <b>${sticker.page.name}</b> page! +100 coins</p>` : ''}
-    <div class="row"><button class="btn pink" data-next>${next ? `Next: ${META[next].name} ▸` : 'See your set ▸'}</button></div>
+    <div class="row"><button class="btn pink" data-next>${next ? `Next: ${META[next].name} ›` : 'See your set ›'}</button></div>
     <div class="tapcont">Tap anywhere to continue</div>`, { onBackdrop: () => advance() });
   if (sticker && sticker.page) M.add(100, 'album page');
   setTimeout(() => coinFly(ov && ov.querySelector('[data-coinsrc]'), Math.min(8, 2 + stars * 2)), 500);
@@ -564,6 +596,7 @@ function resultCard() {
 }
 function advance() {
   if (ovKind !== 'result') return;
+  if (BK.isBook(day)) return bookGo(lastResult.stars ? bookNext(BK.pageOf(day)) : BK.pageOf(day));
   const r = rec(day), next = KINDS.find(x => !r[x].done);
   closeOv();
   if (next) return start(next);
@@ -641,6 +674,77 @@ function streakCard() {
 }
 
 // ---------------------------------------------------------------- archive
+// ---------------------------------------------------------------- Puzzle Book (v2): 30 authored pages, 3 worlds, stars, chests
+const BOOK_CHEST = 9;                                              // book stars per chest
+const bookStars = () => Object.values(st.book.best).reduce((a, b) => a + b, 0);
+const bookNext = (from = -1) => { for (let i = from + 1; i < BK.BOOK_N; i++) if (!st.book.best[i]) return i; for (let i = 0; i < BK.BOOK_N; i++) if (!st.book.best[i]) return i; return BK.BOOK_N; };
+const bookOpen = i => i === 0 || !!st.book.best[i - 1] || !!st.book.best[i];
+(() => { const c = document.createElement('style'); c.textContent = `.bmap{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:6px 0 10px}
+.bmap button{position:relative;aspect-ratio:1;border-radius:18px;background:#fff;box-shadow:0 4px 0 #dccaf5;font:700 20px var(--round);color:var(--ink);display:grid;place-items:center;line-height:1}
+.bmap button small{position:absolute;bottom:3px;left:0;right:0;font-size:9px;letter-spacing:-1px}
+.bmap button.lock{opacity:.45;box-shadow:none}.bmap button.next{animation:bpulse 1s infinite;background:#fff4b8;box-shadow:0 4px 0 #e9b93a}
+.bmap button.boss{background:#ffe3f0;box-shadow:0 4px 0 #f2a1c8}.bmap button i{position:absolute;top:2px;right:4px;font-style:normal;font-size:12px}
+.bw{font:700 15px var(--round);text-align:left;margin:8px 2px 0;color:var(--ink)}.bw span{font:800 12px var(--sans);color:var(--ink2);margin-left:6px}
+.bbar{height:10px;border-radius:9px;background:#eadcfb;overflow:hidden;margin:6px 4px}.bbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd24d,#ff79b8)}
+@keyframes bpulse{50%{transform:scale(1.08)}}`; document.head.appendChild(c); })();
+function bookGo(i) {
+  if (i >= BK.BOOK_N) return bookMap();
+  closeOv(); delete st.days[BK.BOOKBASE + i]; day = BK.BOOKBASE + i; delete sets[day];
+  start(BK.PAGES[i].k);
+}
+function bookMap() {
+  if (!DEEP) return;
+  const nx = bookNext(), tot = bookStars(), toChest = BOOK_CHEST - (tot % BOOK_CHEST), sn = streakNow();
+  const tomorrow = `Tomorrow: daily set #${P.setNo(P.addDays(TODAY, 1))} · 🔥 day ${(sn.n || 0) + (rec(TODAY).complete ? 1 : 1)}`;
+  let h = `<button class="xbtn" data-x>×</button><div class="sheetc"><h3>Puzzle Book</h3>
+    <div class="bbar"><i style="width:${(tot % BOOK_CHEST) / BOOK_CHEST * 100}%"></i></div><p style="margin:0">🎁 ${toChest} more ⭐ for a chest · ${st.book.chain >= 2 ? `🔥 ${st.book.chain} perfect in a row · ` : ''}⭐ ${tot}/90</p>`;
+  BK.WORLDS.forEach((w, wi) => {
+    const done = BK.PAGES.slice(wi * 10, wi * 10 + 10).filter((_, j) => st.book.best[wi * 10 + j]).length;
+    h += `<div class="bw">${w.name}<span>${done}/10 · ${w.blurb}</span></div><div class="bmap">`;
+    for (let j = 0; j < 10; j++) { const i = wi * 10 + j, b = st.book.best[i] || 0, boss = BK.PAGES[i].boss, open = bookOpen(i);
+      h += `<button data-i="${i}" class="${open ? '' : 'lock'} ${i === nx ? 'next' : ''} ${boss ? 'boss' : ''}">${open ? (boss ? '👑' : i + 1) : '🔒'}${boss && open ? '' : ''}<small>${b ? '⭐'.repeat(b) : ''}</small></button>`; }
+    h += `</div>`; });
+  h += `<p>${tomorrow}</p></div>`;
+  overlay('bookmap', h, { onBackdrop: () => closeOv() });
+  ov.querySelector('[data-x]').onclick = () => { closeOv(); };
+  ov.querySelectorAll('.bmap button').forEach(b => b.onclick = () => { const i = +b.dataset.i; if (!bookOpen(i)) { snd.untap(); toast('Clear the page before it first'); return; } snd.tap(); bookGo(i); });
+  const nb = ov.querySelector('.bmap .next'); if (nb) nb.scrollIntoView({ block: 'center' });
+}
+function bookResult() {
+  const { kind: k, stars, coins, sticker, book, first, gain, chain, chest, fast, gold, par } = lastResult, p = BK.PAGES[book];
+  const nx = stars ? bookNext(book) : book, last = book === BK.BOOK_N - 1;
+  const titles = stars === 3 ? ['Slay!', 'Iconic!', 'Perfect!'] : stars === 2 ? ['Nice!', 'So good!'] : stars === 1 ? ['Solved!', 'You did it!'] : ['So close!'];
+  const stk = sticker ? `<div class="stk ${sticker.holo ? 'holo' : ''}"><img src="${thumb(sticker.id)}" alt=""></div>` : '';
+  const worldDone = stars && p.boss;
+  const near = !stars ? `<p>Almost! Try it again, the answer is in your hands.</p>` : stars < 3 ? `<p>${stars === 2 ? 'One tiny slip from 3 ⭐' : 'Clean run = 3 ⭐'} · tap Again to go for it</p>` : '';
+  overlay('result', `<h3 class="outline">${worldDone ? '👑 BOSS CLEARED' : gold ? '✨ GOLD PAGE!' : fast && flavorOf(book) === 'rush' ? '⚡ RUSH WON!' : titles[book % titles.length]}</h3>
+    <div class="bigstars">${[0, 1, 2].map(i => `<i class="${i < stars ? '' : 'off'}">⭐</i>`).join('')}</div>
+    <p>${timeLine ? timeLine + (fast ? ` · ⚡ under ${par}s +${fast}` : par && stars ? ` · par ${par}s` : '') + '<br>' : ''}${gold ? '✨ GOLD PAGE ×2 coins<br>' : ''}Page ${book + 1} · ${first && stars ? 'new page!' : gain ? `+${gain} ⭐ better` : stars ? 'cleared again' : 'not this time'}${chain >= 2 ? ` · 🔥 ${chain} perfect in a row` : ''}</p>${near}
+    <div class="reward"><span class="pill" data-coinsrc><span class="coin"></span>+${coins}</span>${stk}</div>
+    ${worldDone && book < BK.BOOK_N - 1 ? `<p>🌈 ${BK.WORLDS[BK.worldOf(book) + 1].name} is open!</p>` : ''}
+    <div class="row">${stars ? `<button class="btn pink" data-go>${last ? 'Book map ›' : `Page ${nx + 1} ›`}</button><button class="btn soft" data-again>Again${stars < 3 ? ' ⭐' : ''}</button>` : `<button class="btn pink" data-again>Try again ›</button><button class="btn soft" data-map>Map</button>`}</div>
+    <div class="row"><button class="btn soft" data-map2 style="flex:0 0 auto;min-width:0;padding:8px 16px;font-size:15px">📖 Map</button></div>
+    <p style="font-size:13px">🎁 ${BOOK_CHEST - (bookStars() % BOOK_CHEST)} ⭐ to the next chest · Tomorrow: daily set #${P.setNo(P.addDays(TODAY, 1))}${st.streak.n ? ` · keep the 🔥 ${st.streak.n}` : ' · start a 🔥 streak'}</p>`);
+  setTimeout(() => coinFly(ov && ov.querySelector('[data-coinsrc]'), Math.min(8, 2 + stars * 2)), 400);
+  if (sticker) setTimeout(() => snd.sticker(), 800);
+  const q = s => ov && ov.querySelector(s);
+  if (q('[data-go]')) q('[data-go]').onclick = () => { if (chest) bookChest(() => bookGo(last ? BK.BOOK_N : nx)); else bookGo(last ? BK.BOOK_N : nx); };
+  if (q('[data-again]')) q('[data-again]').onclick = () => { if (chest) bookChest(() => bookGo(book)); else bookGo(book); };
+  const toMap = () => { const go = () => { day = TODAY; bookMap(); }; if (chest) bookChest(go); else go(); };
+  if (q('[data-map]')) q('[data-map]').onclick = toMap; if (q('[data-map2]')) q('[data-map2]').onclick = toMap;
+}
+function bookChest(then) {
+  const B0 = st.book; B0.chests++;
+  const roll = Math.random(); let msg, big = false, stk = '';
+  if (roll < 0.5) { const sk = giveSticker(Math.random() < 0.3); stk = `<div class="stk ${sk.holo ? 'holo' : ''}"><img src="${thumb(sk.id)}" alt=""></div>`; msg = `${sk.holo ? 'A holo ' : 'A '}${sk.isNew ? 'new ' : ''}sticker!`; big = sk.holo; }
+  else if (roll < 0.58) { M.add(150, 'chest'); msg = 'JACKPOT +150 coins!'; big = true; }
+  else { const c = 30 + 10 * ((Math.random() * 4) | 0); M.add(c, 'chest'); msg = `+${c} coins`; }
+  save('book');
+  snd.win(); burst(innerWidth / 2, innerHeight * 0.4, big ? 70 : 40); if (big) rain(60);
+  overlay('chest', `<div style="font-size:72px;line-height:1">🎁</div><h3 class="outline">Chest!</h3><p>${msg}</p><div class="reward">${stk}</div><div class="row"><button class="btn pink" data-ok>Yay ›</button></div>`);
+  ov.querySelector('[data-ok]').onclick = () => { closeOv(); then(); };
+}
+
 const ARCH_FREE = 7, ARCH_COST = 30;
 function archiveCard() {
   const days = 28, first = P.addDays(TODAY, -(days - 1)), lead = (P.weekday(first) + 6) % 7;
