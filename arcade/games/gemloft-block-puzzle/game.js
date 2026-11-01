@@ -470,7 +470,7 @@ function collectGem(type, x, y) {
   const r = slot.getBoundingClientRect(), tx = r.left + r.width / 2, ty = r.top + 20;
   const img = document.createElement('img'); img.className = 'gl-fly'; img.src = ICON['g' + type]; document.body.appendChild(img);
   flying.push({ img, sx, sy, tx, ty, t: 0, d: 0.55 + Math.random() * 0.15, cx: sx + (Math.random() - 0.5) * 160, cy: Math.min(sy, ty) - 40, upd: () => {
-    const g = game.goals[i]; if (!g) return; const b = slot.querySelector('b'); b.textContent = g.left <= 0 ? '✓' : g.left; slot.classList.toggle('done', g.left <= 0); slot.classList.remove('bump'); void slot.offsetWidth; slot.classList.add('bump'); snd.gem(i); } });
+    const g = game && game.goals[i]; if (!g) return; const b = slot.querySelector('b'); b.textContent = g.left <= 0 ? '✓' : g.left; slot.classList.toggle('done', g.left <= 0); slot.classList.remove('bump'); void slot.offsetWidth; slot.classList.add('bump'); snd.gem(i); } });
 }
 const flying = [];
 let shake = 0;
@@ -769,6 +769,15 @@ loop((d) => {
 async function renderIcons() {
   for (let i = 0; i < GEM_IDS.length; i++) ICON['g' + i] = `./assets/thumbs/${GEM_IDS[i]}.webp`;
 }
+// every shader is compiled behind the loading screen: the board, gems, room, host and post effects otherwise compiled in the
+// first visible frames (diag 2026-11-01: 36% of runs froze 2-5 s). One frame with everything shown and one instance of each
+// (three skips the draw of an empty instanced mesh, so its GPU pipeline would still be built later).
+function warmUp() {
+  const hid = [], fc = [], empty = [];
+  scene.traverse(o => { if (!o.visible) { hid.push(o); o.visible = true; } if (o.frustumCulled) { fc.push(o); o.frustumCulled = false; } if (o.isInstancedMesh && o.count === 0) { empty.push(o); o.count = 1; } });
+  try { cam.updateMatrixWorld(); C.render(0); } catch (e) {}
+  hid.forEach(o => { o.visible = false; }); fc.forEach(o => { o.frustumCulled = true; }); empty.forEach(o => { o.count = 0; });
+}
 async function boot() {
   let n = 0; const total = 9; const tick = () => { n++; loadBar.style.width = Math.min(100, n / total * 100) + '%'; };
   const got = await Promise.all(GEM_IDS.map(id => piece(id, 'mid').then(p => { tick(); return p; })));
@@ -779,9 +788,12 @@ async function boot() {
   await enterRoom(st.room, true); tick();
   host = await hp; placeHostInRoom(); tick();
   refreshHome();
+  mode = 'title'; state = 'ready'; titleShow(); warmUp();
   loadEl.style.opacity = 0; setTimeout(() => loadEl.remove(), 600);
-  mode = 'title'; state = 'ready'; titleShow();
-  for (let k = 0; k < LOFTS.length; k++) if (k !== st.room) setTimeout(() => ensureRoom(k), 5000 + k * 1500);
+  // the other lofts are built one at a time and only while no level is being played (a build mid-level froze phones, as in Mochi Match)
+  const prebuild = () => { const k = LOFTS.findIndex((_, i) => !rooms[i]); if (k < 0) return;
+    if (state === 'play') return setTimeout(prebuild, 4000); ensureRoom(k).then(() => setTimeout(prebuild, 2500)); };
+  setTimeout(prebuild, 5000);
   if (Q.get('daily') === '1') { /* the kit's daily seed is used when the Daily button is pressed or on autostart */ }
 }
 
