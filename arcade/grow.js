@@ -23,7 +23,8 @@
   // Each is on for half the players; the daily report compares next-day return per half (diag.js retentionText).
   const XCODE = (() => { try { return (window.RiffHabits && RiffHabits.agentCode && RiffHabits.agentCode()) || localStorage.getItem('ap.u') || ''; } catch (e) { return ''; } })();
   const xpOn = f => { let h = 0x811c9dc5; for (const c of f + ':' + XCODE) { h ^= c.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return ((h >>> 24) & 1) === 1; };   // a high bit: the low bit of FNV-1a only sees the letters' odd/even codes
-  const XP = { dc: xpOn('dc'), ct: xpOn('ct'), ms: xpOn('ms') };
+  // 2026-11-02: missions and the Continue card for everyone (missions: next day 15.7% vs 11.2%; Continue 15.1% vs 11.9%)
+  const XP = { dc: xpOn('dc'), ct: true, ms: true };
   window.ApXP = XP;
 
   // ---------------------------------------------------------------- counting (/stats-internal)
@@ -219,11 +220,15 @@
     const main = document.querySelector('main.home'), cont = document.getElementById('cont'), brand = main && main.querySelector('.brand');
     const put = el => { if (cont) cont.after(el); else if (brand) brand.after(el); };
     let lastSlug = (ls.get('lastGame', null) || {}).slug; if (!lastSlug) try { lastSlug = String(localStorage.getItem('arcade.last') || '').replace(/"/g, ''); } catch (e) {}
+    // the home game (2026-11-02): the game they've played most here (60 s+) comes first, the same one the daily message opens;
+    // 62 of 81 return visits used to open a different game than the one they'd played
+    const home = Object.entries(ls.get('psecs', {})).filter(([sl, t]) => t >= 60 && gs.some(x => x.slug === sl)).sort((a, b) => b[1] - a[1])[0];
+    if (home) lastSlug = home[0];
     const lg = XP.ct && lastSlug && gs.find(x => x.slug === lastSlug);
     if (lg && (cont || brand)) {
       const lv = window.ApSave && ApSave.level ? ApSave.level(lg.slug) : 0;
       const el = document.createElement('a'); el.className = 'g-challenge g-continue'; el.href = `play.html?g=${encodeURIComponent(lg.slug)}&from=continue`;
-      el.innerHTML = `<img src="${esc(art(lg))}" alt=""><div><div class="eyebrow">Continue</div><b>${esc(lg.name)}</b><span>${lv > 1 ? `You reached level ${lv}` : 'Pick up where you left off'}</span></div><span class="go">▶</span>`;
+      el.innerHTML = `<img src="${esc(art(lg))}" alt=""><div><div class="eyebrow">${home ? 'Your game' : 'Continue'}</div><b>${esc(lg.name)}</b><span>${lv > 1 ? `You reached level ${lv}` : 'Pick up where you left off'}</span></div><span class="go">▶</span>`;
       el.addEventListener('click', () => ev('continue_tap'));
       if (cont) { cont.innerHTML = ''; cont.appendChild(el); } else brand.after(el);
       ev('continue_shown');
@@ -318,6 +323,7 @@
     if (window.ArcadeDiag) ArcadeDiag.end(reason);
     const secs = (Date.now() - t0) / 1000;
     if (RH) RH.gameEnd(secs);
+    if (G && !kids) { const ps = ls.get('psecs', {}); ps[G.slug] = Math.round((ps[G.slug] || 0) + Math.min(secs, 1800)); ls.set('psecs', ps); }   // the home game
     // GA batches events for ~5 s and drops them when the page goes: this one is beaconed at once (consent.js gaNow)
     return (RC.gaNow || ((n, p) => Promise.resolve(ga(n, p))))('game_end', { game_id: G.slug, game_category: G.category || '', play_seconds: Math.round(secs), score: best ?? undefined, end_reason: reason, rounds_lost: roundsLost, source: src, player_tier: tierNow });
   }
