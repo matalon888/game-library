@@ -19,11 +19,11 @@
  "total": 340,
  "poster": "https://agentpark.co/arcade/today-poster.jpg?d=2026-11-02",
  "game_of_the_day": {
-  "name": "Slip Links",
-  "category": "Puzzle",
-  "pitch": "Tap the topmost chain to slip it off its pegs, untangling overlapping colored links in the right order, with satisfying combo feedback.",
-  "image": "https://agentpark.co/arcade/covers/slip-links.webp",
-  "play_url": "https://agentpark.co/arcade/play.html?g=slip-links&ref=daily&pos=gotd"
+  "name": "Swarm Streets",
+  "category": "Arcade",
+  "pitch": "Steer a growing swarm through a city, absorbing grey pedestrians and swallowing smaller rival mobs while dodging bigger ones before the timer expires.",
+  "image": "https://agentpark.co/arcade/covers/swarm-streets.webp",
+  "play_url": "https://agentpark.co/arcade/play.html?g=swarm-streets&ref=daily&pos=gotd"
  },
  "games": [
   {
@@ -162,90 +162,90 @@
  "categories": {
   "Puzzle": [
    {
-    "name": "Whisker Stack",
+    "name": "Plumb Pairs: Connect the Dots Pipe Puzzle",
     "new": false,
-    "pitch": "Tap cute cat-face tiles into a seven-slot tray, matching three alike to clear them and build combos while a kitten cheers you on.",
-    "image": "https://agentpark.co/arcade/covers/whisker-stack.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=whisker-stack&ref=daily&pos=list-Puzzle"
+    "pitch": "Link matching dots with pipes that never cross and fill every cell.",
+    "image": "https://agentpark.co/arcade/covers/plumb-pairs-connect-the-dots-pipe-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=plumb-pairs-connect-the-dots-pipe-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Sticky Mitts: Draw Line Heist",
+    "name": "Comb Stack: Hex Tile Stacking",
     "new": false,
-    "pitch": "Drag a stretchy glove arm across the vault floor, dodging lasers and sleeping or watching bots, to snatch the loot and watch it snap back.",
-    "image": "https://agentpark.co/arcade/covers/sticky-mitts-draw-line-heist.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=sticky-mitts-draw-line-heist&ref=daily&pos=list-Puzzle"
+    "pitch": "Drag hexagon stacks onto the honeycomb and watch matching colours flip together until ten clear.",
+    "image": "https://agentpark.co/arcade/covers/comb-stack-hex-tile-stacking.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=comb-stack-hex-tile-stacking&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Moonbloom Endless",
+    "name": "Dialock: Spin Lock Puzzle",
     "new": false,
-    "pitch": "Shoot bubbles in a moonlit garden using power-ups, with an animated character, on mobile-friendly controls.",
-    "image": "https://agentpark.co/arcade/covers/duyluong0406-moonbloom-endless.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=duyluong0406-moonbloom-endless&ref=daily&pos=list-Puzzle"
+    "pitch": "Spin nested dials until every gap lines up with the exit and the glowing core slides free.",
+    "image": "https://agentpark.co/arcade/covers/dialock-spin-lock-puzzle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=dialock-spin-lock-puzzle&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Shade Shop",
+    "name": "Swirl Tee",
     "new": false,
-    "pitch": "Tap red, yellow, blue, white and black drops into a bowl to match a target colour on a 3D object, then spray it.",
-    "image": "https://agentpark.co/arcade/covers/shade-shop.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=shade-shop&ref=daily&pos=list-Puzzle"
+    "pitch": "Fold the shirt, squirt dye into each section, then unfold to see how closely the swirl, spotted or striped pattern matches the target.",
+    "image": "https://agentpark.co/arcade/covers/swirl-tee.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=swirl-tee&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Steady Wheels",
+    "name": "Untwine",
     "new": false,
-    "pitch": "Hold to drive, slide the wheel to steer along curving roads, collect coins, dodge cones, then reverse into a marked bay without scraping.",
-    "image": "https://agentpark.co/arcade/covers/steady-wheels.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=steady-wheels&ref=daily&pos=list-Puzzle"
+    "pitch": "Drag rope plugs to empty pegs until no strands cross, with a move counter, tangle count and levels adding more ropes.",
+    "image": "https://agentpark.co/arcade/covers/untwine.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=untwine&ref=daily&pos=list-Puzzle"
    },
    {
-    "name": "Smooch Roll",
+    "name": "Drip Doodle",
     "new": false,
-    "pitch": "Sketch ink lines that become physical objects so a blue and a pink ball roll into each other, with simple, readable physics puzzles.",
-    "image": "https://agentpark.co/arcade/covers/smooch-roll.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=smooch-roll&ref=daily&pos=list-Puzzle"
+    "pitch": "Draw ink lines to steer falling water into a glass; the expressive face and confetti reward each clever solution with satisfying feedback.",
+    "image": "https://agentpark.co/arcade/covers/drip-doodle.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=drip-doodle&ref=daily&pos=list-Puzzle"
    }
   ],
   "Arcade": [
    {
-    "name": "Putt Isles",
+    "name": "Dumpling Dash: Kawaii Cooking Rush",
     "new": false,
-    "pitch": "Drag back to aim and putt a ball across floating-island mini-golf courses, racing rival balls to the cup through themed holes.",
-    "image": "https://agentpark.co/arcade/covers/putt-isles.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=putt-isles&ref=daily&pos=list-Arcade"
+    "pitch": "Cook, top and serve boba, dumplings, ramen, sushi and shortcake to a queue of chibi friends across five kawaii restaurants, then upgrade your kitchen and fill a sticker album.",
+    "image": "https://agentpark.co/arcade/covers/dumpling-dash-kawaii-cooking-rush.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=dumpling-dash-kawaii-cooking-rush&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Boltpack: Jetpack Runner",
+    "name": "Burrowbop: Whack a Critter Game",
     "new": false,
-    "pitch": "Hold to fire a robot's jetpack and release to drop, weaving past zappers and rockets while collecting golden bolts along a bright lab corridor.",
-    "image": "https://agentpark.co/arcade/covers/boltpack-jetpack-runner.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=boltpack-jetpack-runner&ref=daily&pos=list-Arcade"
+    "pitch": "Bop the grubbles popping out of a 3D garden in 45-second rounds, but leave the bunnies alone.",
+    "image": "https://agentpark.co/arcade/covers/burrowbop-whack-a-critter-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=burrowbop-whack-a-critter-game&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Capy Hop: Endless Road Hopper",
+    "name": "Bricklash: Brick Breaker",
     "new": false,
-    "pitch": "Tap to hop a capybara across busy roads, log rivers and train tracks while the camera creeps forward, chasing a higher score.",
-    "image": "https://agentpark.co/arcade/covers/capy-hop-endless-road-hopper.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=capy-hop-endless-road-hopper&ref=daily&pos=list-Arcade"
+    "pitch": "Bounce the ball off your paddle, smash glowing bricks and catch multi-ball, laser and wide-paddle capsules.",
+    "image": "https://agentpark.co/arcade/covers/bricklash-brick-breaker.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bricklash-brick-breaker&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Twist Drop",
+    "name": "Slinko: Classic Snake Game",
     "new": false,
-    "pitch": "Drag to twist a pink tower so a bouncing ball drops through the gaps, smashing platforms in satisfying bursts while avoiding dark slices.",
-    "image": "https://agentpark.co/arcade/covers/twist-drop.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=twist-drop&ref=daily&pos=list-Arcade"
+    "pitch": "Swipe to turn, eat berries, grow longer and don't bite your own tail as the speed climbs.",
+    "image": "https://agentpark.co/arcade/covers/slinko-classic-snake-game.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=slinko-classic-snake-game&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Ring Peel",
+    "name": "Nibbit: Maze Chase Arcade",
     "new": false,
-    "pitch": "Hold to stream balls down a pier, peeling rings off a striped tower while timing shots to dodge the orbiting guard wall.",
-    "image": "https://agentpark.co/arcade/covers/ring-peel.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=ring-peel&ref=daily&pos=list-Arcade"
+    "pitch": "Steer Nib through a neon maze, eat every crumb and grab glow pellets to turn the tables on four sneaky critters.",
+    "image": "https://agentpark.co/arcade/covers/nibbit-maze-chase-arcade.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=nibbit-maze-chase-arcade&ref=daily&pos=list-Arcade"
    },
    {
-    "name": "Switchback",
+    "name": "Zapline: Alien Wave Shooter",
     "new": false,
-    "pitch": "Tap to flip a rolling ball's direction along a narrow zigzag cliff path, collecting gems while the pace steadily quickens.",
-    "image": "https://agentpark.co/arcade/covers/switchback.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=switchback&ref=daily&pos=list-Arcade"
+    "pitch": "Drag your auto-firing ship, blast rows of descending aliens, hide behind shields and tag the bonus saucer.",
+    "image": "https://agentpark.co/arcade/covers/zapline-alien-wave-shooter.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=zapline-alien-wave-shooter&ref=daily&pos=list-Arcade"
    }
   ],
   "Action": [
@@ -712,8 +712,8 @@
   "play_url": "https://agentpark.co/arcade/play.html?g=rack-attack&ch=19&ref=daily&pos=challenge"
  },
  "peek": {
-  "name": "Horde Blast",
-  "play_url": "https://agentpark.co/arcade/play.html?g=horde-blast&ref=daily&pos=peek"
+  "name": "Viral Den",
+  "play_url": "https://agentpark.co/arcade/play.html?g=viral-den&ref=daily&pos=peek"
  },
  "ai_only": [
   {
@@ -729,5 +729,5 @@
    "play_url": "https://agentpark.co/arcade/play.html?g=bunchwise-word-groups-puzzle&ref=daily&pos=aionly"
   }
  ],
- "daily_message": "🎮 Your games · Monday, 2 November\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-11-02)\n\n🏆 Today: [Slip Links ▶](https://agentpark.co/arcade/play.html?g=slip-links&ref=daily&pos=gotd) · Pull the chains free in the right order\n🔥 Everyone's playing:\n• [Viral Den](https://agentpark.co/arcade/play.html?g=viral-den&ref=daily&pos=hot) · Film videos, gain followers, upgrade your streamer den\n• [Ring Peel](https://agentpark.co/arcade/play.html?g=ring-peel&ref=daily&pos=hot) · Hold to fire and peel the tower\n• [Bumpy Buggy](https://agentpark.co/arcade/play.html?g=bumpy-buggy&ref=daily&pos=hot) · Gas, brake and balance over the hills\n• [Horde Blast](https://agentpark.co/arcade/play.html?g=horde-blast&ref=daily&pos=hot) · Fire your crowd through multiplier gates and flood the enemy base\n• [Swirl Tee](https://agentpark.co/arcade/play.html?g=swirl-tee&ref=daily&pos=hot) · Fold, dye and unfold to match the shirt\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 340 games →](https://agentpark.co)"
+ "daily_message": "🎮 Your games · Monday, 2 November\n![Today's games](https://agentpark.co/arcade/today-poster.jpg?d=2026-11-02)\n\n🏆 Today: [Swarm Streets ▶](https://agentpark.co/arcade/play.html?g=swarm-streets&ref=daily&pos=gotd) · Lead your crowd through the city and swallow every rival\n🔒 Only in your AI: [Alibi Grid](https://agentpark.co/arcade/play.html?g=alibi-grid-daily-logic-puzzle&ref=daily&pos=aionly)\n🎮 [All 340 games →](https://agentpark.co)"
 }
