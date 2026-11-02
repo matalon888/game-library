@@ -250,46 +250,46 @@
   ],
   "Action": [
    {
-    "name": "Horde Blast",
+    "name": "Smash Dummy",
     "new": false,
-    "pitch": "Hold to fire a stream of blue fighters through x2 and x3 gates, multiplying your crowd into a swarm that storms the red fortress.",
-    "image": "https://agentpark.co/arcade/covers/horde-blast.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=horde-blast&ref=daily&pos=list-Action"
+    "pitch": "Drag and fling a wooden dummy into swinging wrecking balls and down stairs, racking up damage points toward each level's goal before throws run out.",
+    "image": "https://agentpark.co/arcade/covers/smash-dummy.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=smash-dummy&ref=daily&pos=list-Action"
    },
    {
-    "name": "Glowkeep: Monster Horde Arena",
+    "name": "Fort Fling",
     "new": false,
-    "pitch": "Drag a lantern-wielding hero around a growing swarm while auto-fired spells and level-up upgrade picks build a stronger run across themed stages.",
-    "image": "https://agentpark.co/arcade/covers/glowkeep-monster-horde-arena.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=glowkeep-monster-horde-arena&ref=daily&pos=list-Action"
+    "pitch": "Pull back the slingshot and fling fruit to collapse wood, glass and stone forts, knocking out every raccoon hiding inside before ammo runs out.",
+    "image": "https://agentpark.co/arcade/covers/fort-fling.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=fort-fling&ref=daily&pos=list-Action"
    },
    {
-    "name": "Pose Rush",
+    "name": "Skyline Scope",
     "new": false,
-    "pitch": "Run down a street, then drag your fighter's limbs into the right pose during slow motion to kick, punch or dodge past obstacles.",
-    "image": "https://agentpark.co/arcade/covers/pose-rush.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=pose-rush&ref=daily&pos=list-Action"
+    "pitch": "Hold to scope in from a rooftop, steer the crosshair onto the red-capped target among civilians, and release on a steady breath to fire.",
+    "image": "https://agentpark.co/arcade/covers/skyline-scope.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=skyline-scope&ref=daily&pos=list-Action"
    },
    {
-    "name": "Cover Clash",
+    "name": "Fling Feud",
     "new": false,
-    "pitch": "Hold to pop out of cover and shoot, release to duck before enemy fire lands, across beach and city waves.",
-    "image": "https://agentpark.co/arcade/covers/cover-clash.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=cover-clash&ref=daily&pos=list-Action"
+    "pitch": "Drag back to set angle and power, then fling an axe at quirky opponents across colorful stages, where headshots deal double damage.",
+    "image": "https://agentpark.co/arcade/covers/fling-feud.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=fling-feud&ref=daily&pos=list-Action"
    },
    {
-    "name": "Another Dungeon Game",
+    "name": "Bonk Brawl: Dodgeball Arena",
     "new": false,
-    "pitch": "Explore randomly generated dungeon floors, find the key, fight monsters and bosses with sword and bow, and buy upgrades at market floors.",
-    "image": "https://agentpark.co/arcade/covers/martinsuii-another-dungeon-game.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=martinsuii-another-dungeon-game&ref=daily&pos=list-Action"
+    "pitch": "Drag your bean around a slick ice rink to dodge incoming balls, scoop one up and throw it to knock out rivals across the court.",
+    "image": "https://agentpark.co/arcade/covers/bonk-brawl-dodgeball-arena.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=bonk-brawl-dodgeball-arena&ref=daily&pos=list-Action"
    },
    {
-    "name": "Gullhop: Island Flight Sim",
+    "name": "Wand Rush: Magic Element Runner",
     "new": false,
-    "pitch": "Fly a toy plane over a sunny island chain: race through rings, land on tiny runways, drop supply crates and pop paint-blaster drones.",
-    "image": "https://agentpark.co/arcade/covers/gullhop-island-flight-sim.webp",
-    "play_url": "https://agentpark.co/arcade/play.html?g=gullhop-island-flight-sim&ref=daily&pos=list-Action"
+    "pitch": "Steer a pair of wands through fire, frost and spark gates, matching each element to shatter armoured goons in a smooth first-person dash.",
+    "image": "https://agentpark.co/arcade/covers/wand-rush-magic-element-runner.webp",
+    "play_url": "https://agentpark.co/arcade/play.html?g=wand-rush-magic-element-runner&ref=daily&pos=list-Action"
    }
   ],
   "Strategy": [
